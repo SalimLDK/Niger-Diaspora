@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,6 +9,7 @@ import 'package:intl/intl.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../core/services/currency_provider.dart';
 import '../../../../core/services/currency_service.dart';
+import '../../../../core/services/notification_read_sync.dart';
 import '../../../../core/services/stripe_service.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../domain/entities/order_entity.dart';
@@ -31,6 +34,9 @@ class _MyOrdersScreenState extends ConsumerState<MyOrdersScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    // « Mes commandes » est la destination de toutes les notifications de
+    // commande (liste, bannière, fiche) : l'ouvrir les lit.
+    unawaited(NotificationReadSync.markOrdersOpened());
   }
 
   @override

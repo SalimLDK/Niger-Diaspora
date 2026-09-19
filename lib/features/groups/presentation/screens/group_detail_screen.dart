@@ -38,6 +38,7 @@ import '../widgets/invite_members_sheet.dart';
 import '../widgets/share_group_modal.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../core/services/analytics_service.dart';
+import '../../../../core/services/notification_read_sync.dart';
 import '../../../../shared/widgets/app_icon.dart';
 import 'package:diaspo_niger/core/errors/message_erreur.dart';
 
@@ -63,6 +64,10 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
   @override
   void initState() {
     super.initState();
+    // Fiche ouverte — depuis une notification, une recherche, un lien : les
+    // annonces qui la concernent (demande approuvée ou refusée, départ du
+    // groupe officiel, invitation de ville) sont lues.
+    unawaited(NotificationReadSync.markGroupOpened(widget.groupId));
     if (widget.initialGroup == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         unawaited(ref

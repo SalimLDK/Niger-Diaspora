@@ -93,6 +93,12 @@ class NotificationDetailScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Ouvrir la fiche, c'est lire la notification — quel que soit
+                // le chemin qui y mène (appui long, bannière, lien). Seul
+                // l'appui dans la liste la marquait ; les types sans écran
+                // propre (`system`, `supportReply`, `missedCall`, transferts,
+                // salons…) n'ont pourtant que cette fiche pour destination.
+                _MarqueLueALOuverture(notification: notification),
                 // Header with icon and priority
                 Row(
                   children: [
@@ -567,4 +573,38 @@ class NotificationDetailScreen extends ConsumerWidget {
           ),
     ));
   }
+}
+
+/// Marque lue la notification affichée, une seule fois par ouverture.
+///
+/// De taille nulle : c'est un point d'accroche au cycle de vie, pas un
+/// élément visuel. `initState` ne rejoue pas aux reconstructions, donc la
+/// bascule de `isRead` qui suit ne relance rien. Best-effort — un échec
+/// laisse la ligne non lue, et le bouton « Marquer comme lu » de la fiche
+/// reste là pour la reprendre.
+class _MarqueLueALOuverture extends ConsumerStatefulWidget {
+  final NotificationEntity notification;
+
+  const _MarqueLueALOuverture({required this.notification});
+
+  @override
+  ConsumerState<_MarqueLueALOuverture> createState() =>
+      _MarqueLueALOuvertureState();
+}
+
+class _MarqueLueALOuvertureState extends ConsumerState<_MarqueLueALOuverture> {
+  @override
+  void initState() {
+    super.initState();
+    if (!widget.notification.isRead) {
+      unawaited(
+        ref
+            .read(notificationsNotifierProvider.notifier)
+            .markAsRead(widget.notification.id),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => const SizedBox.shrink();
 }
