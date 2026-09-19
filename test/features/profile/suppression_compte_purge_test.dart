@@ -692,6 +692,131 @@ void main() {
   });
 
   // ═══════════════════════════════════════════════════════════════════════
+  // Effacement différé du matériel local, confirmé par le serveur
+  // ═══════════════════════════════════════════════════════════════════════
+  group('effacement local différé', () {
+    const cheminLocal =
+        'supabase/migrations/20260919123300_suppression_compte_effacement_local.sql';
+    final local = _source(cheminLocal);
+    final rpc = _corps(local, 'public.account_deletion_completed');
+    final service = _source('lib/core/services/effacement_local_differe.dart');
+    final materiel = _source('lib/core/services/effacement_materiel_local.dart');
+
+    test('la RPC ne répond « vrai » que pour completed, et rend un booléen', () {
+      expect(rpc, contains('RETURNS boolean'));
+      expect(rpc, contains("r.status = 'completed'"));
+      // Un compte en délai de grâce doit être indiscernable d'un compte qui n'a
+      // rien demandé : aucun autre état ne doit apparaître dans le corps.
+      for (final autre in ["'pending'", "'deleting'", "'blocked'", "'cancelled'"]) {
+        expect(rpc, isNot(contains(autre)),
+            reason: 'la fonction ne doit jamais trahir $autre');
+      }
+    });
+
+    test('appelable sans compte : le téléphone déconnecté n\'a plus de session', () {
+      expect(local, contains('REVOKE ALL ON FUNCTION public.account_deletion_completed(text) FROM PUBLIC;'));
+      expect(local, contains('GRANT EXECUTE ON FUNCTION public.account_deletion_completed(text) TO anon, authenticated, service_role;'));
+    });
+
+    test('la table reste fermée : la migration n\'y accorde rien', () {
+      expect(local, isNot(contains('GRANT SELECT')));
+      expect(local, isNot(contains('ON TABLE public.account_deletion_requests')));
+    });
+
+    test('la demande pose le marqueur AVANT la déconnexion, seulement si elle aboutit', () {
+      final auth = _source('lib/features/auth/presentation/providers/auth_provider.dart');
+      final debut = auth.indexOf('Future<AccountDeletionRequestOutcome> requestAccountDeletion()');
+      final corps = auth.substring(debut, auth.indexOf('Future<AccountDeletionRequestOutcome> reauthenticateAndRequestDeletion'));
+      final iBloc = corps.indexOf('if (issue is AccountDeletionRequested)');
+      expect(iBloc, isPositive, reason: 'le marqueur ne se pose que sur une demande aboutie');
+      expect(corps.indexOf('.programmer(', iBloc), isPositive);
+      expect(corps.indexOf('.programmer('), lessThan(corps.indexOf('await signOut();')),
+          reason: 'après la déconnexion on ne sait plus qui était connecté');
+    });
+
+    test('l\'annulation retire le marqueur, ici comme constatée ailleurs', () {
+      final prov = _source('lib/features/auth/presentation/providers/account_deletion_provider.dart');
+      expect(RegExp(r'\.annuler\(').allMatches(prov).length, greaterThanOrEqualTo(2));
+      // Constatée ailleurs : SEULEMENT sur une lecture réussie qui rend null.
+      expect(prov, contains('if (status == null)'));
+    });
+
+    test('le démarrage lance un passage, borné', () {
+      final main = _source('lib/main.dart');
+      expect(main, contains('EffacementLocalDiffere.parDefaut()'));
+      expect(main, contains('.executerSiEchu()'));
+      expect(main, contains('.timeout(const Duration(seconds: 20))'));
+    });
+
+    test('la confirmation passe par la RPC anonyme, bornée', () {
+      expect(service, contains("'account_deletion_completed'"));
+      expect(service, contains('.timeout(const Duration(seconds: 8))'));
+      // « Vrai » seulement sur un `true` exact.
+      expect(service, contains('reponse == true'));
+    });
+
+    test('l\'effacement n\'a lieu QU\'après un « oui » du serveur, jamais sur le compte connecté', () {
+      final iConfirme = service.indexOf('menee = await suppressionMenee(m.uid)');
+      final iEfface = service.indexOf('await effacerMateriel(m.uid)');
+      expect(iConfirme, isPositive);
+      expect(iEfface, greaterThan(iConfirme));
+      expect(service, contains('if (!menee)'));
+      expect(service, contains('uidCourant?.call() == m.uid'));
+      // Une erreur réseau garde le marqueur, elle ne vaut pas « oui ».
+      expect(service, contains('serveur injoignable'));
+    });
+
+    test('un marqueur illisible ne fait rien effacer', () {
+      expect(service, contains('return MarqueurEffacement(uid: uid, echeance: echeance.toUtc())'));
+      expect(service, contains('uid.isEmpty'));
+      expect(service, contains('jsonDecode(brut)'));
+    });
+
+    test('la routine refuse un uid vide : son préfixe effacerait les clés de TOUS les comptes', () {
+      expect(materiel, contains('uid.isEmpty'));
+      expect(materiel, contains('ArgumentError'));
+    });
+
+    test('ce qui est effacé vient des mêmes préfixes que ce qui est écrit', () {
+      // Si `mls_code_securite` ou `mls_conversation_service` renomment leur clé,
+      // la routine d'effacement continuerait de « réussir » sans rien retirer.
+      expect(materiel, contains(r"'mls_verif_${uid}_'"));
+      expect(materiel, contains(r"'mls_curseur_${uid}_'"));
+      expect(_source('lib/core/crypto/mls/mls_code_securite.dart'),
+          contains(r"'mls_verif_${userId}_$mlsIdentity'"));
+      expect(_source('lib/core/crypto/mls/mls_conversation_service.dart'),
+          contains(r"'mls_curseur_${userId}_$conversationId'"));
+    });
+
+    test('la base MLS est retrouvée par le MÊME nom que celui du moteur', () {
+      expect(materiel, contains('nomFichierBaseMls(uid)'));
+      expect(materiel, contains("_suffixes = ['', '-wal', '-shm', '-journal']"));
+      expect(_source('lib/core/crypto/mls/mls_engine_provider.dart'),
+          contains('nomFichierBaseMls(userId)'));
+    });
+
+    test('les primitives d\'effacement existent toujours sous ces noms', () {
+      expect(_source('lib/core/services/e2ee/secure_key_storage.dart'),
+          contains('Future<void> clearAllData(String userId)'));
+      expect(_source('lib/core/services/crypto/derived_key_store.dart'),
+          contains('Future<void> vider()'));
+      expect(materiel, contains('clearAllData(uid)'));
+      expect(materiel, contains('DerivedKeyStore.instance.vider()'));
+    });
+
+    test('la déconnexion ne balaie PAS le marqueur : il doit lui survivre', () {
+      // `clearUserData` retire une liste blanche de clés. Un `prefs.clear()` y
+      // effacerait le marqueur au moment même de la demande.
+      final prefs = _source('lib/core/services/preferences_service.dart');
+      final debut = prefs.indexOf('Future<void> clearUserData()');
+      final corps = prefs.substring(debut, prefs.indexOf('Future<void> clearAll()', debut));
+      expect(corps, isNot(contains('prefs.clear()')));
+      expect(corps, isNot(contains('effacement_local_differe')));
+      expect(prefs, isNot(contains('effacement_local_differe')));
+    });
+  });
+
+  // ═══════════════════════════════════════════════════════════════════════
   // Le client ne supprime plus rien lui-même
   // ═══════════════════════════════════════════════════════════════════════
   group('client', () {

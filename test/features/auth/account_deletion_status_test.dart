@@ -1,8 +1,11 @@
+import 'dart:convert';
+
 import 'package:dartz/dartz.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:diaspo_niger/core/errors/failures.dart';
+import 'package:diaspo_niger/core/services/effacement_local_differe.dart';
 import 'package:diaspo_niger/features/auth/domain/entities/account_deletion_status.dart';
 import 'package:diaspo_niger/features/auth/domain/entities/user_entity.dart';
 import 'package:diaspo_niger/features/auth/domain/repositories/auth_repository.dart';
@@ -86,6 +89,28 @@ class _Depot implements AuthRepository {
 
 const _moi = UserEntity(id: 'uid-de-test');
 
+/// Le magasin de marqueurs d'effacement local, en mémoire : ni SharedPreferences
+/// ni Supabase ni disque. `programmations` et `annulations` gardent la trace des
+/// appels, `marqueurs` ce qui est stocké.
+class _Magasin {
+  String? stocke;
+
+  List<String> get marqueurs => stocke == null
+      ? []
+      : [for (final m in jsonDecode(stocke!) as List) (m as Map)['uid'] as String];
+
+  EffacementLocalDiffere get service => EffacementLocalDiffere(
+    lire: () async => stocke,
+    ecrire: (v) async => stocke = v,
+    suppressionMenee: (_) async => false,
+    effacerMateriel: (_) async {},
+  );
+
+  /// Un marqueur déjà posé, comme après une demande de suppression.
+  Future<void> poser(String uid) =>
+      service.programmer(uid, DateTime.utc(2026, 10, 18, 9));
+}
+
 AccountDeletionStatus _enCours([
   AccountDeletionPhase phase = AccountDeletionPhase.pending,
 ]) => AccountDeletionStatus(
@@ -96,11 +121,16 @@ AccountDeletionStatus _enCours([
 ProviderContainer _conteneur({
   required AuthState auth,
   required _Depot depot,
+  _Magasin? magasin,
 }) {
   final c = ProviderContainer(
     overrides: [
       authNotifierProvider.overrideWith(() => _AuthFactice(auth)),
       authRepositoryProvider.overrideWithValue(depot),
+      // Jamais le vrai service : il toucherait SharedPreferences et Supabase.
+      effacementLocalDiffereProvider.overrideWithValue(
+        (magasin ?? _Magasin()).service,
+      ),
     ],
   );
   addTearDown(c.dispose);
@@ -310,6 +340,137 @@ void main() {
       expect(depot.reauths, 1);
       expect(depot.demandes, 1);
       expect(enErreur(c), isFalse);
+    });
+  });
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // Le marqueur d'effacement local suit le sort de la suppression
+  // ═══════════════════════════════════════════════════════════════════════
+  //
+  // La demande pose un marqueur (uid + échéance) que le démarrage suivant
+  // interrogera ; annuler — ici ou ailleurs — doit le retirer, sinon le
+  // téléphone finirait par effacer les clés d'un compte VIVANT. Le serveur
+  // confirme de toute façon avant d'effacer : ce marqueur en trop coûterait une
+  // requête, pas les clés. Mais rien ne justifie de le laisser.
+  group("effacement local : le marqueur suit la suppression", () {
+    test("annuler la suppression retire le marqueur de CE compte, et de lui seul", () async {
+      final magasin = _Magasin();
+      await magasin.poser('uid-de-test');
+      await magasin.poser('uid-autre-compte');
+      final c = _conteneur(
+        auth: const AuthState.authenticated(_moi),
+        depot: _Depot(statut: _enCours()),
+        magasin: magasin,
+      );
+      await c.read(accountDeletionStatusProvider.future);
+      expect(magasin.marqueurs, contains('uid-de-test'),
+          reason: 'une suppression en cours garde son marqueur');
+
+      final ok = await c.read(accountDeletionStatusProvider.notifier).cancel();
+
+      expect(ok, isTrue);
+      expect(magasin.marqueurs, ['uid-autre-compte']);
+    });
+
+    test("une annulation REFUSÉE garde le marqueur", () async {
+      final magasin = _Magasin();
+      await magasin.poser('uid-de-test');
+      final c = _conteneur(
+        auth: const AuthState.authenticated(_moi),
+        depot: _Depot(statut: _enCours(), annulationAboutit: false),
+        magasin: magasin,
+      );
+      await c.read(accountDeletionStatusProvider.future);
+
+      final ok = await c.read(accountDeletionStatusProvider.notifier).cancel();
+
+      expect(ok, isFalse);
+      expect(magasin.marqueurs, ['uid-de-test']);
+    });
+
+    test("annulée AILLEURS : une lecture qui ne trouve plus de suppression retire le marqueur", () async {
+      final magasin = _Magasin();
+      await magasin.poser('uid-de-test');
+      final c = _conteneur(
+        auth: const AuthState.authenticated(_moi),
+        depot: _Depot(), // aucune suppression en cours
+        magasin: magasin,
+      );
+
+      expect(await c.read(accountDeletionStatusProvider.future), isNull);
+      // `unawaited` : laisser la microtâche d'annulation se terminer.
+      await Future<void>.delayed(Duration.zero);
+
+      expect(magasin.marqueurs, isEmpty);
+    });
+
+    test("une lecture QUI ÉCHOUE ne retire rien : on n'a pas lu, on ne conclut pas", () async {
+      final magasin = _Magasin();
+      await magasin.poser('uid-de-test');
+      final c = _conteneur(
+        auth: const AuthState.authenticated(_moi),
+        depot: _Depot(echecLecture: const ServerFailure('Session non établie')),
+        magasin: magasin,
+      );
+
+      await expectLater(c.read(accountDeletionStatusProvider.future), throwsException);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(magasin.marqueurs, ['uid-de-test'],
+          reason: 'sans session, RLS rend zéro ligne : exactement ce que rendrait '
+              'un compte sans demande');
+    });
+
+    test("une suppression toujours en cours garde son marqueur", () async {
+      final magasin = _Magasin();
+      await magasin.poser('uid-de-test');
+      final c = _conteneur(
+        auth: const AuthState.authenticated(_moi),
+        depot: _Depot(statut: _enCours()),
+        magasin: magasin,
+      );
+
+      await c.read(accountDeletionStatusProvider.future);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(magasin.marqueurs, ['uid-de-test']);
+    });
+
+    test("la demande aboutie pose le marqueur AVANT la déconnexion", () async {
+      final magasin = _Magasin();
+      final echeance = DateTime.utc(2026, 10, 18, 9);
+      final c = _conteneur(
+        auth: const AuthState.authenticated(_moi),
+        depot: _Depot(demande: Right(echeance)),
+        magasin: magasin,
+      );
+      c.listen(authNotifierProvider, (_, __) {}, fireImmediately: true);
+
+      // La déconnexion touche des singletons (cache, préférences) qu'un test
+      // n'initialise pas : elle peut lever. Ce qui compte ici est que le marqueur
+      // soit déjà posé quand elle s'exécute.
+      try {
+        await c.read(authNotifierProvider.notifier).requestAccountDeletion();
+      } catch (_) {}
+
+      expect(magasin.marqueurs, ['uid-de-test']);
+      final m = (jsonDecode(magasin.stocke!) as List).single as Map;
+      expect(DateTime.parse(m['echeance'] as String), echeance);
+    });
+
+    test("un refus de la demande ne pose AUCUN marqueur", () async {
+      final magasin = _Magasin();
+      final c = _conteneur(
+        auth: const AuthState.authenticated(_moi),
+        depot: _Depot(demande: const Left(ServerFailure('refusée'))),
+        magasin: magasin,
+      );
+      c.listen(authNotifierProvider, (_, __) {}, fireImmediately: true);
+
+      await c.read(authNotifierProvider.notifier).requestAccountDeletion();
+
+      expect(magasin.stocke, isNull,
+          reason: "rien n'a été désactivé : il n'y a rien à effacer plus tard");
     });
   });
 }
