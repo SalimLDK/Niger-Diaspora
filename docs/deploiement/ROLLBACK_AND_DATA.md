@@ -64,12 +64,30 @@ Modèle : **demande → désactivation immédiate → 30 jours → purge.**
   Firestore, RTDB, Storage), écrit la pierre tombale `deleted_accounts/<uid>`,
   puis purge Supabase en UNE transaction (`private.purge_account`). Déploiement :
   `firebase deploy --only functions:finalizeAccountDeletions`, jamais `--force`.
-- **Refus** : compte plateforme ; historique financier (tables vides
-  aujourd'hui).
-- **Ce qui n'est PAS effacé** : la base MLS et les clés locales sur le téléphone
-  (aucune étape ne les détruit) ; les sauvegardes Supabase jusqu'à leur
-  expiration ; l'historique financier. Détail et décisions ouvertes dans
-  `TESTS_APPAREIL_A_FAIRE.md` (« Supprimer mon compte »).
+- **Refus** : compte plateforme ; obligations financières OUVERTES (commande en
+  cours, séquestre retenu, litige, virement en attente). Les dossiers clos ne
+  bloquent pas — voir ci-dessous.
+- **Historique financier** (migration `20260919113700`, non appliquée) : les
+  dossiers clos sont CONSERVÉS avec leurs faits comptables (montants, dates,
+  statuts, uid, identifiants Stripe) ; le texte libre et les coordonnées de la
+  personne sont effacés ; une tâche nocturne coupe le lien (uid, identifiants
+  Stripe) une fois la durée dépassée pour un compte supprimé. **Inerte tant que
+  `app_config.financial_retention_years` n'est pas posée** : sans elle un dossier
+  clos bloque encore la suppression. La durée est une décision juridique, pas
+  technique — faire relire la liste des champs effacés (surtout les transferts)
+  avant de la poser.
+- **Clés et base MLS du téléphone** (migration `20260919123300`, non appliquée) :
+  effacées À RETARDEMENT — la demande pose un marqueur local ; au premier
+  lancement qui suit l'échéance + 1 jour, le téléphone demande au serveur, sans
+  compte, si la suppression est menée à terme (`account_deletion_completed`, un
+  booléen), et seulement alors efface la base MLS, les clés Signal, les clés
+  dérivées, les vérifications et curseurs de CE compte. Une annulation faite sur un
+  autre appareil n'efface donc rien. Sans elle, rien ne les détruisait : ni la
+  déconnexion, ni la suppression.
+- **Ce qui n'est PAS effacé** : les sauvegardes Supabase jusqu'à leur expiration
+  (durée NON relevée, § 1.2) ; les dossiers financiers clos jusqu'à l'échéance de
+  conservation. Détail et décisions ouvertes dans `TESTS_APPAREIL_A_FAIRE.md`
+  (« Supprimer mon compte »).
 - Le site public `public/delete-account.html` **n'est pas rebranché** : il
   supprime encore Firestore puis le compte Firebase, jamais Supabase, et son
   texte promet « toutes vos données effacées ».
