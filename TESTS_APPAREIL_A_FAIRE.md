@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1455 cases à cocher, 645 cochées** — 282 entrées sur 331 ont encore des cases ouvertes.
+**1456 cases à cocher, 646 cochées** — 282 entrées sur 331 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -67,7 +67,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ Aperçu MLS quand l'app est OUVERTE (le même message, l'autre isolate)](#-aperçu-mls-quand-lapp-est-ouverte-le-même-message-lautre-isolate) · *Notifications et push*
 - 9 · [⬜ Aperçu des notifications MLS reconstruit sur l'appareil (phase 4, Android)](#-aperçu-des-notifications-mls-reconstruit-sur-lappareil-phase-4-android) · *Notifications et push*
 - 6 · [⬜ Accepter une demande d'ami : « Erreur de chargement » (2026-09-14)](#-accepter-une-demande-dami---erreur-de-chargement--2026-09-14) · *Notifications et push* · bloqué
-- 16 · [⬜ Supprimer mon compte : demande, 30 jours, annulation, purge (2026-09-18)](#-supprimer-mon-compte--demande-30-jours-annulation-purge-2026-09-18) · *Comptes, session et onboarding*
+- 17 · [⬜ Supprimer mon compte : demande, 30 jours, annulation, purge (2026-09-18)](#-supprimer-mon-compte--demande-30-jours-annulation-purge-2026-09-18) · *Comptes, session et onboarding*
 - 9 · [⬜ Expulsion admin et bannissement : ils n'éjectaient personne (2026-09-16)](#-expulsion-admin-et-bannissement--ils-néjectaient-personne-2026-09-16) · *Comptes, session et onboarding*
 - 7 · [⬜ Qui peut voir un événement : discussion, groupes, personnes, tout le monde (2026-09-12)](#-qui-peut-voir-un-événement--discussion-groupes-personnes-tout-le-monde-2026-09-12) · *Ambassades, démarches, carte, entreprises et événements*
 - 2 · [Réglages/Carte — deux interrupteurs de partage de position désynchronisés (2026-08-13)](#réglagescarte--deux-interrupteurs-de-partage-de-position-désynchronisés-2026-08-13) · *Ambassades, démarches, carte, entreprises et événements*
@@ -346,7 +346,7 @@ Par domaine :
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 143 à faire, 76 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
-- [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 63 à faire, 7 faites
+- [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 64 à faire, 8 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 118 à faire, 16 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 65 à faire, 51 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 67 à faire, 34 faites
@@ -13283,15 +13283,30 @@ Modèle : demande → désactivation immédiate → **30 jours** → purge. La d
 avant l'échéance l'annule ; à l'échéance une Cloud Function supprime le compte
 Firebase PUIS purge Supabase en une transaction.
 
-*Bloqué : rien de ceci ne tourne tant que la migration
-`20260918224100_suppression_de_compte_par_phases.sql` n'est pas APPLIQUÉE et que
-`finalizeAccountDeletions` n'est pas DÉPLOYÉE — ni l'une ni l'autre ne l'est.
-Sans la fonction, les demandes s'empilent en `pending` sans jamais être
-exécutées (rien n'est détruit, mais rien n'est supprimé non plus). Demande deux
-téléphones, deux comptes jetables et l'accès à la base.*
+*Bloqué : demande deux téléphones, deux comptes jetables et l'accès à la base.*
 
-Déployer la fonction SEULE, jamais `--force` (voir « Déploiement functions ») :
-`firebase deploy --only functions:finalizeAccountDeletions`.
+**Livré en production le 2026-09-19**, sur accord de Salim et dans cet ordre :
+
+1. migration `20260918224100` appliquée par `db push` (la seule en attente, essai
+   à blanc préalable) ; droits vérifiés de l'extérieur avec la clé `anon` (42501
+   sur les quatre RPC et sur la table), banc rejoué contre les objets appliqués :
+   49 cas, 0 échec ;
+2. `finalizeAccountDeletions` déployée SEULE — `firebase deploy --only
+   functions:finalizeAccountDeletions`, sans `--force` (v1, planifiée toutes les
+   heures, us-central1) ; `cleanupUserData` intacte ;
+3. branche poussée sur la branche partagée (`6a92467..e45ff32`).
+
+**Jamais vu sur appareil, et aucune demande réelle n'a encore traversé la chaîne.**
+Sans la fonction, une demande resterait en `pending` sans être exécutée (rien
+n'est détruit, rien n'est supprimé non plus) ; elle est en place, mais son
+premier passage sur une vraie demande reste à voir.
+
+Encore ouvert : la purge n'a jamais été rejouée sur un compte RÉEL — le
+classifieur de permissions la refuse, même annulée et même sur accord donné dans
+la conversation. Le script est prêt, à lancer depuis un terminal :
+[suppression_compte_donnees_reelles.sql](tools/rls_tests/suppression_compte_donnees_reelles.sql)
+(`BEGIN … ROLLBACK` dans le fichier, aucun uid imprimé). Et la page web
+`delete-account.html`, qui fait toujours l'ancien geste (tâche séparée).
 
 Fichiers : [migration](supabase/migrations/20260918224100_suppression_de_compte_par_phases.sql),
 [banc SQL](tools/rls_tests/suppression_compte.sql) (49 cas, rejoué dans un
@@ -13301,11 +13316,21 @@ Fichiers : [migration](supabase/migrations/20260918224100_suppression_de_compte_
 [écran d'annulation](lib/features/auth/presentation/screens/account_deletion_pending_screen.dart),
 [porte du routeur](lib/core/router/app_router.dart) (étape 3b).
 
-- [ ] **Avant `db push`** : rejouer le banc avec la migration
+- [x] **Avant `db push`** (fait le 2026-09-19) : rejouer le banc avec la migration
   (`{ echo BEGIN; cat migration; cat banc; echo ROLLBACK; }`), puis
   `ls supabase/migrations | sort | awk -F_ '{print $1}' | uniq -d` ET
   `select max(version) from supabase_migrations.schema_migrations` (le `uniq -d`
   est aveugle à une jumelle déjà en base).
+- [ ] **Répétition sur un compte RÉEL** (`suppression_compte_donnees_reelles.sql`,
+  depuis un terminal) : `ok` vaut `true`, et la liste `RESTE` ne montre que des
+  rétentions voulues (`account_deletion_requests`, la pierre tombale). Toute
+  autre table qui garde des lignes est une colonne oubliée : nouvelle migration
+  AVANT le premier compte dû — il n'y en a aucun avant 30 jours.
+- [ ] **Premier passage de la fonction** : `firebase functions:log --only
+  finalizeAccountDeletions` sans erreur (`claim_due_account_deletions` répond
+  `[]`, jamais `null` — c'est ce que la fonction distingue de « personne »), puis,
+  sur une demande dont on avance `execute_at` : `deleteUser` puis
+  `complete_account_deletion`, dans cet ordre, `ok: true`.
 - [ ] **Demande, compte à mot de passe connecté depuis plus de 4 minutes** :
   le mot de passe est demandé AVANT toute désactivation. Un mot de passe faux
   ne désactive rien (`account_deletion_requests` reste vide).
