@@ -10052,7 +10052,12 @@ base ; l'écriture est best-effort, un refus ne laisse qu'un `debugPrint`.
 *Ce qui n'est PAS corrigé* : une notification qui **arrive pendant** que son
 écran est déjà ouvert reste non lue jusqu'à la prochaine ouverture (rien ne
 compare la ligne insérée à l'écran courant) ; une push touchée sans `targetId`
-(`system`) n'en marque aucune.
+(`system`) n'en marque aucune ; l'action « Marquer comme lu » de la **bannière**
+(`BackgroundReplyService.markAsRead`) n'appelle que la RPC
+`mark_messages_as_read`, qui ignore `messageMention` — seule une migration
+couvrirait ce chemin (`marquer_lus_jusqua` la connaîtrait aussi). Les
+migrations du 17/09 sont appliquées (relu en base le 2026-09-19), donc rien
+ne l'empêche ; aucune ligne `messageMention` n'existe encore en production.
 
 Fichiers :
 [notification_read_sync.dart](lib/core/services/notification_read_sync.dart),
