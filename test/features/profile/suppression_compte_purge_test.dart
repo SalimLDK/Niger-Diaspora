@@ -388,6 +388,139 @@ void main() {
     test('elle est planifiée', () {
       expect(corps, contains('.schedule("every 1 hours")'));
     });
+
+    test('la pierre tombale externe s\'écrit APRÈS Firebase et AVANT la purge', () {
+      // Une restauration de sauvegarde restaure `account_deletion_requests`
+      // avec le reste : elle ne peut pas garder la mémoire d'une suppression
+      // postérieure à la sauvegarde. Firestore, lui, n'est pas restauré.
+      final iFirebase = corps.indexOf('admin.auth().deleteUser(uid)');
+      final iTombale = corps.indexOf('collection("deleted_accounts")');
+      final iPurge = corps.indexOf('completeAccountDeletion(uid)');
+      expect(iTombale, isPositive, reason: 'plus de pierre tombale externe');
+      expect(iFirebase, lessThan(iTombale));
+      expect(iTombale, lessThan(iPurge),
+          reason: 'une purge sans pierre tombale ne se rejouerait jamais');
+    });
+
+    test('une pierre tombale qui échoue INTERDIT la purge à ce passage', () {
+      // `await` sans `.catch` : l'échec remonte au `catch` de la boucle, la
+      // demande reste `deleting` et sera reprise dans 30 minutes.
+      expect(corps, contains('await admin.firestore().collection("deleted_accounts")'));
+      final segment = corps.substring(
+        corps.indexOf('collection("deleted_accounts")'),
+        corps.indexOf('completeAccountDeletion(uid)'),
+      );
+      expect(segment, isNot(contains('.catch(')),
+          reason: 'avaler l\'échec laisserait purger sans pierre tombale');
+    });
+
+    test('la pierre tombale ne porte ni nom ni e-mail : un uid et une date', () {
+      final debutSet = corps.indexOf('collection("deleted_accounts")');
+      final bloc = corps.substring(
+        debutSet,
+        corps.indexOf('});', debutSet) + 3,
+      );
+      expect(bloc, contains('deletedAt'));
+      for (final interdit in ['email', 'displayName', 'name', 'phone']) {
+        expect(bloc, isNot(contains(interdit)),
+            reason: 'la pierre tombale survit à la suppression : rien de personnel');
+      }
+    });
+  });
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // Rejeu après restauration de sauvegarde
+  // ═══════════════════════════════════════════════════════════════════════
+  group('rejeu après restauration', () {
+    const cheminRejeu =
+        'supabase/migrations/20260919094300_suppression_compte_rejeu_apres_restauration.sql';
+    final rejeu = _source(cheminRejeu);
+    final replay = _corps(rejeu, 'public.replay_account_deletion');
+    final residu = _corps(rejeu, 'public.account_deletion_residue');
+    final script = _source('tools/rejouer_suppressions_apres_restauration.mjs');
+
+    test('la migration d\'origine n\'est pas réécrite : le rejeu vit dans la sienne', () {
+      // `20260918224100` est APPLIQUÉE en production : la modifier ferait
+      // diverger le fichier de ce qui tourne. Une correction passe par une
+      // nouvelle migration.
+      expect(sql, isNot(contains('replay_account_deletion')));
+      expect(_derniereMigrationDefinissant('FUNCTION public.replay_account_deletion('),
+          cheminRejeu);
+    });
+
+    test('service_role seulement : ni le client ni l\'anonyme ne purgent ni ne sondent', () {
+      for (final f in [
+        'public.account_deletion_residue(text)',
+        'public.replay_account_deletion(text)',
+      ]) {
+        // Supabase accorde EXECUTE nommément à `authenticated` et `anon`.
+        expect(rejeu, contains('REVOKE ALL ON FUNCTION $f FROM PUBLIC, anon, authenticated;'));
+        expect(rejeu, contains('GRANT EXECUTE ON FUNCTION $f TO service_role;'));
+      }
+    });
+
+    test('le compte plateforme et l\'historique financier sont refusés AVANT toute écriture', () {
+      // Le refus vaut aussi pour un rejeu : une pierre tombale ne désigne pas
+      // un compte qu'on a le droit de purger.
+      expect(replay, contains('private.suppression_bloquee_pour(p_uid)'));
+      expect(replay.indexOf('private.suppression_bloquee_pour'),
+          lessThan(replay.indexOf('INSERT INTO public.account_deletion_requests')));
+    });
+
+    test('une purge déjà en vol n\'est pas piétinée', () {
+      // `complete_account_deletion` prend un verrou de ligne : les deux
+      // s'exécutent l'une après l'autre. Réinitialiser la demande d'une purge
+      // en vol fausserait ses tentatives et son horloge.
+      expect(replay, contains("WHERE r.status <> 'deleting'"));
+    });
+
+    test('une demande achevée (completed) est rejouée : c\'est le cas de la restauration', () {
+      expect(replay, contains("SET status = 'deleting'"));
+      expect(replay, contains('completed_at = NULL'));
+      expect(replay, contains('public.complete_account_deletion(p_uid)'));
+    });
+
+    test('le résidu ne rend que des comptages, jamais un contenu', () {
+      expect(residu, contains('count(*)'));
+      for (final interdit in ['content', 'display_name', 'email', 'ciphertext', 'data']) {
+        expect(residu, isNot(contains(interdit)),
+            reason: 'un sondage ne doit pas devenir une lecture');
+      }
+    });
+
+    test('le script est en simulation par défaut', () {
+      expect(script, contains("process.argv.includes(\"--apply\")"));
+      expect(script, contains('simulation'));
+      // Sortie avant tout appel à `replay_account_deletion` hors --apply.
+      expect(script, contains('if (!apply || aRejouer.length === 0) process.exit(0);'));
+    });
+
+    test('le script ne purge JAMAIS un uid dont le compte Firebase existe encore', () {
+      // La pierre tombale se trompe alors, pas Firebase (ou un uid a été
+      // réutilisé) : purger effacerait un compte vivant.
+      final iGetUser = script.indexOf('admin.auth().getUser(uid)');
+      final iRejeu = script.indexOf('rpc("replay_account_deletion"');
+      expect(iGetUser, isPositive);
+      expect(iGetUser, lessThan(iRejeu));
+      expect(script, contains('le compte Firebase existe encore'));
+      // Un doute de lecture (autre chose que « introuvable ») saute l'uid.
+      expect(script, contains('auth/user-not-found'));
+      expect(script, contains('on ne purge pas sur un doute'));
+    });
+
+    test('le script n\'écarte pas un compte « propre » à tort, et plafonne', () {
+      expect(script, contains('account_deletion_residue'));
+      expect(script, contains('--max='));
+      expect(script, contains('dépassent le plafond'));
+    });
+
+    test('la collection de pierres tombales reste fermée aux clients', () {
+      // Le défaut de Firestore est le refus ; ce test échoue le jour où
+      // quelqu'un ouvre `deleted_accounts` (ou retire le refus par défaut).
+      final regles = _source('firestore.rules');
+      expect(regles, contains('match /{document=**} {\n      allow read, write: if false;'));
+      expect(regles, isNot(contains('deleted_accounts')));
+    });
   });
 
   // ═══════════════════════════════════════════════════════════════════════
