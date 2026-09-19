@@ -48,6 +48,8 @@ void main() {
     // Parcours d'entrée : on ne revient pas en arrière dans une connexion.
     '/splash': 'écran de lancement',
     '/maintenance': 'écran bloquant',
+    '/account-deletion':
+        'écran bloquant : seules l\'annulation et la déconnexion en sortent',
     '/auth/login': 'entrée du parcours de connexion',
     '/auth/register': 'entrée du parcours de connexion',
     '/auth/forgot-password': 'entrée du parcours de connexion',

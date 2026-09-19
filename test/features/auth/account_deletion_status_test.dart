@@ -141,7 +141,7 @@ void main() {
     test('une lecture qui échoue est une ERREUR, jamais « rien en cours »', () async {
       final c = _conteneur(
         auth: const AuthState.authenticated(_moi),
-        depot: _Depot(echecLecture: const ServerFailure('Session Supabase non établie')),
+        depot: _Depot(echecLecture: const ServerFailure('Session non établie')),
       );
 
       await expectLater(

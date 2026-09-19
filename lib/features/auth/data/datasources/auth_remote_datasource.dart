@@ -606,7 +606,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     // exactement ce que rendrait un compte sans demande. Ne jamais conclure à
     // l'absence sans session confirmée.
     if (!await SupabaseAuthBridge.instance.ensureReadableSession()) {
-      throw ServerException('Session Supabase non établie');
+      throw ServerException('Session non établie');
     }
 
     // Colonnes nommées : seules `user_id, status, requested_at, execute_at,

@@ -117,7 +117,7 @@ INSERT INTO public.messages (id, conversation_id, sender_id, data) VALUES
   ('zz-msg-g1-a', 'zz-conv-g1', 'zz_del_a',
      '{"content":"bonjour le groupe","senderName":"Alice Test","senderPhotoUrl":"https://ex.invalid/a.jpg","editedAt":"2026-01-01T00:00:00Z","editHistory":[{"content":"version 1"}],"readBy":["zz_del_b"]}'),
   ('zz-msg-g1-b', 'zz-conv-g1', 'zz_del_b',
-     '{"content":"réponse de B","senderName":"Basile Test","readBy":["zz_del_a","zz_del_b"],"deliveredTo":["zz_del_a"],"reactions":{"zz_del_a":"👍","zz_del_c":"❤️"},"replyToMessageData":{"id":"zz-msg-g1-a","senderId":"zz_del_a","senderName":"Alice Test","content":"bonjour le groupe","type":"text"}}');
+     '{"content":"réponse de B","senderName":"Basile Test","readBy":["zz_del_a","zz_del_b"],"deliveredTo":["zz_del_a"],"readAt":{"zz_del_a":"2026-01-01T00:00:00Z","zz_del_c":"2026-01-02T00:00:00Z"},"deliveredAt":{"zz_del_a":"2026-01-01T00:00:00Z"},"reactions":{"zz_del_a":"👍","zz_del_c":"❤️"},"replyToMessageData":{"id":"zz-msg-g1-a","senderId":"zz_del_a","senderName":"Alice Test","content":"bonjour le groupe","type":"text"}}');
 
 -- MLS : deux appareils de A, l'un cité par un message de groupe, l'autre non.
 INSERT INTO public.mls_devices (id, user_id, stable_id, name, platform, mls_identity, signature_key, credential) VALUES
@@ -373,9 +373,12 @@ SELECT pg_temp.verifie(30, 'message de A dans le groupe : texte gardé, identit�
        || ' texte=' || (m.data->>'content')
      FROM public.messages m WHERE m.id = 'zz-msg-g1-a'));
 
-SELECT pg_temp.verifie(31, 'message de B : les traces de A (lu par, remis à, réaction) sont parties, celles de C restent',
-  'readBy=["zz_del_b"] deliveredTo=[] reactions={"zz_del_c": "❤️"}',
+-- `readAt` et `deliveredAt` sont des OBJETS indexés par uid en production (167
+-- messages sur 167, relevé le 2026-09-18) : la fixture leur donne cette forme.
+SELECT pg_temp.verifie(31, 'message de B : les traces de A (lu par, remis à, horodatages, réaction) sont parties, celles de C restent',
+  'readBy=["zz_del_b"] deliveredTo=[] readAt={"zz_del_c": "2026-01-02T00:00:00Z"} deliveredAt={} reactions={"zz_del_c": "❤️"}',
   (SELECT 'readBy=' || (m.data->'readBy')::text || ' deliveredTo=' || (m.data->'deliveredTo')::text
+       || ' readAt=' || (m.data->'readAt')::text || ' deliveredAt=' || (m.data->'deliveredAt')::text
        || ' reactions=' || (m.data->'reactions')::text
      FROM public.messages m WHERE m.id = 'zz-msg-g1-b'));
 
