@@ -876,6 +876,17 @@ void main() {
       expect(e, isNot(contains('All your data will be permanently deleted')));
     });
 
+    test("le dialogue dit ce qu'il advient des clés du téléphone, sans promettre l'immédiat", () {
+      // L'effacement local est DIFFÉRÉ : il a lieu au lancement qui suit la
+      // suppression définitive, et seulement si le téléphone joint le serveur.
+      final f = fr['deleteAccountWarning'] as String;
+      final e = en['deleteAccountWarning'] as String;
+      expect(f, contains('Sur ce téléphone'));
+      expect(f, contains('au premier lancement'));
+      expect(e, contains('On this phone'));
+      expect(e, contains('the first time the app is opened'));
+    });
+
     test('les nouvelles clés existent dans les DEUX langues', () {
       final cles = fr.keys.where((k) => k.startsWith('accountDeletion')).toSet();
       expect(cles, isNotEmpty);
