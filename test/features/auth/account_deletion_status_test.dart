@@ -29,14 +29,41 @@ class _AuthFactice extends AuthNotifier {
 }
 
 class _Depot implements AuthRepository {
-  _Depot({this.statut, this.echecLecture, this.annulationAboutit = true});
+  _Depot({
+    this.statut,
+    this.echecLecture,
+    this.annulationAboutit = true,
+    this.demande,
+    this.echecReauth,
+  });
 
   final AccountDeletionStatus? statut;
   final Failure? echecLecture;
   final bool annulationAboutit;
 
+  /// Ce que répond `requestAccountDeletion` (défaut : refus quelconque).
+  final Either<Failure, DateTime>? demande;
+
+  /// Non nul : la ré-authentification par mot de passe échoue avec cela.
+  final Failure? echecReauth;
+
   int lectures = 0;
   int annulations = 0;
+  int demandes = 0;
+  int reauths = 0;
+
+  @override
+  Future<Either<Failure, DateTime>> requestAccountDeletion() async {
+    demandes++;
+    return demande ?? const Left(ServerFailure('refusée'));
+  }
+
+  @override
+  Future<Either<Failure, void>> reauthenticateWithPassword(String password) async {
+    reauths++;
+    final echec = echecReauth;
+    return echec != null ? Left(echec) : const Right(null);
+  }
 
   @override
   Future<Either<Failure, AccountDeletionStatus?>> accountDeletionStatus() async {
@@ -187,6 +214,102 @@ void main() {
       // reste bien celui qu'il est côté serveur.
       expect(ok, isFalse);
       expect(c.read(accountDeletionStatusProvider).valueOrNull, _enCours());
+    });
+  });
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // Un échec de la demande n'est PAS une erreur d'authentification
+  // ═══════════════════════════════════════════════════════════════════════
+  //
+  // Le routeur traite tout `AuthState.error` comme « non authentifié » et
+  // renvoie sur l'écran de connexion. Une demande refusée (compte plateforme,
+  // obligation financière) ou une ré-authentification demandée laissait la
+  // personne, toujours connectée, sur un écran de connexion qui ne disait
+  // rien. Le résultat est donc rendu à l'appelant, jamais posé dans l'état.
+  group("requestAccountDeletion : l'état d'authentification n'en est jamais touché", () {
+    bool enErreur(ProviderContainer c) => c
+        .read(authNotifierProvider)
+        .maybeWhen(error: (_) => true, orElse: () => false);
+
+    test("un refus est rendu, l'état reste authentifié", () async {
+      final depot = _Depot(
+        demande: const Left(ServerFailure('Ce compte administre les groupes officiels')),
+      );
+      final c = _conteneur(auth: const AuthState.authenticated(_moi), depot: depot);
+      c.listen(authNotifierProvider, (_, __) {}, fireImmediately: true);
+
+      final issue = await c.read(authNotifierProvider.notifier).requestAccountDeletion();
+
+      expect(issue, isA<AccountDeletionRefused>());
+      expect(
+        (issue as AccountDeletionRefused).message,
+        'Ce compte administre les groupes officiels',
+      );
+      expect(enErreur(c), isFalse, reason: 'le routeur renverrait sur la connexion');
+      expect(c.read(authNotifierProvider), const AuthState.authenticated(_moi));
+    });
+
+    test("la ré-authentification demandée est rendue, l'état reste authentifié", () async {
+      final depot = _Depot(
+        demande: const Left(
+          AuthFailure('confirmez votre mot de passe', code: 'requires-recent-login'),
+        ),
+      );
+      final c = _conteneur(auth: const AuthState.authenticated(_moi), depot: depot);
+      c.listen(authNotifierProvider, (_, __) {}, fireImmediately: true);
+
+      final issue = await c.read(authNotifierProvider.notifier).requestAccountDeletion();
+
+      expect(issue, isA<AccountDeletionNeedsReauth>());
+      expect(enErreur(c), isFalse);
+      expect(c.read(authNotifierProvider), const AuthState.authenticated(_moi));
+    });
+
+    test('seul le CODE décide de la ré-authentification, pas le texte', () async {
+      // L'ancienne détection cherchait « mot de passe » ou « sécurité » dans le
+      // message : « Email ou mot de passe incorrect » la déclenchait à tort.
+      final depot = _Depot(
+        demande: const Left(AuthFailure('Email ou mot de passe incorrect')),
+      );
+      final c = _conteneur(auth: const AuthState.authenticated(_moi), depot: depot);
+      c.listen(authNotifierProvider, (_, __) {}, fireImmediately: true);
+
+      final issue = await c.read(authNotifierProvider.notifier).requestAccountDeletion();
+
+      expect(issue, isA<AccountDeletionRefused>());
+    });
+
+    test("un mot de passe faux : refus, et la demande n'est même pas tentée", () async {
+      final depot = _Depot(echecReauth: const AuthFailure('Mot de passe incorrect'));
+      final c = _conteneur(auth: const AuthState.authenticated(_moi), depot: depot);
+      c.listen(authNotifierProvider, (_, __) {}, fireImmediately: true);
+
+      final issue = await c
+          .read(authNotifierProvider.notifier)
+          .reauthenticateAndRequestDeletion('faux');
+
+      expect(issue, isA<AccountDeletionRefused>());
+      expect((issue as AccountDeletionRefused).message, 'Mot de passe incorrect');
+      expect(depot.reauths, 1);
+      expect(depot.demandes, 0, reason: 'rien ne doit être désactivé sur un mot de passe faux');
+      expect(enErreur(c), isFalse);
+    });
+
+    test('mot de passe juste puis refus de la base : la demande a bien été tentée une fois', () async {
+      final depot = _Depot(
+        demande: const Left(ServerFailure('Des opérations financières sont liées à ce compte')),
+      );
+      final c = _conteneur(auth: const AuthState.authenticated(_moi), depot: depot);
+      c.listen(authNotifierProvider, (_, __) {}, fireImmediately: true);
+
+      final issue = await c
+          .read(authNotifierProvider.notifier)
+          .reauthenticateAndRequestDeletion('juste');
+
+      expect(issue, isA<AccountDeletionRefused>());
+      expect(depot.reauths, 1);
+      expect(depot.demandes, 1);
+      expect(enErreur(c), isFalse);
     });
   });
 }

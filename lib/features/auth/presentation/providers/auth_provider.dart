@@ -12,6 +12,7 @@ import '../../../../core/services/crypto/derived_key_store.dart';
 import '../../../../core/errors/failures.dart';
 import '../../data/datasources/auth_remote_datasource.dart';
 import '../../data/repositories/auth_repository_impl.dart';
+import '../../domain/entities/account_deletion_status.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../../domain/usecases/sign_in_with_email.dart';
@@ -461,51 +462,47 @@ class AuthNotifier extends _$AuthNotifier {
   }
 
   /// Demande la suppression du compte : le serveur le désactive tout de suite
-  /// et le supprime pour de bon après le délai de grâce (30 jours). Rend la
-  /// date de suppression définitive, ou `null` en cas d'échec — l'état porte
-  /// alors le motif.
+  /// et le supprime pour de bon après le délai de grâce (30 jours).
+  ///
+  /// Rend l'issue, et ne touche PAS à l'état d'authentification quand elle
+  /// échoue : la personne est toujours connectée, et le routeur renverrait sur
+  /// l'écran de connexion toute erreur posée dans [AuthState].
   ///
   /// Le compte Firebase n'est pas supprimé ici : la personne doit pouvoir se
   /// reconnecter pour annuler. On la déconnecte de CE téléphone, comme une
   /// déconnexion ordinaire ; les autres appareils tombent sur l'écran
   /// d'annulation à leur prochain jeton (leurs sessions Supabase sont révoquées).
-  Future<DateTime?> requestAccountDeletion() async {
+  Future<AccountDeletionRequestOutcome> requestAccountDeletion() async {
     final repository = ref.read(authRepositoryProvider);
 
     final result = await repository.requestAccountDeletion();
 
-    final echeance = result.fold<DateTime?>((failure) {
+    final issue = result.fold<AccountDeletionRequestOutcome>((failure) {
       // Re-authentification requise : on se fie au code remonté par le
       // repository. L ancienne detection cherchait « mot de passe » ou
       // « sécurité » dans le message — elle ne tenait qu en francais, et
       // « Email ou mot de passe incorrect » la declenchait a tort.
       if (failure is AuthFailure && failure.code == 'requires-recent-login') {
-        // Reauthentication needed - set a special error state
-        state = AuthState.error('REAUTH_REQUIRED:${failure.message}');
-        return null;
+        return AccountDeletionNeedsReauth(failure.message);
       }
-      state = AuthState.error(failure.message);
-      return null;
-    }, (echeance) => echeance);
+      return AccountDeletionRefused(failure.message);
+    }, AccountDeletionRequested.new);
 
-    if (echeance == null) return null;
-
-    await signOut();
-    return echeance;
+    if (issue is AccountDeletionRequested) {
+      await signOut();
+    }
+    return issue;
   }
 
-  Future<DateTime?> reauthenticateAndRequestDeletion(String password) async {
+  Future<AccountDeletionRequestOutcome> reauthenticateAndRequestDeletion(
+    String password,
+  ) async {
     final repository = ref.read(authRepositoryProvider);
 
     // First reauthenticate
     final reauth = await repository.reauthenticateWithPassword(password);
-
-    final reauthSuccess = reauth.fold((failure) {
-      state = AuthState.error(failure.message);
-      return false;
-    }, (_) => true);
-
-    if (!reauthSuccess) return null;
+    final echec = reauth.fold<String?>((failure) => failure.message, (_) => null);
+    if (echec != null) return AccountDeletionRefused(echec);
 
     // Then ask again
     return requestAccountDeletion();

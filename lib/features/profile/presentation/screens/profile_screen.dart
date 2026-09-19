@@ -13,6 +13,7 @@ import '../../../../core/responsive/responsive.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../core/theme/adaptive_colors.dart';
+import '../../../auth/domain/entities/account_deletion_status.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../friends/presentation/providers/friend_provider.dart';
 import '../../../groups/presentation/providers/group_provider.dart';
@@ -1067,49 +1068,26 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
         await NotificationService().removeTokenForUser(currentUser.id);
       }
 
-      final echeance =
+      final issue =
           await ref.read(authNotifierProvider.notifier).requestAccountDeletion();
 
-      if (echeance != null) {
-        if (mounted) Navigator.pop(context);
-        router.go('/auth/login');
-        _afficherSuppressionProgrammee(messenger, l10n, dateLocale, echeance);
-        return;
+      // Un résultat, pas un `AuthState.error` : la personne est toujours
+      // connectée, et le routeur renvoie sur l'écran de connexion toute erreur
+      // posée dans l'état d'authentification.
+      switch (issue) {
+        case AccountDeletionRequested(:final executeAt):
+          if (mounted) Navigator.pop(context);
+          router.go('/auth/login');
+          _afficherSuppressionProgrammee(messenger, l10n, dateLocale, executeAt);
+        case AccountDeletionNeedsReauth(:final message):
+          if (!mounted) return;
+          Navigator.pop(context);
+          await _showPasswordPromptForDeletion(l10n, message);
+        case AccountDeletionRefused(:final message):
+          if (!mounted) return;
+          Navigator.pop(context);
+          _afficherRefusSuppression(messenger, l10n, message);
       }
-
-      if (!mounted) return;
-      Navigator.pop(context);
-
-      final authState = ref.read(authNotifierProvider);
-      final errorMessage = authState.maybeWhen(
-        error: (msg) => msg,
-        orElse: () => null,
-      );
-
-      if (errorMessage != null && errorMessage.startsWith('REAUTH_REQUIRED:')) {
-        final actualMessage = errorMessage.substring('REAUTH_REQUIRED:'.length);
-        await _showPasswordPromptForDeletion(l10n, actualMessage);
-        return;
-      }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.error, color: AppColors.white),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(errorMessage ?? l10n.errorDeletingAccount),
-              ),
-            ],
-          ),
-          backgroundColor: AppColors.error,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-      );
     } catch (e) {
       if (!mounted) return;
       Navigator.pop(context);
@@ -1148,6 +1126,31 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
         backgroundColor: AppColors.success,
         behavior: SnackBarBehavior.floating,
         duration: const Duration(seconds: 8),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+  }
+
+  /// La demande n'a pas abouti : rien n'a été désactivé, la personne reste
+  /// connectée et lit pourquoi.
+  void _afficherRefusSuppression(
+    ScaffoldMessengerState messenger,
+    AppLocalizations l10n,
+    String message,
+  ) {
+    messenger.showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.error, color: AppColors.white),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(message.isEmpty ? l10n.errorDeletingAccount : message),
+            ),
+          ],
+        ),
+        backgroundColor: AppColors.error,
+        behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
@@ -1290,43 +1293,25 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
           ),
     ));
 
-    final echeance = await ref
+    final issue = await ref
         .read(authNotifierProvider.notifier)
         .reauthenticateAndRequestDeletion(password);
 
-    if (echeance != null) {
-      if (mounted) Navigator.pop(context);
-      router.go('/auth/login');
-      _afficherSuppressionProgrammee(messenger, l10n, dateLocale, echeance);
-      return;
+    switch (issue) {
+      case AccountDeletionRequested(:final executeAt):
+        if (mounted) Navigator.pop(context);
+        router.go('/auth/login');
+        _afficherSuppressionProgrammee(messenger, l10n, dateLocale, executeAt);
+      // Mot de passe faux, refus de la base, réseau — ou une nouvelle demande
+      // de ré-authentification, qui ne devrait pas suivre un mot de passe
+      // qu'on vient d'accepter et qu'on traite comme un refus plutôt que de
+      // reboucler sur l'invite.
+      case AccountDeletionNeedsReauth(:final message) ||
+          AccountDeletionRefused(:final message):
+        if (!mounted) return;
+        Navigator.pop(context);
+        _afficherRefusSuppression(messenger, l10n, message);
     }
-
-    if (!mounted) return;
-
-    Navigator.pop(context);
-
-    final authState = ref.read(authNotifierProvider);
-    final errorMessage = authState.maybeWhen(
-      error: (msg) => msg,
-      orElse: () => l10n.errorDeletingAccount,
-    );
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.error, color: AppColors.white),
-            const SizedBox(width: 12),
-            Expanded(child: Text(errorMessage)),
-          ],
-        ),
-        backgroundColor: AppColors.error,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-      ),
-    );
   }
 
   void _showShareProfileModal() {

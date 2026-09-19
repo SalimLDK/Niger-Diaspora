@@ -47,3 +47,35 @@ class AccountDeletionStatus {
   @override
   int get hashCode => Object.hash(phase, executeAt);
 }
+
+/// Issue d'une demande de suppression.
+///
+/// Un RÉSULTAT, pas un `AuthState.error` : la personne est toujours connectée,
+/// et le routeur traite tout `AuthState.error` comme « non authentifié » — un
+/// refus (compte plateforme, obligation financière) ou une ré-authentification
+/// demandée la renverrait sur l'écran de connexion au lieu de lui laisser lire
+/// le message.
+sealed class AccountDeletionRequestOutcome {
+  const AccountDeletionRequestOutcome();
+}
+
+/// La demande est enregistrée : le compte est désactivé et sera supprimé à
+/// [executeAt].
+final class AccountDeletionRequested extends AccountDeletionRequestOutcome {
+  const AccountDeletionRequested(this.executeAt);
+  final DateTime executeAt;
+}
+
+/// La dernière authentification est trop ancienne : redemander le mot de passe,
+/// puis recommencer. Rien n'a été désactivé.
+final class AccountDeletionNeedsReauth extends AccountDeletionRequestOutcome {
+  const AccountDeletionNeedsReauth(this.message);
+  final String message;
+}
+
+/// La demande n'a pas abouti (refus de la base, réseau, mot de passe faux).
+/// Rien n'a été désactivé.
+final class AccountDeletionRefused extends AccountDeletionRequestOutcome {
+  const AccountDeletionRefused(this.message);
+  final String message;
+}
