@@ -267,26 +267,30 @@ void main() {
   // Ce qui interdit une suppression
   // ═══════════════════════════════════════════════════════════════════════
   group('refus', () {
-    final blocage = _corps(sql, 'private.suppression_bloquee_pour');
+    // La DERNIÈRE définition : `private.suppression_bloquee_pour` a été
+    // remplacée (20260919113700) et le sera peut-être encore. Une garde qui lit
+    // le fichier de création continue de passer longtemps après que le corps a
+    // changé ailleurs.
+    final cheminBlocage = _derniereMigrationDefinissant(
+      'FUNCTION private.suppression_bloquee_pour(',
+    );
+    final blocage = _corps(_source(cheminBlocage), 'private.suppression_bloquee_pour');
 
     test('le compte plateforme est refusé', () {
       expect(blocage, contains('g.is_official'));
       expect(blocage, contains("'compte_plateforme'"));
     });
 
-    test('l\'historique financier est refusé, pas effacé ni gardé en silence', () {
+    test('l\'OUVERT est refusé ; le clos ne l\'est qu\'en l\'absence de durée posée', () {
       expect(blocage, contains("'obligations_financieres'"));
-      for (final t in [
-        'orders',
-        'escrow_transactions',
-        'transactions',
-        'tips',
-        'room_tickets',
-        'card_credit_requests',
-        'debit_requests',
-      ]) {
-        expect(blocage, contains('public.$t'), reason: '$t n\'est plus vérifiée');
-      }
+      expect(blocage, contains('private.obligations_financieres_ouvertes(p_uid)'));
+      // Un dossier clos ne bloque que si personne n'a dit combien de temps le
+      // garder : on ne décide pas seul d'une durée légale.
+      expect(blocage, contains("'conservation_financiere_non_configuree'"));
+      expect(blocage, contains('private.retention_financiere() IS NULL'));
+      // Et l'ouvert passe AVANT : une commande en cours ne se « conserve » pas.
+      expect(blocage.indexOf('obligations_financieres_ouvertes'),
+          lessThan(blocage.indexOf('retention_financiere')));
     });
 
     test('un compte devenu bloquant n\'est PAS réclamé (Firebase intact)', () {
@@ -520,6 +524,170 @@ void main() {
       final regles = _source('firestore.rules');
       expect(regles, contains('match /{document=**} {\n      allow read, write: if false;'));
       expect(regles, isNot(contains('deleted_accounts')));
+    });
+  });
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // Finances : refuser l'OUVERT, conserver le CLOS
+  // ═══════════════════════════════════════════════════════════════════════
+  group('finances : refuser l\'ouvert, conserver le clos', () {
+    const cheminFin =
+        'supabase/migrations/20260919113700_suppression_compte_finances_ouvert_clos.sql';
+    final fin = _source(cheminFin);
+    final ouvertes = _corps(fin, 'private.obligations_financieres_ouvertes');
+    final dossiers = _corps(fin, 'private.dossiers_financiers');
+    final retention = _corps(fin, 'private.retention_financiere');
+    final finances = _corps(fin, 'private.purge_finances');
+    final delier = _corps(fin, 'private.delier_finances_expirees');
+
+    const tables = [
+      'orders',
+      'escrow_transactions',
+      'transactions',
+      'tips',
+      'room_tickets',
+      'card_credit_requests',
+      'debit_requests',
+    ];
+
+    test('les sept tables sont regardées, pour l\'ouvert comme pour les dossiers', () {
+      for (final t in tables) {
+        expect(ouvertes, contains('public.$t'), reason: '$t n\'est plus vérifiée (ouvert)');
+        expect(dossiers, contains('public.$t'), reason: '$t n\'est plus vérifiée (dossiers)');
+      }
+    });
+
+    test('ce qui est OUVERT : les états relevés dans les contraintes CHECK', () {
+      // Relevés le 2026-09-19 (les tables sont vides : aucun parcours observé).
+      for (final etat in [
+        "'pending', 'paid', 'processing', 'shipped', 'disputed'",
+        "'held', 'releasing'",
+        "'held', 'disputed'",
+        "'pending', 'processing'",
+        "'pending', 'initiated'",
+      ]) {
+        expect(ouvertes, contains(etat), reason: 'l\'état $etat a disparu de « ouvert »');
+      }
+      // Un litige est ouvert même sur une commande « terminée ».
+      expect(ouvertes, contains('is_in_dispute'));
+      expect(ouvertes, contains('has_dispute'));
+      // Dans le doute, ouvert.
+      expect(ouvertes, contains('IS NULL'));
+      // Aucun état CLOS ne doit y traîner.
+      for (final clos in ["'completed'", "'cancelled'", "'refunded'", "'released'", "'confirmed'", "'failed'"]) {
+        expect(ouvertes, isNot(contains(clos)), reason: '$clos est un état clos, pas ouvert');
+      }
+    });
+
+    test('la durée : une valeur invalide vaut « non posée », jamais une erreur', () {
+      // `::int` sur « sept » ou sur un nombre trop grand LÈVE : sans CASE, SQL
+      // ne garantit pas l'ordre d'évaluation d'un WHERE.
+      expect(retention, contains('CASE'));
+      expect(retention.indexOf("~ '^[0-9]{1,2}\$'"),
+          lessThan(retention.indexOf('::int BETWEEN 1 AND 30')));
+      expect(retention, contains("'financial_retention_years'"));
+      expect(retention, contains("jsonb_typeof(c.value) = 'number'"));
+    });
+
+    test('la purge LÈVE plutôt que de décider : ouvert, ou durée non posée', () {
+      expect(finances, contains("RAISE EXCEPTION 'obligations_financieres'"));
+      expect(finances, contains("RAISE EXCEPTION 'conservation_financiere_non_configuree'"));
+      // Les garde-fous passent AVANT la moindre écriture.
+      expect(finances.indexOf('RAISE EXCEPTION'), lessThan(finances.indexOf('UPDATE public.')));
+    });
+
+    test('un dossier clos n\'est JAMAIS supprimé, et ses montants ne sont jamais touchés', () {
+      for (final t in tables) {
+        expect(finances, isNot(contains('DELETE FROM public.$t')));
+        expect(delier, isNot(contains('DELETE FROM public.$t')));
+      }
+      // Ni la purge ni l'échéance ne réécrivent un montant.
+      for (final montant in ['amount', 'total_amount', 'unit_price', 'seller_amount', 'amount_in_xof']) {
+        expect(RegExp('SET[^;]*\\b$montant\\s*=').hasMatch(finances), isFalse,
+            reason: '$montant ne doit pas être réécrit à la purge');
+        expect(RegExp('SET[^;]*\\b$montant\\s*=').hasMatch(delier), isFalse,
+            reason: '$montant ne doit pas être réécrit à l\'échéance');
+      }
+      // Et la purge d'un COMPTE n'y touche pas non plus (le premier fichier).
+      for (final t in tables) {
+        expect(purge, isNot(contains('DELETE FROM public.$t')),
+            reason: 'purge_account ne doit pas effacer $t');
+      }
+    });
+
+    test('ce qui est effacé d\'un dossier clos : le texte libre et les coordonnées de la personne', () {
+      for (final effacee in [
+        'buyer_name = NULL',
+        'buyer_note = NULL',
+        'shipping_address = NULL',
+        'seller_name = NULL',
+        'seller_note = NULL',
+        'SET notes = NULL',
+      ]) {
+        expect(finances, contains(effacee), reason: '$effacee n\'est plus effacé');
+      }
+      // Chaque côté n'efface que SES champs : l'autre partie garde les siens.
+      expect(finances, contains('WHERE buyer_id = p_uid'));
+      expect(finances, contains('WHERE seller_id = p_uid'));
+      expect(finances, contains('WHERE sender_id = p_uid'));
+    });
+
+    test('à l\'échéance, chaque UPDATE est gardé : jamais un compte VIVANT', () {
+      final nb = RegExp(r'UPDATE public\.').allMatches(delier).length;
+      final gardes = RegExp(r'NOT EXISTS \(SELECT 1 FROM public\.users').allMatches(delier).length;
+      expect(nb, greaterThan(0));
+      expect(gardes, nb,
+          reason: 'un UPDATE sans la garde « plus de profil » délierait un compte vivant');
+      // Et rien ne peut expirer sans durée posée.
+      expect(delier, contains('IF v_duree IS NULL'));
+      expect(delier.indexOf('IF v_duree IS NULL'), lessThan(delier.indexOf('UPDATE public.')));
+    });
+
+    test('la tâche nocturne est programmée par son nom (un upsert), rien de plus', () {
+      expect(fin, contains("'delier-finances-expirees'"));
+      expect(fin, contains(r'$cron$SELECT private.delier_finances_expirees()$cron$'));
+    });
+
+    test('la purge d\'un compte passe par les finances D\'ABORD, dans le même bloc', () {
+      final cheminComplete = _derniereMigrationDefinissant(
+        'FUNCTION public.complete_account_deletion(',
+      );
+      final complete = _corps(_source(cheminComplete), 'public.complete_account_deletion');
+      expect(cheminComplete, cheminFin,
+          reason: 'la dernière définition de complete_account_deletion est celle-ci');
+      expect(complete.indexOf('private.purge_finances(p_uid)'),
+          lessThan(complete.indexOf('private.purge_account(p_uid)')));
+      // Toujours idempotente et « rend {ok, …} au lieu de lever » : une
+      // exception annulerait aussi l'enregistrement de `last_error`.
+      expect(complete, contains("'ok', false"));
+      expect(complete, contains("v_status = 'completed'"));
+      expect(fin, contains('GRANT EXECUTE ON FUNCTION public.complete_account_deletion(text) TO service_role;'));
+    });
+
+    test('rien ne s\'appelle depuis un client', () {
+      for (final f in [
+        'private.retention_financiere()',
+        'private.obligations_financieres_ouvertes(text)',
+        'private.dossiers_financiers(text)',
+        'private.suppression_bloquee_pour(text)',
+        'private.purge_finances(text)',
+        'private.delier_finances_expirees()',
+      ]) {
+        expect(fin, contains('REVOKE ALL ON FUNCTION $f FROM PUBLIC, anon, authenticated;'));
+      }
+    });
+
+    test('INERTE tant que la durée n\'est pas posée, et le dit en tête', () {
+      final entete = fin.substring(0, fin.indexOf('CREATE OR REPLACE FUNCTION'));
+      expect(entete, contains('INERTE TANT QUE'));
+      expect(entete, contains('conseil juridique'));
+      // Le chiffre d'exemple n'est pas un conseil.
+      expect(entete, contains('le chiffre est un exemple, pas un'));
+    });
+
+    test('le client sait afficher le nouveau refus', () {
+      final ds = _source('lib/features/auth/data/datasources/auth_remote_datasource.dart');
+      expect(ds, contains("'conservation_financiere_non_configuree'"));
     });
   });
 
