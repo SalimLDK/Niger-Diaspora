@@ -376,10 +376,39 @@ class OnlineStatusService {
     }
   }
 
+  /// Écrit `users.show_online_status` et **lève si aucune ligne n'a été
+  /// touchée**.
+  ///
+  /// PostgREST rend 200 sur un `UPDATE` qui ne matche rien — RLS qui cache la
+  /// ligne, ou ligne pas encore créée. Sans ce contrôle l'écriture « réussissait »
+  /// à vide : l'interrupteur gardait la nouvelle valeur, la présence était
+  /// alignée dessus, et le serveur gardait l'ancienne — un compte qui croyait
+  /// s'être masqué repartait visible au lancement suivant. Même garde que
+  /// `updateNotificationPrefs` (voir `profile_notification_writes_test.dart`).
+  ///
+  /// Statique et prenant le client en paramètre : le service tient des
+  /// singletons Firebase et ne se monte pas en test, cette écriture-là si.
+  @visibleForTesting
+  static Future<void> writeShowOnlineStatus(
+    SupabaseClient client,
+    String userId,
+    bool value,
+  ) async {
+    final touchees = await client
+        .from('users')
+        .update({'show_online_status': value})
+        .eq('id', userId)
+        .select('id');
+    if (touchees.isEmpty) {
+      throw StateError('Réglage non enregistré : aucun compte mis à jour');
+    }
+  }
+
   /// Update user's online status visibility preference.
   ///
   /// **Lève** si la préférence n'a pas pu être écrite : aucun utilisateur,
-  /// session Supabase absente, ou refus du serveur. Elle rendait auparavant
+  /// session Supabase absente, aucune ligne touchée, ou refus du serveur. Elle
+  /// rendait auparavant
   /// sans rien dire dans ces trois cas — `_currentUserId == null` (présence pas
   /// encore montée) et session absente sortaient sur un `return`, et un `catch`
   /// avalait le reste. L'interrupteur affichait donc la nouvelle valeur sans
@@ -400,10 +429,7 @@ class OnlineStatusService {
       throw StateError('Session distante indisponible');
     }
 
-    await _supabase
-        .from('users')
-        .update({'show_online_status': showStatus})
-        .eq('id', userId);
+    await writeShowOnlineStatus(_supabase, userId, showStatus);
 
     try {
       if (showStatus) {
