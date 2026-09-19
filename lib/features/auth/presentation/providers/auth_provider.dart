@@ -460,39 +460,41 @@ class AuthNotifier extends _$AuthNotifier {
     );
   }
 
-  Future<bool> deleteAccount() async {
+  /// Demande la suppression du compte : le serveur le désactive tout de suite
+  /// et le supprime pour de bon après le délai de grâce (30 jours). Rend la
+  /// date de suppression définitive, ou `null` en cas d'échec — l'état porte
+  /// alors le motif.
+  ///
+  /// Le compte Firebase n'est pas supprimé ici : la personne doit pouvoir se
+  /// reconnecter pour annuler. On la déconnecte de CE téléphone, comme une
+  /// déconnexion ordinaire ; les autres appareils tombent sur l'écran
+  /// d'annulation à leur prochain jeton (leurs sessions Supabase sont révoquées).
+  Future<DateTime?> requestAccountDeletion() async {
     final repository = ref.read(authRepositoryProvider);
 
-    // Try to delete account
-    final result = await repository.deleteAccount();
+    final result = await repository.requestAccountDeletion();
 
-    return result.fold(
-      (failure) {
-        // Re-authentification requise : on se fie au code Firebase remonte
-        // par le repository. L ancienne detection cherchait « mot de passe »
-        // ou « sécurité » dans le message — elle ne tenait qu en francais,
-        // et « Email ou mot de passe incorrect » la declenchait a tort.
-        if (failure is AuthFailure &&
-            failure.code == 'requires-recent-login') {
-          // Reauthentication needed - set a special error state
-          state = AuthState.error('REAUTH_REQUIRED:${failure.message}');
-          return false;
-        }
-        state = AuthState.error(failure.message);
-        return false;
-      },
-      (_) async {
-        SessionService.instance.dispose();
-        await CacheService.instance.clearAllCache();
-        await PreferencesService.instance.clearUserData();
-        await FileDownloadService().clearDownloadedFiles();
-        state = const AuthState.unauthenticated();
-        return true;
-      },
-    );
+    final echeance = result.fold<DateTime?>((failure) {
+      // Re-authentification requise : on se fie au code remonté par le
+      // repository. L ancienne detection cherchait « mot de passe » ou
+      // « sécurité » dans le message — elle ne tenait qu en francais, et
+      // « Email ou mot de passe incorrect » la declenchait a tort.
+      if (failure is AuthFailure && failure.code == 'requires-recent-login') {
+        // Reauthentication needed - set a special error state
+        state = AuthState.error('REAUTH_REQUIRED:${failure.message}');
+        return null;
+      }
+      state = AuthState.error(failure.message);
+      return null;
+    }, (echeance) => echeance);
+
+    if (echeance == null) return null;
+
+    await signOut();
+    return echeance;
   }
 
-  Future<bool> reauthenticateAndDelete(String password) async {
+  Future<DateTime?> reauthenticateAndRequestDeletion(String password) async {
     final repository = ref.read(authRepositoryProvider);
 
     // First reauthenticate
@@ -503,10 +505,10 @@ class AuthNotifier extends _$AuthNotifier {
       return false;
     }, (_) => true);
 
-    if (!reauthSuccess) return false;
+    if (!reauthSuccess) return null;
 
-    // Then try to delete again
-    return deleteAccount();
+    // Then ask again
+    return requestAccountDeletion();
   }
 
   Future<void> sendPasswordResetEmail(String email) async {

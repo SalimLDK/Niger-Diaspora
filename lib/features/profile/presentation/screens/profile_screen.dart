@@ -6,7 +6,9 @@ import 'package:flutter/services.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import '../../../../core/constants/app_spacing.dart';
+import '../../../../core/utils/locale_helper.dart';
 import '../../../../core/responsive/responsive.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/services/notification_service.dart';
@@ -1053,14 +1055,27 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
           ),
     ));
 
+    // Pris AVANT l'appel : la demande déconnecte la personne, et le routeur a
+    // pu détruire cet écran quand elle rend la main — `context` ne sert plus.
+    final messenger = ScaffoldMessenger.of(context);
+    final router = GoRouter.of(context);
+    final dateLocale = LocaleHelper.getDateFormatLocale(context);
+
     try {
       final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
       if (currentUser != null) {
         await NotificationService().removeTokenForUser(currentUser.id);
       }
 
-      final success =
-          await ref.read(authNotifierProvider.notifier).deleteAccount();
+      final echeance =
+          await ref.read(authNotifierProvider.notifier).requestAccountDeletion();
+
+      if (echeance != null) {
+        if (mounted) Navigator.pop(context);
+        router.go('/auth/login');
+        _afficherSuppressionProgrammee(messenger, l10n, dateLocale, echeance);
+        return;
+      }
 
       if (!mounted) return;
       Navigator.pop(context);
@@ -1077,44 +1092,24 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
         return;
       }
 
-      if (success) {
-        GoRouter.of(context).go('/auth/login');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.check_circle, color: AppColors.white),
-                const SizedBox(width: 12),
-                Text(l10n.accountDeletedSuccess),
-              ],
-            ),
-            backgroundColor: AppColors.success,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.error, color: AppColors.white),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(errorMessage ?? l10n.errorDeletingAccount),
+              ),
+            ],
           ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.error, color: AppColors.white),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(errorMessage ?? l10n.errorDeletingAccount),
-                ),
-              ],
-            ),
-            backgroundColor: AppColors.error,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
           ),
-        );
-      }
+        ),
+      );
     } catch (e) {
       if (!mounted) return;
       Navigator.pop(context);
@@ -1129,6 +1124,33 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
         ),
       );
     }
+  }
+
+  /// Confirme la demande : le compte est désactivé, pas encore supprimé — le
+  /// message dit QUAND, et comment annuler. Le messager est celui de la racine,
+  /// pris avant l'appel : l'écran qui l'a demandé n'existe plus.
+  void _afficherSuppressionProgrammee(
+    ScaffoldMessengerState messenger,
+    AppLocalizations l10n,
+    String dateLocale,
+    DateTime echeance,
+  ) {
+    final date = DateFormat('EEEE dd MMMM yyyy', dateLocale).format(echeance.toLocal());
+    messenger.showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.schedule, color: AppColors.white),
+            const SizedBox(width: 12),
+            Expanded(child: Text(l10n.accountDeletionScheduled(date))),
+          ],
+        ),
+        backgroundColor: AppColors.success,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 8),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
   }
 
   Future<void> _showPasswordPromptForDeletion(
@@ -1241,6 +1263,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     String password,
     AppLocalizations l10n,
   ) async {
+    // Pris avant l'appel, comme dans `_deleteAccount` : la demande déconnecte
+    // la personne et le routeur peut détruire cet écran avant qu'elle rende
+    // la main.
+    final messenger = ScaffoldMessenger.of(context);
+    final router = GoRouter.of(context);
+    final dateLocale = LocaleHelper.getDateFormatLocale(context);
+
     Navigator.pop(context);
 
     unawaited(showDialog(
@@ -1261,56 +1290,43 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
           ),
     ));
 
-    final success = await ref
+    final echeance = await ref
         .read(authNotifierProvider.notifier)
-        .reauthenticateAndDelete(password);
+        .reauthenticateAndRequestDeletion(password);
+
+    if (echeance != null) {
+      if (mounted) Navigator.pop(context);
+      router.go('/auth/login');
+      _afficherSuppressionProgrammee(messenger, l10n, dateLocale, echeance);
+      return;
+    }
 
     if (!mounted) return;
 
     Navigator.pop(context);
 
-    if (success) {
-      GoRouter.of(context).go('/auth/login');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.check_circle, color: AppColors.white),
-              const SizedBox(width: 12),
-              Text(l10n.accountDeletedSuccess),
-            ],
-          ),
-          backgroundColor: AppColors.success,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-      );
-    } else {
-      final authState = ref.read(authNotifierProvider);
-      final errorMessage = authState.maybeWhen(
-        error: (msg) => msg,
-        orElse: () => l10n.errorDeletingAccount,
-      );
+    final authState = ref.read(authNotifierProvider);
+    final errorMessage = authState.maybeWhen(
+      error: (msg) => msg,
+      orElse: () => l10n.errorDeletingAccount,
+    );
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.error, color: AppColors.white),
-              const SizedBox(width: 12),
-              Expanded(child: Text(errorMessage)),
-            ],
-          ),
-          backgroundColor: AppColors.error,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.error, color: AppColors.white),
+            const SizedBox(width: 12),
+            Expanded(child: Text(errorMessage)),
+          ],
         ),
-      );
-    }
+        backgroundColor: AppColors.error,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+    );
   }
 
   void _showShareProfileModal() {

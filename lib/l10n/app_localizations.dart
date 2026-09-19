@@ -1121,7 +1121,7 @@ abstract class AppLocalizations {
   /// No description provided for @deleteAccountWarning.
   ///
   /// In fr, this message translates to:
-  /// **'Cette action est irréversible. Toutes vos données seront supprimées définitivement.\n\nCela inclut :\n• Votre profil et vos informations personnelles\n• Vos conversations et messages\n• Vos événements créés\n• Votre participation aux groupes'**
+  /// **'Votre compte sera désactivé tout de suite, puis supprimé définitivement dans 30 jours. Vous pouvez annuler jusque-là en vous reconnectant.\n\nSera supprimé :\n• Votre profil, vos publications et vos stories\n• Vos conversations à deux, chez vous comme chez votre interlocuteur\n• Les événements et les commerces que vous avez créés\n• Vos amis, abonnements, favoris et notifications\n\nVous quittez tous vos groupes ; ceux que vous administrez passent à un autre membre.\n\nSera conservé, sans votre nom ni votre photo :\n• Vos messages non chiffrés dans les groupes, sous « Compte supprimé » (vos messages chiffrés de bout en bout sont supprimés)\n\nDes copies de sauvegarde techniques peuvent subsister temporairement.'**
   String get deleteAccountWarning;
 
   /// Compteur de conversations non lues sous le titre de l'écran Messages
@@ -4489,6 +4489,54 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Erreur lors de la suppression'**
   String get errorDeletingAccount;
+
+  /// No description provided for @accountDeletionScheduled.
+  ///
+  /// In fr, this message translates to:
+  /// **'Compte désactivé. Suppression définitive le {date}. Reconnectez-vous avant pour l\'annuler.'**
+  String accountDeletionScheduled(String date);
+
+  /// No description provided for @accountDeletionPendingTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suppression du compte programmée'**
+  String get accountDeletionPendingTitle;
+
+  /// No description provided for @accountDeletionPendingBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre compte est désactivé et sera supprimé définitivement le {date}.\n\nVous pouvez annuler la suppression jusqu\'à cette date : votre profil et vos publications redeviendront visibles.'**
+  String accountDeletionPendingBody(String date);
+
+  /// No description provided for @accountDeletionInProgressTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suppression en cours'**
+  String get accountDeletionInProgressTitle;
+
+  /// No description provided for @accountDeletionInProgressBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'La suppression de votre compte est en cours. Elle ne peut plus être annulée.'**
+  String get accountDeletionInProgressBody;
+
+  /// No description provided for @accountDeletionCancelAction.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annuler la suppression'**
+  String get accountDeletionCancelAction;
+
+  /// No description provided for @accountDeletionCancelled.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suppression annulée. Bon retour parmi nous !'**
+  String get accountDeletionCancelled;
+
+  /// No description provided for @accountDeletionCancelFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible d\'annuler la suppression. Réessayez.'**
+  String get accountDeletionCancelFailed;
 
   /// No description provided for @allRightsReserved.
   ///

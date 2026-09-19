@@ -14,8 +14,9 @@ import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:supabase_flutter/supabase_flutter.dart'
     hide User, AuthException, OAuthProvider;
 import '../../../../core/errors/exceptions.dart';
-import '../../../../core/services/secure_preferences_service.dart';
 import '../../../../core/services/supabase_auth_bridge.dart';
+import '../../../../core/utils/date_parsing.dart';
+import '../../domain/entities/account_deletion_status.dart';
 import '../models/user_model.dart';
 
 const String _tag = 'AuthRemoteDataSource';
@@ -49,7 +50,25 @@ abstract class AuthRemoteDataSource {
   /// la main tout de suite.
   String? get currentUserId;
 
-  Future<void> deleteAccount();
+  /// Demande la suppression du compte : le serveur le désactive tout de suite
+  /// (`request_account_deletion`) et le supprime pour de bon à l'échéance, rendue
+  /// ici. Le compte Firebase n'est PAS touché par cet appel — c'est la Cloud
+  /// Function planifiée qui le supprime, une fois le délai de grâce passé.
+  ///
+  /// Lève [AuthException] (code `requires-recent-login`) pour un compte à mot
+  /// de passe dont la dernière authentification est trop ancienne : à faire
+  /// AVANT la demande, pas après.
+  Future<DateTime> requestAccountDeletion();
+
+  /// Annule une suppression en cours (délai de grâce, ou bloquée). Lève plutôt
+  /// que de « réussir à vide » quand il n'y a rien à annuler.
+  Future<void> cancelAccountDeletion();
+
+  /// Suppression en cours pour le compte connecté, ou `null` s'il n'y en a pas.
+  /// Lève quand la session Supabase n'est pas établie : conclure à
+  /// « aucune suppression » sans l'avoir lue laisserait une personne en cours
+  /// de suppression entrer dans l'application comme si de rien n'était.
+  Future<AccountDeletionStatus?> fetchAccountDeletionStatus();
 
   Future<void> reauthenticateWithPassword(String password);
 
@@ -467,96 +486,145 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     }
   }
 
+  /// Seuil de fraîcheur de l'authentification avant une demande de suppression.
+  /// C'est le NÔTRE : depuis que le client ne supprime plus le compte Firebase,
+  /// Firebase n'exige plus rien ici. Une demande désactive le compte et le
+  /// déconnecte partout — mieux vaut avoir vu le mot de passe il y a peu.
+  static const Duration _fraicheurAvantSuppression = Duration(minutes: 4);
+
+  Future<void> _exigerConnexionRecente(User user) async {
+    // Seuls les comptes à mot de passe ont de quoi se ré-authentifier ici ;
+    // Google et Apple n'ont pas de mot de passe à redemander.
+    final parMotDePasse = user.providerData.any(
+      (p) => p.providerId == 'password',
+    );
+    if (!parMotDePasse) return;
+
+    final authTime = (await user.getIdTokenResult()).authTime;
+    if (authTime != null &&
+        DateTime.now().difference(authTime) <= _fraicheurAvantSuppression) {
+      return;
+    }
+    // Le code Firebase est conserve : c'est lui qui declenche la
+    // re-authentification en amont. Le message ne sert qu'a l'affichage et ne
+    // doit jamais etre relu pour decider quoi que ce soit.
+    throw AuthException(
+      'Pour des raisons de sécurité, veuillez confirmer votre mot de passe',
+      code: 'requires-recent-login',
+    );
+  }
+
   @override
-  Future<void> deleteAccount() async {
+  Future<DateTime> requestAccountDeletion() async {
     try {
-      await _ensureGoogleSignInInitialized();
       final user = _firebaseAuth.currentUser;
       if (user == null) {
         throw ServerException('Aucun utilisateur connecté');
       }
 
-      final userId = user.uid;
+      await _exigerConnexionRecente(user);
 
-      // Clean up Supabase data FIRST, then delete Auth.
-      // If Supabase cleanup fails, the user can retry — their account still exists.
-      // If Auth were deleted first, a failure would leave orphaned data with no recovery.
-
-      // 1. Delete user from Supabase users table
-      //    (cascades to related data via FK ON DELETE CASCADE where configured)
-      await _supabase.from('users').delete().eq('id', userId);
-
-      // 2. Handle conversations the user participated in
-      final conversations = await _supabase
-          .from('conversations')
-          .select('id, participant_ids')
-          .contains('participant_ids', [userId]);
-
-      for (final conv in conversations) {
-        final participants = List<String>.from(conv['participant_ids'] as List);
-        if (participants.length <= 2) {
-          await _supabase.from('conversations').delete().eq('id', conv['id'] as String);
-        } else {
-          participants.remove(userId);
-          await _supabase
-              .from('conversations')
-              .update({'participant_ids': participants})
-              .eq('id', conv['id'] as String);
-        }
+      if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
+        throw ServerException('Session introuvable, veuillez vous reconnecter');
       }
 
-      // 3. Remove user from groups they are a member of
-      final groups = await _supabase
-          .from('groups')
-          .select('id, member_ids, created_by')
-          .contains('member_ids', [userId]);
-
-      for (final group in groups) {
-        final memberIds = List<String>.from(group['member_ids'] as List);
-        memberIds.remove(userId);
-        if (group['created_by'] == userId && memberIds.isEmpty) {
-          await _supabase.from('groups').delete().eq('id', group['id'] as String);
-        } else {
-          await _supabase
-              .from('groups')
-              .update({'member_ids': memberIds})
-              .eq('id', group['id'] as String);
-        }
+      // La base désactive le compte (profil et publications masqués, push
+      // arrêté, commerces dépubliés, sessions révoquées) et rend la date de
+      // suppression définitive. Une RPC, pas un DELETE : la table `users` n'a
+      // aucune policy DELETE, et un DELETE filtré par RLS « réussit » à zéro
+      // ligne sans rien dire.
+      final echeance = await _supabase.rpc('request_account_deletion');
+      if (echeance == null) {
+        throw ServerException('La demande de suppression n\'a pas abouti');
       }
-
-      // 4. Delete Firebase Auth user LAST
-      try {
-        await user.delete();
-      } on FirebaseAuthException catch (e) {
-        if (e.code == 'requires-recent-login') {
-          // Rethrow this specific error so UI can handle reauthentication
-          rethrow;
-        }
-        throw ServerException(_mapFirebaseAuthError(e.code));
-      }
-
-      // 5. Sign out from Google and Supabase
-      await SupabaseAuthBridge.instance.signOut();
-      await _googleSignIn.signOut();
-
-      // 6. Security: clean up secure storage on account deletion
-      await SecurePreferencesService.instance.clearAll();
-    } on FirebaseAuthException catch (e) {
-      if (e.code == 'requires-recent-login') {
-        // Le code Firebase est conserve : c est lui qui doit declencher la
-        // re-authentification en amont. Le message ne sert qu a l affichage
-        // et ne doit jamais etre relu pour decider quoi que ce soit.
-        throw AuthException(
-          'Pour des raisons de sécurité, veuillez confirmer votre mot de passe',
-          code: e.code,
-        );
-      }
-      throw ServerException(_mapFirebaseAuthError(e.code));
-    } catch (e) {
-      throw ServerException(
-        'Echec de la suppression du compte: ${e.toString()}',
+      return parseLocalDate(echeance);
+    } on AuthException {
+      rethrow;
+    } on ServerException {
+      rethrow;
+    } on PostgrestException catch (e) {
+      dev.log(
+        'request_account_deletion refusee: ${e.code} ${e.message}',
+        name: _tag,
       );
+      throw ServerException(_motifSuppressionRefusee(e.message));
+    } catch (e) {
+      dev.log('request_account_deletion: $e', name: _tag);
+      throw ServerException('Echec de la demande de suppression du compte');
     }
+  }
+
+  /// Les motifs que la base énonce (`RAISE EXCEPTION '<motif>'`). Tout autre
+  /// message reste dans les journaux : il n'a pas à s'afficher.
+  String _motifSuppressionRefusee(String motif) => switch (motif) {
+    'compte_plateforme' =>
+      'Ce compte administre les groupes officiels : il ne peut pas être '
+          'supprimé depuis l\'application.',
+    'obligations_financieres' =>
+      'Des opérations financières sont liées à ce compte : contactez le '
+          'support pour le supprimer.',
+    'suppression_deja_engagee' =>
+      'La suppression de ce compte est déjà engagée.',
+    _ => 'Echec de la demande de suppression du compte',
+  };
+
+  @override
+  Future<void> cancelAccountDeletion() async {
+    try {
+      if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
+        throw ServerException('Session introuvable, veuillez vous reconnecter');
+      }
+      final ok = await _supabase.rpc('cancel_account_deletion');
+      // La RPC rend true, ou lève : un autre retour n'est pas un succès.
+      if (ok != true) {
+        throw ServerException('L\'annulation n\'a pas abouti');
+      }
+    } on ServerException {
+      rethrow;
+    } on PostgrestException catch (e) {
+      dev.log(
+        'cancel_account_deletion refusee: ${e.code} ${e.message}',
+        name: _tag,
+      );
+      throw ServerException(
+        e.message == 'aucune_suppression_a_annuler'
+            ? 'Cette suppression ne peut plus être annulée.'
+            : 'Echec de l\'annulation de la suppression',
+      );
+    } catch (e) {
+      dev.log('cancel_account_deletion: $e', name: _tag);
+      throw ServerException('Echec de l\'annulation de la suppression');
+    }
+  }
+
+  @override
+  Future<AccountDeletionStatus?> fetchAccountDeletionStatus() async {
+    final uid = _firebaseAuth.currentUser?.uid;
+    if (uid == null) return null;
+
+    // Sans session, la lecture tourne en `anon` et RLS rend zéro ligne :
+    // exactement ce que rendrait un compte sans demande. Ne jamais conclure à
+    // l'absence sans session confirmée.
+    if (!await SupabaseAuthBridge.instance.ensureReadableSession()) {
+      throw ServerException('Session Supabase non établie');
+    }
+
+    // Colonnes nommées : seules `user_id, status, requested_at, execute_at,
+    // cancelled_at` sont accordées, un `select *` échouerait en 42501.
+    final row =
+        await _supabase
+            .from('account_deletion_requests')
+            .select('status, execute_at')
+            .eq('user_id', uid)
+            .maybeSingle();
+    if (row == null) return null;
+
+    final phase = AccountDeletionPhase.fromDb(row['status'] as String?);
+    if (phase == null) return null;
+    return AccountDeletionStatus(
+      phase: phase,
+      executeAt: parseLocalDate(row['execute_at']),
+    );
   }
 
   @override

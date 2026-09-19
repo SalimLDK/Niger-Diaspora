@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import '../../../../core/errors/failures.dart';
+import '../entities/account_deletion_status.dart';
 import '../entities/user_entity.dart';
 
 abstract class AuthRepository {
@@ -20,7 +21,15 @@ abstract class AuthRepository {
 
   Future<Either<Failure, void>> signOut();
 
-  Future<Either<Failure, void>> deleteAccount();
+  /// Demande la suppression du compte : désactivation immédiate, suppression
+  /// définitive à l'échéance rendue. Ne supprime pas le compte Firebase.
+  Future<Either<Failure, DateTime>> requestAccountDeletion();
+
+  Future<Either<Failure, void>> cancelAccountDeletion();
+
+  /// `Right(null)` = aucune suppression en cours. Une session Supabase absente
+  /// est un `Left`, jamais un `Right(null)`.
+  Future<Either<Failure, AccountDeletionStatus?>> accountDeletionStatus();
 
   Future<Either<Failure, void>> reauthenticateWithPassword(String password);
 
