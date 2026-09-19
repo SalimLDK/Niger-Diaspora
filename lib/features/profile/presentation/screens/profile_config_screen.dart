@@ -179,18 +179,14 @@ class _ProfileConfigScreenState extends ConsumerState<ProfileConfigScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // `profileNotifierProvider` est autoDispose et son chargement est
-      // asynchrone : `valueOrNull` ne rend le profil que si un cache existe
-      // déjà. Sans repli, le premier essai échouait sur « Profil introuvable »
-      // et il fallait passer par « Réessayer » — le second essai trouvant, lui,
-      // le cache chaud. On va le chercher plutôt que d'échouer.
-      var profile = ref.read(profileNotifierProvider(currentUser.id)).valueOrNull;
-      if (profile == null) {
-        final result = await ref
-            .read(profileRepositoryProvider)
-            .getProfile(currentUser.id);
-        profile = result.fold((_) => null, (p) => p);
-      }
+      // Le profil de départ, quitte à aller le chercher : le notifier est
+      // autoDispose et son état encore en chargement au premier essai (voir
+      // `currentProfile`). Sans ce repli, le premier essai échouait sur
+      // « Profil introuvable » et il fallait passer par « Réessayer » — le
+      // second trouvant, lui, le cache chaud.
+      final profile = await ref
+          .read(profileNotifierProvider(currentUser.id).notifier)
+          .currentProfile();
 
       if (profile == null) {
         throw Exception(_kProfileMissing);
