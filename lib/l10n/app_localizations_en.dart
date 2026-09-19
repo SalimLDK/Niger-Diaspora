@@ -540,7 +540,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deleteAccountWarning =>
-      'This action is irreversible. All your data will be permanently deleted.\n\nThis includes:\n• Your profile and personal information\n• Your conversations and messages\n• Your created events\n• Your group memberships';
+      'Your account will be deactivated right away, then permanently deleted in 30 days. You can cancel until then by signing back in.\n\nWill be deleted:\n• Your profile, posts and stories\n• Your one-to-one conversations, for you and for the other person\n• The events and businesses you created\n• Your friends, follows, favorites and notifications\n\nYou leave all your groups; those you manage go to another member.\n\nWill be kept, without your name or photo:\n• Your unencrypted messages in groups, shown as “Deleted account” (your end-to-end encrypted messages are deleted)\n\nTechnical backup copies may remain for a limited time.';
 
   @override
   String unreadConversations(int count) {
@@ -2426,6 +2426,36 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get errorDeletingAccount => 'Error deleting account';
+
+  @override
+  String accountDeletionScheduled(String date) {
+    return 'Account deactivated. Permanent deletion on $date. Sign back in before then to cancel.';
+  }
+
+  @override
+  String get accountDeletionPendingTitle => 'Account deletion scheduled';
+
+  @override
+  String accountDeletionPendingBody(String date) {
+    return 'Your account is deactivated and will be permanently deleted on $date.\n\nYou can cancel the deletion until then: your profile and posts will become visible again.';
+  }
+
+  @override
+  String get accountDeletionInProgressTitle => 'Deletion in progress';
+
+  @override
+  String get accountDeletionInProgressBody =>
+      'Your account is being deleted. This can no longer be cancelled.';
+
+  @override
+  String get accountDeletionCancelAction => 'Cancel deletion';
+
+  @override
+  String get accountDeletionCancelled => 'Deletion cancelled. Welcome back!';
+
+  @override
+  String get accountDeletionCancelFailed =>
+      'Could not cancel the deletion. Please try again.';
 
   @override
   String get allRightsReserved => '© 2025 Diaspo Niger. All rights reserved.';

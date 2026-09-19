@@ -6,6 +6,7 @@ import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../core/services/supabase_auth_bridge.dart';
+import '../../domain/entities/account_deletion_status.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_remote_datasource.dart';
@@ -187,13 +188,37 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<Either<Failure, void>> deleteAccount() async {
+  Future<Either<Failure, DateTime>> requestAccountDeletion() async {
     try {
-      await remoteDataSource.deleteAccount();
-      return const Right(null);
+      return Right(await remoteDataSource.requestAccountDeletion());
     } on AuthException catch (e) {
       // Porte le code (`requires-recent-login`) jusqu a la presentation.
       return Left(AuthFailure(e.message, code: e.code));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      dev.log('Erreur inattendue', name: 'auth_repository_impl', error: e);
+      return Left(ServerFailure(AppErrorMessages.unexpectedError));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> cancelAccountDeletion() async {
+    try {
+      await remoteDataSource.cancelAccountDeletion();
+      return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      dev.log('Erreur inattendue', name: 'auth_repository_impl', error: e);
+      return Left(ServerFailure(AppErrorMessages.unexpectedError));
+    }
+  }
+
+  @override
+  Future<Either<Failure, AccountDeletionStatus?>> accountDeletionStatus() async {
+    try {
+      return Right(await remoteDataSource.fetchAccountDeletionStatus());
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {

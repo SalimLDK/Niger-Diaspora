@@ -16,6 +16,9 @@ const {
   createNotification,
   getLocalEventRecipients,
   setFriendship,
+  claimDueAccountDeletions,
+  completeAccountDeletion,
+  isConfigured: isSupabaseConfigured,
 } = require("./supabase");
 
 admin.initializeApp();
@@ -3134,6 +3137,83 @@ exports.cleanupUserData = functions.auth.user().onDelete(async (user) => {
         return { success: false, error: error.message, partialResults: results };
     }
 });
+
+// ============================================================================
+// ACCOUNT DELETION: FINALISATION APRÈS LE DÉLAI DE GRÂCE
+// ============================================================================
+
+/**
+ * Toutes les heures : finalise les suppressions de compte dont le délai de
+ * grâce (30 jours) est échu (migration 20260918224100).
+ *
+ * Le client ne supprime plus le compte Firebase : il demande la suppression
+ * (`request_account_deletion`), le compte est désactivé, et c'est cette
+ * fonction qui fait le reste une fois le délai passé. Pour chaque compte :
+ *
+ *   1. suppression du compte Firebase Auth — ce qui déclenche
+ *      `cleanupUserData` (Firestore, RTDB, Storage) ;
+ *   2. purge Supabase, en une transaction (`complete_account_deletion`).
+ *
+ * Firebase D'ABORD : une fois le compte Firebase supprimé, plus aucun échange
+ * de jeton ne peut ressusciter la ligne `users` que la purge vient d'effacer.
+ * Un compte devenu bloquant depuis sa demande (compte plateforme, historique
+ * financier) n'est jamais rendu par `claim_due_account_deletions` : il est
+ * passé en `blocked` AVANT qu'on touche à Firebase.
+ *
+ * Les deux étapes sont idempotentes. Si la purge échoue, la demande reste en
+ * `deleting` avec son erreur (`account_deletion_requests.last_error`) et la
+ * base la rend de nouveau après 30 minutes, dix fois au plus ; le compte
+ * Firebase, déjà supprimé, n'est alors pas retenté (`auth/user-not-found`).
+ *
+ * Rien ici n'est déployé automatiquement : la fonction ne fait rien tant que
+ * la migration n'est pas appliquée (la RPC répond 404 et on s'arrête là).
+ */
+exports.finalizeAccountDeletions = functions
+    .runWith({ timeoutSeconds: 300 })
+    .pubsub.schedule("every 1 hours")
+    .onRun(async () => {
+        if (!isSupabaseConfigured()) {
+            console.error("finalizeAccountDeletions: Supabase non configuré");
+            return null;
+        }
+
+        // `null` = la base n'a pas répondu, ce n'est PAS « personne à traiter ».
+        const uids = await claimDueAccountDeletions(20);
+        if (uids === null) {
+            console.error("finalizeAccountDeletions: réclamation impossible, on retentera à l'heure suivante");
+            return null;
+        }
+        if (uids.length === 0) return null;
+
+        let completed = 0;
+        for (const uid of uids) {
+            try {
+                try {
+                    await admin.auth().deleteUser(uid);
+                } catch (e) {
+                    // Déjà supprimé (reprise d'une purge en échec) : c'est le but.
+                    if (e.code !== "auth/user-not-found") throw e;
+                }
+
+                const res = await completeAccountDeletion(uid);
+                if (res && res.ok) {
+                    completed++;
+                    console.log(`finalizeAccountDeletions: ${uid} purgé`, JSON.stringify(res.summary || {}));
+                } else {
+                    // Rien à faire de plus : la base a consigné l'erreur et
+                    // rendra la demande après 30 minutes.
+                    console.error(`finalizeAccountDeletions: purge de ${uid} en échec`, JSON.stringify(res));
+                }
+            } catch (e) {
+                // Compte Firebase non supprimé : la demande reste `deleting`,
+                // reprise dans 30 minutes.
+                console.error(`finalizeAccountDeletions: ${uid} non finalisé`, e);
+            }
+        }
+
+        console.log(`finalizeAccountDeletions: ${completed}/${uids.length} comptes finalisés`);
+        return null;
+    });
 
 // ============================================================================
 // BUSINESS REVIEWS: RATING AGGREGATION

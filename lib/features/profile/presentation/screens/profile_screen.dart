@@ -6,11 +6,14 @@ import 'package:flutter/services.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import '../../../../core/constants/app_spacing.dart';
+import '../../../../core/utils/locale_helper.dart';
 import '../../../../core/responsive/responsive.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../core/theme/adaptive_colors.dart';
+import '../../../auth/domain/entities/account_deletion_status.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../friends/presentation/providers/friend_provider.dart';
 import '../../../groups/presentation/providers/group_provider.dart';
@@ -1053,67 +1056,37 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
           ),
     ));
 
+    // Pris AVANT l'appel : la demande déconnecte la personne, et le routeur a
+    // pu détruire cet écran quand elle rend la main — `context` ne sert plus.
+    final messenger = ScaffoldMessenger.of(context);
+    final router = GoRouter.of(context);
+    final dateLocale = LocaleHelper.getDateFormatLocale(context);
+
     try {
       final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
       if (currentUser != null) {
         await NotificationService().removeTokenForUser(currentUser.id);
       }
 
-      final success =
-          await ref.read(authNotifierProvider.notifier).deleteAccount();
+      final issue =
+          await ref.read(authNotifierProvider.notifier).requestAccountDeletion();
 
-      if (!mounted) return;
-      Navigator.pop(context);
-
-      final authState = ref.read(authNotifierProvider);
-      final errorMessage = authState.maybeWhen(
-        error: (msg) => msg,
-        orElse: () => null,
-      );
-
-      if (errorMessage != null && errorMessage.startsWith('REAUTH_REQUIRED:')) {
-        final actualMessage = errorMessage.substring('REAUTH_REQUIRED:'.length);
-        await _showPasswordPromptForDeletion(l10n, actualMessage);
-        return;
-      }
-
-      if (success) {
-        GoRouter.of(context).go('/auth/login');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.check_circle, color: AppColors.white),
-                const SizedBox(width: 12),
-                Text(l10n.accountDeletedSuccess),
-              ],
-            ),
-            backgroundColor: AppColors.success,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.error, color: AppColors.white),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(errorMessage ?? l10n.errorDeletingAccount),
-                ),
-              ],
-            ),
-            backgroundColor: AppColors.error,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-        );
+      // Un résultat, pas un `AuthState.error` : la personne est toujours
+      // connectée, et le routeur renvoie sur l'écran de connexion toute erreur
+      // posée dans l'état d'authentification.
+      switch (issue) {
+        case AccountDeletionRequested(:final executeAt):
+          if (mounted) Navigator.pop(context);
+          router.go('/auth/login');
+          _afficherSuppressionProgrammee(messenger, l10n, dateLocale, executeAt);
+        case AccountDeletionNeedsReauth(:final message):
+          if (!mounted) return;
+          Navigator.pop(context);
+          await _showPasswordPromptForDeletion(l10n, message);
+        case AccountDeletionRefused(:final message):
+          if (!mounted) return;
+          Navigator.pop(context);
+          _afficherRefusSuppression(messenger, l10n, message);
       }
     } catch (e) {
       if (!mounted) return;
@@ -1129,6 +1102,58 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
         ),
       );
     }
+  }
+
+  /// Confirme la demande : le compte est désactivé, pas encore supprimé — le
+  /// message dit QUAND, et comment annuler. Le messager est celui de la racine,
+  /// pris avant l'appel : l'écran qui l'a demandé n'existe plus.
+  void _afficherSuppressionProgrammee(
+    ScaffoldMessengerState messenger,
+    AppLocalizations l10n,
+    String dateLocale,
+    DateTime echeance,
+  ) {
+    final date = DateFormat('EEEE dd MMMM yyyy', dateLocale).format(echeance.toLocal());
+    messenger.showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.schedule, color: AppColors.white),
+            const SizedBox(width: 12),
+            Expanded(child: Text(l10n.accountDeletionScheduled(date))),
+          ],
+        ),
+        backgroundColor: AppColors.success,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 8),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+  }
+
+  /// La demande n'a pas abouti : rien n'a été désactivé, la personne reste
+  /// connectée et lit pourquoi.
+  void _afficherRefusSuppression(
+    ScaffoldMessengerState messenger,
+    AppLocalizations l10n,
+    String message,
+  ) {
+    messenger.showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            const Icon(Icons.error, color: AppColors.white),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(message.isEmpty ? l10n.errorDeletingAccount : message),
+            ),
+          ],
+        ),
+        backgroundColor: AppColors.error,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
   }
 
   Future<void> _showPasswordPromptForDeletion(
@@ -1241,6 +1266,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
     String password,
     AppLocalizations l10n,
   ) async {
+    // Pris avant l'appel, comme dans `_deleteAccount` : la demande déconnecte
+    // la personne et le routeur peut détruire cet écran avant qu'elle rende
+    // la main.
+    final messenger = ScaffoldMessenger.of(context);
+    final router = GoRouter.of(context);
+    final dateLocale = LocaleHelper.getDateFormatLocale(context);
+
     Navigator.pop(context);
 
     unawaited(showDialog(
@@ -1261,55 +1293,24 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
           ),
     ));
 
-    final success = await ref
+    final issue = await ref
         .read(authNotifierProvider.notifier)
-        .reauthenticateAndDelete(password);
+        .reauthenticateAndRequestDeletion(password);
 
-    if (!mounted) return;
-
-    Navigator.pop(context);
-
-    if (success) {
-      GoRouter.of(context).go('/auth/login');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.check_circle, color: AppColors.white),
-              const SizedBox(width: 12),
-              Text(l10n.accountDeletedSuccess),
-            ],
-          ),
-          backgroundColor: AppColors.success,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-      );
-    } else {
-      final authState = ref.read(authNotifierProvider);
-      final errorMessage = authState.maybeWhen(
-        error: (msg) => msg,
-        orElse: () => l10n.errorDeletingAccount,
-      );
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.error, color: AppColors.white),
-              const SizedBox(width: 12),
-              Expanded(child: Text(errorMessage)),
-            ],
-          ),
-          backgroundColor: AppColors.error,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-      );
+    switch (issue) {
+      case AccountDeletionRequested(:final executeAt):
+        if (mounted) Navigator.pop(context);
+        router.go('/auth/login');
+        _afficherSuppressionProgrammee(messenger, l10n, dateLocale, executeAt);
+      // Mot de passe faux, refus de la base, réseau — ou une nouvelle demande
+      // de ré-authentification, qui ne devrait pas suivre un mot de passe
+      // qu'on vient d'accepter et qu'on traite comme un refus plutôt que de
+      // reboucler sur l'invite.
+      case AccountDeletionNeedsReauth(:final message) ||
+          AccountDeletionRefused(:final message):
+        if (!mounted) return;
+        Navigator.pop(context);
+        _afficherRefusSuppression(messenger, l10n, message);
     }
   }
 

@@ -14,6 +14,8 @@ import '../../features/auth/presentation/screens/splash_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
 import '../../features/auth/presentation/screens/forgot_password_screen.dart';
+import '../../features/auth/presentation/providers/account_deletion_provider.dart';
+import '../../features/auth/presentation/screens/account_deletion_pending_screen.dart';
 import '../../features/auth/presentation/screens/consent_screen.dart';
 import '../../features/auth/presentation/screens/maintenance_screen.dart';
 import '../services/feature_flag_service.dart';
@@ -187,6 +189,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       drapeauxEnEchecProvider,
       (_, __) => _cachedAuthNotifier!.notify(),
     );
+    ref.listen(
+      accountDeletionStatusProvider,
+      (_, __) => _cachedAuthNotifier!.notify(),
+    );
     return _cachedRouter!;
   }
 
@@ -202,6 +208,8 @@ final routerProvider = Provider<GoRouter>((ref) {
   // en attendant les drapeaux doit en repartir, sinon elle y resterait —
   // `loadedFeatureFlagsProvider` passe de null à null, rien ne bouge.
   ref.listen(drapeauxEnEchecProvider, (_, __) => authNotifier.notify());
+  // Une suppression de compte en cours (ou annulée) change la destination.
+  ref.listen(accountDeletionStatusProvider, (_, __) => authNotifier.notify());
 
   DecisionPorte porte(String chemin) => decisionPorte(
     chemin,
@@ -264,6 +272,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isProfileConfigRoute = state.matchedLocation == '/profile-config';
       final isOnboardingRoute = state.matchedLocation == '/onboarding/intro';
       final isMaintenanceRoute = state.matchedLocation == '/maintenance';
+      final isAccountDeletionRoute = state.matchedLocation == '/account-deletion';
       final isLegalRoute =
           state.matchedLocation == '/settings/terms' ||
           state.matchedLocation == '/settings/privacy' ||
@@ -294,6 +303,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           isProfileConfigRoute ||
           isOnboardingRoute ||
           isMaintenanceRoute ||
+          isAccountDeletionRoute ||
           isLegalRoute ||
           isKeyTransferScanRoute;
       if (!isTechnicalRoute && (isAuthLoading || !isAuthenticated)) {
@@ -317,6 +327,20 @@ final routerProvider = Provider<GoRouter>((ref) {
       // 3. If authenticated, check onboarding loading status
       if (onboardingState.isLoading) {
         return '/splash';
+      }
+
+      // 3b. Suppression de compte en cours : seules l'annulation et la
+      // déconnexion restent possibles (écran `/account-deletion`). Les pages
+      // légales restent lisibles. `valueOrNull` : une lecture ratée ou pas
+      // encore revenue vaut « rien en cours » — mieux vaut laisser entrer
+      // qu'enfermer sur une lecture ratée ; le compte, lui, est déjà masqué
+      // côté serveur. La lecture qui aboutit relance ce `redirect`.
+      final suppression = ref.read(accountDeletionStatusProvider).valueOrNull;
+      if (suppression != null && !isLegalRoute) {
+        return isAccountDeletionRoute ? null : '/account-deletion';
+      }
+      if (suppression == null && isAccountDeletionRoute) {
+        return '/home';
       }
 
       // 4. Check maintenance mode (admins are exempt)
@@ -461,6 +485,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const ForgotPasswordScreen(),
       ),
       // Consent screen
+      GoRoute(
+        path: '/account-deletion',
+        builder: (context, state) => const AccountDeletionPendingScreen(),
+      ),
       GoRoute(
         path: '/consent',
         builder: (context, state) => const ConsentScreen(),
