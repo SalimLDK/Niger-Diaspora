@@ -476,6 +476,41 @@
             font-weight: 600;
         }
 
+        /* Les trois listes ne disent pas la même chose : ✕ = supprimé,
+           → = étapes, • = conservé. */
+        .data-list.is-steps li::before {
+            content: '→';
+            color: var(--action);
+            font-size: 0.8rem;
+            margin-top: 0.1rem;
+            opacity: 1;
+        }
+
+        .data-list.is-kept li::before {
+            content: '•';
+            color: var(--muted);
+            font-size: 0.9rem;
+            margin-top: 0;
+            opacity: 1;
+        }
+
+        .data-section h3:not(:first-child) {
+            margin-top: 1.8rem;
+        }
+
+        .data-note {
+            margin-top: 0.9rem;
+            font-size: 0.82rem;
+            font-weight: 300;
+            line-height: 1.6;
+            color: rgba(17, 23, 19, 0.68);
+        }
+
+        .data-note strong {
+            color: rgba(17, 23, 19, 0.82);
+            font-weight: 600;
+        }
+
         .help-line {
             margin-top: 1.5rem;
             padding-top: 1.5rem;
@@ -542,14 +577,14 @@
                 <div class="card-icon">🗑️</div>
                 <div class="card-top-text">
                     <h1>Supprimer mon compte</h1>
-                    <p>Cette action est irréversible. Toutes vos données seront définitivement effacées.</p>
+                    <p>Votre compte est désactivé tout de suite, puis supprimé définitivement dans 30 jours.</p>
                 </div>
             </div>
 
             <div class="card-body">
 
-                <div id="errorMessage" class="msg msg-error"></div>
-                <div id="successMessage" class="msg msg-success"></div>
+                <div id="errorMessage" class="msg msg-error" role="alert"></div>
+                <div id="successMessage" class="msg msg-success" role="status"></div>
 
                 <div id="loader">
                     <div class="spinner"></div>
@@ -559,19 +594,21 @@
                 <div id="formSection">
                     <div class="alert-box">
                         <span class="alert-box-icon">⚠️</span>
-                        <p><strong>Attention :</strong> La suppression de votre compte est une action irréversible.
-                            Toutes vos données seront définitivement effacées et ne pourront pas être récupérées.</p>
+                        <p><strong>Attention :</strong> passé ce délai de 30 jours, la suppression est irréversible et
+                            vos données ne pourront pas être récupérées. Jusque-là, vous pouvez l'annuler en vous
+                            reconnectant à l'application.</p>
                     </div>
 
                     <form id="deleteForm">
                         <div class="form-group">
                             <label for="email">Adresse email</label>
-                            <input type="email" id="email" name="email" required placeholder="votre@email.com">
+                            <input type="email" id="email" name="email" required autocomplete="email"
+                                placeholder="votre@email.com">
                         </div>
                         <div class="form-group">
                             <label for="password">Mot de passe</label>
                             <input type="password" id="password" name="password" required
-                                placeholder="Votre mot de passe">
+                                autocomplete="current-password" placeholder="Votre mot de passe">
                         </div>
                         <button type="submit" id="submitBtn" class="btn-connect">Se connecter</button>
                     </form>
@@ -580,26 +617,56 @@
                         <p class="confirm-label-hint">Pour confirmer, tapez <strong>SUPPRIMER</strong> dans le champ
                             ci-dessous :</p>
                         <div class="form-group">
-                            <input type="text" id="confirmText" class="confirm-input" placeholder="Tapez SUPPRIMER">
+                            <input type="text" id="confirmText" class="confirm-input" autocomplete="off"
+                                placeholder="Tapez SUPPRIMER">
                         </div>
                         <button id="confirmDeleteBtn" class="btn-delete" disabled>
-                            Supprimer définitivement mon compte
+                            Demander la suppression de mon compte
                         </button>
                     </div>
                 </div>
 
                 <!-- Data info -->
                 <div class="data-section">
-                    <h3>Données supprimées</h3>
-                    <ul class="data-list">
-                        <li><span><strong>Profil :</strong> Nom, email, téléphone, photo, biographie, profession,
-                                ville.</span></li>
-                        <li><span><strong>Authentification :</strong> Vos identifiants de connexion.</span></li>
-                        <li><span><strong>Messages :</strong> Tous vos messages et conversations privées.</span></li>
-                        <li><span><strong>Groupes & Événements :</strong> Retrait ou suppression si vous êtes seul
-                                membre.</span></li>
-                        <li><span><strong>Localisation :</strong> Votre dernière position connue.</span></li>
+                    <h3>Comment ça se passe</h3>
+                    <ul class="data-list is-steps">
+                        <li><span><strong>Tout de suite :</strong> votre compte est désactivé, votre profil et vos
+                                publications sont masqués.</span></li>
+                        <li><span><strong>Pendant 30 jours :</strong> vous pouvez annuler en vous reconnectant à
+                                l'application.</span></li>
+                        <li><span><strong>Ensuite :</strong> la suppression est définitive.</span></li>
                     </ul>
+
+                    <h3>Ce qui sera supprimé</h3>
+                    <ul class="data-list">
+                        <li><span><strong>Profil :</strong> nom, e-mail, téléphone, photo, biographie, profession,
+                                ville et dernière position connue.</span></li>
+                        <li><span><strong>Connexion :</strong> votre compte et vos identifiants.</span></li>
+                        <li><span><strong>Publications et stories.</strong></span></li>
+                        <li><span><strong>Conversations à deux :</strong> chez vous comme chez votre
+                                interlocuteur.</span></li>
+                        <li><span><strong>Événements et commerces</strong> que vous avez créés.</span></li>
+                        <li><span><strong>Amis, abonnements, favoris et notifications.</strong></span></li>
+                    </ul>
+                    <p class="data-note"><strong>Groupes :</strong> vous les quittez tous ; ceux que vous
+                        administrez passent à un autre membre, et un groupe dont vous étiez le dernier membre est
+                        supprimé.</p>
+
+                    <h3>Ce qui est conservé, sans votre nom ni votre photo</h3>
+                    <ul class="data-list is-kept">
+                        <li><span>Vos messages non chiffrés dans les groupes, affichés sous «&nbsp;Compte&nbsp;supprimé&nbsp;»
+                                (vos messages chiffrés de bout en bout sont supprimés).</span></li>
+                        <li><span>Dans les groupes chiffrés de bout en bout, un identifiant technique de votre
+                                compte subsiste jusqu'à ce qu'un membre du groupe mette à jour la liste des
+                                participants.</span></li>
+                        <li><span>Des copies de sauvegarde techniques peuvent subsister temporairement.</span></li>
+                    </ul>
+
+                    <h3>À savoir</h3>
+                    <p class="data-note">Si des opérations financières sont liées à votre compte, la suppression est
+                        refusée : écrivez-nous.</p>
+                    <p class="data-note">Vous vous connectez avec Google ou Apple ? Ce formulaire demande un mot de
+                        passe : supprimez votre compte depuis l'application (dans votre Profil) ou écrivez-nous.</p>
 
                     <p class="help-line">
                         Besoin d'aide ? Contactez <a href="mailto:privacy@diasponiger.com">privacy@diasponiger.com</a>
@@ -612,11 +679,40 @@
 
     <footer>© 2026 Diaspo Niger. Tous droits réservés.</footer>
 
-    <!-- Firebase SDK -->
+    <!-- Textes de la logique partagée (assets/delete-account.js). Mêmes clés en
+         anglais (delete-account-en.html) : tools/site_tests/ le vérifie. -->
+    <script type="application/json" id="da-messages">
+    {
+        "lang": "fr",
+        "confirmWord": "SUPPRIMER",
+        "signIn": {
+            "default": "Erreur de connexion. Vérifiez vos identifiants.",
+            "invalid-credential": "Adresse e-mail ou mot de passe incorrect.",
+            "invalid-email": "Adresse e-mail invalide.",
+            "too-many-requests": "Trop de tentatives. Réessayez plus tard.",
+            "user-disabled": "Ce compte est désactivé. Écrivez à privacy@diasponiger.com.",
+            "network-request-failed": "Connexion impossible. Vérifiez votre réseau et réessayez.",
+            "multi-factor-auth-required": "Ce compte utilise une vérification en deux étapes, que ce formulaire ne gère pas. Supprimez votre compte depuis l'application ou écrivez à privacy@diasponiger.com."
+        },
+        "outcome": {
+            "scheduled": "Demande enregistrée. Votre compte est désactivé dès maintenant et sera supprimé définitivement le {date}. Pour annuler, reconnectez-vous à l'application avant cette date.",
+            "compte_plateforme": "Ce compte administre les groupes officiels : il ne peut pas être supprimé depuis ce site. Écrivez à privacy@diasponiger.com.",
+            "obligations_financieres": "Des opérations financières sont liées à ce compte : pour le supprimer, écrivez à privacy@diasponiger.com.",
+            "suppression_deja_engagee": "La suppression de ce compte est déjà engagée. Si vous pensez qu'il s'agit d'une erreur, écrivez à privacy@diasponiger.com.",
+            "unavailable": "Le service de suppression est momentanément indisponible. Réessayez dans quelques minutes ; si le problème persiste, écrivez à support@diasponiger.com.",
+            "session": "Votre session n'a pas pu être établie. Réessayez ; si le problème persiste, écrivez à support@diasponiger.com.",
+            "network": "Connexion impossible. Vérifiez votre réseau et réessayez.",
+            "unknown": "Votre demande n'a pas pu être confirmée. Réessayez ; si le problème persiste, écrivez à support@diasponiger.com."
+        }
+    }
+    </script>
+
+    <!-- Firebase : la connexion seulement. Ni Firestore ni deleteUser : la page
+         DEMANDE la suppression (assets/delete-account.js), elle ne l'exécute pas. -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getAuth, signInWithEmailAndPassword, deleteUser } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-        import { getFirestore, doc, deleteDoc, collection, query, where, getDocs, writeBatch } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { initializeAuth, inMemoryPersistence, signInWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { mount } from '/assets/delete-account.js';
 
         const firebaseConfig = {
             apiKey: "AIzaSyD6bUWGVHVJwywwA36a6AiOuG3rqRfEKE8",
@@ -628,131 +724,13 @@
         };
 
         const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+        // Persistance en mémoire : ni jeton ni session ne restent dans le
+        // navigateur (poste partagé, cybercafé). Recharger la page déconnecte.
+        const auth = initializeAuth(app, { persistence: inMemoryPersistence });
 
-        let currentUser = null;
-
-        const deleteForm = document.getElementById('deleteForm');
-        const confirmSection = document.getElementById('confirmSection');
-        const confirmText = document.getElementById('confirmText');
-        const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
-        const loader = document.getElementById('loader');
-        const formSection = document.getElementById('formSection');
-        const errorMessage = document.getElementById('errorMessage');
-        const successMessage = document.getElementById('successMessage');
-
-        function showError(message) {
-            errorMessage.textContent = message;
-            errorMessage.style.display = 'block';
-            successMessage.style.display = 'none';
-            setTimeout(() => { errorMessage.style.display = 'none'; }, 5000);
-        }
-
-        function showSuccess(message) {
-            successMessage.textContent = message;
-            successMessage.style.display = 'block';
-            errorMessage.style.display = 'none';
-        }
-
-        function setLoading(loading) {
-            loader.style.display = loading ? 'block' : 'none';
-            formSection.style.display = loading ? 'none' : 'block';
-        }
-
-        deleteForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            setLoading(true);
-            try {
-                const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                currentUser = userCredential.user;
-                deleteForm.style.display = 'none';
-                confirmSection.style.display = 'block';
-                setLoading(false);
-            } catch (error) {
-                setLoading(false);
-                let errorMsg = 'Erreur de connexion. Vérifiez vos identifiants.';
-                if (error.code === 'auth/user-not-found') errorMsg = 'Aucun compte trouvé avec cet email.';
-                else if (error.code === 'auth/wrong-password') errorMsg = 'Mot de passe incorrect.';
-                else if (error.code === 'auth/invalid-email') errorMsg = 'Adresse email invalide.';
-                else if (error.code === 'auth/too-many-requests') errorMsg = 'Trop de tentatives. Réessayez plus tard.';
-                showError(errorMsg);
-            }
-        });
-
-        confirmText.addEventListener('input', (e) => {
-            confirmDeleteBtn.disabled = e.target.value !== 'SUPPRIMER';
-        });
-
-        confirmDeleteBtn.addEventListener('click', async () => {
-            if (!currentUser) { showError('Erreur: utilisateur non connecté'); return; }
-            setLoading(true);
-            try {
-                const userId = currentUser.uid;
-                await deleteDoc(doc(db, 'users', userId));
-
-                const conversationsQuery = query(collection(db, 'conversations'), where('participantIds', 'array-contains', userId));
-                const conversationsSnapshot = await getDocs(conversationsQuery);
-                const batch = writeBatch(db);
-                for (const convDoc of conversationsSnapshot.docs) {
-                    const data = convDoc.data();
-                    const participantIds = data.participantIds || [];
-                    if (participantIds.length <= 2) {
-                        batch.delete(convDoc.ref);
-                        const messagesSnapshot = await getDocs(collection(convDoc.ref, 'messages'));
-                        messagesSnapshot.forEach(msgDoc => batch.delete(msgDoc.ref));
-                    } else {
-                        batch.update(convDoc.ref, { participantIds: participantIds.filter(id => id !== userId) });
-                    }
-                }
-                await batch.commit();
-
-                const groupsQuery = query(collection(db, 'groups'), where('memberIds', 'array-contains', userId));
-                const groupsSnapshot = await getDocs(groupsQuery);
-                const groupBatch = writeBatch(db);
-                for (const groupDoc of groupsSnapshot.docs) {
-                    const data = groupDoc.data();
-                    const newMembers = (data.memberIds || []).filter(id => id !== userId);
-                    if (data.createdBy === userId && newMembers.length === 0) groupBatch.delete(groupDoc.ref);
-                    else groupBatch.update(groupDoc.ref, { memberIds: newMembers });
-                }
-                await groupBatch.commit();
-
-                const eventsQuery = query(collection(db, 'events'), where('organizerId', '==', userId));
-                const eventsSnapshot = await getDocs(eventsQuery);
-                const eventBatch = writeBatch(db);
-                eventsSnapshot.forEach(eventDoc => eventBatch.delete(eventDoc.ref));
-                await eventBatch.commit();
-
-                const attendingQuery = query(collection(db, 'events'), where('attendeeIds', 'array-contains', userId));
-                const attendingSnapshot = await getDocs(attendingQuery);
-                const attendeeBatch = writeBatch(db);
-                for (const eventDoc of attendingSnapshot.docs) {
-                    const data = eventDoc.data();
-                    attendeeBatch.update(eventDoc.ref, { attendeeIds: (data.attendeeIds || []).filter(id => id !== userId) });
-                }
-                await attendeeBatch.commit();
-
-                await deleteUser(currentUser);
-
-                setLoading(false);
-                formSection.innerHTML = '';
-                showSuccess('✅ Votre compte a été supprimé avec succès. Toutes vos données ont été effacées.');
-                setTimeout(() => { window.location.href = '/'; }, 3000);
-
-            } catch (error) {
-                setLoading(false);
-                let errorMsg = 'Erreur lors de la suppression du compte.';
-                if (error.code === 'auth/requires-recent-login') {
-                    errorMsg = 'Pour des raisons de sécurité, veuillez vous reconnecter et réessayer.';
-                    deleteForm.style.display = 'block';
-                    confirmSection.style.display = 'none';
-                    currentUser = null;
-                }
-                showError(errorMsg + ' Contactez support@diasponiger.com si le problème persiste.');
-            }
+        mount({
+            signIn: async (email, password) => (await signInWithEmailAndPassword(auth, email, password)).user,
+            signOut: () => signOut(auth),
         });
     </script>
 </body>

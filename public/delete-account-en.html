@@ -398,6 +398,13 @@
         .data-list li::before { content: '✕'; color: var(--red); font-size: 0.65rem; flex-shrink: 0; margin-top: 0.25rem; opacity: 0.7; }
         .data-list li strong { color: rgba(17, 23, 19, 0.82); font-weight: 600; }
 
+        /* The three lists do not say the same thing: ✕ = deleted, → = steps, • = kept. */
+        .data-list.is-steps li::before { content: '→'; color: var(--action); font-size: 0.8rem; margin-top: 0.1rem; opacity: 1; }
+        .data-list.is-kept li::before { content: '•'; color: var(--muted); font-size: 0.9rem; margin-top: 0; opacity: 1; }
+        .data-section h3:not(:first-child) { margin-top: 1.8rem; }
+        .data-note { margin-top: 0.9rem; font-size: 0.82rem; font-weight: 300; line-height: 1.6; color: rgba(17, 23, 19, 0.68); }
+        .data-note strong { color: rgba(17, 23, 19, 0.82); font-weight: 600; }
+
         .help-line {
             margin-top: 1.5rem;
             padding-top: 1.5rem;
@@ -447,14 +454,14 @@
                 <div class="card-icon">🗑️</div>
                 <div class="card-top-text">
                     <h1>Delete my account</h1>
-                    <p>This action is irreversible. All your data will be permanently erased.</p>
+                    <p>Your account is deactivated right away, then permanently deleted in 30 days.</p>
                 </div>
             </div>
 
             <div class="card-body">
 
-                <div id="errorMessage" class="msg msg-error"></div>
-                <div id="successMessage" class="msg msg-success"></div>
+                <div id="errorMessage" class="msg msg-error" role="alert"></div>
+                <div id="successMessage" class="msg msg-success" role="status"></div>
 
                 <div id="loader">
                     <div class="spinner"></div>
@@ -464,17 +471,17 @@
                 <div id="formSection">
                     <div class="alert-box">
                         <span class="alert-box-icon">⚠️</span>
-                        <p><strong>Warning:</strong> Deleting your account is irreversible. All your data will be permanently erased and cannot be recovered.</p>
+                        <p><strong>Warning:</strong> after this 30-day period, deletion is irreversible and your data cannot be recovered. Until then, you can cancel it by signing back in to the app.</p>
                     </div>
 
                     <form id="deleteForm">
                         <div class="form-group">
                             <label for="email">Email address</label>
-                            <input type="email" id="email" name="email" required placeholder="your@email.com">
+                            <input type="email" id="email" name="email" required autocomplete="email" placeholder="your@email.com">
                         </div>
                         <div class="form-group">
                             <label for="password">Password</label>
-                            <input type="password" id="password" name="password" required placeholder="Your password">
+                            <input type="password" id="password" name="password" required autocomplete="current-password" placeholder="Your password">
                         </div>
                         <button type="submit" id="submitBtn" class="btn-connect">Sign in</button>
                     </form>
@@ -482,23 +489,43 @@
                     <div id="confirmSection">
                         <p class="confirm-label-hint">To confirm, type <strong>DELETE</strong> in the field below:</p>
                         <div class="form-group">
-                            <input type="text" id="confirmText" class="confirm-input" placeholder="Type DELETE">
+                            <input type="text" id="confirmText" class="confirm-input" autocomplete="off" placeholder="Type DELETE">
                         </div>
                         <button id="confirmDeleteBtn" class="btn-delete" disabled>
-                            Permanently delete my account
+                            Request deletion of my account
                         </button>
                     </div>
                 </div>
 
                 <div class="data-section">
-                    <h3>Data that will be deleted</h3>
-                    <ul class="data-list">
-                        <li><span><strong>Profile:</strong> Name, email, phone, photo, biography, profession, city.</span></li>
-                        <li><span><strong>Authentication:</strong> Your login credentials.</span></li>
-                        <li><span><strong>Messages:</strong> All your messages and private conversations.</span></li>
-                        <li><span><strong>Groups &amp; Events:</strong> Removal or deletion if you are the sole member.</span></li>
-                        <li><span><strong>Location:</strong> Your last known position.</span></li>
+                    <h3>How it works</h3>
+                    <ul class="data-list is-steps">
+                        <li><span><strong>Right away:</strong> your account is deactivated, your profile and posts are hidden.</span></li>
+                        <li><span><strong>For 30 days:</strong> you can cancel by signing back in to the app.</span></li>
+                        <li><span><strong>After that:</strong> the deletion is final.</span></li>
                     </ul>
+
+                    <h3>What will be deleted</h3>
+                    <ul class="data-list">
+                        <li><span><strong>Profile:</strong> name, email, phone, photo, biography, profession, city and last known position.</span></li>
+                        <li><span><strong>Sign-in:</strong> your account and your login credentials.</span></li>
+                        <li><span><strong>Posts and stories.</strong></span></li>
+                        <li><span><strong>One-to-one conversations:</strong> for you and for the other person.</span></li>
+                        <li><span><strong>Events and businesses</strong> you created.</span></li>
+                        <li><span><strong>Friends, follows, favorites and notifications.</strong></span></li>
+                    </ul>
+                    <p class="data-note"><strong>Groups:</strong> you leave all of them; the ones you manage go to another member, and a group you were the last member of is deleted.</p>
+
+                    <h3>What is kept, without your name or photo</h3>
+                    <ul class="data-list is-kept">
+                        <li><span>Your unencrypted messages in groups, shown as “Deleted account” (your end-to-end encrypted messages are deleted).</span></li>
+                        <li><span>In end-to-end encrypted groups, a technical identifier of your account remains until a group member next updates the participant list.</span></li>
+                        <li><span>Technical backup copies may remain for a limited time.</span></li>
+                    </ul>
+
+                    <h3>Good to know</h3>
+                    <p class="data-note">If financial operations are linked to your account, the deletion is refused: write to us.</p>
+                    <p class="data-note">Do you sign in with Google or Apple? This form asks for a password: delete your account from the app (in your Profile) or write to us.</p>
 
                     <p class="help-line">
                         Need help? Contact <a href="mailto:privacy@diasponiger.com">privacy@diasponiger.com</a>
@@ -511,10 +538,40 @@
 
     <footer>© 2026 Diaspo Niger. All rights reserved.</footer>
 
+    <!-- Texts for the shared logic (assets/delete-account.js). Same keys as the
+         French page (delete-account.html): tools/site_tests/ checks it. -->
+    <script type="application/json" id="da-messages">
+    {
+        "lang": "en",
+        "confirmWord": "DELETE",
+        "signIn": {
+            "default": "Sign-in error. Please check your credentials.",
+            "invalid-credential": "Incorrect email address or password.",
+            "invalid-email": "Invalid email address.",
+            "too-many-requests": "Too many attempts. Please try again later.",
+            "user-disabled": "This account is disabled. Write to privacy@diasponiger.com.",
+            "network-request-failed": "Connection failed. Check your network and try again.",
+            "multi-factor-auth-required": "This account uses two-step verification, which this form does not support. Delete your account from the app or write to privacy@diasponiger.com."
+        },
+        "outcome": {
+            "scheduled": "Request recorded. Your account is deactivated as of now and will be permanently deleted on {date}. To cancel, sign back in to the app before that date.",
+            "compte_plateforme": "This account manages the official groups: it cannot be deleted from this website. Write to privacy@diasponiger.com.",
+            "obligations_financieres": "Financial operations are linked to this account: to delete it, write to privacy@diasponiger.com.",
+            "suppression_deja_engagee": "Deletion of this account is already in progress. If you think this is a mistake, write to privacy@diasponiger.com.",
+            "unavailable": "The deletion service is temporarily unavailable. Try again in a few minutes; if the problem persists, write to support@diasponiger.com.",
+            "session": "Your session could not be established. Try again; if the problem persists, write to support@diasponiger.com.",
+            "network": "Connection failed. Check your network and try again.",
+            "unknown": "Your request could not be confirmed. Try again; if the problem persists, write to support@diasponiger.com."
+        }
+    }
+    </script>
+
+    <!-- Firebase: sign-in only. No Firestore, no deleteUser: the page REQUESTS
+         the deletion (assets/delete-account.js), it does not carry it out. -->
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getAuth, signInWithEmailAndPassword, deleteUser } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-        import { getFirestore, doc, deleteDoc, collection, query, where, getDocs, writeBatch } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { initializeAuth, inMemoryPersistence, signInWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { mount } from '/assets/delete-account.js';
 
         const firebaseConfig = {
             apiKey: "AIzaSyD6bUWGVHVJwywwA36a6AiOuG3rqRfEKE8",
@@ -526,131 +583,13 @@
         };
 
         const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+        // In-memory persistence: no token or session stays in the browser
+        // (shared computer, internet café). Reloading the page signs out.
+        const auth = initializeAuth(app, { persistence: inMemoryPersistence });
 
-        let currentUser = null;
-
-        const deleteForm = document.getElementById('deleteForm');
-        const confirmSection = document.getElementById('confirmSection');
-        const confirmText = document.getElementById('confirmText');
-        const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
-        const loader = document.getElementById('loader');
-        const formSection = document.getElementById('formSection');
-        const errorMessage = document.getElementById('errorMessage');
-        const successMessage = document.getElementById('successMessage');
-
-        function showError(message) {
-            errorMessage.textContent = message;
-            errorMessage.style.display = 'block';
-            successMessage.style.display = 'none';
-            setTimeout(() => { errorMessage.style.display = 'none'; }, 5000);
-        }
-
-        function showSuccess(message) {
-            successMessage.textContent = message;
-            successMessage.style.display = 'block';
-            errorMessage.style.display = 'none';
-        }
-
-        function setLoading(loading) {
-            loader.style.display = loading ? 'block' : 'none';
-            formSection.style.display = loading ? 'none' : 'block';
-        }
-
-        deleteForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            setLoading(true);
-            try {
-                const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                currentUser = userCredential.user;
-                deleteForm.style.display = 'none';
-                confirmSection.style.display = 'block';
-                setLoading(false);
-            } catch (error) {
-                setLoading(false);
-                let errorMsg = 'Login error. Please check your credentials.';
-                if (error.code === 'auth/user-not-found') errorMsg = 'No account found with this email.';
-                else if (error.code === 'auth/wrong-password') errorMsg = 'Incorrect password.';
-                else if (error.code === 'auth/invalid-email') errorMsg = 'Invalid email address.';
-                else if (error.code === 'auth/too-many-requests') errorMsg = 'Too many attempts. Please try again later.';
-                showError(errorMsg);
-            }
-        });
-
-        confirmText.addEventListener('input', (e) => {
-            confirmDeleteBtn.disabled = e.target.value !== 'DELETE';
-        });
-
-        confirmDeleteBtn.addEventListener('click', async () => {
-            if (!currentUser) { showError('Error: user not authenticated'); return; }
-            setLoading(true);
-            try {
-                const userId = currentUser.uid;
-                await deleteDoc(doc(db, 'users', userId));
-
-                const conversationsQuery = query(collection(db, 'conversations'), where('participantIds', 'array-contains', userId));
-                const conversationsSnapshot = await getDocs(conversationsQuery);
-                const batch = writeBatch(db);
-                for (const convDoc of conversationsSnapshot.docs) {
-                    const data = convDoc.data();
-                    const participantIds = data.participantIds || [];
-                    if (participantIds.length <= 2) {
-                        batch.delete(convDoc.ref);
-                        const messagesSnapshot = await getDocs(collection(convDoc.ref, 'messages'));
-                        messagesSnapshot.forEach(msgDoc => batch.delete(msgDoc.ref));
-                    } else {
-                        batch.update(convDoc.ref, { participantIds: participantIds.filter(id => id !== userId) });
-                    }
-                }
-                await batch.commit();
-
-                const groupsQuery = query(collection(db, 'groups'), where('memberIds', 'array-contains', userId));
-                const groupsSnapshot = await getDocs(groupsQuery);
-                const groupBatch = writeBatch(db);
-                for (const groupDoc of groupsSnapshot.docs) {
-                    const data = groupDoc.data();
-                    const newMembers = (data.memberIds || []).filter(id => id !== userId);
-                    if (data.createdBy === userId && newMembers.length === 0) groupBatch.delete(groupDoc.ref);
-                    else groupBatch.update(groupDoc.ref, { memberIds: newMembers });
-                }
-                await groupBatch.commit();
-
-                const eventsQuery = query(collection(db, 'events'), where('organizerId', '==', userId));
-                const eventsSnapshot = await getDocs(eventsQuery);
-                const eventBatch = writeBatch(db);
-                eventsSnapshot.forEach(eventDoc => eventBatch.delete(eventDoc.ref));
-                await eventBatch.commit();
-
-                const attendingQuery = query(collection(db, 'events'), where('attendeeIds', 'array-contains', userId));
-                const attendingSnapshot = await getDocs(attendingQuery);
-                const attendeeBatch = writeBatch(db);
-                for (const eventDoc of attendingSnapshot.docs) {
-                    const data = eventDoc.data();
-                    attendeeBatch.update(eventDoc.ref, { attendeeIds: (data.attendeeIds || []).filter(id => id !== userId) });
-                }
-                await attendeeBatch.commit();
-
-                await deleteUser(currentUser);
-
-                setLoading(false);
-                formSection.innerHTML = '';
-                showSuccess('✅ Your account has been successfully deleted. All your data has been erased.');
-                setTimeout(() => { window.location.href = '/'; }, 3000);
-
-            } catch (error) {
-                setLoading(false);
-                let errorMsg = 'Error while deleting the account.';
-                if (error.code === 'auth/requires-recent-login') {
-                    errorMsg = 'For security reasons, please sign in again and try once more.';
-                    deleteForm.style.display = 'block';
-                    confirmSection.style.display = 'none';
-                    currentUser = null;
-                }
-                showError(errorMsg + ' Contact support@diasponiger.com if the problem persists.');
-            }
+        mount({
+            signIn: async (email, password) => (await signInWithEmailAndPassword(auth, email, password)).user,
+            signOut: () => signOut(auth),
         });
     </script>
 </body>

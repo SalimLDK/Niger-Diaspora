@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1439 cases à cocher, 645 cochées** — 281 entrées sur 330 ont encore des cases ouvertes.
+**1448 cases à cocher, 645 cochées** — 282 entrées sur 331 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -89,7 +89,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (96)
+**P1 — fonction importante, jamais vérifiée** (97)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -157,6 +157,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [Storage — énumération des médias coupée (2026-08-04, DÉPLOYÉ)](#storage--énumération-des-médias-coupée-2026-08-04-déployé) · *Backend, sécurité et observabilité*
 - 2 · [⛔ « Diaspo Niger s'arrête systématiquement » sur Android 15+ (2026-09-09)](#--diaspo-niger-sarrête-systématiquement--sur-android-15-2026-09-09) · *Publication et plateformes*
 - 4 · [⚠️ Rapatriement iOS : deux dépendances **Android** changent de version majeure (2026-09-08)](#-rapatriement-ios--deux-dépendances-android-changent-de-version-majeure-2026-09-08) · *Publication et plateformes*
+- 9 · [⬜ La page de suppression de compte demande la suppression au lieu de l'exécuter (2026-09-19)](#-la-page-de-suppression-de-compte-demande-la-suppression-au-lieu-de-lexécuter-2026-09-19) · *Site web*
 - 9 · [⬜ Partager vers une discussion — groupe et 1:1 (2026-09-09)](#-partager-vers-une-discussion--groupe-et-11-2026-09-09) · *Messagerie*
 - 2 · [Accusés livré/lu séparés — sheet infos du message (2026-08-13)](#accusés-livrélu-séparés--sheet-infos-du-message-2026-08-13) · *Messagerie* · bloqué
 - 9 · [⬜ Pays en toutes lettres : groupes officiels et filtre par pays (2026-09-13)](#-pays-en-toutes-lettres--groupes-officiels-et-filtre-par-pays-2026-09-13) · *Groupes*
@@ -352,7 +353,7 @@ Par domaine :
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 153 à faire, 32 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 62 à faire, 45 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 41 à faire, 28 faites
-- [15. Site web](#15-site-web) — 23 à faire, 0 faites
+- [15. Site web](#15-site-web) — 32 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 32 à faire, 46 faites
 
 <!-- sommaire:fin -->
@@ -21553,6 +21554,87 @@ la crypto — un chantier à part entière, pas un fix ponctuel.
 # 15. Site web
 
 diasponiger.web.app : pages, palette, menu, aperçus de partage.
+
+---
+
+## ⬜ La page de suppression de compte demande la suppression au lieu de l'exécuter (2026-09-19)
+
+**Priorité P1** · importance 4/5 — la page `/delete-account` (probablement
+l'URL déclarée à Play) supprimait Firestore puis le compte Firebase, **jamais
+Supabase**, et promettait « toutes vos données effacées » : la personne partait
+en croyant tout effacé, ses messages, son profil et son e-mail restaient.
+*Bloqué : la migration `20260918224100` (branche
+`claude/priceless-feistel-ec8482`, non appliquée) et la fonction
+`finalizeAccountDeletions` (non déployée) doivent être en production. Sans la
+migration la RPC répond 404 (la page dit « service indisponible ») ; sans la
+fonction les demandes s'empilent en `pending` et rien n'est supprimé au bout
+des 30 jours, alors que la page le promet. **Ne pas publier `public/` avant.***
+
+La page suit maintenant le même chemin que l'application : connexion Firebase
+(en mémoire, rien n'est stocké dans le navigateur), puis
+`auth-firebase-exchange`, puis `request_account_deletion()`. Le compte est
+désactivé tout de suite, la suppression tombe 30 jours plus tard, et se
+reconnecter à l'application avant l'annule. Plus de Firestore, plus de
+`deleteUser` : la page ne supprime rien elle-même. La logique vit dans
+[public/assets/delete-account.js](public/assets/delete-account.js), partagée
+par les deux langues.
+
+Mesuré le 2026-09-19 sur l'échange, en lecture seule (préflight et faux jeton) :
+`verify_jwt` y est **actif** — un POST sans `Authorization` est refusé par la
+passerelle (`UNAUTHORIZED_NO_AUTH_HEADER`) — et la clé publique
+(`sb_publishable_…`, qui n'est pas un JWT) y passe pourtant en `Bearer`. Sa
+préflight n'autorise que `authorization, content-type` : la page n'envoie rien
+d'autre à l'échange.
+
+Bancs : `node --test tools/site_tests/suppression_compte_page.test.mjs` (44
+cas ; 13 défauts injectés, tous attrapés) et un serveur jetable qui sert les
+vraies pages avec un faux Firebase et un faux Supabase (rendu FR/EN vu à 375 px,
+succès, trois refus, 404, 401/403, 500, réponse sans date, nouvel essai). **Rien
+de tout cela ne touche la production**, et tout y est de même origine :
+
+- [ ] **Bout en bout, sur un compte JETABLE** (jamais le compte réel ni
+      `test.diaspo@example.com` : la suppression désactive vraiment le compte).
+      Créer un compte dans l'app, ouvrir `/delete-account`, se connecter, taper
+      SUPPRIMER, confirmer. Attendu : « Demande enregistrée… supprimé
+      définitivement le » + la date du jour **+ 30 jours**. En base :
+      `account_deletion_requests` en `pending`, profil masqué. Puis ouvrir
+      l'app avec ce compte : l'écran « Suppression du compte programmée »
+      propose « Annuler la suppression ».
+- [ ] **CORS réel** — le seul point que les deux bancs ne peuvent pas voir.
+      Depuis `diasponiger.web.app`, la console réseau ne doit montrer aucune
+      préflight refusée, ni sur l'échange (préflight mesurée : 200) ni sur
+      `/rest/v1/rpc/request_account_deletion` (**jamais mesurée**).
+- [ ] **Rejouer la demande** sur le même compte : la même échéance revient, pas
+      un refus, pas une nouvelle date (la RPC est idempotente).
+- [ ] **Les refus vus en vrai.** Ils n'ont été vus que contre un faux backend :
+      `compte_plateforme`, `obligations_financieres`, `suppression_deja_engagee`
+      s'affichent et **restent** affichés (avant, un message disparaissait au
+      bout de 5 s), le formulaire disparaît et la session est fermée.
+- [ ] **Aucune session gardée** : après une demande, recharger la page → un
+      formulaire vide, et l'onglet Application des outils de développement
+      (IndexedDB `firebaseLocalStorageDb`) ne contient aucune session.
+- [ ] **Sur un vrai téléphone, en français et en anglais** : le bouton
+      « Demander la suppression de mon compte » passe sur deux lignes en
+      portrait, les trois listes gardent leurs marqueurs (→ étapes, ✕ supprimé,
+      • conservé), rien ne déborde à 200 % de taille de police.
+- [ ] **Gestionnaire de mots de passe** : `autocomplete="email"` et
+      `current-password` sont posés ; le navigateur propose l'identifiant, et
+      n'enregistre rien après la demande.
+- [ ] **Comptes Google / Apple** : la page exige un mot de passe, elle ne les
+      concerne pas (comme avant). Vérifier que la phrase « À savoir » les
+      renvoie à l'application, et que « Supprimer mon compte » est bien dans le
+      Profil.
+- [ ] **Aligner l'ARB.** La ligne « un identifiant technique de votre compte
+      subsiste dans les groupes chiffrés… » (la credential MLS contient l'uid
+      jusqu'au prochain commit d'un membre) est sur le site mais **pas** dans
+      `deleteAccountWarning`, sur la branche `claude/priceless-feistel-ec8482` :
+      soit l'y ajouter (FR : « Dans les groupes chiffrés de bout en bout, un
+      identifiant technique de votre compte subsiste jusqu'à ce qu'un membre du
+      groupe mette à jour la liste des participants. » ; EN : « In end-to-end
+      encrypted groups, a technical identifier of your account remains until a
+      group member next updates the participant list. »), soit la retirer d'ici.
+      Le site dit aussi qu'un groupe dont on est le dernier membre est supprimé,
+      ce que l'ARB ne précise pas.
 
 ---
 
