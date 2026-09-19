@@ -16195,7 +16195,10 @@ Fichiers :
   après.
 - [ ] **Après un redémarrage à froid** (profil pas encore en cache), modifier
   puis enregistrer : l'enregistrement aboutit — le profil est retrouvé au lieu
-  d'être reconstruit.
+  d'être reconstruit. Même parcours pour l'**assistant de configuration**
+  (onboarding) : « Terminer » aboutit du premier coup, sans passer par
+  « Réessayer » — il partage désormais `currentProfile()` avec l'écran de
+  modification, alors qu'il en avait sa propre copie.
 - [ ] **Réseau coupé** : « Enregistrer » affiche l'erreur existante, l'écran
   reste ouvert et le spinner s'arrête.
 - [ ] **Comptes de test existants** : lire ces trois colonnes sur les comptes qui
@@ -16218,7 +16221,9 @@ le contraire de ce qui s'était passé. Relevé à la relecture de l'audit
   aurait remonté, elle posait un `AsyncError` sans valeur : Réglages lit
   `?? true` (l'interrupteur retombait sur « visible », le mauvais côté pour un
   réglage de confidentialité) et Profil rend alors un interrupteur
-  **désactivé** « Erreur de chargement ».
+  **désactivé** « Erreur de chargement ». L'écriture vérifie aussi qu'**une
+  ligne a été touchée** : PostgREST rend 200 sur un `UPDATE` à vide, et un
+  compte qui croyait s'être masqué repartait visible au lancement suivant.
 - **« Profil visible », « Ma position », interrupteur maître des
   notifications** : `ProfilePreferences.set` et `setMasterEnabled` n'avaient
   aucun `try/catch`. Pour le maître, l'étage local restait écrit quand le
