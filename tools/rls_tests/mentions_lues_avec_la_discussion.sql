@@ -12,6 +12,11 @@
 -- l'annule avec le reste). SANS la migration, les cas 1, 2, 9 et 14 DOIVENT
 -- tomber : c'est ce qui prouve que le banc sait échouer.
 --
+-- La migration est APPLIQUÉE (relevé en base le 2026-09-20). Le banc tel quel,
+-- sans rien coller, prouve alors l'état VIVANT : 21 cas, 0 ÉCHEC — c'est ce qui
+-- a été fait ce jour-là. Un ÉCHEC sur les cas 1, 2, 9 ou 14 y voudrait dire que
+-- les fonctions ont été redéfinies depuis, sans `messageMention`.
+--
 -- AUCUNE NOTIFICATION N'EST CRÉÉE : `trg_notify_push` (AFTER INSERT) enverrait
 -- un vrai push. Il n'existe encore aucune ligne `messageMention` en base ; le
 -- banc RECLASSE donc des lignes `message` non lues déjà présentes — un `UPDATE`
