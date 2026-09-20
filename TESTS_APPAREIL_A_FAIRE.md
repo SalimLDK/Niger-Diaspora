@@ -13518,10 +13518,9 @@ Fichiers : [migration](supabase/migrations/20260918224100_suppression_de_compte_
   prouve sur le vrai moteur (« appareil révoqué : retiré au prochain
   reconcile ») ; il ne prouve ni le déclenchement par la purge ni le réseau.
 - [ ] **Après une restauration Supabase** (`docs/deploiement/ROLLBACK_AND_DATA.md`,
-  § 2.1) : ⚠️ la version DÉPLOYÉE de `finalizeAccountDeletions` est celle d'avant
-  la pierre tombale ; il faut la redéployer (`--only
-  functions:finalizeAccountDeletions`, sans `--force`, sur accord) avant que
-  `deleted_accounts/<uid>` existe. Puis, sur un compte jetable : la pierre
+  § 2.1) : `finalizeAccountDeletions` a été redéployée seule le 2026-09-19 (v2, avec
+  l'écriture de `deleted_accounts/<uid>` dans le code en ligne). Sur un compte
+  jetable : la pierre
   tombale est écrite AVANT la purge ; `node
   tools/rejouer_suppressions_apres_restauration.mjs` en simulation ne liste rien
   d'autre que des comptes à restes ; procédure essayée UNE FOIS à blanc (restaurer
@@ -13561,9 +13560,12 @@ Fichiers : [migration](supabase/migrations/20260918224100_suppression_de_compte_
   vides, pas d'un parcours observé.
 
 Ce que cette entrée ne lève pas — et qui se décide, pas se vérifie :
-- **Sauvegardes Supabase** : physiques (WAL-G) actives, PITR désactivé, durée de
-  conservation NON relevée (Dashboard > Database > Backups). Les lignes purgées y
-  survivent jusqu'à leur expiration.
+- **Sauvegardes Supabase** : AUCUNE en place au 2026-09-20 (dit par Salim ;
+  `supabase backups list` : PITR `false`, horodatages à `0`). Rien n'y survit donc
+  aujourd'hui, mais rien ne permet non plus de restaurer : une purge fautive est
+  irréversible. Une fois la sauvegarde activée, relever sa durée (Dashboard >
+  Database > Backups) : les lignes purgées y survivront jusqu'à l'expiration, et le
+  texte de confidentialité devra le dire.
 - **Ré-authentification Google / Apple** : aucune avant la demande (seule la
   confirmation « SUPPRIMER » saisie) ; la garde de 4 minutes ne couvre que les
   comptes à mot de passe. Décidé le 2026-09-19 : ATTENDRE un Mac et un téléphone

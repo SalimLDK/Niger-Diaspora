@@ -20,16 +20,22 @@ Statut : pré-prod 2026-07-15.
 ### 1.2 Base de données (Supabase — base PARTAGÉE)
 - **Avant toute migration en prod** : snapshot/backup PITR Supabase
   (Dashboard > Database > Backups). Noter le point de restauration.
-  ⚠️ **État réel relevé le 2026-09-19** (`supabase backups list --project-ref
-  zyrfkcjjrhddpfxcgezo`) : sauvegardes physiques (WAL-G) **actives**, **PITR
-  DÉSACTIVÉ**, aucune date listée par la CLI. Il n'y a donc pas de « point de
-  restauration » à la seconde : on restaure la sauvegarde quotidienne la plus
-  proche. **La durée de conservation n'est pas lisible par la CLI** — à relever
-  dans Dashboard > Database > Backups et à noter ici : `___ jours`. Tant que ce
-  chiffre manque, le texte de confidentialité ne peut pas dire combien de temps
-  une donnée supprimée survit dans les sauvegardes.
+  ⚠️ **État réel au 2026-09-20 : AUCUNE sauvegarde n'est en place.** Dit par
+  Salim (« le backup n'est pas encore en place ») et cohérent avec
+  `supabase backups list --project-ref zyrfkcjjrhddpfxcgezo` (relevé le
+  2026-09-19) : WAL-G `true`, **PITR `false`**, premier et dernier horodatage à
+  `0`, c'est-à-dire aucune sauvegarde datée. Conséquences : il n'y a **aucun point
+  de restauration**, ni à la seconde ni quotidien ; une migration ou une purge de
+  compte fautive est **irréversible** ; la ligne « Backup PITR pris juste avant la
+  migration » de la checklist (§ 3) ne peut pas être cochée tant que ce n'est pas
+  réglé. Il n'y a pas non plus de durée de conservation à relever : elle ne se
+  posera qu'une fois la sauvegarde activée (Dashboard > Database > Backups) ; la
+  noter alors ici : `___ jours`. Tant qu'elle manque, le texte de confidentialité
+  ne peut pas dire combien de temps une donnée supprimée survit dans les
+  sauvegardes.
 - **Après TOUTE restauration** : rejouer les suppressions de compte (§ 2.1).
-  Sans cela, les comptes supprimés depuis la sauvegarde réapparaissent.
+  Sans cela, les comptes supprimés depuis la sauvegarde réapparaissent. (Sans
+  objet tant qu'aucune sauvegarde n'existe ; à garder pour le jour où elle existera.)
 - **Migrations idempotentes** : `supabase/migrations/` — la migration initiale a
   été rendue rejouable (2026-07-15 : `CREATE TABLE/INDEX IF NOT EXISTS`,
   `DROP POLICY IF EXISTS` + `CREATE`, `CREATE OR REPLACE TRIGGER`).
@@ -84,8 +90,8 @@ Modèle : **demande → désactivation immédiate → 30 jours → purge.**
   dérivées, les vérifications et curseurs de CE compte. Une annulation faite sur un
   autre appareil n'efface donc rien. Sans elle, rien ne les détruisait : ni la
   déconnexion, ni la suppression.
-- **Ce qui n'est PAS effacé** : les sauvegardes Supabase jusqu'à leur expiration
-  (durée NON relevée, § 1.2) ; les dossiers financiers clos jusqu'à l'échéance de
+- **Ce qui n'est PAS effacé** : les sauvegardes Supabase, quand il y en aura
+  (aucune au 2026-09-20, § 1.2), jusqu'à leur expiration ; les dossiers financiers clos jusqu'à l'échéance de
   conservation. Détail et décisions ouvertes dans `TESTS_APPAREIL_A_FAIRE.md`
   (« Supprimer mon compte »).
 - Le site public `public/delete-account.html` **n'est pas rebranché** : il
@@ -159,13 +165,14 @@ nœuds RTDB résiduels ne sont pas encore inclus.
   Consent Mode Android).
 
 ## 3. Checklist go-live (rollback & data)
-- [ ] Backup PITR Supabase pris juste avant la migration de prod.
+- [ ] Backup PITR Supabase pris juste avant la migration de prod. **Impossible
+  aujourd'hui :** aucune sauvegarde n'est en place (§ 1.2).
 - [ ] AAB + mapping R8 de la release archivés.
 - [ ] Remote Config kill-switch testé.
 - [ ] Suppression de compte : fonction `finalizeAccountDeletions` déployée, et testée
   bout en bout sur un compte jetable (entrée P0 de `TESTS_APPAREIL_A_FAIRE.md`).
-- [ ] Durée de conservation des sauvegardes Supabase relevée (§ 1.2) et reportée dans
-  le texte de confidentialité.
+- [ ] Sauvegarde Supabase mise en place (§ 1.2 : aucune au 2026-09-20), sa durée de
+  conservation relevée et reportée dans le texte de confidentialité.
 - [ ] Procédure « après une restauration » (§ 2.1) essayée une fois à blanc.
 - [x] Edge Function `export-my-data` livrée et exposée dans les réglages (code) — reste `supabase functions deploy export-my-data`.
 - [ ] Base légale RGPD validée par le juridique.
