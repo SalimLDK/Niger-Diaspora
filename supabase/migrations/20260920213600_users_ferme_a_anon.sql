@@ -36,6 +36,12 @@
 -- et la recherche. Ce second pas exige donc une version cliente d'abord.
 --
 -- Banc : tools/rls_tests/users_ferme_a_anon.sql
+--
+-- APPLIQUÉE le 2026-09-20. Le `SET LOCAL` ci-dessous est resté INERTE :
+-- `db push` a rendu « WARNING (25P01): SET LOCAL can only be used in
+-- transaction blocks » — le fichier n'est pas joué dans une transaction
+-- explicite. Laissé tel qu'il a tourné ; ne pas recopier ce motif en croyant
+-- qu'il protège d'une attente de verrou.
 
 SET LOCAL lock_timeout = '5s';
 

@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1498 cases à cocher, 650 cochées** — 286 entrées sur 335 ont encore des cases ouvertes.
+**1497 cases à cocher, 650 cochées** — 286 entrées sur 335 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -72,7 +72,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [⬜ Qui peut voir un événement : discussion, groupes, personnes, tout le monde (2026-09-12)](#-qui-peut-voir-un-événement--discussion-groupes-personnes-tout-le-monde-2026-09-12) · *Ambassades, démarches, carte, entreprises et événements*
 - 2 · [Réglages/Carte — deux interrupteurs de partage de position désynchronisés (2026-08-13)](#réglagescarte--deux-interrupteurs-de-partage-de-position-désynchronisés-2026-08-13) · *Ambassades, démarches, carte, entreprises et événements*
 - 6 · [⬜ 🔴 Bloquer un utilisateur ne bloque rien — corrigé (2026-09-14)](#--bloquer-un-utilisateur-ne-bloque-rien--corrigé-2026-09-14) · *Accueil, profil et réglages* · bloqué
-- 5 · [⬜ `users` n'est plus lisible sans compte (2026-09-20)](#-users-nest-plus-lisible-sans-compte-2026-09-20) · *Backend, sécurité et observabilité*
+- 4 · [⬜ `users` n'est plus lisible sans compte (2026-09-20)](#-users-nest-plus-lisible-sans-compte-2026-09-20) · *Backend, sécurité et observabilité*
 - 8 · [⬜ Divulgation préalable de la localisation (refus Play du 2026-09-09)](#-divulgation-préalable-de-la-localisation-refus-play-du-2026-09-09) · *Publication et plateformes*
 - 3 · [⬜ Compte de test dédié : première connexion (2026-09-09)](#-compte-de-test-dédié--première-connexion-2026-09-09) · *Appareils, comptes de test et méthode*
 - 4 · [⬜ GIF et sticker envoyés en MLS : la bulle ne montrait rien (2026-09-16)](#-gif-et-sticker-envoyés-en-mls--la-bulle-ne-montrait-rien-2026-09-16) · *Messagerie*
@@ -355,7 +355,7 @@ Par domaine :
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 65 à faire, 51 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 67 à faire, 34 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 153 à faire, 32 faites
-- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 67 à faire, 45 faites
+- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 66 à faire, 45 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 41 à faire, 28 faites
 - [15. Site web](#15-site-web) — 32 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 32 à faire, 46 faites
@@ -19440,15 +19440,29 @@ Supabase et Firebase côté serveur, accès anon, stockage, journaux, Crashlytic
 
 **Priorité P0** · importance 5/5 — Avec la seule clé publique de l'APK, un anonyme lisait 123 profils : 85 e-mails, 55 téléphones, 61 positions GPS (mesuré en production). La migration ferme la porte ; reste à voir qu'un démarrage lent n'y perd rien.
 
-Migration `20260920213600_users_ferme_a_anon.sql` — **NON APPLIQUÉE** à
-l'écriture de cette entrée. `REVOKE ALL … FROM anon`, les quatre policies de
-`users` passées de `public` à `authenticated`, et `TRUNCATE` / `REFERENCES` /
-`TRIGGER` retirés à `authenticated`.
+Migration `20260920213600_users_ferme_a_anon.sql` — **APPLIQUÉE le
+2026-09-20** (`db push`, seule en file). `REVOKE ALL … FROM anon`, les quatre
+policies de `users` passées de `public` à `authenticated`, et `TRUNCATE` /
+`REFERENCES` / `TRIGGER` retirés à `authenticated`.
 
-Répétée contre la production en `BEGIN … ROLLBACK` : banc
-`tools/rls_tests/users_ferme_a_anon.sql`, 13 cas, 0 échec migration injectée ;
-6 échecs sans elle (le banc sait échouer). Un compte connecté ne perd rien :
-`SELECT *` sur sa ligne, écriture de sa ligne, lecture des profils des autres.
+Répétée d'abord contre la production en `BEGIN … ROLLBACK` : banc
+`tools/rls_tests/users_ferme_a_anon.sql`, 13 cas, 6 échecs sans la migration
+(le banc sait échouer), 0 migration injectée. **Relancé tel quel après
+l'application : 0 échec.** Un compte connecté ne perd rien : `SELECT *` sur sa
+ligne, écriture de sa ligne, lecture des profils des autres.
+
+Et la preuve qui compte, une vraie requête HTTP avec la clé publique du
+`.env`, sans session : `GET /rest/v1/users?select=id` → **401, 42501
+« permission denied for table users »** ; idem sur `email,phone_number,latitude` ;
+`GET /rest/v1/embassies` → 200. Avant, la première rendait des lignes.
+
+⚠️ `db push` a rendu `WARNING (25P01): SET LOCAL can only be used in
+transaction blocks` : le fichier n'est **pas** joué dans un bloc de
+transaction explicite, et le `lock_timeout` de tête est resté inerte. Sans
+conséquence ici (quatre `ALTER POLICY` et deux `REVOKE`, tous passés), mais un
+`SET LOCAL` en tête de migration ne protège de rien. Ce que l'avertissement
+ne dit pas, et que je n'ai pas mesuré : si les instructions d'un fichier
+restent atomiques entre elles.
 
 **Ce que le banc ne voit pas.** Pendant la fenêtre `_startFromLocalSession`
 (session Firebase locale, pont Supabase pas encore confirmé), une lecture de
@@ -19479,8 +19493,11 @@ non privé ; elle rendra désormais 42501. Lu dans le code :
   et laisse la contrainte UNIQUE trancher).
 - [ ] **Recherche de membres et carte** juste après l'ouverture : des
   résultats, pas un écran d'erreur.
-- [ ] **Page web de suppression de compte** : la demande aboutit toujours
-  (elle n'interroge pas `users`, à confirmer une fois la migration appliquée).
+La page web de suppression de compte n'est pas concernée, et ce n'est pas une
+case à cocher : elle échange d'abord le jeton Firebase contre une session
+(`auth-firebase-exchange`, clé de service), puis appelle
+`request_account_deletion` en `authenticated`. Lu au catalogue après
+l'application : les deux RPC sont `SECURITY DEFINER` et déjà fermées à `anon`.
 
 **Ce que ça ne ferme pas.** Un compte connecté lit toujours e-mail, téléphone,
 position, `fcm_tokens`, `voip_token`, `session_id`, `cart_data` et
