@@ -13391,7 +13391,8 @@ son terminal : le classifieur de permissions la refuse à l'agent, même annulé
 même sur accord donné dans la conversation. Script :
 [suppression_compte_donnees_reelles.sql](tools/rls_tests/suppression_compte_donnees_reelles.sql)
 (`BEGIN … ROLLBACK` dans le fichier, aucun uid imprimé). Résultat : elle va au
-bout, avec UN écart trouvé et corrigé en migration NON APPLIQUÉE — voir la case
+bout, avec UN écart trouvé et corrigé par la migration 20260919204100, appliquée le
+2026-09-19 au soir — voir la case
 « Répétition sur un compte RÉEL » plus bas. Et la page web `delete-account.html`,
 qui fait toujours l'ancien geste (tâche séparée).
 
@@ -13421,8 +13422,13 @@ Fichiers : [migration](supabase/migrations/20260918224100_suppression_de_compte_
   et ne les voit pas. Le banc fictif ne pouvait pas le trouver, ses groupes
   existent tous. Correctif : migration `20260919204100` (un DELETE par uid après
   la boucle), éprouvée par le banc (cas 50 : échoue contre l'état actuel, passe
-  avec le correctif ; 50/50) — **PAS APPLIQUÉE**. À cocher quand elle l'est ET que
-  la répétition, relancée, ne montre plus que `account_deletion_requests`.
+  avec le correctif ; 50/50) — **appliquée le 2026-09-19 au soir** par `db push`
+  (`20260919120000`, mentions lues, migration d'une autre session et non demandée, a
+  été écartée le temps du push : elle reste NON appliquée). Corps déployé vérifié
+  identique au fichier, banc 50/50 contre l'état appliqué. **À cocher quand la
+  répétition, RELANCÉE par Salim depuis son terminal, ne montre plus que
+  `account_deletion_requests`** : c'est elle qui prouve le correctif sur les 7
+  appartenances réelles, le banc fictif ne le peut pas.
 - [x] **Premier passage de la fonction, à vide** (2026-09-19 11:37 UTC,
   `firebase functions:log --only finalizeAccountDeletions`) : exécution `ok` en
   701 ms, aucune ligne d'erreur — ni « Supabase non configuré » ni « réclamation

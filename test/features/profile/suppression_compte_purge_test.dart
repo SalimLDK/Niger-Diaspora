@@ -15,10 +15,11 @@ import 'package:flutter_test/flutter_test.dart';
 /// qu'un futur `CREATE OR REPLACE`, une colonne oubliée ou une réécriture du
 /// client ne défasse pas discrètement ce qui a été établi.
 ///
-/// Les assertions portent sur les FICHIERS de migration : la première est
-/// appliquée en production depuis le 2026-09-19 ; 20260919204100 (appartenances
-/// sans groupe) ne l'est pas encore — la DERNIÈRE définition de chaque fonction
-/// fait foi, où qu'elle soit.
+/// Les assertions portent sur les FICHIERS de migration — la première et
+/// 20260919204100 (appartenances sans groupe) sont appliquées en production le
+/// 2026-09-19. Ce que le test lit et ce que la base exécute ne coïncident que si
+/// la DERNIÈRE définition de chaque fonction fait foi, où qu'elle soit : c'est
+/// ce que `_derniereMigrationDefinissant` garantit.
 
 String _source(String chemin) =>
     File(chemin).readAsStringSync().replaceAll('\r\n', '\n');
