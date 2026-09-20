@@ -13474,8 +13474,9 @@ Fichiers : [migration](supabase/migrations/20260918224100_suppression_de_compte_
   n'est pas nécessaire : recréer à la main des restes pour l'uid jetable suffit).
 
 - [ ] **Effacement différé des clés et de la base MLS du téléphone** (migration
-  `20260919123300` NON appliquée : sans elle la RPC répond 404, le passage garde
-  ses marqueurs et n'efface RIEN). Sur un compte jetable, dans cet ordre :
+  `20260919123300` appliquée le 2026-09-19 ; si la RPC répondait 404 — base
+  restaurée à un état antérieur —, le passage garde ses marqueurs et n'efface
+  RIEN). Sur un compte jetable, dans cet ordre :
   1. demander la suppression : la clé SharedPreferences `effacement_local_differe_v1`
      porte l'uid et l'échéance, et le fichier `<uid>.sqlite` (dossier `mls/` de
      l'application ; conteneur du groupe d'application sur iOS) existe toujours ;

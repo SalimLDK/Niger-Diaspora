@@ -3175,8 +3175,9 @@ exports.cleanupUserData = functions.auth.user().onDelete(async (user) => {
  * base la rend de nouveau après 30 minutes, dix fois au plus ; le compte
  * Firebase, déjà supprimé, n'est alors pas retenté (`auth/user-not-found`).
  *
- * Rien ici n'est déployé automatiquement : la fonction ne fait rien tant que
- * la migration n'est pas appliquée (la RPC répond 404 et on s'arrête là).
+ * Déployée seule le 2026-09-19 (`--only functions:finalizeAccountDeletions`,
+ * sans `--force`), après la migration des phases. Sans elle, ou sur une base
+ * restaurée à un état antérieur, la RPC répond 404 et on s'arrête là.
  */
 exports.finalizeAccountDeletions = functions
     .runWith({ timeoutSeconds: 300 })

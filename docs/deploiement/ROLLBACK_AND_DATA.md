@@ -67,7 +67,7 @@ Modèle : **demande → désactivation immédiate → 30 jours → purge.**
 - **Refus** : compte plateforme ; obligations financières OUVERTES (commande en
   cours, séquestre retenu, litige, virement en attente). Les dossiers clos ne
   bloquent pas — voir ci-dessous.
-- **Historique financier** (migration `20260919113700`, non appliquée) : les
+- **Historique financier** (migration `20260919113700`, appliquée le 2026-09-19) : les
   dossiers clos sont CONSERVÉS avec leurs faits comptables (montants, dates,
   statuts, uid, identifiants Stripe) ; le texte libre et les coordonnées de la
   personne sont effacés ; une tâche nocturne coupe le lien (uid, identifiants
@@ -76,7 +76,7 @@ Modèle : **demande → désactivation immédiate → 30 jours → purge.**
   clos bloque encore la suppression. La durée est une décision juridique, pas
   technique — faire relire la liste des champs effacés (surtout les transferts)
   avant de la poser.
-- **Clés et base MLS du téléphone** (migration `20260919123300`, non appliquée) :
+- **Clés et base MLS du téléphone** (migration `20260919123300`, appliquée le 2026-09-19) :
   effacées À RETARDEMENT — la demande pose un marqueur local ; au premier
   lancement qui suit l'échéance + 1 jour, le téléphone demande au serveur, sans
   compte, si la suppression est menée à terme (`account_deletion_completed`, un
