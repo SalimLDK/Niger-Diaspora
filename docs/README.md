@@ -26,6 +26,7 @@ Sommaire de la documentation du projet. Les documents historiques (audits termin
 
 - [DEPLOYMENT.md](deploiement/DEPLOYMENT.md) — Guide unique de mise en production : tests, signature/builds Android & iOS, backend Firebase, Play Store, monitoring, checklist, dépannage.
 - [ROLLBACK_AND_DATA.md](deploiement/ROLLBACK_AND_DATA.md) — Stratégie de rollback et données personnelles (RGPD).
+- [AVERTISSEMENTS_PLAY_2026-09-20.md](deploiement/AVERTISSEMENTS_PLAY_2026-09-20.md) — **2026-09-20** : les trois avertissements Play de la 1.2.2+23 (1 306 appareils perdus, hausse de taille, obscurcissement R8 à 36 %) — causes mesurées sur les AAB, et plan d'un bundle 1.2.2+24.
 
 ## Notifications
 
