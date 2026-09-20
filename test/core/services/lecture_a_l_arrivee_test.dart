@@ -19,6 +19,8 @@ void main() {
   late String? ici;
   late Object? panne;
   late bool ecriture;
+  late List<String> ecransMarques;
+  late bool? resultatEcran;
 
   LectureALArrivee lecteur() => LectureALArrivee(
     emplacement: () => ici,
@@ -27,6 +29,11 @@ void main() {
       if (panne != null) throw panne!;
       marquees.add(id);
       return ecriture;
+    },
+    marquerEcran: (emplacement) async {
+      if (panne != null) throw panne!;
+      ecransMarques.add(emplacement);
+      return resultatEcran;
     },
     trace: traces.add,
   );
@@ -50,6 +57,8 @@ void main() {
     ici = '/feed/p1';
     panne = null;
     ecriture = true;
+    ecransMarques = [];
+    resultatEcran = true;
   });
 
   group('elle est lue', () {
@@ -235,6 +244,63 @@ void main() {
     });
   });
 
+  /// Ce qui est arrivé application en arrière-plan n'a pas été jugé à l'arrivée.
+  /// Au retour, l'écran affiché lit ses notifications comme à son ouverture.
+  group('la reprise', () {
+    test('sur l\'écran d\'une destination, au premier plan : lues', () async {
+      ici = '/events/e1';
+      expect(await lecteur().surReprise(), isTrue);
+      expect(ecransMarques, ['/events/e1']);
+      expect(
+        traces.single,
+        contains('reprise sur /events/… — notifications de l\'écran marquées lues'),
+      );
+    });
+
+    test('pas au premier plan : rien', () async {
+      premierPlan = false;
+      expect(await lecteur().surReprise(), isFalse);
+      expect(ecransMarques, isEmpty);
+      expect(traces.single, contains('pas au premier plan'));
+    });
+
+    test('écran affiché inconnu : rien', () async {
+      ici = null;
+      expect(await lecteur().surReprise(), isFalse);
+      expect(ecransMarques, isEmpty);
+      expect(traces.single, contains('écran affiché inconnu'));
+    });
+
+    test('un écran qui n\'est la destination de rien', () async {
+      // `marquerEcran` rend `null` : rien n'a été écrit, et la trace le dit.
+      ici = '/home';
+      resultatEcran = null;
+      expect(await lecteur().surReprise(), isFalse);
+      expect(traces.single, contains('reprise sur /home — ignorée'));
+      expect(traces.single, contains('destination d\'aucune notification'));
+    });
+
+    test('une écriture qui n\'a pas abouti ne se dit pas réussie', () async {
+      resultatEcran = false;
+      expect(await lecteur().surReprise(), isFalse);
+      expect(traces.single, contains('ÉCHEC de l\'écriture'));
+      expect(traces.single, isNot(contains('marquées lues')));
+    });
+
+    test('elle ne lève jamais', () async {
+      panne = StateError('réseau');
+      expect(await lecteur().surReprise(), isFalse);
+      expect(traces.single, contains('erreur inattendue'));
+    });
+
+    test('la trace ne porte aucun identifiant', () async {
+      ici = '/profile/U64HKfrjM5NwR6HO00XPKo6168z2';
+      await lecteur().surReprise();
+      expect(traces.single, isNot(contains('U64HKfrj')));
+      expect(traces.single, contains('reprise sur /profile/…'));
+    });
+  });
+
   /// Un garde silencieux qui refuse ne laisse aucune trace : c'est ce qui a
   /// coûté trois builds le 2026-09-16 (un garde de visibilité, toujours faux
   /// sur appareil, sans une ligne de journal). Chaque arrivée dit donc ce
@@ -318,6 +384,15 @@ void main() {
       expect(src, contains("column: 'user_id'"));
       // Une session lisible avant de s'abonner : en `anon`, la RLS ne livre rien.
       expect(src, contains('ensureReadableSession()'));
+    });
+
+    test('le retour au premier plan déclenche la reprise, et se désinscrit', () {
+      final src = source('lib/core/providers/lecture_a_l_arrivee_provider.dart');
+      expect(src, contains('WidgetsBinding.instance.addObserver(reprise)'));
+      expect(src, contains('WidgetsBinding.instance.removeObserver(reprise)'));
+      expect(src, contains('lecteur.surReprise()'));
+      // Seulement au retour au premier plan, pas à chaque changement d'état.
+      expect(src, contains('if (state == AppLifecycleState.resumed)'));
     });
 
     test('une session illisible ne laisse pas un canal muet', () {

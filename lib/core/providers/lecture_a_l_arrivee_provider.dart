@@ -45,7 +45,27 @@ final lectureALArriveeProvider = Provider<void>((ref) {
   );
   unawaited(abonnement.demarrer());
   ref.onDispose(abonnement.arreter);
+
+  // Ce qui est arrivé application en arrière-plan — ou canal coupé — n'a pas
+  // été jugé à l'arrivée : au retour, l'écran affiché lit ses notifications.
+  final reprise = _ObservateurDeReprise(() => unawaited(lecteur.surReprise()));
+  WidgetsBinding.instance.addObserver(reprise);
+  ref.onDispose(() => WidgetsBinding.instance.removeObserver(reprise));
 });
+
+/// Relaie le retour au premier plan. Une classe dédiée plutôt que
+/// `with WidgetsBindingObserver` sur le lecteur : celui-ci se teste sans
+/// binding, et n'a pas à porter une dépendance au framework de widgets.
+class _ObservateurDeReprise extends WidgetsBindingObserver {
+  _ObservateurDeReprise(this._auRetour);
+
+  final void Function() _auRetour;
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _auRetour();
+  }
+}
 
 /// Le canal `INSERT` sur `notifications` d'un compte, rouvert quand il tombe.
 class _AbonnementAuxArrivees {

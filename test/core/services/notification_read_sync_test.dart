@@ -259,6 +259,148 @@ void main() {
     });
   });
 
+  /// La REPRISE : au retour au premier plan, l'écran affiché lit ses
+  /// notifications comme à son ouverture. Ce que `cibleAffichee` rend est ce
+  /// que la requête écrira — la fonction est pure pour qu'on puisse le lire.
+  group('ce que la reprise lit : la cible de l\'écran affiché', () {
+    test('un écran à identifiant : le filtre sur son objet, et ses types', () {
+      final evenement = NotificationReadSync.cibleAffichee('/events/e1');
+      expect(
+        evenement?.filtre,
+        'data->>eventId.eq.e1,data->>targetId.eq.e1,data->>target_id.eq.e1',
+      );
+      expect(evenement?.types, isNull); // tout type : la table dit `null`
+
+      final groupe = NotificationReadSync.cibleAffichee('/groups/g1');
+      expect(groupe?.filtre, contains('data->>groupId.eq.g1'));
+      expect(groupe?.types, NotificationReadSync.typesLusParLaFicheDeGroupe);
+
+      final profil = NotificationReadSync.cibleAffichee('/profile/u1');
+      expect(profil?.filtre, contains('data->>receiverId.eq.u1'));
+      expect(profil?.types, NotificationReadSync.typesLusParLeProfil);
+    });
+
+    test('« Mes commandes » : pas de cible, toute la famille', () {
+      final c = NotificationReadSync.cibleAffichee('/marketplace/my-orders');
+      expect(c, isNotNull);
+      expect(c!.filtre, isNull);
+      expect(c.types, NotificationReadSync.typesLusParMesCommandes);
+    });
+
+    test('la requête et la barre finale n\'y changent rien', () {
+      final nu = NotificationReadSync.cibleAffichee('/feed/p1');
+      expect(NotificationReadSync.cibleAffichee('/feed/p1?depuis=x')?.filtre, nu?.filtre);
+      expect(NotificationReadSync.cibleAffichee('/feed/p1/')?.filtre, nu?.filtre);
+    });
+
+    test('un écran qui n\'est la destination de rien : rien à écrire', () {
+      for (final chemin in [
+        '/',
+        '/home',
+        '/feed',
+        '/notifications',
+        '/messages/c1',
+        '/groups/g1/members',
+        '/feed/p1/reposts',
+      ]) {
+        expect(NotificationReadSync.cibleAffichee(chemin), isNull, reason: chemin);
+      }
+    });
+
+    test('un identifiant qui changerait le sens du filtre : rien à écrire', () {
+      // L'identifiant est interpolé dans `or=(…)` : une virgule, une
+      // parenthèse ou un point n'ont rien à y faire.
+      for (final chemin in ['/feed/a,is_read.eq.true', '/feed/a)', '/feed/a.b']) {
+        expect(NotificationReadSync.cibleAffichee(chemin), isNull, reason: chemin);
+      }
+    });
+  });
+
+  /// Une push touchée désigne une cible, une conversation, ou — pour une
+  /// annonce — un code. Les deux premiers cas existaient ; le test les fige.
+  group('ce que désigne une push touchée', () {
+    Map<String, dynamic> push(String type, Map<String, String> plus) =>
+        {'type': type, ...plus};
+
+    test('un message : toute la discussion', () {
+      final c = NotificationReadSync.cibleDeLaPush(
+        push('message', {'conversationId': 'c1', 'targetId': 'c1'}),
+      );
+      expect(c?.id, 'c1');
+      expect(c?.keys, ['conversationId']);
+      expect(c?.type, 'message');
+      expect(c?.annonce, isNull);
+    });
+
+    test('un type à cible : son targetId, sous les deux clés', () {
+      final c = NotificationReadSync.cibleDeLaPush(
+        push('eventAttendance', {'targetId': 'e1'}),
+      );
+      expect(c?.id, 'e1');
+      expect(c?.keys, ['targetId', 'target_id']);
+      expect(c?.type, 'eventAttendance');
+      expect(c?.annonce, isNull);
+    });
+
+    test('une annonce system, sans cible : son code', () {
+      // Le cas réel du 2026-09-15 : `targetId` sort à '', `annonce` reste.
+      final c = NotificationReadSync.cibleDeLaPush(
+        push('system', {'targetId': '', 'annonce': 'maj-1.2.1-chiffrement'}),
+      );
+      expect(c?.annonce, 'maj-1.2.1-chiffrement');
+      expect(c?.id, isNull);
+      expect(c?.type, 'system');
+    });
+
+    test('une cible l\'emporte sur un code d\'annonce', () {
+      final c = NotificationReadSync.cibleDeLaPush(
+        push('system', {'targetId': 't1', 'annonce': 'x'}),
+      );
+      expect(c?.id, 't1');
+      expect(c?.annonce, isNull);
+    });
+
+    test('ce qui ne désigne rien', () {
+      expect(NotificationReadSync.cibleDeLaPush({}), isNull);
+      expect(NotificationReadSync.cibleDeLaPush(push('', {})), isNull);
+      expect(NotificationReadSync.cibleDeLaPush(push('system', {})), isNull);
+      expect(
+        NotificationReadSync.cibleDeLaPush(push('system', {'annonce': ''})),
+        isNull,
+      );
+      // Le code d'une annonce n'identifie que les annonces.
+      expect(
+        NotificationReadSync.cibleDeLaPush(push('eventReminder', {'annonce': 'x'})),
+        isNull,
+      );
+    });
+  });
+
+  group('le code d\'une annonce', () {
+    test('lettres, chiffres, point, tiret, souligné', () {
+      for (final code in ['maj-1.2.1-chiffrement', 'a', 'A_b-1.0', 'x' * 128]) {
+        expect(NotificationReadSync.codeDAnnonceSur(code), isTrue, reason: code);
+      }
+    });
+
+    test('rien qui change le sens d\'un filtre ou d\'une URL', () {
+      for (final code in [
+        '',
+        'a b',
+        'a,b',
+        'a)',
+        "a'b",
+        'a=b',
+        'a&b',
+        'a%20b',
+        'é',
+        'x' * 129,
+      ]) {
+        expect(NotificationReadSync.codeDAnnonceSur(code), isFalse, reason: code);
+      }
+    });
+  });
+
   /// Le marqueur est inutile s'il n'est pas appelé. Ces écrans sont lourds à
   /// monter dans un test (Firebase, Supabase, routeur) ; on vérifie donc le
   /// câblage à la source, comme les bancs voisins.

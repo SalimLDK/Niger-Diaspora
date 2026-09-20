@@ -175,11 +175,53 @@ class NotificationReadSync {
     required String type,
     required Map<String, dynamic> data,
   }) {
+    final chemin = _normalise(emplacement);
+    return _ecrans.any((e) => e.designe(chemin, type, data));
+  }
+
+  /// Sans requête, sans barre finale : `/feed/abc/?x=1` → `/feed/abc`.
+  static String _normalise(String emplacement) {
     var chemin = emplacement.split('?').first;
     if (chemin.length > 1 && chemin.endsWith('/')) {
       chemin = chemin.substring(0, chemin.length - 1);
     }
-    return _ecrans.any((e) => e.designe(chemin, type, data));
+    return chemin;
+  }
+
+  /// Ce qu'il faut viser pour lire les notifications de l'écran affiché à
+  /// [emplacement] — le filtre de sa cible (`null` : l'écran n'a pas de cible,
+  /// « Mes commandes ») et les types — ou `null` si cet écran n'est la
+  /// destination d'aucune notification, ou si son identifiant n'est pas sûr à
+  /// interpoler. Pure : c'est ce que la reprise écrit, sans rien écrire.
+  @visibleForTesting
+  static ({String? filtre, List<String>? types})? cibleAffichee(
+    String emplacement,
+  ) {
+    final chemin = _normalise(emplacement);
+    for (final e in _ecrans) {
+      final trouve = e.chemin.firstMatch(chemin);
+      if (trouve == null) continue;
+      if (e.cles.isEmpty) return (filtre: null, types: e.types);
+      final id = trouve.groupCount >= 1 ? trouve.group(1) : null;
+      if (id == null) return null;
+      final filtre = targetFilter(id, e.cles);
+      if (filtre == null) return null;
+      return (filtre: filtre, types: e.types);
+    }
+    return null;
+  }
+
+  /// Marque lues les notifications de l'écran affiché à [emplacement], comme
+  /// si on venait de l'ouvrir. `null` : cet écran n'est la destination
+  /// d'aucune notification, rien n'a été écrit. Sinon, si l'écriture a abouti.
+  ///
+  /// C'est la REPRISE (`LectureALArrivee.surReprise`) : ce qui est arrivé
+  /// pendant que l'application n'était pas au premier plan n'a pas été jugé à
+  /// l'arrivée, et un canal coupé n'a rien rejoué.
+  static Future<bool?> markDisplayedRead(String emplacement) async {
+    final cible = cibleAffichee(emplacement);
+    if (cible == null) return null;
+    return _marquerLues(types: cible.types, filtreCible: cible.filtre);
   }
 
   /// Expression `or` qui désigne [id] sous l'une des [keys], ou `null` si
@@ -242,12 +284,39 @@ class NotificationReadSync {
     return _marquerLues(id: id);
   }
 
+  /// Le code d'une annonce (`data.annonce`) : lettres, chiffres, `.`, `_`, `-`.
+  ///
+  /// Le point est admis ici — `maj-1.2.1-chiffrement` — alors que [_idSur] le
+  /// refuse : un identifiant est interpolé dans une expression `or=(…)`, où un
+  /// point change le sens du filtre ; le code d'une annonce va dans un filtre
+  /// `eq` simple, dont la valeur n'est jamais interprétée.
+  static final RegExp _annonceSure = RegExp(r'^[A-Za-z0-9._-]{1,128}$');
+
+  @visibleForTesting
+  static bool codeDAnnonceSur(String code) => _annonceSure.hasMatch(code);
+
+  /// Marque lue MON annonce `system` de code [code].
+  ///
+  /// Une annonce n'a pas de cible : la table `notifications` n'a pas de colonne
+  /// `target_id`, la push part avec `targetId` vide, et l'appui sur la bannière
+  /// ouvre la liste. Ce qui l'identifie est `data.annonce`, la clé stable posée
+  /// par la diffusion (un code par annonce, un exemplaire par compte) — que
+  /// `send-push` recopie dans la push. Restreinte au type `system`.
+  static Future<bool> markAnnouncementRead(String code) async {
+    if (!_annonceSure.hasMatch(code)) return false;
+    return _marquerLues(
+      types: const ['system'],
+      egal: (colonne: 'data->>annonce', valeur: code),
+    );
+  }
+
   /// Rend `true` si la requête a abouti sans erreur (session, réseau, droits) ;
   /// les entrées qui n'ont pas besoin du résultat l'ignorent.
   static Future<bool> _marquerLues({
     List<String>? types,
     String? filtreCible,
     String? id,
+    ({String colonne, String valeur})? egal,
   }) async {
     // Tout dans le `try`, y compris l'accès à FirebaseAuth : appelée depuis
     // un `initState`, une exception ici (Firebase pas encore initialisé)
@@ -262,6 +331,7 @@ class NotificationReadSync {
           .eq('user_id', uid)
           .eq('is_read', false);
       if (id != null) query = query.eq('id', id);
+      if (egal != null) query = query.eq(egal.colonne, egal.valeur);
       if (types != null) query = query.inFilter('type', types);
       if (filtreCible != null) query = query.or(filtreCible);
       await query;
@@ -276,22 +346,55 @@ class NotificationReadSync {
   /// in-app correspondante est lue.
   ///
   /// Le push ne porte pas l'id de la ligne `notifications` (send-push ne le
-  /// transmet pas), seulement son type et sa cible.
+  /// transmet pas), seulement son type et sa cible — ou, pour une annonce
+  /// `system`, son code.
   static Future<void> markPushRead(Map<String, dynamic> data) async {
+    final cible = cibleDeLaPush(data);
+    if (cible == null) return;
+    final annonce = cible.annonce;
+    if (annonce != null) {
+      await markAnnouncementRead(annonce);
+      return;
+    }
+    await markTargetRead(cible.id!, keys: cible.keys, type: cible.type);
+  }
+
+  /// Ce que désigne une push touchée : l'identifiant [id] sous [keys], pour le
+  /// type [type] — ou, pour une annonce `system` qui n'a pas de cible, son
+  /// [annonce]. `null` si elle ne désigne rien. Pure, donc testable.
+  @visibleForTesting
+  static ({String? id, List<String> keys, String type, String? annonce})?
+  cibleDeLaPush(Map<String, dynamic> data) {
     final type = data['type']?.toString();
-    if (type == null || type.isEmpty) return;
+    if (type == null || type.isEmpty) return null;
+
     final conversationId = data['conversationId']?.toString();
     if (type == 'message' && conversationId != null) {
       // Toute la discussion : c'est elle qu'on ouvre, pas un message.
-      return markTargetRead(
-        conversationId,
+      return (
+        id: conversationId,
         keys: const ['conversationId'],
         type: 'message',
+        annonce: null,
       );
     }
+
     final targetId = data['targetId']?.toString() ?? '';
-    if (targetId.isEmpty) return;
-    return markTargetRead(targetId, type: type);
+    if (targetId.isNotEmpty) {
+      return (
+        id: targetId,
+        keys: const ['targetId', 'target_id'],
+        type: type,
+        annonce: null,
+      );
+    }
+
+    // Sans cible : seule une annonce se retrouve, par son code.
+    final annonce = data['annonce']?.toString() ?? '';
+    if (type == 'system' && annonce.isNotEmpty) {
+      return (id: null, keys: const [], type: 'system', annonce: annonce);
+    }
+    return null;
   }
 }
 

@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1486 cases à cocher, 648 cochées** — 284 entrées sur 333 ont encore des cases ouvertes.
+**1488 cases à cocher, 648 cochées** — 284 entrées sur 333 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -224,7 +224,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ Les deux bandeaux de clés retirés : ils promettaient faux (2026-09-16)](#-les-deux-bandeaux-de-clés-retirés--ils-promettaient-faux-2026-09-16) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ L'expéditeur MLS datait lui-même ses propres messages (2026-09-15)](#-lexpéditeur-mls-datait-lui-même-ses-propres-messages-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ L'appartenance MLS se réconcilie au moment du changement (phase 8, 2026-09-15)](#-lappartenance-mls-se-réconcilie-au-moment-du-changement-phase-8-2026-09-15) · *Chiffrement de bout en bout et clés*
-- 16 · [⬜ Notifications lues à l'ouverture de leur écran : profil, groupe, commandes, fiche, mentions (2026-09-19)](#-notifications-lues-à-louverture-de-leur-écran--profil-groupe-commandes-fiche-mentions-2026-09-19) · *Notifications et push*
+- 18 · [⬜ Notifications lues à l'ouverture de leur écran : profil, groupe, commandes, fiche, mentions (2026-09-19)](#-notifications-lues-à-louverture-de-leur-écran--profil-groupe-commandes-fiche-mentions-2026-09-19) · *Notifications et push*
 - 5 · [⬜ Cycle de vie d'une demande d'ami : six trous soldés (2026-09-15)](#-cycle-de-vie-dune-demande-dami--six-trous-soldés-2026-09-15) · *Notifications et push* · bloqué
 - 2 · [✅ Filtre hashtag : réparé et vérifié sur SM A515F (2026-09-14)](#-filtre-hashtag--réparé-et-vérifié-sur-sm-a515f-2026-09-14) · *Liens profonds, navigation et QR codes*
 - 4 · [⬜ Un lien Diaspo Niger dans une discussion sortait de l'app (2026-09-12)](#-un-lien-diaspo-niger-dans-une-discussion-sortait-de-lapp-2026-09-12) · *Liens profonds, navigation et QR codes*
@@ -346,7 +346,7 @@ Par domaine :
 - [3. Groupes](#3-groupes) — 149 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 142 à faire, 42 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
-- [6. Notifications et push](#6-notifications-et-push) — 159 à faire, 76 faites
+- [6. Notifications et push](#6-notifications-et-push) — 161 à faire, 76 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 69 à faire, 10 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 118 à faire, 16 faites
@@ -10041,6 +10041,16 @@ best-effort à l'ouverture) :
   application au **premier plan** (`resumed` strict), écran **du dessus** (pas
   un écran seulement ouvert dessous), ligne **pas déjà lue**. Jamais la
   messagerie, jamais ce qui appelle un geste.
+- **Reprise au premier plan** (`surReprise`) → ce qui est arrivé application en
+  arrière-plan, ou canal coupé, n'a pas été jugé à l'arrivée. Au retour,
+  l'écran affiché lit ses notifications comme à son ouverture (même table,
+  `markDisplayedRead`).
+- **Push `system` touchée** → une annonce n'a pas de cible (`targetId` sort
+  vide, la table n'a pas de colonne `target_id`) mais son code, `data.annonce`
+  (« maj-1.2.1-chiffrement »), que `send-push` recopie dans la push. La ligne se
+  retrouve par ce code, restreinte au type `system`. Filtre `eq` simple : le
+  code contient des points, que la liste blanche des identifiants refuse
+  exprès pour le filtre `or=(…)`.
 
 - [ ] **Profil** : compte A a une notification « demande acceptée » de B non
   lue ; ouvrir le profil de B **depuis la discussion** (pas depuis la liste) ;
@@ -10076,8 +10086,17 @@ best-effort à l'ouverture) :
   de A → `friendAccepted` lue.
 - [ ] **Arrivée, négatif — application en arrière-plan** : A sur la fiche de
   l'événement, écran verrouillé ; B s'inscrit → la notification reste NON lue
-  en base. Au retour elle le reste jusqu'à la prochaine ouverture de l'écran :
-  rien ne relit à la reprise.
+  en base TANT QUE l'application n'est pas revenue au premier plan.
+- [ ] **Reprise** : suite du cas précédent — A déverrouille et revient sur
+  l'application, sans changer d'écran → la notification passe en lue dans la
+  seconde qui suit (trace `reprise sur /events/… — notifications de l'écran
+  marquées lues`). Contre-épreuve : la même chose depuis `/home` ne lit rien
+  (`ignorée : ce n'est la destination d'aucune notification`).
+- [ ] **Push `system` touchée** : insérer une annonce `system` pour UN compte de
+  test (la recette de diffusion, en ciblant ce seul compte — l'insertion envoie
+  une vraie push) ; app fermée, toucher la bannière → `is_read = true` en base
+  pour ce code, et la carte s'affiche lue dans la liste. Une autre annonce, de
+  code différent, reste non lue.
 - [ ] **Arrivée, négatif — écran par-dessus** : A sur la fiche de l'événement,
   puis ouvre un profil PAR-DESSUS ; B s'inscrit → NON lue.
 - [ ] **Arrivée, négatif — geste attendu** : A sur le profil de C ; C lui envoie
@@ -10111,9 +10130,13 @@ donc POURQUOI une case ne marque rien — un garde qui refuse ne lève rien, et
 celui de visibilité de la discussion, toujours faux sur appareil le 2026-09-16,
 n'avait laissé aucune trace : trois builds. Aucune ligne du tout après une
 arrivée = le canal ne s'est pas ouvert (session, réseau) ou n'est pas surveillé.
-*Ce qui n'est PAS corrigé* : une push touchée sans `targetId` (`system`) n'en
-marque aucune ; une notification arrivée application en arrière-plan reste non
-lue même si l'on revient sur l'écran de sa cible.
+*Ce qui n'est PAS corrigé* : une notification arrivée pendant qu'un écran se
+trouvait PAR-DESSUS sa destination (la fiche de l'événement, puis un profil
+ouvert dessus), puis la destination retrouvée en fermant cet écran — aucun
+changement d'état de l'application, donc ni arrivée jugée (ce n'était pas
+l'écran du dessus) ni reprise. Elle reste non lue jusqu'à la prochaine
+ouverture. Il faudrait observer la navigation (`didPop`) ; jamais mesuré comme
+fréquent.
 
 *Les mentions* : l'action « Marquer comme lu » de la **bannière**
 (`BackgroundReplyService.markAsRead`) n'appelle que la RPC

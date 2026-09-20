@@ -24,6 +24,15 @@ import 'notification_read_sync.dart';
 ///    qui n'est qu'ouvert dessous ;
 /// 3. la ligne n'est pas déjà lue.
 ///
+/// **Et au retour au premier plan** ([surReprise]) : ce qui est arrivé pendant
+/// que l'application n'y était pas — donc jamais jugé, la condition 1 le
+/// refuse — est lu par l'écran affiché, comme à son ouverture.
+///
+/// **Ce que cela ne couvre pas** : une notification arrivée pendant qu'un écran
+/// se trouvait PAR-DESSUS sa destination, puis la destination retrouvée en
+/// fermant cet écran — aucun changement d'état de l'application, donc aucune
+/// reprise. Elle reste non lue jusqu'à la prochaine ouverture.
+///
 /// **C'est un garde silencieux, donc il se raconte.** Un garde qui refuse rend
 /// `false` : c'est un chemin normal, il ne lève rien et n'écrit rien. Le
 /// 2026-09-16, un garde de visibilité bâti sur `currentConfiguration.uri`
@@ -47,6 +56,7 @@ class LectureALArrivee {
     required this.emplacement,
     required this.auPremierPlan,
     this.marquer = NotificationReadSync.markIdRead,
+    this.marquerEcran = NotificationReadSync.markDisplayedRead,
     this.trace,
   });
 
@@ -60,6 +70,10 @@ class LectureALArrivee {
   /// l'écriture a abouti : sans cela le verdict dirait « lue » d'une ligne que
   /// la base n'a jamais reçue, au moment précis où la trace sert à comprendre.
   final Future<bool> Function(String id) marquer;
+
+  /// Lit les notifications de l'écran affiché au chemin donné, comme à son
+  /// ouverture. Rend `null` si cet écran n'est la destination de rien.
+  final Future<bool?> Function(String emplacement) marquerEcran;
 
   /// Où va la ligne de verdict. `debugPrint` quand elle n'est pas fournie —
   /// `debugPrint` n'est pas une constante, donc pas une valeur par défaut.
@@ -114,6 +128,53 @@ class LectureALArrivee {
     return ecrit
         ? _dit(type, ici, 'marquée lue', vrai: true)
         : _dit(type, ici, 'ÉCHEC de l\'écriture (voir NotificationReadSync)');
+  }
+
+  /// L'application REVIENT au premier plan.
+  ///
+  /// Ce qui est arrivé pendant qu'elle n'y était pas n'a pas été jugé :
+  /// l'arrivée exige le premier plan, et un canal coupé n'a rien rejoué. Si
+  /// l'écran affiché est la destination de notifications, on les lit comme à
+  /// son ouverture — la personne est revenue sur cet écran, elle le regarde.
+  ///
+  /// Sans cela, une inscription reçue application en arrière-plan restait non
+  /// lue même en revenant sur la fiche de l'événement, jusqu'à ce qu'on la
+  /// quitte et la rouvre. Rend `true` si une écriture a abouti.
+  Future<bool> surReprise() async {
+    try {
+      return await _rejuger();
+    } catch (e) {
+      _ecrit('LectureALArrivee: reprise — erreur inattendue — ignorée ($e)');
+      return false;
+    }
+  }
+
+  Future<bool> _rejuger() async {
+    if (!auPremierPlan()) {
+      _ecrit('LectureALArrivee: reprise — ignorée : application pas au premier plan');
+      return false;
+    }
+    final ici = emplacement();
+    if (ici == null) {
+      _ecrit('LectureALArrivee: reprise — ignorée : écran affiché inconnu');
+      return false;
+    }
+
+    final forme = _forme(ici);
+    final ecrit = await marquerEcran(ici);
+    if (ecrit == null) {
+      _ecrit(
+        'LectureALArrivee: reprise sur $forme — ignorée : '
+        'ce n\'est la destination d\'aucune notification',
+      );
+      return false;
+    }
+    if (!ecrit) {
+      _ecrit('LectureALArrivee: reprise sur $forme — ÉCHEC de l\'écriture (voir NotificationReadSync)');
+      return false;
+    }
+    _ecrit('LectureALArrivee: reprise sur $forme — notifications de l\'écran marquées lues');
+    return true;
   }
 
   bool _dit(String type, String? ici, String verdict, {bool vrai = false}) {
