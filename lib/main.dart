@@ -20,6 +20,7 @@ import 'core/constants/app_config.dart';
 import 'core/services/app_review_service.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/cache_service.dart';
+import 'core/services/effacement_local_differe.dart';
 import 'core/services/google_maps_service.dart';
 import 'core/services/preferences_service.dart';
 import 'core/services/remote_config_service.dart';
@@ -325,6 +326,17 @@ Future<void> _initServicesSecondaires() async {
   }
 
   await tenter('statut en ligne', OnlineStatusService.instance.initialize);
+  // Effacement différé du matériel cryptographique d'un compte dont la
+  // suppression est menée à terme : un passage, court, qui ne fait rien tant
+  // qu'aucun compte n'a été supprimé depuis ce téléphone. Borné : un serveur
+  // muet ne doit pas retarder les services qui suivent.
+  await tenter(
+    'effacement local différé',
+    () async => EffacementLocalDiffere.parDefaut()
+        .executerSiEchu()
+        .timeout(const Duration(seconds: 20))
+        .then((_) {}),
+  );
   // Session Supabase rebranchée au retour au premier plan : sans ça, une app
   // laissée en veille revient avec un JWT périmé et des canaux temps réel
   // muets — plus rien ne s'actualise tout seul.

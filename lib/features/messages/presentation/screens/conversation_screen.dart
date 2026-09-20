@@ -59,6 +59,7 @@ import '../widgets/chat_background_picker_modal.dart';
 import '../widgets/chat_wallpapers.dart';
 import 'dart:convert';
 import '../../../../core/errors/failure_mapper.dart';
+import '../../../../core/services/notification_read_sync.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../core/providers/in_app_notification_provider.dart';
 import '../../domain/services/message_deletion_service.dart';
@@ -494,6 +495,20 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     // La borne peut être un message MLS : le serveur relit sa date.
     try {
       await ref.read(lectureServeurProvider).avancerJusqua(conversationId, jusquaId);
+      // Les mentions (`messageMention`, écrites quand la conversation est en
+      // sourdine) : `marquer_lus_jusqua` ne connaît que `message` et
+      // `messageReaction`, et ce chemin ne repasse plus par le
+      // `markTargetRead` de `markAsRead`. La cloche les comptait donc jusqu'à
+      // un appui dans la liste. Même borne que les messages : une mention
+      // postérieure au dernier message vu n'a pas été vue.
+      unawaited(
+        NotificationReadSync.markTargetRead(
+          conversationId,
+          keys: const ['conversationId'],
+          type: 'messageMention',
+          jusqua: jusqua,
+        ),
+      );
     } on LectureServeurAbsente {
       // Migration pas encore appliquée : l'ancien chemin, qui marque la
       // conversation entière. C'est ce qui se faisait jusqu'ici — rien ne
