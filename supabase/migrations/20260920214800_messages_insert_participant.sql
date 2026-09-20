@@ -41,6 +41,8 @@
 -- condition était déjà fausse.
 --
 -- Banc : tools/rls_tests/messages_insert_participant.sql
+--
+-- APPLIQUÉE le 2026-09-20 ; banc relancé tel quel : 11 cas, 0 échec.
 
 ALTER POLICY messages_insert ON public.messages
   TO authenticated

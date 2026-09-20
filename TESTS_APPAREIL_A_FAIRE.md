@@ -611,8 +611,10 @@ Discussions : bulles, composeur, médias, épingles, réactions, accusés, reche
 
 **Priorité P0** · importance 4/5 — Un compte connecté pouvait écrire, sous son nom, dans n'importe quelle conversation dont il connaissait l'identifiant — d'abord celle dont il vient d'être exclu. La policy est corrigée ; reste à voir que tous les envois légitimes passent encore.
 
-Migration `20260920214800_messages_insert_participant.sql` — **NON
-APPLIQUÉE** à l'écriture de cette entrée. `messages_insert` exigeait seulement
+Migration `20260920214800_messages_insert_participant.sql` — **APPLIQUÉE le
+2026-09-20** (`db push`, seule en file, sans avertissement). Le banc relancé
+tel quel sur l'état vivant : 11 cas, 0 échec, aucun reste en base.
+`messages_insert` exigeait seulement
 `firebase_uid() = sender_id` ; elle exige en plus
 `is_conversation_participant(conversation_id)`, comme `mls_messages` depuis
 sa création, et ne vaut plus que pour `authenticated`.
