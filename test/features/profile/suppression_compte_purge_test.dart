@@ -915,6 +915,14 @@ void main() {
       expect(e, isNot(contains('All your data will be permanently deleted')));
     });
 
+    test('le dialogue dit ce que la purge fait d\'un groupe dont on est le dernier membre', () {
+      // Le site le dit (public/delete-account*.html) et la purge le fait (test
+      // « dissous COMME delete_group » plus haut) : le dialogue de l'application
+      // ne peut pas s'en taire, sinon deux promesses divergent d'une phrase.
+      expect(fr['deleteAccountWarning'] as String, contains('dernier membre'));
+      expect(en['deleteAccountWarning'] as String, contains('last member'));
+    });
+
     test("le dialogue dit ce qu'il advient des clés du téléphone, sans promettre l'immédiat", () {
       // L'effacement local est DIFFÉRÉ : il a lieu au lancement qui suit la
       // suppression définitive, et seulement si le téléphone joint le serveur.
