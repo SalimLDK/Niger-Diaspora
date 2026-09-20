@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1469 cases à cocher, 647 cochées** — 283 entrées sur 332 ont encore des cases ouvertes.
+**1468 cases à cocher, 648 cochées** — 283 entrées sur 332 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -67,7 +67,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ Aperçu MLS quand l'app est OUVERTE (le même message, l'autre isolate)](#-aperçu-mls-quand-lapp-est-ouverte-le-même-message-lautre-isolate) · *Notifications et push*
 - 9 · [⬜ Aperçu des notifications MLS reconstruit sur l'appareil (phase 4, Android)](#-aperçu-des-notifications-mls-reconstruit-sur-lappareil-phase-4-android) · *Notifications et push*
 - 6 · [⬜ Accepter une demande d'ami : « Erreur de chargement » (2026-09-14)](#-accepter-une-demande-dami---erreur-de-chargement--2026-09-14) · *Notifications et push* · bloqué
-- 23 · [⬜ Supprimer mon compte : demande, 30 jours, annulation, purge (2026-09-18)](#-supprimer-mon-compte--demande-30-jours-annulation-purge-2026-09-18) · *Comptes, session et onboarding*
+- 22 · [⬜ Supprimer mon compte : demande, 30 jours, annulation, purge (2026-09-18)](#-supprimer-mon-compte--demande-30-jours-annulation-purge-2026-09-18) · *Comptes, session et onboarding*
 - 9 · [⬜ Expulsion admin et bannissement : ils n'éjectaient personne (2026-09-16)](#-expulsion-admin-et-bannissement--ils-néjectaient-personne-2026-09-16) · *Comptes, session et onboarding*
 - 7 · [⬜ Qui peut voir un événement : discussion, groupes, personnes, tout le monde (2026-09-12)](#-qui-peut-voir-un-événement--discussion-groupes-personnes-tout-le-monde-2026-09-12) · *Ambassades, démarches, carte, entreprises et événements*
 - 2 · [Réglages/Carte — deux interrupteurs de partage de position désynchronisés (2026-08-13)](#réglagescarte--deux-interrupteurs-de-partage-de-position-désynchronisés-2026-08-13) · *Ambassades, démarches, carte, entreprises et événements*
@@ -347,7 +347,7 @@ Par domaine :
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 150 à faire, 76 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
-- [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 70 à faire, 9 faites
+- [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 69 à faire, 10 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 118 à faire, 16 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 65 à faire, 51 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 67 à faire, 34 faites
@@ -13392,7 +13392,7 @@ même sur accord donné dans la conversation. Script :
 [suppression_compte_donnees_reelles.sql](tools/rls_tests/suppression_compte_donnees_reelles.sql)
 (`BEGIN … ROLLBACK` dans le fichier, aucun uid imprimé). Résultat : elle va au
 bout, avec UN écart trouvé et corrigé par la migration 20260919204100, appliquée le
-2026-09-19 au soir — voir la case
+2026-09-19 au soir, puis rejouée SANS écart — voir la case
 « Répétition sur un compte RÉEL » plus bas. Et la page web `delete-account.html`,
 qui fait toujours l'ancien geste (tâche séparée).
 
@@ -13409,7 +13409,7 @@ Fichiers : [migration](supabase/migrations/20260918224100_suppression_de_compte_
   `ls supabase/migrations | sort | awk -F_ '{print $1}' | uniq -d` ET
   `select max(version) from supabase_migrations.schema_migrations` (le `uniq -d`
   est aveugle à une jumelle déjà en base).
-- [ ] **Répétition sur un compte RÉEL** (`suppression_compte_donnees_reelles.sql`,
+- [x] **Répétition sur un compte RÉEL** (`suppression_compte_donnees_reelles.sql`,
   depuis un terminal) : `ok` vaut `true`, et la liste `RESTE` ne montre que des
   rétentions voulues (`account_deletion_requests`, la pierre tombale). Toute
   autre table qui garde des lignes est une colonne oubliée : nouvelle migration
@@ -13425,10 +13425,16 @@ Fichiers : [migration](supabase/migrations/20260918224100_suppression_de_compte_
   avec le correctif ; 50/50) — **appliquée le 2026-09-19 au soir** par `db push`
   (`20260919120000`, mentions lues, migration d'une autre session et non demandée, a
   été écartée le temps du push : elle reste NON appliquée). Corps déployé vérifié
-  identique au fichier, banc 50/50 contre l'état appliqué. **À cocher quand la
-  répétition, RELANCÉE par Salim depuis son terminal, ne montre plus que
-  `account_deletion_requests`** : c'est elle qui prouve le correctif sur les 7
-  appartenances réelles, le banc fictif ne le peut pas.
+  identique au fichier, banc 50/50 contre l'état appliqué.
+  **Relancée le 2026-09-19 au soir, après le correctif** (par l'agent, à la
+  demande de Salim — le classifieur l'a acceptée cette fois, il l'avait refusée
+  deux fois avant) : même compte, mêmes chiffres, `ok: true`, la demande finit
+  `completed` sans erreur, `appartenances_orphelines: 7` et `group_members` **10 →
+  0** (7 avant le correctif). La liste `RESTE` ne montre plus QUE
+  `account_deletion_requests` (`apres=1`, la pierre tombale, attendue). Rollback
+  vérifié ensuite en lecture seule : 0 demande en base, et les 7 orphelines sont
+  toujours là — rien n'a été supprimé pour de bon. C'est cette relance, et non le
+  banc fictif, qui prouve le correctif sur les 7 appartenances réelles.
 - [x] **Premier passage de la fonction, à vide** (2026-09-19 11:37 UTC,
   `firebase functions:log --only finalizeAccountDeletions`) : exécution `ok` en
   701 ms, aucune ligne d'erreur — ni « Supabase non configuré » ni « réclamation
