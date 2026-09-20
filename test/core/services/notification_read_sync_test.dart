@@ -166,17 +166,19 @@ void main() {
       expect(marque.hasMatch(src), isTrue);
     });
 
-    test('la lecture par curseur marque aussi les mentions, bornée', () {
-      final src = source(
+    test('les mentions d\'une discussion ne sont plus marquées côté client', () {
+      // Une seule source : `marquer_lus_jusqua` et `mark_messages_as_read`
+      // (20260919120000), qui joignent le message par son identifiant. Le
+      // marquage client d'avant devinait sur une date, avec 2 s de marge, et
+      // ne couvrait pas l'action « Marquer comme lu » de la bannière. La garde
+      // de cette source unique est `mentions_lues_par_le_serveur_test.dart`.
+      for (final chemin in [
         'lib/features/messages/presentation/screens/conversation_screen.dart',
-      );
-      // Après `avancerJusqua`, sur le chemin nominal — pas seulement sur le
-      // repli `LectureServeurAbsente`, qui passe déjà par `markAsRead`.
-      final apres = RegExp(
-        r'avancerJusqua\(conversationId, jusquaId\);[\s\S]*?'
-        r"type: 'messageMention',[\s\S]*?jusqua: jusqua,",
-      );
-      expect(apres.hasMatch(src), isTrue);
+        'lib/core/services/notification_read_sync.dart',
+      ]) {
+        expect(source(chemin), isNot(contains("'messageMention'")),
+            reason: chemin);
+      }
     });
   });
 }

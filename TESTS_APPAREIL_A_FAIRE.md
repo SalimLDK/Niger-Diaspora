@@ -10026,9 +10026,11 @@ best-effort à l'ouverture) :
 - **Mes commandes** → les huit types de commande (aucun ne porte l'id).
 - **Fiche de notification** (appui long, lien) → la notification affichée.
   Destination unique de `system`, `supportReply`, `missedCall`, transferts…
-- **Lecture d'une discussion** → `messageMention`, bornée au dernier message
-  vu (+ 2 s). `marquer_lus_jusqua` ne connaît que `message` et
-  `messageReaction`.
+- **Lecture d'une discussion** → `messageMention`, **côté serveur seulement** :
+  `marquer_lus_jusqua` (lecture par curseur, bornée au dernier message vu par
+  jointure sur l'identifiant du message) et `mark_messages_as_read` (ancien
+  chemin, et action « Marquer comme lu » de la bannière), migration
+  `20260919120000`. Il n'y a plus de marquage côté client des mentions.
 
 - [ ] **Profil** : compte A a une notification « demande acceptée » de B non
   lue ; ouvrir le profil de B **depuis la discussion** (pas depuis la liste) ;
@@ -10042,7 +10044,10 @@ best-effort à l'ouverture) :
   de la fiche, le bouton « Marquer comme lu » disparaît.
 - [ ] **Mention** : conversation en sourdine, un message qui nomme le compte ;
   ouvrir la discussion → `is_read = true` en base (la ligne est à l'écran de
-  Notifications : elle doit en sortir de « Non lues »).
+  Notifications : elle doit en sortir de « Non lues »). Chemin par curseur,
+  `marquer_lus_jusqua` seul : c'est le premier passage réel depuis le retrait
+  du marquage client. Un message écrit APRÈS ce que l'écran a vu doit, lui,
+  rester non lu.
 - [ ] **Mention, action de la bannière** — *migration `20260919120000` appliquée
   (relue en base le 2026-09-20)* : même mise en place, la mention posée en bannière ;
   toucher « Marquer comme lu » sur la bannière → `is_read = true`. Sans la
@@ -10051,29 +10056,35 @@ best-effort à l'ouverture) :
   ses boutons.
 
 *Ce que les bancs ne voient pas* : la requête PostgREST réelle (`in.(…)` +
-`or=(data->>k.eq.v)` + `lte`) — testée à la forme, jamais rejouée contre la
-base ; l'écriture est best-effort, un refus ne laisse qu'un `debugPrint`.
+`or=(data->>k.eq.v)`) — testée à la forme, jamais rejouée contre la base ;
+l'écriture est best-effort, un refus ne laisse qu'un `debugPrint`.
 *Ce qui n'est PAS corrigé* : une notification qui **arrive pendant** que son
 écran est déjà ouvert reste non lue jusqu'à la prochaine ouverture (rien ne
 compare la ligne insérée à l'écran courant) ; une push touchée sans `targetId`
-(`system`) n'en marque aucune ; l'action « Marquer comme lu » de la **bannière**
+(`system`) n'en marque aucune.
+
+*Les mentions* : l'action « Marquer comme lu » de la **bannière**
 (`BackgroundReplyService.markAsRead`) n'appelle que la RPC
-`mark_messages_as_read`, qui ignore `messageMention`. Ce chemin n'est couvert
-que par la migration `20260919120000_mentions_lues_avec_la_discussion.sql`,
-**écrite et éprouvée en `ROLLBACK`, appliquée depuis** (relue en base le
-2026-09-20 : les deux fonctions sont celles du fichier, aux fins de ligne près) : le banc
-`tools/rls_tests/mentions_lues_avec_la_discussion.sql` donne 21 cas verts avec
-elle, et les cas 1, 2, 9 et 14 tombent sans elle. Maintenant qu'elle est appliquée, le
-marquage côté client des mentions (`NotificationReadSync` appelé depuis
-`conversation_screen.dart`) devient redondant et moins exact (marge de 2 s) :
-à retirer pour qu'il ne reste qu'une source. Aucune ligne `messageMention`
-n'existe encore en production (0 au 2026-09-19) : pour cocher les deux cases
+`mark_messages_as_read`, qui ignorait `messageMention`. La migration
+`20260919120000_mentions_lues_avec_la_discussion.sql`, **éprouvée en `ROLLBACK`
+puis appliquée** (relue en base le 2026-09-20 : les deux fonctions sont celles
+du fichier, aux fins de ligne près), couvre ce chemin et celui du curseur : le
+banc `tools/rls_tests/mentions_lues_avec_la_discussion.sql` donne 21 cas verts
+avec elle, et les cas 1, 2, 9 et 14 tombent sans elle. **Le marquage côté
+client des mentions est retiré** (`conversation_screen.dart`, et le paramètre
+`jusqua` de `NotificationReadSync` avec lui) : le serveur est la seule source.
+Sa garde est `test/features/notifications/mentions_lues_par_le_serveur_test.dart`,
+qui lit la DERNIÈRE définition de chaque fonction dans les migrations — une
+migration ultérieure recopiée d'une version plus ancienne ferait tomber le banc
+Dart, et plus rien côté client ne rattraperait. Aucune ligne `messageMention`
+n'existe encore en production (0 au 2026-09-20) : pour cocher les deux cases
 « Mention », il faut en provoquer une (conversation en sourdine + un message
 qui nomme le compte — texte en clair, pas MLS).
 
 Fichiers :
 [20260919120000_mentions_lues_avec_la_discussion.sql](supabase/migrations/20260919120000_mentions_lues_avec_la_discussion.sql),
 [mentions_lues_avec_la_discussion.sql](tools/rls_tests/mentions_lues_avec_la_discussion.sql),
+[mentions_lues_par_le_serveur_test.dart](test/features/notifications/mentions_lues_par_le_serveur_test.dart),
 [notification_read_sync.dart](lib/core/services/notification_read_sync.dart),
 [profile_view_screen.dart](lib/features/profile/presentation/screens/profile_view_screen.dart),
 [group_detail_screen.dart](lib/features/groups/presentation/screens/group_detail_screen.dart),

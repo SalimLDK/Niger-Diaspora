@@ -124,15 +124,6 @@ class NotificationReadSync {
     return keys.map((k) => 'data->>$k.eq.$id').join(',');
   }
 
-  /// Marge ajoutée à [markTargetRead]`.jusqua`. La notification est écrite par
-  /// le même déclencheur que le message qu'elle annonce, donc à la même
-  /// microseconde — mais la borne passe par un `DateTime` puis une chaîne, et
-  /// une troncature à la milliseconde suffirait à laisser la notification de
-  /// LA DERNIÈRE bulle vue non lue. Marquer une mention qui suit de deux
-  /// secondes le dernier message vu ne coûte rien : elle est dans la même
-  /// discussion, que l'on regarde.
-  static const Duration _margeDeBorne = Duration(seconds: 2);
-
   /// Marque lues MES notifications non lues qui désignent [id].
   ///
   /// [type] (ou [types], pour plusieurs) restreint à des types de
@@ -140,15 +131,15 @@ class NotificationReadSync {
   /// familles (un `groupId` porte aussi les notifications de message du
   /// groupe, qui ne sont pas lues pour autant).
   ///
-  /// [jusqua] : ne marque que celles écrites au plus tard à cet instant. C'est
-  /// la lecture par curseur — ce qui se trouve APRÈS le dernier message vu
-  /// n'a pas été vu.
+  /// La lecture d'une DISCUSSION ne passe pas par ici : `marquer_lus_jusqua` et
+  /// `mark_messages_as_read` marquent côté serveur `message`, `messageReaction`
+  /// et `messageMention`, jusqu'à la borne du dernier message vu — ce qu'un
+  /// filtre côté client ne sait pas faire sans deviner sur une date.
   static Future<void> markTargetRead(
     String id, {
     List<String> keys = const ['targetId', 'target_id'],
     String? type,
     List<String>? types,
-    DateTime? jusqua,
   }) async {
     final filter = targetFilter(id, keys);
     if (filter == null) return;
@@ -156,7 +147,6 @@ class NotificationReadSync {
     await _marquerLues(
       types: types ?? (type == null ? null : [type]),
       filtreCible: filter,
-      jusqua: jusqua,
     );
   }
 
@@ -174,7 +164,6 @@ class NotificationReadSync {
   static Future<void> _marquerLues({
     List<String>? types,
     String? filtreCible,
-    DateTime? jusqua,
   }) async {
     // Tout dans le `try`, y compris l'accès à FirebaseAuth : appelée depuis
     // un `initState`, une exception ici (Firebase pas encore initialisé)
@@ -189,12 +178,6 @@ class NotificationReadSync {
           .eq('user_id', uid)
           .eq('is_read', false);
       if (types != null) query = query.inFilter('type', types);
-      if (jusqua != null) {
-        query = query.lte(
-          'created_at',
-          jusqua.add(_margeDeBorne).toUtc().toIso8601String(),
-        );
-      }
       if (filtreCible != null) query = query.or(filtreCible);
       await query;
     } catch (e) {
