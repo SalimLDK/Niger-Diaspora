@@ -494,6 +494,9 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     // La borne peut être un message MLS : le serveur relit sa date.
     try {
       await ref.read(lectureServeurProvider).avancerJusqua(conversationId, jusquaId);
+      // Les notifications de la discussion — `message`, `messageReaction` et
+      // `messageMention` — sont marquées lues par `marquer_lus_jusqua`
+      // elle-même, jusqu'à la même borne (20260919120000) : rien à faire ici.
     } on LectureServeurAbsente {
       // Migration pas encore appliquée : l'ancien chemin, qui marque la
       // conversation entière. C'est ce qui se faisait jusqu'ici — rien ne

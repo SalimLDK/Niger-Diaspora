@@ -560,7 +560,11 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     'compte_plateforme' =>
       'Ce compte administre les groupes officiels : il ne peut pas être '
           'supprimé depuis l\'application.',
-    'obligations_financieres' =>
+    // `conservation_financiere_non_configuree` : des dossiers CLOS, et la durée
+    // de conservation n'est pas posée côté serveur. Pour la personne c'est la
+    // même issue — le support — ; l'exploitant, lui, lit le jeton précis dans
+    // `account_deletion_requests.last_error`.
+    'obligations_financieres' || 'conservation_financiere_non_configuree' =>
       'Des opérations financières sont liées à ce compte : contactez le '
           'support pour le supprimer.',
     'suppression_deja_engagee' =>

@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1464 cases à cocher, 645 cochées** — 283 entrées sur 332 ont encore des cases ouvertes.
+**1477 cases à cocher, 648 cochées** — 284 entrées sur 333 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -67,7 +67,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ Aperçu MLS quand l'app est OUVERTE (le même message, l'autre isolate)](#-aperçu-mls-quand-lapp-est-ouverte-le-même-message-lautre-isolate) · *Notifications et push*
 - 9 · [⬜ Aperçu des notifications MLS reconstruit sur l'appareil (phase 4, Android)](#-aperçu-des-notifications-mls-reconstruit-sur-lappareil-phase-4-android) · *Notifications et push*
 - 6 · [⬜ Accepter une demande d'ami : « Erreur de chargement » (2026-09-14)](#-accepter-une-demande-dami---erreur-de-chargement--2026-09-14) · *Notifications et push* · bloqué
-- 16 · [⬜ Supprimer mon compte : demande, 30 jours, annulation, purge (2026-09-18)](#-supprimer-mon-compte--demande-30-jours-annulation-purge-2026-09-18) · *Comptes, session et onboarding*
+- 22 · [⬜ Supprimer mon compte : demande, 30 jours, annulation, purge (2026-09-18)](#-supprimer-mon-compte--demande-30-jours-annulation-purge-2026-09-18) · *Comptes, session et onboarding*
 - 9 · [⬜ Expulsion admin et bannissement : ils n'éjectaient personne (2026-09-16)](#-expulsion-admin-et-bannissement--ils-néjectaient-personne-2026-09-16) · *Comptes, session et onboarding*
 - 7 · [⬜ Qui peut voir un événement : discussion, groupes, personnes, tout le monde (2026-09-12)](#-qui-peut-voir-un-événement--discussion-groupes-personnes-tout-le-monde-2026-09-12) · *Ambassades, démarches, carte, entreprises et événements*
 - 2 · [Réglages/Carte — deux interrupteurs de partage de position désynchronisés (2026-08-13)](#réglagescarte--deux-interrupteurs-de-partage-de-position-désynchronisés-2026-08-13) · *Ambassades, démarches, carte, entreprises et événements*
@@ -190,7 +190,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (89)
+**P2 — fonction secondaire ou cas limite** (90)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -224,6 +224,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ Les deux bandeaux de clés retirés : ils promettaient faux (2026-09-16)](#-les-deux-bandeaux-de-clés-retirés--ils-promettaient-faux-2026-09-16) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ L'expéditeur MLS datait lui-même ses propres messages (2026-09-15)](#-lexpéditeur-mls-datait-lui-même-ses-propres-messages-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ L'appartenance MLS se réconcilie au moment du changement (phase 8, 2026-09-15)](#-lappartenance-mls-se-réconcilie-au-moment-du-changement-phase-8-2026-09-15) · *Chiffrement de bout en bout et clés*
+- 7 · [⬜ Notifications lues à l'ouverture de leur écran : profil, groupe, commandes, fiche, mentions (2026-09-19)](#-notifications-lues-à-louverture-de-leur-écran--profil-groupe-commandes-fiche-mentions-2026-09-19) · *Notifications et push*
 - 5 · [⬜ Cycle de vie d'une demande d'ami : six trous soldés (2026-09-15)](#-cycle-de-vie-dune-demande-dami--six-trous-soldés-2026-09-15) · *Notifications et push* · bloqué
 - 2 · [✅ Filtre hashtag : réparé et vérifié sur SM A515F (2026-09-14)](#-filtre-hashtag--réparé-et-vérifié-sur-sm-a515f-2026-09-14) · *Liens profonds, navigation et QR codes*
 - 4 · [⬜ Un lien Diaspo Niger dans une discussion sortait de l'app (2026-09-12)](#-un-lien-diaspo-niger-dans-une-discussion-sortait-de-lapp-2026-09-12) · *Liens profonds, navigation et QR codes*
@@ -345,9 +346,9 @@ Par domaine :
 - [3. Groupes](#3-groupes) — 149 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 142 à faire, 42 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
-- [6. Notifications et push](#6-notifications-et-push) — 143 à faire, 76 faites
+- [6. Notifications et push](#6-notifications-et-push) — 150 à faire, 76 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
-- [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 63 à faire, 7 faites
+- [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 69 à faire, 10 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 118 à faire, 16 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 65 à faire, 51 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 67 à faire, 34 faites
@@ -10002,6 +10003,98 @@ Chaîne FCM, aperçus, réponse rapide, écran Notifications.
 
 ---
 
+## ⬜ Notifications lues à l'ouverture de leur écran : profil, groupe, commandes, fiche, mentions (2026-09-19)
+
+**Priorité P2** · importance 3/5 — La cloche compte des notifications dont la
+cible a déjà été vue : « certaines ne se mettent pas comme lues
+automatiquement ».
+
+Mesuré en production le 2026-09-19 (agrégat par type, aucune donnée
+personnelle) : 8 `friendAccepted` non lues sur 17 (la plus ancienne du
+2026-08-05), 3 `cityGroupInvite` sur 5. La base ne dit pas si leur écran a été
+ouvert entre-temps — ce qui est établi par le code, c'est que l'ouvrir
+autrement que par un appui **dans** la liste ne les lisait pas : seuls le fil,
+les événements et les discussions le faisaient. Voir aussi « Notifications
+ouvertes ailleurs ou obsolètes : lues » — même défaut, autres écrans.
+
+Ce qui marque maintenant (`NotificationReadSync`, une écriture
+best-effort à l'ouverture) :
+- **Profil** d'une personne → ses `friendAccepted` / `friendRequestAccepted`
+  (trois clés, `friendAccepted` n'a parfois que `target_id`).
+- **Fiche d'un groupe** → `groupRequestApproved`, `groupRequestRejected`,
+  `officialGroupLeave`, `cityGroupInvite`. **Pas** `groupInvite` ni
+  `groupJoinRequest` : elles appellent un geste, la base les ferme.
+- **Mes commandes** → les huit types de commande (aucun ne porte l'id).
+- **Fiche de notification** (appui long, lien) → la notification affichée.
+  Destination unique de `system`, `supportReply`, `missedCall`, transferts…
+- **Lecture d'une discussion** → `messageMention`, **côté serveur seulement** :
+  `marquer_lus_jusqua` (lecture par curseur, bornée au dernier message vu par
+  jointure sur l'identifiant du message) et `mark_messages_as_read` (ancien
+  chemin, et action « Marquer comme lu » de la bannière), migration
+  `20260919120000`. Il n'y a plus de marquage côté client des mentions.
+
+- [ ] **Profil** : compte A a une notification « demande acceptée » de B non
+  lue ; ouvrir le profil de B **depuis la discussion** (pas depuis la liste) ;
+  la cloche baisse de 1 sans rouvrir l'app.
+- [ ] **Groupe** : notification « invitation de ville » non lue ; ouvrir la
+  fiche du groupe depuis Découvrir → lue. Une `groupInvite` en attente
+  **reste** non lue.
+- [ ] **Mes commandes** : une notification de commande non lue ; ouvrir
+  « Mes commandes » depuis le profil → lue.
+- [ ] **Fiche** : appui long sur une notification `system` → lue à l'ouverture
+  de la fiche, le bouton « Marquer comme lu » disparaît.
+- [ ] **Mention** : conversation en sourdine, un message qui nomme le compte ;
+  ouvrir la discussion → `is_read = true` en base (la ligne est à l'écran de
+  Notifications : elle doit en sortir de « Non lues »). Chemin par curseur,
+  `marquer_lus_jusqua` seul : c'est le premier passage réel depuis le retrait
+  du marquage client. Un message écrit APRÈS ce que l'écran a vu doit, lui,
+  rester non lu.
+- [ ] **Mention, action de la bannière** — *migration `20260919120000` appliquée
+  (relue en base le 2026-09-20)* : même mise en place, la mention posée en bannière ;
+  toucher « Marquer comme lu » sur la bannière → `is_read = true`. Sans la
+  migration ce chemin ne la marque pas.
+- [ ] **Non-régression** : une demande d'ami en attente reste non lue et garde
+  ses boutons.
+
+*Ce que les bancs ne voient pas* : la requête PostgREST réelle (`in.(…)` +
+`or=(data->>k.eq.v)`) — testée à la forme, jamais rejouée contre la base ;
+l'écriture est best-effort, un refus ne laisse qu'un `debugPrint`.
+*Ce qui n'est PAS corrigé* : une notification qui **arrive pendant** que son
+écran est déjà ouvert reste non lue jusqu'à la prochaine ouverture (rien ne
+compare la ligne insérée à l'écran courant) ; une push touchée sans `targetId`
+(`system`) n'en marque aucune.
+
+*Les mentions* : l'action « Marquer comme lu » de la **bannière**
+(`BackgroundReplyService.markAsRead`) n'appelle que la RPC
+`mark_messages_as_read`, qui ignorait `messageMention`. La migration
+`20260919120000_mentions_lues_avec_la_discussion.sql`, **éprouvée en `ROLLBACK`
+puis appliquée** (relue en base le 2026-09-20 : les deux fonctions sont celles
+du fichier, aux fins de ligne près), couvre ce chemin et celui du curseur : le
+banc `tools/rls_tests/mentions_lues_avec_la_discussion.sql` donne 21 cas verts
+avec elle, et les cas 1, 2, 9 et 14 tombent sans elle. **Le marquage côté
+client des mentions est retiré** (`conversation_screen.dart`, et le paramètre
+`jusqua` de `NotificationReadSync` avec lui) : le serveur est la seule source.
+Sa garde est `test/features/notifications/mentions_lues_par_le_serveur_test.dart`,
+qui lit la DERNIÈRE définition de chaque fonction dans les migrations — une
+migration ultérieure recopiée d'une version plus ancienne ferait tomber le banc
+Dart, et plus rien côté client ne rattraperait. Aucune ligne `messageMention`
+n'existe encore en production (0 au 2026-09-20) : pour cocher les deux cases
+« Mention », il faut en provoquer une (conversation en sourdine + un message
+qui nomme le compte — texte en clair, pas MLS).
+
+Fichiers :
+[20260919120000_mentions_lues_avec_la_discussion.sql](supabase/migrations/20260919120000_mentions_lues_avec_la_discussion.sql),
+[mentions_lues_avec_la_discussion.sql](tools/rls_tests/mentions_lues_avec_la_discussion.sql),
+[mentions_lues_par_le_serveur_test.dart](test/features/notifications/mentions_lues_par_le_serveur_test.dart),
+[notification_read_sync.dart](lib/core/services/notification_read_sync.dart),
+[profile_view_screen.dart](lib/features/profile/presentation/screens/profile_view_screen.dart),
+[group_detail_screen.dart](lib/features/groups/presentation/screens/group_detail_screen.dart),
+[my_orders_screen.dart](lib/features/marketplace/presentation/screens/my_orders_screen.dart),
+[notification_detail_screen.dart](lib/features/notifications/presentation/screens/notification_detail_screen.dart),
+[conversation_screen.dart](lib/features/messages/presentation/screens/conversation_screen.dart).
+
+---
+
 ## ⬜ Réglages de notification par type : local et serveur ne divergent plus (2026-09-18)
 
 **Priorité P1** · importance 3/5 — Couper « Messages » (ou « Groupes »,
@@ -13284,15 +13377,37 @@ Modèle : demande → désactivation immédiate → **30 jours** → purge. La d
 avant l'échéance l'annule ; à l'échéance une Cloud Function supprime le compte
 Firebase PUIS purge Supabase en une transaction.
 
-*Bloqué : rien de ceci ne tourne tant que la migration
-`20260918224100_suppression_de_compte_par_phases.sql` n'est pas APPLIQUÉE et que
-`finalizeAccountDeletions` n'est pas DÉPLOYÉE — ni l'une ni l'autre ne l'est.
-Sans la fonction, les demandes s'empilent en `pending` sans jamais être
-exécutées (rien n'est détruit, mais rien n'est supprimé non plus). Demande deux
-téléphones, deux comptes jetables et l'accès à la base.*
+*Bloqué : demande deux téléphones, deux comptes jetables et l'accès à la base.*
 
-Déployer la fonction SEULE, jamais `--force` (voir « Déploiement functions ») :
-`firebase deploy --only functions:finalizeAccountDeletions`.
+**Livré en production le 2026-09-19**, sur accord de Salim et dans cet ordre :
+
+1. migration `20260918224100` appliquée par `db push` (la seule en attente, essai
+   à blanc préalable) ; droits vérifiés de l'extérieur avec la clé `anon` (42501
+   sur les quatre RPC et sur la table), banc rejoué contre les objets appliqués :
+   49 cas, 0 échec ;
+2. `finalizeAccountDeletions` déployée SEULE — `firebase deploy --only
+   functions:finalizeAccountDeletions`, sans `--force` (v1, planifiée toutes les
+   heures, us-central1) ; `cleanupUserData` intacte ;
+3. branche poussée sur la branche partagée (`6a92467..e45ff32`).
+
+**Jamais vu sur appareil, et aucune demande réelle n'a encore traversé la chaîne.**
+Le premier passage horaire de la fonction a eu lieu le 2026-09-19 à 11:37 UTC,
+À VIDE : `Function execution started`, puis `took 701 ms, finished with status:
+'ok'`, sans aucune ligne d'erreur. Le Cloud Scheduler `every 1 hours` part de la
+création du job, pas du début de l'heure : les passages tombent à hh:36–37 UTC
+(déployée à 10:36). Ce que ce passage ne prouve pas : ce que répond
+`claim_due_account_deletions` (la fonction se tait quand personne n'est dû) —
+seule une vraie demande le montrera.
+
+La purge a été rejouée sur un compte RÉEL le 2026-09-19, lancée par Salim depuis
+son terminal : le classifieur de permissions la refuse à l'agent, même annulée et
+même sur accord donné dans la conversation. Script :
+[suppression_compte_donnees_reelles.sql](tools/rls_tests/suppression_compte_donnees_reelles.sql)
+(`BEGIN … ROLLBACK` dans le fichier, aucun uid imprimé). Résultat : elle va au
+bout, avec UN écart trouvé et corrigé par la migration 20260919204100, appliquée le
+2026-09-19 au soir, puis rejouée SANS écart — voir la case
+« Répétition sur un compte RÉEL » plus bas. Et la page web `delete-account.html`,
+qui fait toujours l'ancien geste (tâche séparée).
 
 Fichiers : [migration](supabase/migrations/20260918224100_suppression_de_compte_par_phases.sql),
 [banc SQL](tools/rls_tests/suppression_compte.sql) (49 cas, rejoué dans un
@@ -13302,11 +13417,47 @@ Fichiers : [migration](supabase/migrations/20260918224100_suppression_de_compte_
 [écran d'annulation](lib/features/auth/presentation/screens/account_deletion_pending_screen.dart),
 [porte du routeur](lib/core/router/app_router.dart) (étape 3b).
 
-- [ ] **Avant `db push`** : rejouer le banc avec la migration
+- [x] **Avant `db push`** (fait le 2026-09-19) : rejouer le banc avec la migration
   (`{ echo BEGIN; cat migration; cat banc; echo ROLLBACK; }`), puis
   `ls supabase/migrations | sort | awk -F_ '{print $1}' | uniq -d` ET
   `select max(version) from supabase_migrations.schema_migrations` (le `uniq -d`
   est aveugle à une jumelle déjà en base).
+- [x] **Répétition sur un compte RÉEL** (`suppression_compte_donnees_reelles.sql`,
+  depuis un terminal) : `ok` vaut `true`, et la liste `RESTE` ne montre que des
+  rétentions voulues (`account_deletion_requests`, la pierre tombale). Toute
+  autre table qui garde des lignes est une colonne oubliée : nouvelle migration
+  AVANT le premier compte dû — il n'y en a aucun avant 30 jours.
+  **Passée le 2026-09-19** sur le compte le plus chargé (poids 347) : `ok: true`,
+  vingt familles traitées, la demande finit `completed` sans erreur, et UN seul
+  écart — `group_members` : 10 lignes contenaient l'uid avant, **7 après**. Cause :
+  la table n'a AUCUNE clé étrangère vers `groups`, et la base compte exactement 7
+  appartenances sans groupe (celles-là) ; la boucle de la purge part de `groups`
+  et ne les voit pas. Le banc fictif ne pouvait pas le trouver, ses groupes
+  existent tous. Correctif : migration `20260919204100` (un DELETE par uid après
+  la boucle), éprouvée par le banc (cas 50 : échoue contre l'état actuel, passe
+  avec le correctif ; 50/50) — **appliquée le 2026-09-19 au soir** par `db push`
+  (`20260919120000`, mentions lues, migration d'une autre session et non demandée, a
+  été écartée le temps du push ; elle a été appliquée depuis, relue en base le 2026-09-20). Corps déployé vérifié
+  identique au fichier, banc 50/50 contre l'état appliqué.
+  **Relancée le 2026-09-19 au soir, après le correctif** (par l'agent, à la
+  demande de Salim — le classifieur l'a acceptée cette fois, il l'avait refusée
+  deux fois avant) : même compte, mêmes chiffres, `ok: true`, la demande finit
+  `completed` sans erreur, `appartenances_orphelines: 7` et `group_members` **10 →
+  0** (7 avant le correctif). La liste `RESTE` ne montre plus QUE
+  `account_deletion_requests` (`apres=1`, la pierre tombale, attendue). Rollback
+  vérifié ensuite en lecture seule : 0 demande en base, et les 7 orphelines sont
+  toujours là — rien n'a été supprimé pour de bon. C'est cette relance, et non le
+  banc fictif, qui prouve le correctif sur les 7 appartenances réelles.
+- [x] **Premier passage de la fonction, à vide** (2026-09-19 11:37 UTC,
+  `firebase functions:log --only finalizeAccountDeletions`) : exécution `ok` en
+  701 ms, aucune ligne d'erreur — ni « Supabase non configuré » ni « réclamation
+  impossible ». Vu dans les journaux de production, pas sur un appareil ; et le
+  journal ne montre pas la réponse de la RPC, seulement l'absence d'erreur.
+- [ ] **Premier passage sur une vraie demande** : sur un compte jetable dont on
+  avance `execute_at`, la fonction supprime le compte Firebase (`deleteUser`)
+  PUIS appelle `complete_account_deletion`, dans cet ordre ; `ok: true`,
+  `summary` renseigné, ligne `completed`. C'est ce passage-là, et lui seul, qui
+  prouve que `claim_due_account_deletions` rend bien les comptes dus.
 - [ ] **Demande, compte à mot de passe connecté depuis plus de 4 minutes** :
   le mot de passe est demandé AVANT toute désactivation. Un mot de passe faux
   ne désactive rien (`account_deletion_requests` reste vide).
@@ -13357,12 +13508,79 @@ Fichiers : [migration](supabase/migrations/20260918224100_suppression_de_compte_
 - [ ] **NE PAS tester sur le compte plateforme** : la demande y est refusée
   (`compte_plateforme`) — c'est le banc SQL qui le prouve, pas un téléphone.
 
-Limites que cette entrée ne lève pas : la feuille MLS d'un appareil supprimé
-reste dans l'arbre des groupes tant qu'un membre ne commite pas ; les
-sauvegardes Supabase gardent les lignes purgées jusqu'à leur expiration (durée
-non relevée) ; le stockage sécurisé local n'est pas vidé par la demande (une
-annulation perdrait les clés) ; l'historique financier (tables vides) est
-refusé, pas traité.
+- [ ] **Feuille MLS d'un appareil supprimé** (corrige une limite annoncée à
+  tort) : après la purge d'un compte jetable membre d'un groupe chiffré, un
+  autre membre EN LIGNE commite le retrait dans l'instant (la purge retire la
+  personne de `participant_ids`, ce qui déclenche
+  `MlsGateway.appartenanceChangee` → `reconcileMembership`) ; un membre hors
+  ligne le fait à son prochain envoi. À vérifier : le groupe continue de
+  fonctionner pour les autres, l'epoch avance, et l'arbre public
+  (`mls_group_info`) ne contient plus la feuille supprimée. Le banc MLS le
+  prouve sur le vrai moteur (« appareil révoqué : retiré au prochain
+  reconcile ») ; il ne prouve ni le déclenchement par la purge ni le réseau.
+- [ ] **Après une restauration Supabase** (`docs/deploiement/ROLLBACK_AND_DATA.md`,
+  § 2.1) : `finalizeAccountDeletions` a été redéployée seule le 2026-09-19 (v2, avec
+  l'écriture de `deleted_accounts/<uid>` dans le code en ligne). Sur un compte
+  jetable : la pierre
+  tombale est écrite AVANT la purge ; `node
+  tools/rejouer_suppressions_apres_restauration.mjs` en simulation ne liste rien
+  d'autre que des comptes à restes ; procédure essayée UNE FOIS à blanc (restaurer
+  n'est pas nécessaire : recréer à la main des restes pour l'uid jetable suffit).
+
+- [ ] **Effacement différé des clés et de la base MLS du téléphone** (migration
+  `20260919123300` appliquée le 2026-09-19 ; si la RPC répondait 404 — base
+  restaurée à un état antérieur —, le passage garde ses marqueurs et n'efface
+  RIEN). Sur un compte jetable, dans cet ordre :
+  1. demander la suppression : la clé SharedPreferences `effacement_local_differe_v1`
+     porte l'uid et l'échéance, et le fichier `<uid>.sqlite` (dossier `mls/` de
+     l'application ; conteneur du groupe d'application sur iOS) existe toujours ;
+  2. **annuler** : le marqueur disparaît ; l'app retrouve ses messages chiffrés
+     (rien n'a été perdu) ;
+  3. redemander, puis passer la ligne à `completed` en base (compte jetable
+     seulement) et avancer l'horloge du téléphone de deux jours : au lancement
+     suivant, `<uid>.sqlite` et ses `-wal`/`-shm` ont disparu, les clés Signal et
+     `aes_derivee_*` aussi, et l'application démarre sans erreur ;
+  4. **un autre compte du même téléphone n'est pas touché** : sa base, ses
+     vérifications, ses curseurs de lecture.
+- [ ] **Effacement différé : les refus.** Annulée sur un autre appareil (compte
+  vivant) : le serveur répond faux, RIEN n'est effacé, et le marqueur disparaît à
+  la reconnexion. Téléphone hors ligne au lancement : rien n'est effacé, aucun
+  plantage, réessai au lancement suivant. Compte connecté : jamais effacé.
+- [ ] **Le dialogue de confirmation** annonce l'effacement des clés « au premier
+  lancement de l'application qui suit la suppression définitive » — et non à
+  l'instant : vérifier que le texte (long) défile sans débordement.
+- [ ] **Historique financier — AVANT d'ouvrir la place de marché** : la migration
+  `20260919113700` est INERTE tant que `app_config.financial_retention_years` n'est
+  pas posée (un dossier clos bloque alors comme avant). L'activer suppose : une
+  relecture juridique de la liste des champs effacés (notamment les dossiers de
+  TRANSFERT : bénéficiaire, lutte contre le blanchiment) et de la durée, puis un
+  essai sur compte jetable avec une commande close (nom, note et adresse effacés,
+  montants et identifiants Stripe conservés) et une commande ouverte (demande
+  refusée avec le message « contactez le support »). Relire aussi les états
+  « ouvert » contre les vrais flux : ils viennent des contraintes CHECK des tables,
+  vides, pas d'un parcours observé.
+
+Ce que cette entrée ne lève pas — et qui se décide, pas se vérifie :
+- **Sauvegardes Supabase** : AUCUNE en place au 2026-09-20 (dit par Salim ;
+  `supabase backups list` : PITR `false`, horodatages à `0`). Rien n'y survit donc
+  aujourd'hui, mais rien ne permet non plus de restaurer : une purge fautive est
+  irréversible. Une fois la sauvegarde activée, relever sa durée (Dashboard >
+  Database > Backups) : les lignes purgées y survivront jusqu'à l'expiration, et le
+  texte de confidentialité devra le dire.
+- **Ré-authentification Google / Apple** : aucune avant la demande (seule la
+  confirmation « SUPPRIMER » saisie) ; la garde de 4 minutes ne couvre que les
+  comptes à mot de passe. Décidé le 2026-09-19 : ATTENDRE un Mac et un téléphone
+  (Apple ne se compile pas ici) ; la demande reste réversible 30 jours.
+- **Un compte en suppression garde son accès serveur** : ses sessions Supabase
+  sont révoquées et l'écran l'enferme sur l'annulation, mais tant qu'il est
+  participant de ses conversations, un client modifié qui se reconnecte les lit
+  encore (RLS). Voulu pour qu'une annulation ne perde rien.
+- **Sessions Signal** : `SecureKeyStorage.clearAllData(uid)` efface TOUTES les
+  sessions de l'appareil, pas seulement celles du compte supprimé. Sans effet
+  sur MLS ; un autre compte du même téléphone encore sur Signal les rétablirait.
+- **`DerivedKeyStore.vider()`** : sa documentation dit « déconnexion, ou changement
+  de compte », mais rien ne l'appelle — les clés dérivées d'un compte survivent à
+  sa déconnexion. Constaté en passant, pas traité ici.
 
 ---
 
@@ -21732,7 +21950,7 @@ de tout cela ne touche la production**, et tout y est de même origine :
       phrase sur les groupes en a gagné une (« … et un groupe dont vous étiez le
       dernier membre est supprimé »). Vérifier qu'il défile jusqu'au bout et que
       ses deux boutons restent atteignables, en français et en anglais, à 200 % de
-      taille de police — le texte est maintenant plus long d'une ligne.
+      taille de police — avec le paragraphe sur l'effacement des clés, c'est sa version la plus longue.
 
 **Écart soldé le 2026-09-20** : le site disait qu'un groupe dont on est le dernier
 membre est supprimé, `deleteAccountWarning` non. C'est vrai — le corps déployé de

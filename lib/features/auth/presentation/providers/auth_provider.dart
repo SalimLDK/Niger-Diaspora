@@ -25,6 +25,7 @@ import '../../../../core/services/e2ee/e2ee_backup_coordinator.dart';
 import '../../../../core/services/session_service.dart';
 import '../../../../core/services/cache_service.dart';
 import '../../../../core/crypto/mls/mls_device_registry.dart';
+import '../../../../core/services/effacement_local_differe.dart';
 import '../../../../core/services/file_download_service.dart';
 import '../../../../core/services/preferences_service.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
@@ -489,6 +490,17 @@ class AuthNotifier extends _$AuthNotifier {
     }, AccountDeletionRequested.new);
 
     if (issue is AccountDeletionRequested) {
+      // Le marqueur d'effacement local, AVANT la déconnexion : après, on ne sait
+      // plus qui était connecté. Le matériel cryptographique de ce téléphone est
+      // conservé pendant le délai de grâce (une annulation le perdrait) ; c'est
+      // ce marqueur qui permettra de le détruire une fois la suppression menée à
+      // terme et confirmée par le serveur. Ne fait jamais échouer la demande.
+      final uid = state.maybeWhen(authenticated: (u) => u.id, orElse: () => null);
+      if (uid != null) {
+        await ref
+            .read(effacementLocalDiffereProvider)
+            .programmer(uid, issue.executeAt);
+      }
       await signOut();
     }
     return issue;

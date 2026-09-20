@@ -3152,10 +3152,20 @@ exports.cleanupUserData = functions.auth.user().onDelete(async (user) => {
  *
  *   1. suppression du compte Firebase Auth — ce qui déclenche
  *      `cleanupUserData` (Firestore, RTDB, Storage) ;
- *   2. purge Supabase, en une transaction (`complete_account_deletion`).
+ *   2. pierre tombale externe : `deleted_accounts/<uid>` dans Firestore ;
+ *   3. purge Supabase, en une transaction (`complete_account_deletion`).
  *
  * Firebase D'ABORD : une fois le compte Firebase supprimé, plus aucun échange
  * de jeton ne peut ressusciter la ligne `users` que la purge vient d'effacer.
+ *
+ * La pierre tombale AVANT la purge, et la purge refusée si elle n'est pas
+ * écrite : une restauration de sauvegarde ramène la base à un instant passé, et
+ * `account_deletion_requests` y est restaurée avec le reste — elle ne peut pas
+ * garder la mémoire d'une suppression postérieure à la sauvegarde. Firestore,
+ * lui, n'est pas dans les sauvegardes de Supabase. Toute purge a donc une
+ * pierre tombale que la restauration n'atteint pas ; c'est ce que rejoue
+ * `tools/rejouer_suppressions_apres_restauration.mjs`. Elle ne porte qu'un uid
+ * et une date : ni nom, ni e-mail.
  * Un compte devenu bloquant depuis sa demande (compte plateforme, historique
  * financier) n'est jamais rendu par `claim_due_account_deletions` : il est
  * passé en `blocked` AVANT qu'on touche à Firebase.
@@ -3165,8 +3175,9 @@ exports.cleanupUserData = functions.auth.user().onDelete(async (user) => {
  * base la rend de nouveau après 30 minutes, dix fois au plus ; le compte
  * Firebase, déjà supprimé, n'est alors pas retenté (`auth/user-not-found`).
  *
- * Rien ici n'est déployé automatiquement : la fonction ne fait rien tant que
- * la migration n'est pas appliquée (la RPC répond 404 et on s'arrête là).
+ * Déployée seule le 2026-09-19 (`--only functions:finalizeAccountDeletions`,
+ * sans `--force`), après la migration des phases. Sans elle, ou sur une base
+ * restaurée à un état antérieur, la RPC répond 404 et on s'arrête là.
  */
 exports.finalizeAccountDeletions = functions
     .runWith({ timeoutSeconds: 300 })
@@ -3194,6 +3205,13 @@ exports.finalizeAccountDeletions = functions
                     // Déjà supprimé (reprise d'une purge en échec) : c'est le but.
                     if (e.code !== "auth/user-not-found") throw e;
                 }
+
+                // Pierre tombale externe, `set` idempotent (une reprise la réécrit
+                // sans dégât). Si elle échoue on lève : pas de purge sans elle,
+                // la demande reste `deleting` et sera reprise dans 30 minutes.
+                await admin.firestore().collection("deleted_accounts").doc(uid).set({
+                    deletedAt: admin.firestore.FieldValue.serverTimestamp(),
+                });
 
                 const res = await completeAccountDeletion(uid);
                 if (res && res.ok) {

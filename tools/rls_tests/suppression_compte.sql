@@ -1,17 +1,27 @@
 -- Banc de la suppression de compte par phases.
 --
--- SE JOUE APRÈS LA MIGRATION 20260918224100, DANS LA MÊME TRANSACTION (les
--- fonctions n'existent pas encore en production tant qu'elle n'est pas
--- appliquée) :
+-- SE JOUE CONTRE L'ÉTAT DE LA BASE, dans une transaction annulée.
 --
---   { echo "BEGIN;"; \
---     cat supabase/migrations/20260918224100_suppression_de_compte_par_phases.sql; \
---     cat tools/rls_tests/suppression_compte.sql; \
+-- La migration 20260918224100 est APPLIQUÉE en production (2026-09-19) : le
+-- banc se joue seul, entre `BEGIN;` et `ROLLBACK;` :
+--
+--   { echo "BEGIN;"; cat tools/rls_tests/suppression_compte.sql; \
 --     echo "ROLLBACK;"; } > /tmp/suppression_compte_banc.sql
 --   supabase db query --linked -o csv -f /tmp/suppression_compte_banc.sql
 --
--- Une fois la migration appliquée, ce fichier se joue seul entre `BEGIN;` et
--- `ROLLBACK;`. Condition : 0 cas en ÉCHEC — la dernière ligne le dit.
+-- Pour essayer une migration PAS ENCORE APPLIQUÉE, la placer avant le banc dans
+-- la même transaction — c'est ainsi que 20260919204100 (appartenances sans
+-- groupe) a été éprouvée avant d'être proposée :
+--
+--   { echo "BEGIN;"; cat supabase/migrations/<migration>.sql; \
+--     cat tools/rls_tests/suppression_compte.sql; echo "ROLLBACK;"; } > /tmp/banc.sql
+--
+-- Condition : 0 cas en ÉCHEC — la dernière ligne le dit.
+--
+-- LIMITE : ses groupes existent tous, ses comptes sont fictifs. Il ne voit pas
+-- ce que seule une donnée réelle a — les appartenances sans groupe en sont
+-- l'exemple, trouvé par `suppression_compte_donnees_reelles.sql`. Les deux
+-- se complètent, aucun ne remplace l'autre.
 --
 -- CE QUE LE BANC ÉTABLIT
 -- Il fabrique un petit monde fictif (comptes `zz_del_*`, jamais un vrai
@@ -97,6 +107,13 @@ INSERT INTO public.group_members (group_id, user_id, role, joined_at) VALUES
   ('c0000000-0000-4000-8000-0000000000a3', 'zz_del_d', 'owner',  now() - interval '30 days');
 INSERT INTO public.group_pinned_items (group_id, item_type, item_id, pinned_by)
 VALUES ('c0000000-0000-4000-8000-0000000000a1', 'message', 'zz-msg-g1-b', 'zz_del_a');
+-- Appartenance ORPHELINE : `group_members` n'a aucune clé étrangère vers
+-- `groups`, un groupe supprimé — ou hérité de Firestore — laisse ses lignes.
+-- Ajoutée le 2026-09-19, après que la répétition sur un compte RÉEL en a
+-- trouvé 7 en production que la purge laissait derrière elle : les groupes du
+-- banc existent tous, il ne pouvait pas les voir (cas 50).
+INSERT INTO public.group_members (group_id, user_id, role)
+VALUES ('c0000000-0000-4000-8000-0000000000a9', 'zz_del_a', 'member');
 
 -- Conversations : 1:1 A–B, groupe G1 (adossé à un groupe), groupe G2 (A seul),
 -- et un groupe « ad hoc » (type group, sans group_id).
@@ -445,6 +462,16 @@ SELECT pg_temp.verifie(42, 'la purge elle-même rejouée sur un compte vide ne l
 -- ── Un compte inconnu ou non réclamé n'est pas purgé
 SELECT pg_temp.verifie(43, 'complete refuse une demande non réclamée',
   'aucune_demande', (public.complete_account_deletion('zz_del_inconnu')->>'error'));
+
+-- Sans groupe parent, la boucle sur les groupes ne voit pas la ligne : il faut
+-- un DELETE par uid (migration 20260919204100). Ce cas ÉCHOUE sur la purge
+-- d'avant le correctif.
+SELECT pg_temp.verifie(50, 'appartenance SANS groupe : purgée aussi (aucune FK vers groups)',
+  'orphelines=0 toutes=0',
+  'orphelines=' || (SELECT count(*) FROM public.group_members gm
+                     WHERE gm.user_id = 'zz_del_a'
+                       AND NOT EXISTS (SELECT 1 FROM public.groups g WHERE g.id = gm.group_id))::text
+  || ' toutes=' || (SELECT count(*) FROM public.group_members WHERE user_id = 'zz_del_a')::text);
 
 -- ═══ Blocage à l'échéance, échec de purge, reprise ═════════════════════════
 -- Un compte qui devient bloquant PENDANT le délai ne doit pas être réclamé

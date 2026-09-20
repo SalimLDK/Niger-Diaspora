@@ -10,12 +10,16 @@ import 'package:flutter_test/flutter_test.dart';
 ///
 /// Ces tests lisent la migration, la Cloud Function, le client et les textes :
 /// ils ne prouvent PAS que la base se comporte ainsi — c'est le banc
-/// `tools/rls_tests/suppression_compte.sql` (49 cas, rejoué en production dans
+/// `tools/rls_tests/suppression_compte.sql` (50 cas, rejoué en production dans
 /// un `BEGIN … ROLLBACK`). Ils gardent ce que le banc ne peut pas garder :
 /// qu'un futur `CREATE OR REPLACE`, une colonne oubliée ou une réécriture du
 /// client ne défasse pas discrètement ce qui a été établi.
 ///
-/// La migration N'EST PAS appliquée : les assertions portent sur le fichier.
+/// Les assertions portent sur les FICHIERS de migration — la première et
+/// 20260919204100 (appartenances sans groupe) sont appliquées en production le
+/// 2026-09-19. Ce que le test lit et ce que la base exécute ne coïncident que si
+/// la DERNIÈRE définition de chaque fonction fait foi, où qu'elle soit : c'est
+/// ce que `_derniereMigrationDefinissant` garantit.
 
 String _source(String chemin) =>
     File(chemin).readAsStringSync().replaceAll('\r\n', '\n');
@@ -56,7 +60,22 @@ String _corps(String sql, String nom) {
 
 void main() {
   final sql = _source(_migration);
-  final purge = _corps(sql, 'private.purge_account');
+  // La DERNIÈRE définition, pas celle du fichier de création : une fonction
+  // PostgreSQL n'a pas de « fichier source », elle a un dernier
+  // `CREATE OR REPLACE` gagnant. Son corps a été repris par 20260919204100
+  // (appartenances sans groupe) ; lire l'original ferait passer ces tests
+  // longtemps après que le corps réel a changé — et un remplacement ultérieur
+  // qui perdrait un ajout ferait échouer ici, sans qu'aucune erreur ne se
+  // voie en base. Motif `CREATE OR REPLACE` : un simple `REVOKE ... FUNCTION
+  // private.purge_account(` ne définit rien.
+  final purge = _corps(
+    _source(
+      _derniereMigrationDefinissant(
+        'CREATE OR REPLACE FUNCTION private.purge_account(',
+      ),
+    ),
+    'private.purge_account',
+  );
 
   // ═══════════════════════════════════════════════════════════════════════
   // Couverture : chaque colonne d'identifiant SANS clé étrangère est traitée
@@ -105,6 +124,10 @@ void main() {
       'embassy_messages': ['user_id'],
       'activity_logs': ['user_id'],
       'auth_mappings': ['firebase_uid'],
+      // Après la boucle sur les groupes : `group_members` n'a AUCUNE clé
+      // étrangère vers `groups`, la boucle ne voit que les appartenances dont
+      // le groupe existe (voir le test des appartenances sans groupe).
+      'group_members': ['user_id'],
       'users': ['id'],
     };
 
@@ -135,7 +158,6 @@ void main() {
       'messages': ['sender_id', 'senderPhotoUrl', 'editHistory', 'replyToMessageData'],
       'mls_messages': ['sender_id', 'ciphertext', 'is_deleted'],
       'mls_devices': ['user_id', 'revoked_at', 'mls_identity'],
-      'group_members': ['user_id'],
       'groups': ['creator_id', 'creator_name'],
       'notifications': ['user_id', 'actor_id', 'senderId'],
       'business_boosts': ['user_id'],
@@ -249,6 +271,23 @@ void main() {
       expect(purge, contains('NOT v_g.is_official'));
     });
 
+    test('les appartenances SANS groupe partent aussi, par un DELETE par uid', () {
+      // `group_members` n'a aucune clé étrangère vers `groups` : un groupe
+      // supprimé, ou hérité de Firestore, laisse ses lignes. La boucle sur les
+      // groupes part de `groups` et ne les voit pas. Trouvé le 2026-09-19 par la
+      // répétition sur un compte RÉEL : 7 lignes gardaient l'uid pour toujours,
+      // que le banc fictif ne pouvait pas voir — ses groupes existent tous.
+      final appel = purge.indexOf(
+        "purge_delete('public.group_members', p_uid, 'user_id')",
+      );
+      expect(appel, isPositive, reason: 'les appartenances orphelines ne sont plus purgées');
+      // Après la boucle : les vraies appartenances sont déjà parties, il ne
+      // reste que les orphelines — et avant le profil.
+      expect(appel, greaterThan(purge.indexOf('END LOOP;')));
+      expect(appel, lessThan(purge.indexOf("purge_delete('public.users'")));
+      expect(purge, contains("'appartenances_orphelines'"));
+    });
+
     test('les boosts partent avant le commerce (NO ACTION)', () {
       expect(purge.indexOf('DELETE FROM public.business_boosts'),
           lessThan(purge.indexOf("purge_delete('public.businesses'")));
@@ -267,26 +306,30 @@ void main() {
   // Ce qui interdit une suppression
   // ═══════════════════════════════════════════════════════════════════════
   group('refus', () {
-    final blocage = _corps(sql, 'private.suppression_bloquee_pour');
+    // La DERNIÈRE définition : `private.suppression_bloquee_pour` a été
+    // remplacée (20260919113700) et le sera peut-être encore. Une garde qui lit
+    // le fichier de création continue de passer longtemps après que le corps a
+    // changé ailleurs.
+    final cheminBlocage = _derniereMigrationDefinissant(
+      'FUNCTION private.suppression_bloquee_pour(',
+    );
+    final blocage = _corps(_source(cheminBlocage), 'private.suppression_bloquee_pour');
 
     test('le compte plateforme est refusé', () {
       expect(blocage, contains('g.is_official'));
       expect(blocage, contains("'compte_plateforme'"));
     });
 
-    test('l\'historique financier est refusé, pas effacé ni gardé en silence', () {
+    test('l\'OUVERT est refusé ; le clos ne l\'est qu\'en l\'absence de durée posée', () {
       expect(blocage, contains("'obligations_financieres'"));
-      for (final t in [
-        'orders',
-        'escrow_transactions',
-        'transactions',
-        'tips',
-        'room_tickets',
-        'card_credit_requests',
-        'debit_requests',
-      ]) {
-        expect(blocage, contains('public.$t'), reason: '$t n\'est plus vérifiée');
-      }
+      expect(blocage, contains('private.obligations_financieres_ouvertes(p_uid)'));
+      // Un dossier clos ne bloque que si personne n'a dit combien de temps le
+      // garder : on ne décide pas seul d'une durée légale.
+      expect(blocage, contains("'conservation_financiere_non_configuree'"));
+      expect(blocage, contains('private.retention_financiere() IS NULL'));
+      // Et l'ouvert passe AVANT : une commande en cours ne se « conserve » pas.
+      expect(blocage.indexOf('obligations_financieres_ouvertes'),
+          lessThan(blocage.indexOf('retention_financiere')));
     });
 
     test('un compte devenu bloquant n\'est PAS réclamé (Firebase intact)', () {
@@ -388,6 +431,428 @@ void main() {
     test('elle est planifiée', () {
       expect(corps, contains('.schedule("every 1 hours")'));
     });
+
+    test('la pierre tombale externe s\'écrit APRÈS Firebase et AVANT la purge', () {
+      // Une restauration de sauvegarde restaure `account_deletion_requests`
+      // avec le reste : elle ne peut pas garder la mémoire d'une suppression
+      // postérieure à la sauvegarde. Firestore, lui, n'est pas restauré.
+      final iFirebase = corps.indexOf('admin.auth().deleteUser(uid)');
+      final iTombale = corps.indexOf('collection("deleted_accounts")');
+      final iPurge = corps.indexOf('completeAccountDeletion(uid)');
+      expect(iTombale, isPositive, reason: 'plus de pierre tombale externe');
+      expect(iFirebase, lessThan(iTombale));
+      expect(iTombale, lessThan(iPurge),
+          reason: 'une purge sans pierre tombale ne se rejouerait jamais');
+    });
+
+    test('une pierre tombale qui échoue INTERDIT la purge à ce passage', () {
+      // `await` sans `.catch` : l'échec remonte au `catch` de la boucle, la
+      // demande reste `deleting` et sera reprise dans 30 minutes.
+      expect(corps, contains('await admin.firestore().collection("deleted_accounts")'));
+      final segment = corps.substring(
+        corps.indexOf('collection("deleted_accounts")'),
+        corps.indexOf('completeAccountDeletion(uid)'),
+      );
+      expect(segment, isNot(contains('.catch(')),
+          reason: 'avaler l\'échec laisserait purger sans pierre tombale');
+    });
+
+    test('la pierre tombale ne porte ni nom ni e-mail : un uid et une date', () {
+      final debutSet = corps.indexOf('collection("deleted_accounts")');
+      final bloc = corps.substring(
+        debutSet,
+        corps.indexOf('});', debutSet) + 3,
+      );
+      expect(bloc, contains('deletedAt'));
+      for (final interdit in ['email', 'displayName', 'name', 'phone']) {
+        expect(bloc, isNot(contains(interdit)),
+            reason: 'la pierre tombale survit à la suppression : rien de personnel');
+      }
+    });
+  });
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // Rejeu après restauration de sauvegarde
+  // ═══════════════════════════════════════════════════════════════════════
+  group('rejeu après restauration', () {
+    const cheminRejeu =
+        'supabase/migrations/20260919094300_suppression_compte_rejeu_apres_restauration.sql';
+    final rejeu = _source(cheminRejeu);
+    final replay = _corps(rejeu, 'public.replay_account_deletion');
+    final residu = _corps(rejeu, 'public.account_deletion_residue');
+    final script = _source('tools/rejouer_suppressions_apres_restauration.mjs');
+
+    test('la migration d\'origine n\'est pas réécrite : le rejeu vit dans la sienne', () {
+      // `20260918224100` est APPLIQUÉE en production : la modifier ferait
+      // diverger le fichier de ce qui tourne. Une correction passe par une
+      // nouvelle migration.
+      expect(sql, isNot(contains('replay_account_deletion')));
+      expect(_derniereMigrationDefinissant('FUNCTION public.replay_account_deletion('),
+          cheminRejeu);
+    });
+
+    test('service_role seulement : ni le client ni l\'anonyme ne purgent ni ne sondent', () {
+      for (final f in [
+        'public.account_deletion_residue(text)',
+        'public.replay_account_deletion(text)',
+      ]) {
+        // Supabase accorde EXECUTE nommément à `authenticated` et `anon`.
+        expect(rejeu, contains('REVOKE ALL ON FUNCTION $f FROM PUBLIC, anon, authenticated;'));
+        expect(rejeu, contains('GRANT EXECUTE ON FUNCTION $f TO service_role;'));
+      }
+    });
+
+    test('le compte plateforme et l\'historique financier sont refusés AVANT toute écriture', () {
+      // Le refus vaut aussi pour un rejeu : une pierre tombale ne désigne pas
+      // un compte qu'on a le droit de purger.
+      expect(replay, contains('private.suppression_bloquee_pour(p_uid)'));
+      expect(replay.indexOf('private.suppression_bloquee_pour'),
+          lessThan(replay.indexOf('INSERT INTO public.account_deletion_requests')));
+    });
+
+    test('une purge déjà en vol n\'est pas piétinée', () {
+      // `complete_account_deletion` prend un verrou de ligne : les deux
+      // s'exécutent l'une après l'autre. Réinitialiser la demande d'une purge
+      // en vol fausserait ses tentatives et son horloge.
+      expect(replay, contains("WHERE r.status <> 'deleting'"));
+    });
+
+    test('une demande achevée (completed) est rejouée : c\'est le cas de la restauration', () {
+      expect(replay, contains("SET status = 'deleting'"));
+      expect(replay, contains('completed_at = NULL'));
+      expect(replay, contains('public.complete_account_deletion(p_uid)'));
+    });
+
+    test('le résidu ne rend que des comptages, jamais un contenu', () {
+      expect(residu, contains('count(*)'));
+      for (final interdit in ['content', 'display_name', 'email', 'ciphertext', 'data']) {
+        expect(residu, isNot(contains(interdit)),
+            reason: 'un sondage ne doit pas devenir une lecture');
+      }
+    });
+
+    test('le script est en simulation par défaut', () {
+      expect(script, contains("process.argv.includes(\"--apply\")"));
+      expect(script, contains('simulation'));
+      // Sortie avant tout appel à `replay_account_deletion` hors --apply.
+      expect(script, contains('if (!apply || aRejouer.length === 0) process.exit(0);'));
+    });
+
+    test('le script ne purge JAMAIS un uid dont le compte Firebase existe encore', () {
+      // La pierre tombale se trompe alors, pas Firebase (ou un uid a été
+      // réutilisé) : purger effacerait un compte vivant.
+      final iGetUser = script.indexOf('admin.auth().getUser(uid)');
+      final iRejeu = script.indexOf('rpc("replay_account_deletion"');
+      expect(iGetUser, isPositive);
+      expect(iGetUser, lessThan(iRejeu));
+      expect(script, contains('le compte Firebase existe encore'));
+      // Un doute de lecture (autre chose que « introuvable ») saute l'uid.
+      expect(script, contains('auth/user-not-found'));
+      expect(script, contains('on ne purge pas sur un doute'));
+    });
+
+    test('le script n\'écarte pas un compte « propre » à tort, et plafonne', () {
+      expect(script, contains('account_deletion_residue'));
+      expect(script, contains('--max='));
+      expect(script, contains('dépassent le plafond'));
+    });
+
+    test('la collection de pierres tombales reste fermée aux clients', () {
+      // Le défaut de Firestore est le refus ; ce test échoue le jour où
+      // quelqu'un ouvre `deleted_accounts` (ou retire le refus par défaut).
+      final regles = _source('firestore.rules');
+      expect(regles, contains('match /{document=**} {\n      allow read, write: if false;'));
+      expect(regles, isNot(contains('deleted_accounts')));
+    });
+  });
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // Finances : refuser l'OUVERT, conserver le CLOS
+  // ═══════════════════════════════════════════════════════════════════════
+  group('finances : refuser l\'ouvert, conserver le clos', () {
+    const cheminFin =
+        'supabase/migrations/20260919113700_suppression_compte_finances_ouvert_clos.sql';
+    final fin = _source(cheminFin);
+    final ouvertes = _corps(fin, 'private.obligations_financieres_ouvertes');
+    final dossiers = _corps(fin, 'private.dossiers_financiers');
+    final retention = _corps(fin, 'private.retention_financiere');
+    final finances = _corps(fin, 'private.purge_finances');
+    final delier = _corps(fin, 'private.delier_finances_expirees');
+
+    const tables = [
+      'orders',
+      'escrow_transactions',
+      'transactions',
+      'tips',
+      'room_tickets',
+      'card_credit_requests',
+      'debit_requests',
+    ];
+
+    test('les sept tables sont regardées, pour l\'ouvert comme pour les dossiers', () {
+      for (final t in tables) {
+        expect(ouvertes, contains('public.$t'), reason: '$t n\'est plus vérifiée (ouvert)');
+        expect(dossiers, contains('public.$t'), reason: '$t n\'est plus vérifiée (dossiers)');
+      }
+    });
+
+    test('ce qui est OUVERT : les états relevés dans les contraintes CHECK', () {
+      // Relevés le 2026-09-19 (les tables sont vides : aucun parcours observé).
+      for (final etat in [
+        "'pending', 'paid', 'processing', 'shipped', 'disputed'",
+        "'held', 'releasing'",
+        "'held', 'disputed'",
+        "'pending', 'processing'",
+        "'pending', 'initiated'",
+      ]) {
+        expect(ouvertes, contains(etat), reason: 'l\'état $etat a disparu de « ouvert »');
+      }
+      // Un litige est ouvert même sur une commande « terminée ».
+      expect(ouvertes, contains('is_in_dispute'));
+      expect(ouvertes, contains('has_dispute'));
+      // Dans le doute, ouvert.
+      expect(ouvertes, contains('IS NULL'));
+      // Aucun état CLOS ne doit y traîner.
+      for (final clos in ["'completed'", "'cancelled'", "'refunded'", "'released'", "'confirmed'", "'failed'"]) {
+        expect(ouvertes, isNot(contains(clos)), reason: '$clos est un état clos, pas ouvert');
+      }
+    });
+
+    test('la durée : une valeur invalide vaut « non posée », jamais une erreur', () {
+      // `::int` sur « sept » ou sur un nombre trop grand LÈVE : sans CASE, SQL
+      // ne garantit pas l'ordre d'évaluation d'un WHERE.
+      expect(retention, contains('CASE'));
+      expect(retention.indexOf("~ '^[0-9]{1,2}\$'"),
+          lessThan(retention.indexOf('::int BETWEEN 1 AND 30')));
+      expect(retention, contains("'financial_retention_years'"));
+      expect(retention, contains("jsonb_typeof(c.value) = 'number'"));
+    });
+
+    test('la purge LÈVE plutôt que de décider : ouvert, ou durée non posée', () {
+      expect(finances, contains("RAISE EXCEPTION 'obligations_financieres'"));
+      expect(finances, contains("RAISE EXCEPTION 'conservation_financiere_non_configuree'"));
+      // Les garde-fous passent AVANT la moindre écriture.
+      expect(finances.indexOf('RAISE EXCEPTION'), lessThan(finances.indexOf('UPDATE public.')));
+    });
+
+    test('un dossier clos n\'est JAMAIS supprimé, et ses montants ne sont jamais touchés', () {
+      for (final t in tables) {
+        expect(finances, isNot(contains('DELETE FROM public.$t')));
+        expect(delier, isNot(contains('DELETE FROM public.$t')));
+      }
+      // Ni la purge ni l'échéance ne réécrivent un montant.
+      for (final montant in ['amount', 'total_amount', 'unit_price', 'seller_amount', 'amount_in_xof']) {
+        expect(RegExp('SET[^;]*\\b$montant\\s*=').hasMatch(finances), isFalse,
+            reason: '$montant ne doit pas être réécrit à la purge');
+        expect(RegExp('SET[^;]*\\b$montant\\s*=').hasMatch(delier), isFalse,
+            reason: '$montant ne doit pas être réécrit à l\'échéance');
+      }
+      // Et la purge d'un COMPTE n'y touche pas non plus (le premier fichier).
+      for (final t in tables) {
+        expect(purge, isNot(contains('DELETE FROM public.$t')),
+            reason: 'purge_account ne doit pas effacer $t');
+      }
+    });
+
+    test('ce qui est effacé d\'un dossier clos : le texte libre et les coordonnées de la personne', () {
+      for (final effacee in [
+        'buyer_name = NULL',
+        'buyer_note = NULL',
+        'shipping_address = NULL',
+        'seller_name = NULL',
+        'seller_note = NULL',
+        'SET notes = NULL',
+      ]) {
+        expect(finances, contains(effacee), reason: '$effacee n\'est plus effacé');
+      }
+      // Chaque côté n'efface que SES champs : l'autre partie garde les siens.
+      expect(finances, contains('WHERE buyer_id = p_uid'));
+      expect(finances, contains('WHERE seller_id = p_uid'));
+      expect(finances, contains('WHERE sender_id = p_uid'));
+    });
+
+    test('à l\'échéance, chaque UPDATE est gardé : jamais un compte VIVANT', () {
+      final nb = RegExp(r'UPDATE public\.').allMatches(delier).length;
+      final gardes = RegExp(r'NOT EXISTS \(SELECT 1 FROM public\.users').allMatches(delier).length;
+      expect(nb, greaterThan(0));
+      expect(gardes, nb,
+          reason: 'un UPDATE sans la garde « plus de profil » délierait un compte vivant');
+      // Et rien ne peut expirer sans durée posée.
+      expect(delier, contains('IF v_duree IS NULL'));
+      expect(delier.indexOf('IF v_duree IS NULL'), lessThan(delier.indexOf('UPDATE public.')));
+    });
+
+    test('la tâche nocturne est programmée par son nom (un upsert), rien de plus', () {
+      expect(fin, contains("'delier-finances-expirees'"));
+      expect(fin, contains(r'$cron$SELECT private.delier_finances_expirees()$cron$'));
+    });
+
+    test('la purge d\'un compte passe par les finances D\'ABORD, dans le même bloc', () {
+      final cheminComplete = _derniereMigrationDefinissant(
+        'FUNCTION public.complete_account_deletion(',
+      );
+      final complete = _corps(_source(cheminComplete), 'public.complete_account_deletion');
+      expect(cheminComplete, cheminFin,
+          reason: 'la dernière définition de complete_account_deletion est celle-ci');
+      expect(complete.indexOf('private.purge_finances(p_uid)'),
+          lessThan(complete.indexOf('private.purge_account(p_uid)')));
+      // Toujours idempotente et « rend {ok, …} au lieu de lever » : une
+      // exception annulerait aussi l'enregistrement de `last_error`.
+      expect(complete, contains("'ok', false"));
+      expect(complete, contains("v_status = 'completed'"));
+      expect(fin, contains('GRANT EXECUTE ON FUNCTION public.complete_account_deletion(text) TO service_role;'));
+    });
+
+    test('rien ne s\'appelle depuis un client', () {
+      for (final f in [
+        'private.retention_financiere()',
+        'private.obligations_financieres_ouvertes(text)',
+        'private.dossiers_financiers(text)',
+        'private.suppression_bloquee_pour(text)',
+        'private.purge_finances(text)',
+        'private.delier_finances_expirees()',
+      ]) {
+        expect(fin, contains('REVOKE ALL ON FUNCTION $f FROM PUBLIC, anon, authenticated;'));
+      }
+    });
+
+    test('INERTE tant que la durée n\'est pas posée, et le dit en tête', () {
+      final entete = fin.substring(0, fin.indexOf('CREATE OR REPLACE FUNCTION'));
+      expect(entete, contains('INERTE TANT QUE'));
+      expect(entete, contains('conseil juridique'));
+      // Le chiffre d'exemple n'est pas un conseil.
+      expect(entete, contains('le chiffre est un exemple, pas un'));
+    });
+
+    test('le client sait afficher le nouveau refus', () {
+      final ds = _source('lib/features/auth/data/datasources/auth_remote_datasource.dart');
+      expect(ds, contains("'conservation_financiere_non_configuree'"));
+    });
+  });
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // Effacement différé du matériel local, confirmé par le serveur
+  // ═══════════════════════════════════════════════════════════════════════
+  group('effacement local différé', () {
+    const cheminLocal =
+        'supabase/migrations/20260919123300_suppression_compte_effacement_local.sql';
+    final local = _source(cheminLocal);
+    final rpc = _corps(local, 'public.account_deletion_completed');
+    final service = _source('lib/core/services/effacement_local_differe.dart');
+    final materiel = _source('lib/core/services/effacement_materiel_local.dart');
+
+    test('la RPC ne répond « vrai » que pour completed, et rend un booléen', () {
+      expect(rpc, contains('RETURNS boolean'));
+      expect(rpc, contains("r.status = 'completed'"));
+      // Un compte en délai de grâce doit être indiscernable d'un compte qui n'a
+      // rien demandé : aucun autre état ne doit apparaître dans le corps.
+      for (final autre in ["'pending'", "'deleting'", "'blocked'", "'cancelled'"]) {
+        expect(rpc, isNot(contains(autre)),
+            reason: 'la fonction ne doit jamais trahir $autre');
+      }
+    });
+
+    test('appelable sans compte : le téléphone déconnecté n\'a plus de session', () {
+      expect(local, contains('REVOKE ALL ON FUNCTION public.account_deletion_completed(text) FROM PUBLIC;'));
+      expect(local, contains('GRANT EXECUTE ON FUNCTION public.account_deletion_completed(text) TO anon, authenticated, service_role;'));
+    });
+
+    test('la table reste fermée : la migration n\'y accorde rien', () {
+      expect(local, isNot(contains('GRANT SELECT')));
+      expect(local, isNot(contains('ON TABLE public.account_deletion_requests')));
+    });
+
+    test('la demande pose le marqueur AVANT la déconnexion, seulement si elle aboutit', () {
+      final auth = _source('lib/features/auth/presentation/providers/auth_provider.dart');
+      final debut = auth.indexOf('Future<AccountDeletionRequestOutcome> requestAccountDeletion()');
+      final corps = auth.substring(debut, auth.indexOf('Future<AccountDeletionRequestOutcome> reauthenticateAndRequestDeletion'));
+      final iBloc = corps.indexOf('if (issue is AccountDeletionRequested)');
+      expect(iBloc, isPositive, reason: 'le marqueur ne se pose que sur une demande aboutie');
+      expect(corps.indexOf('.programmer(', iBloc), isPositive);
+      expect(corps.indexOf('.programmer('), lessThan(corps.indexOf('await signOut();')),
+          reason: 'après la déconnexion on ne sait plus qui était connecté');
+    });
+
+    test('l\'annulation retire le marqueur, ici comme constatée ailleurs', () {
+      final prov = _source('lib/features/auth/presentation/providers/account_deletion_provider.dart');
+      expect(RegExp(r'\.annuler\(').allMatches(prov).length, greaterThanOrEqualTo(2));
+      // Constatée ailleurs : SEULEMENT sur une lecture réussie qui rend null.
+      expect(prov, contains('if (status == null)'));
+    });
+
+    test('le démarrage lance un passage, borné', () {
+      final main = _source('lib/main.dart');
+      expect(main, contains('EffacementLocalDiffere.parDefaut()'));
+      expect(main, contains('.executerSiEchu()'));
+      expect(main, contains('.timeout(const Duration(seconds: 20))'));
+    });
+
+    test('la confirmation passe par la RPC anonyme, bornée', () {
+      expect(service, contains("'account_deletion_completed'"));
+      expect(service, contains('.timeout(const Duration(seconds: 8))'));
+      // « Vrai » seulement sur un `true` exact.
+      expect(service, contains('reponse == true'));
+    });
+
+    test('l\'effacement n\'a lieu QU\'après un « oui » du serveur, jamais sur le compte connecté', () {
+      final iConfirme = service.indexOf('menee = await suppressionMenee(m.uid)');
+      final iEfface = service.indexOf('await effacerMateriel(m.uid)');
+      expect(iConfirme, isPositive);
+      expect(iEfface, greaterThan(iConfirme));
+      expect(service, contains('if (!menee)'));
+      expect(service, contains('uidCourant?.call() == m.uid'));
+      // Une erreur réseau garde le marqueur, elle ne vaut pas « oui ».
+      expect(service, contains('serveur injoignable'));
+    });
+
+    test('un marqueur illisible ne fait rien effacer', () {
+      expect(service, contains('return MarqueurEffacement(uid: uid, echeance: echeance.toUtc())'));
+      expect(service, contains('uid.isEmpty'));
+      expect(service, contains('jsonDecode(brut)'));
+    });
+
+    test('la routine refuse un uid vide : son préfixe effacerait les clés de TOUS les comptes', () {
+      expect(materiel, contains('uid.isEmpty'));
+      expect(materiel, contains('ArgumentError'));
+    });
+
+    test('ce qui est effacé vient des mêmes préfixes que ce qui est écrit', () {
+      // Si `mls_code_securite` ou `mls_conversation_service` renomment leur clé,
+      // la routine d'effacement continuerait de « réussir » sans rien retirer.
+      expect(materiel, contains(r"'mls_verif_${uid}_'"));
+      expect(materiel, contains(r"'mls_curseur_${uid}_'"));
+      expect(_source('lib/core/crypto/mls/mls_code_securite.dart'),
+          contains(r"'mls_verif_${userId}_$mlsIdentity'"));
+      expect(_source('lib/core/crypto/mls/mls_conversation_service.dart'),
+          contains(r"'mls_curseur_${userId}_$conversationId'"));
+    });
+
+    test('la base MLS est retrouvée par le MÊME nom que celui du moteur', () {
+      expect(materiel, contains('nomFichierBaseMls(uid)'));
+      expect(materiel, contains("_suffixes = ['', '-wal', '-shm', '-journal']"));
+      expect(_source('lib/core/crypto/mls/mls_engine_provider.dart'),
+          contains('nomFichierBaseMls(userId)'));
+    });
+
+    test('les primitives d\'effacement existent toujours sous ces noms', () {
+      expect(_source('lib/core/services/e2ee/secure_key_storage.dart'),
+          contains('Future<void> clearAllData(String userId)'));
+      expect(_source('lib/core/services/crypto/derived_key_store.dart'),
+          contains('Future<void> vider()'));
+      expect(materiel, contains('clearAllData(uid)'));
+      expect(materiel, contains('DerivedKeyStore.instance.vider()'));
+    });
+
+    test('la déconnexion ne balaie PAS le marqueur : il doit lui survivre', () {
+      // `clearUserData` retire une liste blanche de clés. Un `prefs.clear()` y
+      // effacerait le marqueur au moment même de la demande.
+      final prefs = _source('lib/core/services/preferences_service.dart');
+      final debut = prefs.indexOf('Future<void> clearUserData()');
+      final corps = prefs.substring(debut, prefs.indexOf('Future<void> clearAll()', debut));
+      expect(corps, isNot(contains('prefs.clear()')));
+      expect(corps, isNot(contains('effacement_local_differe')));
+      expect(prefs, isNot(contains('effacement_local_differe')));
+    });
   });
 
   // ═══════════════════════════════════════════════════════════════════════
@@ -456,6 +921,17 @@ void main() {
       // ne peut pas s'en taire, sinon deux promesses divergent d'une phrase.
       expect(fr['deleteAccountWarning'] as String, contains('dernier membre'));
       expect(en['deleteAccountWarning'] as String, contains('last member'));
+    });
+
+    test("le dialogue dit ce qu'il advient des clés du téléphone, sans promettre l'immédiat", () {
+      // L'effacement local est DIFFÉRÉ : il a lieu au lancement qui suit la
+      // suppression définitive, et seulement si le téléphone joint le serveur.
+      final f = fr['deleteAccountWarning'] as String;
+      final e = en['deleteAccountWarning'] as String;
+      expect(f, contains('Sur ce téléphone'));
+      expect(f, contains('au premier lancement'));
+      expect(e, contains('On this phone'));
+      expect(e, contains('the first time the app is opened'));
     });
 
     test('les nouvelles clés existent dans les DEUX langues', () {
