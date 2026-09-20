@@ -16,6 +16,7 @@ import '../providers/profile_share_provider.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import 'package:diaspo_niger/shared/widgets/share_icon_button.dart';
+import 'package:diaspo_niger/shared/widgets/share_to_chat_button.dart';
 
 class ShareProfileDialog extends ConsumerStatefulWidget {
   final String? userName;
@@ -720,26 +721,10 @@ class _ShareProfileDialogState extends ConsumerState<ShareProfileDialog>
   /// sociaux ou feuille système. Le lien reste le même — c'est la discussion
   /// qui devient une destination, groupe comme 1:1.
   Widget _buildShareToChatButton() {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton.icon(
-        onPressed: _shareToChat,
-        icon: const Icon(Icons.forum_rounded, color: Colors.white),
-        label: Text(
-          l10n.shareToChatTitle,
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: context.adaptivePrimaryColor,
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-      ),
+    return ShareToChatButton(
+      label: l10n.shareToChatTitle,
+      color: context.adaptivePrimaryColor,
+      onPressed: _shareToChat,
     );
   }
 

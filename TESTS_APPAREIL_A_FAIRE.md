@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1492 cases à cocher, 648 cochées** — 285 entrées sur 334 ont encore des cases ouvertes.
+**1493 cases à cocher, 648 cochées** — 285 entrées sur 334 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -298,7 +298,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Guide de style — alignement des jetons (2026-08-03)](#guide-de-style--alignement-des-jetons-2026-08-03) · *Design, thème, langue et mise en page*
 - 5 · [Bascule design_v2 → production, famille 5 : accueil et envoi d'argent (2026-08-03)](#bascule-design_v2--production-famille-5--accueil-et-envoi-dargent-2026-08-03) · *Design, thème, langue et mise en page*
 - 3 · [⬜ Les ~920 `debugPrint` restants neutralisés en release (2026-09-09)](#-les-920-debugprint-restants-neutralisés-en-release-2026-09-09) · *Backend, sécurité et observabilité* · bloqué
-- 4 · [⬜ Fiches de partage : libellés sur une ligne et vrais logos (2026-09-20)](#-fiches-de-partage--libellés-sur-une-ligne-et-vrais-logos-2026-09-20) · *Messagerie*
+- 5 · [⬜ Fiches de partage : libellés sur une ligne, vrais logos, bouton (2026-09-20)](#-fiches-de-partage--libellés-sur-une-ligne-vrais-logos-bouton-2026-09-20) · *Messagerie*
 - 7 · [⬜ Squelette de chargement de la messagerie (2026-09-15)](#-squelette-de-chargement-de-la-messagerie-2026-09-15) · *Messagerie*
 - 7 · [⬜ Une couleur par pièce jointe dans le « + » (2026-09-14)](#-une-couleur-par-pièce-jointe-dans-le----2026-09-14) · *Messagerie*
 - 6 · [Discussion — ÉCO rejoint la ligne épinglée (fiche 6b, 2026-08-05)](#discussion--éco-rejoint-la-ligne-épinglée-fiche-6b-2026-08-05) · *Messagerie*
@@ -343,7 +343,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 333 à faire, 124 faites
+- [2. Messagerie](#2-messagerie) — 334 à faire, 124 faites
 - [3. Groupes](#3-groupes) — 149 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 142 à faire, 42 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
@@ -605,23 +605,34 @@ Discussions : bulles, composeur, médias, épingles, réactions, accusés, reche
 
 ---
 
-## ⬜ Fiches de partage : libellés sur une ligne et vrais logos (2026-09-20)
+## ⬜ Fiches de partage : libellés sur une ligne, vrais logos, bouton (2026-09-20)
 
 **Priorité P3** · importance 2/5 — sur « Partager mon profil », à l'échelle de
-police 1,3 du Pixel, « WhatsApp » et « Facebook » se coupaient en plein mot
-(« WhatsAp / p »), et les tuiles montraient une bulle de chat et une croix
-« fermer » au lieu des logos WhatsApp et X.
+police 1,3 du Pixel (texte en gras activé), « WhatsApp » et « Facebook » se
+coupaient en plein mot (« WhatsAp / p »), le bouton « Envoyer dans une
+discussion » passait sur deux lignes avec l'icône collée au bord, et les tuiles
+montraient une bulle de chat et une croix « fermer » au lieu des logos WhatsApp
+et X.
 *Non vu sur appareil : le Pixel porte le build Play (+22), un build local ne s'y
 installe pas — et c'est un vrai compte.*
 
-Les tuiles du profil et du groupe étaient deux copies privées de
-`_ShareIconButton` qui avaient divergé : les logos de marque n'existaient que
-côté groupe. Elles passent par un seul widget,
-[share_icon_button.dart](lib/shared/widgets/share_icon_button.dart) : libellé
-sur une ligne (il rétrécit au lieu de passer à la ligne), logo SVG via `asset`.
-Le banc `test/shared/share_icon_button_test.dart` prouve la structure (une
-ligne, dans la tuile, à 1,0 / 1,3 / 2,0) avec la police de test Ahem, plus large
-qu'Inter : il ne dit rien du rendu réel.
+Les tuiles et le bouton du profil et du groupe étaient deux copies privées qui
+avaient divergé : les logos de marque n'existaient que côté groupe, et la marge
+horizontale du bouton n'était posée nulle part (`padding` ne donnait que le
+vertical). Ils passent par deux widgets,
+[share_icon_button.dart](lib/shared/widgets/share_icon_button.dart) et
+[share_to_chat_button.dart](lib/shared/widgets/share_to_chat_button.dart) :
+libellé sur une ligne (il rétrécit au lieu de passer à la ligne), logo SVG via
+`asset`, 16 dp de marge sur le bouton.
+Les bancs `test/shared/share_icon_button_test.dart` et
+`share_to_chat_button_test.dart` prouvent la structure (une ligne, dans la
+tuile / le bouton, à 1,0 / 1,3 / 2,0) avec la police de test Ahem, plus large
+qu'Inter. Un aperçu jetable en Inter réel, échelle 1,3 + texte en gras + thème du
+bouton (16 sp), a reproduit la capture du Pixel à l'identique avant le
+correctif : il ne remplace pas l'appareil pour autant.
+
+⚠️ Sur ce Pixel, deux réglages comptent : `font_scale` 1,3 **et** texte en gras
+(`font_weight_adjustment` 300). Un test à 1,0 sans gras ne prouve rien.
 
 - [ ] **Profil, échelle 1,3** : Partager mon profil → « WhatsApp », « Facebook »,
       « X » et « Plus » tiennent chacun sur une seule ligne, sans coupure ni
@@ -629,8 +640,14 @@ qu'Inter : il ne dit rien du rendu réel.
 - [ ] **Profil, logos** : WhatsApp, Facebook et X montrent leur logo de marque,
       en clair comme en sombre (X : noir sur blanc en clair, blanc sur noir en
       sombre).
+- [ ] **Bouton « Envoyer dans une discussion »**, profil : une seule ligne, l'icône
+      et le texte gardent de l'air de chaque côté (plus collée au bord gauche) ;
+      le texte rétréci reste lisible. À 1,0, le bouton n'a pas changé de taille de
+      texte.
 - [ ] **Groupe** : fiche « Partager le groupe » — mêmes libellés sur une ligne
-      à 1,3 (elle partage désormais la tuile du profil), logos inchangés.
+      à 1,3 (elle partage désormais la tuile du profil), logos inchangés, et le
+      même bouton, dans la couleur secondaire du compte (le profil prend
+      l'accent).
 - [ ] **Autres feuilles, à 1,3** : publication (`share_post_sheet.dart`) et
       événement / podcast (`share_options_sheet.dart`, largeur fixe de 68 dp,
       libellé à ellipse) — leurs libellés sont-ils coupés ? Non mesuré, non

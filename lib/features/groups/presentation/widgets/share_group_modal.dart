@@ -14,6 +14,7 @@ import '../../domain/entities/group_entity.dart';
 import 'package:diaspo_niger/shared/utils/external_share.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import 'package:diaspo_niger/shared/widgets/share_icon_button.dart';
+import 'package:diaspo_niger/shared/widgets/share_to_chat_button.dart';
 
 class ShareGroupDialog extends ConsumerStatefulWidget {
   final String groupName;
@@ -517,26 +518,10 @@ class _ShareGroupDialogState extends ConsumerState<ShareGroupDialog>
   /// sociaux ou feuille système. Le lien reste le même — c'est la discussion
   /// qui devient une destination, groupe comme 1:1.
   Widget _buildShareToChatButton(AppLocalizations l10n) {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton.icon(
-        onPressed: _shareToChat,
-        icon: const Icon(Icons.forum_rounded, color: Colors.white),
-        label: Text(
-          l10n.shareToChatTitle,
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: context.adaptiveSecondaryColor,
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-      ),
+    return ShareToChatButton(
+      label: l10n.shareToChatTitle,
+      color: context.adaptiveSecondaryColor,
+      onPressed: _shareToChat,
     );
   }
 
