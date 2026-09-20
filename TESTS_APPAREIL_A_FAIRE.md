@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1468 cases à cocher, 648 cochées** — 283 entrées sur 332 ont encore des cases ouvertes.
+**1477 cases à cocher, 648 cochées** — 283 entrées sur 332 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -223,7 +223,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ Les deux bandeaux de clés retirés : ils promettaient faux (2026-09-16)](#-les-deux-bandeaux-de-clés-retirés--ils-promettaient-faux-2026-09-16) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ L'expéditeur MLS datait lui-même ses propres messages (2026-09-15)](#-lexpéditeur-mls-datait-lui-même-ses-propres-messages-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ L'appartenance MLS se réconcilie au moment du changement (phase 8, 2026-09-15)](#-lappartenance-mls-se-réconcilie-au-moment-du-changement-phase-8-2026-09-15) · *Chiffrement de bout en bout et clés*
-- 7 · [⬜ Notifications lues à l'ouverture de leur écran : profil, groupe, commandes, fiche, mentions (2026-09-19)](#-notifications-lues-à-louverture-de-leur-écran--profil-groupe-commandes-fiche-mentions-2026-09-19) · *Notifications et push*
+- 16 · [⬜ Notifications lues à l'ouverture de leur écran : profil, groupe, commandes, fiche, mentions (2026-09-19)](#-notifications-lues-à-louverture-de-leur-écran--profil-groupe-commandes-fiche-mentions-2026-09-19) · *Notifications et push*
 - 5 · [⬜ Cycle de vie d'une demande d'ami : six trous soldés (2026-09-15)](#-cycle-de-vie-dune-demande-dami--six-trous-soldés-2026-09-15) · *Notifications et push* · bloqué
 - 2 · [✅ Filtre hashtag : réparé et vérifié sur SM A515F (2026-09-14)](#-filtre-hashtag--réparé-et-vérifié-sur-sm-a515f-2026-09-14) · *Liens profonds, navigation et QR codes*
 - 4 · [⬜ Un lien Diaspo Niger dans une discussion sortait de l'app (2026-09-12)](#-un-lien-diaspo-niger-dans-une-discussion-sortait-de-lapp-2026-09-12) · *Liens profonds, navigation et QR codes*
@@ -345,7 +345,7 @@ Par domaine :
 - [3. Groupes](#3-groupes) — 149 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 142 à faire, 42 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
-- [6. Notifications et push](#6-notifications-et-push) — 150 à faire, 76 faites
+- [6. Notifications et push](#6-notifications-et-push) — 159 à faire, 76 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 69 à faire, 10 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 118 à faire, 16 faites
@@ -10031,6 +10031,15 @@ best-effort à l'ouverture) :
   jointure sur l'identifiant du message) et `mark_messages_as_read` (ancien
   chemin, et action « Marquer comme lu » de la bannière), migration
   `20260919120000`. Il n'y a plus de marquage côté client des mentions.
+- **Arrivée pendant que l'écran est ouvert** (`LectureALArrivee`, 2026-09-20) →
+  jusque-là, une notification écrite APRÈS l'ouverture de son écran restait non
+  lue. Un canal permanent sur les `INSERT` du compte confronte chaque
+  notification à la page affichée **en haut de la pile** ; si c'est sa
+  destination (la même table que l'ouverture : fil, événement, groupe, profil,
+  commandes), elle est marquée lue par son id. Trois conditions à la fois :
+  application au **premier plan** (`resumed` strict), écran **du dessus** (pas
+  un écran seulement ouvert dessous), ligne **pas déjà lue**. Jamais la
+  messagerie, jamais ce qui appelle un geste.
 
 - [ ] **Profil** : compte A a une notification « demande acceptée » de B non
   lue ; ouvrir le profil de B **depuis la discussion** (pas depuis la liste) ;
@@ -10054,14 +10063,56 @@ best-effort à l'ouverture) :
   migration ce chemin ne la marque pas.
 - [ ] **Non-régression** : une demande d'ami en attente reste non lue et garde
   ses boutons.
+- [ ] **Arrivée — événement ouvert** : compte A (organisateur) sur la fiche de
+  son événement ; compte B s'inscrit → la notification « participation » de A
+  passe en lue SANS quitter l'écran (`is_read = true` en base dans la
+  seconde).
+- [ ] **Arrivée — publication ouverte** : A sur sa publication ; B la commente
+  → lue, et le commentaire s'affiche.
+- [ ] **Arrivée — Mes commandes ouvert** : une commande arrive pendant qu'on
+  est sur l'écran → lue.
+- [ ] **Arrivée — profil ouvert** : A sur le profil de B ; B accepte la demande
+  de A → `friendAccepted` lue.
+- [ ] **Arrivée, négatif — application en arrière-plan** : A sur la fiche de
+  l'événement, écran verrouillé ; B s'inscrit → la notification reste NON lue
+  en base. Au retour elle le reste jusqu'à la prochaine ouverture de l'écran :
+  rien ne relit à la reprise.
+- [ ] **Arrivée, négatif — écran par-dessus** : A sur la fiche de l'événement,
+  puis ouvre un profil PAR-DESSUS ; B s'inscrit → NON lue.
+- [ ] **Arrivée, négatif — geste attendu** : A sur le profil de C ; C lui envoie
+  une demande d'ami → reste non lue, boutons Accepter/Refuser présents.
+- [ ] **Arrivée — changement de compte** : déconnexion, puis connexion avec B ;
+  une notification arrive pour B sur son écran → lue ; rien ne change pour A.
+- [ ] **Arrivée — retour du réseau** : couper le réseau deux minutes, le
+  rétablir, provoquer une arrivée sur l'écran ouvert → lue. Le canal se rouvre
+  avec une attente plafonnée à 60 s : compter jusqu'à une minute.
 
 *Ce que les bancs ne voient pas* : la requête PostgREST réelle (`in.(…)` +
 `or=(data->>k.eq.v)`) — testée à la forme, jamais rejouée contre la base ;
 l'écriture est best-effort, un refus ne laisse qu'un `debugPrint`.
-*Ce qui n'est PAS corrigé* : une notification qui **arrive pendant** que son
-écran est déjà ouvert reste non lue jusqu'à la prochaine ouverture (rien ne
-compare la ligne insérée à l'écran courant) ; une push touchée sans `targetId`
-(`system`) n'en marque aucune.
+Pour l'arrivée : la décision (`LectureALArrivee`) et la lecture de la page
+affichée (`emplacementAffiche`, contre le vrai `go_router`) sont éprouvées, et
+chacune fait tomber des tests quand on la casse. **Jamais rejoués** : le canal
+Supabase réel, l'état `resumed`, et la **forme de `payload.newRecord`** — `data`
+doit arriver décodé en carte. Lu dans le paquet verrouillé (`realtime_client`
+2.11.0, `convertCell` : `jsonb` → `toJson`, qui décode une chaîne et laisse une
+carte telle quelle), pas observé sur le fil. Si `data` arrivait quand même en
+chaîne, rien ne serait jamais lu, sans la moindre erreur : si les cases
+« Arrivée » ne marquent rien, c'est la première chose à regarder.
+**Chaque arrivée journalise une ligne**, sans identifiant :
+`LectureALArrivee: <type> sur /feed/… — <verdict>` (marquée lue ; application
+pas au premier plan ; écran affiché inconnu ; pas la destination de l'écran ;
+déjà lue ; ÉCHEC de l'écriture ; erreur inattendue — l'écriture avale ses
+erreurs, le verdict lit son résultat au lieu de la croire réussie, et une
+session Supabase illisible replanifie l'abonnement au lieu d'ouvrir un canal
+`anon` muet). `adb logcat -s flutter | grep LectureALArrivee` dit
+donc POURQUOI une case ne marque rien — un garde qui refuse ne lève rien, et
+celui de visibilité de la discussion, toujours faux sur appareil le 2026-09-16,
+n'avait laissé aucune trace : trois builds. Aucune ligne du tout après une
+arrivée = le canal ne s'est pas ouvert (session, réseau) ou n'est pas surveillé.
+*Ce qui n'est PAS corrigé* : une push touchée sans `targetId` (`system`) n'en
+marque aucune ; une notification arrivée application en arrière-plan reste non
+lue même si l'on revient sur l'écran de sa cible.
 
 *Les mentions* : l'action « Marquer comme lu » de la **bannière**
 (`BackgroundReplyService.markAsRead`) n'appelle que la RPC
@@ -10086,6 +10137,11 @@ Fichiers :
 [mentions_lues_avec_la_discussion.sql](tools/rls_tests/mentions_lues_avec_la_discussion.sql),
 [mentions_lues_par_le_serveur_test.dart](test/features/notifications/mentions_lues_par_le_serveur_test.dart),
 [notification_read_sync.dart](lib/core/services/notification_read_sync.dart),
+[lecture_a_l_arrivee.dart](lib/core/services/lecture_a_l_arrivee.dart),
+[lecture_a_l_arrivee_provider.dart](lib/core/providers/lecture_a_l_arrivee_provider.dart),
+[emplacement_affiche.dart](lib/core/router/emplacement_affiche.dart),
+[lecture_a_l_arrivee_test.dart](test/core/services/lecture_a_l_arrivee_test.dart),
+[emplacement_affiche_test.dart](test/core/router/emplacement_affiche_test.dart),
 [profile_view_screen.dart](lib/features/profile/presentation/screens/profile_view_screen.dart),
 [group_detail_screen.dart](lib/features/groups/presentation/screens/group_detail_screen.dart),
 [my_orders_screen.dart](lib/features/marketplace/presentation/screens/my_orders_screen.dart),

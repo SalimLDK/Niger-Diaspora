@@ -46,10 +46,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
   void initState() {
     super.initState();
     // Événement ouvert : ses notifications (rappel, participation) sont lues.
-    unawaited(NotificationReadSync.markTargetRead(
-      widget.eventId,
-      keys: const ['eventId', 'targetId', 'target_id'],
-    ));
+    unawaited(NotificationReadSync.markEventOpened(widget.eventId));
     if (widget.initialEvent == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         unawaited(ref

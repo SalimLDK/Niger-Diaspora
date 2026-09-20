@@ -16,6 +16,7 @@ import 'core/services/notification_service.dart';
 import 'core/services/e2ee/notification_decryption_service.dart';
 import 'core/services/tracking_consent_service.dart';
 import 'core/providers/app_settings_provider.dart';
+import 'core/providers/lecture_a_l_arrivee_provider.dart';
 import 'features/calls/presentation/providers/call_provider.dart';
 import 'shared/widgets/reconnection_summary.dart';
 
@@ -220,6 +221,11 @@ class _NigerDiasporaAppState extends ConsumerState<NigerDiasporaApp> {
     // indéfiniment. `OfflineQueueService.processQueue` n'était appelé de nulle
     // part — la file se remplissait et ne se vidait jamais.
     ref.watch(renvoiMessagesEnAttenteProvider);
+
+    // Même raison encore : rien d'autre ne lit ce provider, donc le canal qui
+    // marque lue une notification arrivée sur son propre écran ne s'ouvrirait
+    // jamais. Voir `LectureALArrivee`.
+    ref.watch(lectureALArriveeProvider);
 
     return MaterialApp.router(
       title: 'Diaspo Niger',

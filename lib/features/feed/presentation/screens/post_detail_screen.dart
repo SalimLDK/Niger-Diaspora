@@ -54,10 +54,7 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
     super.initState();
     // Publication ouverte — depuis le fil, un lien, n'importe où : ses
     // notifications (commentaire, mention, nouvelle publication) sont lues.
-    unawaited(NotificationReadSync.markTargetRead(
-      widget.postId,
-      keys: const ['postId', 'targetId', 'target_id'],
-    ));
+    unawaited(NotificationReadSync.markPostOpened(widget.postId));
   }
 
   @override

@@ -94,26 +94,93 @@ class NotificationReadSync {
     'orderShippingReminder',
   ];
 
-  /// La fiche du groupe [groupId] vient d'être ouverte.
-  static Future<void> markGroupOpened(String groupId) => markTargetRead(
-    groupId,
-    keys: const ['groupId', 'targetId', 'target_id'],
+  /// Les types de la messagerie. Lus par la lecture de la DISCUSSION — le
+  /// curseur et les RPC, côté serveur — et jamais par l'ouverture d'un autre
+  /// écran : leur `targetId` est un identifiant de conversation.
+  static const List<String> typesDeLaMessagerie = [
+    'message',
+    'messageReaction',
+    'messageMention',
+    'messageEdited',
+  ];
+
+  // Les écrans destinataires. UNE table, lue deux fois : à l'OUVERTURE
+  // (`mark…Opened`, appelées par les écrans) et à l'ARRIVÉE d'une notification
+  // pendant que l'écran est déjà ouvert ([designeLEcranAffiche], appelée par
+  // `LectureALArrivee`). Deux listes de clés recopiées finiraient par diverger.
+  //
+  // `types: null` = tout type, sauf la messagerie.
+  static final _Ecran _fil = _Ecran(
+    RegExp(r'^/feed/([^/]+)$'),
+    cles: const ['postId', 'targetId', 'target_id'],
+  );
+  static final _Ecran _evenement = _Ecran(
+    RegExp(r'^/events/([^/]+)$'),
+    cles: const ['eventId', 'targetId', 'target_id'],
+  );
+  static final _Ecran _groupe = _Ecran(
+    RegExp(r'^/groups/([^/]+)$'),
+    cles: const ['groupId', 'targetId', 'target_id'],
     types: typesLusParLaFicheDeGroupe,
   );
-
-  /// Le profil de [userId] vient d'être ouvert.
-  ///
-  /// Trois clés : neuf `friendAccepted` sur dix-sept en production n'ont pas de
-  /// `targetId`, seulement `target_id` — et `receiverId` désigne la même
-  /// personne.
-  static Future<void> markProfileOpened(String userId) => markTargetRead(
-    userId,
-    keys: const ['targetId', 'target_id', 'receiverId'],
+  // Trois clés : neuf `friendAccepted` sur dix-sept en production n'ont pas de
+  // `targetId`, seulement `target_id` — et `receiverId` désigne la même
+  // personne.
+  static final _Ecran _profil = _Ecran(
+    RegExp(r'^/profile/([^/]+)$'),
+    cles: const ['targetId', 'target_id', 'receiverId'],
     types: typesLusParLeProfil,
   );
+  static final _Ecran _commandes = _Ecran(
+    RegExp(r'^/marketplace/my-orders$'),
+    cles: const [],
+    types: typesLusParMesCommandes,
+  );
+  static final List<_Ecran> _ecrans = [
+    _fil,
+    _evenement,
+    _groupe,
+    _profil,
+    _commandes,
+  ];
+
+  /// La publication [postId] vient d'être ouverte.
+  static Future<void> markPostOpened(String postId) =>
+      markTargetRead(postId, keys: _fil.cles, types: _fil.types);
+
+  /// L'événement [eventId] vient d'être ouvert.
+  static Future<void> markEventOpened(String eventId) =>
+      markTargetRead(eventId, keys: _evenement.cles, types: _evenement.types);
+
+  /// La fiche du groupe [groupId] vient d'être ouverte.
+  static Future<void> markGroupOpened(String groupId) =>
+      markTargetRead(groupId, keys: _groupe.cles, types: _groupe.types);
+
+  /// Le profil de [userId] vient d'être ouvert.
+  static Future<void> markProfileOpened(String userId) =>
+      markTargetRead(userId, keys: _profil.cles, types: _profil.types);
 
   /// « Mes commandes » vient d'être ouvert.
   static Future<void> markOrdersOpened() => markTypesRead(typesLusParMesCommandes);
+
+  /// La notification de type [type] qui porte [data] a-t-elle pour destination
+  /// l'écran affiché à [emplacement] ?
+  ///
+  /// [emplacement] est un chemin du routeur (`/feed/abc`), tel que le rend
+  /// `emplacementAffiche` ; une requête ou une barre finale sont tolérées.
+  /// C'est la question que pose l'ARRIVÉE d'une notification : si la réponse
+  /// est oui, la personne la regarde déjà.
+  static bool designeLEcranAffiche(
+    String emplacement, {
+    required String type,
+    required Map<String, dynamic> data,
+  }) {
+    var chemin = emplacement.split('?').first;
+    if (chemin.length > 1 && chemin.endsWith('/')) {
+      chemin = chemin.substring(0, chemin.length - 1);
+    }
+    return _ecrans.any((e) => e.designe(chemin, type, data));
+  }
 
   /// Expression `or` qui désigne [id] sous l'une des [keys], ou `null` si
   /// l'identifiant ou une clé n'est pas sûr à interpoler.
@@ -161,27 +228,47 @@ class NotificationReadSync {
     await _marquerLues(types: types);
   }
 
-  static Future<void> _marquerLues({
+  /// Marque lue MA notification [id].
+  ///
+  /// Pour une notification qu'on vient de voir ARRIVER (`LectureALArrivee`) :
+  /// sa ligne est connue, inutile de la retrouver par type et par cible comme
+  /// le font les autres entrées. Ne touche qu'une ligne non lue de l'appelant.
+  ///
+  /// Rend `true` si la requête est partie et revenue sans erreur. Pas « une
+  /// ligne a été touchée » : PostgREST rend 200 sur un `UPDATE` qui ne trouve
+  /// rien, et on ne le demande pas (`.select()`).
+  static Future<bool> markIdRead(String id) async {
+    if (!_idSur.hasMatch(id)) return false;
+    return _marquerLues(id: id);
+  }
+
+  /// Rend `true` si la requête a abouti sans erreur (session, réseau, droits) ;
+  /// les entrées qui n'ont pas besoin du résultat l'ignorent.
+  static Future<bool> _marquerLues({
     List<String>? types,
     String? filtreCible,
+    String? id,
   }) async {
     // Tout dans le `try`, y compris l'accès à FirebaseAuth : appelée depuis
     // un `initState`, une exception ici (Firebase pas encore initialisé)
     // ferait échouer l'ouverture de l'écran pour une simple tenue de compteur.
     try {
       final uid = FirebaseAuth.instance.currentUser?.uid;
-      if (uid == null) return;
-      if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) return;
+      if (uid == null) return false;
+      if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) return false;
       var query = Supabase.instance.client
           .from('notifications')
           .update({'is_read': true})
           .eq('user_id', uid)
           .eq('is_read', false);
+      if (id != null) query = query.eq('id', id);
       if (types != null) query = query.inFilter('type', types);
       if (filtreCible != null) query = query.or(filtreCible);
       await query;
+      return true;
     } catch (e) {
       debugPrint('NotificationReadSync: $e');
+      return false;
     }
   }
 
@@ -205,5 +292,42 @@ class NotificationReadSync {
     final targetId = data['targetId']?.toString() ?? '';
     if (targetId.isEmpty) return;
     return markTargetRead(targetId, type: type);
+  }
+}
+
+/// Un écran qui EST la destination de certaines notifications : où il se
+/// trouve dans le routeur, sous quelles clés de `data` la notification désigne
+/// son objet, et quels types il suffit d'y être pour les lire.
+class _Ecran {
+  const _Ecran(this.chemin, {required this.cles, this.types});
+
+  /// Le chemin du routeur. Son premier groupe capture l'identifiant de l'objet
+  /// affiché ; sans groupe, l'écran n'a pas d'objet (« Mes commandes »).
+  final RegExp chemin;
+
+  /// Les clés de `data` qui peuvent porter l'identifiant de l'objet. Vide :
+  /// l'écran est la destination de toute la famille, sans identifiant.
+  final List<String> cles;
+
+  /// Les types que cet écran suffit à lire. `null` : tous, la messagerie
+  /// exceptée — elle a sa propre lecture, côté serveur.
+  final List<String>? types;
+
+  bool designe(String emplacement, String type, Map<String, dynamic> data) {
+    final trouve = chemin.firstMatch(emplacement);
+    if (trouve == null) return false;
+
+    final restreints = types;
+    if (restreints == null) {
+      if (NotificationReadSync.typesDeLaMessagerie.contains(type)) return false;
+    } else if (!restreints.contains(type)) {
+      return false;
+    }
+
+    if (cles.isEmpty) return true;
+    if (trouve.groupCount < 1) return false;
+    final id = trouve.group(1);
+    if (id == null || id.isEmpty) return false;
+    return cles.any((cle) => data[cle]?.toString() == id);
   }
 }
