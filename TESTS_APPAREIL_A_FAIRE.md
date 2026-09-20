@@ -39,11 +39,11 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1497 cases à cocher, 650 cochées** — 286 entrées sur 335 ont encore des cases ouvertes.
+**1501 cases à cocher, 650 cochées** — 287 entrées sur 336 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
-**P0 — avant toute nouvelle version** (45)
+**P0 — avant toute nouvelle version** (46)
 
 - 7 · [⬜ Droits d'écriture sur `messages` resserrés : accusés et modification (2026-09-16)](#-droits-décriture-sur-messages-resserrés--accusés-et-modification-2026-09-16) · *Messagerie*
 - 8 · [⬜ Accusé « lu » mensonger, et aperçu chiffré qui ne venait jamais (2026-09-15)](#-accusé--lu--mensonger-et-aperçu-chiffré-qui-ne-venait-jamais-2026-09-15) · *Messagerie*
@@ -75,6 +75,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [⬜ `users` n'est plus lisible sans compte (2026-09-20)](#-users-nest-plus-lisible-sans-compte-2026-09-20) · *Backend, sécurité et observabilité*
 - 8 · [⬜ Divulgation préalable de la localisation (refus Play du 2026-09-09)](#-divulgation-préalable-de-la-localisation-refus-play-du-2026-09-09) · *Publication et plateformes*
 - 3 · [⬜ Compte de test dédié : première connexion (2026-09-09)](#-compte-de-test-dédié--première-connexion-2026-09-09) · *Appareils, comptes de test et méthode*
+- 4 · [⬜ Écrire dans une conversation exige d'en être participant (2026-09-20)](#-écrire-dans-une-conversation-exige-den-être-participant-2026-09-20) · *Messagerie*
 - 4 · [⬜ GIF et sticker envoyés en MLS : la bulle ne montrait rien (2026-09-16)](#-gif-et-sticker-envoyés-en-mls--la-bulle-ne-montrait-rien-2026-09-16) · *Messagerie*
 - 9 · [⬜ GIFs via `gif-proxy` — clés sorties de l'APK (2026-08-27)](#-gifs-via-gif-proxy--clés-sorties-de-lapk-2026-08-27) · *Messagerie*
 - 4 · [⬜ Citations et modifications : plus de texte en clair (2026-09-09)](#-citations-et-modifications--plus-de-texte-en-clair-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
@@ -344,7 +345,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 334 à faire, 126 faites
+- [2. Messagerie](#2-messagerie) — 338 à faire, 126 faites
 - [3. Groupes](#3-groupes) — 149 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 142 à faire, 42 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
@@ -605,6 +606,50 @@ Crashlytics.
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
 
 ---
+
+## ⬜ Écrire dans une conversation exige d'en être participant (2026-09-20)
+
+**Priorité P0** · importance 4/5 — Un compte connecté pouvait écrire, sous son nom, dans n'importe quelle conversation dont il connaissait l'identifiant — d'abord celle dont il vient d'être exclu. La policy est corrigée ; reste à voir que tous les envois légitimes passent encore.
+
+Migration `20260920214800_messages_insert_participant.sql` — **NON
+APPLIQUÉE** à l'écriture de cette entrée. `messages_insert` exigeait seulement
+`firebase_uid() = sender_id` ; elle exige en plus
+`is_conversation_participant(conversation_id)`, comme `mls_messages` depuis
+sa création, et ne vaut plus que pour `authenticated`.
+
+Banc `tools/rls_tests/messages_insert_participant.sql`, 11 cas, contre la
+production en `BEGIN … ROLLBACK` : sans la migration, 3 échecs — dont « NON
+participant : ACCEPTÉ » et « EXCLU : ACCEPTÉ », la faille elle-même ; migration
+injectée, 0. Le banc n'écrit que dans deux conversations fabriquées sans
+destinataire possible, et vérifie qu'aucune notification n'en est née.
+
+**Ce que la faille n'était pas** : un message ainsi injecté ne poussait aucune
+notification — `notify_recipients_on_message_insert` sort quand l'expéditeur
+n'est pas participant. Il s'affichait dans le fil des participants, sans
+sonner.
+
+Mesuré avant d'écrire : 185 messages en base, 0 dont l'expéditeur n'est pas
+participant — aucun envoi réel ne dépendait du trou. Les trois points
+d'insertion de l'app écrivent dans une conversation que l'appelant lit déjà.
+Ce que ça ne prouve pas, c'est l'ordre des écritures sur un vrai téléphone :
+
+- [ ] **Premier message d'une discussion neuve** (depuis un profil, depuis la
+  carte) : la conversation est créée puis le message part, sans « Message non
+  envoyé ».
+- [ ] **Message dans un groupe qu'on vient de rejoindre** (adhésion acceptée,
+  invitation, lien) : l'envoi passe dès l'ouverture de la discussion.
+- [ ] **« Mes notes »** et **partage vers une discussion** (publication,
+  profil) : l'envoi passe.
+- [ ] **Après avoir quitté un groupe, ou en avoir été retiré** : la discussion
+  n'accepte plus rien — et l'échec se dit à l'écran, pas en silence.
+
+⚠️ **Anomalie de données, distincte.** Le contrôle porte sur
+`participant_ids`. Le 2026-09-20, 2 personnes y figurent encore pour une
+conversation de groupe sans plus être dans `group_members` : elles gardent
+lecture et écriture, avant comme après cette migration. À l'inverse, 1 membre
+de groupe manque à `participant_ids` : il ne lisait déjà pas la discussion.
+Voir « Balayage des invariants de données » ; la réparation est une écriture
+en base, à décider.
 
 ## ⬜ Fiches de partage : libellés sur une ligne, vrais logos, bouton (2026-09-20)
 
