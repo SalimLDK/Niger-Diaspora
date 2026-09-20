@@ -21728,14 +21728,19 @@ de tout cela ne touche la production**, et tout y est de même origine :
 - [ ] **Le dialogue « Supprimer mon compte » de l'application** : son texte
       (`deleteAccountWarning`) a gagné une puce sous « Sera conservé »
       (l'identifiant technique qui subsiste dans les groupes chiffrés : la
-      credential MLS contient l'uid jusqu'au prochain commit d'un membre). Vérifier
-      qu'il défile jusqu'au bout et que ses deux boutons restent atteignables, en
-      français et en anglais, à 200 % de taille de police.
+      credential MLS contient l'uid jusqu'au prochain commit d'un membre), et sa
+      phrase sur les groupes en a gagné une (« … et un groupe dont vous étiez le
+      dernier membre est supprimé »). Vérifier qu'il défile jusqu'au bout et que
+      ses deux boutons restent atteignables, en français et en anglais, à 200 % de
+      taille de police — le texte est maintenant plus long d'une ligne.
 
-**Écart restant, à trancher** : le site dit qu'un groupe dont on est le dernier
-membre est supprimé (vrai, décision de Salim, et l'ancienne page le disait) ;
-`deleteAccountWarning` ne le précise pas. Une seule promesse, ou deux qui
-divergent d'une phrase.
+**Écart soldé le 2026-09-20** : le site disait qu'un groupe dont on est le dernier
+membre est supprimé, `deleteAccountWarning` non. C'est vrai — le corps déployé de
+la purge en production (schéma `private`) contient la branche « dernier membre :
+`DELETE FROM public.groups` », lue dans la base et pas seulement dans le fichier —
+et le dialogue le dit désormais en français et en anglais, dans les mêmes termes
+que le site. Une garde de test (`suppression_compte_purge_test.dart`, groupe
+« textes ») l'empêche de redevenir muet.
 
 ---
 
