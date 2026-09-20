@@ -14,6 +14,8 @@ import '../../../messages/presentation/widgets/share_to_chat_sheet.dart';
 import '../providers/profile_provider.dart';
 import '../providers/profile_share_provider.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
+import 'package:diaspo_niger/shared/widgets/app_icon.dart';
+import 'package:diaspo_niger/shared/widgets/share_icon_button.dart';
 
 class ShareProfileDialog extends ConsumerStatefulWidget {
   final String? userName;
@@ -637,29 +639,29 @@ class _ShareProfileDialogState extends ConsumerState<ShareProfileDialog>
         const SizedBox(height: 12),
         Row(
           children: [
-            _ShareIconButton(
-              icon: Icons.message_rounded,
+            ShareIconButton(
+              asset: AppIcon.whatsapp,
               color: const Color(0xFF25D366),
               label: l10n.whatsApp,
               onTap: _shareViaWhatsApp,
             ),
             const SizedBox(width: 12),
-            _ShareIconButton(
-              icon: Icons.facebook_rounded,
+            ShareIconButton(
+              asset: AppIcon.facebook,
               color: const Color(0xFF1877F2),
               label: l10n.facebook,
               onTap: _shareViaFacebook,
             ),
             const SizedBox(width: 12),
-            _ShareIconButton(
-              icon: Icons.close_rounded,
+            ShareIconButton(
+              asset: AppIcon.x,
               color: isDark ? Colors.white : const Color(0xFF14171A),
               iconColor: isDark ? const Color(0xFF14171A) : Colors.white,
               label: 'X',
               onTap: _shareViaTwitter,
             ),
             const SizedBox(width: 12),
-            _ShareIconButton(
+            ShareIconButton(
               icon: Icons.more_horiz_rounded,
               color: AppColors.primary,
               label: l10n.more,
@@ -815,65 +817,6 @@ class _ShareProfileDialogState extends ConsumerState<ShareProfileDialog>
       ShareParams(
         text: 'Découvrez mon profil sur Diaspo Niger: $_shareUrl',
         subject: l10n.myProfileOnDiaspoNiger,
-      ),
-    );
-  }
-}
-
-class _ShareIconButton extends StatelessWidget {
-  final IconData icon;
-  final Color color;
-  final Color? iconColor;
-  final String label;
-  final VoidCallback onTap;
-
-  const _ShareIconButton({
-    required this.icon,
-    required this.color,
-    this.iconColor,
-    required this.label,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(12),
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: color.withValues(alpha: 0.2)),
-            ),
-            child: Column(
-              children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: color,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(icon, color: iconColor ?? Colors.white, size: 18),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  label,
-                  style: TextStyle(
-                    color: color,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 11,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
       ),
     );
   }

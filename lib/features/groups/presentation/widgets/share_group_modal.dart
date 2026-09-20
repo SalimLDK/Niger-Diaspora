@@ -13,6 +13,7 @@ import '../../../messages/presentation/widgets/share_to_chat_sheet.dart';
 import '../../domain/entities/group_entity.dart';
 import 'package:diaspo_niger/shared/utils/external_share.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
+import 'package:diaspo_niger/shared/widgets/share_icon_button.dart';
 
 class ShareGroupDialog extends ConsumerStatefulWidget {
   final String groupName;
@@ -478,21 +479,21 @@ class _ShareGroupDialogState extends ConsumerState<ShareGroupDialog>
         const SizedBox(height: 12),
         Row(
           children: [
-            _ShareIconButton(
+            ShareIconButton(
               asset: AppIcon.whatsapp,
               color: const Color(0xFF25D366),
               label: AppLocalizations.of(context)!.whatsApp,
               onTap: _shareViaWhatsApp,
             ),
             const SizedBox(width: 12),
-            _ShareIconButton(
+            ShareIconButton(
               asset: AppIcon.facebook,
               color: const Color(0xFF1877F2),
               label: AppLocalizations.of(context)!.facebook,
               onTap: _shareViaFacebook,
             ),
             const SizedBox(width: 12),
-            _ShareIconButton(
+            ShareIconButton(
               asset: AppIcon.x,
               color: isDark ? Colors.white : const Color(0xFF14171A),
               iconColor: isDark ? const Color(0xFF14171A) : Colors.white,
@@ -500,7 +501,7 @@ class _ShareGroupDialogState extends ConsumerState<ShareGroupDialog>
               onTap: _shareViaX,
             ),
             const SizedBox(width: 12),
-            _ShareIconButton(
+            ShareIconButton(
               icon: Icons.more_horiz_rounded,
               color: context.adaptiveSecondaryColor,
               label: AppLocalizations.of(context)!.more,
@@ -630,72 +631,6 @@ class _ShareGroupDialogState extends ConsumerState<ShareGroupDialog>
     await ExternalShare.system(
       text: _getShareMessage(),
       subject: widget.groupName,
-    );
-  }
-}
-
-class _ShareIconButton extends StatelessWidget {
-  /// Icone Material (fallback) ou glyphe SVG de marque via [asset].
-  final IconData? icon;
-  final String? asset;
-  final Color color;
-  final Color? iconColor;
-  final String label;
-  final VoidCallback onTap;
-
-  const _ShareIconButton({
-    this.icon,
-    this.asset,
-    required this.color,
-    this.iconColor,
-    required this.label,
-    required this.onTap,
-  }) : assert(icon != null || asset != null);
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(12),
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 12),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: color.withValues(alpha: 0.2)),
-            ),
-            child: Column(
-              children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: color,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: asset != null
-                      ? AppIcon(asset!,
-                          color: iconColor ?? Colors.white, size: 18)
-                      : Icon(icon, color: iconColor ?? Colors.white, size: 18),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  label,
-                  style: TextStyle(
-                    color: color,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 11,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
     );
   }
 }

@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1488 cases à cocher, 648 cochées** — 284 entrées sur 333 ont encore des cases ouvertes.
+**1492 cases à cocher, 648 cochées** — 285 entrées sur 334 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -283,7 +283,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [✅ Bulle de chargement d'une vidéo pendant l'upload (2026-08-30)](#-bulle-de-chargement-dune-vidéo-pendant-lupload-2026-08-30) · *Messagerie*
 - 24 · [Refonte Fil & Discussion — Priorité basse — cosmétique, faible risque](#refonte-fil--discussion--priorité-basse--cosmétique-faible-risque) · *Fil, stories, salons audio et podcasts*
 
-**P3 — confort, cosmétique, fonction en pause** (53)
+**P3 — confort, cosmétique, fonction en pause** (54)
 
 - 3 · [⬜ Polices embarquées : plus de téléchargement au premier affichage (2026-09-11)](#-polices-embarquées--plus-de-téléchargement-au-premier-affichage-2026-09-11) · *Design, thème, langue et mise en page* · bloqué
 - 3 · [⬜ Icône du lanceur repeinte en vert (2026-09-07)](#-icône-du-lanceur-repeinte-en-vert-2026-09-07) · *Design, thème, langue et mise en page*
@@ -298,6 +298,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Guide de style — alignement des jetons (2026-08-03)](#guide-de-style--alignement-des-jetons-2026-08-03) · *Design, thème, langue et mise en page*
 - 5 · [Bascule design_v2 → production, famille 5 : accueil et envoi d'argent (2026-08-03)](#bascule-design_v2--production-famille-5--accueil-et-envoi-dargent-2026-08-03) · *Design, thème, langue et mise en page*
 - 3 · [⬜ Les ~920 `debugPrint` restants neutralisés en release (2026-09-09)](#-les-920-debugprint-restants-neutralisés-en-release-2026-09-09) · *Backend, sécurité et observabilité* · bloqué
+- 4 · [⬜ Fiches de partage : libellés sur une ligne et vrais logos (2026-09-20)](#-fiches-de-partage--libellés-sur-une-ligne-et-vrais-logos-2026-09-20) · *Messagerie*
 - 7 · [⬜ Squelette de chargement de la messagerie (2026-09-15)](#-squelette-de-chargement-de-la-messagerie-2026-09-15) · *Messagerie*
 - 7 · [⬜ Une couleur par pièce jointe dans le « + » (2026-09-14)](#-une-couleur-par-pièce-jointe-dans-le----2026-09-14) · *Messagerie*
 - 6 · [Discussion — ÉCO rejoint la ligne épinglée (fiche 6b, 2026-08-05)](#discussion--éco-rejoint-la-ligne-épinglée-fiche-6b-2026-08-05) · *Messagerie*
@@ -342,7 +343,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 329 à faire, 124 faites
+- [2. Messagerie](#2-messagerie) — 333 à faire, 124 faites
 - [3. Groupes](#3-groupes) — 149 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 142 à faire, 42 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
@@ -601,6 +602,39 @@ Crashlytics.
 # 2. Messagerie
 
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
+
+---
+
+## ⬜ Fiches de partage : libellés sur une ligne et vrais logos (2026-09-20)
+
+**Priorité P3** · importance 2/5 — sur « Partager mon profil », à l'échelle de
+police 1,3 du Pixel, « WhatsApp » et « Facebook » se coupaient en plein mot
+(« WhatsAp / p »), et les tuiles montraient une bulle de chat et une croix
+« fermer » au lieu des logos WhatsApp et X.
+*Non vu sur appareil : le Pixel porte le build Play (+22), un build local ne s'y
+installe pas — et c'est un vrai compte.*
+
+Les tuiles du profil et du groupe étaient deux copies privées de
+`_ShareIconButton` qui avaient divergé : les logos de marque n'existaient que
+côté groupe. Elles passent par un seul widget,
+[share_icon_button.dart](lib/shared/widgets/share_icon_button.dart) : libellé
+sur une ligne (il rétrécit au lieu de passer à la ligne), logo SVG via `asset`.
+Le banc `test/shared/share_icon_button_test.dart` prouve la structure (une
+ligne, dans la tuile, à 1,0 / 1,3 / 2,0) avec la police de test Ahem, plus large
+qu'Inter : il ne dit rien du rendu réel.
+
+- [ ] **Profil, échelle 1,3** : Partager mon profil → « WhatsApp », « Facebook »,
+      « X » et « Plus » tiennent chacun sur une seule ligne, sans coupure ni
+      débordement. Le texte rétréci reste lisible.
+- [ ] **Profil, logos** : WhatsApp, Facebook et X montrent leur logo de marque,
+      en clair comme en sombre (X : noir sur blanc en clair, blanc sur noir en
+      sombre).
+- [ ] **Groupe** : fiche « Partager le groupe » — mêmes libellés sur une ligne
+      à 1,3 (elle partage désormais la tuile du profil), logos inchangés.
+- [ ] **Autres feuilles, à 1,3** : publication (`share_post_sheet.dart`) et
+      événement / podcast (`share_options_sheet.dart`, largeur fixe de 68 dp,
+      libellé à ellipse) — leurs libellés sont-ils coupés ? Non mesuré, non
+      touché.
 
 ---
 
