@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1468 cases à cocher, 647 cochées** — 283 entrées sur 332 ont encore des cases ouvertes.
+**1469 cases à cocher, 647 cochées** — 283 entrées sur 332 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -223,7 +223,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ Les deux bandeaux de clés retirés : ils promettaient faux (2026-09-16)](#-les-deux-bandeaux-de-clés-retirés--ils-promettaient-faux-2026-09-16) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ L'expéditeur MLS datait lui-même ses propres messages (2026-09-15)](#-lexpéditeur-mls-datait-lui-même-ses-propres-messages-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ L'appartenance MLS se réconcilie au moment du changement (phase 8, 2026-09-15)](#-lappartenance-mls-se-réconcilie-au-moment-du-changement-phase-8-2026-09-15) · *Chiffrement de bout en bout et clés*
-- 6 · [⬜ Notifications lues à l'ouverture de leur écran : profil, groupe, commandes, fiche, mentions (2026-09-19)](#-notifications-lues-à-louverture-de-leur-écran--profil-groupe-commandes-fiche-mentions-2026-09-19) · *Notifications et push*
+- 7 · [⬜ Notifications lues à l'ouverture de leur écran : profil, groupe, commandes, fiche, mentions (2026-09-19)](#-notifications-lues-à-louverture-de-leur-écran--profil-groupe-commandes-fiche-mentions-2026-09-19) · *Notifications et push*
 - 5 · [⬜ Cycle de vie d'une demande d'ami : six trous soldés (2026-09-15)](#-cycle-de-vie-dune-demande-dami--six-trous-soldés-2026-09-15) · *Notifications et push* · bloqué
 - 2 · [✅ Filtre hashtag : réparé et vérifié sur SM A515F (2026-09-14)](#-filtre-hashtag--réparé-et-vérifié-sur-sm-a515f-2026-09-14) · *Liens profonds, navigation et QR codes*
 - 4 · [⬜ Un lien Diaspo Niger dans une discussion sortait de l'app (2026-09-12)](#-un-lien-diaspo-niger-dans-une-discussion-sortait-de-lapp-2026-09-12) · *Liens profonds, navigation et QR codes*
@@ -345,7 +345,7 @@ Par domaine :
 - [3. Groupes](#3-groupes) — 149 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 142 à faire, 42 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
-- [6. Notifications et push](#6-notifications-et-push) — 149 à faire, 76 faites
+- [6. Notifications et push](#6-notifications-et-push) — 150 à faire, 76 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 70 à faire, 9 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 118 à faire, 16 faites
@@ -10043,6 +10043,10 @@ best-effort à l'ouverture) :
 - [ ] **Mention** : conversation en sourdine, un message qui nomme le compte ;
   ouvrir la discussion → `is_read = true` en base (la ligne est à l'écran de
   Notifications : elle doit en sortir de « Non lues »).
+- [ ] **Mention, action de la bannière** — *après `supabase db push` de
+  `20260919120000`* : même mise en place, la mention posée en bannière ;
+  toucher « Marquer comme lu » sur la bannière → `is_read = true`. Sans la
+  migration ce chemin ne la marque pas.
 - [ ] **Non-régression** : une demande d'ami en attente reste non lue et garde
   ses boutons.
 
@@ -10052,9 +10056,23 @@ base ; l'écriture est best-effort, un refus ne laisse qu'un `debugPrint`.
 *Ce qui n'est PAS corrigé* : une notification qui **arrive pendant** que son
 écran est déjà ouvert reste non lue jusqu'à la prochaine ouverture (rien ne
 compare la ligne insérée à l'écran courant) ; une push touchée sans `targetId`
-(`system`) n'en marque aucune.
+(`system`) n'en marque aucune ; l'action « Marquer comme lu » de la **bannière**
+(`BackgroundReplyService.markAsRead`) n'appelle que la RPC
+`mark_messages_as_read`, qui ignore `messageMention`. Ce chemin n'est couvert
+que par la migration `20260919120000_mentions_lues_avec_la_discussion.sql`,
+**écrite et éprouvée en `ROLLBACK`, pas encore appliquée** : le banc
+`tools/rls_tests/mentions_lues_avec_la_discussion.sql` donne 21 cas verts avec
+elle, et les cas 1, 2, 9 et 14 tombent sans elle. Une fois appliquée, le
+marquage côté client des mentions (`NotificationReadSync` appelé depuis
+`conversation_screen.dart`) devient redondant et moins exact (marge de 2 s) :
+à retirer pour qu'il ne reste qu'une source. Aucune ligne `messageMention`
+n'existe encore en production (0 au 2026-09-19) : pour cocher les deux cases
+« Mention », il faut en provoquer une (conversation en sourdine + un message
+qui nomme le compte — texte en clair, pas MLS).
 
 Fichiers :
+[20260919120000_mentions_lues_avec_la_discussion.sql](supabase/migrations/20260919120000_mentions_lues_avec_la_discussion.sql),
+[mentions_lues_avec_la_discussion.sql](tools/rls_tests/mentions_lues_avec_la_discussion.sql),
 [notification_read_sync.dart](lib/core/services/notification_read_sync.dart),
 [profile_view_screen.dart](lib/features/profile/presentation/screens/profile_view_screen.dart),
 [group_detail_screen.dart](lib/features/groups/presentation/screens/group_detail_screen.dart),
