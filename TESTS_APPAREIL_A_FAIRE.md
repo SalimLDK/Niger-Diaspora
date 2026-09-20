@@ -13305,12 +13305,14 @@ création du job, pas du début de l'heure : les passages tombent à hh:36–37 
 `claim_due_account_deletions` (la fonction se tait quand personne n'est dû) —
 seule une vraie demande le montrera.
 
-Encore ouvert : la purge n'a jamais été rejouée sur un compte RÉEL — le
-classifieur de permissions la refuse, même annulée et même sur accord donné dans
-la conversation. Le script est prêt, à lancer depuis un terminal :
+La purge a été rejouée sur un compte RÉEL le 2026-09-19, lancée par Salim depuis
+son terminal : le classifieur de permissions la refuse à l'agent, même annulée et
+même sur accord donné dans la conversation. Script :
 [suppression_compte_donnees_reelles.sql](tools/rls_tests/suppression_compte_donnees_reelles.sql)
-(`BEGIN … ROLLBACK` dans le fichier, aucun uid imprimé). Et la page web
-`delete-account.html`, qui fait toujours l'ancien geste (tâche séparée).
+(`BEGIN … ROLLBACK` dans le fichier, aucun uid imprimé). Résultat : elle va au
+bout, avec UN écart trouvé et corrigé en migration NON APPLIQUÉE — voir la case
+« Répétition sur un compte RÉEL » plus bas. Et la page web `delete-account.html`,
+qui fait toujours l'ancien geste (tâche séparée).
 
 Fichiers : [migration](supabase/migrations/20260918224100_suppression_de_compte_par_phases.sql),
 [banc SQL](tools/rls_tests/suppression_compte.sql) (49 cas, rejoué dans un
@@ -13330,6 +13332,16 @@ Fichiers : [migration](supabase/migrations/20260918224100_suppression_de_compte_
   rétentions voulues (`account_deletion_requests`, la pierre tombale). Toute
   autre table qui garde des lignes est une colonne oubliée : nouvelle migration
   AVANT le premier compte dû — il n'y en a aucun avant 30 jours.
+  **Passée le 2026-09-19** sur le compte le plus chargé (poids 347) : `ok: true`,
+  vingt familles traitées, la demande finit `completed` sans erreur, et UN seul
+  écart — `group_members` : 10 lignes contenaient l'uid avant, **7 après**. Cause :
+  la table n'a AUCUNE clé étrangère vers `groups`, et la base compte exactement 7
+  appartenances sans groupe (celles-là) ; la boucle de la purge part de `groups`
+  et ne les voit pas. Le banc fictif ne pouvait pas le trouver, ses groupes
+  existent tous. Correctif : migration `20260919204100` (un DELETE par uid après
+  la boucle), éprouvée par le banc (cas 50 : échoue contre l'état actuel, passe
+  avec le correctif ; 50/50) — **PAS APPLIQUÉE**. À cocher quand elle l'est ET que
+  la répétition, relancée, ne montre plus que `account_deletion_requests`.
 - [x] **Premier passage de la fonction, à vide** (2026-09-19 11:37 UTC,
   `firebase functions:log --only finalizeAccountDeletions`) : exécution `ok` en
   701 ms, aucune ligne d'erreur — ni « Supabase non configuré » ni « réclamation

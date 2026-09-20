@@ -10,12 +10,15 @@ import 'package:flutter_test/flutter_test.dart';
 ///
 /// Ces tests lisent la migration, la Cloud Function, le client et les textes :
 /// ils ne prouvent PAS que la base se comporte ainsi — c'est le banc
-/// `tools/rls_tests/suppression_compte.sql` (49 cas, rejoué en production dans
+/// `tools/rls_tests/suppression_compte.sql` (50 cas, rejoué en production dans
 /// un `BEGIN … ROLLBACK`). Ils gardent ce que le banc ne peut pas garder :
 /// qu'un futur `CREATE OR REPLACE`, une colonne oubliée ou une réécriture du
 /// client ne défasse pas discrètement ce qui a été établi.
 ///
-/// La migration N'EST PAS appliquée : les assertions portent sur le fichier.
+/// Les assertions portent sur les FICHIERS de migration : la première est
+/// appliquée en production depuis le 2026-09-19 ; 20260919204100 (appartenances
+/// sans groupe) ne l'est pas encore — la DERNIÈRE définition de chaque fonction
+/// fait foi, où qu'elle soit.
 
 String _source(String chemin) =>
     File(chemin).readAsStringSync().replaceAll('\r\n', '\n');
@@ -56,7 +59,22 @@ String _corps(String sql, String nom) {
 
 void main() {
   final sql = _source(_migration);
-  final purge = _corps(sql, 'private.purge_account');
+  // La DERNIÈRE définition, pas celle du fichier de création : une fonction
+  // PostgreSQL n'a pas de « fichier source », elle a un dernier
+  // `CREATE OR REPLACE` gagnant. Son corps a été repris par 20260919204100
+  // (appartenances sans groupe) ; lire l'original ferait passer ces tests
+  // longtemps après que le corps réel a changé — et un remplacement ultérieur
+  // qui perdrait un ajout ferait échouer ici, sans qu'aucune erreur ne se
+  // voie en base. Motif `CREATE OR REPLACE` : un simple `REVOKE ... FUNCTION
+  // private.purge_account(` ne définit rien.
+  final purge = _corps(
+    _source(
+      _derniereMigrationDefinissant(
+        'CREATE OR REPLACE FUNCTION private.purge_account(',
+      ),
+    ),
+    'private.purge_account',
+  );
 
   // ═══════════════════════════════════════════════════════════════════════
   // Couverture : chaque colonne d'identifiant SANS clé étrangère est traitée
@@ -105,6 +123,10 @@ void main() {
       'embassy_messages': ['user_id'],
       'activity_logs': ['user_id'],
       'auth_mappings': ['firebase_uid'],
+      // Après la boucle sur les groupes : `group_members` n'a AUCUNE clé
+      // étrangère vers `groups`, la boucle ne voit que les appartenances dont
+      // le groupe existe (voir le test des appartenances sans groupe).
+      'group_members': ['user_id'],
       'users': ['id'],
     };
 
@@ -135,7 +157,6 @@ void main() {
       'messages': ['sender_id', 'senderPhotoUrl', 'editHistory', 'replyToMessageData'],
       'mls_messages': ['sender_id', 'ciphertext', 'is_deleted'],
       'mls_devices': ['user_id', 'revoked_at', 'mls_identity'],
-      'group_members': ['user_id'],
       'groups': ['creator_id', 'creator_name'],
       'notifications': ['user_id', 'actor_id', 'senderId'],
       'business_boosts': ['user_id'],
@@ -247,6 +268,23 @@ void main() {
       expect(purge, contains('DELETE FROM public.groups WHERE id = v_g.id'));
       // Un groupe OFFICIEL n'est jamais dissous ni transmis.
       expect(purge, contains('NOT v_g.is_official'));
+    });
+
+    test('les appartenances SANS groupe partent aussi, par un DELETE par uid', () {
+      // `group_members` n'a aucune clé étrangère vers `groups` : un groupe
+      // supprimé, ou hérité de Firestore, laisse ses lignes. La boucle sur les
+      // groupes part de `groups` et ne les voit pas. Trouvé le 2026-09-19 par la
+      // répétition sur un compte RÉEL : 7 lignes gardaient l'uid pour toujours,
+      // que le banc fictif ne pouvait pas voir — ses groupes existent tous.
+      final appel = purge.indexOf(
+        "purge_delete('public.group_members', p_uid, 'user_id')",
+      );
+      expect(appel, isPositive, reason: 'les appartenances orphelines ne sont plus purgées');
+      // Après la boucle : les vraies appartenances sont déjà parties, il ne
+      // reste que les orphelines — et avant le profil.
+      expect(appel, greaterThan(purge.indexOf('END LOOP;')));
+      expect(appel, lessThan(purge.indexOf("purge_delete('public.users'")));
+      expect(purge, contains("'appartenances_orphelines'"));
     });
 
     test('les boosts partent avant le commerce (NO ACTION)', () {
