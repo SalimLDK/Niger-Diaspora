@@ -10043,8 +10043,8 @@ best-effort à l'ouverture) :
 - [ ] **Mention** : conversation en sourdine, un message qui nomme le compte ;
   ouvrir la discussion → `is_read = true` en base (la ligne est à l'écran de
   Notifications : elle doit en sortir de « Non lues »).
-- [ ] **Mention, action de la bannière** — *après `supabase db push` de
-  `20260919120000`* : même mise en place, la mention posée en bannière ;
+- [ ] **Mention, action de la bannière** — *migration `20260919120000` appliquée
+  (relue en base le 2026-09-20)* : même mise en place, la mention posée en bannière ;
   toucher « Marquer comme lu » sur la bannière → `is_read = true`. Sans la
   migration ce chemin ne la marque pas.
 - [ ] **Non-régression** : une demande d'ami en attente reste non lue et garde
@@ -10060,9 +10060,10 @@ compare la ligne insérée à l'écran courant) ; une push touchée sans `target
 (`BackgroundReplyService.markAsRead`) n'appelle que la RPC
 `mark_messages_as_read`, qui ignore `messageMention`. Ce chemin n'est couvert
 que par la migration `20260919120000_mentions_lues_avec_la_discussion.sql`,
-**écrite et éprouvée en `ROLLBACK`, pas encore appliquée** : le banc
+**écrite et éprouvée en `ROLLBACK`, appliquée depuis** (relue en base le
+2026-09-20 : les deux fonctions sont celles du fichier, aux fins de ligne près) : le banc
 `tools/rls_tests/mentions_lues_avec_la_discussion.sql` donne 21 cas verts avec
-elle, et les cas 1, 2, 9 et 14 tombent sans elle. Une fois appliquée, le
+elle, et les cas 1, 2, 9 et 14 tombent sans elle. Maintenant qu'elle est appliquée, le
 marquage côté client des mentions (`NotificationReadSync` appelé depuis
 `conversation_screen.dart`) devient redondant et moins exact (marge de 2 s) :
 à retirer pour qu'il ne reste qu'une source. Aucune ligne `messageMention`
@@ -13424,7 +13425,7 @@ Fichiers : [migration](supabase/migrations/20260918224100_suppression_de_compte_
   la boucle), éprouvée par le banc (cas 50 : échoue contre l'état actuel, passe
   avec le correctif ; 50/50) — **appliquée le 2026-09-19 au soir** par `db push`
   (`20260919120000`, mentions lues, migration d'une autre session et non demandée, a
-  été écartée le temps du push : elle reste NON appliquée). Corps déployé vérifié
+  été écartée le temps du push ; elle a été appliquée depuis, relue en base le 2026-09-20). Corps déployé vérifié
   identique au fichier, banc 50/50 contre l'état appliqué.
   **Relancée le 2026-09-19 au soir, après le correctif** (par l'agent, à la
   demande de Salim — le classifieur l'a acceptée cette fois, il l'avait refusée
