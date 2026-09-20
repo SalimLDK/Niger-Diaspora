@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1493 cases à cocher, 648 cochées** — 285 entrées sur 334 ont encore des cases ouvertes.
+**1493 cases à cocher, 650 cochées** — 285 entrées sur 334 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -343,7 +343,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 334 à faire, 124 faites
+- [2. Messagerie](#2-messagerie) — 334 à faire, 126 faites
 - [3. Groupes](#3-groupes) — 149 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 142 à faire, 42 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
@@ -613,8 +613,11 @@ coupaient en plein mot (« WhatsAp / p »), le bouton « Envoyer dans une
 discussion » passait sur deux lignes avec l'icône collée au bord, et les tuiles
 montraient une bulle de chat et une croix « fermer » au lieu des logos WhatsApp
 et X.
-*Non vu sur appareil : le Pixel porte le build Play (+22), un build local ne s'y
-installe pas — et c'est un vrai compte.*
+*Vu sur le SM A515F (build debug 1.2.2+23, installée en place le 2026-09-20,
+thème clair, police 1,0, sans gras) : le rendu corrigé, mais PAS le défaut, qui
+n'y apparaît pas. Non vu sur le Pixel, là où il apparaît : il porte le build Play
+(+22), un build local ne s'y installe pas, et c'est un vrai compte. L'AAB
+1.2.2+23 attend d'être importé sur une piste Play.*
 
 Les tuiles et le bouton du profil et du groupe étaient deux copies privées qui
 avaient divergé : les logos de marque n'existaient que côté groupe, et la marge
@@ -634,16 +637,19 @@ correctif : il ne remplace pas l'appareil pour autant.
 ⚠️ Sur ce Pixel, deux réglages comptent : `font_scale` 1,3 **et** texte en gras
 (`font_weight_adjustment` 300). Un test à 1,0 sans gras ne prouve rien.
 
-- [ ] **Profil, échelle 1,3** : Partager mon profil → « WhatsApp », « Facebook »,
-      « X » et « Plus » tiennent chacun sur une seule ligne, sans coupure ni
-      débordement. Le texte rétréci reste lisible.
-- [ ] **Profil, logos** : WhatsApp, Facebook et X montrent leur logo de marque,
-      en clair comme en sombre (X : noir sur blanc en clair, blanc sur noir en
-      sombre).
-- [ ] **Bouton « Envoyer dans une discussion »**, profil : une seule ligne, l'icône
-      et le texte gardent de l'air de chaque côté (plus collée au bord gauche) ;
-      le texte rétréci reste lisible. À 1,0, le bouton n'a pas changé de taille de
-      texte.
+- [ ] **Profil, échelle 1,3 + texte en gras** : Partager mon profil → « WhatsApp »,
+      « Facebook », « X » et « Plus » tiennent chacun sur une seule ligne, sans
+      coupure ni débordement. Le texte rétréci reste lisible. (Le Pixel, ou le
+      A515F réglé à 1,3 et gras : à 1,0 sans gras le défaut n'existe pas.)
+- [x] **Profil, logos, thème clair** : WhatsApp, Facebook et X montrent leur logo de
+      marque (X : logo blanc sur pastille noire), « Plus » ses trois points — vu
+      SM A515F, build 1.2.2+23, 2026-09-20.
+- [ ] **Profil, logos, thème sombre** : le X passe en blanc avec logo noir.
+- [x] **Bouton « Envoyer dans une discussion », profil, à 1,0** : une seule ligne,
+      l'icône et le texte à distance des bords — vu SM A515F, build 1.2.2+23,
+      2026-09-20. « Scanner un QR code », dessous, inchangé.
+- [ ] **Bouton, à 1,3 + texte en gras** : toujours une seule ligne, l'icône n'est
+      plus collée au bord gauche ; le texte rétréci reste lisible.
 - [ ] **Groupe** : fiche « Partager le groupe » — mêmes libellés sur une ligne
       à 1,3 (elle partage désormais la tuile du profil), logos inchangés, et le
       même bouton, dans la couleur secondaire du compte (le profil prend
