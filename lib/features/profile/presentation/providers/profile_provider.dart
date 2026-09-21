@@ -130,6 +130,20 @@ class ProfileNotifier extends StateNotifier<AsyncValue<ProfileEntity?>> {
   /// sortait sur son garde sans rien dire, ou sautait un étage d'écriture
   /// (constaté sur appareil le 2026-08-06). Un StateNotifierProvider
   /// n'expose pas de `.future`, d'où le repli explicite sur le dépôt.
+  /// Reporte dans l'état une valeur **déjà écrite** par un autre chemin, sans
+  /// rien réécrire.
+  ///
+  /// Pour les réglages qui ont leur propre écriture serveur (le statut en
+  /// ligne passe par `OnlineStatusService`, qui aligne aussi la présence).
+  /// Sans ce report, l'état gardait l'ancienne valeur, et le prochain
+  /// [updateProfile] — qui écrit toutes les colonnes — la remettait en base.
+  /// Vu le 2026-09-21 sur SM A515F : statut en ligne coupé dans Réglages,
+  /// bio modifiée, `show_online_status` de retour à `true`.
+  void appliquerSansEcrire(ProfileEntity Function(ProfileEntity) modifier) {
+    final actuel = state.valueOrNull;
+    if (actuel != null) state = AsyncValue.data(modifier(actuel));
+  }
+
   Future<ProfileEntity?> currentProfile() async {
     final cached = state.valueOrNull;
     if (cached != null) return cached;

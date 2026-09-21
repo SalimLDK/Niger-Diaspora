@@ -67,6 +67,14 @@ class CurrentUserOnlineStatusVisibility
     try {
       final service = ref.read(onlineStatusServiceProvider);
       await service.updateOnlineStatusVisibility(value);
+      // Le profil en mémoire doit le savoir : c'est lui que relit « Modifier
+      // le profil », et il réécrit toutes les colonnes à l'enregistrement.
+      final userId = ref.read(currentUserAsyncProvider).valueOrNull?.id;
+      if (userId != null) {
+        ref
+            .read(profileNotifierProvider(userId).notifier)
+            .appliquerSansEcrire((p) => p.copyWith(showOnlineStatus: value));
+      }
       return true;
     } catch (e, stackTrace) {
       LoggerService.w(
