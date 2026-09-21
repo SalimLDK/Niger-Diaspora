@@ -1745,17 +1745,17 @@ class NotificationService {
       // Sans session Supabase authentifiée, RLS bloque l'update de `users` :
       // le token n'était jamais enregistré → aucune notification push.
       await SupabaseAuthBridge.instance.ensureAuthenticated();
-      final row = await Supabase.instance.client
-          .from('users')
-          .select('fcm_tokens')
-          .eq('id', uid)
-          .maybeSingle();
-      final tokens = List<String>.from(row?['fcm_tokens'] as List? ?? []);
-      if (!tokens.contains(token)) tokens.add(token);
-      await Supabase.instance.client
-          .from('users')
-          .update({'fcm_tokens': tokens, 'last_token_update': DateTime.now().toUtc().toIso8601String()})
-          .eq('id', uid);
+      // L'ajout se fait EN BASE, en une instruction (`ajouter_jeton_push`).
+      // C'était un lire-modifier-écrire de `fcm_tokens`, avec deux défauts :
+      // deux appareils du même compte qui s'enregistraient en même temps
+      // s'effaçaient l'un l'autre, et la lecture sera refusée en 42501 une
+      // fois la fermeture 1.1b appliquée — plus AUCUNE notification sur un
+      // nouvel appareil. La fonction écrit la ligne de la session, pas celle
+      // d'un `userId` : [uid] ne sert plus qu'à la garde ci-dessus.
+      await Supabase.instance.client.rpc(
+        'ajouter_jeton_push',
+        params: {'p_jeton': token},
+      );
     } catch (e) {
       debugPrint('Error saving FCM token to database: $e');
     }
@@ -1793,17 +1793,12 @@ class NotificationService {
     if (_fcmToken == null) return;
     try {
       await SupabaseAuthBridge.instance.ensureAuthenticated();
-      final row = await Supabase.instance.client
-          .from('users')
-          .select('fcm_tokens')
-          .eq('id', userId)
-          .maybeSingle();
-      final tokens = List<String>.from(row?['fcm_tokens'] as List? ?? [])
-        ..remove(_fcmToken);
-      await Supabase.instance.client
-          .from('users')
-          .update({'fcm_tokens': tokens})
-          .eq('id', userId);
+      // Voir `_saveTokenToDatabase` : le retrait se fait en base, sans relire
+      // `fcm_tokens`.
+      await Supabase.instance.client.rpc(
+        'retirer_jeton_push',
+        params: {'p_jeton': _fcmToken},
+      );
     } catch (e) {
       debugPrint('Error removing FCM token from database: $e');
     }

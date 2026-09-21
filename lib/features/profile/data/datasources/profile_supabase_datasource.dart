@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:firebase_auth/firebase_auth.dart' show FirebaseAuth;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/errors/exceptions.dart';
+import '../../../../core/constants/colonnes_users.dart';
 import '../../../../core/constants/profile_options.dart';
 import '../../../../core/services/cache_service.dart';
 import '../../../../core/services/image_upload_service.dart';
@@ -83,15 +85,67 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
   /// doit seulement éviter de partir en anon, pas bloquer l'écran.
   final Future<bool> Function() _ensureReadableAuth;
 
+  /// Identifiant du compte connecté, injectable pour les tests.
+  final String? Function()? _uidCourantOverride;
+
   ProfileSupabaseDataSource({
     SupabaseClient? supabase,
     Future<bool> Function()? ensureAuth,
     Future<bool> Function()? ensureReadableAuth,
+    String? Function()? uidCourant,
   }) : _clientOverride = supabase,
        _ensureAuth =
            ensureAuth ?? SupabaseAuthBridge.instance.ensureAuthenticated,
        _ensureReadableAuth =
-           ensureReadableAuth ?? SupabaseAuthBridge.instance.ensureReadableSession;
+           ensureReadableAuth ?? SupabaseAuthBridge.instance.ensureReadableSession,
+       _uidCourantOverride = uidCourant;
+
+  /// Qui est « moi » ?
+  ///
+  /// L'uid Firebase, comme partout ailleurs dans l'app — pas un claim du jeton
+  /// Supabase : `firebase_uid()` retombe sur la table `auth_mappings` quand le
+  /// claim manque, si bien que le client ne peut pas compter le trouver dans
+  /// `appMetadata`. Le désaccord éventuel entre les deux est traité par
+  /// [_ligne], qui vérifie l'identifiant de la ligne rendue.
+  String? _uidCourant() {
+    final override = _uidCourantOverride;
+    if (override != null) return override();
+    try {
+      return FirebaseAuth.instance.currentUser?.uid;
+    } catch (_) {
+      // Firebase non initialisé (tests) : personne n'est « moi ».
+      return null;
+    }
+  }
+
+  /// La ligne `users` de [userId], dans la forme que la fermeture 1.1b de
+  /// l'audit autorise (`lib/core/constants/colonnes_users.dart`).
+  ///
+  /// - **La sienne** : entière, par `mon_profil_prive()` — e-mail, téléphone,
+  ///   jetons, préférences. C'est le seul chemin qui les servira une fois les
+  ///   colonnes privées retirées au rôle `authenticated`.
+  /// - **Celle d'autrui** : les colonnes publiques seulement.
+  ///
+  /// `mon_profil_prive()` rend la ligne de la session SUPABASE. Si ce n'est
+  /// pas celle demandée (session d'un compte précédent pas encore rebasculée),
+  /// on ne la sert pas sous un autre nom : on retombe sur la lecture publique.
+  Future<Map<String, dynamic>?> _ligne(String userId) async {
+    if (userId == _uidCourant()) {
+      final moi = await _supabase.rpc('mon_profil_prive').maybeSingle();
+      if (moi != null && moi['id'] == userId) return moi;
+    }
+    return _supabase
+        .from('users')
+        .select(selectPublicUsers)
+        .eq('id', userId)
+        .maybeSingle();
+  }
+
+  ProfileModel _modeleDepuis(Map<String, dynamic> row) {
+    final profile = ProfileModel.fromJson(_mapProfile(row));
+    _memoriser(profile);
+    return profile;
+  }
 
   /// Garde obligatoire avant toute écriture.
   ///
@@ -117,36 +171,115 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
     if (!await _ensureReadableAuth()) {
       throw ServerException('Session non établie – réessayez');
     }
-    final data =
-        await _supabase.from('users').select().eq('id', userId).maybeSingle();
+    final data = await _ligne(userId);
     if (data == null) throw ServerException('Profile not found: $userId');
-    final profile = ProfileModel.fromJson(_mapProfile(data));
-    _memoriser(profile);
-    return profile;
+    return _modeleDepuis(data);
   }
 
-  @override
-  Stream<ProfileModel> getUserStream(String userId) async* {
-    // Même garde que [getProfile], et pour une raison plus coûteuse ici : la
-    // policy `users_select` vaut pour le rôle `public`, donc une lecture en
-    // anon **réussit** en ne renvoyant simplement aucune ligne dès que le
-    // profil est privé. Sans cette attente, le `.stream()` démarrait pendant
-    // la fenêtre d'établissement de la session, l'absence était lue comme
-    // « compte supprimé », et chaque ligne de la liste des discussions
-    // affichait « Utilisateur » avec un avatar à initiale à la place du
-    // correspondant — par intermittence, au gré de la course.
-    await _ensureReadableAuth();
+  /// Numéro de canal, pour que deux flux sur le même profil (la liste des
+  /// discussions et l'écran ouvert) aient chacun le leur.
+  static int _prochainCanal = 0;
 
-    yield* _supabase
-        .from('users')
-        .stream(primaryKey: ['id'])
-        .eq('id', userId)
-        .asyncMap((rows) async {
-          if (rows.isEmpty) return await _profilAbsent(userId);
-          final profile = ProfileModel.fromJson(_mapProfile(rows.first));
-          _memoriser(profile);
-          return profile;
-        });
+  @override
+  Stream<ProfileModel> getUserStream(String userId) {
+    // CE N'EST PLUS UN `.stream()`, et il ne peut pas en être un. `.stream()`
+    // commence par un `select()` nu — `SELECT *` —, refusé en 42501 entier une
+    // fois les colonnes privées retirées (fermeture 1.1b). Ce flux reproduit
+    // son comportement à la main, sur le modèle de
+    // `SupabaseStreamBuilder` (supabase 2.16) : lecture immédiate à l'écoute,
+    // relecture à chaque reconnexion, erreur sur `timedOut`/`channelError`,
+    // fin sur `closed`.
+    //
+    // Avec UNE différence, voulue. Sur un UPDATE, `.stream()` REMPLACE la ligne
+    // par le message temps réel. Or le temps réel retire d'un message les
+    // colonnes que l'abonné ne peut pas lire, sans erreur (mesuré :
+    // tools/rls_tests/temps_reel_droits_colonnes.sql) : son propre profil
+    // perdrait e-mail, téléphone et préférences à la première mise à jour de
+    // présence. Ici, le message se SUPERPOSE à la dernière ligne connue ; une
+    // clé absente garde sa valeur.
+    late final StreamController<ProfileModel> controller;
+    RealtimeChannel? canal;
+    Map<String, dynamic>? derniere;
+    var dejaAbonne = false;
+
+    Future<void> relire() async {
+      try {
+        final row = await _ligne(userId);
+        if (controller.isClosed) return;
+        if (row == null) {
+          controller.add(await _profilAbsent(userId));
+          return;
+        }
+        derniere = row;
+        controller.add(_modeleDepuis(row));
+      } catch (e, st) {
+        if (!controller.isClosed) controller.addError(e, st);
+      }
+    }
+
+    controller = StreamController<ProfileModel>(
+      onListen: () async {
+        // Même garde que [getProfile], et pour une raison plus coûteuse ici :
+        // sans session, la lecture partait en anon et ne rendait aucune ligne ;
+        // l'absence était lue comme « compte supprimé », et chaque ligne de la
+        // liste des discussions affichait « Utilisateur » à la place du
+        // correspondant — par intermittence, au gré de la course.
+        await _ensureReadableAuth();
+        if (controller.isClosed) return;
+
+        canal = _supabase.channel('profil_${userId}_${_prochainCanal++}')
+          ..onPostgresChanges(
+            event: PostgresChangeEvent.all,
+            schema: 'public',
+            table: 'users',
+            filter: PostgresChangeFilter(
+              type: PostgresChangeFilterType.eq,
+              column: 'id',
+              value: userId,
+            ),
+            callback: (payload) {
+              if (controller.isClosed) return;
+              if (payload.eventType == PostgresChangeEvent.delete) {
+                unawaited(relire());
+                return;
+              }
+              final nouveau = payload.newRecord;
+              if (nouveau.isEmpty) return;
+              final fusion = <String, dynamic>{...?derniere, ...nouveau};
+              derniere = fusion;
+              try {
+                controller.add(_modeleDepuis(fusion));
+              } catch (e, st) {
+                controller.addError(e, st);
+              }
+            },
+          )
+          ..subscribe((statut, [erreur]) {
+            if (controller.isClosed) return;
+            switch (statut) {
+              case RealtimeSubscribeStatus.subscribed:
+                // Rejoué à chaque reconnexion : on relit ce qui a pu changer
+                // pendant la coupure. La première fois, la lecture ci-dessous
+                // est déjà partie.
+                if (dejaAbonne) unawaited(relire());
+                dejaAbonne = true;
+              case RealtimeSubscribeStatus.closed:
+                unawaited(controller.close());
+              case RealtimeSubscribeStatus.timedOut:
+              case RealtimeSubscribeStatus.channelError:
+                controller.addError(RealtimeSubscribeException(statut, erreur));
+            }
+          });
+
+        unawaited(relire());
+      },
+      onCancel: () async {
+        final c = canal;
+        canal = null;
+        if (c != null) await _supabase.removeChannel(c);
+      },
+    );
+    return controller.stream;
   }
 
   /// Le flux n'a renvoyé aucune ligne : tranche entre « compte supprimé » et
@@ -160,13 +293,8 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
   /// session confirmée.
   Future<ProfileModel> _profilAbsent(String userId) async {
     if (await _ensureReadableAuth()) {
-      final data =
-          await _supabase.from('users').select().eq('id', userId).maybeSingle();
-      if (data != null) {
-        final profile = ProfileModel.fromJson(_mapProfile(data));
-        _memoriser(profile);
-        return profile;
-      }
+      final data = await _ligne(userId);
+      if (data != null) return _modeleDepuis(data);
       throw NotFoundException('User $userId not found');
     }
     // Session toujours pas établie : on ne sait rien. Le dernier profil connu
@@ -181,7 +309,7 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
   Future<List<ProfileModel>> searchProfiles(String query) async {
     final data = await _supabase
         .from('users')
-        .select()
+        .select(selectPublicUsers)
         .eq('is_visible', true)
         .ilike('display_name', '%$query%')
         // Même raison que `getNearbyProfiles` : une troncature sans ordre est
@@ -231,7 +359,7 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
       final fin = reste < uniques.length ? reste : uniques.length;
       final data = await _supabase
           .from('users')
-          .select()
+          .select(selectPublicUsers)
           .inFilter('id', uniques.sublist(debut, fin));
       for (final row in data as List) {
         final profil = ProfileModel.fromJson(
@@ -256,47 +384,108 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
       throw ServerException('Session non établie – réessayez');
     }
     final delta = radiusKm / 111.0;
-    final data = await _supabase
-        .from('users')
-        .select()
-        .eq('is_visible', true)
-        .eq('share_location', true)
-        .gte('latitude', latitude - delta)
-        .lte('latitude', latitude + delta)
-        .gte('longitude', longitude - delta)
-        .lte('longitude', longitude + delta)
-        // `limit(50)` sans `order` renvoyait **50 lignes arbitraires** : sans
-        // ORDER BY, Postgres ne promet aucun ordre. Passé 50 membres dans la
-        // boîte, on pouvait donc recevoir 50 profils périmés et zéro profil
-        // récent — alors que la carte écarte ensuite tout ce qui a plus de
-        // 5 minutes. Résultat possible : « aucun membre autour » alors que
-        // des membres actifs étaient là.
-        //
-        // Trier par fraîcheur aligne la troncature sur le filtre qui suit :
-        // les 50 rendus sont ceux qui ont le plus de chances d'y survivre.
-        // (Trier par distance demanderait un RPC : PostgREST ne sait pas
-        // calculer une distance dans un ORDER BY.)
-        .order('location_updated_at', ascending: false, nullsFirst: false)
-        .limit(50);
-    return (data as List)
-        .map((r) => ProfileModel.fromJson(_mapProfile(r)))
-        .toList();
+    // LA POSITION VIENT DU SERVEUR, CONSENTEMENT APPLIQUÉ. Cette lecture
+    // demandait autrefois `SELECT *` filtré par `.eq('share_location', true)`
+    // — un filtre que le CLIENT posait de lui-même : une requête qui
+    // l'omettait obtenait la position des 6 personnes qui avaient coupé le
+    // partage (mesuré le 2026-09-21). `positions_partagees()` applique le
+    // consentement, la visibilité et le caractère privé en base, et ne rend
+    // que l'identifiant et la position ; l'identité se relit ensuite par
+    // colonnes publiques.
+    //
+    // Même boîte, même tri et même troncature qu'avant, côté serveur :
+    // `limit(50)` sans ordre rendait 50 lignes arbitraires, et la carte écarte
+    // ensuite tout ce qui a plus de 5 minutes — trier par fraîcheur aligne la
+    // troncature sur ce filtre.
+    final positions = await _supabase.rpc(
+      'positions_partagees',
+      params: {
+        'p_lat_min': latitude - delta,
+        'p_lat_max': latitude + delta,
+        'p_lng_min': longitude - delta,
+        'p_lng_max': longitude + delta,
+        'p_limite': 50,
+      },
+    );
+    return _profilsAvecPositions(
+      (positions as List).cast<Map<String, dynamic>>(),
+    );
   }
 
   @override
   Future<List<ProfileModel>> getProfilesByCountry(String country) async {
     final data = await _supabase
         .from('users')
-        .select()
+        .select(selectPublicUsers)
         .eq('country_code', country)
         .eq('is_visible', true)
-        // Même raison que `getNearbyProfiles` : une troncature non ordonnée
-        // est une loterie, et le filtre de présence qui suit élimine le reste.
-        .order('location_updated_at', ascending: false, nullsFirst: false)
+        // Une troncature non ordonnée est une loterie. Le tri se faisait sur
+        // `location_updated_at`, qui n'est plus une colonne publique (un tri
+        // sur une colonne non accordée fait refuser la requête entière). La
+        // dernière activité est l'indice le plus proche de « présent sur la
+        // carte » qui reste lisible. Elle manque à beaucoup de profils ; ceux-là
+        // passent en dernier, ce qui ne coûte rien tant qu'un pays compte
+        // moins de 50 membres visibles — 127 profils en tout au 2026-09-21.
+        .order('last_active_at', ascending: false, nullsFirst: false)
         .limit(50);
-    return (data as List)
-        .map((r) => ProfileModel.fromJson(_mapProfile(r)))
-        .toList();
+    final profils = (data as List).cast<Map<String, dynamic>>();
+    // Utilisée par la carte en mode « pays », qui place des marqueurs : les
+    // positions sont jointes par identifiant, consentement appliqué par le
+    // serveur. (Aussi utilisée par les mentions, qui les ignorent.)
+    final positions = await _positionsParIds([
+      for (final p in profils)
+        if (p['share_location'] == true) p['id'] as String,
+    ]);
+    return [
+      for (final p in profils) _modeleDepuis({...p, ...?positions[p['id']]}),
+    ];
+  }
+
+  /// Positions consenties de [ids], par `positions_partagees_par_ids()`.
+  ///
+  /// Indexées par identifiant, chacune sous la forme d'un fragment de ligne
+  /// (`latitude`, `longitude`, `location_updated_at`) à superposer à la ligne
+  /// publique. Un identifiant absent du résultat n'a pas de position à
+  /// montrer : partage coupé, invisible, privé, ou jamais localisé.
+  Future<Map<String, Map<String, dynamic>>> _positionsParIds(
+    List<String> ids,
+  ) async {
+    if (ids.isEmpty) return const {};
+    final rows = await _supabase.rpc(
+      'positions_partagees_par_ids',
+      params: {'p_ids': ids},
+    );
+    return {
+      for (final r in (rows as List).cast<Map<String, dynamic>>())
+        r['id'] as String: {
+          'latitude': r['latitude'],
+          'longitude': r['longitude'],
+          'location_updated_at': r['location_updated_at'],
+        },
+    };
+  }
+
+  /// Joint à des positions (id, latitude, longitude, date) l'identité
+  /// publique de chacun, dans l'ordre des positions.
+  ///
+  /// Un identifiant dont la ligne publique ne revient pas (supprimé, devenu
+  /// privé entre les deux lectures) est écarté plutôt que montré sans nom.
+  Future<List<ProfileModel>> _profilsAvecPositions(
+    List<Map<String, dynamic>> positions,
+  ) async {
+    if (positions.isEmpty) return const [];
+    final lignes = await _supabase
+        .from('users')
+        .select(selectPublicUsers)
+        .inFilter('id', [for (final p in positions) p['id'] as String]);
+    final parId = {
+      for (final l in (lignes as List).cast<Map<String, dynamic>>())
+        l['id'] as String: l,
+    };
+    return [
+      for (final p in positions)
+        if (parId[p['id']] != null) _modeleDepuis({...parId[p['id']]!, ...p}),
+    ];
   }
 
   /// Flux temps réel des profils dont la position vient de changer.
@@ -316,12 +505,57 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
   /// découpés par cellule géographique plutôt qu'un flux table entière.
   ///
   /// Le canal est fermé quand l'abonnement au flux est annulé.
+  ///
+  /// **Le message temps réel n'est plus qu'un signal.** Il portait la
+  /// position, et le rappel la lisait directement. Deux raisons de ne plus le
+  /// faire :
+  ///
+  /// - une fois les colonnes privées retirées (fermeture 1.1b), le temps réel
+  ///   retire `latitude`, `longitude` et `location_updated_at` du message,
+  ///   SANS erreur (mesuré : tools/rls_tests/temps_reel_droits_colonnes.sql) :
+  ///   l'ancien rappel sortait alors tôt, et plus personne ne bougeait à
+  ///   l'écran ;
+  /// - aujourd'hui déjà, il recevait la position de qui avait coupé le
+  ///   partage, et ne l'écartait que parce que la carte refiltrait derrière.
+  ///
+  /// Le message garde `id`, `share_location` et `is_visible`. Qui partage est
+  /// mis en attente ; toutes les [_delaiLot], les positions des identifiants
+  /// en attente sont demandées en un appel à `positions_partagees_par_ids()`,
+  /// qui applique le consentement en base. Qui a coupé le partage ou s'est
+  /// rendu invisible est transmis tout de suite, SANS position : c'est ce qui
+  /// permet à la carte de le retirer sans attendre le prochain sondage.
+  ///
+  /// Coût : un appel au plus par [_delaiLot] et par carte ouverte, et
+  /// seulement si un membre qui partage a bougé — pas un par message.
   Stream<ProfileModel> watchProfileLocationUpdates() {
     final channel = _supabase.channel('users_location_updates');
     late final StreamController<ProfileModel> controller;
+    final enAttente = <String, Map<String, dynamic>>{};
+    Timer? minuterie;
+
+    Future<void> vider() async {
+      minuterie = null;
+      if (enAttente.isEmpty || controller.isClosed) return;
+      final lot = Map<String, Map<String, dynamic>>.of(enAttente);
+      enAttente.clear();
+      try {
+        final positions = await _positionsParIds(lot.keys.toList());
+        if (controller.isClosed) return;
+        for (final entree in positions.entries) {
+          final ligne = lot[entree.key];
+          if (ligne == null) continue;
+          controller.add(_modeleDepuis({...ligne, ...entree.value}));
+        }
+      } catch (_) {
+        // Le sondage périodique de la carte prend le relais : un lot perdu ne
+        // doit pas casser le flux.
+      }
+    }
 
     controller = StreamController<ProfileModel>(
       onCancel: () async {
+        minuterie?.cancel();
+        minuterie = null;
         await _supabase.removeChannel(channel);
       },
     );
@@ -333,24 +567,44 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
           table: 'users',
           callback: (payload) {
             final row = payload.newRecord;
-            if (row.isEmpty) return;
-            // Une ligne `users` bouge pour bien d'autres raisons qu'un
-            // déplacement (statut en ligne, compteurs, édition de profil).
-            // Sans coordonnées exploitables, il n'y a rien à replacer.
-            if (row['latitude'] == null || row['longitude'] == null) return;
+            final id = row['id'];
+            if (row.isEmpty || id is! String) return;
             try {
-              final profile = ProfileModel.fromJson(_mapProfile(row));
-              _memoriser(profile);
-              controller.add(profile);
+              if (row['share_location'] != true || row['is_visible'] == false) {
+                // Plus rien à montrer : on le transmet sans position, et la
+                // carte le retire s'il y était.
+                controller.add(_modeleDepuis(
+                  {...row}..removeWhere((k, _) => _clesPosition.contains(k)),
+                ));
+                return;
+              }
             } catch (_) {
               // Ligne inattendue : on ignore plutôt que de casser le flux.
+              return;
             }
+            // Une ligne `users` bouge pour bien d'autres raisons qu'un
+            // déplacement (statut en ligne, compteurs, édition de profil) :
+            // le lot absorbe cette rafale.
+            enAttente[id] = row;
+            minuterie ??= Timer(_delaiLot, () => unawaited(vider()));
           },
         )
         .subscribe();
 
     return controller.stream;
   }
+
+  /// Fenêtre de regroupement des demandes de position de la carte en direct.
+  static const Duration _delaiLot = Duration(milliseconds: 300);
+
+  /// Clés de position d'une ligne `users`. Retirées d'un message temps réel
+  /// quand elles ne doivent pas être montrées : aujourd'hui le message les
+  /// porte encore, pour tout le monde.
+  static const Set<String> _clesPosition = {
+    'latitude',
+    'longitude',
+    'location_updated_at',
+  };
 
   // ═══════════════════════════════════════════
   // WRITE
@@ -404,14 +658,23 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
               'show_online_status': profile.showOnlineStatus,
               'updated_at': DateTime.now().toUtc().toIso8601String(),
             })
-            .select()
+            // `id` seulement : `.select()` nu est un `RETURNING *`, refusé
+            // entier une fois les colonnes privées retirées (fermeture 1.1b)
+            // — l'écriture aurait réussi et l'appel échoué quand même.
+            .select('id')
             .maybeSingle();
     // La garde ci-dessus a déjà écarté la cause « pas de session ». Si l'upsert
     // ne renvoie toujours rien, c'est la RLS qui refuse la ligne elle-même.
     if (data == null) {
       throw ServerException('Écriture refusée pour le profil ${profile.id}');
     }
-    return ProfileModel.fromJson(_mapProfile(data));
+    // La ligne relue ENTIÈRE (c'est la sienne) : l'écran d'édition affiche
+    // ensuite e-mail et téléphone.
+    final relue = await _ligne(profile.id);
+    if (relue == null) {
+      throw ServerException('Profil écrit mais illisible : ${profile.id}');
+    }
+    return _modeleDepuis(relue);
   }
 
   @override

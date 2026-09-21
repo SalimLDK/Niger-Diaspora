@@ -286,6 +286,18 @@ class SessionService {
         ),
         callback: (payload) {
           final ligne = payload.newRecord;
+          // UNE CLÉ ABSENTE N'EST PAS UNE VALEUR NULLE. Une fois la fermeture
+          // 1.1b appliquée, `session_id` n'est plus lisible par le rôle
+          // `authenticated`, et le temps réel le RETIRE du message, sans
+          // erreur (mesuré : tools/rls_tests/temps_reel_droits_colonnes.sql).
+          // Lu tel quel, il vaudrait `null` à chaque mise à jour de la ligne,
+          // et la révocation de session par un administrateur cesserait de
+          // marcher, en silence. Le message devient alors un simple signal :
+          // on relit la décision par `mon_profil_prive()`.
+          if (!ligne.containsKey('session_id')) {
+            unawaited(_relireDecisionAdmin(userId));
+            return;
+          }
           _examinerDecisionAdmin(
             sessionDistante: ligne['session_id'] as String?,
             banni: ligne['is_banned'] == true,
@@ -295,19 +307,28 @@ class SessionService {
     _canalAdmin = canal;
     canal.subscribe();
 
+    await _relireDecisionAdmin(userId);
+  }
+
+  /// Lit la décision d'administration portée par SA ligne `users`.
+  ///
+  /// Par `mon_profil_prive()` et non `select('session_id, is_banned')` :
+  /// nommer `session_id` fera refuser la lecture en 42501 une fois la
+  /// fermeture 1.1b appliquée. La fonction rend la ligne de la session
+  /// Supabase ; si ce n'est pas celle de [userId], on n'en tire rien.
+  Future<void> _relireDecisionAdmin(String userId) async {
     try {
-      final ligne = await supabase
-          .from('users')
-          .select('session_id, is_banned')
-          .eq('id', userId)
+      final ligne = await Supabase.instance.client
+          .rpc('mon_profil_prive')
+          .select('id, session_id, is_banned')
           .maybeSingle();
-      if (ligne == null) return;
+      if (ligne == null || ligne['id'] != userId) return;
       _examinerDecisionAdmin(
         sessionDistante: ligne['session_id'] as String?,
         banni: ligne['is_banned'] == true,
       );
     } catch (e) {
-      debugPrint('SessionService: lecture initiale des decisions admin: $e');
+      debugPrint('SessionService: lecture des decisions admin: $e');
     }
   }
 

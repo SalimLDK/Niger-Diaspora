@@ -732,11 +732,15 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   Future<UserModel> _getUserDataFromSupabase(User firebaseUser) async {
     if (kDebugMode) dev.log('_getUserDataFromSupabase: debut pour uid=${firebaseUser.uid}', name: _tag);
     try {
-      final row = await _supabase
-          .from('users')
-          .select()
-          .eq('id', firebaseUser.uid)
-          .maybeSingle();
+      // Sa propre ligne, ENTIÈRE, par `mon_profil_prive()` : e-mail,
+      // téléphone et motif de bannissement ne seront plus lisibles par
+      // `select()` une fois la fermeture 1.1b appliquée — et un `select()` nu
+      // serait alors refusé entier. La fonction rend la ligne de la session
+      // Supabase : si ce n'est pas celle du compte Firebase (session d'un
+      // compte précédent pas encore rebasculée), on ne la sert pas sous son
+      // nom, on retombe sur les données Firebase comme pour une ligne absente.
+      final moi = await _supabase.rpc('mon_profil_prive').maybeSingle();
+      final row = (moi != null && moi['id'] == firebaseUser.uid) ? moi : null;
 
       if (kDebugMode) dev.log('_getUserDataFromSupabase: row trouvee=${row != null}', name: _tag);
 

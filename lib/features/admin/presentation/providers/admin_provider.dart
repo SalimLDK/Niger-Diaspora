@@ -368,11 +368,15 @@ class AdminDashboardNotifier extends Notifier<AdminDashboardState> {
   Future<void> fetchRecentUsers() async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final rows = await _supabase
-          .from('users')
-          .select()
-          .order('created_at', ascending: false)
-          .limit(20);
+      // `profils_admin()` et non `select()` : le back-office tourne sous le
+      // rôle `authenticated`, comme tout le monde, et perdra e-mail, téléphone
+      // et motif de bannissement une fois la fermeture 1.1b appliquée. La
+      // fonction les lui sert, et lève 42501 à qui n'est pas administrateur.
+      // Même tri, même troncature.
+      final rows = await _supabase.rpc(
+        'profils_admin',
+        params: {'p_limite': 20},
+      );
 
       final users = (rows as List)
           .map((row) => UserModel.fromJson(_mapUser(row)).toEntity())
@@ -1512,11 +1516,12 @@ class AdminUsersNotifier extends Notifier<AdminUsersState> {
   Future<void> fetchAllUsers({int limit = 50}) async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final rows = await _supabase
-          .from('users')
-          .select()
-          .order('created_at', ascending: false)
-          .limit(limit);
+      // Voir `fetchRecentUsers` : `profils_admin()`, même tri, même
+      // troncature (plafonnée à 500 par la fonction).
+      final rows = await _supabase.rpc(
+        'profils_admin',
+        params: {'p_limite': limit},
+      );
 
       final users = (rows as List)
           .map((row) => UserModel.fromJson(_mapUser(row)).toEntity())
