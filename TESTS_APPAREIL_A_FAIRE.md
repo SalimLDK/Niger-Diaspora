@@ -19506,9 +19506,11 @@ droit était là.
 (`feed_supabase_datasource.dart:310`, `feed_personalization_provider.dart:51`).
 Les amitiés sont écrites par `setFriendship` avec la clé de service.
 
-**Le vrai trou : corrigé dans le dépôt, NON DÉPLOYÉ.** Deux déclencheurs de
-`functions/index.js`, à envoyer par `firebase deploy --only
-functions:onFriendRequestAccepted,functions:mirrorFriendToSupabase` :
+**Le vrai trou : DÉPLOYÉ le 2026-09-21.** Deux déclencheurs de
+`functions/index.js`, envoyés un par un, dans cet ordre imposé :
+`onFriendRequestAccepted` créé d'abord (chemin d'entrée), vérifié en ligne,
+puis `mirrorFriendToSupabase` mis à jour (la garde). L'inverse aurait ouvert
+une fenêtre où aucune amitié neuve n'entrait dans Postgres.
 
 - `onFriendRequestAccepted` (nouveau) écrit les deux sens dans
   `public.friends` à la transition `pending → accepted`. C'est désormais le
@@ -19524,13 +19526,19 @@ contre la production en lecture seule, la décision des déclencheurs avec
 Supabase bouchonné (rien ne sort de la machine). Garde retirée : B3 tombe,
 donc le banc sait échouer.
 
-⚠️ **Tant que ce n'est pas déployé**, l'ancien miroir tourne et l'amitié
-forcée reste possible. Après déploiement, surveiller dans les journaux
+**Ce que le déploiement N'A PAS prouvé** : aucune demande d'ami réelle n'a
+été jouée. Les données sont intactes (24 lignes, 12 paires, 0 asymétrie),
+les deux fonctions sont listées en `nodejs22`, et c'est tout ce qui est
+vérifié. Le parcours vivant reste à voir. Surveiller dans les journaux
 `mirrorFriendToSupabase: ajout … ignoré` : un seul, sur un parcours normal,
 signalerait un chemin d'acceptation que je n'ai pas vu.
 
-- [ ] **Accepter une demande d'ami** après déploiement : l'ami apparaît des
-  deux côtés, et le journal ne porte aucun « ajout … ignoré ».
+- [ ] **Accepter une demande d'ami** : l'ami apparaît des deux côtés, et le
+  journal ne porte aucun « ajout … ignoré ». C'est LE test qui compte : si
+  `onFriendRequestAccepted` ratait, l'amitié n'entrerait plus du tout dans
+  `public.friends` — l'audience « Amis » resterait fermée au lieu de s'ouvrir
+  à tort. Panne silencieuse, invisible tant qu'aucune publication « Amis »
+  n'existe.
 - [ ] **Auto-acceptation croisée** (deux personnes s'envoient une demande
   l'une à l'autre) : `sendFriendRequest` accepte la demande inverse — même
   transition, donc même déclencheur, à confirmer en vrai.
