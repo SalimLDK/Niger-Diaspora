@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1508 cases à cocher, 650 cochées** — 289 entrées sur 338 ont encore des cases ouvertes.
+**1511 cases à cocher, 650 cochées** — 290 entrées sur 339 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -92,7 +92,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (98)
+**P1 — fonction importante, jamais vérifiée** (99)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -158,6 +158,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [⬜ Les echecs attrapes remontent enfin a Crashlytics (2026-09-14)](#-les-echecs-attrapes-remontent-enfin-a-crashlytics-2026-09-14) · *Backend, sécurité et observabilité*
 - 5 · [⬜ Balayage des invariants de données — 2 anomalies en production (2026-09-14)](#-balayage-des-invariants-de-données--2-anomalies-en-production-2026-09-14) · *Backend, sécurité et observabilité* · bloqué
 - 2 · [Storage — énumération des médias coupée (2026-08-04, DÉPLOYÉ)](#storage--énumération-des-médias-coupée-2026-08-04-déployé) · *Backend, sécurité et observabilité*
+- 3 · [⬜ Storage : on dépose, on ne réécrit plus (2026-09-21)](#-storage--on-dépose-on-ne-réécrit-plus-2026-09-21) · *Publication et plateformes*
 - 2 · [⛔ « Diaspo Niger s'arrête systématiquement » sur Android 15+ (2026-09-09)](#--diaspo-niger-sarrête-systématiquement--sur-android-15-2026-09-09) · *Publication et plateformes*
 - 4 · [⚠️ Rapatriement iOS : deux dépendances **Android** changent de version majeure (2026-09-08)](#-rapatriement-ios--deux-dépendances-android-changent-de-version-majeure-2026-09-08) · *Publication et plateformes*
 - 9 · [⬜ La page de suppression de compte demande la suppression au lieu de l'exécuter (2026-09-19)](#-la-page-de-suppression-de-compte-demande-la-suppression-au-lieu-de-lexécuter-2026-09-19) · *Site web*
@@ -359,7 +360,7 @@ Par domaine :
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 67 à faire, 34 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 153 à faire, 32 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 71 à faire, 45 faites
-- [14. Publication et plateformes](#14-publication-et-plateformes) — 43 à faire, 28 faites
+- [14. Publication et plateformes](#14-publication-et-plateformes) — 46 à faire, 28 faites
 - [15. Site web](#15-site-web) — 32 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 32 à faire, 46 faites
 
@@ -21274,6 +21275,53 @@ applicable à des utilisateurs répartis sur plusieurs fuseaux.
 Play Store, exigences Android, build release, iOS.
 
 ---
+## ⬜ Storage : on dépose, on ne réécrit plus (2026-09-21)
+
+**Priorité P1** · importance 4/5 — Sept chemins Storage n'avaient aucun propriétaire, et `write` couvrait la réécriture : l'URL d'un média livrant son chemin, tout compte connecté pouvait remplacer la photo d'un commerce, l'image d'une publication ou le média d'une conversation. Reste à voir qu'un envoi réel passe toujours.
+
+`storage.rules` — **NON DÉPLOYÉ** à l'écriture de cette entrée
+(`firebase deploy --only storage`). Trois changements :
+
+- `messages`, `groups`, `events`, `products`, `businesses`, `posts`,
+  `stories` exigent désormais un chemin LIBRE (`resource == null`). Aucun
+  envoi de l'app ne réécrit : tous les noms portent un horodatage à la
+  milliseconde.
+- `isImage()` passe de `image/.*` à une liste fermée — `image/svg+xml`
+  n'est plus accepté (un SVG est un document exécutable, servi depuis un
+  domaine Google avec le type qu'on lui a donné).
+- `read` séparé en `get` + `list: if false` sur les six chemins qui
+  l'ouvraient : connaître un identifiant ne suffit plus à ÉNUMÉRER le
+  dossier.
+
+⚠️ **Ce que le banc a rattrapé, et qui vaut d'être su** : `allow create` ne
+refuse PAS la réécriture, contrairement à ce que son nom laisse croire. Une
+sonde à règles en ligne l'a montré : avec `allow create: if true`, même
+accompagné d'un `allow update: if false`, un second dépôt sur le même chemin
+est accepté. La première version de ces règles utilisait `create` et
+n'aurait **rien fermé du tout**.
+
+Banc `tools/rules_tests/medias_storage.mjs`, 22 cas, contre l'émulateur :
+6 échecs avec les règles d'avant (réécriture, SVG, énumération), 0 avec les
+nouvelles, deux passages de suite. `firebase.json` gagne le port de
+l'émulateur Storage (9199).
+
+- [ ] **Envoyer une photo dans une discussion**, une image de publication,
+  une story, une photo de groupe et une photo de profil : chacune part et
+  s'affiche. C'est le test qui compte — si un chemin de l'app réécrivait
+  sans que je l'aie vu, l'envoi échouerait en `unauthorized`, et l'app avale
+  déjà certains de ces échecs.
+- [ ] **Deux envois dans la même milliseconde** (rafale de photos) : le
+  second ne doit pas échouer. L'horodatage est la seule garantie d'unicité.
+- [ ] **Relire un ancien média** d'une conversation et d'une publication :
+  la lecture par chemin exact n'a pas bougé.
+
+**⚠️ Ce que ça ne ferme PAS.** `deleteMessageForEveryone`
+(`functions/index.js`) supprime en **Admin SDK**, qui ignore ces règles, et
+dérive le chemin à supprimer d'une URL fournie par le client, sans contrôle
+de préfixe — ce qui atteint `key_backups/<uid>/backup.enc` de n'importe qui.
+Trou distinct, toujours ouvert, décrit dans
+`docs/deploiement/AUDIT_PRE_PROD_2026-09-20.md` §1.4.
+
 
 ## ⬜ Le `.env` embarqué ne livre plus de chemin de poste (2026-09-21)
 

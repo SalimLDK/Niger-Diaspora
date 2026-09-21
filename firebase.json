@@ -34,6 +34,10 @@
         "source": "functions"
     },
     "emulators": {
+        "storage": {
+            "host": "127.0.0.1",
+            "port": 9199
+        },
         "database": {
             "host": "127.0.0.1",
             "port": 9102

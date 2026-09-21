@@ -2,37 +2,60 @@ rules_version = '2';
 
 service firebase.storage {
   match /b/{bucket}/o {
-    
+
     // Helper function to check if user is authenticated
     function isAuthenticated() {
       return request.auth != null;
     }
-    
+
+
     // Helper function to check if user owns the resource
     function isOwner(userId) {
       return isAuthenticated() && request.auth.uid == userId;
     }
-    
+
     // Helper function to validate file size (max 10MB for images, 100MB for videos)
     function isValidSize(maxSizeMB) {
       return request.resource.size < maxSizeMB * 1024 * 1024;
     }
-    
-    // Helper function to validate image file types
-    function isImage() {
-      return request.resource.contentType.matches('image/.*');
+
+    // Aucun objet n'occupe déjà ce chemin.
+    //
+    // `resource` est l'objet DÉJÀ en place ; `request.resource` celui qu'on
+    // dépose. C'est la seule façon de refuser une réécriture.
+    //
+    // ⚠️ `allow create` NE le fait PAS, contrairement à ce que son nom laisse
+    // croire : mesuré le 2026-09-21 contre l'émulateur, un `allow create` seul
+    // — et même accompagné d'un `allow update: if false` — accepte la
+    // réécriture d'un objet existant. Seul `resource == null` la refuse.
+    // La sonde est décrite dans tools/rules_tests/medias_storage.mjs.
+    function estUnDepotNeuf() {
+      return resource == null;
     }
-    
+
+    // Types d'images acceptés, en liste FERMÉE.
+    //
+    // `image/.*` laissait passer `image/svg+xml` : un SVG est un document
+    // exécutable, servi depuis un domaine Google avec le type qu'on lui a
+    // donné. L'app pose elle-même `image/jpeg` à chaque envoi d'image ; la
+    // liste reste large pour couvrir un type déduit d'une extension, sur les
+    // rares envois faits sans métadonnée explicite (`putFile(file)` nu, dans
+    // les datasources d'événements).
+    function isImage() {
+      return request.resource.contentType
+        .matches('image/(jpeg|jpg|png|webp|gif|heic|heif|bmp)(;.*)?');
+    }
+
     // Helper function to validate video file types
     function isVideo() {
       return request.resource.contentType.matches('video/.*');
     }
-    
+
     // Helper function to validate audio file types
     function isAudio() {
       return request.resource.contentType.matches('audio/.*');
     }
-    
+
     // Helper function to validate document file types
     function isDocument() {
       return request.resource.contentType.matches('application/pdf') ||
@@ -40,13 +63,41 @@ service firebase.storage {
              request.resource.contentType.matches('application/vnd.openxmlformats-officedocument.*') ||
              request.resource.contentType.matches('text/.*');
     }
-    
+
+    // ═════════════════════════════════════════════════════════════════════
+    // DÉPOSER OUI, RÉÉCRIRE NON
+    //
+    // Les sept chemins ci-dessous n'ont aucune notion de propriétaire : leur
+    // identifiant est celui d'une conversation, d'un groupe, d'une fiche —
+    // pas d'une personne. Tant que `allow write` les couvrait sans réserve,
+    // et comme l'URL d'un média livre son chemin, TOUT compte connecté
+    // pouvait remplacer le fichier d'un autre : la photo d'un commerce,
+    // l'image d'une publication, le média d'une conversation.
+    //
+    // Aucun envoi de l'app ne réécrit jamais — tous les noms portent un
+    // horodatage à la milliseconde (`image_$timestamp.jpg`,
+    // `video_$ts.mp4`, plus un aléa pour les médias chiffrés). Exiger un
+    // chemin libre ne coûte donc rien.
+    //
+    // La suppression reste refusée, comme avant : sur un `delete`,
+    // `resource` n'est pas nul (l'objet est là), donc `estUnDepotNeuf()` est
+    // faux. Le ménage des médias se fait côté serveur, en Admin SDK, qui
+    // ignore ces règles.
+    //
+    // `read` couvre `get` ET `list` : sans séparation, connaître un
+    // identifiant suffit à ÉNUMÉRER le dossier. Rien dans `lib/` ne liste
+    // ces chemins (le seul `listAll()` vit dans le datasource Firebase
+    // hérité, hors du chemin vivant).
+    //
+    // Banc : tools/rules_tests/medias_storage.mjs
+    // ═════════════════════════════════════════════════════════════════════
+
     // Profile images - users can only upload/read their own profile pictures
     match /profiles/{userId}/{allPaths=**} {
       allow read: if isAuthenticated();
       allow write: if isOwner(userId) && isImage() && isValidSize(10);
     }
-    
+
     // Message media - authenticated users can upload, size limits vary by type
     match /messages/{conversationId}/{allPaths=**} {
       // `read` couvre `get` ET `list`. Avec `allow read: if isAuthenticated()`,
@@ -73,36 +124,44 @@ service firebase.storage {
       // `deleteConversation` de Supabase ne touche pas au Storage). Couper
       // `list` ne casse donc rien aujourd'hui.
       allow list: if false;
-      allow write: if isAuthenticated() && (
+      allow write: if isAuthenticated() && estUnDepotNeuf() && (
         (isImage() && isValidSize(10)) ||
         (isVideo() && isValidSize(100)) ||
         (isAudio() && isValidSize(10)) ||
         (isDocument() && isValidSize(10))
       );
     }
-    
+
     // Group images - authenticated users can upload
     match /groups/{groupId}/{allPaths=**} {
-      allow read: if true; // Public groups may be viewable by anyone
-      allow write: if isAuthenticated() && isImage() && isValidSize(10);
+      allow get: if true; // Public groups may be viewable by anyone
+      allow list: if false;
+      allow write: if isAuthenticated() && estUnDepotNeuf()
+                   && isImage() && isValidSize(10);
     }
-    
+
     // Event images - authenticated users can upload
     match /events/{eventId}/{allPaths=**} {
-      allow read: if true; // Events are public
-      allow write: if isAuthenticated() && isImage() && isValidSize(10);
+      allow get: if true; // Events are public
+      allow list: if false;
+      allow write: if isAuthenticated() && estUnDepotNeuf()
+                   && isImage() && isValidSize(10);
     }
-    
+
     // Product images - sellers can upload
     match /products/{productId}/{allPaths=**} {
-      allow read: if true; // Products are public
-      allow write: if isAuthenticated() && isImage() && isValidSize(10);
+      allow get: if true; // Products are public
+      allow list: if false;
+      allow write: if isAuthenticated() && estUnDepotNeuf()
+                   && isImage() && isValidSize(10);
     }
-    
+
     // Business images - business owners can upload
     match /businesses/{businessId}/{allPaths=**} {
-      allow read: if true; // Businesses are public
-      allow write: if isAuthenticated() && isImage() && isValidSize(10);
+      allow get: if true; // Businesses are public
+      allow list: if false;
+      allow write: if isAuthenticated() && estUnDepotNeuf()
+                   && isImage() && isValidSize(10);
     }
 
     // Post media (image, video, thumbnail) — ImageUploadType.post et
@@ -110,8 +169,9 @@ service firebase.storage {
     // chemin tombait dans le deny-all final : toute publication avec média
     // échouait en `unauthorized`.
     match /posts/{postId}/{allPaths=**} {
-      allow read: if true; // Posts are public
-      allow write: if isAuthenticated() && (
+      allow get: if true; // Posts are public
+      allow list: if false;
+      allow write: if isAuthenticated() && estUnDepotNeuf() && (
         (isImage() && isValidSize(10)) ||
         (isVideo() && isValidSize(100))
       );
@@ -120,8 +180,9 @@ service firebase.storage {
     // Story media (image, video, thumbnail) — même problème que /posts :
     // la création de story était impossible, l'échec étant avalé côté app.
     match /stories/{storyId}/{allPaths=**} {
-      allow read: if isAuthenticated();
-      allow write: if isAuthenticated() && (
+      allow get: if isAuthenticated();
+      allow list: if false;
+      allow write: if isAuthenticated() && estUnDepotNeuf() && (
         (isImage() && isValidSize(10)) ||
         (isVideo() && isValidSize(100))
       );
@@ -151,7 +212,9 @@ service firebase.storage {
     //
     // `create`/`update` séparés de `delete` : sur une suppression
     // `request.resource` est nul, donc `isValidSize` y échouerait et
-    // `deleteBackup()` serait refusé.
+    // `deleteBackup()` serait refusé. La réécriture reste permise ici — une
+    // nouvelle sauvegarde remplace l'ancienne, et le dossier est celui de son
+    // propriétaire.
     match /key_backups/{userId}/{allPaths=**} {
       allow read: if isOwner(userId);
       allow create, update: if isOwner(userId) && isValidSize(5);
