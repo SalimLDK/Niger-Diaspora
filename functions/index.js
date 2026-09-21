@@ -6,6 +6,7 @@ const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const { GoogleAuth } = require("google-auth-library");
 const { decryptText } = require("./encryption");
+const { cheminStorageSur } = require("./chemins_storage");
 const partners = require("./partners");
 // Tokens/profils/conversations : lus dans Supabase, PAS dans Firestore.
 const {
@@ -5453,33 +5454,30 @@ exports.deleteMessageForEveryone = functions.https.onCall(async (data, context) 
             );
         }
 
-        // Supprimer les fichiers associes dans Storage
-        if (messageData.fileUrl) {
-            try {
-                const bucket = admin.storage().bucket();
-                // Extraire le path depuis l'URL Firebase Storage
-                const urlMatch = messageData.fileUrl.match(/o\/(.+?)\?/);
-                if (urlMatch) {
-                    const filePath = decodeURIComponent(urlMatch[1]);
-                    await bucket.file(filePath).delete();
-                    console.log(`Deleted media file: ${filePath}`);
-                }
-            } catch (storageError) {
-                console.warn("Failed to delete media file:", storageError.message);
-                // Continue meme si le fichier ne peut pas etre supprime
-            }
-        }
+        // Supprimer les fichiers associes dans Storage.
+        //
+        // Le média d'un message de cette conversation ne peut vivre que sous
+        // ces deux préfixes (`ImageUploadService._getStoragePath` pour le
+        // clair, `MediaEncryptionService` pour le chiffré). Tout le reste est
+        // refusé : voir `cheminStorageSur`.
+        const prefixesMedia = [
+            `messages/${conversationId}/`,
+            `encrypted_media/${conversationId}/`,
+        ];
 
-        if (messageData.thumbnailUrl) {
+        for (const champ of ["fileUrl", "thumbnailUrl"]) {
+            const filePath = cheminStorageSur(
+                messageData[champ],
+                prefixesMedia,
+                "deleteMessageForEveryone",
+            );
+            if (!filePath) continue;
             try {
-                const bucket = admin.storage().bucket();
-                const urlMatch = messageData.thumbnailUrl.match(/o\/(.+?)\?/);
-                if (urlMatch) {
-                    const filePath = decodeURIComponent(urlMatch[1]);
-                    await bucket.file(filePath).delete();
-                }
+                await admin.storage().bucket().file(filePath).delete();
+                console.log(`Deleted media file: ${filePath}`);
             } catch (storageError) {
-                console.warn("Failed to delete thumbnail:", storageError.message);
+                console.warn(`Failed to delete ${champ}:`, storageError.message);
+                // Continue meme si le fichier ne peut pas etre supprime
             }
         }
 
@@ -5768,16 +5766,18 @@ exports.deleteGroup = functions.https.onCall(async (data, context) => {
         // Delete the group document
         batch.delete(groupRef);
 
-        // Delete group image from storage if exists
-        if (groupData.imageUrl) {
+        // Delete group image from storage if exists.
+        // L'image d'un groupe ne vit que sous `groups/<id>/` : tout autre
+        // chemin est refusé (voir `cheminStorageSur`).
+        const cheminImage = cheminStorageSur(
+            groupData.imageUrl,
+            [`groups/${groupId}/`],
+            "deleteGroup",
+        );
+        if (cheminImage) {
             try {
-                const bucket = admin.storage().bucket();
-                const urlMatch = groupData.imageUrl.match(/o\/(.+?)\?/);
-                if (urlMatch) {
-                    const filePath = decodeURIComponent(urlMatch[1]);
-                    await bucket.file(filePath).delete();
-                    console.log(`Deleted group image: ${filePath}`);
-                }
+                await admin.storage().bucket().file(cheminImage).delete();
+                console.log(`Deleted group image: ${cheminImage}`);
             } catch (storageError) {
                 console.warn("Failed to delete group image:", storageError.message);
             }
@@ -5859,30 +5859,20 @@ exports.cleanupExpiredMessages = functions.pubsub
                         if (message.expiresAt && message.expiresAt <= now) {
                             messagesToDelete.push(messageSnap.key);
 
-                            // Collect files to delete
-                            if (message.fileUrl) {
-                                try {
-                                    const urlMatch = message.fileUrl.match(/o\/(.+?)\?/);
-                                    if (urlMatch) {
-                                        const filePath = decodeURIComponent(urlMatch[1]);
-                                        filesToDelete.push(filePath);
-                                    }
-                                } catch (e) {
-                                    console.warn("Failed to parse file URL:", e.message);
-                                }
-                            }
-
-                            // Also delete thumbnail if exists
-                            if (message.thumbnailUrl) {
-                                try {
-                                    const urlMatch = message.thumbnailUrl.match(/o\/(.+?)\?/);
-                                    if (urlMatch) {
-                                        const filePath = decodeURIComponent(urlMatch[1]);
-                                        filesToDelete.push(filePath);
-                                    }
-                                } catch (e) {
-                                    console.warn("Failed to parse thumbnail URL:", e.message);
-                                }
+                            // Collect files to delete. Même garde que
+                            // `deleteMessageForEveryone` : ces URL viennent du
+                            // client, et cette tâche planifiée supprime en
+                            // Admin SDK, donc hors `storage.rules`.
+                            for (const champ of ["fileUrl", "thumbnailUrl"]) {
+                                const filePath = cheminStorageSur(
+                                    message[champ],
+                                    [
+                                        `messages/${conversationId}/`,
+                                        `encrypted_media/${conversationId}/`,
+                                    ],
+                                    "cleanupExpiredMessages",
+                                );
+                                if (filePath) filesToDelete.push(filePath);
                             }
                         }
                     });
@@ -5973,11 +5963,19 @@ exports.cleanupExpiredMediaFiles = functions.pubsub
                         if (msg.mediaExpired) continue;       // already processed
                         if (!msg.mediaExpiresAt) continue;    // not a media message
 
+                        // Même garde que `deleteMessageForEveryone` : ces URL
+                        // viennent du client, et la suppression se fait en
+                        // Admin SDK, donc hors `storage.rules`.
                         for (const field of ["fileUrl", "thumbnailUrl"]) {
-                            if (msg[field]) {
-                                const match = msg[field].match(/o\/(.+?)\?/);
-                                if (match) filesToDelete.push(decodeURIComponent(match[1]));
-                            }
+                            const filePath = cheminStorageSur(
+                                msg[field],
+                                [
+                                    `messages/${convId}/`,
+                                    `encrypted_media/${convId}/`,
+                                ],
+                                "cleanupExpiredMediaFiles",
+                            );
+                            if (filePath) filesToDelete.push(filePath);
                         }
 
                         updates[`${msgId}/mediaExpired`] = true;

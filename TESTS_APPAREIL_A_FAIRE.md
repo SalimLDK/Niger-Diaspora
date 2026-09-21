@@ -39,11 +39,11 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1511 cases à cocher, 650 cochées** — 290 entrées sur 339 ont encore des cases ouvertes.
+**1515 cases à cocher, 650 cochées** — 291 entrées sur 340 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
-**P0 — avant toute nouvelle version** (46)
+**P0 — avant toute nouvelle version** (47)
 
 - 7 · [⬜ Droits d'écriture sur `messages` resserrés : accusés et modification (2026-09-16)](#-droits-décriture-sur-messages-resserrés--accusés-et-modification-2026-09-16) · *Messagerie*
 - 8 · [⬜ Accusé « lu » mensonger, et aperçu chiffré qui ne venait jamais (2026-09-15)](#-accusé--lu--mensonger-et-aperçu-chiffré-qui-ne-venait-jamais-2026-09-15) · *Messagerie*
@@ -73,6 +73,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [Réglages/Carte — deux interrupteurs de partage de position désynchronisés (2026-08-13)](#réglagescarte--deux-interrupteurs-de-partage-de-position-désynchronisés-2026-08-13) · *Ambassades, démarches, carte, entreprises et événements*
 - 6 · [⬜ 🔴 Bloquer un utilisateur ne bloque rien — corrigé (2026-09-14)](#--bloquer-un-utilisateur-ne-bloque-rien--corrigé-2026-09-14) · *Accueil, profil et réglages* · bloqué
 - 4 · [⬜ `users` n'est plus lisible sans compte (2026-09-20)](#-users-nest-plus-lisible-sans-compte-2026-09-20) · *Backend, sécurité et observabilité*
+- 4 · [⬜ Le serveur ne supprime plus un chemin Storage dicté par le client (2026-09-21)](#-le-serveur-ne-supprime-plus-un-chemin-storage-dicté-par-le-client-2026-09-21) · *Publication et plateformes*
 - 8 · [⬜ Divulgation préalable de la localisation (refus Play du 2026-09-09)](#-divulgation-préalable-de-la-localisation-refus-play-du-2026-09-09) · *Publication et plateformes*
 - 3 · [⬜ Compte de test dédié : première connexion (2026-09-09)](#-compte-de-test-dédié--première-connexion-2026-09-09) · *Appareils, comptes de test et méthode*
 - 4 · [⬜ Écrire dans une conversation exige d'en être participant (2026-09-20)](#-écrire-dans-une-conversation-exige-den-être-participant-2026-09-20) · *Messagerie*
@@ -360,7 +361,7 @@ Par domaine :
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 67 à faire, 34 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 153 à faire, 32 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 71 à faire, 45 faites
-- [14. Publication et plateformes](#14-publication-et-plateformes) — 46 à faire, 28 faites
+- [14. Publication et plateformes](#14-publication-et-plateformes) — 50 à faire, 28 faites
 - [15. Site web](#15-site-web) — 32 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 32 à faire, 46 faites
 
@@ -21275,6 +21276,57 @@ applicable à des utilisateurs répartis sur plusieurs fuseaux.
 Play Store, exigences Android, build release, iOS.
 
 ---
+## ⬜ Le serveur ne supprime plus un chemin Storage dicté par le client (2026-09-21)
+
+**Priorité P0** · importance 5/5 — N'importe quel compte connecté pouvait faire effacer par le serveur **n'importe quel objet du bucket**, y compris la sauvegarde d'identité Signal d'autrui. Reste à voir qu'une suppression légitime fonctionne encore.
+
+`functions/chemins_storage.js` (nouveau) + cinq appels dans
+`functions/index.js` — **NON DÉPLOYÉ** à l'écriture de cette entrée.
+
+**L'attaque, de bout en bout.** Les règles Storage durcies le même jour n'y
+pouvaient RIEN : ces suppressions passent par l'**Admin SDK**, qui les ignore.
+
+1. `conversations/<uuid neuf>/participants/<mon uid>` : la règle RTDB
+   l'autorise dès que le nœud n'existe pas (`!data.exists()`) ;
+2. `messages/<ce uuid>/<msg>` avec `senderId` = soi, `type`, `createdAt`, et
+   `fileUrl` pointant sur `key_backups/<victime>/backup.enc` — `fileUrl`
+   n'est contraint par AUCUN `.validate` et les champs inconnus passent
+   (relu dans `database.rules.json`) ;
+3. `deleteMessageForEveryone` : l'appelant EST l'expéditeur, le délai d'une
+   heure EST respecté. Tous les contrôles passent, et le serveur efface la
+   sauvegarde.
+
+Cinq sites dérivaient ainsi un chemin d'une URL lue en base :
+`deleteMessageForEveryone` (2), `deleteGroup`, `cleanupExpiredMessages` et
+`cleanupExpiredMediaFiles` — les deux dernières étant **planifiées**, donc
+déclenchables sans appel. Tous passent maintenant par `cheminStorageSur`,
+qui refuse ce qui sort des préfixes attendus.
+
+Banc `tools/rules_tests/chemin_storage.mjs`, 18 cas, sans émulateur ni
+réseau : 9 échecs avec l'ancien corps, 0 avec le nouveau.
+
+**Corrigé, pas supprimé.** Aucune de ces fonctions n'est appelée par `lib/`
+aujourd'hui — ce sont des restes de l'ère Firebase. Les effacer serait plus
+net, mais des APK déjà installés peuvent encore les appeler : même prudence
+que pour `sendMessagePush`. À revoir quand l'adoption des versions sera
+connue.
+
+- [ ] **Supprimer pour tous un message AVEC média** (photo, vidéo, note
+  vocale) et vérifier que le fichier disparaît vraiment. C'est le test qui
+  compte : si un préfixe est faux, la suppression ne se fait plus et
+  l'échec est **avalé** (`console.warn`, puis on continue).
+- [ ] **Supprimer un groupe** qui a une image : l'image disparaît.
+- [ ] **Message éphémère avec média** : à l'expiration, le fichier part.
+- [ ] **Surveiller le journal** : une ligne « chemin Storage REFUSÉ » sur un
+  parcours normal signale un préfixe mal choisi ; sur un parcours anormal,
+  une tentative.
+
+**⚠️ Trou voisin, toujours ouvert** : `deleteConversationForEveryone`
+s'autorise sur un document Firestore `conversations` que l'attaquant peut
+créer lui-même (plus rien n'alimente ces documents depuis la migration), et
+supprime alors tout `messages/<id>/` par préfixe. Le défaut n'est pas le
+chemin — il est correct — mais l'autorisation.
+
 ## ⬜ Storage : on dépose, on ne réécrit plus (2026-09-21)
 
 **Priorité P1** · importance 4/5 — Sept chemins Storage n'avaient aucun propriétaire, et `write` couvrait la réécriture : l'URL d'un média livrant son chemin, tout compte connecté pouvait remplacer la photo d'un commerce, l'image d'une publication ou le média d'une conversation. Reste à voir qu'un envoi réel passe toujours.
