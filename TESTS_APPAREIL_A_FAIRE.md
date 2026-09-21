@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1543 cases à cocher, 682 cochées** — 305 entrées sur 356 ont encore des cases ouvertes.
+**1549 cases à cocher, 682 cochées** — 306 entrées sur 357 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -97,7 +97,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (106)
+**P1 — fonction importante, jamais vérifiée** (107)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -174,6 +174,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⛔ « Diaspo Niger s'arrête systématiquement » sur Android 15+ (2026-09-09)](#--diaspo-niger-sarrête-systématiquement--sur-android-15-2026-09-09) · *Publication et plateformes*
 - 4 · [⚠️ Rapatriement iOS : deux dépendances **Android** changent de version majeure (2026-09-08)](#-rapatriement-ios--deux-dépendances-android-changent-de-version-majeure-2026-09-08) · *Publication et plateformes*
 - 9 · [⬜ La page de suppression de compte demande la suppression au lieu de l'exécuter (2026-09-19)](#-la-page-de-suppression-de-compte-demande-la-suppression-au-lieu-de-lexécuter-2026-09-19) · *Site web*
+- 6 · [⬜ Accusés, réactions et modifications reçus en direct, discussion en clair (2026-09-21)](#-accusés-réactions-et-modifications-reçus-en-direct-discussion-en-clair-2026-09-21) · *Messagerie*
 - 9 · [⬜ Partager vers une discussion — groupe et 1:1 (2026-09-09)](#-partager-vers-une-discussion--groupe-et-11-2026-09-09) · *Messagerie*
 - 2 · [Accusés livré/lu séparés — sheet infos du message (2026-08-13)](#accusés-livrélu-séparés--sheet-infos-du-message-2026-08-13) · *Messagerie* · bloqué
 - 9 · [⬜ Pays en toutes lettres : groupes officiels et filtre par pays (2026-09-13)](#-pays-en-toutes-lettres--groupes-officiels-et-filtre-par-pays-2026-09-13) · *Groupes*
@@ -363,7 +364,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 335 à faire, 143 faites
+- [2. Messagerie](#2-messagerie) — 341 à faire, 143 faites
 - [3. Groupes](#3-groupes) — 149 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 144 à faire, 45 faites
 - [5. Appels](#5-appels) — 26 à faire, 8 faites
@@ -622,6 +623,53 @@ Crashlytics.
 # 2. Messagerie
 
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
+
+---
+
+## ⬜ Accusés, réactions et modifications reçus en direct, discussion en clair (2026-09-21)
+
+**Priorité P1** · importance 3/5 — dans une discussion non chiffrée restée
+ouverte, un accusé de lecture, une réaction ou un épinglage survenu pendant
+l'arrière-plan, et toute modification de texte même en direct,
+n'apparaissaient qu'à la réouverture de la discussion.
+
+`getMessageUpdatesStream` (`message_supabase_datasource.dart`) s'abonnait aux
+UPDATE de `messages` sans rattrapage au rejoint ; il relit désormais les 50
+derniers messages de la discussion quand le canal est rejoint, et l'écran
+n'applique que leurs métadonnées aux messages déjà affichés. Complète
+« Temps réel après l'arrière-plan, et texte supprimé dans la liste », qui
+couvrait le canal chiffré. Tenu par
+`test/core/services/temps_reel_apres_arriere_plan_test.dart` (branchement
+seulement).
+
+Les **modifications de texte** passent aussi : ce flux livre la ligne brute,
+chiffrée au repos, et l'écran n'en prenait que les métadonnées — le nouveau
+texte n'apparaissait qu'à la réouverture. Quand un UPDATE annonce un
+`editedAt` plus récent que celui affiché, l'écran relit ce message déchiffré
+par `getMessageById`, une seule fois par version (`_relireModification`,
+`message_provider.dart` ; règle dans `modification_recue.dart`, tenue par
+`test/features/messages/modification_recue_test.dart`). Un texte illisible
+ne remplace jamais du texte clair.
+
+- [ ] **HOME court, accusé** : envoyer un message en clair, HOME ; l'autre
+  téléphone ouvre la discussion ; revenir → la double coche « Lu » est là
+  **sans rouvrir** la discussion (logcat : `realtime: rejoint « msg_updates »
+  → rattrapage`).
+- [ ] **HOME court, réaction** : même parcours avec une réaction posée par
+  l'autre pendant l'absence.
+- [ ] **Pas de régression de contenu** : après le retour, les photos, cartes
+  de post et réponses citées des 50 derniers messages s'affichent toujours
+  (le rattrapage émet des lignes brutes, l'écran doit garder le contenu
+  déjà déchiffré).
+- [ ] **Modification en direct** : discussion en clair ouverte des deux côtés ;
+  l'autre modifie un message → le nouveau texte et « modifié » apparaissent
+  **sans rouvrir** la discussion. Puis même chose avec HOME pendant la
+  modification.
+- [ ] **Modification, côté auteur** : modifier son propre message → le texte
+  reste le nouveau, jamais « 🔐 Message chiffré » ni « [🔐 E2EE — session
+  requise] » quand l'écho revient, ni après un accusé de lecture.
+- [ ] **Deux modifications rapprochées** : l'autre modifie deux fois de suite
+  en quelques secondes → c'est la seconde version qui reste affichée.
 
 ---
 

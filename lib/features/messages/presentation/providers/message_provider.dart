@@ -10,6 +10,7 @@ import '../../../../core/services/e2ee/message_crypto_service.dart';
 import '../../../../core/services/e2ee/models/e2ee_models.dart';
 import 'group_encryption_status_provider.dart';
 import '../../../../core/services/e2ee/undecryptable_placeholders.dart';
+import 'modification_recue.dart';
 import '../../data/datasources/message_supabase_datasource.dart';
 import '../../data/datasources/lecture_serveur.dart';
 import 'package:flutter/foundation.dart';
@@ -710,15 +711,93 @@ class PaginatedMessagesNotifier extends StateNotifier<MessagePaginationState> {
                   productData: existing.productData,
                   linkPreviewData: existing.linkPreviewData,
                   replyToMessageData: existing.replyToMessageData,
+                  // La date de modification suit le TEXTE, pas la ligne : elle
+                  // n'avance qu'avec lui, dans `_relireModification`. L'adopter
+                  // ici afficherait « modifié » sur l'ancien texte, et une
+                  // relecture échouée (hors ligne) ne serait jamais retentée.
+                  editedAt: existing.editedAt,
                 );
                 debugPrint(
                   'Message ${updatedMessage.id} read_by updated: ${updatedMessage.readBy}',
                 );
                 state = state.copyWith(messages: existingMessages);
+
+                if (!updatedMessage.deletedForEveryone &&
+                    modificationPlusRecente(
+                      affichee: existing.editedAt,
+                      recue: updatedMessage.editedAt,
+                    )) {
+                  unawaited(
+                    _relireModification(
+                      updatedMessage.id,
+                      updatedMessage.editedAt!,
+                    ),
+                  );
+                }
               }
             },
           );
         });
+  }
+
+  /// Relectures de modification en cours, par message : la version la plus
+  /// récente annoncée pendant qu'elles tournent.
+  ///
+  /// Un même UPDATE arrive souvent deux fois (temps réel, puis rattrapage au
+  /// rejoint) et un accusé de lecture sur un message modifié en redonne la
+  /// date : sans ce registre, chaque passage relancerait un déchiffrement —
+  /// et pour Signal, le second échoue.
+  final Map<String, DateTime> _modificationsEnRelecture = {};
+
+  /// Relit déchiffré un message dont le texte a été modifié, et l'applique.
+  ///
+  /// Voir `modification_recue.dart` pour la règle.
+  Future<void> _relireModification(String messageId, DateTime annoncee) async {
+    final enCours = _modificationsEnRelecture[messageId];
+    if (enCours != null) {
+      // Une relecture tourne déjà : noter la version, elle sera relue à la
+      // suite si celle que rapporte la relecture en cours est plus ancienne.
+      if (annoncee.isAfter(enCours)) {
+        _modificationsEnRelecture[messageId] = annoncee;
+      }
+      return;
+    }
+    _modificationsEnRelecture[messageId] = annoncee;
+    try {
+      final resultat = await _ref
+          .read(messageRepositoryProvider)
+          .getMessageById(conversationId: conversationId, messageId: messageId);
+      if (!mounted) return;
+      final relu = resultat.fold((_) => null, (m) => m);
+      if (relu == null) return;
+
+      final messages = List<MessageEntity>.from(state.messages);
+      final index = messages.indexWhere((m) => m.id == messageId);
+      if (index == -1) return;
+      final moi = _ref.read(currentUserAsyncProvider).valueOrNull?.id;
+      final applique = appliquerModificationRelue(
+        affiche: messages[index],
+        relu: relu,
+        estAMoi: moi != null && relu.senderId == moi,
+      );
+      if (identical(applique, messages[index])) return;
+      messages[index] = applique;
+      state = state.copyWith(messages: messages);
+    } finally {
+      final derniere = _modificationsEnRelecture.remove(messageId);
+      if (mounted && derniere != null && derniere.isAfter(annoncee)) {
+        final affiche = state.messages
+            .where((m) => m.id == messageId)
+            .firstOrNull;
+        if (affiche != null &&
+            modificationPlusRecente(
+              affichee: affiche.editedAt,
+              recue: derniere,
+            )) {
+          unawaited(_relireModification(messageId, derniere));
+        }
+      }
+    }
   }
 
   Future<void> refresh() async {
