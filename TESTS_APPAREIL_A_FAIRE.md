@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1546 cases à cocher, 650 cochées** — 299 entrées sur 351 ont encore des cases ouvertes.
+**1547 cases à cocher, 650 cochées** — 300 entrées sur 351 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -297,7 +297,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [✅ Bulle de chargement d'une vidéo pendant l'upload (2026-08-30)](#-bulle-de-chargement-dune-vidéo-pendant-lupload-2026-08-30) · *Messagerie*
 - 24 · [Refonte Fil & Discussion — Priorité basse — cosmétique, faible risque](#refonte-fil--discussion--priorité-basse--cosmétique-faible-risque) · *Fil, stories, salons audio et podcasts*
 
-**P3 — confort, cosmétique, fonction en pause** (54)
+**P3 — confort, cosmétique, fonction en pause** (55)
 
 - 3 · [⬜ Polices embarquées : plus de téléchargement au premier affichage (2026-09-11)](#-polices-embarquées--plus-de-téléchargement-au-premier-affichage-2026-09-11) · *Design, thème, langue et mise en page* · bloqué
 - 3 · [⬜ Icône du lanceur repeinte en vert (2026-09-07)](#-icône-du-lanceur-repeinte-en-vert-2026-09-07) · *Design, thème, langue et mise en page*
@@ -350,6 +350,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 1 · [Profil & Accueil (avant la refonte design)](#profil--accueil-avant-la-refonte-design) · *Accueil, profil et réglages*
 - 4 · [Galerie design_v2 sur appareil (2026-08-03)](#galerie-design_v2-sur-appareil-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 3 · [Accent orange du thème clair — `#E07B39` → `#B85E24` (2026-08-03)](#accent-orange-du-thème-clair--e07b39--b85e24-2026-08-03) · *Design, thème, langue et mise en page*
+- 1 · [✅ participant_ids : deux orphelins retirés (2026-09-21)](#-participant_ids--deux-orphelins-retirés-2026-09-21) · *Backend, sécurité et observabilité*
 - 2 · [Supabase branché sur iOS — deux réserves (2026-09-01)](#supabase-branché-sur-ios--deux-réserves-2026-09-01) · *Publication et plateformes*
 - 2 · [Avertissement Android « pages de 16 Ko » — une seule vraie cause, correctif bloqué en cascade (2026-08-14)](#avertissement-android--pages-de-16-ko---une-seule-vraie-cause-correctif-bloqué-en-cascade-2026-08-14) · *Publication et plateformes*
 - 5 · [⬜ Site web repeint sur la palette ① Organic du guide (2026-09-08)](#-site-web-repeint-sur-la-palette-①-organic-du-guide-2026-09-08) · *Site web*
@@ -368,7 +369,7 @@ Par domaine :
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 65 à faire, 51 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 67 à faire, 34 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 153 à faire, 32 faites
-- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 91 à faire, 45 faites
+- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 92 à faire, 45 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 52 à faire, 28 faites
 - [15. Site web](#15-site-web) — 32 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 32 à faire, 46 faites
@@ -19614,7 +19615,26 @@ Supabase et Firebase côté serveur, accès anon, stockage, journaux, Crashlytic
 
 ---
 
-## ⬜ getUsersForPush : injection PostgREST fermée à la source (2026-09-21)
+## ✅ participant_ids : deux orphelins retirés (2026-09-21)
+
+**Priorité P3** · importance 1/5 — Réparation de données faite et vérifiée en base ; rien à voir sur appareil, aucune régression attendue.
+
+Deux uid de comptes DISPARUS traînaient dans `participant_ids` de deux
+conversations de groupe (l'audit les disait « gardent lecture et écriture » —
+en réalité aucun compte vivant ne les détient). Migration
+`20260921110000_participants_orphelins.sql` **APPLIQUÉE** : `2 conversation(s)
+nettoyée(s)`, 0 orphelin restant, `group_members` intact. Banc
+`tools/rls_tests/participants_orphelins.sql` (3 échecs sans, 0 avec).
+
+Cause déjà close (`purge_account` nettoie `participant_ids`), aucun garde-fou
+ajouté. Le « membre manquant » d'un groupe officiel est laissé tel quel :
+jointure paresseuse par conception (`join_group_conversation`).
+
+- [ ] (facultatif, si un jour un appareil est dispo) ouvrir les deux groupes
+  concernés et confirmer que la liste des membres s'affiche normalement.
+
+---
+ getUsersForPush : injection PostgREST fermée à la source (2026-09-21)
 
 **Priorité P2** · importance 3/5 — Durcissement d'une aide serveur, sans effet visible côté app. Rien à voir sur appareil au-delà de « les pushs partent toujours ».
 
