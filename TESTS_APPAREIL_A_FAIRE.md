@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1546 cases à cocher, 650 cochées** — 299 entrées sur 350 ont encore des cases ouvertes.
+**1546 cases à cocher, 650 cochées** — 299 entrées sur 351 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -19613,6 +19613,39 @@ parce qu'il change un **comportement**, pas seulement un habillage :
 Supabase et Firebase côté serveur, accès anon, stockage, journaux, Crashlytics, back-office.
 
 ---
+
+## ⬜ getUsersForPush : injection PostgREST fermée à la source (2026-09-21)
+
+**Priorité P2** · importance 3/5 — Durcissement d'une aide serveur, sans effet visible côté app. Rien à voir sur appareil au-delà de « les pushs partent toujours ».
+
+`getUsersForPush` (`functions/supabase.js`) bâtit une in-list PostgREST
+(`id=in.("a","b")`) par concaténation. Un identifiant contenant `"`, `)` ou
+`,` réécrivait le filtre — `getUsersForPush(['x")&id=not.is.null&("'])` aurait
+lu TOUTE la table `users` (e-mails, positions, jetons). Deux chemins vivants
+lui passaient des identifiants d'origine cliente :
+
+- `onCallCreated` — le document d'appel (fermé en amont le même jour par
+  `uidValide`, mais l'aide ne se gardait pas elle-même) ;
+- `sendMessagePush` / `onMessageCreated` — les `message.mentionedUsers[].id`,
+  jamais validés (`sendMessagePush` ne vérifie que `senderId == auth.uid`).
+
+L'aide FILTRE désormais sur la forme d'un identifiant (`^[A-Za-z0-9_-]{1,128}$`)
+avant de concaténer : un identifiant malformé est ignoré (au pire un
+destinataire non notifié), jamais inséré. Banc
+`tools/rules_tests/get_users_for_push.mjs` (fetch espionné, sans réseau) :
+0 échec ; la concaténation directe d'avant en échoue 5 sur 8.
+
+**DÉPLOYÉ** — les quatre fonctions qui appellent l'aide, une par une, ACTIVE :
+`onMessageCreated`, `sendMessagePush` (europe-west1), `onCallCreated`,
+`onCallUpdated` (us-central1). ⚠️ Toujours déployer depuis le WORKTREE : lancé
+par erreur depuis le dépôt principal, `firebase deploy` échoue au chargement
+(« Cannot determine backend specification ») sans rien envoyer.
+
+**À vérifier sur appareil :** une mention dans un groupe notifie bien le
+mentionné (chemin `sendMessagePush` / `onMessageCreated`).
+
+---
+
 
 ## ⬜ `users` : un compte connecté lit e-mail, position et jetons d'autrui (2026-09-21)
 

@@ -121,7 +121,26 @@ async function getConversation(conversationId) {
 }
 
 /**
+ * Forme d'un identifiant de compte : uid Firebase (28) ou id Firestore hérité.
+ *
+ * Cette aide construit une in-list PostgREST (`id=in.("a","b")`) par
+ * concaténation : un identifiant contenant `"`, `)` ou `,` réécrirait le
+ * filtre — `getUsersForPush(['x")&id=not.is.null&("'])` lirait TOUTE la table.
+ * Les identifiants venus de Supabase ont toujours cette forme, mais l'aide en
+ * reçoit aussi d'origine cliente (le document d'appel, avant que
+ * `onCallCreated` ne les valide) : on ne s'en remet pas à l'appelant, on
+ * filtre ici. Même forme que `appels.js` (duplication assumée : `supabase.js`
+ * ne dépend de rien).
+ */
+const FORME_ID_COMPTE = /^[A-Za-z0-9_-]{1,128}$/;
+
+/**
  * Récupère, en une requête, les infos push de plusieurs utilisateurs.
+ *
+ * Un identifiant qui n'a pas la forme attendue est IGNORÉ (jamais concaténé
+ * dans l'URL) : au pire un destinataire n'est pas notifié, jamais la table
+ * entière lue.
+ *
  * @param {string[]} userIds
  * @returns {Promise<Map<string,{displayName,avatarUrl,fcmTokens:string[],notificationsEnabled:boolean,showMessagePreview:boolean}>>}
  */
@@ -129,9 +148,15 @@ async function getUsersForPush(userIds) {
   const map = new Map();
   if (!isConfigured() || !userIds || userIds.length === 0) return map;
   const uniq = [...new Set(userIds.filter(Boolean))];
-  if (uniq.length === 0) return map;
-  // Les Firebase UID sont alphanumériques → sûrs dans une in-list PostgREST.
-  const inList = uniq.map((id) => `"${id}"`).join(",");
+  const valides = uniq.filter((id) => FORME_ID_COMPTE.test(id));
+  if (valides.length !== uniq.length) {
+    console.warn(
+      `getUsersForPush: ${uniq.length - valides.length} identifiant(s) de forme invalide ignoré(s)`,
+    );
+  }
+  if (valides.length === 0) return map;
+  // Sûr : chaque id a passé FORME_ID_COMPTE, donc aucun caractère structurant.
+  const inList = valides.map((id) => `"${id}"`).join(",");
   const url =
     `${SUPABASE_URL}/rest/v1/users?id=in.(${inList})` +
     `&select=id,display_name,avatar_url,fcm_tokens,notifications_enabled,show_message_preview`;

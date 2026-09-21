@@ -1151,8 +1151,10 @@ exports.onCallCreated = functions.firestore
 
         try {
             let preparation = null;
-            // Identifiants vérifiés AVANT toute requête : ils partent tels
-            // quels dans une URL PostgREST (getUsersForPush).
+            // On écarte tôt un appel dont les identifiants sont malformés :
+            // inutile d'interroger Supabase et RTDB pour rien. `getUsersForPush`
+            // et `isBlocked` se gardent elles-mêmes contre un id piégé — ceci
+            // est une commodité, pas la protection.
             if (uidValide(callData.callerId) && uidValide(callData.calleeId) &&
                 callData.callerId !== callData.calleeId) {
                 const [utilisateurs, bloque] = await Promise.all([
