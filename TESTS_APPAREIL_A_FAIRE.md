@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1547 cases à cocher, 650 cochées** — 300 entrées sur 351 ont encore des cases ouvertes.
+**1549 cases à cocher, 650 cochées** — 301 entrées sur 352 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -202,7 +202,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (92)
+**P2 — fonction secondaire ou cas limite** (93)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -249,6 +249,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [⬜ Ambassades : « officiel / vérifié » **et** les horaires mis en sommeil (2026-09-08)](#-ambassades---officiel--vérifié--et-les-horaires-mis-en-sommeil-2026-09-08) · *Ambassades, démarches, carte, entreprises et événements*
 - 7 · [Postes diplomatiques sur la carte : 30 pins sur 32 (2026-09-08)](#postes-diplomatiques-sur-la-carte--30-pins-sur-32-2026-09-08) · *Ambassades, démarches, carte, entreprises et événements*
 - 9 · [⬜ Démarches consulaires : données réelles à la place des délais inventés (2026-09-07)](#-démarches-consulaires--données-réelles-à-la-place-des-délais-inventés-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
+- 2 · [⬜ Modifier le profil : libellés tronqués et code SMS illisible (2026-09-21)](#-modifier-le-profil--libellés-tronqués-et-code-sms-illisible-2026-09-21) · *Accueil, profil et réglages*
 - 9 · [⬜ Un refus du serveur ne ment plus : interrupteurs, snackbars, connexion admin (2026-09-18)](#-un-refus-du-serveur-ne-ment-plus--interrupteurs-snackbars-connexion-admin-2026-09-18) · *Accueil, profil et réglages*
 - 6 · [⬜ L'écran des appareils ne promet plus ce qu'il ne fait pas (2026-09-16)](#-lécran-des-appareils-ne-promet-plus-ce-quil-ne-fait-pas-2026-09-16) · *Accueil, profil et réglages*
 - 6 · [⬜ Noter l'application : bouton des Réglages et invitation automatique (2026-09-14)](#-noter-lapplication--bouton-des-réglages-et-invitation-automatique-2026-09-14) · *Accueil, profil et réglages*
@@ -367,7 +368,7 @@ Par domaine :
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 69 à faire, 10 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 118 à faire, 16 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 65 à faire, 51 faites
-- [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 67 à faire, 34 faites
+- [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 69 à faire, 34 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 153 à faire, 32 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 92 à faire, 45 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 52 à faire, 28 faites
@@ -16785,6 +16786,34 @@ attendre le sondage.
 # 11. Accueil, profil et réglages
 
 Grille d'accueil et « Tous les services », profil, pseudo, réglages, feature flags d'écrans.
+
+---
+
+## ⬜ Modifier le profil : libellés tronqués et code SMS illisible (2026-09-21)
+
+**Priorité P2** · importance 3/5 — Signalé par Salim sur capture (thème
+sombre, police agrandie). Trois défauts, un écran :
+
+- le titre tombait en « Modifier l… . » entre ✕, l'œil et « Enregistrer » ;
+- « Origine au … » et « Qui peut voi… » : libellé et valeur se partageaient la
+  ligne par moitié ;
+- dans la boîte « Vérification du numéro », les chiffres saisis n'étaient que
+  des bouts de traits : case de 45 px moins 24 px de remplissage latéral par
+  défaut, pour un chiffre de 22 px agrandi par la police du téléphone.
+
+Corrigé : titre dans un `FittedBox(scaleDown)` ; valeur **sous** le libellé
+dans les deux lignes ; cases OTP en `Expanded` sans remplissage latéral.
+`flutter analyze` propre, **rien vu à l'écran**.
+
+Fichier :
+[edit_profile_screen.dart](lib/features/profile/presentation/screens/edit_profile_screen.dart).
+
+- [ ] Police du téléphone au maximum, thème sombre : titre entier (même
+  rétréci), « Origine au Niger » et « Qui peut voir mon numéro ? » en entier,
+  valeur lisible en dessous.
+- [ ] Modifier le numéro → Vérifier : les six chiffres du code se lisent en
+  entier dans leurs cases, sans débordement de la boîte ; retour arrière d'une
+  case à l'autre toujours fonctionnel.
 
 ---
 

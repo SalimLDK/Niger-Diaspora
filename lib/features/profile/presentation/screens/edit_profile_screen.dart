@@ -653,12 +653,19 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                 // dans le contenu, en ligne — l'écran commence donc sur un
                 // champ et non sur un tiers de page décoratif.
                 pinned: true,
-                title: DesignTitle(
-                  AppLocalizations.of(context)!.editProfileTitle,
-                  style: TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w700,
-                    color: context.textPrimaryColor,
+                // Police agrandie dans les réglages du téléphone : entre ✕,
+                // l'œil et « Enregistrer », le titre tombait en
+                // « Modifier l… . ». Il rétrécit plutôt que de se couper.
+                title: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: AlignmentDirectional.centerStart,
+                  child: DesignTitle(
+                    AppLocalizations.of(context)!.editProfileTitle,
+                    style: TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                      color: context.textPrimaryColor,
+                    ),
                   ),
                 ),
                 // Repliée, cette barre virait au terracotta plein sur toute
@@ -1323,32 +1330,37 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                 color: context.textSecondaryColor,
               ),
               const SizedBox(width: 12),
+              // Libell\u00e9 au-dessus, valeur en dessous \u2014 comme la carte du
+              // num\u00e9ro. C\u00f4te \u00e0 c\u00f4te, les deux enfants souples se
+              // partageaient la largeur par moiti\u00e9 : avec la police
+              // agrandie, on lisait \u00ab Origine au \u2026 \u00bb face \u00e0 \u00ab r\u00e9gion et
+              // ville \u00bb.
               Expanded(
-                child: Text(
-                  l10n.originAtNiger,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 14.5,
-                    fontWeight: FontWeight.w600,
-                    color: context.textPrimaryColor,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Flexible(
-                child: Text(
-                  rempli
-                      ? parties.join(' \u00b7 ')
-                      : l10n.originSummaryPlaceholder,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 13.5,
-                    color:
-                        rempli
-                            ? context.textSecondaryColor
-                            : context.textTertiaryColor,
-                  ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.originAtNiger,
+                      style: TextStyle(
+                        fontSize: 14.5,
+                        fontWeight: FontWeight.w600,
+                        color: context.textPrimaryColor,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      rempli
+                          ? parties.join(' \u00b7 ')
+                          : l10n.originSummaryPlaceholder,
+                      style: TextStyle(
+                        fontSize: 13.5,
+                        color:
+                            rempli
+                                ? context.textSecondaryColor
+                                : context.textTertiaryColor,
+                      ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(width: 4),
@@ -1562,27 +1574,31 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                 color: context.adaptivePrimaryColor,
               ),
               const SizedBox(width: 12),
+              // Question au-dessus, valeur en dessous : ni l'un ni l'autre
+              // ne se tronque. Côte à côte, il fallait sacrifier l'un — la
+              // valeur d'abord (elle disparaissait), puis la question, qui
+              // tombait en « Qui peut voi… » dès la police agrandie.
               Expanded(
-                child: Text(
-                  l10n.phoneVisibilityQuestion,
-                  // Le libellé se tronque, la valeur jamais : c'est elle
-                  // l'information. Avec deux enfants souples, le libellé
-                  // prenait tout et la valeur disparaissait.
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 14.5,
-                    fontWeight: FontWeight.w600,
-                    color: context.textPrimaryColor,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                libelle,
-                style: TextStyle(
-                  fontSize: 13.5,
-                  color: context.textSecondaryColor,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      l10n.phoneVisibilityQuestion,
+                      style: TextStyle(
+                        fontSize: 14.5,
+                        fontWeight: FontWeight.w600,
+                        color: context.textPrimaryColor,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      libelle,
+                      style: TextStyle(
+                        fontSize: 13.5,
+                        color: context.textSecondaryColor,
+                      ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(width: 4),
@@ -2502,13 +2518,18 @@ class _OtpVerificationDialogState extends State<_OtpVerificationDialog> {
                   ),
                 ),
               ] else ...[
-                // Champs OTP
+                // Champs OTP. Six cases de 45 px, moins le remplissage
+                // horizontal par défaut du champ (12 px de chaque côté) :
+                // il restait ~21 px pour un chiffre de 22 px, agrandi encore
+                // par la police du téléphone — on ne voyait que des bouts de
+                // traits. Les cases se partagent désormais la largeur et le
+                // chiffre n'a plus de remplissage latéral.
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: List.generate(6, (index) {
-                    return SizedBox(
-                      width: 45,
-                      child: TextField(
+                    return Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 3),
+                        child: TextField(
                         controller: _otpControllers[index],
                         focusNode: _focusNodes[index],
                         textAlign: TextAlign.center,
@@ -2521,6 +2542,9 @@ class _OtpVerificationDialogState extends State<_OtpVerificationDialog> {
                         ),
                         decoration: InputDecoration(
                           counterText: '',
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 14,
+                          ),
                           filled: true,
                           fillColor: context.surfaceVariantColor,
                           border: OutlineInputBorder(
@@ -2548,6 +2572,7 @@ class _OtpVerificationDialogState extends State<_OtpVerificationDialog> {
                             unawaited(_verifyOtp());
                           }
                         },
+                        ),
                       ),
                     );
                   }),
