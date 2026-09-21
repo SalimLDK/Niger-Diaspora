@@ -6482,7 +6482,7 @@
   "@setupShareLocationSubtitle": {
     "description": "Sous-titre du partage de position"
   },
-  "setupLocationPrivacyNote": "Approximate location only · changeable in Settings",
+  "setupLocationPrivacyNote": "Location shared with nearby members · changeable in Settings",
   "@setupLocationPrivacyNote": {
     "description": "Garantie de confidentialite etape 2/4"
   },

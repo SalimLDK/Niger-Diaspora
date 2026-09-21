@@ -15760,7 +15760,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get setupLocationPrivacyNote =>
-      'Approximate location only · changeable in Settings';
+      'Location shared with nearby members · changeable in Settings';
 
   @override
   String get setupInterestsBody =>

@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1553 cases à cocher, 650 cochées** — 302 entrées sur 353 ont encore des cases ouvertes.
+**1555 cases à cocher, 650 cochées** — 302 entrées sur 353 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -74,7 +74,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ 🔴 Bloquer un utilisateur ne bloque rien — corrigé (2026-09-14)](#--bloquer-un-utilisateur-ne-bloque-rien--corrigé-2026-09-14) · *Accueil, profil et réglages* · bloqué
 - 8 · [⬜ `users` : un compte connecté lit e-mail, position et jetons d'autrui (2026-09-21)](#-users--un-compte-connecté-lit-e-mail-position-et-jetons-dautrui-2026-09-21) · *Backend, sécurité et observabilité*
 - 4 · [⬜ `users` n'est plus lisible sans compte (2026-09-20)](#-users-nest-plus-lisible-sans-compte-2026-09-20) · *Backend, sécurité et observabilité*
-- 2 · [⬜ Bloqueurs de publication — Play & iOS (état 2026-09-21)](#-bloqueurs-de-publication--play--ios-état-2026-09-21) · *Publication et plateformes*
+- 4 · [⬜ Bloqueurs de publication — Play & iOS (état 2026-09-21)](#-bloqueurs-de-publication--play--ios-état-2026-09-21) · *Publication et plateformes*
 - 4 · [⬜ Le serveur ne supprime plus un chemin Storage dicté par le client (2026-09-21)](#-le-serveur-ne-supprime-plus-un-chemin-storage-dicté-par-le-client-2026-09-21) · *Publication et plateformes*
 - 8 · [⬜ Divulgation préalable de la localisation (refus Play du 2026-09-09)](#-divulgation-préalable-de-la-localisation-refus-play-du-2026-09-09) · *Publication et plateformes*
 - 3 · [⬜ Compte de test dédié : première connexion (2026-09-09)](#-compte-de-test-dédié--première-connexion-2026-09-09) · *Appareils, comptes de test et méthode*
@@ -372,7 +372,7 @@ Par domaine :
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 69 à faire, 34 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 153 à faire, 32 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 92 à faire, 45 faites
-- [14. Publication et plateformes](#14-publication-et-plateformes) — 52 à faire, 28 faites
+- [14. Publication et plateformes](#14-publication-et-plateformes) — 54 à faire, 28 faites
 - [15. Site web](#15-site-web) — 32 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 32 à faire, 46 faites
 
@@ -21958,13 +21958,24 @@ Play Store, exigences Android, build release, iOS.
   par celui de production (`ca-app-pub-4674966180025040~9171762097`, déjà dans
   `AdConfig`). Prend effet au prochain build.
 
-### ⬜ Corrigeable par du code, mais décision produit requise
-- **Cohérence « position approximative »** : `home_screen_widgets.dart:683`
-  affiche « Position approximative, jamais l'adresse exacte », mais
-  `background_location_service.dart:293` publie la position en
-  `LocationAccuracy.high` (la carte est en `.medium`). Contradiction que Play
-  a déjà relevée. À trancher : abaisser la précision du service d'arrière-plan,
-  ou changer la promesse affichée. **Décision du propriétaire.**
+### Résolu par décision produit
+- **✅ Cohérence « position approximative » — sens TEXTE choisi (2026-09-21).**
+  L'app publie une position précise (`background_location_service` en `.high`,
+  avant-plan en `.medium`) mais promettait « approximative, jamais l'adresse
+  exacte ». Sur décision du propriétaire, le TEXTE est aligné sur le code (la
+  position reste précise) : les trois libellés reformulés — accueil
+  (`home_screen_widgets.dart:683`) et note d'onboarding FR/EN
+  (`setupLocationPrivacyNote`) disent désormais « Position partagée avec les
+  membres proches · modifiable dans Réglages ». Plus aucune promesse
+  « approximative » dans `lib/`. Localisations régénérées (`flutter gen-l10n`),
+  analyse propre.
+  - [ ] ⚠️ **Action Play du propriétaire, indissociable de ce choix** : le
+    formulaire Data Safety / déclaration de permissions doit déclarer la
+    localisation **précise** (et non approximative) et la justifier — sinon la
+    contradiction se déplace du code vers la fiche Play, qui avait déjà motivé
+    un refus.
+  - [ ] Vérifier à l'écran (accueil + onboarding) que le nouveau libellé
+    s'affiche entièrement, sans troncature, en FR et EN.
 
 ### ⬜ Exige une valeur ou une décision du propriétaire
 - **Repli Stripe silencieux** (`app_config.dart:99`) : en production sans
