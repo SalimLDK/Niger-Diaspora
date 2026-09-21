@@ -19580,8 +19580,14 @@ La table est saine : 24 lignes, 12 paires toutes symétriques.
 
 **Priorité P0** · importance 4/5 — N'importe quel compte connecté pouvait faire arriver sur le téléphone de n'importe qui une bannière de son cru, sous le type de son choix — `system` compris. Reste à voir que les notifications légitimes arrivent toujours.
 
-Migration `20260921032400_notification_type_ferme_et_quota.sql` — **NON
-APPLIQUÉE** à l'écriture de cette entrée.
+Migration `20260921032400_notification_type_ferme_et_quota.sql` —
+**APPLIQUÉE le 2026-09-21** (`db push`, seule en file). Banc relancé tel quel
+sur l'état vivant : 14 cas, 0 échec, production intacte (0 ligne du banc).
+
+Une sonde HTTP avec la clé publique ne prouve RIEN ici, contrairement aux
+points précédents : sans jeton utilisateur, `firebase_uid()` est nul et la
+RPC s'arrête sur « not authenticated » avant d'atteindre le contrôle de type.
+C'est le banc, avec son rôle simulé, qui fait preuve.
 
 `create_user_notification` n'exigeait que deux choses : être connecté, et que
 le destinataire existe. `p_type`, `p_title`, `p_body` étaient libres, et le
