@@ -188,10 +188,30 @@ class MlsConversationService {
     await _refuserSiRevoque(appareil);
 
     // 1. Un Welcome m'attend ?
+    //
+    // Du plus récent au plus ancien, et un Welcome qui ne s'ouvre pas n'est
+    // pas une impasse. Après une réinstallation, ceux qui attendaient visent
+    // les KeyPackages de l'installation d'AVANT, dont les secrets sont partis
+    // avec l'ancienne base : ils ne s'ouvriront jamais. Lever ici, c'était
+    // n'atteindre jamais la jointure externe juste en dessous, qui est
+    // précisément le chemin d'une réinstallation. Trouvé le 2026-09-21 sur le
+    // Pixel : réinstallé le 20/09, deux Welcome du 17/09 en attente, et la
+    // discussion avec Sim A muette — ses messages comptés « non lus » mais
+    // jamais affichés, sans une ligne dans `mls_diagnostics`.
+    //
+    // Pas de `markWelcomeConsumed` sur un échec : un échec passager brûlerait
+    // une invitation valide, et un 1:1 sans place antérieure n'a pas d'autre
+    // porte. Le laisser en attente ne coûte rien — une fois membre, plus
+    // personne ne le relit.
     final welcomes = await _delivery.welcomesFor(appareil.id, conversationId: conversationId);
-    if (welcomes.isNotEmpty) {
-      final w = welcomes.last;
-      await moteur.traiterWelcome(conversationId: conversationId, welcome: w.welcome);
+    for (final w in welcomes.reversed) {
+      try {
+        await moteur.traiterWelcome(conversationId: conversationId, welcome: w.welcome);
+      } catch (e) {
+        await _delivery.diagnostic(userId, 'welcome_illisible',
+            deviceId: appareil.id, detail: {'code': _code(e), 'epoch': w.epoch});
+        continue;
+      }
       await _delivery.markWelcomeConsumed(w.id);
       return;
     }
