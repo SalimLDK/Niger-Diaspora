@@ -44,6 +44,8 @@
 -- de transaction explicite (WARNING 25P01 constaté sur 20260920213600).
 --
 -- Banc : tools/rls_tests/friends_ecriture_serveur_seul.sql
+--
+-- APPLIQUÉE le 2026-09-21 ; banc relancé tel quel : 12 cas, 0 échec.
 
 REVOKE ALL ON public.friends FROM anon;
 

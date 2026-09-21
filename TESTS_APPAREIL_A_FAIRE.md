@@ -19488,8 +19488,11 @@ Supabase et Firebase côté serveur, accès anon, stockage, journaux, Crashlytic
 
 **Priorité P1** · importance 3/5 — Un compte connecté pouvait insérer, modifier et supprimer ses propres lignes d'amitié par PostgREST, alors que cette table décide des audiences « Amis » et « Abonnés ». Le fil doit continuer de lire ses amitiés.
 
-Migration `20260921021300_friends_ecriture_serveur_seul.sql` — **NON
-APPLIQUÉE** à l'écriture de cette entrée. `REVOKE ALL … FROM anon`,
+Migration `20260921021300_friends_ecriture_serveur_seul.sql` — **APPLIQUÉE le
+2026-09-21** (`db push`, seule en file, sans avertissement). Banc relancé tel
+quel sur l'état vivant : 12 cas, 0 échec. Preuve HTTP avec la clé publique :
+`POST` et `GET /rest/v1/friends` rendent tous deux 401 / 42501.
+`REVOKE ALL … FROM anon`,
 lecture seule pour `authenticated`, les deux policies passées de `public` à
 `authenticated`.
 
