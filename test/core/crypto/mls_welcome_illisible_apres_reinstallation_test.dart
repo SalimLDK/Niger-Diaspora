@@ -21,10 +21,19 @@ import 'package:flutter_test/flutter_test.dart';
 /// Un Welcome illisible doit être journalisé puis dépassé, jamais bloquer ;
 /// et il ne doit pas être marqué consommé (un échec passager brûlerait une
 /// invitation valide).
+///
+/// Et les trois messages eux-mêmes, chiffrés AVANT la jointure : aucun
+/// secret ne les rendra lisibles sur cet appareil. Ils doivent sortir de
+/// `catchUp` marqués « avant l'arrivée » — la passerelle ne les affiche pas et
+/// les compte lus —, sans que le moteur tente de les déchiffrer.
 
 class _MoteurReinstalle implements Moteur {
+  _MoteurReinstalle({this.epoch});
+
   /// `null` = aucun groupe local : la base a été recréée.
   int? epoch;
+
+  int dechiffrementsTentes = 0;
 
   int welcomesTentes = 0;
   bool jointureExterne = false;
@@ -65,8 +74,10 @@ class _MoteurReinstalle implements Moteur {
     required String conversationId,
     required List<int> message,
     required List<int> aadAttendu,
-  }) =>
-      _interdit('traiterEntrant');
+  }) async {
+    dechiffrementsTentes++;
+    throw StateError('openmls:ValidationError');
+  }
 
   @override
   Future<void> oublierGroupe({required String conversationId}) async {
@@ -138,7 +149,10 @@ class _MoteurReinstalle implements Moteur {
 }
 
 class _TransportReinstalle extends MlsDelivery {
-  _TransportReinstalle() : super(ensureAuth: () async => true);
+  _TransportReinstalle({this.messages = const []})
+      : super(ensureAuth: () async => true);
+
+  final List<MlsMessageRow> messages;
 
   final diagnostics = <Map<String, Object?>>[];
   final welcomesConsommes = <String>[];
@@ -226,8 +240,21 @@ class _TransportReinstalle extends MlsDelivery {
     DateTime? after, {
     int limit = 200,
   }) async =>
-      const [];
+      [for (final m in messages) if (after == null || m.createdAt.isAfter(after)) m];
 }
+
+/// Un message de Sim A, reçu à [epoch].
+MlsMessageRow _messageDeSim(int epoch) => MlsMessageRow(
+      id: 'm$epoch',
+      conversationId: 'c1',
+      senderId: 'u2',
+      senderDeviceId: 'appareil-sim',
+      epoch: epoch,
+      kind: 'content',
+      contentType: 'text',
+      ciphertext: Uint8List(1),
+      createdAt: DateTime.utc(2026, 9, 17, 20, epoch),
+    );
 
 MlsDeviceRecord _appareil() => MlsDeviceRecord(
       id: 'moi',
@@ -245,21 +272,24 @@ void main() {
       'des Welcome illisibles après une réinstallation ne bloquent pas : '
       'journalisés, laissés en attente, puis jointure externe', () async {
     final moteur = _MoteurReinstalle();
-    final delivery = _TransportReinstalle();
+    final delivery = _TransportReinstalle(
+      messages: [for (final e in [13, 14, 15]) _messageDeSim(e)],
+    );
+    final memo = <String, String>{};
     final service = MlsConversationService(
       userId: 'u1',
       moteur: () async => moteur,
       delivery: delivery,
       appareil: () async => _appareil(),
-      lireMemo: (_) async => null,
-      ecrireMemo: (_, __) async {},
+      lireMemo: (cle) async => memo[cle],
+      ecrireMemo: (cle, valeur) async => memo[cle] = valeur,
     );
 
-    await service.catchUp('c1');
+    final resultat = await service.catchUp('c1');
 
     expect(moteur.welcomesTentes, 2, reason: 'chaque Welcome est essayé une fois');
     expect(delivery.welcomesConsommes, isEmpty,
-        reason: 'un Welcome qui ne s\'ouvre pas ne doit pas être brûlé');
+        reason: "un Welcome qui ne s'ouvre pas ne doit pas être brûlé");
     expect(moteur.jointureExterne, isTrue,
         reason: 'la reprise de sa propre place doit être atteinte');
     expect(delivery.commitsPublies, [17]);
@@ -270,5 +300,57 @@ void main() {
         .map((d) => (d['detail'] as Map)['epoch'])
         .toList();
     expect(illisibles, [15, 13], reason: 'du plus récent au plus ancien');
+
+    // Les trois messages d'avant la jointure.
+    expect(memo['mls_arrivee_u1_c1'], '17',
+        reason: "l'arrivée doit survivre au redémarrage");
+    expect(resultat.map((e) => e.row.id), ['m13', 'm14', 'm15']);
+    expect(resultat.every((e) => e.estAvantArrivee), isTrue);
+    expect(moteur.dechiffrementsTentes, 0,
+        reason: "un message d'avant l'arrivée ne se déchiffre pas : inutile d'essayer");
+    expect(delivery.diagnostics.where((d) => d['event'] == 'decrypt_failed'), isEmpty);
+  });
+
+  test(
+      'arrivée relue au redémarrage : seul ce qui la précède est écarté, '
+      "un échec à partir d'elle reste un échec", () async {
+    final moteur = _MoteurReinstalle(epoch: 15);
+    final delivery = _TransportReinstalle(
+      messages: [for (final e in [14, 15]) _messageDeSim(e)],
+    );
+    final service = MlsConversationService(
+      userId: 'u1',
+      moteur: () async => moteur,
+      delivery: delivery,
+      appareil: () async => _appareil(),
+      lireMemo: (cle) async => cle == 'mls_arrivee_u1_c1' ? '15' : null,
+      ecrireMemo: (_, __) async {},
+    );
+
+    final resultat = await service.catchUp('c1');
+
+    expect(resultat.map((e) => (e.row.id, e.estAvantArrivee)),
+        [('m14', true), ('m15', false)]);
+    expect(resultat.last.erreur, allOf(isNotNull, isNot(MlsIncoming.avantArrivee)),
+        reason: "à l'epoch d'arrivée, un échec est un vrai échec : placeholder");
+    expect(moteur.dechiffrementsTentes, 1);
+  });
+
+  test('sans arrivée mémorisée, rien ne change : le placeholder reste', () async {
+    final moteur = _MoteurReinstalle(epoch: 15);
+    final delivery = _TransportReinstalle(messages: [_messageDeSim(14)]);
+    final service = MlsConversationService(
+      userId: 'u1',
+      moteur: () async => moteur,
+      delivery: delivery,
+      appareil: () async => _appareil(),
+      lireMemo: (_) async => null,
+      ecrireMemo: (_, __) async {},
+    );
+
+    final resultat = await service.catchUp('c1');
+
+    expect(resultat.single.estAvantArrivee, isFalse);
+    expect(moteur.dechiffrementsTentes, 1);
   });
 }

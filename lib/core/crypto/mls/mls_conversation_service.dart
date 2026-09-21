@@ -17,7 +17,13 @@ class MlsIncoming {
 
   const MlsIncoming(this.row, {this.payload, this.erreur});
 
+  /// Chiffré avant que cet appareil n'entre dans le groupe : il ne le
+  /// déchiffrera jamais, ce n'est pas un échec. Voir `catchUp`.
+  static const avantArrivee = 'avant_arrivee';
+
   bool get lisible => payload != null;
+
+  bool get estAvantArrivee => erreur == avantArrivee;
 }
 
 /// Le groupe n'existe pas encore pour cet appareil, et personne ne l'y a
@@ -206,7 +212,9 @@ class MlsConversationService {
     final welcomes = await _delivery.welcomesFor(appareil.id, conversationId: conversationId);
     for (final w in welcomes.reversed) {
       try {
-        await moteur.traiterWelcome(conversationId: conversationId, welcome: w.welcome);
+        final snap =
+            await moteur.traiterWelcome(conversationId: conversationId, welcome: w.welcome);
+        await _memoriserArrivee(conversationId, snap.epoch.toInt());
       } catch (e) {
         await _delivery.diagnostic(userId, 'welcome_illisible',
             deviceId: appareil.id, detail: {'code': _code(e), 'epoch': w.epoch});
@@ -271,6 +279,7 @@ class MlsConversationService {
           }
           await _delivery.upsertConversationDevice(
               conversationId, appareil.id, 'active', epochAdded: epoch);
+          await _memoriserArrivee(conversationId, epoch);
           await _publierArbre(conversationId, moteur);
           return;
         }
@@ -677,6 +686,7 @@ class MlsConversationService {
     await _rattraperCommits(conversationId, moteur, appareil);
 
     final resultats = <MlsIncoming>[];
+    final arrivee = await _arriveeDe(conversationId);
     final depart = await _curseurDe(conversationId);
     var lignes = await _delivery.messagesAfter(conversationId, depart);
     for (var i = 0; i < lignes.length; i++) {
@@ -699,6 +709,19 @@ class MlsConversationService {
       }
       _vus.add(m.id);
       _curseur[conversationId] = m.createdAt;
+      if (arrivee != null && m.epoch < arrivee && m.senderDeviceId != appareil.id) {
+        // Chiffré avant mon arrivée dans le groupe : le secret de cet epoch
+        // ne m'a jamais été donné, aucun correctif ne le rendra lisible. Une
+        // bulle « Message chiffré » n'annoncerait rien qu'on puisse attendre ;
+        // le message ne s'affiche pas, et la passerelle le compte lu. Trouvé
+        // le 2026-09-21 : le Pixel réinstallé gardait « 3 non lus » sur Sim A,
+        // trois messages de la veille de sa réinstallation.
+        //
+        // Sans arrivée mémorisée — appareil entré avant qu'on la note —, rien
+        // ne change : le placeholder reste, faute de savoir.
+        resultats.add(MlsIncoming(m, erreur: MlsIncoming.avantArrivee));
+        continue;
+      }
       if (m.isDeleted) {
         // Pierre tombale — message expiré, ou supprimé pour tout le monde.
         // Son `ciphertext` a été vidé par la purge : le déchiffrer échouerait
@@ -774,6 +797,37 @@ class MlsConversationService {
   /// moteur ni le même avancement.
   String _cleCurseur(String conversationId) =>
       'mls_curseur_${userId}_$conversationId';
+
+  /// L'epoch auquel cet appareil est entré dans le groupe, par Welcome ou par
+  /// jointure externe. Vit à côté du curseur, et disparaît avec lui : une
+  /// réinstallation efface les deux, et la jointure suivante le repose.
+  final Map<String, int> _arrivee = {};
+
+  String _cleArrivee(String conversationId) =>
+      'mls_arrivee_${userId}_$conversationId';
+
+  Future<int?> _arriveeDe(String conversationId) async {
+    if (_arrivee.containsKey(conversationId)) return _arrivee[conversationId];
+    try {
+      final epoch = int.tryParse(await _lireMemo(_cleArrivee(conversationId)) ?? '');
+      if (epoch != null) _arrivee[conversationId] = epoch;
+      return epoch;
+    } catch (e) {
+      debugPrint('MlsConversationService: arrivée illisible ($e)');
+      return null;
+    }
+  }
+
+  /// Ne lève jamais : la jointure a réussi, une mémoire ratée ne doit pas la
+  /// faire passer pour un échec — on retombe sur le placeholder, c'est tout.
+  Future<void> _memoriserArrivee(String conversationId, int epoch) async {
+    _arrivee[conversationId] = epoch;
+    try {
+      await _ecrireMemo(_cleArrivee(conversationId), '$epoch');
+    } catch (e) {
+      debugPrint('MlsConversationService: arrivée non mémorisée ($e)');
+    }
+  }
 
   /// Rejoue les commits en attente ; si l'un d'eux échoue alors qu'un Welcome
   /// m'attend, oublie l'état local corrompu et rejoint proprement par ce

@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1555 cases à cocher, 651 cochées** — 302 entrées sur 353 ont encore des cases ouvertes.
+**1556 cases à cocher, 651 cochées** — 302 entrées sur 353 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -130,7 +130,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [⬜ Exclure un membre d'un groupe échouait toujours (2026-09-17)](#-exclure-un-membre-dun-groupe-échouait-toujours-2026-09-17) · *Groupes*
 - 4 · [⬜ Noms des candidats à l'invitation et à l'ajout en appel (2026-09-14)](#-noms-des-candidats-à-linvitation-et-à-lajout-en-appel-2026-09-14) · *Groupes*
 - 5 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
-- 4 · [⬜ Pixel réinstallé : la discussion MLS avec Sim A se rouvre malgré des Welcome périmés (2026-09-21)](#-pixel-réinstallé--la-discussion-mls-avec-sim-a-se-rouvre-malgré-des-welcome-périmés-2026-09-21) · *Chiffrement de bout en bout et clés*
+- 5 · [⬜ Pixel réinstallé : la discussion MLS avec Sim A se rouvre malgré des Welcome périmés (2026-09-21)](#-pixel-réinstallé--la-discussion-mls-avec-sim-a-se-rouvre-malgré-des-welcome-périmés-2026-09-21) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ L'app lancée sans son écran n'inscrit plus d'appareil fantôme (2026-09-16)](#-lapp-lancée-sans-son-écran-ninscrit-plus-dappareil-fantôme-2026-09-16) · *Chiffrement de bout en bout et clés*
 - 5 · [⬜ « Chiffré de bout en bout » corrigé sur 8 surfaces, dont la politique de confidentialité (2026-09-16)](#--chiffré-de-bout-en-bout--corrigé-sur-8-surfaces-dont-la-politique-de-confidentialité-2026-09-16) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ La vidéo entre dans le chiffrement (2026-09-16)](#-la-vidéo-entre-dans-le-chiffrement-2026-09-16) · *Chiffrement de bout en bout et clés*
@@ -362,7 +362,7 @@ Par domaine :
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
 - [2. Messagerie](#2-messagerie) — 338 à faire, 126 faites
 - [3. Groupes](#3-groupes) — 149 à faire, 64 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 146 à faire, 42 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 147 à faire, 42 faites
 - [5. Appels](#5-appels) — 26 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 166 à faire, 76 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
@@ -7613,9 +7613,14 @@ rien n'était journalisé. Correctif : un Welcome illisible est journalisé
 - [ ] ouvrir Sim A → `mls_diagnostics` montre deux `welcome_illisible` (15
       puis 13), puis un commit du device `8ac577df` à l'epoch 17 dans
       `mls_commits` ;
-- [ ] les 3 messages des epochs 13-15 s'affichent en « indisponible sur cet
-      appareil » (antérieurs à la jointure : ils ne reviendront pas), et le
-      compteur « non lus » retombe ;
+- [ ] les 3 messages des epochs 13-15 **n'apparaissent pas du tout** (chiffrés
+      avant la jointure, écartés par `catchUp` via l'epoch d'arrivée
+      mémorisée `mls_arrivee_<uid>_<conv>`), et le compteur « non lus »
+      retombe à 0 sans autre action (reçus `read_at` posés dans
+      `mls_message_receipts`) — Sim A voit donc ces 3 messages « Lu » ;
+- [ ] ⚠️ l'aperçu de la liste peut rester sur « Message chiffré » tant
+      qu'aucun nouveau message n'arrive (il vient du dernier message serveur,
+      non filtré) : à relever ;
 - [ ] Sim A (A515F) envoie un message → le Pixel l'affiche en clair, et
       inversement ;
 - [ ] relancer l'app sur le Pixel : aucune nouvelle jointure (`mls_commits`

@@ -214,7 +214,17 @@ class MlsGateway {
     final entrants = await _service.catchUp(conversationId);
     final fil = _fil[conversationId] ??= [];
     final deja = {for (final m in fil) m.id};
+    final avantArrivee = <String>[];
     for (final e in entrants) {
+      // Chiffré avant que cet appareil n'entre dans le groupe : illisible
+      // pour de bon, donc ni bulle ni non-lu. Le curseur de lecture ne
+      // l'atteindrait jamais — il suit ce que l'écran montre —, et la
+      // pastille resterait sur un message que personne ne verra. Voir
+      // `MlsConversationService.catchUp`.
+      if (e.estAvantArrivee) {
+        if (e.row.senderId != userId) avantArrivee.add(e.row.id);
+        continue;
+      }
       // Un contrôle n'est pas une bulle : il modifie, supprime ou annote un
       // autre message. L'afficher ferait apparaître une ligne vide dans le
       // fil à chaque réaction.
@@ -228,6 +238,14 @@ class MlsGateway {
         senderName: await _nom(e.row.senderId),
         currentUserId: userId,
       ));
+    }
+    if (avantArrivee.isNotEmpty) {
+      try {
+        await _meta.marquer(avantArrivee, lu: true);
+      } catch (e) {
+        // Le fil ne doit pas en dépendre : au pire la pastille reste.
+        debugPrint('MlsGateway: messages d\'avant l\'arrivée non marqués ($e)');
+      }
     }
     fil.sort((a, b) => a.createdAt.compareTo(b.createdAt));
     _appliquerEditionsEnAttente(fil);
