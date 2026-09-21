@@ -19582,7 +19582,12 @@ La table est saine : 24 lignes, 12 paires toutes symétriques.
 
 **Priorité P1** · importance 4/5 — Dernière pièce de la chaîne de paiement. L'acheteur posait lui-même le montant et le statut à la création. Et la résolution de litige du back-office ne marchait pas — elle est réparée au passage.
 
-Deux côtés, **NON DÉPLOYÉS** à l'écriture de cette entrée :
+Deux côtés, **DÉPLOYÉS le 2026-09-21**. Migration appliquée puis banc
+relancé tel quel (11 cas, 0 échec) ; règles relues par l'API `firebaserules`,
+production identique au dépôt. Les policies de `orders` en base sont
+désormais `orders_select_admin`, `orders_select_parties`,
+`orders_update_litige_admin` — plus d'insertion ni de mise à jour par les
+parties.
 
 - `firestore.rules` — le parcours marketplace vit là
   (`marketplace_remote_datasource.dart`). `allow create` et `allow update`
