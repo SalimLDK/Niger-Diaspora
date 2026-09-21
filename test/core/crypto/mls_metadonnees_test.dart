@@ -426,6 +426,32 @@ void main() {
       expect((await passerelle.messages('c1')).map((m) => m.id), ['m1']);
     });
 
+    test('un fil né du rattrapage de la liste est complété par le cache, '
+        'pas figé sur le delta', () async {
+      // 2026-09-21, SM A515F : le rattrapage de fond de la liste appelle
+      // `messages` SANS amorcer. `catchUp` ne rendant que le delta, le fil
+      // naissait avec le seul message neuf ; l'amorçage de l'ouverture était
+      // ensuite sauté (« fil déjà vivant »), et la discussion sautait de
+      // mardi à ce message — une vingtaine de messages du jour masqués.
+      final service = _ServiceFige([
+        MlsIncoming(_ligne('neuf'), payload: _payload('neuf')),
+      ]);
+      final passerelle = _passerelle(service, _MetaEspion());
+
+      await passerelle.messages('c1'); // la liste, sans amorcer
+
+      passerelle.amorcer('c1', [
+        for (final id in ['ancien1', 'ancien2', 'neuf'])
+          MlsMessageMapper.depuisPayload(_payload(id),
+              row: _ligne(id), senderName: 'Nom', currentUserId: 'u1'),
+      ]);
+
+      final ids = (await passerelle.messages('c1')).map((m) => m.id).toList();
+      expect(ids.toSet(), {'ancien1', 'ancien2', 'neuf'},
+          reason: 'les messages du cache doivent revenir dans le fil');
+      expect(ids, hasLength(3), reason: 'sans doublon du message déjà vivant');
+    });
+
     test('le cache d\'une conversation non basculée n\'est pas repris', () {
       // `mls_since` nul : rien n'est chiffré ici, tout le cache est legacy.
       expect(

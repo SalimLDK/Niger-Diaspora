@@ -261,8 +261,8 @@ class MlsGateway {
   /// serveur n'a donc plus rien de lisible à offrir : seul le cache de
   /// l'appareil garde le clair.
   ///
-  /// N'amorce qu'une fois : ensuite c'est le fil en mémoire qui fait foi, et
-  /// il contient déjà tout le cache plus ce qui est arrivé depuis.
+  /// Le fil en mémoire fait foi : un second amorçage ne fait qu'y ajouter les
+  /// messages du cache qui lui manquent, sans rien remplacer ni retirer.
   void amorcer(String conversationId, List<MessageEntity> caches) {
     // Ne verrouiller le fil que sur un amorçage QUI A QUELQUE CHOSE.
     //
@@ -280,12 +280,38 @@ class MlsGateway {
     // ligne dans `mls_diagnostics` — l'échec ne se signalait nulle part. Le
     // même fil réapparaissait dès qu'on renvoyait un message, ce qui faisait
     // passer la panne pour un caprice d'affichage.
-    if (_fil[conversationId]?.isNotEmpty ?? false) return;
     if (caches.isEmpty) return;
-    final fil = [...caches]
+    final vivant = _fil[conversationId];
+    if (vivant == null || vivant.isEmpty) {
+      final fil = [...caches]
+        ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+      _fil[conversationId] = fil;
+      _connus.addAll(fil.map((m) => m.id));
+      return;
+    }
+
+    // Un fil déjà vivant est COMPLÉTÉ par le cache, jamais remplacé : ce qu'il
+    // porte est plus frais (métadonnées, édition), donc seules les entrées
+    // qu'il n'a pas sont reprises.
+    //
+    // Il sortait sans rien faire. Or le fil peut naître AILLEURS que de
+    // l'écran : le rattrapage de fond de la liste appelle [messages] sans
+    // amorcer, et `catchUp` ne rend que le delta. Le fil ne contenait alors
+    // que les messages reçus depuis le dernier passage, et l'amorçage de
+    // l'ouverture — celui qui aurait rendu tout le reste — était sauté. Vu le
+    // 2026-09-21 sur SM A515F : discussion rouverte après une coupure, de
+    // « Tygg » (mardi) directement à PE1 ; une vingtaine de messages du jour
+    // masqués jusqu'à la relance, tous intacts en base et dans le cache.
+    final deja = {for (final m in vivant) m.id};
+    final manquants = [
+      for (final m in caches)
+        if (!deja.contains(m.id)) m,
+    ];
+    if (manquants.isEmpty) return;
+    vivant
+      ..addAll(manquants)
       ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
-    _fil[conversationId] = fil;
-    _connus.addAll(fil.map((m) => m.id));
+    _connus.addAll(manquants.map((m) => m.id));
   }
 
   /// Un message de contrôle reçu. Un type inconnu — écrit par une version
