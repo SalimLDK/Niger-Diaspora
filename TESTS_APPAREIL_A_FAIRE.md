@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1524 cases à cocher, 650 cochées** — 295 entrées sur 346 ont encore des cases ouvertes.
+**1527 cases à cocher, 650 cochées** — 296 entrées sur 347 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -199,7 +199,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (91)
+**P2 — fonction secondaire ou cas limite** (92)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -259,6 +259,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Discussion en paysage — débordement de 4,1 px (vu le 2026-08-05)](#discussion-en-paysage--débordement-de-41-px-vu-le-2026-08-05) · *Design, thème, langue et mise en page*
 - 2 · [Thème sombre — jetons clairs codés en dur](#thème-sombre--jetons-clairs-codés-en-dur) · *Design, thème, langue et mise en page*
 - 4 · [Bascule design_v2 → production, famille 2 : les services (2026-08-03)](#bascule-design_v2--production-famille-2--les-services-2026-08-03) · *Design, thème, langue et mise en page*
+- 3 · [⬜ Note et nombre d'avis des entreprises : calculés par la base, mais les avis sont encore dans Firestore (2026-09-21)](#-note-et-nombre-davis-des-entreprises--calculés-par-la-base-mais-les-avis-sont-encore-dans-firestore-2026-09-21) · *Backend, sécurité et observabilité*
 - 8 · [Le bouton « Ouvrir Play Store » de la garde Play Integrity ne faisait rien (2026-09-14)](#le-bouton--ouvrir-play-store--de-la-garde-play-integrity-ne-faisait-rien-2026-09-14) · *Backend, sécurité et observabilité*
 - 3 · [⚠️ Ce que dit vraiment la console Crashlytics (2026-09-10)](#-ce-que-dit-vraiment-la-console-crashlytics-2026-09-10) · *Backend, sécurité et observabilité* · bloqué
 - 5 · [Fuseau horaire — heures affichées en UTC (2026-08-04)](#fuseau-horaire--heures-affichées-en-utc-2026-08-04) · *Backend, sécurité et observabilité*
@@ -364,7 +365,7 @@ Par domaine :
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 65 à faire, 51 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 67 à faire, 34 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 153 à faire, 32 faites
-- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 78 à faire, 45 faites
+- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 81 à faire, 45 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 52 à faire, 28 faites
 - [15. Site web](#15-site-web) — 32 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 32 à faire, 46 faites
@@ -19491,6 +19492,58 @@ Supabase et Firebase côté serveur, accès anon, stockage, journaux, Crashlytic
 
 ---
 
+## ⬜ Note et nombre d'avis des entreprises : calculés par la base, mais les avis sont encore dans Firestore (2026-09-21)
+
+**Priorité P2** · importance 3/5 — L'annuaire affiche 0 avis et aucune note quelles que soient les évaluations. Le drapeau `businessDirectory` est fermé et la production porte 2 fiches et 0 avis : rien n'est visible aujourd'hui.
+*Bloqué : les avis de l'app vont dans Firestore ; le calcul serveur ne verra rien tant qu'ils n'ont pas basculé sur Supabase.*
+
+Migration `20260921083000_agregats_avis_entreprises.sql` — **écrite et répétée,
+PAS APPLIQUÉE**. Déclencheur `business_reviews_agreger` (INSERT / DELETE /
+UPDATE de `rating`, `status`, `business_id`) qui recalcule `rating` (moyenne
+des avis `published`, NULL sans avis) et `review_count`, plus le rattrapage des
+fiches existantes. Banc `tools/rls_tests/agregats_avis_entreprises.sql`,
+19 cas : **13 échecs sans la migration, 0 avec** (répétition `BEGIN … ROLLBACK`,
+rien resté en base, relu).
+
+**Pourquoi `SECURITY DEFINER` :** la garde `businesses_garde_privileges` refuse
+tout changement des compteurs venu de `authenticated`. La contre-épreuve du
+banc a mesuré ce qu'aurait donné un déclencheur INVOKER : pour un client
+quelconque, la policy de `businesses` réduit la mise à jour de la fiche à
+0 ligne **en silence** (avis accepté, note figée) ; pour le propriétaire, la
+garde lève 42501 et **l'avis entier** est refusé.
+
+**Ce que ça ne répare PAS — le vrai défaut est ailleurs :**
+
+- `review_remote_datasource.dart` écrit et lit les avis dans la collection
+  **Firestore** `business_reviews`. `onReviewCreated/Updated/Deleted`
+  (`functions/index.js`) recalcule la note dans le document Firestore
+  `businesses/<id>`, qui n'existe plus depuis la bascule du module sur
+  Supabase (2026-09-10). Tant que les avis n'ont pas basculé, la table Supabase
+  reste vide et ce déclencheur ne se déclenche jamais.
+- La table Supabase `business_reviews` a le RLS actif et **aucune policy** : le
+  client ne peut ni la lire ni y écrire. La bascule devra les poser (le banc
+  en porte un modèle, sous le nom `banc_avis_*`). Elle garde en revanche tous
+  les droits par défaut pour `anon` (TRUNCATE compris) : le RLS les neutralise,
+  sauf TRUNCATE qui l'ignore — PostgREST ne l'expose pas, mais c'est le piège
+  « GRANT n'enlève rien » : `REVOKE` à poser avec la bascule.
+- Côté Firestore, d'après `firestore.rules`, `create` exige
+  `reviewerId == auth.uid` alors que le modèle envoie `userId` : déposer un
+  avis serait refusé. **Non vérifié sur appareil.**
+- `follower_count` n'a aucune source : pas d'abonnement aux entreprises, ni en
+  base ni dans le code. Il reste à 0.
+
+**À vérifier sur appareil, une fois les avis basculés et la migration
+appliquée :**
+
+- [ ] déposer un avis sur une fiche : la note et le nombre d'avis de la fiche
+  et de sa carte dans l'annuaire se mettent à jour ;
+- [ ] modifier puis supprimer cet avis : la note suit, et retombe à « pas de
+  note » au dernier avis retiré ;
+- [ ] le propriétaire de la fiche la modifie juste après (nom, téléphone) :
+  pas de 42501 — `_versLigne` n'envoie pas `rating`, mais le vérifier.
+
+---
+
 ## ⬜ Promotion payante et badge « vérifié » fermés au client (2026-09-21)
 
 **Priorité P1** · importance 4/5 — Le drapeau `businessDirectory` est fermé et la production ne porte que 2 fiches, mais ce durcissement change le comportement d'un écran d'édition que personne n'a jamais ouvert sur un téléphone.
@@ -19539,8 +19592,9 @@ innocente, lèvera 42501 sur une valeur périmée. Le remède définitif est cô
 client : cesser d'envoyer `is_verified`, `is_boosted` et `boost_expires_at`
 dans `_versLigne`. À faire avec la prochaine version cliente.
 
-**Trouvé au passage, NON corrigé — la note des entreprises n'est calculée par
-personne.** Le commentaire de `_versLigne` (`:86-89`) exclut `rating`,
+**Trouvé au passage — la note des entreprises n'est calculée par personne**
+(suite : voir « Note et nombre d'avis des entreprises : calculés par la base,
+mais les avis sont encore dans Firestore »). Le commentaire de `_versLigne` (`:86-89`) exclut `rating`,
 `review_count`, `follower_count` et `view_count` en affirmant que « la base les
 tient (génération, triggers d'agrégat) ». Mesuré : **aucun déclencheur
 n'existe** sur `business_reviews` — seul `update_updated_at` sur
