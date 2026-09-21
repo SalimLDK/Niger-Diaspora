@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1506 cases à cocher, 650 cochées** — 288 entrées sur 337 ont encore des cases ouvertes.
+**1508 cases à cocher, 650 cochées** — 289 entrées sur 338 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -193,7 +193,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (90)
+**P2 — fonction secondaire ou cas limite** (91)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -257,6 +257,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [⚠️ Ce que dit vraiment la console Crashlytics (2026-09-10)](#-ce-que-dit-vraiment-la-console-crashlytics-2026-09-10) · *Backend, sécurité et observabilité* · bloqué
 - 5 · [Fuseau horaire — heures affichées en UTC (2026-08-04)](#fuseau-horaire--heures-affichées-en-utc-2026-08-04) · *Backend, sécurité et observabilité*
 - 7 · [Admin (back-office)](#admin-back-office) · *Backend, sécurité et observabilité*
+- 2 · [⬜ Le `.env` embarqué ne livre plus de chemin de poste (2026-09-21)](#-le-env-embarqué-ne-livre-plus-de-chemin-de-poste-2026-09-21) · *Publication et plateformes*
 - 8 · [iOS : premier build réussi, sur simulateur (2026-09-01)](#ios--premier-build-réussi-sur-simulateur-2026-09-01) · *Publication et plateformes* · bloqué
 - 23 · [Passe pilotée du 2026-08-04 (15:25 → 16:05) — SM A515F, APK debug `54083d6`](#passe-pilotée-du-2026-08-04-1525--1605--sm-a515f-apk-debug-54083d6) · *Journaux de passes appareil*
 - 4 · [Fonctionnalité épingle mise en pause (2026-08-14)](#fonctionnalité-épingle-mise-en-pause-2026-08-14) · *Messagerie*
@@ -358,7 +359,7 @@ Par domaine :
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 67 à faire, 34 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 153 à faire, 32 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 71 à faire, 45 faites
-- [14. Publication et plateformes](#14-publication-et-plateformes) — 41 à faire, 28 faites
+- [14. Publication et plateformes](#14-publication-et-plateformes) — 43 à faire, 28 faites
 - [15. Site web](#15-site-web) — 32 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 32 à faire, 46 faites
 
@@ -21273,6 +21274,39 @@ applicable à des utilisateurs répartis sur plusieurs fuseaux.
 Play Store, exigences Android, build release, iOS.
 
 ---
+
+## ⬜ Le `.env` embarqué ne livre plus de chemin de poste (2026-09-21)
+
+**Priorité P2** · importance 3/5 — Le `.env` est un asset Flutter : il part en clair dans chaque APK. Il y livrait un chemin Windows absolu (nom d'utilisateur, arborescence, nom du fichier de clé admin) et le récit d'une fuite passée. Reste à voir qu'un build réel démarre toujours.
+
+Deux retraits, sans toucher à aucune valeur :
+
+- `GOOGLE_APPLICATION_CREDENTIALS` — son seul lecteur,
+  `scripts/creer_compte_test.js`, retrouve la clé tout seul en balayant la
+  racine (`*-adminsdk-*.json`) ; son branchement `.env` a été supprimé.
+- le récit d'incident sur l'ancienne `service_role`, remplacé par une ligne
+  neutre.
+
+⚠️ `.env` est **ignoré par git** : ces retraits ne sont donc PAS dans le
+commit. Ils ont été faits sur le fichier du dépôt principal ET sur celui du
+worktree, vérifiés identiques. **Un poste qui restaurerait un ancien `.env`
+réintroduirait la fuite** — c'est la garde ci-dessous qui le dira.
+
+Garde committée : `test/core/env_embarque_test.dart` refuse une variable au
+nom inconnu, une valeur en forme de secret, ou un chemin absolu. Les trois
+contrôles vus échouer sur une violation plantée, puis repasser ; 1 914 tests
+verts.
+
+**L'ancienne `service_role` exposée est INERTE** — mesuré le 2026-09-21 : les
+clés legacy existent encore dans le projet, mais la passerelle répond
+`401 Legacy API keys are disabled`.
+
+- [ ] **Construire un APK et l'ouvrir** : `unzip -p <apk> assets/flutter_assets/.env`
+  ne doit contenir ni `GOOGLE_APPLICATION_CREDENTIALS`, ni `C:\`, ni le récit
+  d'incident.
+- [ ] **Démarrage de l'app** sur ce build : Supabase, la carte et les liens
+  profonds fonctionnent (les cinq variables réellement lues sont intactes,
+  mais rien ne l'a vérifié sur un téléphone).
 
 ## ⬜ Notice « une nouvelle version est disponible » (2026-09-14)
 

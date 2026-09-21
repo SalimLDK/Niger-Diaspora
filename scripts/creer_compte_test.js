@@ -41,21 +41,20 @@ function lireArguments(argv) {
 }
 
 /// Chemin du compte de service, par ordre de preference :
-/// l'argument --cle, la variable d'environnement, la ligne
-/// GOOGLE_APPLICATION_CREDENTIALS du .env, puis le premier
+/// l'argument --cle, la variable d'environnement, puis le premier
 /// *-adminsdk-*.json trouve a la racine. Tous ces fichiers sont ignores par
 /// git (.gitignore ligne 9) : aucun risque de les committer.
+///
+/// Ce script NE LIT PLUS le `.env` de la racine. Ce fichier est declare comme
+/// asset Flutter (`pubspec.yaml`) : tout ce qu'on y met part en clair dans
+/// l'APK. La ligne GOOGLE_APPLICATION_CREDENTIALS qu'on y lisait y livrait un
+/// chemin Windows absolu — nom d'utilisateur, arborescence, et nom du fichier
+/// de cle admin. Elle en a ete retiree le 2026-09-21 ; la decouverte
+/// automatique ci-dessous couvre exactement le meme cas, et `--cle` ou la
+/// variable d'environnement couvrent un fichier range ailleurs.
+/// Garde : test/core/env_embarque_test.dart
 function trouverCle(cleArg) {
   const candidats = [cleArg, process.env.GOOGLE_APPLICATION_CREDENTIALS];
-
-  const env = path.join(process.cwd(), '.env');
-  if (fs.existsSync(env)) {
-    const ligne = fs
-      .readFileSync(env, 'utf8')
-      .split(/\r?\n/)
-      .find((l) => l.startsWith('GOOGLE_APPLICATION_CREDENTIALS='));
-    if (ligne) candidats.push(ligne.split('=').slice(1).join('=').trim());
-  }
 
   const racine = fs.readdirSync(process.cwd());
   const adminsdk = racine.find((f) => /-adminsdk-.*\.json$/.test(f));
