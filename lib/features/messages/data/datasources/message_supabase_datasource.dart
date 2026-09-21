@@ -1221,7 +1221,19 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
             if (!controller.isClosed) controller.add(null);
           },
         )
-        .subscribe();
+        // Le rattrapage au rejoint, comme le canal `messages` : un abonnement
+        // nu laissait perdu tout message arrivé pendant l'arrière-plan. Vu le
+        // 2026-09-21 sur SM A515F : discussion affichée, HOME, un message
+        // reçu, retour — livré, mais absent du fil jusqu'à la réouverture.
+        // Le signal suffit : l'écouteur relit le fil par la passerelle.
+        .subscribe(
+          rattrapageAuRejoint(
+            () {
+              if (!controller.isClosed) controller.add(null);
+            },
+            etiquette: 'mls_new',
+          ),
+        );
 
     controller.onCancel = () {
       unawaited(ch.unsubscribe());

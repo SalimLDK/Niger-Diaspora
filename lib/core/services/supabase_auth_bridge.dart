@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/widgets.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../utils/reabonnement_temps_reel.dart';
 import 'connectivity_service.dart';
 import 'politique_de_reprise.dart';
 
@@ -226,11 +227,22 @@ class SupabaseAuthBridge {
 
   /// Le réseau est revenu, ou l'app repasse au premier plan : on redonne
   /// une chance immédiate sans attendre la fin du repos.
+  ///
+  /// Si le jeton était périmé, les canaux realtime ont déjà été re-rejoints
+  /// avec lui par `supabase_flutter` et sont morts sans le dire : une fois le
+  /// jeton neuf obtenu, on les réabonne (voir [reabonnerLeTempsReel]).
   void reprendreApresRetourReseau() {
     _reprise.autoriserUneTentative();
     if (hasValidSession) return;
     final user = firebase_auth.FirebaseAuth.instance.currentUser;
-    if (user != null) unawaited(syncWithFirebase(user));
+    if (user == null) return;
+    unawaited(
+      syncWithFirebase(user).then((_) async {
+        if (hasValidSession) await reabonnerLeTempsReel(_supabase.realtime);
+      }).catchError((Object e) {
+        debugPrint('SupabaseAuthBridge: réabonnement realtime — $e');
+      }),
+    );
   }
 
   void _scheduleRenewal(int expiresInSeconds) {

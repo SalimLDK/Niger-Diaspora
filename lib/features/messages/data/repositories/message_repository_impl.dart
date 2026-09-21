@@ -971,6 +971,51 @@ class MessageRepositoryImpl implements MessageRepository {
   final StreamController<void> _rattrapageFini =
       StreamController<void>.broadcast();
 
+  /// Fait recalculer la liste des discussions depuis sa dernière version
+  /// serveur, sans attendre que la ligne `conversations` change.
+  ///
+  /// Pour une conversation chiffrée, l'aperçu est reconstitué depuis le cache
+  /// local du fil (`apercuDepuisCache`) : tout geste qui modifie ce cache sans
+  /// toucher `conversations` doit le signaler, sinon la liste garde ce qu'elle
+  /// avait calculé avant.
+  void _rejouerLaListe() {
+    if (!_rattrapageFini.isClosed) _rattrapageFini.add(null);
+  }
+
+  /// Après « supprimer pour tous » d'un message chiffré : le message caché
+  /// porte la marque, perd son texte, et la liste se recalcule.
+  ///
+  /// La suppression n'écrit que dans `mls_messages`. Le serveur n'a jamais eu
+  /// le clair ; l'appareil, lui, le garde dans son cache, et la liste n'était
+  /// pas rejouée. Vu le 2026-09-21 sur Pixel 10 Pro XL : la tuile de
+  /// l'expéditeur affichait « Vous: PA6SECRET » deux minutes après la
+  /// suppression, et jusqu'à la relance de l'app — le seul moment où la liste
+  /// relisait le cache.
+  ///
+  /// Le texte est vidé, pas seulement marqué : c'est la copie qui fuyait.
+  /// La relecture du fil par la passerelle réécrira cette entrée de toute
+  /// façon, avec la même marque.
+  Future<void> _marquerSupprimeDansLeCache(
+    String conversationId,
+    String messageId,
+  ) async {
+    try {
+      final cached = cacheService.getCachedMessages(conversationId);
+      final index = cached.indexWhere((m) => m['id'] == messageId);
+      if (index != -1) {
+        final mis = Map<String, dynamic>.from(cached[index])
+          ..['deletedForEveryone'] = true
+          ..['content'] = '';
+        await cacheService.cacheMessages(conversationId, [mis]);
+      }
+    } catch (e) {
+      // La suppression serveur a réussi : un cache récalcitrant ne doit pas
+      // la faire passer pour un échec.
+      dev.log('Cache après suppression', name: 'message_repository_impl', error: e);
+    }
+    _rejouerLaListe();
+  }
+
   /// Faut-il replanifier un rattrapage ? Oui dès qu'une conversation sans
   /// aperçu porte une date qu'on n'a pas encore tentée.
   ///
@@ -2190,6 +2235,7 @@ class MessageRepositoryImpl implements MessageRepository {
       final passerelle = await _passerelleMessage(conversationId, messageId);
       if (passerelle != null) {
         await passerelle.supprimerPourTous(messageId);
+        await _marquerSupprimeDansLeCache(conversationId, messageId);
         return const Right(null);
       }
       await remoteDataSource.deleteMessageForEveryone(
@@ -2556,6 +2602,9 @@ class MessageRepositoryImpl implements MessageRepository {
         mis['editedAt'] = DateTime.now().toUtc().toIso8601String();
         await cacheService.cacheMessages(conversationId, [mis]);
       }
+      // L'aperçu d'une conversation chiffrée vient de ce cache : sans rejeu,
+      // la tuile garde le texte d'avant (voir [_marquerSupprimeDansLeCache]).
+      _rejouerLaListe();
 
       return const Right(null);
     } on ServerException catch (e) {

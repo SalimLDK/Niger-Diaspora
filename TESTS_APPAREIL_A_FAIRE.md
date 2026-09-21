@@ -39,12 +39,13 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1542 cases à cocher, 675 cochées** — 304 entrées sur 355 ont encore des cases ouvertes.
+**1548 cases à cocher, 675 cochées** — 305 entrées sur 356 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
-**P0 — avant toute nouvelle version** (50)
+**P0 — avant toute nouvelle version** (51)
 
+- 6 · [⬜ Temps réel après l'arrière-plan, et texte supprimé dans la liste (2026-09-21)](#-temps-réel-après-larrière-plan-et-texte-supprimé-dans-la-liste-2026-09-21) · *Messagerie*
 - 5 · [⬜ Droits d'écriture sur `messages` resserrés : accusés et modification (2026-09-16)](#-droits-décriture-sur-messages-resserrés--accusés-et-modification-2026-09-16) · *Messagerie*
 - 2 · [⬜ Accusé « lu » mensonger, et aperçu chiffré qui ne venait jamais (2026-09-15)](#-accusé--lu--mensonger-et-aperçu-chiffré-qui-ne-venait-jamais-2026-09-15) · *Messagerie*
 - 10 · [⬜ L'aperçu de la liste dit pourquoi il est vide (2026-09-15)](#-laperçu-de-la-liste-dit-pourquoi-il-est-vide-2026-09-15) · *Messagerie*
@@ -362,7 +363,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 329 à faire, 141 faites
+- [2. Messagerie](#2-messagerie) — 335 à faire, 141 faites
 - [3. Groupes](#3-groupes) — 149 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 144 à faire, 45 faites
 - [5. Appels](#5-appels) — 26 à faire, 8 faites
@@ -621,6 +622,53 @@ Crashlytics.
 # 2. Messagerie
 
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
+
+---
+
+## ⬜ Temps réel après l'arrière-plan, et texte supprimé dans la liste (2026-09-21)
+
+**Priorité P0** · importance 5/5 — deux défauts trouvés à deux téléphones sur
+le +26 (voir « Actualisation automatique après coupure ou retour
+d'arrière-plan » et « L'aperçu de la liste dit pourquoi il est vide ») : la
+messagerie cessait d'arriver en direct après l'arrière-plan, jusqu'à la
+relance de l'app ; et la liste de l'expéditeur gardait le texte d'un message
+chiffré supprimé pour tous.
+
+*Bloqué : les deux téléphones portent un build Play — il faut un AAB importé
+dans une piste Play (Tests internes) pour les mettre à jour.*
+
+**1. Temps réel.** Au retour, `supabase_flutter` re-rejoint les canaux avec
+le jeton qu'il a, périmé après une longue absence ; le serveur refuse la
+réplication en différé et le canal reste « joined », muet — le jeton neuf du
+pont n'y change rien. Le pont réabonne désormais tout le temps réel une fois
+le jeton neuf obtenu (`reabonnement_temps_reel.dart`,
+`supabase_auth_bridge.dart`). Et le canal des messages chiffrés n'avait pas
+de rattrapage au rejoint : ce qui arrivait pendant l'absence restait absent
+de la discussion affichée (`mlsNouveauxMessages`). Tenu par
+`test/core/services/temps_reel_apres_arriere_plan_test.dart` (branchements
+seulement : le mécanisme lui-même ne se prouve que sur appareil).
+
+**2. Liste.** La suppression chiffrée n'écrit que dans `mls_messages`, et la
+liste reconstruit l'aperçu depuis le cache local sans être rejouée. Le
+message caché est maintenant marqué et vidé, et la liste rejouée ; même rejeu
+après une modification (`message_repository_impl.dart`). Tenu par
+`test/features/messages/apercu_apres_suppression_mls_test.dart` — les deux cas
+échouent sur l'ancien code avec « PA6SECRET ».
+
+- [ ] **Veille longue** : app en arrière-plan plus d'une heure (derrière une
+  autre app), revenir sur une discussion chiffrée ouverte ; l'autre téléphone
+  envoie → le message arrive **en direct**, sans relancer. La liste suit
+  aussi.
+- [ ] **HOME court, discussion affichée** : recevoir un message pendant
+  l'absence, revenir → il est **dans le fil** et marqué lu, sans rouvrir.
+- [ ] **Pas de doublon** après le rattrapage (le fil dédoublonne par id).
+- [ ] **Supprimer pour tous son dernier message chiffré** → la tuile de
+  l'expéditeur dit « Message supprimé » **tout de suite**, sans relance.
+- [ ] **Modifier son dernier message chiffré** → la tuile prend le nouveau
+  texte tout de suite.
+- [ ] **Réseau** : basculer plusieurs fois mode avion ↔ réseau, puis
+  vérifier que les messages arrivent toujours en direct (le réabonnement ne
+  laisse pas le socket fermé).
 
 ---
 
