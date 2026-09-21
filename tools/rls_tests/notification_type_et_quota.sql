@@ -104,8 +104,12 @@ END $$;
 SELECT pg_temp.tenter(6, 'type légitime : demande d''ami',
   (SELECT v FROM ctx WHERE k = 'autre'), 'friendRequest', 'accepté');
 
-SELECT pg_temp.tenter(7, 'type légitime : commande payée',
-  (SELECT v FROM ctx WHERE k = 'autre'), 'orderPaid', 'accepté');
+-- Le cas 7 visait `orderPaid`, légitime le matin du 2026-09-21. La migration
+-- 20260921100000 a retiré les cinq types de commande (chaîne de paiement
+-- fermée des deux côtés : ils ne pouvaient plus servir qu'à des notifications
+-- falsifiées) et ajouté `postLiked`, que le relevé du matin avait oublié.
+SELECT pg_temp.tenter(7, 'type légitime : j''aime sur une publication',
+  (SELECT v FROM ctx WHERE k = 'autre'), 'postLiked', 'accepté');
 
 -- ═══ 3. Destinataire et identité ═══════════════════════════════════════════
 SELECT pg_temp.tenter(8, 'destinataire inexistant',
