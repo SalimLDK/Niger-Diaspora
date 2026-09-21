@@ -1259,11 +1259,20 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
         // 2026-09-21 sur SM A515F : discussion affichée, HOME, un message
         // reçu, retour — livré, mais absent du fil jusqu'à la réouverture.
         // Le signal suffit : l'écouteur relit le fil par la passerelle.
+        //
+        // Dès le PREMIER `subscribed`, pas seulement aux suivants : ouverte
+        // hors ligne, la discussion s'affiche depuis le cache, et ce premier
+        // `subscribed` n'arrive qu'au retour du réseau — c'est lui qui doit
+        // rattraper. Vu le 2026-09-21 sur SM A515F : discussion ouverte en
+        // mode avion, message reçu entre-temps, réseau rétabli — rien pendant
+        // 2 min, le message n'apparaissant qu'en rouvrant. La relecture est
+        // incrémentale (`catchUp`) : presque gratuite quand rien n'a bougé.
         .subscribe(
           rattrapageAuRejoint(
             () {
               if (!controller.isClosed) controller.add(null);
             },
+            lectureInitialeEnEchec: () => true,
             etiquette: 'mls_new',
           ),
         );

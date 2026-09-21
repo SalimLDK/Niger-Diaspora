@@ -1,10 +1,14 @@
+import 'package:dartz/dartz.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import 'package:diaspo_niger/core/errors/failures.dart';
 
 import 'package:diaspo_niger/core/services/online_status_service.dart';
 import 'package:diaspo_niger/features/auth/domain/entities/user_entity.dart';
 import 'package:diaspo_niger/features/auth/presentation/providers/auth_provider.dart';
 import 'package:diaspo_niger/features/profile/domain/entities/profile_entity.dart';
+import 'package:diaspo_niger/features/profile/domain/repositories/profile_repository.dart';
 import 'package:diaspo_niger/features/profile/presentation/providers/online_status_provider.dart';
 import 'package:diaspo_niger/features/profile/presentation/providers/profile_provider.dart';
 
@@ -34,6 +38,20 @@ class _FauxService implements OnlineStatusService {
     recus.add(showStatus);
     if (refuse) throw StateError('refusé par le serveur');
   }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// Le profil que lit « Modifier le profil ». Toujours visible au départ.
+class _FauxDepot implements ProfileRepository {
+  @override
+  Either<Failure, ProfileEntity?> getCachedProfile(String userId) =>
+      Right(ProfileEntity(id: userId, bio: 'avant'));
+
+  @override
+  Future<Either<Failure, ProfileEntity>> getProfile(String userId) async =>
+      Right(ProfileEntity(id: userId, bio: 'avant'));
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -146,5 +164,48 @@ void main() {
       isFalse,
       reason: 'toggle avait sa propre copie du même défaut',
     );
+  });
+
+  test('écriture acceptée : le profil en mémoire le sait aussi', () async {
+    // 2026-09-21, SM A515F : statut en ligne coupé dans Réglages, puis bio
+    // modifiée et enregistrée → `show_online_status` repassé à `true`. Le
+    // réglage s'écrivait par son propre service sans que le profil en mémoire
+    // l'apprenne ; « Modifier le profil » repartait de ce profil périmé et
+    // réécrivait toutes les colonnes.
+    final service = _FauxService();
+    final c = ProviderContainer(
+      overrides: [
+        onlineStatusServiceProvider.overrideWithValue(service),
+        profileRepositoryProvider.overrideWithValue(_FauxDepot()),
+        currentUserAsyncProvider.overrideWith(
+          (ref) => Stream.value(const UserEntity(id: userId)),
+        ),
+        userStreamProvider(userId).overrideWith(
+          (ref) => Stream.value(const ProfileEntity(id: userId)),
+        ),
+      ],
+    );
+    addTearDown(c.dispose);
+    c.listen(currentUserOnlineStatusVisibilityProvider, (_, __) {},
+        fireImmediately: true);
+    c.listen(profileNotifierProvider(userId), (_, __) {},
+        fireImmediately: true);
+    await c.read(currentUserOnlineStatusVisibilityProvider.future);
+    expect(
+      c.read(profileNotifierProvider(userId)).valueOrNull?.showOnlineStatus,
+      isTrue,
+    );
+
+    final ok = await c
+        .read(currentUserOnlineStatusVisibilityProvider.notifier)
+        .setValue(false);
+
+    expect(ok, isTrue);
+    final profil = await c
+        .read(profileNotifierProvider(userId).notifier)
+        .currentProfile();
+    expect(profil?.showOnlineStatus, isFalse,
+        reason: "sinon l'enregistrement du profil remet `true` en base");
+    expect(profil?.bio, 'avant', reason: "rien d'autre ne bouge");
   });
 }

@@ -39,18 +39,18 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1556 cases à cocher, 675 cochées** — 306 entrées sur 357 ont encore des cases ouvertes.
+**1551 cases à cocher, 682 cochées** — 306 entrées sur 357 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
 **P0 — avant toute nouvelle version** (51)
 
-- 6 · [⬜ Temps réel après l'arrière-plan, et texte supprimé dans la liste (2026-09-21)](#-temps-réel-après-larrière-plan-et-texte-supprimé-dans-la-liste-2026-09-21) · *Messagerie*
+- 8 · [⬜ Temps réel après l'arrière-plan, et texte supprimé dans la liste (2026-09-21)](#-temps-réel-après-larrière-plan-et-texte-supprimé-dans-la-liste-2026-09-21) · *Messagerie*
 - 5 · [⬜ Droits d'écriture sur `messages` resserrés : accusés et modification (2026-09-16)](#-droits-décriture-sur-messages-resserrés--accusés-et-modification-2026-09-16) · *Messagerie*
 - 2 · [⬜ Accusé « lu » mensonger, et aperçu chiffré qui ne venait jamais (2026-09-15)](#-accusé--lu--mensonger-et-aperçu-chiffré-qui-ne-venait-jamais-2026-09-15) · *Messagerie*
-- 10 · [⬜ L'aperçu de la liste dit pourquoi il est vide (2026-09-15)](#-laperçu-de-la-liste-dit-pourquoi-il-est-vide-2026-09-15) · *Messagerie*
+- 9 · [⬜ L'aperçu de la liste dit pourquoi il est vide (2026-09-15)](#-laperçu-de-la-liste-dit-pourquoi-il-est-vide-2026-09-15) · *Messagerie*
 - 1 · [✅ Note vocale impossible à envoyer en conversation chiffrée (2026-09-15)](#-note-vocale-impossible-à-envoyer-en-conversation-chiffrée-2026-09-15) · *Messagerie*
-- 4 · [⛔ Le fil chiffré se tronque au redémarrage dès qu'un message arrive en direct (2026-09-16)](#-le-fil-chiffré-se-tronque-au-redémarrage-dès-quun-message-arrive-en-direct-2026-09-16) · *Messagerie*
+- 3 · [⛔ Le fil chiffré se tronque au redémarrage dès qu'un message arrive en direct (2026-09-16)](#-le-fil-chiffré-se-tronque-au-redémarrage-dès-quun-message-arrive-en-direct-2026-09-16) · *Messagerie*
 - 3 · [⬜ Un fil chiffré survit au redémarrage de l'application (2026-09-15)](#-un-fil-chiffré-survit-au-redémarrage-de-lapplication-2026-09-15) · *Messagerie*
 - 6 · [⬜ Un message non envoyé ne disparaît plus, et repart tout seul (2026-09-14)](#-un-message-non-envoyé-ne-disparaît-plus-et-repart-tout-seul-2026-09-14) · *Messagerie*
 - 6 · [⬜ Une discussion ouverte ne reste plus prisonnière de son cache (2026-09-14)](#-une-discussion-ouverte-ne-reste-plus-prisonnière-de-son-cache-2026-09-14) · *Messagerie*
@@ -64,8 +64,8 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [⬜ Une conversation ne bascule plus sans ses participants (2026-09-15)](#-une-conversation-ne-bascule-plus-sans-ses-participants-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ MLS ouvert pour un seul compte (phase 5, 2026-09-15)](#-mls-ouvert-pour-un-seul-compte-phase-5-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 5 · [⬜ Signal remis en service : la garde de session sur les lectures de clés (2026-09-14)](#-signal-remis-en-service--la-garde-de-session-sur-les-lectures-de-clés-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
-- 16 · [⬜ Cinq messages reçus, un seul lisible : la bannière ne s'empilait pas (2026-09-16)](#-cinq-messages-reçus-un-seul-lisible--la-bannière-ne-sempilait-pas-2026-09-16) · *Notifications et push*
-- 6 · [⬜ Aperçu MLS quand l'app est OUVERTE (le même message, l'autre isolate)](#-aperçu-mls-quand-lapp-est-ouverte-le-même-message-lautre-isolate) · *Notifications et push*
+- 14 · [⬜ Cinq messages reçus, un seul lisible : la bannière ne s'empilait pas (2026-09-16)](#-cinq-messages-reçus-un-seul-lisible--la-bannière-ne-sempilait-pas-2026-09-16) · *Notifications et push*
+- 3 · [⬜ Aperçu MLS quand l'app est OUVERTE (le même message, l'autre isolate)](#-aperçu-mls-quand-lapp-est-ouverte-le-même-message-lautre-isolate) · *Notifications et push*
 - 8 · [⬜ Aperçu des notifications MLS reconstruit sur l'appareil (phase 4, Android)](#-aperçu-des-notifications-mls-reconstruit-sur-lappareil-phase-4-android) · *Notifications et push*
 - 6 · [⬜ Accepter une demande d'ami : « Erreur de chargement » (2026-09-14)](#-accepter-une-demande-dami---erreur-de-chargement--2026-09-14) · *Notifications et push* · bloqué
 - 22 · [⬜ Supprimer mon compte : demande, 30 jours, annulation, purge (2026-09-18)](#-supprimer-mon-compte--demande-30-jours-annulation-purge-2026-09-18) · *Comptes, session et onboarding*
@@ -364,11 +364,11 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 343 à faire, 141 faites
+- [2. Messagerie](#2-messagerie) — 343 à faire, 143 faites
 - [3. Groupes](#3-groupes) — 149 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 144 à faire, 45 faites
 - [5. Appels](#5-appels) — 26 à faire, 8 faites
-- [6. Notifications et push](#6-notifications-et-push) — 162 à faire, 80 faites
+- [6. Notifications et push](#6-notifications-et-push) — 157 à faire, 85 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 69 à faire, 10 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 118 à faire, 16 faites
@@ -733,6 +733,12 @@ après une modification (`message_repository_impl.dart`). Tenu par
 - [ ] **Réseau** : basculer plusieurs fois mode avion ↔ réseau, puis
   vérifier que les messages arrivent toujours en direct (le réabonnement ne
   laisse pas le socket fermé).
+- [ ] **Discussion chiffrée ouverte HORS LIGNE**, message reçu entre-temps,
+  réseau rétabli sans toucher → le message s'insère seul. Le canal `mls_new`
+  relit désormais dès son premier `subscribed` (celui du retour du réseau).
+- [ ] **Statut en ligne** (même livraison, `online_status_provider.dart`) :
+  couper « Afficher mon statut en ligne » dans Réglages, modifier sa bio,
+  enregistrer → `show_online_status` reste `false` en base.
 
 ---
 
@@ -1843,9 +1849,10 @@ nécessaire. Ce qui reste à voir sur appareil, c'est **ce qui s'affiche** :
 - [ ] **En base**, après ce geste : `data->>'lastMessage'` est vide et
   `data->>'lastMessageDeleted'` vaut `true` sur la conversation.
   ⚠️ Passe du 2026-09-21, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS (MLS) : `lastMessage` nul (normal, le serveur n'a pas le clair) mais `lastMessageDeleted` NUL aussi — la marque n'est pas posée pour une conversation MLS.
-- [ ] **Pas le dernier** : supprimer un message qui n'est PAS le dernier de la
+- [x] **Pas le dernier** : supprimer un message qui n'est PAS le dernier de la
   discussion laisse l'aperçu intact (c'est l'égalité `last_message_at` =
   `created_at` du message qui décide).
+  ✅ Passe du 2026-09-21 (soir), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS (MLS) : PD5 supprimé pour tous (« Message supprimé » dans le fil), la tuile garde « Vous: PF1 ».
 - [x] **Un message neuf efface la marque** : après la suppression, envoyer un
   autre message. La tuile affiche son texte, et plus jamais « Message
   supprimé » — la marque doit disparaître, sinon elle colle à la conversation
@@ -2380,9 +2387,10 @@ même redémarrage. La différence entre les deux familles reste à établir ; l
 piste la plus simple à écarter d'abord est la **limite de `getCachedMessages`**
 (le cache ne rend qu'une tranche), avant de soupçonner le curseur.
 
-- [ ] **Reproduire volontairement** : A envoie pendant que B a la discussion
+- [x] **Reproduire volontairement** : A envoie pendant que B a la discussion
   ouverte (livraison en direct), puis tuer et rouvrir B. Le message doit
   rester.
+  ✅ Passe du 2026-09-21 (soir), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : PA13LIVE reçu EN DIRECT sur le Pixel, arrêt complet, réouverture → présent, et tout le fil du jour (reçus en direct, modifié, avec réaction) survit à deux arrêts complets. ⚠️ Mais une forme voisine existe : sur le SM A515F, après une ouverture HORS LIGNE puis une réouverture en ligne, le fil a caché ~20 messages du jour (de « Tygg » mardi directement à PE1), revenus après une relance. Aucune perte en base.
 - [ ] **Distinguer les deux familles** : pourquoi « Yo » et « Hh » survivent
   et pas un message reçu à l'instant. Comparer ce que `getCachedMessages`
   rend pour cette conversation avant et après le redémarrage.
@@ -2763,6 +2771,7 @@ Voir « Sondage dans une discussion privée » pour le parcours de création.
 - [ ] **Une réponse citée et une carte de publication** écrites hors ligne
       repartent **entières**. Les champs plats de `PendingMessage` les
       perdaient, et codaient le type « text » en dur.
+  ✅ moitié réponse, Passe du 2026-09-21 (soir), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : réponse à PE1 écrite en mode avion → « Non envoyé », réseau rétabli → repartie seule en 15 s, citation intacte chez le destinataire (« Vous | PE1 | PF1 »). En MLS la citation voyage dans le chiffré, `reply_to_id` reste nul — c'est voulu. Carte de publication pas testée.
 - [ ] **Une photo écrite hors ligne** repart avec son image. Si Android a
       purgé le fichier temporaire entre-temps, le message reste affiché en
       échec plutôt que de repartir vide.
@@ -2793,6 +2802,7 @@ les abonnements temps réel, donc le rattrapage ne pouvait pas exister.
       sortie anticipée sur `isOffline` ne posait **aucun écouteur** et rien ne
       la relançait — l'écran restait figé jusqu'à ce qu'on ressorte et rentre.
       (`message_provider.dart`, `_loadNetworkData`)
+  ⛔ Passe du 2026-09-21 (soir), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS (MLS) : discussion ouverte à froid en mode avion, PE1 envoyé, réseau rétabli sans toucher → rien en 2 min (écran allumé, réseau vérifié) ; PE1 n'apparaît qu'en rouvrant. La liste, elle, l'avait rattrapé. Cause : le canal `mls_new` n'avait pas de rattrapage, et même avec, le premier `subscribed` (celui du retour du réseau) était ignoré. Corrigé (voir « Temps réel après l'arrière-plan, et texte supprimé dans la liste »).
 - [ ] **Démarrage à froid directement dans une discussion** (notification, lien
       profond, restauration de route) : la discussion se remplit. La session
       Supabase n'est pas encore établie à cet instant, et `messages_select`
@@ -10770,8 +10780,9 @@ Fichiers : [notification_pile_messages.dart](lib/core/services/notification_pile
 [notification_service.dart](lib/core/services/notification_service.dart)
 (`_showFallbackMessageNotification`, `clearConversationNotifications`).
 
-- [ ] **App tuée, cinq messages de la même personne** : une seule bannière,
+- [x] **App tuée, cinq messages de la même personne** : une seule bannière,
   qui les montre **tous**, avec le compteur à 5.
+  ✅ Passe du 2026-09-21 (soir), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : HOME puis `am kill` ; PB1–PB5 → une bannière, `number=5`, cinq lignes dans l'ordre.
 - [ ] **Groupe qui s'anime, app tuée** : la bannière porte le nom du groupe en
   titre et **chaque message précédé de son expéditeur**.
 - [ ] **Ouvrir la conversation, puis recevoir un nouveau message** : la
@@ -10787,8 +10798,9 @@ Fichiers : [notification_pile_messages.dart](lib/core/services/notification_pile
   seule ligne dans la bannière.
 - [ ] **Se déconnecter** : plus aucun texte de message dans les préférences
   (`notif_pile_*`).
-- [ ] **Appui sur la bannière empilée** : ouvre la bonne conversation, et la
+- [x] **Appui sur la bannière empilée** : ouvre la bonne conversation, et la
   bannière disparaît.
+  ✅ Passe du 2026-09-21 (soir), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : démarrage à froid DIRECTEMENT dans la bonne discussion (« 5 messages non lus »), bannière retirée, messages lus.
 
 **Corrigé le 2026-09-16, signalé sur appareil** : la pile s'affichait **à
 l'envers** et **sans heure**. Deux causes distinctes.
@@ -11026,14 +11038,18 @@ Fichiers : [notification_service.dart](lib/core/services/notification_service.da
 
 - [ ] **App ouverte sur un AUTRE écran** (le fil, pas la discussion), message
   MLS reçu : la bannière in-app affiche le **vrai texte**.
-- [ ] **App ouverte, notification système** (couper la bannière in-app en
+  Passe du 2026-09-21 (soir), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : app sur l'Accueil, PC1 reçu → c'est la fenêtre surgissante SYSTÈME qui s'affiche, avec le vrai texte (« Salim L. PC1 · 19:22 ») ; aucune bannière propre à l'app observée.
+- [x] **App ouverte, notification système** (couper la bannière in-app en
   ouvrant une autre discussion) : même texte dans le volet Android.
-- [ ] **Puis ouvrir la discussion** : le message est **lisible** dans la
+  ✅ Passe du 2026-09-21 (soir), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : volet Android « PC1 · 19:22 », texte déchiffré.
+- [x] **Puis ouvrir la discussion** : le message est **lisible** dans la
   bulle. C'est le test du cliquet — au premier plan, le moteur qui fait foi
   est ouvert dans le même processus que la copie jetable.
-- [ ] **Deux appareils, un aller-retour de cinq messages** app ouverte des
+  ✅ Passe du 2026-09-21 (soir), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : PC1 lisible.
+- [x] **Deux appareils, un aller-retour de cinq messages** app ouverte des
   deux côtés : aucun ne retombe sur « Nouveau message », aucun ne devient
   illisible dans la conversation.
+  ✅ Passe du 2026-09-21 (soir), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : PD1–PD5 alternés, discussion ouverte des deux côtés : 5/5 en direct et lisibles des deux côtés.
 - [ ] **Réglage « aperçu des messages » coupé** (Profil → Notifications) :
   la bannière repasse à « Nouveau message » app ouverte comme app fermée.
 - [ ] **Sondage et appel** reçus chiffrés : libellés « Sondage » et « Appel »
@@ -17092,6 +17108,7 @@ Fichiers :
   `supabase db query --linked "select share_location, show_online_status,
   notifications_enabled from users where id='…'"` rend trois `false`. Avant :
   trois `true`.
+  ⛔ Passe du 2026-09-21 (soir), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : position et notifications restent coupées (base : false), mais **`show_online_status` repasse à `true`**. L'interrupteur « statut en ligne » écrit par `OnlineStatusService` sans prévenir `ProfileNotifier` : `currentProfile()` garde `true`, et l'enregistrement réécrit toutes les colonnes. Corrigé ensuite (`appliquerSansEcrire`, `online_status_visibility_test.dart` échoue sur l'ancien code) — à revérifier sur un build qui le contient.
 - [ ] **Compétences et région** : renseignées avant la modification, intactes
   après.
 - [ ] **Après un redémarrage à froid** (profil pas encore en cache), modifier

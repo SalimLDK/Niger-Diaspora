@@ -40,6 +40,9 @@ void main() {
     expect(corps, contains('rattrapageAuRejoint('),
         reason: 'sans rattrapage, un message arrivé pendant l\'arrière-plan '
             'reste absent de la discussion affichée');
+    // Ouverte hors ligne, le premier `subscribed` est celui du retour du
+    // réseau : il doit relire aussi (SM A515F, 2026-09-21).
+    expect(corps, contains('lectureInitialeEnEchec: () => true'));
   });
 
   test('le canal des mises à jour de messages relit au rejoint', () {
