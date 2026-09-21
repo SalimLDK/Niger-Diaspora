@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1524 cases à cocher, 650 cochées** — 295 entrées sur 344 ont encore des cases ouvertes.
+**1524 cases à cocher, 650 cochées** — 295 entrées sur 345 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -19490,6 +19490,70 @@ parce qu'il change un **comportement**, pas seulement un habillage :
 Supabase et Firebase côté serveur, accès anon, stockage, journaux, Crashlytics, back-office.
 
 ---
+
+## ⬜ Salons audio : l'argent et l'identité repassent au serveur (2026-09-21)
+
+**Priorité P1** · importance 3/5 — Dernière pièce de la chaîne de paiement. Le drapeau `audioRooms` est fermé et les quatre tables sont vides : rien n'est vérifiable sans ouvrir le drapeau sur un appareil, et c'est justement ce qu'il faudra faire avant toute réouverture.
+
+Migration `20260921054500_salons_audio_ecriture_fermee.sql` — **APPLIQUÉE le
+2026-09-21** (`db push`, seule en file). Banc
+`tools/rls_tests/salons_audio_ecriture_fermee.sql`, 18 cas : **10 échecs sans
+la migration, 0 avec**, puis 0 sur l'état vivant. Droits relus à part en
+production : `anon` n'a plus **aucun** droit sur les quatre tables,
+`authenticated` n'a plus que `SELECT` sur `tips`, `room_tickets` et
+`creator_profiles`, et son `UPDATE` sur `audio_rooms` est réduit à dix
+colonnes.
+
+**L'audit visait les quatre Edge Functions ; le trou était ailleurs.** Les
+deux fonctions payantes sont CASSÉES — `process-tip` insère
+`commission_amount`, `process-room-ticket` insère `seller_id`, colonnes qui
+n'existent pas (42703, rejoué). Le `PaymentIntent` vient après cet insert :
+le prix dicté par le client n'a jamais atteint Stripe. Le vrai trou vivant
+était le RLS, et `stripe-dashboard-link` en était la pointe : irréprochable
+ligne à ligne, mais il relisait `creator_profiles.stripe_account_id`, que le
+client écrivait lui-même — poser l'identifiant d'un compte Connect quelconque
+et le statut « active » lui faisait rendre un lien de connexion au tableau de
+bord Stripe de ce compte.
+
+**À vérifier sur appareil, le jour où le drapeau s'ouvrira** (rien de tout
+ceci n'a été vu tourner) :
+
+- créer une salle, la démarrer, la terminer — les dix colonnes accordées
+  suffisent-elles vraiment au parcours complet ? Le banc les a mesurées dans
+  `audio_room_remote_datasource.dart`, pas observées à l'usage ;
+- couper puis rétablir le micro d'un intervenant (`mutedSpeakers`) ;
+- **régression attendue et voulue** : `getOrCreateCreatorProfile` et
+  `enableMonetization` (`monetization_supabase_datasource.dart:251` et `:280`)
+  échouent désormais en 42501 au lieu de réussir. La fiche de créateur naît
+  côté serveur, à l'embarquement Stripe. Vérifier que l'écran de monétisation
+  ne reste pas bloqué sur un chargement muet ;
+- `markTicketUsed` (`:113`) échouait déjà faute de policy d'UPDATE ; il échoue
+  maintenant plus tôt. Vérifier que l'écran le dit.
+
+**Deux choses mesurées et laissées ouvertes, délibérément :**
+
+- `audio_rooms_update` reste `USING (firebase_uid() IS NOT NULL)` : la
+  fermeture porte sur les COLONNES, pas sur la LIGNE. Un compte connecté peut
+  encore couper le micro d'un intervenant dans la salle d'un autre (cas 17 du
+  banc, mesuré : 1 ligne touchée). Refermer la ligne demande des RPC par
+  geste, pas un `REVOKE` — voir « Règles Firestore » pour la même leçon ;
+- `forceEndRoom` par un administrateur qui n'est pas de la salle est REFUSÉ
+  (42501, cas 18). Panne préexistante, ni causée ni réparée ici :
+  `audio_rooms_select` ne montre une salle terminée qu'à ses membres, et
+  Postgres applique les policies de SELECT à la NOUVELLE ligne d'un UPDATE —
+  on ne peut pas pousser une ligne hors de sa propre vue. Même famille que la
+  résolution de litige de `orders`. La réparer serait un ÉLARGISSEMENT (un
+  administrateur verrait toutes les salles privées) : c'est une décision, pas
+  un correctif, et elle n'a pas été prise.
+
+**Et un inconnu qui n'est pas levé :** la valeur de `STRIPE_SECRET_KEY`
+déployée sur les Edge Functions n'est **pas** celle de `functions/.env` (les
+digests diffèrent). Le dépôt est en `sk_test` ; la valeur en ligne n'est pas
+lisible d'ici. À trancher dans le tableau de bord Stripe avant toute
+réouverture.
+
+---
+
 
 ## ⬜ `public.friends` : le serveur seul écrit l'audience (2026-09-21)
 
