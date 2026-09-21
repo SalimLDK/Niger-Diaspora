@@ -39,11 +39,11 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1527 cases à cocher, 650 cochées** — 296 entrées sur 347 ont encore des cases ouvertes.
+**1532 cases à cocher, 650 cochées** — 297 entrées sur 348 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
-**P0 — avant toute nouvelle version** (49)
+**P0 — avant toute nouvelle version** (50)
 
 - 7 · [⬜ Droits d'écriture sur `messages` resserrés : accusés et modification (2026-09-16)](#-droits-décriture-sur-messages-resserrés--accusés-et-modification-2026-09-16) · *Messagerie*
 - 8 · [⬜ Accusé « lu » mensonger, et aperçu chiffré qui ne venait jamais (2026-09-15)](#-accusé--lu--mensonger-et-aperçu-chiffré-qui-ne-venait-jamais-2026-09-15) · *Messagerie*
@@ -72,6 +72,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [⬜ Qui peut voir un événement : discussion, groupes, personnes, tout le monde (2026-09-12)](#-qui-peut-voir-un-événement--discussion-groupes-personnes-tout-le-monde-2026-09-12) · *Ambassades, démarches, carte, entreprises et événements*
 - 2 · [Réglages/Carte — deux interrupteurs de partage de position désynchronisés (2026-08-13)](#réglagescarte--deux-interrupteurs-de-partage-de-position-désynchronisés-2026-08-13) · *Ambassades, démarches, carte, entreprises et événements*
 - 6 · [⬜ 🔴 Bloquer un utilisateur ne bloque rien — corrigé (2026-09-14)](#--bloquer-un-utilisateur-ne-bloque-rien--corrigé-2026-09-14) · *Accueil, profil et réglages* · bloqué
+- 5 · [⬜ `users` : un compte connecté lit e-mail, position et jetons d'autrui (2026-09-21)](#-users--un-compte-connecté-lit-e-mail-position-et-jetons-dautrui-2026-09-21) · *Backend, sécurité et observabilité*
 - 4 · [⬜ `users` n'est plus lisible sans compte (2026-09-20)](#-users-nest-plus-lisible-sans-compte-2026-09-20) · *Backend, sécurité et observabilité*
 - 2 · [⬜ Supprimer une conversation pour tous : l'autorisation vient de Supabase (2026-09-21)](#-supprimer-une-conversation-pour-tous--lautorisation-vient-de-supabase-2026-09-21) · *Publication et plateformes*
 - 4 · [⬜ Le serveur ne supprime plus un chemin Storage dicté par le client (2026-09-21)](#-le-serveur-ne-supprime-plus-un-chemin-storage-dicté-par-le-client-2026-09-21) · *Publication et plateformes*
@@ -365,7 +366,7 @@ Par domaine :
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 65 à faire, 51 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 67 à faire, 34 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 153 à faire, 32 faites
-- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 81 à faire, 45 faites
+- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 86 à faire, 45 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 52 à faire, 28 faites
 - [15. Site web](#15-site-web) — 32 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 32 à faire, 46 faites
@@ -13846,6 +13847,18 @@ sans raison.
 multi-appareil demande d'ajouter un compte à `multiAppareilComptes` et un
 second téléphone.*
 
+**⚠️ Rectifié le 2026-09-21 : jusqu'à ce jour, publier le secret n'aurait
+RIEN fait.** `VERSION_MINIMALE_APP` manquait à la liste blanche d'`app-config`
+(`CLES_PUBLIQUES`) : le verrou lisait une clé que la fonction ne servait
+jamais, quoi qu'on pose dans les secrets. Ajoutée et **déployée (v5)** le
+2026-09-21 — réponse relue octet pour octet identique avant et après (même
+empreinte, secret non posé), 200 sans aucun en-tête, donc démarrage avant
+connexion intact. Le blocage n'est plus que de poser le secret, et c'est sans
+risque pour tester les trois premières cases : le client refuse de bloquer tant
+que `DERNIERE_VERSION_APP` est inférieure à la version exigée. Ce verrou est la
+condition 3 de la fermeture 1.1b (voir « `users` : un compte connecté lit
+e-mail, position et jetons d'autrui »).
+
 Fichiers : [version_minimale.dart](lib/core/services/version_minimale.dart),
 [ecran_mise_a_jour_requise.dart](lib/core/shell/ecran_mise_a_jour_requise.dart),
 [session_service.dart](lib/core/services/session_service.dart) (`doitEjecter`).
@@ -19491,6 +19504,75 @@ parce qu'il change un **comportement**, pas seulement un habillage :
 Supabase et Firebase côté serveur, accès anon, stockage, journaux, Crashlytics, back-office.
 
 ---
+
+## ⬜ `users` : un compte connecté lit e-mail, position et jetons d'autrui (2026-09-21)
+
+**Priorité P0** · importance 5/5 — Dernière exposition vivante de l'audit pré-prod (1.1b), et c'est le fond des refus Play sur la localisation. Rien n'est fermé : ce qui a été posé le 2026-09-21 PRÉPARE la fermeture, qui exige une version cliente.
+
+**Mesuré le 2026-09-21** sous l'identité d'un compte ordinaire : 127 profils
+lisibles, **89 e-mails, 65 positions, 64 jeux de jetons push, 35
+identifiants de session**. Et deux consentements appliqués par le seul
+client : **6 personnes ont coupé `share_location` et restent localisables**
+(2 à moins de 30 jours) — la carte ne les écarte que parce que
+`getNearbyProfiles` ajoute `.eq('share_location', true)` de lui-même ; et
+**1 téléphone réglé sur `private`** reste lisible. Un filtre suffit même à
+deviner une adresse sans la lire (`WHERE email = …`).
+
+**Posé le 2026-09-21, sans rien changer pour les builds installés :**
+
+- `app-config` sert enfin `VERSION_MINIMALE_APP` (v5) — voir « Verrou de
+  version minimale et multi-appareil » : le verrou était inerte ;
+- migration `20260921080000` **APPLIQUÉE** : trois RPC `SECURITY DEFINER`
+  qui appliquent la règle de LIGNE qu'un droit par colonne ne sait pas
+  exprimer — `mon_profil_prive()` (sa ligne entière), `positions_partagees()`
+  (**le consentement enfin appliqué par le serveur**), `profils_admin()`
+  (lève 42501 hors administrateur). Banc
+  `tools/rls_tests/users_rpc_colonnes_privees.sql` : 13 échecs sans, 0 avec,
+  0 sur l'état vivant ;
+- la fermeture elle-même, écrite en **cible non appliquée** :
+  `supabase/users-colonnes-privees-cible.sql`, répétée par
+  `tools/rls_tests/users_colonnes_privees_cible.sql` via
+  `tools/rls_tests/repeter_cible.py` (qui refuse d'injecter un `COMMIT`).
+  Répétée en production : les 6 formes du trou fermées, rien d'autre ne
+  casse — dont l'hypothèse centrale, une fonction `SECURITY DEFINER` qui
+  rend encore les colonnes révoquées à son propriétaire.
+
+**Ce que la version cliente doit faire — 16 sites, listés dans la cible :**
+11 lectures de `*` (dont un `.stream()` et le `RETURNING *` de
+`updateProfile`), 3 lectures nommées de colonnes révoquées sur sa propre
+ligne — **dont l'enregistrement du jeton push, qui casserait toutes les
+notifications d'un nouvel appareil** — et 2 abonnements temps réel.
+
+**Le piège des deux abonnements temps réel.** Mesuré en exécutant la
+fonction même du serveur (`realtime.apply_rls`,
+`tools/rls_tests/temps_reel_droits_colonnes.sql`) : le temps réel respecte
+les droits par colonne, mais **en retirant la colonne, sans erreur**. Donc
+sous la cible : la carte en direct ne bougerait plus personne, et la
+révocation de session par un administrateur cesserait — les deux en silence.
+
+**À vérifier sur appareil, une fois la version cliente écrite** (rien de ceci
+n'existe encore) :
+
+- [ ] profil (le sien, celui d'un autre), recherche, liste des discussions,
+  carte et back-office s'affichent comme avant ;
+- [ ] **un nouvel appareil reçoit les notifications push** — c'est le site le
+  plus dangereux ;
+- [ ] la carte bouge en direct, et un profil qui a coupé le partage n'y
+  apparaît pas ;
+- [ ] une session révoquée par un administrateur éjecte bien l'appareil ;
+- [ ] puis, après publication et pose du verrou, la répétition de la cible
+  rend 0 échec ET une jauge C entièrement « accepté » côté nouvelle version.
+
+**Écarté, et pourquoi :** effacer la position à l'écriture quand
+`share_location` est coupé — seule fermeture purement serveur trouvée — aurait
+cassé en silence les notifications d'événements locaux (`users_near_point`
+a légitimement besoin de la position de qui a gardé `notify_local_events`).
+Deux consentements distincts. Et une vue masquante à la place de la table :
+`users` porte 28 clés étrangères entrantes, un abonnement temps réel ne suit
+pas une vue, et aucune sauvegarde n'existe.
+
+---
+
 
 ## ⬜ Note et nombre d'avis des entreprises : calculés par la base, mais les avis sont encore dans Firestore (2026-09-21)
 

@@ -37,6 +37,21 @@ const CLES_PUBLIQUES = [
   //
   // Absente aujourd'hui : tant qu'elle n'est pas posee, l'app se tait.
   'DERNIERE_VERSION_APP',
+  // Version EN DEÇÀ DE LAQUELLE l'app refuse de fonctionner
+  // (lib/core/services/version_minimale.dart). Elle manquait a cette liste :
+  // le verrou etait ecrit, teste, branche dans le shell, et INERTE — la cle
+  // qu'il lit n'etait jamais servie, quoi qu'on pose dans les secrets.
+  // Trouve le 2026-09-21 en preparant la fermeture 1.1b de l'audit, qui a
+  // besoin d'un verrou operant pour retirer des colonnes aux builds anciens.
+  //
+  // Publique par construction : elle ne dit rien que la fiche du store ne
+  // dise deja. L'ajouter ici ne change rien tant que le secret n'est pas
+  // pose — et le client refuse de bloquer si la version exigee n'est pas
+  // encore sur le store (`publiee < minimale`), si bien qu'une valeur posee
+  // trop tot reste sans effet au lieu d'enfermer tout le monde.
+  //
+  //   supabase secrets set VERSION_MINIMALE_APP=1.3.0+21
+  'VERSION_MINIMALE_APP',
 ] as const
 
 // Volontairement absent de la liste : les FIREBASE_*. `lib/firebase_options.dart`
