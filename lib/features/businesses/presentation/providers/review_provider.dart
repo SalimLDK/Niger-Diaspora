@@ -5,6 +5,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../../core/network/network_info.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../data/datasources/review_remote_datasource.dart';
+import '../../data/datasources/review_supabase_datasource.dart';
 import '../../data/repositories/review_repository_impl.dart';
 import '../../domain/entities/review_entity.dart';
 import '../../domain/repositories/review_repository.dart';
@@ -15,7 +16,7 @@ part 'review_provider.g.dart';
 
 @riverpod
 ReviewRemoteDataSource reviewRemoteDataSource(Ref ref) {
-  return ReviewRemoteDataSourceImpl();
+  return ReviewSupabaseDataSource();
 }
 
 @riverpod
@@ -170,12 +171,9 @@ class ReviewActionsNotifier extends _$ReviewActionsNotifier {
 
   Future<bool> toggleHelpful(String reviewId, String businessId, bool currentlyHelpful) async {
     final repository = ref.read(reviewRepositoryProvider);
-    final user = ref.read(currentUserProvider).valueOrNull;
-    if (user == null) return false;
-
     final result = currentlyHelpful
-        ? await repository.unmarkHelpful(reviewId, user.id)
-        : await repository.markHelpful(reviewId, user.id);
+        ? await repository.unmarkHelpful(reviewId)
+        : await repository.markHelpful(reviewId);
 
     return result.fold(
       (failure) => false,
@@ -187,12 +185,29 @@ class ReviewActionsNotifier extends _$ReviewActionsNotifier {
     );
   }
 
+  /// Réponse du gérant (§18c). Passait par `updateReview`, c'est-à-dire par la
+  /// réécriture de l'avis d'autrui — ce que ni Firestore ni Supabase ne
+  /// laissent faire. Une fonction serveur vérifie que l'appelant gère la fiche.
+  Future<bool> replyToReview(String reviewId, String? reply, String businessId) async {
+    state = const AsyncLoading();
+    final repository = ref.read(reviewRepositoryProvider);
+    final result = await repository.replyToReview(reviewId, reply);
+    return result.fold(
+      (failure) {
+        state = AsyncError(failure.message, StackTrace.current);
+        return false;
+      },
+      (_) {
+        state = const AsyncData(null);
+        ref.invalidate(businessReviewsNotifierProvider(businessId));
+        return true;
+      },
+    );
+  }
+
   Future<bool> reportReview(String reviewId, String reason, String businessId) async {
     final repository = ref.read(reviewRepositoryProvider);
-    final user = ref.read(currentUserProvider).valueOrNull;
-    if (user == null) return false;
-
-    final result = await repository.reportReview(reviewId, reason, user.id);
+    final result = await repository.reportReview(reviewId, reason);
     return result.fold(
       (failure) => false,
       (_) {

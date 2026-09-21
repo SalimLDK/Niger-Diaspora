@@ -118,48 +118,27 @@ class ReviewRepositoryImpl implements ReviewRepository {
   }
 
   @override
-  Future<Either<Failure, void>> markHelpful(
-    String reviewId,
-    String userId,
-  ) async {
-    if (!await networkInfo.isConnected) {
-      return Left(NetworkFailure(AppErrorMessages.networkError));
-    }
-    try {
-      await remoteDataSource.markHelpful(reviewId, userId);
-      return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    }
-  }
+  Future<Either<Failure, void>> markHelpful(String reviewId) =>
+      _geste(() => remoteDataSource.markHelpful(reviewId));
 
   @override
-  Future<Either<Failure, void>> unmarkHelpful(
-    String reviewId,
-    String userId,
-  ) async {
-    if (!await networkInfo.isConnected) {
-      return Left(NetworkFailure(AppErrorMessages.networkError));
-    }
-    try {
-      await remoteDataSource.unmarkHelpful(reviewId, userId);
-      return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    }
-  }
+  Future<Either<Failure, void>> unmarkHelpful(String reviewId) =>
+      _geste(() => remoteDataSource.unmarkHelpful(reviewId));
 
   @override
-  Future<Either<Failure, void>> reportReview(
-    String reviewId,
-    String reason,
-    String reporterId,
-  ) async {
+  Future<Either<Failure, void>> replyToReview(String reviewId, String? reply) =>
+      _geste(() => remoteDataSource.replyToReview(reviewId, reply));
+
+  @override
+  Future<Either<Failure, void>> reportReview(String reviewId, String reason) =>
+      _geste(() => remoteDataSource.reportReview(reviewId, reason));
+
+  Future<Either<Failure, void>> _geste(Future<void> Function() corps) async {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
     try {
-      await remoteDataSource.reportReview(reviewId, reason, reporterId);
+      await corps();
       return const Right(null);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));

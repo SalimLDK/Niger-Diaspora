@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import '../../domain/entities/review_entity.dart';
 
@@ -30,41 +29,6 @@ class ReviewModel with _$ReviewModel {
 
   factory ReviewModel.fromJson(Map<String, dynamic> json) =>
       _$ReviewModelFromJson(json);
-
-  factory ReviewModel.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>? ?? {};
-
-    final processedData = <String, dynamic>{
-      ...data,
-      'id': doc.id,
-    };
-
-    // Conversion des timestamps
-    if (data['createdAt'] is Timestamp) {
-      processedData['createdAt'] =
-          (data['createdAt'] as Timestamp).toDate().toUtc().toIso8601String();
-    }
-    if (data['updatedAt'] is Timestamp) {
-      processedData['updatedAt'] =
-          (data['updatedAt'] as Timestamp).toDate().toUtc().toIso8601String();
-    }
-    if (data['ownerReplyAt'] is Timestamp) {
-      processedData['ownerReplyAt'] =
-          (data['ownerReplyAt'] as Timestamp).toDate().toUtc().toIso8601String();
-    }
-
-    // Assurer que les listes sont bien des List<String>
-    if (data['imageUrls'] != null) {
-      processedData['imageUrls'] =
-          (data['imageUrls'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [];
-    }
-    if (data['helpfulByUserIds'] != null) {
-      processedData['helpfulByUserIds'] =
-          (data['helpfulByUserIds'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [];
-    }
-
-    return ReviewModel.fromJson(processedData);
-  }
 
   ReviewEntity toEntity() => ReviewEntity(
         id: id,

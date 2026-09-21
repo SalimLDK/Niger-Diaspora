@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1532 cases à cocher, 650 cochées** — 297 entrées sur 348 ont encore des cases ouvertes.
+**1534 cases à cocher, 650 cochées** — 297 entrées sur 348 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -260,7 +260,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Discussion en paysage — débordement de 4,1 px (vu le 2026-08-05)](#discussion-en-paysage--débordement-de-41-px-vu-le-2026-08-05) · *Design, thème, langue et mise en page*
 - 2 · [Thème sombre — jetons clairs codés en dur](#thème-sombre--jetons-clairs-codés-en-dur) · *Design, thème, langue et mise en page*
 - 4 · [Bascule design_v2 → production, famille 2 : les services (2026-08-03)](#bascule-design_v2--production-famille-2--les-services-2026-08-03) · *Design, thème, langue et mise en page*
-- 3 · [⬜ Note et nombre d'avis des entreprises : calculés par la base, mais les avis sont encore dans Firestore (2026-09-21)](#-note-et-nombre-davis-des-entreprises--calculés-par-la-base-mais-les-avis-sont-encore-dans-firestore-2026-09-21) · *Backend, sécurité et observabilité*
+- 5 · [⬜ Avis sur les entreprises : basculés de Firestore vers Supabase (2026-09-21)](#-avis-sur-les-entreprises--basculés-de-firestore-vers-supabase-2026-09-21) · *Backend, sécurité et observabilité*
 - 8 · [Le bouton « Ouvrir Play Store » de la garde Play Integrity ne faisait rien (2026-09-14)](#le-bouton--ouvrir-play-store--de-la-garde-play-integrity-ne-faisait-rien-2026-09-14) · *Backend, sécurité et observabilité*
 - 3 · [⚠️ Ce que dit vraiment la console Crashlytics (2026-09-10)](#-ce-que-dit-vraiment-la-console-crashlytics-2026-09-10) · *Backend, sécurité et observabilité* · bloqué
 - 5 · [Fuseau horaire — heures affichées en UTC (2026-08-04)](#fuseau-horaire--heures-affichées-en-utc-2026-08-04) · *Backend, sécurité et observabilité*
@@ -366,7 +366,7 @@ Par domaine :
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 65 à faire, 51 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 67 à faire, 34 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 153 à faire, 32 faites
-- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 86 à faire, 45 faites
+- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 88 à faire, 45 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 52 à faire, 28 faites
 - [15. Site web](#15-site-web) — 32 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 32 à faire, 46 faites
@@ -19574,55 +19574,62 @@ pas une vue, et aucune sauvegarde n'existe.
 ---
 
 
-## ⬜ Note et nombre d'avis des entreprises : calculés par la base, mais les avis sont encore dans Firestore (2026-09-21)
+## ⬜ Avis sur les entreprises : basculés de Firestore vers Supabase (2026-09-21)
 
-**Priorité P2** · importance 3/5 — L'annuaire affiche 0 avis et aucune note quelles que soient les évaluations. Le drapeau `businessDirectory` est fermé et la production porte 2 fiches et 0 avis : rien n'est visible aujourd'hui.
-*Bloqué : les avis de l'app vont dans Firestore ; le calcul serveur ne verra rien tant qu'ils n'ont pas basculé sur Supabase.*
+**Priorité P2** · importance 3/5 — L'annuaire affichait 0 avis et aucune note quelles que soient les évaluations : les avis allaient dans Firestore, les entreprises vivent dans Supabase. Le drapeau `businessDirectory` est fermé et la production porte 2 fiches, 0 avis.
+*Bloqué : migrations `20260921083000` et `20260921090000` NON APPLIQUÉES (l'application a été refusée par le classificateur de permissions, à lancer par Salim) ; puis une version cliente, puis le drapeau à ouvrir sur un appareil.*
 
-Migration `20260921083000_agregats_avis_entreprises.sql` — **écrite et répétée,
-PAS APPLIQUÉE**. Déclencheur `business_reviews_agreger` (INSERT / DELETE /
-UPDATE de `rating`, `status`, `business_id`) qui recalcule `rating` (moyenne
-des avis `published`, NULL sans avis) et `review_count`, plus le rattrapage des
-fiches existantes. Banc `tools/rls_tests/agregats_avis_entreprises.sql`,
-19 cas : **13 échecs sans la migration, 0 avec** (répétition `BEGIN … ROLLBACK`,
-rien resté en base, relu).
+**Côté base** — deux migrations, répétées ensemble en `BEGIN … ROLLBACK` sur la
+production (qui porte déjà `20260921080000`) :
 
-**Pourquoi `SECURITY DEFINER` :** la garde `businesses_garde_privileges` refuse
-tout changement des compteurs venu de `authenticated`. La contre-épreuve du
-banc a mesuré ce qu'aurait donné un déclencheur INVOKER : pour un client
-quelconque, la policy de `businesses` réduit la mise à jour de la fiche à
-0 ligne **en silence** (avis accepté, note figée) ; pour le propriétaire, la
-garde lève 42501 et **l'avis entier** est refusé.
+- `20260921083000_agregats_avis_entreprises.sql` : déclencheur
+  `business_reviews_agreger` (SECURITY DEFINER), qui recalcule `rating`
+  (moyenne des avis `published`, NULL sans avis) et `review_count`. Banc
+  `tools/rls_tests/agregats_avis_entreprises.sql` : 13 échecs sur 19 sans,
+  19/19 avec. En INVOKER, la contre-épreuve montre que l'avis d'un client
+  laisserait la note figée **en silence**, et que celui du gérant serait
+  refusé en entier par la garde.
+- `20260921090000_avis_entreprises_sur_supabase.sql` : policies (lire les
+  avis publiés + les siens ; le gérant et l'admin voient aussi les signalés),
+  droits **par colonne** (le client n'écrit que note, titre, texte, photos),
+  nom et photo de l'auteur recopiés de `users` par déclencheur, et trois
+  fonctions serveur : `avis_marquer_utile`, `avis_repondre` (gérant seul),
+  `avis_signaler` (vers `public.reports`, lu par le back-office ; au 3ᵉ
+  signalant distinct, l'avis passe `flagged`). `anon` n'a plus aucun droit.
+  Banc `tools/rls_tests/avis_entreprises_sur_supabase.sql` : 34 échecs sur 41
+  sans, 41/41 avec.
 
-**Ce que ça ne répare PAS — le vrai défaut est ailleurs :**
+**Côté app** — `ReviewSupabaseDataSource` remplace le datasource Firestore
+(supprimé). La réponse du gérant passait par `updateReview`, c'est-à-dire par
+la réécriture de l'avis d'autrui : les règles Firestore la refusaient déjà, elle
+passe maintenant par `replyToReview`. Test
+`test/features/businesses/review_supabase_datasource_test.dart` (11 cas) : le
+corps de chaque requête est vérifié clé par clé, car une colonne de trop fait
+tomber toute la requête en 42501.
 
-- `review_remote_datasource.dart` écrit et lit les avis dans la collection
-  **Firestore** `business_reviews`. `onReviewCreated/Updated/Deleted`
-  (`functions/index.js`) recalcule la note dans le document Firestore
-  `businesses/<id>`, qui n'existe plus depuis la bascule du module sur
-  Supabase (2026-09-10). Tant que les avis n'ont pas basculé, la table Supabase
-  reste vide et ce déclencheur ne se déclenche jamais.
-- La table Supabase `business_reviews` a le RLS actif et **aucune policy** : le
-  client ne peut ni la lire ni y écrire. La bascule devra les poser (le banc
-  en porte un modèle, sous le nom `banc_avis_*`). Elle garde en revanche tous
-  les droits par défaut pour `anon` (TRUNCATE compris) : le RLS les neutralise,
-  sauf TRUNCATE qui l'ignore — PostgREST ne l'expose pas, mais c'est le piège
-  « GRANT n'enlève rien » : `REVOKE` à poser avec la bascule.
-- Côté Firestore, d'après `firestore.rules`, `create` exige
-  `reviewerId == auth.uid` alors que le modèle envoie `userId` : déposer un
-  avis serait refusé. **Non vérifié sur appareil.**
-- `follower_count` n'a aucune source : pas d'abonnement aux entreprises, ni en
-  base ni dans le code. Il reste à 0.
+**Règles nouvelles côté serveur** (l'écran les respectait déjà en masquant les
+boutons) : le gérant ne note pas sa propre fiche, on ne se trouve pas « utile »
+soi-même, on ne signale pas son propre avis.
 
-**À vérifier sur appareil, une fois les avis basculés et la migration
-appliquée :**
+**Laissé en place, mort :** la collection Firestore `business_reviews`, ses
+règles et les trois fonctions `onReview*`. Une version antérieure de l'app y
+écrirait encore ; ses avis n'apparaîtront nulle part. Firestore y était à
+0 document le 21/09 (relevé de la session précédente — la relecture de cette
+session a été refusée).
 
-- [ ] déposer un avis sur une fiche : la note et le nombre d'avis de la fiche
-  et de sa carte dans l'annuaire se mettent à jour ;
-- [ ] modifier puis supprimer cet avis : la note suit, et retombe à « pas de
+**À vérifier sur appareil** (migrations appliquées, nouvelle version, drapeau
+ouvert) :
+
+- [ ] déposer un avis avec une photo : il apparaît, avec **son propre** nom et
+  sa photo ; la note et le nombre d'avis de la fiche et de sa carte dans
+  l'annuaire se mettent à jour ;
+- [ ] le modifier, puis le supprimer : la note suit, et retombe à « pas de
   note » au dernier avis retiré ;
-- [ ] le propriétaire de la fiche la modifie juste après (nom, téléphone) :
-  pas de 42501 — `_versLigne` n'envoie pas `rating`, mais le vérifier.
+- [ ] un second compte : « Utile » monte puis redescend ; « Signaler » affiche
+  le message de réussite, et le signalement apparaît dans le back-office
+  (écran Signalements, type « Avis », bouton vers la fiche) ;
+- [ ] le gérant répond à un avis, puis retire sa réponse ;
+- [ ] le gérant modifie sa fiche juste après (nom, téléphone) : pas de 42501.
 
 ---
 
@@ -19675,8 +19682,8 @@ client : cesser d'envoyer `is_verified`, `is_boosted` et `boost_expires_at`
 dans `_versLigne`. À faire avec la prochaine version cliente.
 
 **Trouvé au passage — la note des entreprises n'est calculée par personne**
-(suite : voir « Note et nombre d'avis des entreprises : calculés par la base,
-mais les avis sont encore dans Firestore »). Le commentaire de `_versLigne` (`:86-89`) exclut `rating`,
+(suite : voir « Avis sur les entreprises : basculés de Firestore vers
+Supabase »). Le commentaire de `_versLigne` (`:86-89`) exclut `rating`,
 `review_count`, `follower_count` et `view_count` en affirmant que « la base les
 tient (génération, triggers d'agrégat) ». Mesuré : **aucun déclencheur
 n'existe** sur `business_reviews` — seul `update_updated_at` sur

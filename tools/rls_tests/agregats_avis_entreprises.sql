@@ -17,11 +17,11 @@
 --   · Répétition AVEC : 19 OK sur 19. Rien resté en base ensuite (fiches,
 --     avis, policies, déclencheur, fonctions : relu).
 --
--- ⚠️ Le client ne peut PAS écrire dans `business_reviews` aujourd'hui (RLS
--- actif, aucune policy ; l'app écrit ses avis dans Firestore). Pour vérifier
--- que le déclencheur traverse la garde quand un COMPTE dépose un avis — le seul
--- cas où la garde s'en mêle — le banc pose des policies d'essai, celles que
--- la bascule des avis sur Supabase devra poser. Le `ROLLBACK` les efface.
+-- Le banc pose ses propres policies d'essai (`banc_avis_*`, effacées par le
+-- `ROLLBACK`). Écrites avant la bascule (20260921090000), elles restent
+-- nécessaires : le cas 17 fait noter sa propre fiche par le PATRON — le seul
+-- chemin où la garde de `businesses` est réellement atteinte — et la vraie
+-- policy de dépôt le lui refuse. Rejoué avec les deux migrations : 19/19.
 --
 -- La production porte 2 entreprises et 0 avis. Le banc ne touche aucune ligne
 -- existante, sauf par le rattrapage de la migration pendant la répétition
@@ -197,7 +197,7 @@ SET LOCAL ROLE authenticated;
 DO $$
 DECLARE n bigint;
 BEGIN
-  UPDATE public.business_reviews SET content = 'finalement moyen', helpful_count = 3
+  UPDATE public.business_reviews SET content = 'finalement moyen'
    WHERE business_id = (SELECT v FROM ctx WHERE k = 'fiche')::uuid
      AND user_id = (SELECT v FROM ctx WHERE k = 'client1');
   GET DIAGNOSTICS n = ROW_COUNT;

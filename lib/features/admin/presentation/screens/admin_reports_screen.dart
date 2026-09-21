@@ -787,6 +787,11 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
         return '/events/${report.targetId}';
       case 'business':
         return '/businesses/${report.targetId}';
+      // La cible est l'avis ; la fiche qui le porte est dans l'instantané
+      // posé par `avis_signaler`.
+      case 'business_review':
+        final fiche = report.contentSnapshot?.metadata?['business_id'];
+        return fiche is String ? '/businesses/$fiche' : null;
       case 'product':
         return '/marketplace/${report.targetId}';
       case 'message':
@@ -970,6 +975,8 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
         return Icons.group_rounded;
       case 'business':
         return Icons.store_rounded;
+      case 'business_review':
+        return Icons.rate_review_rounded;
       case 'product':
         return Icons.shopping_bag_rounded;
       default:
@@ -991,6 +998,8 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
         return l10n.group;
       case 'business':
         return l10n.reportTypeBusiness;
+      case 'business_review':
+        return l10n.reviews;
       case 'product':
         return l10n.reportTypeProduct;
       default:

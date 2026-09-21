@@ -1131,8 +1131,8 @@ class _ReviewsPreviewSection extends ConsumerWidget {
     ));
   }
 
-  /// Réponse du gérant à un avis (§18c). Réutilise le chemin d'écriture
-  /// existant `updateReview` en posant `ownerReply`/`ownerReplyAt` sur l'avis.
+  /// Réponse du gérant à un avis (§18c), par la fonction serveur
+  /// `avis_repondre` : réécrire l'avis d'autrui n'est pas permis.
   void _showReplyDialog(BuildContext context, WidgetRef ref, ReviewEntity review) {
     final l10n = AppLocalizations.of(context)!;
     final controller = TextEditingController(text: review.ownerReply ?? '');
@@ -1159,13 +1159,9 @@ class _ReviewsPreviewSection extends ConsumerWidget {
             onPressed: () async {
               final text = controller.text.trim();
               Navigator.pop(ctx);
-              final updated = review.copyWith(
-                ownerReply: text.isEmpty ? null : text,
-                ownerReplyAt: text.isEmpty ? null : DateTime.now(),
-              );
               final ok = await ref
                   .read(reviewActionsNotifierProvider.notifier)
-                  .updateReview(updated);
+                  .replyToReview(review.id, text, review.businessId);
               if (ok && context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(

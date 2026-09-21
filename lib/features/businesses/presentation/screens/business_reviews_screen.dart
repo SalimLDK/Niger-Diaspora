@@ -98,7 +98,8 @@ class BusinessReviewsScreen extends ConsumerWidget {
     ));
   }
 
-  /// Réponse du gérant à un avis (§18c) — réutilise updateReview.
+  /// Réponse du gérant à un avis (§18c), par la fonction serveur
+  /// `avis_repondre` : réécrire l'avis d'autrui n'est pas permis.
   void _showReplyDialog(BuildContext context, WidgetRef ref, ReviewEntity review) {
     final l10n = AppLocalizations.of(context)!;
     final controller = TextEditingController(text: review.ownerReply ?? '');
@@ -125,13 +126,9 @@ class BusinessReviewsScreen extends ConsumerWidget {
             onPressed: () async {
               final text = controller.text.trim();
               Navigator.pop(ctx);
-              final updated = review.copyWith(
-                ownerReply: text.isEmpty ? null : text,
-                ownerReplyAt: text.isEmpty ? null : DateTime.now(),
-              );
               final ok = await ref
                   .read(reviewActionsNotifierProvider.notifier)
-                  .updateReview(updated);
+                  .replyToReview(review.id, text, businessId);
               if (context.mounted) {
                 _annoncer(
                   context,

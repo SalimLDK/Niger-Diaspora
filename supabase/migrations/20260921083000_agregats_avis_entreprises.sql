@@ -13,6 +13,9 @@
 --
 -- ═══ CE QUE CETTE MIGRATION NE RÉPARE PAS ═════════════════════════════════
 --
+-- (Suite : 20260921090000 fait basculer les avis sur cette table. Le
+-- paragraphe ci-dessous décrit l'état au moment où celle-ci a été écrite.)
+--
 -- ⚠️ L'application n'écrit PAS les avis ici. `review_remote_datasource.dart`
 -- les dépose dans la collection FIRESTORE `business_reviews`, et
 -- `onReviewCreated/Updated/Deleted` (functions/index.js) recalcule la note

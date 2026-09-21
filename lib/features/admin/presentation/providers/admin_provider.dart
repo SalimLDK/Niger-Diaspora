@@ -1243,6 +1243,10 @@ class AdminReportsNotifier extends Notifier<AdminReportsState> {
         return 'groups';
       case 'business':
         return 'businesses';
+      // Posé par `avis_signaler` ; la policy de retrait laisse l'admin
+      // supprimer, et le déclencheur d'agrégat recalcule la note de la fiche.
+      case 'business_review':
+        return 'business_reviews';
       case 'product':
         return 'products';
       default:

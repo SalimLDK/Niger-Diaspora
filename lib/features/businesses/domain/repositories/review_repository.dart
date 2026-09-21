@@ -22,12 +22,11 @@ abstract class ReviewRepository {
   Future<Either<Failure, ReviewEntity>> updateReview(ReviewEntity review);
   Future<Either<Failure, void>> deleteReview(String reviewId);
 
-  // Reviews - Actions
-  Future<Either<Failure, void>> markHelpful(String reviewId, String userId);
-  Future<Either<Failure, void>> unmarkHelpful(String reviewId, String userId);
-  Future<Either<Failure, void>> reportReview(
-    String reviewId,
-    String reason,
-    String reporterId,
-  );
+  // Reviews - Actions sur l'avis d'un autre : l'identité vient de la session.
+  Future<Either<Failure, void>> markHelpful(String reviewId);
+  Future<Either<Failure, void>> unmarkHelpful(String reviewId);
+
+  /// Réponse du gérant de la fiche ; `null` ou vide la retire.
+  Future<Either<Failure, void>> replyToReview(String reviewId, String? reply);
+  Future<Either<Failure, void>> reportReview(String reviewId, String reason);
 }

@@ -90,11 +90,9 @@ class BusinessSupabaseDataSource implements BusinessRemoteDataSource {
   ///
   /// Qui les tient réellement — mesuré le 2026-09-21 :
   /// - `rating` / `review_count` : le déclencheur `business_reviews_agreger`
-  ///   (migration 20260921083000 — répétée, pas encore appliquée le
-  ///   2026-09-21), à partir de la table SUPABASE
-  ///   `business_reviews`. ⚠️ Les avis de l'app vont encore dans FIRESTORE
-  ///   (`review_remote_datasource.dart`) : tant qu'ils n'ont pas basculé, rien
-  ///   n'alimente ce calcul et l'annuaire affiche 0 avis.
+  ///   (migration 20260921083000), à partir de `business_reviews`, où
+  ///   `ReviewSupabaseDataSource` écrit les avis depuis la bascule
+  ///   (20260921090000).
   /// - `view_count` : `increment_business_view_count` (SECURITY DEFINER).
   /// - `follower_count` : personne. Il n'existe aucun abonnement à une
   ///   entreprise, ni en base ni dans le code ; la colonne reste à 0.
