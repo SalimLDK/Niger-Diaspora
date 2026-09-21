@@ -27,6 +27,7 @@
 // =============================================================================
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { construireDonneesFcm } from './donnees_fcm.ts'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_SERVICE_ROLE_KEY = (Deno.env.get('SERVICE_ROLE_KEY') ?? Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'))!
@@ -301,19 +302,12 @@ Deno.serve(async (req) => {
       record.target_id ?? rawData.targetId ?? rawData.target_id ?? conversationId,
     )
 
-    // Payload data attendu par notification_service.dart (tous les champs string).
-    const dataMap: Record<string, string> = {
-      type,
-      title,
-      body,
-      targetId,
-      click_action: 'FLUTTER_NOTIFICATION_CLICK',
-    }
-    for (const [k, v] of Object.entries(rawData)) {
-      if (v === null || v === undefined) continue
-      // JSON objects/arrays → string JSON ; scalaires → String()
-      dataMap[k] = typeof v === 'object' ? JSON.stringify(v) : String(v)
-    }
+    // Payload data attendu par notification_service.dart (tous les champs
+    // string). Les clés réservées — `type`, `title`, `body`, `targetId`,
+    // `click_action` — y sont posées APRÈS `data` : voir donnees_fcm.ts.
+    // Posées avant, elles étaient écrasables, et un `data.type` choisi par
+    // l'émetteur faisait ouvrir à l'app l'écran d'appel entrant.
+    const dataMap = construireDonneesFcm({ type, title, body, targetId, rawData })
     // Garantit les clés camelCase utilisées par le client message.
     if (type === 'message') {
       if (conversationId) dataMap.conversationId = conversationId

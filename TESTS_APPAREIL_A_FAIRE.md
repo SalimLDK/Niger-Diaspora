@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1541 cases à cocher, 650 cochées** — 298 entrées sur 349 ont encore des cases ouvertes.
+**1542 cases à cocher, 650 cochées** — 298 entrées sur 349 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -140,7 +140,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [⬜ Distribution des Sender Keys : la même porte, une marche plus loin (2026-09-14)](#-distribution-des-sender-keys--la-même-porte-une-marche-plus-loin-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
 - 7 · [⬜ Cartes de partage chiffrées au repos (2026-09-09)](#-cartes-de-partage-chiffrées-au-repos-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
 - 4 · [Messages de groupe qui redeviennent indéchiffrables après réouverture (2026-08-13)](#messages-de-groupe-qui-redeviennent-indéchiffrables-après-réouverture-2026-08-13) · *Chiffrement de bout en bout et clés* · bloqué
-- 4 · [⬜ Notifications entre comptes : le serveur rédige le texte et filtre les données (2026-09-21)](#-notifications-entre-comptes--le-serveur-rédige-le-texte-et-filtre-les-données-2026-09-21) · *Notifications et push*
+- 5 · [⬜ Notifications entre comptes : le serveur rédige le texte et filtre les données (2026-09-21)](#-notifications-entre-comptes--le-serveur-rédige-le-texte-et-filtre-les-données-2026-09-21) · *Notifications et push*
 - 7 · [⬜ Une édition corrige la bannière déjà posée (2026-09-16)](#-une-édition-corrige-la-bannière-déjà-posée-2026-09-16) · *Notifications et push*
 - 12 · [⬜ Trois cas de messagerie que les notifications ne couvraient pas (2026-09-16)](#-trois-cas-de-messagerie-que-les-notifications-ne-couvraient-pas-2026-09-16) · *Notifications et push*
 - 7 · [⬜ Types, libellés et bascules : trois écarts entre ce qui est écrit et ce qui est lu (2026-09-16)](#-types-libellés-et-bascules--trois-écarts-entre-ce-qui-est-écrit-et-ce-qui-est-lu-2026-09-16) · *Notifications et push*
@@ -360,7 +360,7 @@ Par domaine :
 - [3. Groupes](#3-groupes) — 149 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 142 à faire, 42 faites
 - [5. Appels](#5-appels) — 22 à faire, 8 faites
-- [6. Notifications et push](#6-notifications-et-push) — 165 à faire, 76 faites
+- [6. Notifications et push](#6-notifications-et-push) — 166 à faire, 76 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 69 à faire, 10 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 118 à faire, 16 faites
@@ -10168,13 +10168,19 @@ liste du matin, où il désigne exactement l'oubli.
   une demande d'ami, publication, événement, appel) ;
 - [ ] un signalement traité depuis le back-office prévient bien l'auteur.
 
-**Reste ouvert :** `send-push` laisse toujours `data` écraser `type`, `title`
-et `body` pour les AUTRES écrivains de `notifications` — des déclencheurs
-serveur (de confiance) et la RLS `notifications_own`, qui ne permet d'écrire
-que pour soi-même. Plus exploitable depuis un tiers, mais à durcir :
-poser `type`/`title`/`body` APRÈS la boucle sur `rawData`
-(`supabase/functions/send-push/index.ts`), puis redéployer — c'est la
-fonction qui porte TOUS les pushs, d'où le report.
+**`send-push` durci le même jour — DÉPLOYÉ (v33).** Il laissait `data`
+écraser `type`, `title`, `body`, `targetId` et `click_action` pour TOUS les
+écrivains de `notifications`. Ces cinq clés sont désormais posées APRÈS
+`data` (`supabase/functions/send-push/donnees_fcm.ts`). Banc
+`tools/rules_tests/send_push_donnees.mjs` (Node, sur le module même qui est
+déployé) : 0 échec, 3 avec l'ancien ordre. Non-régression : l'ancien et le
+nouvel algorithme, rejoués sur les **1 548 notifications réelles**, donnent
+1 548 blocs `data` identiques. Après déploiement : code en ligne relu, égal au
+dépôt ; la fonction démarre (401 sans secret).
+
+- [ ] **un push réel passe par la v33** — relire `net._http_response` après
+  la prochaine notification (HTTP 200 attendus), et qu'un message de
+  discussion arrive toujours sur un téléphone.
 
 ---
 
