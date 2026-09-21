@@ -555,6 +555,9 @@ class MessageEntity extends Equatable {
     String? clientMessageId,
     MessageEncryptionLevel? encryptionLevel,
     Map<String, dynamic>? noticeDeGroupe,
+    // `editedAt: null` ne vide rien (`??`) : sans ce drapeau, impossible de
+    // rendre à un message sa date « jamais modifié ».
+    bool effacerDateDeModification = false,
   }) {
     return MessageEntity(
       localFilePath: localFilePath ?? this.localFilePath,
@@ -601,7 +604,8 @@ class MessageEntity extends Equatable {
       mediaChiffre: mediaChiffre ?? this.mediaChiffre,
       isForwarded: isForwarded ?? this.isForwarded,
       starredBy: starredBy ?? this.starredBy,
-      editedAt: editedAt ?? this.editedAt,
+      editedAt:
+          effacerDateDeModification ? null : (editedAt ?? this.editedAt),
       editHistory: editHistory ?? this.editHistory,
       expiresAt: expiresAt ?? this.expiresAt,
       mediaExpiresAt: mediaExpiresAt ?? this.mediaExpiresAt,

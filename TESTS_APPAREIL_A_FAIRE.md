@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1554 cases à cocher, 675 cochées** — 306 entrées sur 357 ont encore des cases ouvertes.
+**1556 cases à cocher, 675 cochées** — 306 entrées sur 357 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -174,7 +174,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⛔ « Diaspo Niger s'arrête systématiquement » sur Android 15+ (2026-09-09)](#--diaspo-niger-sarrête-systématiquement--sur-android-15-2026-09-09) · *Publication et plateformes*
 - 4 · [⚠️ Rapatriement iOS : deux dépendances **Android** changent de version majeure (2026-09-08)](#-rapatriement-ios--deux-dépendances-android-changent-de-version-majeure-2026-09-08) · *Publication et plateformes*
 - 9 · [⬜ La page de suppression de compte demande la suppression au lieu de l'exécuter (2026-09-19)](#-la-page-de-suppression-de-compte-demande-la-suppression-au-lieu-de-lexécuter-2026-09-19) · *Site web*
-- 6 · [⬜ Accusés, réactions et modifications reçus en direct, discussion en clair (2026-09-21)](#-accusés-réactions-et-modifications-reçus-en-direct-discussion-en-clair-2026-09-21) · *Messagerie*
+- 8 · [⬜ Accusés, réactions, modifications et suppressions reçus en direct, discussion en clair (2026-09-21)](#-accusés-réactions-modifications-et-suppressions-reçus-en-direct-discussion-en-clair-2026-09-21) · *Messagerie*
 - 9 · [⬜ Partager vers une discussion — groupe et 1:1 (2026-09-09)](#-partager-vers-une-discussion--groupe-et-11-2026-09-09) · *Messagerie*
 - 2 · [Accusés livré/lu séparés — sheet infos du message (2026-08-13)](#accusés-livrélu-séparés--sheet-infos-du-message-2026-08-13) · *Messagerie* · bloqué
 - 9 · [⬜ Pays en toutes lettres : groupes officiels et filtre par pays (2026-09-13)](#-pays-en-toutes-lettres--groupes-officiels-et-filtre-par-pays-2026-09-13) · *Groupes*
@@ -364,7 +364,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 341 à faire, 141 faites
+- [2. Messagerie](#2-messagerie) — 343 à faire, 141 faites
 - [3. Groupes](#3-groupes) — 149 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 144 à faire, 45 faites
 - [5. Appels](#5-appels) — 26 à faire, 8 faites
@@ -626,7 +626,7 @@ Discussions : bulles, composeur, médias, épingles, réactions, accusés, reche
 
 ---
 
-## ⬜ Accusés, réactions et modifications reçus en direct, discussion en clair (2026-09-21)
+## ⬜ Accusés, réactions, modifications et suppressions reçus en direct, discussion en clair (2026-09-21)
 
 **Priorité P1** · importance 3/5 — dans une discussion non chiffrée restée
 ouverte, un accusé de lecture, une réaction ou un épinglage survenu pendant
@@ -651,6 +651,15 @@ par `getMessageById`, une seule fois par version (`_relireModification`,
 `test/features/messages/modification_recue_test.dart`). Un texte illisible
 ne remplace jamais du texte clair.
 
+**Supprimer pour tout le monde** : la pierre tombale s'affichait déjà (le
+drapeau passait), mais l'écran recollait par-dessus le texte clair, la carte
+partagée, le fichier et la clé du média — restés en mémoire, à portée de la
+copie et du transfert. La ligne supprimée est maintenant prise telle que le
+serveur l'a vidée (`fusionnerLigneBrute`, `modification_recue.dart`). Même
+passe : la première modification d'un message jamais modifié reprenait la
+date de la ligne brute (`copyWith(editedAt: null)` ne vide rien) — drapeau
+`effacerDateDeModification` ajouté à `MessageEntity.copyWith`.
+
 - [ ] **HOME court, accusé** : envoyer un message en clair, HOME ; l'autre
   téléphone ouvre la discussion ; revenir → la double coche « Lu » est là
   **sans rouvrir** la discussion (logcat : `realtime: rejoint « msg_updates »
@@ -670,6 +679,13 @@ ne remplace jamais du texte clair.
   requise] » quand l'écho revient, ni après un accusé de lecture.
 - [ ] **Deux modifications rapprochées** : l'autre modifie deux fois de suite
   en quelques secondes → c'est la seconde version qui reste affichée.
+- [ ] **Suppression pour tous, en direct** : l'autre supprime pour tout le
+  monde un message avec photo ou carte de post → la pierre tombale apparaît
+  sans rouvrir ; appui long dessus → ni « Copier » ni « Transférer » ne
+  rendent l'ancien contenu. Puis même chose avec HOME pendant la
+  suppression.
+- [ ] **Modifier puis supprimer vite** : l'autre modifie puis supprime dans
+  la foulée → la pierre tombale reste, le texte modifié ne réapparaît pas.
 
 ---
 

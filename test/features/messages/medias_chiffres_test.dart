@@ -165,11 +165,18 @@ void main() {
 
   group('présentation', () {
     test('le flux de mises à jour rappelle le média déjà déchiffré', () {
-      final source = _source(
-        'lib/features/messages/presentation/providers/message_provider.dart',
+      // La fusion vit dans `fusionnerLigneBrute`, que le fournisseur appelle.
+      expect(
+        _source(
+          'lib/features/messages/presentation/providers/message_provider.dart',
+        ),
+        contains('fusionnerLigneBrute('),
       );
-      expect(source, contains('mediaChiffre: existing.mediaChiffre,'));
-      expect(source, contains('fileName: existing.fileName,'));
+      final source = _source(
+        'lib/features/messages/presentation/providers/modification_recue.dart',
+      );
+      expect(source, contains('mediaChiffre: affiche.mediaChiffre,'));
+      expect(source, contains('fileName: affiche.fileName,'));
     });
 
     test('chaque bulle média passe par la barrière', () {

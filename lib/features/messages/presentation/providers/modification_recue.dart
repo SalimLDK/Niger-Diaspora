@@ -1,8 +1,9 @@
 import '../../../../core/services/e2ee/undecryptable_placeholders.dart';
 import '../../domain/entities/message_entity.dart';
 
-/// Application d'une **modification de texte** reçue par le flux des mises à
-/// jour (`getMessageUpdatesStream`) sur une discussion en clair.
+/// Application d'une ligne reçue par le flux des mises à jour
+/// (`getMessageUpdatesStream`) sur une discussion en clair : métadonnées,
+/// **modification de texte**, **suppression pour tout le monde**.
 ///
 /// Ce flux livre la ligne BRUTE : son contenu est le chiffré au repos, qu'on
 /// ne peut pas afficher, et qu'on ne peut pas non plus re-déchiffrer à chaque
@@ -15,6 +16,50 @@ import '../../domain/entities/message_entity.dart';
 /// nouvelle version se déchiffre une fois, comme un message neuf. La règle est
 /// donc de la relire déchiffrée **une seule fois par version**, repérée par
 /// son `editedAt`, et seulement quand elle est plus récente que celle affichée.
+
+/// Le message à afficher quand le flux des mises à jour livre [brut], la
+/// ligne non déchiffrée d'un message déjà à l'écran sous la forme [affiche].
+///
+/// **Cas courant** (accusé, réaction, épingle, étoile) : les métadonnées
+/// viennent de [brut], tout ce qui est chiffré au repos vient de [affiche].
+/// Re-déchiffrer est impossible pour Signal (voir l'en-tête) ; et depuis que
+/// les charges annexes et les médias sont chiffrés, la ligne brute n'en porte
+/// que le blob — sans ce rappel, le premier accusé de lecture faisait
+/// disparaître la carte partagée ou rendait la photo illisible.
+///
+/// La date de modification suit le TEXTE, pas la ligne : elle n'avance
+/// qu'avec lui, par [appliquerModificationRelue]. L'adopter ici afficherait
+/// « modifié » sur l'ancien texte, et une relecture échouée (hors ligne) ne
+/// serait jamais retentée.
+///
+/// **Supprimé pour tout le monde** : [brut] est pris tel quel. Le serveur a
+/// déjà vidé la ligne (`deleteMessageForEveryone` : contenu, fichier,
+/// annexes, clé du média) — c'est exactement l'état voulu. Le rappel du cas
+/// courant faisait l'inverse : la bulle montrait bien la pierre tombale,
+/// mais le texte clair, la carte partagée et la clé du média restaient dans
+/// l'état de l'écran, à portée de la copie, du transfert et du cache.
+MessageEntity fusionnerLigneBrute({
+  required MessageEntity affiche,
+  required MessageEntity brut,
+}) {
+  if (brut.deletedForEveryone) return brut;
+  return brut.copyWith(
+    content: affiche.content,
+    fileUrl: affiche.fileUrl,
+    mediaChiffre: affiche.mediaChiffre,
+    fileName: affiche.fileName,
+    postData: affiche.postData,
+    eventData: affiche.eventData,
+    productData: affiche.productData,
+    linkPreviewData: affiche.linkPreviewData,
+    replyToMessageData: affiche.replyToMessageData,
+    editedAt: affiche.editedAt,
+    // Première modification d'un message qui ne l'avait jamais été : sans
+    // ça, `editedAt: null` laissait passer la date de la ligne — le cas le
+    // plus courant affichait « modifié » sur l'ancien texte.
+    effacerDateDeModification: affiche.editedAt == null,
+  );
+}
 
 /// Vrai si [recue] annonce une version plus récente que [affichee].
 bool modificationPlusRecente({
@@ -38,12 +83,16 @@ bool modificationPlusRecente({
 ///   lecture relancerait une relecture vaine. Chez le destinataire, la date
 ///   n'est pas adoptée : une session rétablie plus tard permettra un nouvel
 ///   essai, au lieu d'afficher « modifié » sur l'ancien texte pour toujours.
+/// - Message supprimé pour tout le monde, à l'écran ou dans la relecture :
+///   rien ne change. Une relecture partie avant la suppression et revenue
+///   après remettrait sinon le texte modifié sous la pierre tombale.
 /// - Sinon : nouveau texte et nouvelle date.
 MessageEntity appliquerModificationRelue({
   required MessageEntity affiche,
   required MessageEntity relu,
   required bool estAMoi,
 }) {
+  if (affiche.deletedForEveryone || relu.deletedForEveryone) return affiche;
   if (!modificationPlusRecente(
     affichee: affiche.editedAt,
     recue: relu.editedAt,

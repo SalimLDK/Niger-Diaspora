@@ -698,24 +698,9 @@ class PaginatedMessagesNotifier extends StateNotifier<MessagePaginationState> {
                 // de lecture faisait disparaître la carte du post ou du groupe
                 // partagé — sans erreur nulle part.
                 final existing = existingMessages[index];
-                existingMessages[index] = updatedMessage.copyWith(
-                  content: existing.content,
-                  fileUrl: existing.fileUrl,
-                  // Média chiffré : la ligne brute ne porte que le blob
-                  // `encMedia` et un nom de fichier générique. Sans ce rappel,
-                  // le premier accusé de lecture rendait la photo illisible.
-                  mediaChiffre: existing.mediaChiffre,
-                  fileName: existing.fileName,
-                  postData: existing.postData,
-                  eventData: existing.eventData,
-                  productData: existing.productData,
-                  linkPreviewData: existing.linkPreviewData,
-                  replyToMessageData: existing.replyToMessageData,
-                  // La date de modification suit le TEXTE, pas la ligne : elle
-                  // n'avance qu'avec lui, dans `_relireModification`. L'adopter
-                  // ici afficherait « modifié » sur l'ancien texte, et une
-                  // relecture échouée (hors ligne) ne serait jamais retentée.
-                  editedAt: existing.editedAt,
+                existingMessages[index] = fusionnerLigneBrute(
+                  affiche: existing,
+                  brut: updatedMessage,
                 );
                 debugPrint(
                   'Message ${updatedMessage.id} read_by updated: ${updatedMessage.readBy}',
