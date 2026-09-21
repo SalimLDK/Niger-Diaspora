@@ -39,33 +39,33 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1564 cases à cocher, 653 cochées** — 304 entrées sur 355 ont encore des cases ouvertes.
+**1542 cases à cocher, 675 cochées** — 304 entrées sur 355 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
 **P0 — avant toute nouvelle version** (50)
 
-- 7 · [⬜ Droits d'écriture sur `messages` resserrés : accusés et modification (2026-09-16)](#-droits-décriture-sur-messages-resserrés--accusés-et-modification-2026-09-16) · *Messagerie*
-- 8 · [⬜ Accusé « lu » mensonger, et aperçu chiffré qui ne venait jamais (2026-09-15)](#-accusé--lu--mensonger-et-aperçu-chiffré-qui-ne-venait-jamais-2026-09-15) · *Messagerie*
-- 11 · [⬜ L'aperçu de la liste dit pourquoi il est vide (2026-09-15)](#-laperçu-de-la-liste-dit-pourquoi-il-est-vide-2026-09-15) · *Messagerie*
+- 5 · [⬜ Droits d'écriture sur `messages` resserrés : accusés et modification (2026-09-16)](#-droits-décriture-sur-messages-resserrés--accusés-et-modification-2026-09-16) · *Messagerie*
+- 2 · [⬜ Accusé « lu » mensonger, et aperçu chiffré qui ne venait jamais (2026-09-15)](#-accusé--lu--mensonger-et-aperçu-chiffré-qui-ne-venait-jamais-2026-09-15) · *Messagerie*
+- 10 · [⬜ L'aperçu de la liste dit pourquoi il est vide (2026-09-15)](#-laperçu-de-la-liste-dit-pourquoi-il-est-vide-2026-09-15) · *Messagerie*
 - 1 · [✅ Note vocale impossible à envoyer en conversation chiffrée (2026-09-15)](#-note-vocale-impossible-à-envoyer-en-conversation-chiffrée-2026-09-15) · *Messagerie*
 - 4 · [⛔ Le fil chiffré se tronque au redémarrage dès qu'un message arrive en direct (2026-09-16)](#-le-fil-chiffré-se-tronque-au-redémarrage-dès-quun-message-arrive-en-direct-2026-09-16) · *Messagerie*
 - 3 · [⬜ Un fil chiffré survit au redémarrage de l'application (2026-09-15)](#-un-fil-chiffré-survit-au-redémarrage-de-lapplication-2026-09-15) · *Messagerie*
-- 8 · [⬜ Un message non envoyé ne disparaît plus, et repart tout seul (2026-09-14)](#-un-message-non-envoyé-ne-disparaît-plus-et-repart-tout-seul-2026-09-14) · *Messagerie*
+- 6 · [⬜ Un message non envoyé ne disparaît plus, et repart tout seul (2026-09-14)](#-un-message-non-envoyé-ne-disparaît-plus-et-repart-tout-seul-2026-09-14) · *Messagerie*
 - 6 · [⬜ Une discussion ouverte ne reste plus prisonnière de son cache (2026-09-14)](#-une-discussion-ouverte-ne-reste-plus-prisonnière-de-son-cache-2026-09-14) · *Messagerie*
 - 4 · [⬜ Aucun marqueur technique dans une bulle (2026-09-09)](#-aucun-marqueur-technique-dans-une-bulle-2026-09-09) · *Messagerie*
 - 4 · [⬜ Un simple membre pouvait se nommer owner de son propre groupe (2026-09-17)](#-un-simple-membre-pouvait-se-nommer-owner-de-son-propre-groupe-2026-09-17) · *Groupes*
 - 1 · [⚠️ Lire les groupes SANS session échoue en production (2026-09-09)](#-lire-les-groupes-sans-session-échoue-en-production-2026-09-09) · *Groupes*
-- 3 · [⬜ MLS après un démarrage à froid : lire et envoyer dans une conversation chiffrée (2026-09-16)](#-mls-après-un-démarrage-à-froid--lire-et-envoyer-dans-une-conversation-chiffrée-2026-09-16) · *Chiffrement de bout en bout et clés*
-- 6 · [⬜ La notification gardait le ciphertext que le message avait perdu (2026-09-16)](#-la-notification-gardait-le-ciphertext-que-le-message-avait-perdu-2026-09-16) · *Chiffrement de bout en bout et clés*
+- 2 · [⬜ MLS après un démarrage à froid : lire et envoyer dans une conversation chiffrée (2026-09-16)](#-mls-après-un-démarrage-à-froid--lire-et-envoyer-dans-une-conversation-chiffrée-2026-09-16) · *Chiffrement de bout en bout et clés*
+- 4 · [⬜ La notification gardait le ciphertext que le message avait perdu (2026-09-16)](#-la-notification-gardait-le-ciphertext-que-le-message-avait-perdu-2026-09-16) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ Un média chiffré de plus de 10 Mo était illisible (2026-09-16)](#-un-média-chiffré-de-plus-de-10-mo-était-illisible-2026-09-16) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ Ouvrir une discussion ne la bascule plus (2026-09-15)](#-ouvrir-une-discussion-ne-la-bascule-plus-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ Une conversation ne bascule plus sans ses participants (2026-09-15)](#-une-conversation-ne-bascule-plus-sans-ses-participants-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ MLS ouvert pour un seul compte (phase 5, 2026-09-15)](#-mls-ouvert-pour-un-seul-compte-phase-5-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 5 · [⬜ Signal remis en service : la garde de session sur les lectures de clés (2026-09-14)](#-signal-remis-en-service--la-garde-de-session-sur-les-lectures-de-clés-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
-- 19 · [⬜ Cinq messages reçus, un seul lisible : la bannière ne s'empilait pas (2026-09-16)](#-cinq-messages-reçus-un-seul-lisible--la-bannière-ne-sempilait-pas-2026-09-16) · *Notifications et push*
+- 16 · [⬜ Cinq messages reçus, un seul lisible : la bannière ne s'empilait pas (2026-09-16)](#-cinq-messages-reçus-un-seul-lisible--la-bannière-ne-sempilait-pas-2026-09-16) · *Notifications et push*
 - 6 · [⬜ Aperçu MLS quand l'app est OUVERTE (le même message, l'autre isolate)](#-aperçu-mls-quand-lapp-est-ouverte-le-même-message-lautre-isolate) · *Notifications et push*
-- 9 · [⬜ Aperçu des notifications MLS reconstruit sur l'appareil (phase 4, Android)](#-aperçu-des-notifications-mls-reconstruit-sur-lappareil-phase-4-android) · *Notifications et push*
+- 8 · [⬜ Aperçu des notifications MLS reconstruit sur l'appareil (phase 4, Android)](#-aperçu-des-notifications-mls-reconstruit-sur-lappareil-phase-4-android) · *Notifications et push*
 - 6 · [⬜ Accepter une demande d'ami : « Erreur de chargement » (2026-09-14)](#-accepter-une-demande-dami---erreur-de-chargement--2026-09-14) · *Notifications et push* · bloqué
 - 22 · [⬜ Supprimer mon compte : demande, 30 jours, annulation, purge (2026-09-18)](#-supprimer-mon-compte--demande-30-jours-annulation-purge-2026-09-18) · *Comptes, session et onboarding*
 - 9 · [⬜ Expulsion admin et bannissement : ils n'éjectaient personne (2026-09-16)](#-expulsion-admin-et-bannissement--ils-néjectaient-personne-2026-09-16) · *Comptes, session et onboarding*
@@ -79,8 +79,8 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [⬜ Divulgation préalable de la localisation (refus Play du 2026-09-09)](#-divulgation-préalable-de-la-localisation-refus-play-du-2026-09-09) · *Publication et plateformes*
 - 3 · [⬜ Compte de test dédié : première connexion (2026-09-09)](#-compte-de-test-dédié--première-connexion-2026-09-09) · *Appareils, comptes de test et méthode*
 - 4 · [⬜ Écrire dans une conversation exige d'en être participant (2026-09-20)](#-écrire-dans-une-conversation-exige-den-être-participant-2026-09-20) · *Messagerie*
-- 4 · [⬜ GIF et sticker envoyés en MLS : la bulle ne montrait rien (2026-09-16)](#-gif-et-sticker-envoyés-en-mls--la-bulle-ne-montrait-rien-2026-09-16) · *Messagerie*
-- 9 · [⬜ GIFs via `gif-proxy` — clés sorties de l'APK (2026-08-27)](#-gifs-via-gif-proxy--clés-sorties-de-lapk-2026-08-27) · *Messagerie*
+- 3 · [⬜ GIF et sticker envoyés en MLS : la bulle ne montrait rien (2026-09-16)](#-gif-et-sticker-envoyés-en-mls--la-bulle-ne-montrait-rien-2026-09-16) · *Messagerie*
+- 6 · [⬜ GIFs via `gif-proxy` — clés sorties de l'APK (2026-08-27)](#-gifs-via-gif-proxy--clés-sorties-de-lapk-2026-08-27) · *Messagerie*
 - 4 · [⬜ Citations et modifications : plus de texte en clair (2026-09-09)](#-citations-et-modifications--plus-de-texte-en-clair-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
 - 3 · [⚠️ La légende d'une photo/vidéo part EN CLAIR (2026-09-09, non corrigé)](#-la-légende-dune-photovidéo-part-en-clair-2026-09-09-non-corrigé) · *Chiffrement de bout en bout et clés* · bloqué
 - 6 · [⬜ Clés de repli dérivées, servies par `crypto-keys` (2026-09-06)](#-clés-de-repli-dérivées-servies-par-crypto-keys-2026-09-06) · *Chiffrement de bout en bout et clés*
@@ -362,11 +362,11 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 344 à faire, 126 faites
+- [2. Messagerie](#2-messagerie) — 329 à faire, 141 faites
 - [3. Groupes](#3-groupes) — 149 à faire, 64 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 147 à faire, 42 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 144 à faire, 45 faites
 - [5. Appels](#5-appels) — 26 à faire, 8 faites
-- [6. Notifications et push](#6-notifications-et-push) — 166 à faire, 76 faites
+- [6. Notifications et push](#6-notifications-et-push) — 162 à faire, 80 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 69 à faire, 10 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 118 à faire, 16 faites
@@ -972,13 +972,17 @@ Le banc prouve les droits, pas l'affichage — d'où cette entrée.
 
 - [ ] **Accusé de lecture, deux téléphones** : A écrit à B, B ouvre la
       discussion → la coche passe à « Lu » chez A, en quelques secondes
+  ⛔ Passe du 2026-09-21, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : les reçus s'ÉCRIVENT bien (read_at posé dans la seconde de l'ouverture), mais l'expéditeur ne voit PAS « Lu » en direct — resté « Envoyé » plus d'une minute, discussion ouverte. En MLS le temps réel n'écoute que `mls_messages` (`message_supabase_datasource.dart:1198/1214`), pas `mls_message_receipts` : « Lu » n'arrive qu'à la réouverture ou au prochain message.
 - [ ] **Accusé de livraison** : B reçoit sans ouvrir (app en arrière-plan) →
       la coche « remis » apparaît chez A
-- [ ] **Modifier son propre message** : A modifie, le nouveau texte tient
+  ⛔ Passe du 2026-09-21, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : `delivered_at` reste NUL tant que la discussion n'est pas ouverte (bannière pourtant reçue et déchiffrée). Par construction : seul `conversation_screen.dart:852` appelle `markAsDelivered` — « remis » n'existe pas pour un message reçu en arrière-plan.
+- [x] **Modifier son propre message** : A modifie, le nouveau texte tient
       après un retour arrière et une relecture (voir « Modifier un message en
       ligne »)
-- [ ] **Réaction** : B réagit au message de A → l'emoji apparaît des deux
+  ✅ Passe du 2026-09-21, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : PA2 → PA2M, part en message de contrôle, `edited_at` posé ; « modifié » EN DIRECT chez le destinataire, et le texte tient après sortie + réouverture chez l'expéditeur.
+- [x] **Réaction** : B réagit au message de A → l'emoji apparaît des deux
       côtés
+  ✅ Passe du 2026-09-21, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS (MLS) : 👍 en base et chez son auteur tout de suite ; chez l'autre, visible seulement à la réouverture de la discussion — pas en direct (même cause que « Lu »).
 - [ ] **Favori / signalement / supprimer pour moi** sur le message d'un
       **autre** : les trois passent toujours (ce sont les seules écritures
       qu'un non-expéditeur garde)
@@ -988,6 +992,7 @@ Le banc prouve les droits, pas l'affichage — d'où cette entrée.
 - [ ] **Conversation chiffrée (MLS)** : les accusés et la modification s'y
       comportent pareil — `mls_messages` est une autre table, avec ses propres
       droits, et n'a pas été touchée par cette migration
+  ⚠️ Passe du 2026-09-21, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : modification OK en direct ; accusés écrits correctement mais jamais affichés en direct côté expéditeur — voir les deux premières cases.
 
 ---
 
@@ -1126,8 +1131,9 @@ qui échoue si la ligne saute.
 Les deux messages déjà envoyés portent l'URL dans leur payload chiffré : ils
 s'afficheront correctement au prochain build, sans rien réémettre.
 
-- [ ] **Envoyer un GIF dans une conversation basculée MLS** : la vignette
+- [x] **Envoyer un GIF dans une conversation basculée MLS** : la vignette
       s'affiche chez l'expéditeur **et** chez le destinataire
+  ✅ Passe du 2026-09-21, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : GIF des tendances envoyé par Sim, vignette animée des deux côtés, reçu en direct (`content_type = sticker` en base).
 - [ ] **Les deux GIFs du 2026-09-16** (05:05 UTC) s'affichent après mise à
       jour, au lieu du cadre cassé
 - [ ] **Sticker animé** : l'animation joue, elle ne se fige pas sur la
@@ -1469,35 +1475,43 @@ n'y étaient pour quelque chose (vérifiés en production,
   (02:38:35, 02:38:46) ont été marqués lus à leur tour : le garde
   `_estAffichee` ne bloque pas la lecture légitime. Recette :
   `supabase db query --linked -f supabase/diagnostics/2026-09-15_recus_bruts.sql`.
-- [ ] **Ce que cette passe n'a PAS montré** : que l'expéditeur repasse à
+- [x] **Ce que cette passe n'a PAS montré** : que l'expéditeur repasse à
   « Lu » de son côté. Le A515F était piloté par un autre agent, je n'ai pas
   regardé son écran après coup. À confirmer à deux téléphones.
+  ✅ Passe du 2026-09-21, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : l'expéditeur (Pixel) repasse bien à « Lu »… à la réouverture de la discussion, pas en direct (voir « Droits d'écriture sur `messages` resserrés »).
 - [x] **L'aperçu chiffré arrive sans rafraîchir** : vérifié le 2026-09-15.
   « Tggt » puis « Erty » s'affichent **dès la première image** après le
   splash, sans « tirer pour rafraîchir ». La seconde lecture bornée (400 ms)
   referme bien la course avec l'isolate.
-- [ ] **Deux ouvertures de suite** : la seconde ne doit pas réécrire `read_at`
+- [x] **Deux ouvertures de suite** : la seconde ne doit pas réécrire `read_at`
   — « lu à 14 h 03 » ne devient pas « lu à l'instant ». C'est ce que tient le
   filtre `read_at IS NULL`.
-- [ ] **Et l'expéditeur ne voit pas « Lu »** tant que la discussion n'a pas
+  ✅ Passe du 2026-09-21, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : PA1 lu à 17:56:47, inchangé après trois réouvertures.
+- [x] **Et l'expéditeur ne voit pas « Lu »** tant que la discussion n'a pas
   été ouverte — c'est la moitié de ce correctif qui se voit **sur l'autre
   téléphone**. Les deux appareils sont nécessaires.
+  ✅ Passe du 2026-09-21, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : « Envoyé » et `read_at` nul tant que Sim n'a pas ouvert (liste consultée, app en arrière-plan : rien de posé).
 - [ ] **Le piège exact du défaut** : ouvrir la discussion, revenir par
   l'**onglet Accueil** (pas par la flèche retour — elle démonte l'écran, le
   bug ne se reproduit pas), laisser arriver un message. Il doit rester non lu.
-- [ ] **Puis revenir à la discussion** : elle doit se marquer lue
+  Sans objet au Passe du 2026-09-21, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : la discussion s'affiche AU-DESSUS du shell, sans barre d'onglets — on ne peut plus la quitter par l'onglet Accueil. La variante HOME (arrière-plan) ne pose pas de « lu » : PA2 est resté non lu 20 s.
+- [x] **Puis revenir à la discussion** : elle doit se marquer lue
   immédiatement. Le garde ne doit pas empêcher la lecture normale.
+  ✅ Passe du 2026-09-21, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : réouverture → PA2 marqué lu dans la seconde (18:02:40).
 - [ ] **Mettre l'app en arrière-plan puis revenir**, discussion affichée :
   `didChangeAppLifecycleState` doit bien marquer lu dans ce cas-là.
-- [ ] **L'aperçu chiffré arrive sans ouvrir** : la tuile doit montrer le texte
+  ⛔ Passe du 2026-09-21, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : discussion affichée, HOME, PA2 reçu pendant l'arrière-plan, retour : PA2 marqué LIVRÉ (18:00:44) mais sa bulle N'APPARAÎT PAS dans le fil ouvert (attendu 1 min 50), donc jamais lu. Visible et lu seulement après sortie + réouverture. Voir « Actualisation automatique après coupure ou retour d'arrière-plan ».
+- [x] **L'aperçu chiffré arrive sans ouvrir** : la tuile doit montrer le texte
   du message, pas « Message chiffré ». ⚠️ Ne marche que si le **push a été
   reçu** : vérifier notifications activées, et que le réglage « aperçu des
   messages » est ON (sinon l'isolate ne déchiffre pas, par respect du
   réglage).
-- [ ] **Supprimer pour tout le monde son dernier message** : la liste ne doit
+  ✅ Passe du 2026-09-21, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : tuile « Salim L. · PA1 · 1 » dans la liste de Sim, sans ouvrir.
+- [x] **Supprimer pour tout le monde son dernier message** : la liste ne doit
   **pas** faire réapparaître le texte par l'aperçu de notification, qui a été
   posé avant la suppression. C'est le cas le plus dangereux du lot, et le test
   le tient hors appareil.
+  ✅ Passe du 2026-09-21, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS côté destinataire : la tuile de Sim dit « Message chiffré » (pas le texte). ⚠️ Mais l'EXPÉDITEUR fuit par son cache local — voir « L'aperçu de la liste dit pourquoi il est vide ».
 
 ---
 
@@ -1713,15 +1727,18 @@ nécessaire. Ce qui reste à voir sur appareil, c'est **ce qui s'affiche** :
   pour tout le monde, revenir à la liste des discussions. La tuile ne montre
   plus le texte, elle dit « Message supprimé ». Vérifier **des deux côtés** :
   l'expéditeur et le destinataire.
+  ⛔ Passe du 2026-09-21, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS (MLS) : après « Supprimer pour tous » de PA6SECRET, la liste de l'EXPÉDITEUR (Pixel) affiche « Vous: PA6SECRET » — encore 2 min après (capture). Ne passe à « Message supprimé » qu'après une relance à froid. Destinataire : « Message chiffré · 1 » (pas de fuite, mais ni le bon libellé, ni une pastille juste pour un message supprimé).
 - [ ] **En base**, après ce geste : `data->>'lastMessage'` est vide et
   `data->>'lastMessageDeleted'` vaut `true` sur la conversation.
+  ⚠️ Passe du 2026-09-21, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS (MLS) : `lastMessage` nul (normal, le serveur n'a pas le clair) mais `lastMessageDeleted` NUL aussi — la marque n'est pas posée pour une conversation MLS.
 - [ ] **Pas le dernier** : supprimer un message qui n'est PAS le dernier de la
   discussion laisse l'aperçu intact (c'est l'égalité `last_message_at` =
   `created_at` du message qui décide).
-- [ ] **Un message neuf efface la marque** : après la suppression, envoyer un
+- [x] **Un message neuf efface la marque** : après la suppression, envoyer un
   autre message. La tuile affiche son texte, et plus jamais « Message
   supprimé » — la marque doit disparaître, sinon elle colle à la conversation
   pour toujours.
+  ✅ Passe du 2026-09-21, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : PA7 envoyé après la suppression → tuile « Vous: PA7 » chez l'expéditeur.
 - [ ] **Une photo supprimée** ne s'annonce plus « 📎 Photo » : ni la
   suppression ni l'expiration ne touchent `lastMessageType`, et le libellé de
   type passait avant. Même contrôle pour une **note vocale** (elle gardait son
@@ -1734,6 +1751,7 @@ nécessaire. Ce qui reste à voir sur appareil, c'est **ce qui s'affiche** :
   le **cache local** de l'appareil détient encore (le serveur, lui, ne l'a
   jamais eu). C'est le contrôle le plus important de la liste : la fuite y
   passe par un chemin entièrement différent.
+  ⛔ Passe du 2026-09-21, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : c'est la fuite par le CACHE LOCAL — voir la case « La fuite d'origine » de cette entrée. Tient jusqu'à la relance de l'app.
 - [ ] **MLS, discussion jamais ouverte sur cet appareil** (ou cache vidé) : la
   tuile dit « Message chiffré », **pas** « Message expiré » — ce qu'elle
   disait depuis que la purge a appris à vider l'aperçu, en annonçant la
@@ -2602,9 +2620,10 @@ Voir « Sondage dans une discussion privée » pour le parcours de création.
 - [x] **Renvoi manuel** : l'appui sur « Réessayer » envoie le message et la
       bulle passe à « Reçu ». Vérifié le 2026-09-14, une seule ligne en base,
       **aucun doublon**.
-- [ ] **Rétablir le réseau sans rien toucher** : il part seul, et la ligne de
+- [x] **Rétablir le réseau sans rien toucher** : il part seul, et la ligne de
       la liste se met à jour. (`RenvoiMessagesEnAttente`, tenu en vie par
       `app.dart`)
+  ✅ Passe du 2026-09-21, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : PA11OFF écrit en MODE AVION → « Non envoyé · Réessayer » ; mode avion coupé à 18:23:46 sans rien toucher → parti seul avant 18:24:24, une seule ligne, reçu et lu par Salim.
 
       ⛔ **A ÉCHOUÉ au premier essai (2026-09-14), correctif posé, non
       revérifié.** Une minute après le retour du réseau, rien n'était parti.
@@ -2626,8 +2645,9 @@ Voir « Sondage dans une discussion privée » pour le parcours de création.
       pourquoi les points ci-dessus ont réussi : le message n'est jamais passé
       par la branche « hors ligne », il a pris le chemin normal, a échoué, et
       c'est l'accroche sur l'échec qui l'a sauvé.
-- [ ] **Tuer l'app entre les deux**, puis la rouvrir en ligne : il part au
+- [x] **Tuer l'app entre les deux**, puis la rouvrir en ligne : il part au
       démarrage — le renvoi ne dépend pas d'une transition de connectivité.
+  ✅ Passe du 2026-09-21, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : PA12KILL « Non envoyé » en mode avion, force-stop, réseau rétabli, relance à 18:26:47 → envoyé à 18:26:54, lu 18:26:58.
 - [ ] **Une réponse citée et une carte de publication** écrites hors ligne
       repartent **entières**. Les champs plats de `PendingMessage` les
       perdaient, et codaient le type « text » en dur.
@@ -2913,6 +2933,7 @@ Android et la suspension des timers n'existent pas sous `flutter test`.
       timers Android sont suspendus — puis retour au premier plan : tout
       revient sans redémarrer l'app. (`supabase_auth_bridge.dart`,
       `surveillerLeCycleDeVie`)
+  ⛔ Passe du 2026-09-21, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : le Pixel sortait d'un long séjour derrière Facebook. Discussion ouverte au premier plan : PA3 puis PA4 (Sim → Salim) n'arrivent PAS en direct (1 min+, écran éveillé) ; la liste reste figée sur un message de 16:04. Rouvrir la discussion ne répare pas le direct ; seule une relance à froid le rétablit (PA5 arrive alors en ~3 s). Même famille côté Sim après un HOME court : PA2 absent du fil au retour, liste figée à 18:14 alors que PA7 était arrivé.
 
       ⚠️ **Un premier essai du 2026-09-14 a échoué et n'est pas concluant.**
       Coupure de 3 h 15 (00:17 → 03:30), app au premier plan : une minute
@@ -3436,10 +3457,14 @@ toujours, Tenor n'a jamais servi.
 `flutter analyze` et les 19 tests GIF passent, mais aucun n'atteint le réseau —
 rien n'est prouvé tant que ce n'est pas vu sur appareil :
 
-- [ ] Onglet GIFs : les tendances se chargent (chemin `trending`)
+- [x] Onglet GIFs : les tendances se chargent (chemin `trending`)
+  ✅ Passe du 2026-09-21, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS (SM A515F).
 - [ ] Recherche : taper un mot renvoie des résultats (chemin `search`)
-- [ ] Onglet Stickers : fonds transparents (paramètre `type=sticker`)
-- [ ] Envoyer un GIF dans une conversation aboutit toujours
+  ⛔ Passe du 2026-09-21, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS (SM A515F) : « Recherche » lève le clavier, qui RECOUVRE le panneau : aucun champ visible ni exposé à l'accessibilité, on tape à l'aveugle, aucun résultat observable.
+- [x] Onglet Stickers : fonds transparents (paramètre `type=sticker`)
+  ✅ Passe du 2026-09-21, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS.
+- [x] Envoyer un GIF dans une conversation aboutit toujours
+  ✅ Passe du 2026-09-21, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS.
 - [ ] **Un seul aller-retour par requête** : le repli entre fournisseurs est
       passé côté serveur (`provider: 'auto'`). Avant, le client tentait Tenor —
       jamais configuré — puis Giphy, soit deux appels de fonction par frappe.
@@ -7784,7 +7809,8 @@ test ne peut pas prouver : **l'ordre réel du démarrage sur un téléphone**, q
 est la panne elle-même. Deux appareils, dans une conversation déjà chiffrée :
 
 - [x] A connecté, **app tuée puis relancée** (pas seulement mise en arrière-plan) : ouvrir la conversation — les messages chiffrés reçus s'affichent ; *(2026-09-16, Samsung, APK 1.2.1+20 : `force-stop` puis relance, « Testeurs » affiche le message chiffré « Test »)*
-- [ ] depuis A, toujours après la relance : envoyer un texte — une ligne apparaît dans `mls_messages` (et aucun `POST messages` en 400 dans les journaux d'API), B le lit ;
+- [x] depuis A, toujours après la relance : envoyer un texte — une ligne apparaît dans `mls_messages` (et aucun `POST messages` en 400 dans les journaux d'API), B le lit ;
+  ✅ Passe du 2026-09-21, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : Pixel relancé à froid (force-stop + lien profond, session conservée) → PA6SECRET, PA7, PA8–10 dans `mls_messages`, lus par Sim.
 - [ ] se déconnecter puis se connecter avec **un autre compte** sans tuer l'app : envoyer dans une conversation chiffrée de ce compte — le `sender_id` de la ligne `mls_messages` est le nouveau compte ;
 - [x] **1:1 chiffré après réinstallation des DEUX téléphones** *(2026-09-16, 18:15 UTC, Samsung puis Pixel réinstallés depuis le partage interne : commit de rejointure `60dfb704` à l'epoch 3, puis « Hi » publié dans `mls_messages` à l'epoch 4 et notification créée pour le Pixel — la LECTURE côté Pixel reste à voir)* (le second défaut du même jour) : A envoie dans la discussion — il part (une ligne `mls_commits` du nouvel appareil de A précède le message), sans que B ait rien fait. Avant le correctif : « Non envoyé » pour toujours, faute de membre vivant pour envoyer le Welcome ; un 1:1 refusait toute jointure externe. Désormais permise au seul compte qui avait déjà un appareil dans le groupe (`_jointureExternePossible`, `mls_conversation_service.dart`), cas couvert par `test/banc/mls_banc_test.dart`.
 - [ ] **Anciennes installations encore « actives »** (le troisième défaut du jour) : dans un 1:1 où les deux comptes ont des appareils effacés jamais révoqués, envoyer — le message part (`mls_messages`), et si l'ajout de ces appareils échoue, une ligne `ajout_membres_echoue` apparaît dans `mls_diagnostics` avec son `code`, **une seule fois** par lancement. Avant : « Non envoyé » à chaque essai, 3 KeyPackages réclamés par minute, aucun diagnostic. Relever le `code` : c'est la cause réelle, jamais vue (non reproduite hors du Samsung).
@@ -8016,9 +8042,10 @@ tourné sur un téléphone, et la migration n'est pas encore appliquée.**
 
 Fichiers : `supabase/migrations/20260916030000_mls_notifications_suivent_le_message.sql`.
 
-- [ ] **Migration appliquée** : `supabase db push --linked`, puis vérifier
+- [x] **Migration appliquée** : `supabase db push --linked`, puis vérifier
   qu'aucune notification `message` ne porte encore `mlsCiphertext` pour un
   message supprimé.
+  ✅ Passe du 2026-09-21, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : `20260916030000` dans `schema_migrations`, déclencheurs présents ; 0 copie `mlsCiphertext` pour un message supprimé sur 324 ; la ligne de PA6SECRET a perdu sa copie dans la seconde de la suppression.
 - [ ] **Supprimer pour tous, destinataire hors ligne** : couper le réseau du
   second téléphone, supprimer pour tous depuis le premier, rétablir le
   réseau. La notification ne doit **pas** faire apparaître le texte.
@@ -8026,10 +8053,12 @@ Fichiers : `supabase/migrations/20260916030000_mls_notifications_suivent_le_mess
 - [ ] **Édition** : corriger un message déjà notifié ; la notification reste
   **non lue** si elle l'était (c'est la différence voulue avec la
   suppression), et ne peut plus afficher le texte d'avant.
+  ⚠️ Passe du 2026-09-21, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : côté serveur la copie de PA2 est bien retirée après l'édition ; mais la BANNIÈRE Android de Sim garde « PA2 · 18:00 » (ancien texte) — voir « Une édition corrige la bannière déjà posée ». Et la bannière système garde aussi le texte d'un message SUPPRIMÉ (PA6SECRET), voir « Cinq messages reçus, un seul lisible ».
 - [ ] **Suppression d'une conversation entière** : les notifications de tous
   ses messages sont nettoyées en une fois, et l'app ne rame pas.
-- [ ] **Aperçu normal intact** : un message reçu et non supprimé affiche
+- [x] **Aperçu normal intact** : un message reçu et non supprimé affiche
   toujours son texte — le nettoyage ne doit pas mordre sur le cas courant.
+  ✅ Passe du 2026-09-21, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : PA1 (non supprimé) garde sa copie (496 car.), bannières déchiffrées à l'écran.
 
 ---
 
@@ -10589,6 +10618,7 @@ Fichiers : migration `20260916200000`,
   transport de contrôle mais ne doivent **rien** changer à la bannière.
 - [ ] **Pile de plusieurs messages** : seule la ligne corrigée change, elle
   garde sa place et son heure d'envoi.
+  ⛔ Passe du 2026-09-21, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS (MLS) : PA2 modifié en PA2M à 18:13 ; la pile de Sim affichait encore « PA2 · 18:00 » à 18:21. L'édition ne corrige pas la ligne déjà posée.
 - [ ] **Édition d'un message ancien** (hors des 6 de la pile) : rien ne se
   passe, et surtout aucune bannière ne surgit.
 
@@ -10634,6 +10664,7 @@ Fichiers : [notification_pile_messages.dart](lib/core/services/notification_pile
   titre et **chaque message précédé de son expéditeur**.
 - [ ] **Ouvrir la conversation, puis recevoir un nouveau message** : la
   bannière ne montre QUE le nouveau — les lus ne reviennent pas.
+  ⛔ Passe du 2026-09-21, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : la pile n'est PAS vidée par la lecture. Après avoir lu PA2 (18:02) et rouvert la discussion (18:11), la bannière de PA8–PA10 contenait encore « PA2 · 18:00 » — et « PA6SECRET · 18:14 », supprimé pour tous entre-temps : le texte supprimé reste lisible dans le volet. PA7, reçu app au premier plan, a formé une bannière séparée hors de la pile.
 - [ ] **Deux conversations en parallèle** : deux bannières distinctes, chacune
   avec sa propre pile.
 - [ ] **Pastille du lanceur** (Samsung, Xiaomi) : le chiffre suit le nombre de
@@ -10665,7 +10696,8 @@ retour du réseau porte son heure d'envoi, pas « à l'instant ».
 - [x] **Heure affichée** sur la bannière, et c'est celle de l'**envoi**. ✅ **2026-09-16, prouvé à la milliseconde** : le `when` de la bannière du Pixel vaut `1789538396006`, et `mls_messages.created_at` du message vaut `2026-09-16 05:59:56.005661` — soit exactement le même horodatage. Même correspondance côté clair sur le SM A515F (`1789532896525` ↔ `messages.created_at 04:28:16.52452`). C'est donc bien l'heure d'ENVOI qui voyage, pas celle de la livraison. Reste à vérifier à la main :
   couper le réseau, se faire envoyer un message, rétablir. L'heure doit être
   celle de l'envoi, pas celle du retour de réseau.
-- [ ] **Ordre** : cinq messages d'affilée, le plus ancien **en haut**.
+- [x] **Ordre** : cinq messages d'affilée, le plus ancien **en haut**.
+  ✅ Passe du 2026-09-21, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : PA8, PA9, PA10 empilés dans une seule bannière, plus ancien en haut.
 - [ ] **Rattrapage hors ligne** : plusieurs messages d'un coup au retour du
   réseau, dans le bon ordre même s'ils n'arrivent pas dans cet ordre-là.
 
@@ -10696,7 +10728,8 @@ ligne**. Il est retiré du texte, et seulement là où le serveur l'a mis.
   l'ordre paraît faux — 23:50 semble plus tard que 00:05. La fenêtre de la pile
   est de 24 h, donc le cas est atteignable toutes les nuits.
 - [ ] **Groupe** : chaque ligne montre son expéditeur **une seule fois**.
-- [ ] **1:1** : le texte n'a rien perdu (aucun préfixe à retirer là).
+- [x] **1:1** : le texte n'a rien perdu (aucun préfixe à retirer là).
+  ✅ Passe du 2026-09-21, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS.
 - [ ] **Message dont le texte commence par le nom de l'expéditeur** (« Alice a
   raison ») : rien n'est rogné.
 
@@ -10710,8 +10743,9 @@ du groupe. Un message se serait retrouvé sous un expéditeur différent au mili
 de la pile. C'est l'identifiant qui sert de clé désormais, le nom ne servant
 plus qu'à l'affichage.
 
-- [ ] **Trois messages d'affilée du même contact** : un seul en-tête à son nom,
+- [x] **Trois messages d'affilée du même contact** : un seul en-tête à son nom,
   trois lignes en dessous, chacune avec son heure.
+  ✅ Passe du 2026-09-21, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : un seul en-tête « Salim L. », une ligne par message avec son heure.
 - [ ] **En groupe, deux personnes qui alternent** : les en-têtes alternent aussi,
   et chaque bloc reste attribué à la bonne personne.
 - [ ] **Deux membres d'un groupe portant le même nom affiché** : ils ne sont pas
@@ -11013,9 +11047,10 @@ Fichiers : [mls_notification_preview.dart](lib/core/crypto/mls/mls_notification_
   Contrôle d'origine :
   pas « Nouveau message ». Sur SM A515F, `adb shell am force-stop` puis
   envoi depuis un autre appareil.
-- [ ] **Puis ouvrir l'app** : le même message s'affiche dans la conversation,
+- [x] **Puis ouvrir l'app** : le même message s'affiche dans la conversation,
   **lisible**. C'est le test du piège : si l'aperçu avait consommé le
   cliquet, la bulle porterait un placeholder.
+  ✅ Passe du 2026-09-21, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : bannière « PA1 · 17:54 » déchiffrée, puis PA1 lisible dans la discussion.
 - [ ] **Deux pushs pour le même message** (relancer l'envoi, ou couper/rétablir
   le réseau) : la bannière reste correcte, et le message reste lisible dans
   l'app.
