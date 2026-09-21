@@ -1,4 +1,34 @@
 rules_version = '2';
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CHAÎNE DE PAIEMENT — écriture cliente fermée (2026-09-21)
+//
+// Douze collections font bouger de l'argent : `escrow_transactions`, `tips`,
+// `roomTickets`, `roomReplays`, `creatorSubscriptions`, `creatorProfiles`,
+// `payouts`, `stripe_connect_requests`, `debit_requests`,
+// `card_credit_requests`, `order_payment_requests`, `escrow_release_requests`.
+//
+// Chacune sert de DÉCLENCHEUR à une Cloud Function qui agit en Admin SDK :
+// créer le document, c'est ordonner le virement. Les règles laissaient
+// n'importe quel compte le créer, pourvu qu'il s'y déclare propriétaire —
+// c'est-à-dire qu'elles demandaient à l'appelant s'il était autorisé. D'où,
+// entre autres : un solde `availableBalance` posé à la main puis retiré, un
+// séquestre libéré sur une commande fabriquée, le lien du tableau de bord
+// Stripe de quelqu'un d'autre.
+//
+// Aucun code de `lib/` n'écrit dans ces collections — vérifié le 2026-09-21,
+// zéro `collection('…')` pour les douze — et les tables Supabase
+// correspondantes sont VIDES : 0 commande, 0 transaction, 0 séquestre, 0
+// pourboire, 0 billet, 0 profil créateur. La chaîne n'a jamais servi.
+// Fermer ne casse donc rien d'existant ; rouvrir sera une décision explicite.
+//
+// La LECTURE reste ouverte à qui y a droit, et les blocs d'administration ne
+// changent pas. `orders` n'est pas touchée : elle a un vrai chemin client
+// (`marketplace_remote_datasource.dart:49`) et demande un traitement par
+// champs, pas une fermeture.
+//
+// Banc : tools/rules_tests/paiements_fermes.mjs
+// ═══════════════════════════════════════════════════════════════════════════
 service cloud.firestore {
   match /databases/{database}/documents {
     
@@ -625,9 +655,9 @@ service cloud.firestore {
         (request.auth.uid in resource.data.participantIds || request.auth.uid == resource.data.initiatorId);
       allow get: if isAuthenticated() &&
         (request.auth.uid in resource.data.participantIds || request.auth.uid == resource.data.initiatorId);
-      allow create: if isAuthenticated() && request.auth.uid == request.resource.data.initiatorId;
-      allow update: if isAuthenticated() &&
-        (request.auth.uid in resource.data.participantIds || request.auth.uid == resource.data.initiatorId);
+      // FERMÉ 2026-09-21 — voir « Chaîne de paiement » en tête de ce fichier.
+      allow create: if false;
+      allow update: if false;
       allow delete: if false; // Escrow transactions should not be deleted by users
     }
 
@@ -1048,7 +1078,8 @@ service cloud.firestore {
       // Tips/Donations subcollection
       match /tips/{tipId} {
         allow read: if isAuthenticated();
-        allow create: if isAuthenticated() && request.resource.data.senderId == request.auth.uid;
+        // FERMÉ 2026-09-21 — voir « Chaîne de paiement » en tête de ce fichier.
+        allow create: if false;
         allow update, delete: if false; // Tips should not be modified
       }
 
@@ -1116,16 +1147,8 @@ service cloud.firestore {
         (resource.data.roomId != null &&
          get(/databases/$(database)/documents/audioRooms/$(resource.data.roomId)).data.hostId == request.auth.uid)
       );
-      // Authenticated users can create tips with validation
-      allow create: if isAuthenticated() &&
-        request.resource.data.senderId == request.auth.uid &&
-        // Cannot tip yourself
-        request.resource.data.recipientId != request.auth.uid &&
-        // Amount must be positive
-        request.resource.data.amount > 0 &&
-        // Room must exist
-        request.resource.data.roomId != null &&
-        request.resource.data.roomId.size() > 0;
+      // FERMÉ 2026-09-21 — voir « Chaîne de paiement » en tête de ce fichier.
+      allow create: if false;
       // Tips should not be modified or deleted
       allow update, delete: if false;
     }
@@ -1140,16 +1163,8 @@ service cloud.firestore {
         (resource.data.roomId != null &&
          get(/databases/$(database)/documents/audioRooms/$(resource.data.roomId)).data.hostId == request.auth.uid)
       );
-      // Authenticated users can purchase tickets with validation
-      allow create: if isAuthenticated() &&
-        request.resource.data.buyerId == request.auth.uid &&
-        // Cannot buy ticket for own room
-        request.resource.data.sellerId != request.auth.uid &&
-        // Price must be positive
-        request.resource.data.priceAmount > 0 &&
-        // Room must be specified
-        request.resource.data.roomId != null &&
-        request.resource.data.roomId.size() > 0;
+      // FERMÉ 2026-09-21 — voir « Chaîne de paiement » en tête de ce fichier.
+      allow create: if false;
       // Tickets should not be modified by users (Cloud Functions handle status updates)
       allow update, delete: if false;
     }
@@ -1158,10 +1173,9 @@ service cloud.firestore {
     match /roomReplays/{replayId} {
       // Anyone authenticated can browse replays
       allow list, get: if isAuthenticated();
-      // Only room host can create replays
-      allow create: if isAuthenticated() && request.resource.data.hostId == request.auth.uid;
-      // Only host can update/delete their replays
-      allow update, delete: if isAuthenticated() && resource.data.hostId == request.auth.uid;
+      // FERMÉ 2026-09-21 — voir « Chaîne de paiement » en tête de ce fichier.
+      allow create: if false;
+      allow update, delete: if false;
     }
 
     // Creator Subscriptions - monthly subscriptions to creators
@@ -1175,15 +1189,9 @@ service cloud.firestore {
         resource.data.subscriberId == request.auth.uid ||
         resource.data.creatorId == request.auth.uid
       );
-      // Users can subscribe to creators (cannot subscribe to themselves)
-      allow create: if isAuthenticated() &&
-        request.resource.data.subscriberId == request.auth.uid &&
-        request.resource.data.creatorId != request.auth.uid;
-      // Only subscriber can cancel (update status field only)
-      allow update: if isAuthenticated() &&
-        resource.data.subscriberId == request.auth.uid &&
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'cancelledAt']) &&
-        request.resource.data.status in ['cancelled', 'active'];
+      // FERMÉ 2026-09-21 — voir « Chaîne de paiement » en tête de ce fichier.
+      allow create: if false;
+      allow update: if false;
       // Subscriptions should not be deleted
       allow delete: if false;
     }
@@ -1192,8 +1200,11 @@ service cloud.firestore {
     match /creatorProfiles/{profileId} {
       // Anyone authenticated can view creator profiles
       allow list, get: if isAuthenticated();
-      // Users can only create their own creator profile (profileId == userId)
-      allow create: if isAuthenticated() && profileId == request.auth.uid;
+      // FERMÉ 2026-09-21 — voir « Chaîne de paiement » en tête de ce fichier.
+      // `availableBalance` et `stripeAccountId` étaient posables à la création :
+      // le premier finançait un retrait, le second ouvrait le tableau de bord
+      // Stripe d'un autre.
+      allow create: if false;
       // Users can update only safe fields (earnings/stats are managed by Cloud Functions)
       allow update: if isAuthenticated() &&
         profileId == request.auth.uid &&
@@ -1214,8 +1225,8 @@ service cloud.firestore {
           'userId',
           'createdAt'
         ]);
-      // Users can delete their own creator profile
-      allow delete: if isAuthenticated() && profileId == request.auth.uid;
+      // FERMÉ 2026-09-21 — voir « Chaîne de paiement » en tête de ce fichier.
+      allow delete: if false;
     }
 
     // Admin: Manage monetization for support/disputes
@@ -1248,17 +1259,9 @@ service cloud.firestore {
       // Creators can see their own payouts
       allow list: if isAuthenticated() && resource.data.creatorId == request.auth.uid;
       allow get: if isAuthenticated() && resource.data.creatorId == request.auth.uid;
-      // Creators can request payouts (creates pending payout)
-      allow create: if isAuthenticated() &&
-        request.resource.data.creatorId == request.auth.uid &&
-        request.resource.data.status == 'pending' &&
-        request.resource.data.amount > 0;
-      // Creators can only cancel pending payouts
-      allow update: if isAuthenticated() &&
-        resource.data.creatorId == request.auth.uid &&
-        resource.data.status == 'pending' &&
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'cancelledAt']) &&
-        request.resource.data.status == 'cancelled';
+      // FERMÉ 2026-09-21 — voir « Chaîne de paiement » en tête de ce fichier.
+      allow create: if false;
+      allow update: if false;
       // Payouts should not be deleted
       allow delete: if false;
     }
@@ -1268,8 +1271,8 @@ service cloud.firestore {
       // Users can see their own requests
       allow list: if isAuthenticated() && resource.data.userId == request.auth.uid;
       allow get: if isAuthenticated() && resource.data.userId == request.auth.uid;
-      // Users can create Connect requests
-      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      // FERMÉ 2026-09-21 — voir « Chaîne de paiement » en tête de ce fichier.
+      allow create: if false;
       // Users should not modify requests (Cloud Functions handle updates)
       allow update, delete: if false;
     }
@@ -1432,22 +1435,16 @@ service cloud.firestore {
 
     // Debit Requests - triggers processDebitRequest Cloud Function
     match /debit_requests/{requestId} {
-      // Security: enforce userId ownership and positive amount
-      allow create: if isAuthenticated() &&
-        request.resource.data.userId == request.auth.uid &&
-        request.resource.data.amount is number &&
-        request.resource.data.amount > 0;
+      // FERMÉ 2026-09-21 — voir « Chaîne de paiement » en tête de ce fichier.
+      allow create: if false;
       allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
       allow update, delete: if false;
     }
 
     // Card Credit Requests - triggers card payment Cloud Function
     match /card_credit_requests/{requestId} {
-      // Security: enforce userId ownership and positive amount
-      allow create: if isAuthenticated() &&
-        request.resource.data.userId == request.auth.uid &&
-        request.resource.data.amount is number &&
-        request.resource.data.amount > 0;
+      // FERMÉ 2026-09-21 — voir « Chaîne de paiement » en tête de ce fichier.
+      allow create: if false;
       allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
       allow update, delete: if false;
     }
@@ -1457,10 +1454,8 @@ service cloud.firestore {
     // marks the order as paid (BUG-05). Clients can only create the request
     // and read its result; the Cloud Function (admin SDK) writes the verdict.
     match /order_payment_requests/{requestId} {
-      allow create: if isAuthenticated() &&
-        request.resource.data.userId == request.auth.uid &&
-        request.resource.data.orderId is string &&
-        request.resource.data.paymentIntentId is string;
+      // FERMÉ 2026-09-21 — voir « Chaîne de paiement » en tête de ce fichier.
+      allow create: if false;
       allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
       allow update, delete: if false;
     }
@@ -1471,10 +1466,8 @@ service cloud.firestore {
     match /escrow_release_requests/{requestId} {
       // Clients must provide userId (matching themselves) and orderId.
       // isSystem is a server-only privilege — clients cannot set it.
-      allow create: if isAuthenticated() &&
-        request.resource.data.userId == request.auth.uid &&
-        request.resource.data.orderId is string &&
-        !('isSystem' in request.resource.data);
+      // FERMÉ 2026-09-21 — voir « Chaîne de paiement » en tête de ce fichier.
+      allow create: if false;
       allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
       allow update, delete: if false;
     }

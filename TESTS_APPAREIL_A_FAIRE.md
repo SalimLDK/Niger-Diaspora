@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1520 cases à cocher, 650 cochées** — 293 entrées sur 342 ont encore des cases ouvertes.
+**1522 cases à cocher, 650 cochées** — 294 entrées sur 343 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -95,7 +95,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (99)
+**P1 — fonction importante, jamais vérifiée** (100)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -158,6 +158,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ Champ ville : recherche dans le référentiel (2026-09-13)](#-champ-ville--recherche-dans-le-référentiel-2026-09-13) · *Accueil, profil et réglages*
 - 7 · [Bascule en anglais — ~1 600 chaînes branchées, rien vu à l'écran (2026-08-06)](#bascule-en-anglais--1-600-chaînes-branchées-rien-vu-à-lécran-2026-08-06) · *Design, thème, langue et mise en page* · bloqué
 - 2 · [Refonte des maquettes d'authentification](#refonte-des-maquettes-dauthentification) · *Design, thème, langue et mise en page* · bloqué
+- 2 · [⬜ Chaîne de paiement : plus d'ordre de virement venu du client (2026-09-21)](#-chaîne-de-paiement--plus-dordre-de-virement-venu-du-client-2026-09-21) · *Backend, sécurité et observabilité*
 - 3 · [⬜ Les echecs attrapes remontent enfin a Crashlytics (2026-09-14)](#-les-echecs-attrapes-remontent-enfin-a-crashlytics-2026-09-14) · *Backend, sécurité et observabilité*
 - 5 · [⬜ Balayage des invariants de données — 2 anomalies en production (2026-09-14)](#-balayage-des-invariants-de-données--2-anomalies-en-production-2026-09-14) · *Backend, sécurité et observabilité* · bloqué
 - 2 · [Storage — énumération des médias coupée (2026-08-04, DÉPLOYÉ)](#storage--énumération-des-médias-coupée-2026-08-04-déployé) · *Backend, sécurité et observabilité*
@@ -362,7 +363,7 @@ Par domaine :
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 65 à faire, 51 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 67 à faire, 34 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 153 à faire, 32 faites
-- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 74 à faire, 45 faites
+- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 76 à faire, 45 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 52 à faire, 28 faites
 - [15. Site web](#15-site-web) — 32 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 32 à faire, 46 faites
@@ -19575,6 +19576,44 @@ La table est saine : 24 lignes, 12 paires toutes symétriques.
   côtés, et la publication « Amis » de l'un devient visible à l'autre (créer
   une publication à cette audience pour le vérifier — il n'en existe aucune).
 - [ ] **Retirer un ami** : l'audience se referme des deux côtés.
+
+## ⬜ Chaîne de paiement : plus d'ordre de virement venu du client (2026-09-21)
+
+**Priorité P1** · importance 4/5 — Douze collections Firestore déclenchent une Cloud Function qui bouge de l'argent en Admin SDK : créer le document, c'est ordonner le virement. Les règles laissaient n'importe qui le créer. Rien de tout cela n'a jamais servi — à rouvrir délibérément le jour où les paiements s'ouvrent.
+
+`firestore.rules` — **NON DÉPLOYÉ** à l'écriture de cette entrée.
+
+`escrow_transactions`, `tips`, `roomTickets`, `roomReplays`,
+`creatorSubscriptions`, `creatorProfiles`, `payouts`,
+`stripe_connect_requests`, `debit_requests`, `card_credit_requests`,
+`order_payment_requests`, `escrow_release_requests` : l'écriture cliente
+passe à `if false`. La LECTURE ne bouge pas, les blocs d'administration non
+plus.
+
+**Pourquoi c'est sans risque aujourd'hui**, mesuré le 2026-09-21 :
+
+- zéro `collection('…')` dans `lib/` pour les douze ;
+- les tables Supabase correspondantes sont VIDES — 0 commande, 0
+  transaction, 0 séquestre, 0 pourboire, 0 billet, 0 profil créateur, 0
+  produit, 0 compte de paiement ;
+- drapeaux `marketplace`, `audioRooms` et `moneyTransfer` fermés.
+
+Banc `tools/rules_tests/paiements_fermes.mjs`, 16 cas, contre l'émulateur :
+**12 échecs avec les règles d'avant** — les douze ordres passaient — et 0
+avec les nouvelles. Chaque document fabriqué est VALIDE au sens des anciennes
+règles, donc son refus prouve bien la fermeture et non un défaut de forme.
+
+⚠️ **`orders` n'est PAS fermée** : elle a un vrai chemin client
+(`marketplace_remote_datasource.dart:49`) et demande un traitement par champs
+— interdire au client de poser `status`, `escrowStatus`, `paymentIntentId`,
+`sellerAmount`. C'est le reste connu de ce point.
+
+- [ ] **Le jour où les paiements s'ouvrent** : rouvrir ces règles
+  délibérément, une par une, avec pour chacune une vérification serveur du
+  montant. Ne pas se contenter de rétablir l'ancienne version.
+- [ ] **Vérifier qu'aucun écran ne casse** avec les drapeaux ouverts en
+  recette (annuaire, salons audio, transferts) : l'app avale certains refus
+  de permission.
 
 ## ⬜ Push arbitraire : type en liste fermée, blocage, quota (2026-09-21)
 
