@@ -268,6 +268,215 @@ EXCEPTION WHEN insufficient_privilege THEN
     '-', 'REFUSÉ 42501', 'MESURE');
 END $$;
 
+-- ── D. Ce que la NOUVELLE version cliente émet ─────────────────────────────
+-- Commit da15fbc : chaque forme de requête que l'app envoie désormais sur
+-- `users`, reproduite telle que PostgREST l'émet. Ces cas doivent passer SUR
+-- L'ÉTAT VIVANT ET SOUS LA CIBLE — c'est la preuve que la version cliente
+-- survivra à la fermeture. (C mesure l'ancienne version ; D, la nouvelle.)
+DO $$
+DECLARE n bigint;
+BEGIN
+  SELECT count(*) INTO n FROM (
+    SELECT id, firebase_uid, display_name, display_name_lower, handle,
+           avatar_url, bio, profession, country_code, city, ville_id,
+           current_region, origin_region, origin_city,
+           is_private, is_visible, is_verified, is_admin, is_banned,
+           follower_count, following_count, post_count,
+           connections_count, groups_count, events_count,
+           interests, skills, languages,
+           is_online, last_seen_at, last_active_at, show_online_status,
+           share_location, phone_visibility, is_phone_verified,
+           notifications_enabled, notify_local_events, show_message_preview,
+           notification_prefs,
+           has_seen_onboarding, has_seen_coach_marks, has_given_consent,
+           consent_date, profile_config_complete,
+           created_at, updated_at
+      FROM public.users WHERE id = 'banc-cible-tiers') s;
+  INSERT INTO resultat VALUES ('D1', 'selectPublicUsers sur la ligne d''un tiers (46 colonnes)',
+    '1', n::text, CASE WHEN n = 1 THEN 'OK' ELSE 'ÉCHEC' END);
+EXCEPTION WHEN OTHERS THEN
+  INSERT INTO resultat VALUES ('D1', 'selectPublicUsers sur la ligne d''un tiers (46 colonnes)',
+    '1', 'REFUSÉ ' || SQLSTATE || ' ' || SQLERRM, 'ÉCHEC');
+END $$;
+
+-- getProfilesByCountry : filtre et tri sur des colonnes accordées seulement.
+DO $$
+DECLARE n bigint;
+BEGIN
+  SELECT count(*) INTO n FROM (
+    SELECT id FROM public.users
+     WHERE country_code IS NULL AND is_visible
+     ORDER BY last_active_at DESC NULLS LAST LIMIT 50) s;
+  INSERT INTO resultat VALUES ('D2', 'mode pays : filtre pays, tri last_active_at',
+    'sans refus', 'lu (' || n::text || ')', 'OK');
+EXCEPTION WHEN OTHERS THEN
+  INSERT INTO resultat VALUES ('D2', 'mode pays : filtre pays, tri last_active_at',
+    'sans refus', 'REFUSÉ ' || SQLSTATE || ' ' || SQLERRM, 'ÉCHEC');
+END $$;
+
+DO $$
+DECLARE ids text;
+BEGIN
+  SELECT string_agg(id, ',' ORDER BY id) INTO ids
+    FROM public.positions_partagees_par_ids(ARRAY['banc-cible-moi', 'banc-cible-tiers']);
+  INSERT INTO resultat VALUES ('D3', 'positions_partagees_par_ids() : soi seul (le tiers a coupé)',
+    'banc-cible-moi', coalesce(ids, '(rien)'),
+    CASE WHEN ids = 'banc-cible-moi' THEN 'OK' ELSE 'ÉCHEC' END);
+EXCEPTION WHEN OTHERS THEN
+  INSERT INTO resultat VALUES ('D3', 'positions_partagees_par_ids() : soi seul (le tiers a coupé)',
+    'banc-cible-moi', 'REFUSÉ ' || SQLSTATE, 'ÉCHEC');
+END $$;
+
+-- LE site le plus dangereux : l'enregistrement du jeton push.
+DO $$
+DECLARE j jsonb;
+BEGIN
+  PERFORM public.ajouter_jeton_push('jeton-neuf');
+  PERFORM public.retirer_jeton_push('jeton-moi');
+  SELECT fcm_tokens INTO j FROM public.mon_profil_prive();
+  INSERT INTO resultat VALUES ('D4', 'jeton push : ajouter puis retirer, sans jamais le relire',
+    '["jeton-neuf"]', coalesce(j::text, '∅'),
+    CASE WHEN j = '["jeton-neuf"]'::jsonb THEN 'OK' ELSE 'ÉCHEC' END);
+EXCEPTION WHEN OTHERS THEN
+  INSERT INTO resultat VALUES ('D4', 'jeton push : ajouter puis retirer, sans jamais le relire',
+    '["jeton-neuf"]', 'REFUSÉ ' || SQLSTATE || ' ' || SQLERRM, 'ÉCHEC');
+END $$;
+
+-- LA QUESTION QUI ÉTAIT OUVERTE, TRANCHÉE ICI LE 2026-09-21 : OUI.
+-- PostgREST émet un upsert en `ON CONFLICT (id) DO UPDATE SET col =
+-- EXCLUDED.col` pour CHAQUE colonne du corps, et évaluer `EXCLUDED.col`
+-- exige le droit de LIRE la colonne. Sous la cible, ces deux formes tombent
+-- en 42501 — celles de da15fbc, qui cassaient la connexion et
+-- l'enregistrement du profil. Une sonde a isolé la cause : ni l'écriture,
+-- ni `RETURNING id`, ni `INSERT` simple ; seulement la référence
+-- `EXCLUDED.<colonne révoquée>`. Elles restent ici en MESURE.
+DO $$
+DECLARE n bigint;
+BEGIN
+  WITH r AS (
+    INSERT INTO public.users AS u (id, display_name, avatar_url, phone_number,
+                                   bio, is_visible, share_location,
+                                   phone_visibility, updated_at)
+    VALUES ('banc-cible-moi', 'Moi retouché', NULL, '+22790000009',
+            'bio', true, true, 'private', now())
+    ON CONFLICT (id) DO UPDATE SET
+      id = EXCLUDED.id, display_name = EXCLUDED.display_name,
+      avatar_url = EXCLUDED.avatar_url, phone_number = EXCLUDED.phone_number,
+      bio = EXCLUDED.bio, is_visible = EXCLUDED.is_visible,
+      share_location = EXCLUDED.share_location,
+      phone_visibility = EXCLUDED.phone_visibility,
+      updated_at = EXCLUDED.updated_at
+    RETURNING u.id)
+  SELECT count(*) INTO n FROM r;
+  INSERT INTO resultat VALUES ('C5',
+    'MESURE — upsert écrivant phone_number (da15fbc, abandonné)',
+    '1', n::text, 'MESURE');
+EXCEPTION WHEN OTHERS THEN
+  INSERT INTO resultat VALUES ('C5',
+    'MESURE — upsert écrivant phone_number (da15fbc, abandonné)',
+    '1', 'REFUSÉ ' || SQLSTATE || ' ' || SQLERRM, 'MESURE');
+END $$;
+
+-- La connexion (`_upsertUserToSupabase`) : e-mail et téléphone, sans RETURNING.
+DO $$
+BEGIN
+  INSERT INTO public.users AS u (id, email, display_name, avatar_url, phone_number, updated_at)
+  VALUES ('banc-cible-moi', 'moi@banc', 'Moi', NULL, '+22790000001', now())
+  ON CONFLICT (id) DO UPDATE SET
+    id = EXCLUDED.id, email = EXCLUDED.email,
+    display_name = EXCLUDED.display_name, avatar_url = EXCLUDED.avatar_url,
+    phone_number = EXCLUDED.phone_number, updated_at = EXCLUDED.updated_at;
+  INSERT INTO resultat VALUES ('C6', 'MESURE — upsert écrivant e-mail + téléphone (da15fbc, abandonné)',
+    '-', 'accepté', 'MESURE');
+EXCEPTION WHEN OTHERS THEN
+  INSERT INTO resultat VALUES ('C6', 'MESURE — upsert écrivant e-mail + téléphone (da15fbc, abandonné)',
+    '-', 'REFUSÉ ' || SQLSTATE, 'MESURE');
+END $$;
+
+-- CE QUE LE CLIENT FAIT À LA PLACE (`ecrireSaLigneUsers`) : un UPDATE de sa
+-- ligne, puis un INSERT simple si elle n'existe pas encore. Aucune des deux
+-- formes ne lit les colonnes qu'elle écrit.
+DO $$
+DECLARE n bigint;
+BEGIN
+  WITH r AS (
+    UPDATE public.users
+       SET display_name = 'Moi retouché', phone_number = '+22790000009',
+           email = 'moi@banc', bio = 'bio', updated_at = now()
+     WHERE id = 'banc-cible-moi'
+    RETURNING id)
+  SELECT count(*) INTO n FROM r;
+  INSERT INTO resultat VALUES ('D5',
+    'ecrireSaLigneUsers : UPDATE (e-mail, téléphone) … RETURNING id',
+    '1', n::text, CASE WHEN n = 1 THEN 'OK' ELSE 'ÉCHEC' END);
+EXCEPTION WHEN OTHERS THEN
+  INSERT INTO resultat VALUES ('D5',
+    'ecrireSaLigneUsers : UPDATE (e-mail, téléphone) … RETURNING id',
+    '1', 'REFUSÉ ' || SQLSTATE || ' ' || SQLERRM, 'ÉCHEC');
+END $$;
+
+-- Les écritures ciblées de colonnes révoquées : session, VoIP, position.
+DO $$
+DECLARE n bigint; total bigint := 0;
+BEGIN
+  UPDATE public.users SET session_id = 'session-neuve' WHERE id = 'banc-cible-moi';
+  GET DIAGNOSTICS n = ROW_COUNT; total := total + n;
+  UPDATE public.users SET voip_token = 'voip', last_token_update = now()
+   WHERE id = 'banc-cible-moi';
+  GET DIAGNOSTICS n = ROW_COUNT; total := total + n;
+  UPDATE public.users SET latitude = 89.005, longitude = 179.005,
+                          location_updated_at = now()
+   WHERE id = 'banc-cible-moi';
+  GET DIAGNOSTICS n = ROW_COUNT; total := total + n;
+  INSERT INTO resultat VALUES ('D7',
+    'session, jeton VoIP et position : UPDATE ciblés de colonnes révoquées',
+    '3 lignes', total::text || ' ligne(s)', CASE WHEN total = 3 THEN 'OK' ELSE 'ÉCHEC' END);
+EXCEPTION WHEN OTHERS THEN
+  INSERT INTO resultat VALUES ('D7',
+    'session, jeton VoIP et position : UPDATE ciblés de colonnes révoquées',
+    '3 lignes', 'REFUSÉ ' || SQLSTATE || ' ' || SQLERRM, 'ÉCHEC');
+END $$;
+
+-- Le guetteur de session relit sa décision par la RPC, projection comprise.
+DO $$
+DECLARE ses text;
+BEGIN
+  SELECT session_id INTO ses
+    FROM (SELECT id, session_id, is_banned FROM public.mon_profil_prive()) s;
+  INSERT INTO resultat VALUES ('D8', 'guetteur de session : mon_profil_prive() → session_id',
+    'session-neuve', coalesce(ses, '∅'),
+    CASE WHEN ses = 'session-neuve' THEN 'OK' ELSE 'ÉCHEC' END);
+EXCEPTION WHEN OTHERS THEN
+  INSERT INTO resultat VALUES ('D8', 'guetteur de session : mon_profil_prive() → session_id',
+    'session-neuve', 'REFUSÉ ' || SQLSTATE, 'ÉCHEC');
+END $$;
+
+RESET ROLE;
+
+-- D6 : le premier enregistrement d'un compte neuf — INSERT simple de SA
+-- ligne, e-mail et téléphone compris, sous sa propre identité.
+SELECT set_config('request.jwt.claims',
+  jsonb_build_object('role', 'authenticated', 'app_metadata',
+    jsonb_build_object('firebase_uid', 'banc-cible-neuf'))::text, true);
+SET LOCAL ROLE authenticated;
+
+DO $$
+DECLARE n bigint;
+BEGIN
+  WITH r AS (
+    INSERT INTO public.users (id, email, display_name, phone_number, updated_at)
+    VALUES ('banc-cible-neuf', 'neuf@banc', 'Neuf', '+22790000010', now())
+    RETURNING id)
+  SELECT count(*) INTO n FROM r;
+  INSERT INTO resultat VALUES ('D6',
+    'ecrireSaLigneUsers : INSERT d''un compte neuf (e-mail, tél.) RETURNING id',
+    '1', n::text, CASE WHEN n = 1 THEN 'OK' ELSE 'ÉCHEC' END);
+EXCEPTION WHEN OTHERS THEN
+  INSERT INTO resultat VALUES ('D6',
+    'ecrireSaLigneUsers : INSERT d''un compte neuf (e-mail, tél.) RETURNING id',
+    '1', 'REFUSÉ ' || SQLSTATE || ' ' || SQLERRM, 'ÉCHEC');
+END $$;
+
 RESET ROLE;
 
 -- ═══ Le back-office ════════════════════════════════════════════════════════

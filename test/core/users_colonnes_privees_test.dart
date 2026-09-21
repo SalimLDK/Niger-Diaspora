@@ -161,6 +161,34 @@ void main() {
               'profils_admin() — voir lib/core/constants/colonnes_users.dart');
     });
 
+    test('aucun upsert n\'écrit une colonne révoquée', () {
+      // PostgREST traduit un upsert en `ON CONFLICT DO UPDATE SET col =
+      // EXCLUDED.col`, et évaluer `EXCLUDED.col` exige le droit de LIRE la
+      // colonne. Mesuré sous la cible (banc users_colonnes_privees_cible.sql,
+      // cas D5/D6) : 42501, alors qu'un UPDATE ciblé ou un INSERT simple
+      // passent. Écrire sa ligne par `ecrireSaLigneUsers`.
+      final fautes = <String>[];
+      for (final f in fichiers) {
+        final s = sansCommentaires(f.readAsStringSync());
+        for (final m in RegExp(r"from\(\s*'users'\s*\)").allMatches(s)) {
+          final fin = s.indexOf(';', m.end);
+          final chaine = s.substring(m.end, fin < 0 ? s.length : fin);
+          final k = chaine.indexOf('.upsert(');
+          if (k < 0) continue;
+          final cles = RegExp(r"'([a-z_]+)'\s*:")
+              .allMatches(chaine.substring(k))
+              .map((c) => c[1]!)
+              .toSet();
+          final ecrites = cles.intersection(revoquees);
+          if (ecrites.isNotEmpty) {
+            final ligne = '\n'.allMatches(s.substring(0, m.start)).length + 1;
+            fautes.add('${f.path}:$ligne → ${ecrites.join(',')}');
+          }
+        }
+      }
+      expect(fautes, isEmpty);
+    });
+
     test('aucune jointure PostgREST en étoile vers users', () {
       final fautes = <String>[];
       for (final f in fichiers) {

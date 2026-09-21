@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1534 cases à cocher, 650 cochées** — 297 entrées sur 348 ont encore des cases ouvertes.
+**1537 cases à cocher, 650 cochées** — 297 entrées sur 348 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -72,7 +72,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [⬜ Qui peut voir un événement : discussion, groupes, personnes, tout le monde (2026-09-12)](#-qui-peut-voir-un-événement--discussion-groupes-personnes-tout-le-monde-2026-09-12) · *Ambassades, démarches, carte, entreprises et événements*
 - 2 · [Réglages/Carte — deux interrupteurs de partage de position désynchronisés (2026-08-13)](#réglagescarte--deux-interrupteurs-de-partage-de-position-désynchronisés-2026-08-13) · *Ambassades, démarches, carte, entreprises et événements*
 - 6 · [⬜ 🔴 Bloquer un utilisateur ne bloque rien — corrigé (2026-09-14)](#--bloquer-un-utilisateur-ne-bloque-rien--corrigé-2026-09-14) · *Accueil, profil et réglages* · bloqué
-- 5 · [⬜ `users` : un compte connecté lit e-mail, position et jetons d'autrui (2026-09-21)](#-users--un-compte-connecté-lit-e-mail-position-et-jetons-dautrui-2026-09-21) · *Backend, sécurité et observabilité*
+- 8 · [⬜ `users` : un compte connecté lit e-mail, position et jetons d'autrui (2026-09-21)](#-users--un-compte-connecté-lit-e-mail-position-et-jetons-dautrui-2026-09-21) · *Backend, sécurité et observabilité*
 - 4 · [⬜ `users` n'est plus lisible sans compte (2026-09-20)](#-users-nest-plus-lisible-sans-compte-2026-09-20) · *Backend, sécurité et observabilité*
 - 2 · [⬜ Supprimer une conversation pour tous : l'autorisation vient de Supabase (2026-09-21)](#-supprimer-une-conversation-pour-tous--lautorisation-vient-de-supabase-2026-09-21) · *Publication et plateformes*
 - 4 · [⬜ Le serveur ne supprime plus un chemin Storage dicté par le client (2026-09-21)](#-le-serveur-ne-supprime-plus-un-chemin-storage-dicté-par-le-client-2026-09-21) · *Publication et plateformes*
@@ -366,7 +366,7 @@ Par domaine :
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 65 à faire, 51 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 67 à faire, 34 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 153 à faire, 32 faites
-- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 88 à faire, 45 faites
+- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 91 à faire, 45 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 52 à faire, 28 faites
 - [15. Site web](#15-site-web) — 32 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 32 à faire, 46 faites
@@ -19537,11 +19537,28 @@ deviner une adresse sans la lire (`WHERE email = …`).
   casse — dont l'hypothèse centrale, une fonction `SECURITY DEFINER` qui
   rend encore les colonnes révoquées à son propriétaire.
 
-**Ce que la version cliente doit faire — 16 sites, listés dans la cible :**
-11 lectures de `*` (dont un `.stream()` et le `RETURNING *` de
-`updateProfile`), 3 lectures nommées de colonnes révoquées sur sa propre
-ligne — **dont l'enregistrement du jeton push, qui casserait toutes les
-notifications d'un nouvel appareil** — et 2 abonnements temps réel.
+**Version cliente ÉCRITE le 2026-09-21** (commits `da15fbc` et suivant) — les
+16 sites : 11 lectures de `*` (dont un `.stream()` et le `RETURNING *` de
+`updateProfile`), 3 lectures nommées de colonnes révoquées sur sa propre ligne
+— **dont l'enregistrement du jeton push** — et 2 abonnements temps réel. Plus
+deux upserts que la première version gardait et que **la répétition a pris en
+défaut** : sous la cible, `ON CONFLICT DO UPDATE SET col = EXCLUDED.col` exige
+de LIRE la colonne, donc écrire `email`/`phone_number` par upsert tombait en
+42501 (enregistrement du profil, connexion). Remplacés par
+`ecrireSaLigneUsers` (UPDATE puis INSERT). Migration `20260921093000`
+APPLIQUÉE (positions par identifiants, jeton push modifié en base).
+
+Preuves, sans appareil : garde `test/core/users_colonnes_privees_test.dart`
+(montré en échec sur l'ancien code, où il désigne les 14 sites et les 2
+upserts), 616 tests verts, `flutter analyze` propre ; et côté base, le banc de
+préparation répété SOUS la cible rend 0 échec sur 27 — chaque forme de requête
+de la nouvelle version passe (cas D1 à D8).
+
+**Changements de comportement à connaître :** la carte en mode pays trie par
+dernière activité (et non plus par date de position, qui n'est plus lisible) ;
+la carte en direct demande les positions par lots de 300 ms au lieu de les lire
+dans le message ; la liste des mentions n'affiche plus l'e-mail d'autrui quand
+son nom manque (« Utilisateur » à la place).
 
 **Le piège des deux abonnements temps réel.** Mesuré en exécutant la
 fonction même du serveur (`realtime.apply_rls`,
@@ -19550,18 +19567,27 @@ les droits par colonne, mais **en retirant la colonne, sans erreur**. Donc
 sous la cible : la carte en direct ne bougerait plus personne, et la
 révocation de session par un administrateur cesserait — les deux en silence.
 
-**À vérifier sur appareil, une fois la version cliente écrite** (rien de ceci
-n'existe encore) :
+**À vérifier sur appareil, sur un build de cette version** (rien n'a été vu
+tourner) :
 
 - [ ] profil (le sien, celui d'un autre), recherche, liste des discussions,
-  carte et back-office s'affichent comme avant ;
+  carte et back-office s'affichent comme avant — le sien avec son e-mail et
+  son téléphone ;
 - [ ] **un nouvel appareil reçoit les notifications push** — c'est le site le
-  plus dangereux ;
-- [ ] la carte bouge en direct, et un profil qui a coupé le partage n'y
-  apparaît pas ;
-- [ ] une session révoquée par un administrateur éjecte bien l'appareil ;
-- [ ] puis, après publication et pose du verrou, la répétition de la cible
-  rend 0 échec ET une jauge C entièrement « accepté » côté nouvelle version.
+  plus dangereux ; et après déconnexion, l'appareil n'en reçoit plus ;
+- [ ] modifier son profil (téléphone compris) et enregistrer : pas d'erreur,
+  valeurs relues ;
+- [ ] **première connexion d'un compte neuf** (chemin INSERT de
+  `ecrireSaLigneUsers`), puis première sauvegarde de son profil ;
+- [ ] la carte bouge en direct (délai de l'ordre de la demi-seconde), un
+  profil qui coupe le partage en disparaît aussitôt, et le mode « pays »
+  affiche bien des marqueurs ;
+- [ ] une session révoquée par un administrateur éjecte bien l'appareil, un
+  bannissement aussi ;
+- [ ] la liste des discussions garde les noms après une coupure réseau (le
+  flux de profil relit à la reconnexion, comme `.stream()` le faisait) ;
+- [ ] puis, après publication et pose du verrou : répéter la cible par son
+  banc (0 échec attendu) avant de l'appliquer.
 
 **Écarté, et pourquoi :** effacer la position à l'écriture quand
 `share_location` est coupé — seule fermeture purement serveur trouvée — aurait

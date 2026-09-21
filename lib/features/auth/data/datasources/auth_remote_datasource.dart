@@ -14,6 +14,7 @@ import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:supabase_flutter/supabase_flutter.dart'
     hide User, AuthException, OAuthProvider;
 import '../../../../core/errors/exceptions.dart';
+import '../../../../core/services/ecriture_ligne_users.dart';
 import '../../../../core/services/supabase_auth_bridge.dart';
 import '../../../../core/utils/date_parsing.dart';
 import '../../domain/entities/account_deletion_status.dart';
@@ -714,15 +715,18 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       if (!ok) {
         throw Exception('Session introuvable');
       }
-      await _supabase.from('users').upsert({
-        'id': user.uid,
+      // Pas un upsert : voir [ecrireSaLigneUsers] — un upsert qui écrit
+      // `email` et `phone_number` sera refusé en 42501 une fois la fermeture
+      // 1.1b appliquée, et la connexion avec lui. Comme l'upsert qu'elle
+      // remplace, une ligne refusée par la RLS passe en silence.
+      final ecrite = await ecrireSaLigneUsers(_supabase, user.uid, {
         'email': email ?? user.email,
         'display_name': displayName ?? user.displayName,
         'avatar_url': photoUrl ?? user.photoURL,
         'phone_number': user.phoneNumber,
         'updated_at': DateTime.now().toUtc().toIso8601String(),
-      }, onConflict: 'id',);
-      if (kDebugMode) dev.log('_upsertUserToSupabase: upsert effectue avec succes', name: _tag);
+      });
+      if (kDebugMode) dev.log('_upsertUserToSupabase: ecriture ${ecrite != null ? 'effectuee' : 'refusee par la RLS'}', name: _tag);
     } catch (e, stackTrace) {
       if (kDebugMode) dev.log('_upsertUserToSupabase: ERREUR ${e.toString()}', name: _tag, error: e, stackTrace: stackTrace);
       rethrow;

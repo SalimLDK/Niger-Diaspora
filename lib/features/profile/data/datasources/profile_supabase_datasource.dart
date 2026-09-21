@@ -7,6 +7,7 @@ import '../../../../core/errors/exceptions.dart';
 import '../../../../core/constants/colonnes_users.dart';
 import '../../../../core/constants/profile_options.dart';
 import '../../../../core/services/cache_service.dart';
+import '../../../../core/services/ecriture_ligne_users.dart';
 import '../../../../core/services/image_upload_service.dart';
 import '../../../../core/services/supabase_auth_bridge.dart';
 import '../models/profile_model.dart';
@@ -613,13 +614,12 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
   @override
   Future<ProfileModel> updateProfile(ProfileModel profile) async {
     await _requireAuth();
-    // upsert instead of update: the Supabase users row may not exist yet
-    // (user authenticated via Firebase, row created lazily on first profile save).
-    final data =
-        await _supabase
-            .from('users')
-            .upsert({
-              'id': profile.id,
+    // La ligne peut ne pas exister encore (compte authentifié par Firebase,
+    // ligne créée au premier enregistrement du profil) — d'où une écriture
+    // qui crée au besoin. Mais PAS un upsert : voir [ecrireSaLigneUsers], un
+    // upsert qui écrit `phone_number` sera refusé en 42501 une fois la
+    // fermeture 1.1b appliquée.
+    final data = await ecrireSaLigneUsers(_supabase, profile.id, {
               'display_name': profile.displayName,
               if (profile.handle != null) 'handle': profile.handle,
               'avatar_url': profile.photoUrl,
@@ -657,14 +657,10 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
               'languages': profile.languages,
               'show_online_status': profile.showOnlineStatus,
               'updated_at': DateTime.now().toUtc().toIso8601String(),
-            })
-            // `id` seulement : `.select()` nu est un `RETURNING *`, refusé
-            // entier une fois les colonnes privées retirées (fermeture 1.1b)
-            // — l'écriture aurait réussi et l'appel échoué quand même.
-            .select('id')
-            .maybeSingle();
-    // La garde ci-dessus a déjà écarté la cause « pas de session ». Si l'upsert
-    // ne renvoie toujours rien, c'est la RLS qui refuse la ligne elle-même.
+            });
+    // La garde ci-dessus a déjà écarté la cause « pas de session ». Si
+    // l'écriture ne rend toujours rien, c'est la RLS qui refuse la ligne
+    // elle-même.
     if (data == null) {
       throw ServerException('Écriture refusée pour le profil ${profile.id}');
     }

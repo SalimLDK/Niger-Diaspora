@@ -29,7 +29,11 @@
 -- ═══ CONDITIONS, TOUTES REQUISES, DANS CET ORDRE ═════════════════════════
 --
 -- 1. UNE VERSION CLIENTE qui ne touche plus aucune colonne révoquée par
---    PostgREST. 16 sites au 2026-09-21 :
+--    PostgREST. ✅ ÉCRITE le 2026-09-21 (commits da15fbc et suivant), gardée
+--    par test/core/users_colonnes_privees_test.dart, et prouvée côté base :
+--    le banc de préparation, répété sous cette cible, fait passer chacune
+--    de ses formes de requête (cas D1 à D8). ⬜ PAS PUBLIÉE, jamais vue sur
+--    appareil. Les 16 sites qu'elle a repris :
 --
 --    a) 11 lectures de `*` — elles cassent en 42501 :
 --       profile_supabase_datasource.dart  :121 :141(.stream) :164 :183 :233
@@ -94,6 +98,14 @@
 -- admin »). Les retirer ferait tomber ces deux tables en 42501, loin d'ici.
 -- Relevé le 2026-09-21 : aucune autre policy, aucune fonction INVOKER ne lit
 -- une colonne révoquée par ce fichier.
+--
+-- Et un UPSERT n'écrit JAMAIS une colonne révoquée. PostgREST le traduit en
+-- `ON CONFLICT DO UPDATE SET col = EXCLUDED.col`, et évaluer `EXCLUDED.col`
+-- exige le droit de LIRE la colonne : sous cette cible, les deux upserts de
+-- la première version cliente (profil, connexion) tombaient en 42501. Trouvé
+-- par la répétition, pas par le raisonnement — qui les disait sûrs. Le client
+-- écrit sa ligne par `ecrireSaLigneUsers` (UPDATE puis INSERT), et le garde
+-- l'interdit.
 --
 -- ⚠️ PAS DE `BEGIN` / `COMMIT` ICI, ET C'EST UNE SÉCURITÉ. Le banc injecte ce
 -- fichier dans une répétition en `BEGIN … ROLLBACK` : un `COMMIT` au milieu
