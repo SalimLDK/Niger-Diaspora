@@ -7681,7 +7681,7 @@
   "@setupShareLocationSubtitle": {
     "description": "Sous-titre du partage de position"
   },
-  "setupLocationPrivacyNote": "Position partagée avec les membres proches · modifiable dans Réglages",
+  "setupLocationPrivacyNote": "Position approximative uniquement · modifiable dans Réglages",
   "@setupLocationPrivacyNote": {
     "description": "Garantie de confidentialite etape 2/4"
   },

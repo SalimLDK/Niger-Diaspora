@@ -29129,7 +29129,7 @@ abstract class AppLocalizations {
   /// Garantie de confidentialite etape 2/4
   ///
   /// In fr, this message translates to:
-  /// **'Position partagée avec les membres proches · modifiable dans Réglages'**
+  /// **'Position approximative uniquement · modifiable dans Réglages'**
   String get setupLocationPrivacyNote;
 
   /// Explication etape 3/4

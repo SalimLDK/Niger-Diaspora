@@ -6,6 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/constants/colonnes_users.dart';
 import '../../../../core/constants/profile_options.dart';
+import '../../../../core/utils/position_partagee.dart';
 import '../../../../core/services/cache_service.dart';
 import '../../../../core/services/ecriture_ligne_users.dart';
 import '../../../../core/services/image_upload_service.dart';
@@ -707,11 +708,14 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
     double longitude,
   ) async {
     await _requireAuth();
+    // Point d'écriture UNIQUE de la position partagée : on l'arrondit ici (~100 m)
+    // pour tenir la promesse « position approximative, jamais l'adresse exacte ».
+    // Les deux publieurs (avant-plan et service d'arrière-plan) passent par là.
     await _supabase
         .from('users')
         .update({
-          'latitude': latitude,
-          'longitude': longitude,
+          'latitude': arrondirPositionPartagee(latitude),
+          'longitude': arrondirPositionPartagee(longitude),
           'location_updated_at': DateTime.now().toUtc().toIso8601String(),
         })
         .eq('id', userId);

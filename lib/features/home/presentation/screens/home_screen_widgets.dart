@@ -680,7 +680,7 @@ class _NoPositionCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 14),
-          _CheckLine(text: 'Position partagée avec les membres proches, modifiable dans Réglages'),
+          _CheckLine(text: 'Position approximative, jamais l\'adresse exacte'),
           const SizedBox(height: 8),
           _CheckLine(text: l10n.locationGuarantee2),
           const SizedBox(height: 14),

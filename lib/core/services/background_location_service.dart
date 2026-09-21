@@ -288,9 +288,13 @@ class BackgroundLocationService {
 
           try {
             // 1. Get position
+            // `.medium` (et non `.high`) : la position partagée est de toute
+            // façon arrondie à ~100 m au moment de la publication
+            // (`updateLocation`), donc une précision au mètre serait de la
+            // batterie dépensée pour rien.
             Position position = await Geolocator.getCurrentPosition(
               locationSettings: const LocationSettings(
-                accuracy: LocationAccuracy.high,
+                accuracy: LocationAccuracy.medium,
                 timeLimit: Duration(seconds: 10),
               ),
             );

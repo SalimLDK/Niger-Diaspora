@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1555 cases à cocher, 650 cochées** — 302 entrées sur 353 ont encore des cases ouvertes.
+**1555 cases à cocher, 651 cochées** — 302 entrées sur 353 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -372,7 +372,7 @@ Par domaine :
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 69 à faire, 34 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 153 à faire, 32 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 92 à faire, 45 faites
-- [14. Publication et plateformes](#14-publication-et-plateformes) — 54 à faire, 28 faites
+- [14. Publication et plateformes](#14-publication-et-plateformes) — 54 à faire, 29 faites
 - [15. Site web](#15-site-web) — 32 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 32 à faire, 46 faites
 
@@ -21959,23 +21959,25 @@ Play Store, exigences Android, build release, iOS.
   `AdConfig`). Prend effet au prochain build.
 
 ### Résolu par décision produit
-- **✅ Cohérence « position approximative » — sens TEXTE choisi (2026-09-21).**
-  L'app publie une position précise (`background_location_service` en `.high`,
-  avant-plan en `.medium`) mais promettait « approximative, jamais l'adresse
-  exacte ». Sur décision du propriétaire, le TEXTE est aligné sur le code (la
-  position reste précise) : les trois libellés reformulés — accueil
-  (`home_screen_widgets.dart:683`) et note d'onboarding FR/EN
-  (`setupLocationPrivacyNote`) disent désormais « Position partagée avec les
-  membres proches · modifiable dans Réglages ». Plus aucune promesse
-  « approximative » dans `lib/`. Localisations régénérées (`flutter gen-l10n`),
-  analyse propre.
-  - [ ] ⚠️ **Action Play du propriétaire, indissociable de ce choix** : le
-    formulaire Data Safety / déclaration de permissions doit déclarer la
-    localisation **précise** (et non approximative) et la justifier — sinon la
-    contradiction se déplace du code vers la fiche Play, qui avait déjà motivé
-    un refus.
-  - [ ] Vérifier à l'écran (accueil + onboarding) que le nouveau libellé
-    s'affiche entièrement, sans troncature, en FR et EN.
+- **✅ Cohérence « position approximative » — sens ARRONDI choisi (2026-09-21).**
+  L'app publiait une position précise (coordonnées brutes vers
+  `users.latitude/longitude`, que la carte montre aux autres) tout en
+  promettant « approximative, jamais l'adresse exacte ». Sur décision du
+  propriétaire (après un premier choix « texte » revenu sur), la POSITION est
+  arrondie à ~100 m (3 décimales) au point d'écriture unique
+  (`updateLocation`, `arrondirPositionPartagee` dans
+  `lib/core/utils/position_partagee.dart`) : la carte montre un quartier, jamais
+  le bâtiment. Les deux publieurs y passent ; le service d'arrière-plan repasse
+  de `.high` à `.medium` (batterie). Le texte « approximative, jamais l'adresse
+  exacte » est RESTAURÉ — il est vrai désormais. Test
+  `test/core/position_partagee_test.dart`, analyse propre.
+  - [x] La promesse « position approximative » est tenue par le code.
+  - [ ] ⚠️ **Action Play du propriétaire** : le formulaire Data Safety peut
+    (et doit) déclarer la localisation **approximative** — c'est le sens le plus
+    simple au réexamen, et il correspond maintenant au comportement réel.
+  - [ ] Vérifier sur la carte que les positions des autres restent utiles au
+    grain ~100 m (membres « à moins de 5 km » toujours pertinents) ; ta propre
+    position (centrage) vient de l'appareil, pas de la valeur arrondie.
 
 ### ⬜ Exige une valeur ou une décision du propriétaire
 - **Repli Stripe silencieux** (`app_config.dart:99`) : en production sans

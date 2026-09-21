@@ -15915,7 +15915,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get setupLocationPrivacyNote =>
-      'Position partagée avec les membres proches · modifiable dans Réglages';
+      'Position approximative uniquement · modifiable dans Réglages';
 
   @override
   String get setupInterestsBody =>
