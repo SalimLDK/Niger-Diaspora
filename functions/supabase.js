@@ -369,6 +369,35 @@ async function friendshipExists(userId, friendId) {
 }
 
 /**
+ * [blockerId] a-t-il bloqué [blockedId] ? (table `blocked_users`)
+ *
+ * Sert à `onCallCreated` : un compte bloqué ne doit plus faire sonner celui
+ * qui l'a bloqué. Dans le doute (base injoignable), on répond OUI — ne pas
+ * sonner. Le coût est nul : sans Supabase, les jetons FCM de l'appelé ne se
+ * lisent pas non plus, et l'appel ne sonnerait de toute façon pas.
+ *
+ * @param {string} blockerId
+ * @param {string} blockedId
+ * @returns {Promise<boolean>}
+ */
+async function isBlocked(blockerId, blockedId) {
+  if (!isConfigured() || !blockerId || !blockedId) return true;
+
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/blocked_users?select=blocker_id` +
+      `&blocker_id=eq.${encodeURIComponent(blockerId)}` +
+      `&blocked_id=eq.${encodeURIComponent(blockedId)}&limit=1`,
+    { headers: authHeaders() },
+  );
+  if (!res.ok) {
+    console.error(`Supabase blocked_users SELECT ${res.status}: ${await res.text()}`);
+    return true;
+  }
+  const rows = await res.json();
+  return Array.isArray(rows) && rows.length > 0;
+}
+
+/**
  * Comptes dont le délai de suppression est échu, ou dont la purge est restée en
  * route depuis plus de 30 minutes (migration 20260918224100).
  *
@@ -430,6 +459,7 @@ module.exports = {
   completeAccountDeletion,
   setFriendship,
   friendshipExists,
+  isBlocked,
   getFcmTokens,
   removeFcmTokens,
   getConversation,

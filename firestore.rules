@@ -902,13 +902,36 @@ service cloud.firestore {
         resource.data.callerId == request.auth.uid ||
         resource.data.calleeId == request.auth.uid
       );
-      // Authenticated users can create calls
-      allow create: if isAuthenticated() && request.resource.data.callerId == request.auth.uid;
-      // Both participants can update call status
+      // ── Durci le 2026-09-21 ──────────────────────────────────────────
+      // Créer un appel déclenche `onCallCreated`, qui fait SONNER l'appelé
+      // (push `incoming_call`, écran d'appel natif). La règle n'exigeait que
+      // `callerId == auth.uid` : type, statut et appelé étaient libres. Le
+      // nom et la photo de l'appelant, eux, ne sont plus lus par la fonction
+      // (functions/appels.js) — ils restent écrits ici pour l'historique
+      // d'appels, sans pouvoir tromper la sonnerie.
+      //
+      // `calleeId` doit avoir la forme d'un uid : la fonction le passe à
+      // PostgREST, où un `&` ou une parenthèse réécrirait la requête.
+      // Valeurs relevées dans `lib/` : `CallType { audio, video }`, statut
+      // `ringing` (call_repository_impl.dart:37) ou `busy`
+      // (call_remote_datasource.dart:148).
+      allow create: if isAuthenticated()
+        && request.resource.data.callerId == request.auth.uid
+        && request.resource.data.calleeId is string
+        && request.resource.data.calleeId.matches('^[A-Za-z0-9_-]{1,128}$')
+        && request.resource.data.calleeId != request.auth.uid
+        && request.resource.data.type in ['audio', 'video']
+        && request.resource.data.status in ['ringing', 'busy'];
+      // Un participant fait avancer l'appel — rien d'autre. La règle laissait
+      // réécrire N'IMPORTE QUEL champ, `callerId` compris, et
+      // `onCallUpdated` prévenait alors un tiers choisi (« X a refusé votre
+      // appel »). Les seuls champs que le client met à jour, relevés dans
+      // call_remote_datasource.dart (:224, :273-282, :296, :311).
       allow update: if isAuthenticated() && (
         resource.data.callerId == request.auth.uid ||
         resource.data.calleeId == request.auth.uid
-      );
+      ) && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['status', 'answeredAt', 'endedAt', 'endReason', 'durationSeconds']);
       // Both participants can delete call records
       allow delete: if isAuthenticated() && (
         resource.data.callerId == request.auth.uid ||

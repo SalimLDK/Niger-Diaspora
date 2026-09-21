@@ -8,6 +8,7 @@ const { GoogleAuth } = require("google-auth-library");
 const { decryptText } = require("./encryption");
 const { cheminStorageSur } = require("./chemins_storage");
 const { peutSupprimerConversationPourTous } = require("./autorisations");
+const { preparerAppelEntrant, nomAppele, uidValide } = require("./appels");
 const partners = require("./partners");
 // Tokens/profils/conversations : lus dans Supabase, PAS dans Firestore.
 const {
@@ -19,6 +20,7 @@ const {
   getLocalEventRecipients,
   setFriendship,
   friendshipExists,
+  isBlocked,
   claimDueAccountDeletions,
   completeAccountDeletion,
   isConfigured: isSupabaseConfigured,
@@ -1138,35 +1140,38 @@ exports.onCallCreated = functions.firestore
         const callData = snapshot.data();
         const callId = context.params.callId;
 
-        // Only send notification for ringing calls
+        // Le nom et la photo de l'appelant NE SONT PLUS lus dans le document :
+        // le client les écrit, et la règle Firestore n'impose que
+        // `callerId == auth.uid`. N'importe qui faisait sonner n'importe qui
+        // sous le nom et le visage d'un proche. Tout ce qui est affiché vient
+        // de Supabase, et le blocage est respecté — voir functions/appels.js.
         if (callData.status !== "ringing") {
             return null;
         }
 
-        const calleeId = callData.calleeId;
-        const callerId = callData.callerId;
-        const callerName = callData.callerName || "Quelqu'un";
-        const callerPhotoUrl = callData.callerPhotoUrl || "";
-        const callType = callData.type || "audio"; // "audio" or "video"
-
-        if (!calleeId) {
-            console.log("No calleeId in call document");
-            return null;
-        }
-
         try {
-            // Tokens FCM du destinataire depuis Supabase (users.fcm_tokens).
-            const fcmTokens = await getFcmTokens(calleeId);
-
-            if (fcmTokens.length === 0) {
-                console.log(`No FCM tokens for callee ${calleeId}`);
+            let preparation = null;
+            // Identifiants vérifiés AVANT toute requête : ils partent tels
+            // quels dans une URL PostgREST (getUsersForPush).
+            if (uidValide(callData.callerId) && uidValide(callData.calleeId) &&
+                callData.callerId !== callData.calleeId) {
+                const [utilisateurs, bloque] = await Promise.all([
+                    getUsersForPush([callData.callerId, callData.calleeId]),
+                    isBlocked(callData.calleeId, callData.callerId),
+                ]);
+                preparation = preparerAppelEntrant({ callId, callData, utilisateurs, bloque });
+            } else {
+                preparation = preparerAppelEntrant({
+                    callId, callData, utilisateurs: new Map(), bloque: false,
+                });
+            }
+            if (preparation.rien) {
+                console.log(`Appel ${callId} : aucune sonnerie (${preparation.motif})`);
                 return null;
             }
 
-            // Prepare notification content
-            const title = callerName;
-            const body = callType === "video" ? "Appel vidéo entrant..." : "Appel vocal entrant...";
-
+            const calleeId = callData.calleeId;
+            const fcmTokens = preparation.tokens;
             console.log(`Sending incoming call notification to ${fcmTokens.length} tokens for callee ${calleeId}`);
 
             // Send DATA-ONLY notification to wake up the app
@@ -1175,19 +1180,7 @@ exports.onCallCreated = functions.firestore
             const response = await admin.messaging().sendEachForMulticast({
                 tokens: fcmTokens,
                 // Data-only message - triggers background handler on both platforms
-                data: {
-                    type: "incoming_call",
-                    callId: callId,
-                    callerId: callerId,
-                    callerName: callerName,
-                    callerPhotoUrl: callerPhotoUrl,
-                    callType: callType,
-                    title: title,
-                    body: body,
-                    click_action: "FLUTTER_NOTIFICATION_CLICK",
-                    // Timestamp for timeout handling
-                    timestamp: String(Date.now()),
-                },
+                data: preparation.data,
                 android: {
                     priority: "high",
                     ttl: 60000, // 60 seconds TTL (call timeout)
@@ -1207,11 +1200,7 @@ exports.onCallCreated = functions.firestore
                             // No alert/sound here - flutter_callkit_incoming handles the call UI
                         },
                         // Custom data for iOS - will be available in background handler
-                        callId: callId,
-                        callerId: callerId,
-                        callerName: callerName,
-                        callerPhotoUrl: callerPhotoUrl,
-                        callType: callType,
+                        ...preparation.apns,
                     },
                 },
             });
@@ -1260,14 +1249,27 @@ exports.onCallUpdated = functions.firestore
         }
 
         const newStatus = after.status;
-        const callerId = after.callerId;
-        const calleeId = after.calleeId;
-        const calleeName = after.calleeName || "L'utilisateur";
+        // Les participants d'AVANT la mise à jour : la règle Firestore laissait
+        // un participant réécrire `callerId`, et ce déclencheur aurait alors
+        // prévenu un tiers choisi. Un document dont les participants ont
+        // changé n'est pas un appel : on n'en fait rien.
+        const callerId = before.callerId;
+        const calleeId = before.calleeId;
+        if (after.callerId !== callerId || after.calleeId !== calleeId) {
+            console.log(`Appel ${callId} : participants modifiés, ignoré`);
+            return null;
+        }
 
         // Notify caller when callee declines or ends the call
         if (newStatus === "declined" || newStatus === "ended" || newStatus === "missed") {
             try {
-                const fcmTokens = await getFcmTokens(callerId);
+                if (!uidValide(callerId) || !uidValide(calleeId)) return null;
+                // Jetons de l'appelant ET nom de l'appelé, en une requête. Le nom
+                // venait du document (`calleeName`), que l'appelant écrit.
+                const utilisateurs = await getUsersForPush([callerId, calleeId]);
+                const appelant = utilisateurs.get(callerId);
+                const fcmTokens = appelant ? appelant.fcmTokens : [];
+                const calleeName = nomAppele(utilisateurs, calleeId);
 
                 if (fcmTokens.length === 0) {
                     return null;

@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1542 cases à cocher, 650 cochées** — 298 entrées sur 349 ont encore des cases ouvertes.
+**1546 cases à cocher, 650 cochées** — 299 entrées sur 350 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -96,7 +96,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (102)
+**P1 — fonction importante, jamais vérifiée** (103)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -140,6 +140,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [⬜ Distribution des Sender Keys : la même porte, une marche plus loin (2026-09-14)](#-distribution-des-sender-keys--la-même-porte-une-marche-plus-loin-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
 - 7 · [⬜ Cartes de partage chiffrées au repos (2026-09-09)](#-cartes-de-partage-chiffrées-au-repos-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
 - 4 · [Messages de groupe qui redeviennent indéchiffrables après réouverture (2026-08-13)](#messages-de-groupe-qui-redeviennent-indéchiffrables-après-réouverture-2026-08-13) · *Chiffrement de bout en bout et clés* · bloqué
+- 4 · [⬜ Appel entrant : le nom et la photo de l'appelant viennent de la base (2026-09-21)](#-appel-entrant--le-nom-et-la-photo-de-lappelant-viennent-de-la-base-2026-09-21) · *Appels*
 - 5 · [⬜ Notifications entre comptes : le serveur rédige le texte et filtre les données (2026-09-21)](#-notifications-entre-comptes--le-serveur-rédige-le-texte-et-filtre-les-données-2026-09-21) · *Notifications et push*
 - 7 · [⬜ Une édition corrige la bannière déjà posée (2026-09-16)](#-une-édition-corrige-la-bannière-déjà-posée-2026-09-16) · *Notifications et push*
 - 12 · [⬜ Trois cas de messagerie que les notifications ne couvraient pas (2026-09-16)](#-trois-cas-de-messagerie-que-les-notifications-ne-couvraient-pas-2026-09-16) · *Notifications et push*
@@ -359,7 +360,7 @@ Par domaine :
 - [2. Messagerie](#2-messagerie) — 338 à faire, 126 faites
 - [3. Groupes](#3-groupes) — 149 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 142 à faire, 42 faites
-- [5. Appels](#5-appels) — 22 à faire, 8 faites
+- [5. Appels](#5-appels) — 26 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 166 à faire, 76 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 69 à faire, 10 faites
@@ -9703,6 +9704,47 @@ n'exerce le vrai ratchet Signal ni Supabase.
 Appels 1:1 et de groupe : signalisation, bulle d'appel, WebRTC/TURN.
 
 ---
+
+## ⬜ Appel entrant : le nom et la photo de l'appelant viennent de la base (2026-09-21)
+
+**Priorité P1** · importance 4/5 — Fermeture d'une usurpation plein écran (faux appel sous le nom et le visage d'un proche). Les appels sont peu utilisés (dernier le 2026-08-15, 75 en tout), mais c'est l'écran d'appel natif qui est en jeu.
+
+**Ce qui était ouvert.** `onCallCreated` fait sonner l'appelé (push
+`incoming_call`, écran d'appel natif, même app fermée) avec le nom et la
+photo lus dans le document Firestore `calls/<id>` — que le client écrit. La
+règle n'imposait que `callerId == auth.uid` : n'importe quel compte faisait
+sonner n'importe qui sous le nom et la photo de son choix. Un compte bloqué
+sonnait quand même. Et la mise à jour laissait un participant réécrire
+n'importe quel champ, `callerId` compris — `onCallUpdated` prévenait alors un
+tiers choisi (mesuré à l'émulateur sur les règles de production : accepté).
+
+**Ce qui est posé, DÉPLOYÉ le 2026-09-21 :**
+
+- `functions/appels.js` (fonctions pures) : nom et photo lus dans Supabase
+  (`users`), blocage respecté (`blocked_users`), type ramené à
+  audio/vidéo, identifiants vérifiés avant toute requête — ils partaient tels
+  quels dans une URL PostgREST. `onCallUpdated` lit les participants d'AVANT
+  la mise à jour et le nom de l'appelé en base. Banc
+  `tools/rules_tests/appel_entrant.mjs` : 0 échec ; l'ancienne logique,
+  retranscrite, en échoue 7 sur 11. Fonctions redéployées une à une,
+  `ACTIVE`.
+- `firestore.rules`, `calls/{callId}` : création bornée (`type`, statut,
+  forme de `calleeId`, pas d'appel à soi-même) ; mise à jour limitée à
+  `status`, `answeredAt`, `endedAt`, `endReason`, `durationSeconds`. Banc
+  `tools/rules_tests/appels_firestore.mjs` : 6 échecs sur les règles de
+  production, 0 sur les nouvelles, parcours nominal intact. Déployé, relu par
+  l'API : identique au dépôt.
+
+**À vérifier sur appareil :**
+
+- [ ] un appel 1:1 sonne avec le VRAI nom et la vraie photo de l'appelant ;
+- [ ] décrocher, refuser, raccrocher : l'appel suit son cours, et l'appelant
+  refusé reçoit « X a refusé votre appel » avec le vrai nom ;
+- [ ] un compte bloqué ne fait plus sonner celui qui l'a bloqué ;
+- [ ] appelé occupé : l'appel échoue proprement (statut `busy`).
+
+---
+
 
 ## ⬜ Les appels de GROUPE restaient lançables alors que le 1-à-1 était en pause (2026-09-14)
 
