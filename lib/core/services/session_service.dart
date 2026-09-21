@@ -318,10 +318,12 @@ class SessionService {
   /// Supabase ; si ce n'est pas celle de [userId], on n'en tire rien.
   Future<void> _relireDecisionAdmin(String userId) async {
     try {
-      final ligne = await Supabase.instance.client
+      // Forme liste : une RPC part en POST, et `maybeSingle()` sur un POST ne
+      // sait pas rattraper une réponse en tableau (postgrest-dart 2.8.0).
+      final lignes = await Supabase.instance.client
           .rpc('mon_profil_prive')
-          .select('id, session_id, is_banned')
-          .maybeSingle();
+          .select('id, session_id, is_banned');
+      final ligne = lignes.isEmpty ? null : lignes.first;
       if (ligne == null || ligne['id'] != userId) return;
       _examinerDecisionAdmin(
         sessionDistante: ligne['session_id'] as String?,

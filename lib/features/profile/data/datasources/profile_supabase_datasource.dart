@@ -132,7 +132,10 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
   /// on ne la sert pas sous un autre nom : on retombe sur la lecture publique.
   Future<Map<String, dynamic>?> _ligne(String userId) async {
     if (userId == _uidCourant()) {
-      final moi = await _supabase.rpc('mon_profil_prive').maybeSingle();
+      // Forme liste : une RPC part en POST, et `maybeSingle()` sur un POST ne
+      // sait pas rattraper une réponse en tableau (postgrest-dart 2.8.0).
+      final lignes = await _supabase.rpc('mon_profil_prive') as List;
+      final moi = lignes.isEmpty ? null : lignes.first as Map<String, dynamic>;
       if (moi != null && moi['id'] == userId) return moi;
     }
     return _supabase

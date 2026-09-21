@@ -36,12 +36,15 @@ Future<String?> ecrireSaLigneUsers(
   if (await mettreAJour()) return id;
 
   try {
-    final creee = await client
+    // Forme liste, pas `maybeSingle()` : sur un POST, `maybeSingle()` réclame
+    // un objet nu par l'en-tête `Accept`, et le rattrapage d'une réponse en
+    // tableau ne couvre que les GET (postgrest-dart 2.8.0) — une écriture
+    // commitée pourrait être annoncée en échec, puis doublée à la reprise.
+    final creees = await client
         .from('users')
         .insert({'id': id, ...champs})
-        .select('id')
-        .maybeSingle();
-    return creee?['id'] as String?;
+        .select('id');
+    return (creees as List).isEmpty ? null : id;
   } on PostgrestException catch (e) {
     // 23505 : la ligne a été créée entre les deux, par un autre appel du même
     // compte — la connexion et le premier enregistrement du profil peuvent

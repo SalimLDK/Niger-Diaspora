@@ -743,7 +743,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       // Supabase : si ce n'est pas celle du compte Firebase (session d'un
       // compte précédent pas encore rebasculée), on ne la sert pas sous son
       // nom, on retombe sur les données Firebase comme pour une ligne absente.
-      final moi = await _supabase.rpc('mon_profil_prive').maybeSingle();
+      // Forme liste : une RPC part en POST, et `maybeSingle()` sur un POST ne
+      // sait pas rattraper une réponse en tableau (postgrest-dart 2.8.0).
+      final lignes = await _supabase.rpc('mon_profil_prive') as List;
+      final moi = lignes.isEmpty ? null : lignes.first as Map<String, dynamic>;
       final row = (moi != null && moi['id'] == firebaseUser.uid) ? moi : null;
 
       if (kDebugMode) dev.log('_getUserDataFromSupabase: row trouvee=${row != null}', name: _tag);
