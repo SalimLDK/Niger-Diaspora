@@ -21282,7 +21282,10 @@ Play Store, exigences Android, build release, iOS.
 **Priorité P0** · importance 5/5 — Connaître un identifiant de conversation suffisait à faire effacer par le serveur TOUS ses médias — photos, vidéos, notes vocales — y compris ceux d'une conversation vivante. Reste à voir qu'une suppression légitime fonctionne encore.
 
 `functions/autorisations.js` (nouveau) + `deleteConversationForEveryone` —
-**NON DÉPLOYÉ** à l'écriture de cette entrée.
+**DÉPLOYÉ le 2026-09-21**. L'extension de `getConversation` (deux champs de
+plus) ne prend effet que dans cette fonction : `sendChatNotification`, son
+autre appelant, garde son code actuel et ne voit rien changer — la
+modification est purement additive.
 
 **Le défaut n'était pas le chemin — il était correct — mais l'autorisation.**
 La fonction la lisait dans un document **Firestore** `conversations/<id>`
