@@ -74,7 +74,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ 🔴 Bloquer un utilisateur ne bloque rien — corrigé (2026-09-14)](#--bloquer-un-utilisateur-ne-bloque-rien--corrigé-2026-09-14) · *Accueil, profil et réglages* · bloqué
 - 8 · [⬜ `users` : un compte connecté lit e-mail, position et jetons d'autrui (2026-09-21)](#-users--un-compte-connecté-lit-e-mail-position-et-jetons-dautrui-2026-09-21) · *Backend, sécurité et observabilité*
 - 4 · [⬜ `users` n'est plus lisible sans compte (2026-09-20)](#-users-nest-plus-lisible-sans-compte-2026-09-20) · *Backend, sécurité et observabilité*
-- 2 · [⬜ Supprimer une conversation pour tous : l'autorisation vient de Supabase (2026-09-21)](#-supprimer-une-conversation-pour-tous--lautorisation-vient-de-supabase-2026-09-21) · *Publication et plateformes*
+- 2 · [⬜ Bloqueurs de publication — Play & iOS (état 2026-09-21)](#-bloqueurs-de-publication--play--ios-état-2026-09-21) · *Publication et plateformes*
 - 4 · [⬜ Le serveur ne supprime plus un chemin Storage dicté par le client (2026-09-21)](#-le-serveur-ne-supprime-plus-un-chemin-storage-dicté-par-le-client-2026-09-21) · *Publication et plateformes*
 - 8 · [⬜ Divulgation préalable de la localisation (refus Play du 2026-09-09)](#-divulgation-préalable-de-la-localisation-refus-play-du-2026-09-09) · *Publication et plateformes*
 - 3 · [⬜ Compte de test dédié : première connexion (2026-09-09)](#-compte-de-test-dédié--première-connexion-2026-09-09) · *Appareils, comptes de test et méthode*
@@ -21885,7 +21885,67 @@ applicable à des utilisateurs répartis sur plusieurs fuseaux.
 Play Store, exigences Android, build release, iOS.
 
 ---
-## ⬜ Supprimer une conversation pour tous : l'autorisation vient de Supabase (2026-09-21)
+
+## ⬜ Bloqueurs de publication — Play & iOS (état 2026-09-21)
+
+**Priorité P0** · importance 5/5 — Empêchent la mise en production. Plusieurs corrigés ce jour ; le reste exige un appareil, un Mac, ou une valeur/décision du propriétaire.
+
+### ✅ Faits et vérifiés le 2026-09-21
+- **Page de suppression de compte** : la clé Firebase web était rejetée par
+  Google (« API key not valid »), la connexion pour supprimer son compte était
+  MORTE. Corrigée (clé web de l'app), **déployée**, vérifiée en ligne
+  (`AIzaSyCfaTQD…` → `INVALID_LOGIN_CREDENTIALS`, donc clé valide). Commit web
+  + `firebase deploy --only hosting`.
+- **App ID AdMob** : le manifeste portait l'App ID de TEST de Google. Remplacé
+  par celui de production (`ca-app-pub-4674966180025040~9171762097`, déjà dans
+  `AdConfig`). Prend effet au prochain build.
+
+### ⬜ Corrigeable par du code, mais décision produit requise
+- **Cohérence « position approximative »** : `home_screen_widgets.dart:683`
+  affiche « Position approximative, jamais l'adresse exacte », mais
+  `background_location_service.dart:293` publie la position en
+  `LocationAccuracy.high` (la carte est en `.medium`). Contradiction que Play
+  a déjà relevée. À trancher : abaisser la précision du service d'arrière-plan,
+  ou changer la promesse affichée. **Décision du propriétaire.**
+
+### ⬜ Exige une valeur ou une décision du propriétaire
+- **Repli Stripe silencieux** (`app_config.dart:99`) : en production sans
+  `--dart-define=STRIPE_PUBLISHABLE_KEY`, l'app retombe en silence sur la clé
+  `pk_test` codée en dur. Entremêlé avec `isProduction`
+  (`bool.fromEnvironment('PRODUCTION')`) : vérifier d'abord que le build release
+  passe bien `PRODUCTION=true`. Paiement entièrement fermé aujourd'hui, donc
+  sans effet vivant — à corriger avant toute réouverture (faire échouer
+  franchement en prod plutôt que servir la clé de test).
+- **Consentement UMP (RGPD)** absent : `tracking_consent_service.dart` gère
+  l'ATT (iOS) mais pas l'UMP de Google (formulaire de consentement aux pubs
+  personnalisées). À câbler côté AdMob console + client
+  (`ConsentInformation`), non testable sans pubs réelles.
+- **Clé Google Maps du manifeste** : `AIzaSyCnbdymYwzJXPA2YY1PMexCU_iGaN5tPek`,
+  annotée « NEW TEST KEY (No App Restrictions) » — non restreinte. À restreindre
+  par signature d'app dans la console Google Cloud.
+
+### ⬜ iOS — non traitable en aveugle sous Windows (Mac/Xcode requis)
+- **Entitlements non référencés** : `ios/Runner/Runner.entitlements` existe mais
+  `CODE_SIGN_ENTITLEMENTS` est **absent du pbxproj** (0 occurrence) — l'app se
+  build sans ses entitlements (push, associated domains). À ajouter dans les
+  deux configs Xcode.
+- **`PrivacyInfo.xcprivacy` absent** : Apple l'exige désormais. À créer avec
+  les déclarations d'usage de données (décision légale/produit).
+- **`UIBackgroundModes`** présent dans `Info.plist` : à justifier ou retirer.
+- **Rust jamais compilé pour iOS** : le crate `rust/` (MLS) n'a pas de cible
+  iOS produite — à faire sur un Mac avant toute soumission.
+
+### ⬜ À vérifier
+- **App Links `autoVerify`** : le filtre capture TOUT le domaine
+  (`diasponiger.web.app`, `diasponiger.com`) sans `pathPrefix` — l'app intercepte
+  aussi les pages web (confidentialité, suppression de compte). À restreindre aux
+  chemins que l'app sait ouvrir, ou laisser (go_router gère l'inconnu).
+- **Version** : `pubspec.yaml` = `1.2.1+23`. Aligner avec le secret
+  `DERNIERE_VERSION_APP` servi par `app-config`, et avec le build publié.
+
+---
+
+Supprimer une conversation pour tous : l'autorisation vient de Supabase (2026-09-21)
 
 **Priorité P0** · importance 5/5 — Connaître un identifiant de conversation suffisait à faire effacer par le serveur TOUS ses médias — photos, vidéos, notes vocales — y compris ceux d'une conversation vivante. Reste à voir qu'une suppression légitime fonctionne encore.
 
