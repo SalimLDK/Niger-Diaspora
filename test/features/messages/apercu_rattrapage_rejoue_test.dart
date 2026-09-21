@@ -126,6 +126,63 @@ class _Passerelle implements MlsGateway {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+/// Une liste qui bouge : chaque message reçu la fait réémettre, avec sa date.
+class _SourceVivante implements MessageRemoteDataSource {
+  final _flux = StreamController<List<ConversationModel>>.broadcast();
+  DateTime? dernierQuand;
+  String dernierTexte = '';
+
+  void emettre(DateTime quand, String texte) {
+    dernierQuand = quand;
+    dernierTexte = texte;
+    _flux.add([
+      ConversationModel(
+        id: 'c1',
+        createdBy: 'moi',
+        participantIds: const ['moi', 'autre'],
+        lastMessage: null,
+        lastMessageAt: quand,
+        lastMessageType: MessageType.text,
+      ),
+    ]);
+  }
+
+  @override
+  Stream<List<ConversationModel>> getConversations(String userId) =>
+      _flux.stream;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// Déchiffre toujours le dernier message que la source a annoncé.
+class _PasserelleVivante extends _Passerelle {
+  _PasserelleVivante(this.source) : super(const []);
+
+  final _SourceVivante source;
+
+  @override
+  Future<List<String>> conversationsARattraper(
+    Iterable<String> conversationIds, {
+    int maximum = 3,
+  }) async => [...conversationIds];
+
+  @override
+  Future<List<MessageEntity>> messages(String conversationId) async {
+    appelsMessages++;
+    return [
+      MessageEntity(
+        id: 'm$appelsMessages',
+        senderId: 'autre',
+        senderName: 'Sim A',
+        content: source.dernierTexte,
+        type: MessageType.text,
+        createdAt: source.dernierQuand!,
+      ),
+    ];
+  }
+}
+
 class _Reseau implements NetworkInfo {
   @override
   Future<bool> get isConnected async => true;
@@ -220,6 +277,46 @@ void main() {
         reason: 'sans le rejeu, la tuile reste sur « Message chiffré »',
       );
       expect(passerelle.appelsMessages, 1);
+    });
+
+    test('un message reçu pendant le plancher est rattrapé à la fin, pas '
+        'abandonné', () async {
+      // Signalé le 2026-09-21 : les premiers messages d'un échange restaient
+      // « Message chiffré » dans la liste. Le second arrivait moins de 5 s
+      // après le premier, le rattrapage rendait la main sans rien reporter,
+      // et la liste immobile n'émettait plus rien pour le relancer.
+      final second = _quand.add(const Duration(seconds: 2));
+      final source = _SourceVivante();
+      final passerelle = _PasserelleVivante(source);
+      final depot = MessageRepositoryImpl(
+        remoteDataSource: source,
+        networkInfo: _Reseau(),
+        cacheService: _Cache(),
+        mlsGateway: passerelle,
+      )..espacementRattrapage = const Duration(milliseconds: 300);
+
+      final vus = <String>[];
+      final sub = depot.getConversations('moi').listen((e) {
+        e.fold((_) {}, (liste) => vus.add(liste.single.lastMessage ?? ''));
+      });
+      source.emettre(_quand, 'Salut');
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      source.emettre(second, 'Ça va ?');
+      await Future<void>.delayed(const Duration(milliseconds: 150));
+      expect(
+        vus.last,
+        isEmpty,
+        reason: 'encore dans le plancher : pas de deuxième passe',
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 400));
+      await sub.cancel();
+
+      expect(
+        vus.last,
+        'Ça va ?',
+        reason: 'la passe reportée doit déchiffrer le second message',
+      );
+      expect(passerelle.appelsMessages, 2);
     });
 
     test('rien à rattraper : une seule émission, aucun rejeu', () async {

@@ -896,7 +896,40 @@ class MessageRepositoryImpl implements MessageRepository {
   /// le cas de toute conversation vivante — voyaient le deuxième et le
   /// troisième bloqués par le premier, donc affichés « Message chiffré »
   /// pendant tout ce temps.
-  static const _espacementRattrapage = Duration(seconds: 5);
+  ///
+  /// **Un rattrapage retenu par ce plancher est reporté, jamais abandonné.**
+  /// Il rendait la main sans rien reprogrammer : un message reçu moins de 5 s
+  /// après le précédent — le premier échange de toute conversation — gardait
+  /// « Message chiffré » dans la liste jusqu'à la prochaine émission du
+  /// serveur, c'est-à-dire, liste immobile, jusqu'au message suivant ou à un
+  /// tirer-pour-rafraîchir. Signalé par Salim le 2026-09-21.
+  @visibleForTesting
+  Duration espacementRattrapage = const Duration(seconds: 5);
+
+  /// La reprise programmée à la fin du plancher, s'il en faut une. Une seule
+  /// à la fois : elle repart de la dernière liste reçue, pas de celle qui l'a
+  /// demandée, puisque d'autres messages ont pu arriver entre-temps.
+  Timer? _rattrapageReporte;
+  ({MlsGateway passerelle, List<ConversationEntity> conversations})?
+      _listeAReprendre;
+
+  void _reporterRattrapage(
+    MlsGateway passerelle,
+    List<ConversationEntity> conversations,
+    Duration delai,
+  ) {
+    _listeAReprendre = (passerelle: passerelle, conversations: conversations);
+    if (_rattrapageReporte?.isActive ?? false) return;
+    _rattrapageReporte = Timer(delai, () {
+      _rattrapageReporte = null;
+      final reprise = _listeAReprendre;
+      _listeAReprendre = null;
+      if (reprise == null || _rattrapageFini.isClosed) return;
+      unawaited(
+        _rattraperMlsEnArrierePlan(reprise.passerelle, reprise.conversations),
+      );
+    });
+  }
 
   /// Ce pour quoi un rattrapage a déjà été **tenté** : conversation →
   /// `lastMessageAt` de la tentative. Une date neuve rouvre la tentative ; la
@@ -952,10 +985,19 @@ class MessageRepositoryImpl implements MessageRepository {
 
     final maintenant = DateTime.now();
     final precedent = _dernierRattrapage;
-    if (precedent != null &&
-        maintenant.difference(precedent) < _espacementRattrapage) {
-      return;
+    if (precedent != null) {
+      final ecoule = maintenant.difference(precedent);
+      if (ecoule < espacementRattrapage) {
+        _reporterRattrapage(passerelle, conversations,
+            espacementRattrapage - ecoule);
+        return;
+      }
     }
+    // Cette passe part de la liste la plus récente : une reprise en attente
+    // n'aurait plus rien à ajouter.
+    _rattrapageReporte?.cancel();
+    _rattrapageReporte = null;
+    _listeAReprendre = null;
     _dernierRattrapage = maintenant;
 
     var dechiffre = false;

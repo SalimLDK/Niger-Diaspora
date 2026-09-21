@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1557 cases à cocher, 651 cochées** — 302 entrées sur 353 ont encore des cases ouvertes.
+**1560 cases à cocher, 651 cochées** — 303 entrées sur 354 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -96,7 +96,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (104)
+**P1 — fonction importante, jamais vérifiée** (105)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -108,6 +108,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [⬜ Verrou de version minimale et multi-appareil (2026-09-15)](#-verrou-de-version-minimale-et-multi-appareil-2026-09-15) · *Comptes, session et onboarding*
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
+- 3 · [⬜ Les premiers messages reçus restent « Message chiffré » dans la liste (2026-09-21)](#-les-premiers-messages-reçus-restent--message-chiffré--dans-la-liste-2026-09-21) · *Messagerie*
 - 7 · [⬜ Ouvrir une discussion lit ce qui est à l'écran, tout de suite (2026-09-16)](#-ouvrir-une-discussion-lit-ce-qui-est-à-lécran-tout-de-suite-2026-09-16) · *Messagerie*
 - 6 · [⬜ Lecture par curseur dans les discussions en clair (2026-09-16)](#-lecture-par-curseur-dans-les-discussions-en-clair-2026-09-16) · *Messagerie*
 - 5 · [⬜ « Message chiffré » qui ne s'en va pas dans la liste (2026-09-16)](#--message-chiffré--qui-ne-sen-va-pas-dans-la-liste-2026-09-16) · *Messagerie*
@@ -360,7 +361,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 338 à faire, 126 faites
+- [2. Messagerie](#2-messagerie) — 341 à faire, 126 faites
 - [3. Groupes](#3-groupes) — 149 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 147 à faire, 42 faites
 - [5. Appels](#5-appels) — 26 à faire, 8 faites
@@ -619,6 +620,33 @@ Crashlytics.
 # 2. Messagerie
 
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
+
+---
+
+## ⬜ Les premiers messages reçus restent « Message chiffré » dans la liste (2026-09-21)
+
+**Priorité P1** · importance 4/5 — signalé par Salim le 2026-09-21 : dans la
+liste des discussions, l'aperçu des premiers messages qui arrivent reste
+« Message chiffré ».
+
+Suite de « « Message chiffré » qui ne s'en va pas dans la liste (2026-09-16) ».
+Le rattrapage de fond garde un plancher de 5 s entre deux passes ; un message
+reçu dans ce délai faisait **rendre la main sans rien reprogrammer**. Liste
+immobile, plus aucune émission ne le relançait : l'aperçu restait figé
+jusqu'au message suivant ou à un tirer-pour-rafraîchir. Désormais la passe est
+**reportée** à la fin du plancher, sur la dernière liste reçue
+(`_reporterRattrapage`, `message_repository_impl.dart`).
+
+Tenu par `test/features/messages/apercu_rattrapage_rejoue_test.dart` (« un
+message reçu pendant le plancher… », rouge sur le code d'avant). Jamais vu
+sur appareil :
+
+- [ ] **Liste à l'écran, deux messages reçus à moins de 5 s** (depuis l'autre
+      téléphone) : l'aperçu passe au texte du second en ≤ 5-6 s, sans toucher.
+- [ ] **Nouvelle discussion, premier échange** : les premiers messages ne
+      restent pas sur « Message chiffré ».
+- [ ] **Hors ligne** : pas de boucle de rattrapage (une reprise au plus par
+      plancher).
 
 ---
 
