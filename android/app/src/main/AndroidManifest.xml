@@ -223,13 +223,40 @@
                 <data android:scheme="diasponiger" />
             </intent-filter>
 
-            <!-- Deep Link Support: App Links (future proofing) -->
+            <!-- App Links : UNIQUEMENT les chemins de contenu de l'app (les
+                 mêmes que les rewrites SPA de firebase.json). Les pages WEB —
+                 /delete-account, /privacy-policy, /terms-of-service,
+                 /forgot-password, /child-safety-standards, pages marketing —
+                 doivent rester au navigateur.
+
+                 Sans ce périmètre, l'intent-filter réclamait TOUT le domaine
+                 (`autoVerify` + assetlinks servis par les deux hôtes) : l'app,
+                 qui n'a de route pour AUCUNE de ces pages web, les captait et
+                 les cassait — dont la page de suppression de compte que Play
+                 exige d'atteindre dans un navigateur.
+
+                 ⚠️ `/p/` et `/g/` avec la barre finale : `/p` seul (préfixe)
+                 capterait aussi `/privacy-policy` et `/podcasts` ; la barre
+                 borne au lien court de profil `/p/<id>` (et `/podcasts` est
+                 déclaré à part). -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="https" android:host="diasponiger.web.app" />
                 <data android:scheme="https" android:host="diasponiger.com" />
+                <data android:pathPrefix="/audio-rooms" />
+                <data android:pathPrefix="/businesses" />
+                <data android:pathPrefix="/calls" />
+                <data android:pathPrefix="/embassies" />
+                <data android:pathPrefix="/events" />
+                <data android:pathPrefix="/feed" />
+                <data android:pathPrefix="/g/" />
+                <data android:pathPrefix="/groups" />
+                <data android:pathPrefix="/marketplace" />
+                <data android:pathPrefix="/p/" />
+                <data android:pathPrefix="/podcasts" />
+                <data android:pathPrefix="/profile" />
             </intent-filter>
 
             <!-- Partage entrant (receive_sharing_intent) : sans ces filtres,
