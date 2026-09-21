@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1560 cases à cocher, 651 cochées** — 303 entrées sur 354 ont encore des cases ouvertes.
+**1561 cases à cocher, 653 cochées** — 303 entrées sur 354 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -74,7 +74,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ 🔴 Bloquer un utilisateur ne bloque rien — corrigé (2026-09-14)](#--bloquer-un-utilisateur-ne-bloque-rien--corrigé-2026-09-14) · *Accueil, profil et réglages* · bloqué
 - 8 · [⬜ `users` : un compte connecté lit e-mail, position et jetons d'autrui (2026-09-21)](#-users--un-compte-connecté-lit-e-mail-position-et-jetons-dautrui-2026-09-21) · *Backend, sécurité et observabilité*
 - 4 · [⬜ `users` n'est plus lisible sans compte (2026-09-20)](#-users-nest-plus-lisible-sans-compte-2026-09-20) · *Backend, sécurité et observabilité*
-- 5 · [⬜ Bloqueurs de publication — Play & iOS (état 2026-09-21)](#-bloqueurs-de-publication--play--ios-état-2026-09-21) · *Publication et plateformes*
+- 6 · [⬜ Bloqueurs de publication — Play & iOS (état 2026-09-21)](#-bloqueurs-de-publication--play--ios-état-2026-09-21) · *Publication et plateformes*
 - 4 · [⬜ Le serveur ne supprime plus un chemin Storage dicté par le client (2026-09-21)](#-le-serveur-ne-supprime-plus-un-chemin-storage-dicté-par-le-client-2026-09-21) · *Publication et plateformes*
 - 8 · [⬜ Divulgation préalable de la localisation (refus Play du 2026-09-09)](#-divulgation-préalable-de-la-localisation-refus-play-du-2026-09-09) · *Publication et plateformes*
 - 3 · [⬜ Compte de test dédié : première connexion (2026-09-09)](#-compte-de-test-dédié--première-connexion-2026-09-09) · *Appareils, comptes de test et méthode*
@@ -373,7 +373,7 @@ Par domaine :
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 69 à faire, 34 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 153 à faire, 32 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 92 à faire, 45 faites
-- [14. Publication et plateformes](#14-publication-et-plateformes) — 55 à faire, 29 faites
+- [14. Publication et plateformes](#14-publication-et-plateformes) — 56 à faire, 31 faites
 - [15. Site web](#15-site-web) — 32 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 32 à faire, 46 faites
 
@@ -22032,9 +22032,20 @@ Play Store, exigences Android, build release, iOS.
   `loadAndShowConsentFormIfRequired`) avant l'ATT, et n'initialise AdMob que si
   `canRequestAds` ; `NativeAdWidget` n'appelle plus AdMob sans consentement.
   **Reste côté propriétaire** : publier le message GDPR dans la console AdMob
-  (Confidentialité et messages). **Vérif appareil (EEE)** : forcer
-  `ConsentDebugSettings(debugGeography: eea, testIdentifiers: […])`, l'app doit
-  montrer le formulaire ; hors EEE, pas de formulaire et les pubs se chargent.
+  (Confidentialité et messages).
+  - [x] **Non-régression du démarrage vérifiée sur SM-A515F le 2026-09-21**
+    (APK debug +23) : avec le nouveau code UMP au démarrage, l'app démarre et
+    rend l'accueil ; **aucune** erreur `ConsentInform`/`MobileAds`/UMP ni
+    exception Flutter au logcat, **aucun** ANR enregistré côté système (dropbox
+    vide pour le paquet). Un dialogue « ne répond pas » transitoire est apparu
+    pendant les ~24 s de démarrage d'un build **debug** (JIT + crate Rust MLS +
+    chargement lourd de l'accueil) ; l'init UMP est `unawaited` en canaux
+    asynchrones et ne bloque pas le thread principal — non imputable au
+    changement, à revoir en release (démarrage bien plus rapide).
+  - [ ] **Affichage réel du formulaire (EEE)** : forcer
+    `ConsentDebugSettings(debugGeography: eea, testIdentifiers: […])`, l'app doit
+    montrer le formulaire ; hors EEE, pas de formulaire et les pubs se chargent.
+    Non couvert par cette passe (exige le message GDPR publié + une pub réelle).
 - **⬜ Clé Google Maps non restreinte — recette console prête (empreintes
   fournies le 2026-09-21).** La clé du manifeste
   (`com.google.android.geo.API_KEY`, `AIzaSyCnbdymYwzJXPA2YY1PMexCU_iGaN5tPek`,
@@ -22086,7 +22097,16 @@ Play Store, exigences Android, build release, iOS.
   `/events`, `/feed`, `/g/`, `/groups`, `/marketplace`, `/p/`, `/podcasts`,
   `/profile`. (`/p/` et `/g/` avec barre finale : `/p` seul aurait capté
   `/privacy-policy`.) XML validé.
-  - [ ] **Vérif appareil** (nécessite un build) : `adb shell pm verify-app-links
+  - [x] **Scoping vérifié sur SM-A515F le 2026-09-21** (APK debug +23) par
+    résolution d'intent — indépendant de l'auto-vérification, marche en debug :
+    `cmd package query-activities -a VIEW -c BROWSABLE -d <url>`. Les chemins de
+    contenu (`/groups/`, `/profile/`, `/events/`, `/p/`) listent bien l'app
+    comme candidate ; les pages web (`/delete-account`, `/privacy-policy`,
+    `/terms-of-service`, `/forgot-password`, `/`) **non**. Le piège `/p/` vs
+    `/privacy-policy` est confirmé évité par la barre finale.
+  - [ ] **Auto-vérification** (nécessite un build **signé release** — le
+    certificat debug n'est pas dans `assetlinks.json`, donc `verified` est
+    impossible à obtenir sur l'APK debug) : `adb shell pm verify-app-links
     --re-verify com.diasponiger.diasponiger` puis `adb shell pm get-app-links
     com.diasponiger.diasponiger` = « verified » ; taper un lien
     `https://diasponiger.com/groups/<id>` ouvre l'app, `…/delete-account` ouvre
