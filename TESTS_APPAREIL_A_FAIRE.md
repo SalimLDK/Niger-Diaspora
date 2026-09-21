@@ -22000,18 +22000,34 @@ Play Store, exigences Android, build release, iOS.
   (Confidentialité et messages). **Vérif appareil (EEE)** : forcer
   `ConsentDebugSettings(debugGeography: eea, testIdentifiers: […])`, l'app doit
   montrer le formulaire ; hors EEE, pas de formulaire et les pubs se chargent.
-- **⬜ Clé Google Maps non restreinte** — action console du propriétaire, avec
-  un piège. La clé du manifeste (`com.google.android.geo.API_KEY`,
-  `AIzaSyCnbdymYwzJXPA2YY1PMexCU_iGaN5tPek`, « No App Restrictions ») est **la
-  MÊME** que celle servie par `app-config` (`GOOGLE_MAPS_API_KEY`, usages REST
-  Dart). La restreindre « aux apps Android » **casserait** l'usage REST. Il faut
-  donc **deux clés** : (a) une clé Maps **restreinte Android** dans le manifeste
-  — restriction « Applications Android » avec `com.diasponiger.diasponiger` +
-  l'empreinte **SHA-1 du certificat de release** (`keytool -list -v -keystore
-  diaspo-niger-release.jks -alias <alias>` ; le keystore n'est pas dans le
-  worktree, à faire côté propriétaire), API restreinte à « Maps SDK for
-  Android » ; (b) une clé séparée pour le REST (restreinte par API/IP), servie
-  par `app-config`. Ne pas fusionner les deux.
+- **⬜ Clé Google Maps non restreinte — recette console prête (empreintes
+  fournies le 2026-09-21).** La clé du manifeste
+  (`com.google.android.geo.API_KEY`, `AIzaSyCnbdymYwzJXPA2YY1PMexCU_iGaN5tPek`,
+  « No App Restrictions ») est **la MÊME** que celle servie par `app-config`
+  (`GOOGLE_MAPS_API_KEY`, usages REST Dart). La restreindre « aux apps
+  Android » **casserait** le REST → **deux clés** :
+
+  **(a) Clé Maps du manifeste — restreinte Android.** Google Cloud Console →
+  cette clé (ou une nouvelle) → Application restrictions = « Android apps » →
+  ajouter le package `com.diasponiger.diasponiger` avec **les DEUX** SHA-1 :
+  - **Signature Play** (production, APK installés du Store) :
+    `5B:2F:DA:41:0A:46:14:95:CA:C0:54:27:9C:95:BD:0F:3E:BA:1C:DC`
+    (⚠️ à **confirmer** dans Play Console → Test et publication → Intégrité de
+    l'app / Signature de l'app ; déduit ici du 2ᵉ hash de `google-services.json`
+    et du 1ᵉʳ SHA-256 d'`assetlinks.json` `91:71:E2:D7:…`).
+  - **Upload / test release local** (ton keystore `diaspo-niger-release.jks`,
+    alias `diaspo-niger`) : `6C:D4:4A:2D:13:60:56:E7:FE:E0:79:D2:85:C0:89:35:C3:DE:10:D1`
+    (SHA-256 `DD:A6:5C:3E:…:CF:5D`, celui qui matche `assetlinks.json`).
+    API restrictions = « Maps SDK for Android » (+ éventuellement Maps SDK
+    associés). Mettre la valeur de cette clé dans le manifeste.
+
+  **(b) Clé REST séparée** (pour `app-config` `GOOGLE_MAPS_API_KEY`) : restreinte
+  par **API** (Geocoding / Places / …) et/ou IP si appelée côté serveur — **PAS**
+  « Android apps ». Ne jamais fusionner (a) et (b).
+
+  Les empreintes ci-dessus sont publiques (déjà dans `assetlinks.json` et
+  `google-services.json`) ; extraites via
+  `keytool -list -v -keystore diaspo-niger-release.jks -alias diaspo-niger`.
 
 ### ⬜ iOS — non traitable en aveugle sous Windows (Mac/Xcode requis)
 - **Entitlements non référencés** : `ios/Runner/Runner.entitlements` existe mais
