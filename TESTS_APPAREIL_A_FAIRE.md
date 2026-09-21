@@ -21985,13 +21985,20 @@ Play Store, exigences Android, build release, iOS.
     position (centrage) vient de l'appareil, pas de la valeur arrondie.
 
 ### ⬜ Exige une valeur ou une décision du propriétaire
-- **Repli Stripe silencieux** (`app_config.dart:99`) : en production sans
+- **Repli Stripe silencieux** (`app_config.dart:99`) — mesuré le 2026-09-21,
+  enjeu plus faible que craint. En production sans
   `--dart-define=STRIPE_PUBLISHABLE_KEY`, l'app retombe en silence sur la clé
-  `pk_test` codée en dur. Entremêlé avec `isProduction`
-  (`bool.fromEnvironment('PRODUCTION')`) : vérifier d'abord que le build release
-  passe bien `PRODUCTION=true`. Paiement entièrement fermé aujourd'hui, donc
-  sans effet vivant — à corriger avant toute réouverture (faire échouer
-  franchement en prod plutôt que servir la clé de test).
+  `pk_test` codée en dur, via le drapeau `isProduction`
+  (`bool.fromEnvironment('PRODUCTION')`). Or **`isProduction` n'est posé nulle
+  part** (absent du `.env`, aucun `--dart-define` dans un script de build,
+  aucune injection gradle) : en release il vaut donc `false`. **Blast radius
+  minuscule** : les 5 usages de `isProduction` sont tous dans `app_config.dart`
+  (choix de la clé Stripe + libellé « environment » d'un dump de debug) et un
+  commentaire de `stripe_service.dart` — rien de critique. Le paiement est
+  fermé, donc sans effet vivant. À traiter **avec la réouverture du paiement** :
+  soit poser `PRODUCTION=true` au build release, soit découpler la sécurité de
+  ce drapeau (refuser la clé de test en `kReleaseMode`, fiable lui). Pas urgent
+  seul.
 - **✅ Consentement UMP (RGPD) CÂBLÉ le 2026-09-21** (commit `29d37b2`) :
   `tracking_consent_service.dart` recueille l'UMP (`requestConsentInfoUpdate` +
   `loadAndShowConsentFormIfRequired`) avant l'ATT, et n'initialise AdMob que si
@@ -22056,8 +22063,14 @@ Play Store, exigences Android, build release, iOS.
     com.diasponiger.diasponiger` = « verified » ; taper un lien
     `https://diasponiger.com/groups/<id>` ouvre l'app, `…/delete-account` ouvre
     le NAVIGATEUR.
-- **Version** : `pubspec.yaml` = `1.2.1+23`. Aligner avec le secret
-  `DERNIERE_VERSION_APP` servi par `app-config`, et avec le build publié.
+- **Version** (mesuré 2026-09-21) : `pubspec.yaml` = `1.2.1+23`, mais
+  `app-config` annonce `DERNIERE_VERSION_APP = 1.2.1+19` — la version en cours
+  est donc **en avance** sur celle annoncée comme la plus récente. Sans effet
+  gênant aujourd'hui (l'app ne se propose pas une mise à jour vers une version
+  plus ancienne), mais **à la publication d'un build il faut poser
+  `DERNIERE_VERSION_APP` à sa vraie version** (`supabase secrets set …`) ; et
+  c'est le préalable au verrou 1.1b (`VERSION_MINIMALE_APP` doit être ≤
+  `DERNIERE_VERSION_APP` pour bloquer).
 
 ---
 
