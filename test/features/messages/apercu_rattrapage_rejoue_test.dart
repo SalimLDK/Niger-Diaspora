@@ -87,10 +87,13 @@ class _Cache implements CacheService {
 }
 
 class _Passerelle implements MlsGateway {
-  _Passerelle(this.fil);
+  _Passerelle(this.fil, {this.lenteur = Duration.zero});
 
   /// Ce que le déchiffrement rendrait. Vide = rien à rattraper.
   final List<MessageEntity> fil;
+
+  /// Durée d'un déchiffrement (réseau + MLS).
+  final Duration lenteur;
   int appelsMessages = 0;
 
   @override
@@ -116,6 +119,7 @@ class _Passerelle implements MlsGateway {
   @override
   Future<List<MessageEntity>> messages(String conversationId) async {
     appelsMessages++;
+    if (lenteur > Duration.zero) await Future<void>.delayed(lenteur);
     return fil;
   }
 
@@ -250,8 +254,15 @@ void main() {
   });
 
   group('la liste rejoue après le rattrapage', () {
-    test('le texte déchiffré arrive sans rien toucher', () async {
-      final passerelle = _Passerelle([_message('Bonjour')]);
+    test('la tuile sort directement avec son texte, sans passer par '
+        '« Message chiffré »', () async {
+      // 2026-09-21, SM A515F : la liste émettait avant de déchiffrer, et la
+      // tuile d'un message reçu affichait « Message chiffré » ~2 s. Elle
+      // attend désormais le déchiffrement (borné).
+      final passerelle = _Passerelle(
+        [_message('Bonjour')],
+        lenteur: const Duration(milliseconds: 100),
+      );
       final depot = MessageRepositoryImpl(
         remoteDataSource: _Source(),
         networkInfo: _Reseau(),
@@ -261,21 +272,34 @@ void main() {
 
       final vus = await _apercusEmis(depot);
 
-      expect(
-        vus.length,
-        greaterThanOrEqualTo(2),
-        reason: 'la liste doit rejouer une fois le fil déchiffré',
+      expect(vus, ['Bonjour'],
+          reason: 'une seule émission, déjà déchiffrée — pas de rejeu en '
+              'double');
+      expect(passerelle.appelsMessages, 1);
+    });
+
+    test('un déchiffrement trop lent ne fige pas la liste : elle sort, '
+        'puis rejoue', () async {
+      final passerelle = _Passerelle(
+        [_message('Bonjour')],
+        lenteur: const Duration(milliseconds: 300),
       );
-      expect(
-        vus.first,
-        isEmpty,
-        reason: 'la première émission précède le déchiffrement',
+      final depot = MessageRepositoryImpl(
+        remoteDataSource: _Source(),
+        networkInfo: _Reseau(),
+        cacheService: _Cache(),
+        mlsGateway: passerelle,
+      )..attenteDechiffrementMax = const Duration(milliseconds: 100);
+
+      final vus = await _apercusEmis(
+        depot,
+        pendant: const Duration(milliseconds: 600),
       );
-      expect(
-        vus.last,
-        'Bonjour',
-        reason: 'sans le rejeu, la tuile reste sur « Message chiffré »',
-      );
+
+      expect(vus.first, isEmpty,
+          reason: 'au-delà de l\'attente, la liste sort sans le texte');
+      expect(vus.last, 'Bonjour',
+          reason: 'la passe abandonnée doit quand même faire rejouer');
       expect(passerelle.appelsMessages, 1);
     });
 

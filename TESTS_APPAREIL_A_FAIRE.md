@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1561 cases à cocher, 653 cochées** — 303 entrées sur 354 ont encore des cases ouvertes.
+**1562 cases à cocher, 653 cochées** — 303 entrées sur 354 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -108,7 +108,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [⬜ Verrou de version minimale et multi-appareil (2026-09-15)](#-verrou-de-version-minimale-et-multi-appareil-2026-09-15) · *Comptes, session et onboarding*
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
-- 3 · [⬜ Les premiers messages reçus restent « Message chiffré » dans la liste (2026-09-21)](#-les-premiers-messages-reçus-restent--message-chiffré--dans-la-liste-2026-09-21) · *Messagerie*
+- 4 · [⬜ Les premiers messages reçus restent « Message chiffré » dans la liste (2026-09-21)](#-les-premiers-messages-reçus-restent--message-chiffré--dans-la-liste-2026-09-21) · *Messagerie*
 - 7 · [⬜ Ouvrir une discussion lit ce qui est à l'écran, tout de suite (2026-09-16)](#-ouvrir-une-discussion-lit-ce-qui-est-à-lécran-tout-de-suite-2026-09-16) · *Messagerie*
 - 6 · [⬜ Lecture par curseur dans les discussions en clair (2026-09-16)](#-lecture-par-curseur-dans-les-discussions-en-clair-2026-09-16) · *Messagerie*
 - 5 · [⬜ « Message chiffré » qui ne s'en va pas dans la liste (2026-09-16)](#--message-chiffré--qui-ne-sen-va-pas-dans-la-liste-2026-09-16) · *Messagerie*
@@ -361,7 +361,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 341 à faire, 126 faites
+- [2. Messagerie](#2-messagerie) — 342 à faire, 126 faites
 - [3. Groupes](#3-groupes) — 149 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 147 à faire, 42 faites
 - [5. Appels](#5-appels) — 26 à faire, 8 faites
@@ -647,6 +647,11 @@ sur appareil :
       restent pas sur « Message chiffré ».
 - [ ] **Hors ligne** : pas de boucle de rattrapage (une reprise au plus par
       plancher).
+- [ ] **La tuile remonte directement avec son texte** (`attenteDechiffrementMax`,
+      3 s) : un message reçu liste à l'écran ne passe plus par « Message
+      chiffré ». Vu le 2026-09-21 sur SM A515F (+26) : « Yo » restait ~2 s en
+      « Message chiffré » avant ce changement. Réseau lent : la liste ne doit
+      pas rester figée plus de ~3 s.
 
 ---
 

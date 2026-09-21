@@ -247,10 +247,25 @@ class MessageRepositoryImpl implements MessageRepository {
     // deux visites — et il faut attendre réseau + déchiffrement pour les voir
     // apparaître. Mesuré le 2026-09-15 sur Pixel 10 Pro XL : 2,5 à 3 secondes.
     //
-    // Sans `await` : la liste ne doit pas attendre ça pour s'afficher. Borné
-    // aux trois conversations les plus récentes qui en ont besoin, et espacé
-    // de 20 s — c'est un confort, pas une synchronisation.
-    unawaited(_rattraperMlsEnArrierePlan(passerelle, avecApercu));
+    // **Attendu, mais borné.** La liste émettait d'abord, puis déchiffrait :
+    // un message reçu liste à l'écran faisait remonter sa tuile sur
+    // « Message chiffré », remplacé ~2 s plus tard par le texte — vu sur
+    // SM A515F le 2026-09-21. Attendre la passe fait remonter la tuile
+    // directement avec son texte. Au-delà de [attenteDechiffrementMax], la
+    // liste sort quand même : un réseau lent ou un fil qui refuse de se
+    // déchiffrer ne doit jamais la figer. La passe continue alors seule et
+    // la fait rejouer une fois finie, comme avant.
+    //
+    // Ne coûte rien quand il n'y a rien à déchiffrer : la passe rend la main
+    // tout de suite (rien de neuf, ou plancher entre deux passes).
+    final attente = _AttenteRattrapage();
+    try {
+      await _rattraperMlsEnArrierePlan(passerelle, avecApercu, attente: attente)
+          .timeout(attenteDechiffrementMax);
+      avecApercu = [for (final c in avecApercu) _apercuDepuisLeCache(c)];
+    } on TimeoutException {
+      attente.abandonnee = true;
+    }
 
     try {
       final compteurs = await passerelle.nonLus();
@@ -906,6 +921,11 @@ class MessageRepositoryImpl implements MessageRepository {
   @visibleForTesting
   Duration espacementRattrapage = const Duration(seconds: 5);
 
+  /// Combien la liste attend le déchiffrement avant d'émettre sans lui. Un
+  /// déchiffrement normal prend ~2 s (réseau + MLS, mesuré le 2026-09-21).
+  @visibleForTesting
+  Duration attenteDechiffrementMax = const Duration(seconds: 3);
+
   /// La reprise programmée à la fin du plancher, s'il en faut une. Une seule
   /// à la fois : elle repart de la dernière liste reçue, pas de celle qui l'a
   /// demandée, puisque d'autres messages ont pu arriver entre-temps.
@@ -961,10 +981,16 @@ class MessageRepositoryImpl implements MessageRepository {
   /// gagner que la moitié du temps.
   ///
   /// Ne lève jamais : un rattrapage raté coûte l'attente qu'on avait avant.
+  ///
+  /// [attente] : la liste qui attend cette passe (voir `_completerAvecMls`).
+  /// Tant qu'elle ne l'a pas abandonnée, c'est elle qui relit le cache — la
+  /// faire rejouer en plus émettrait deux fois la même chose. Nulle pour une
+  /// passe reportée, que personne n'attend.
   Future<void> _rattraperMlsEnArrierePlan(
     MlsGateway passerelle,
-    List<ConversationEntity> conversations,
-  ) async {
+    List<ConversationEntity> conversations, {
+    _AttenteRattrapage? attente,
+  }) async {
     // Ce qui reste à montrer : les conversations sans aperçu, avec la date du
     // message qu'on n'arrive pas à afficher.
     final candidats = {
@@ -1031,7 +1057,10 @@ class MessageRepositoryImpl implements MessageRepository {
 
     // Hors du `try`, et c'est tout l'objet du passage : sans ce signal, le
     // clair est en cache et la tuile continue d'afficher « Message chiffré ».
-    if (dechiffre && !_rattrapageFini.isClosed) _rattrapageFini.add(null);
+    final dejaRelu = attente != null && !attente.abandonnee;
+    if (dechiffre && !dejaRelu && !_rattrapageFini.isClosed) {
+      _rattrapageFini.add(null);
+    }
   }
 
   /// La passerelle si **ce message-là** est un message MLS.
@@ -2719,4 +2748,10 @@ StreamTransformer<Either<Failure, T>, Either<Failure, T>> _echecEmis<T>() {
       sink.add(Left<Failure, T>(ServerFailure(erreur.toString())));
     },
   );
+}
+
+/// Une liste qui attend une passe de rattrapage, et si elle a cessé
+/// d'attendre. Voir `MessageRepositoryImpl._completerAvecMls`.
+class _AttenteRattrapage {
+  bool abandonnee = false;
 }
