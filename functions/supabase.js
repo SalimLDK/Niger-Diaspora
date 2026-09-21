@@ -329,6 +329,40 @@ async function setFriendship(userId, friendId, present) {
 }
 
 /**
+ * L'amitié `user_id -> friend_id` existe-t-elle déjà dans `public.friends` ?
+ *
+ * Sert de **preuve de consentement**, et n'en est une que depuis la migration
+ * 20260921021300 : cette table n'est plus inscriptible par `anon` ni par
+ * `authenticated`, donc une ligne ne peut y être arrivée que par la clé de
+ * service — c'est-à-dire par `onFriendRequestAccepted`, après une demande
+ * réellement acceptée par son destinataire.
+ *
+ * Une erreur réseau rend `false` : on ne mire pas dans le doute. Le coût d'un
+ * faux négatif est une audience non accordée, réparée à la prochaine écriture ;
+ * celui d'un faux positif serait une amitié forcée.
+ *
+ * @param {string} userId
+ * @param {string} friendId
+ * @returns {Promise<boolean>}
+ */
+async function friendshipExists(userId, friendId) {
+  if (!isConfigured() || !userId || !friendId) return false;
+
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/friends?select=user_id` +
+      `&user_id=eq.${encodeURIComponent(userId)}` +
+      `&friend_id=eq.${encodeURIComponent(friendId)}&limit=1`,
+    { headers: authHeaders() },
+  );
+  if (!res.ok) {
+    console.error(`Supabase friends SELECT ${res.status}: ${await res.text()}`);
+    return false;
+  }
+  const rows = await res.json();
+  return Array.isArray(rows) && rows.length > 0;
+}
+
+/**
  * Comptes dont le délai de suppression est échu, ou dont la purge est restée en
  * route depuis plus de 30 minutes (migration 20260918224100).
  *
@@ -389,6 +423,7 @@ module.exports = {
   claimDueAccountDeletions,
   completeAccountDeletion,
   setFriendship,
+  friendshipExists,
   getFcmTokens,
   removeFcmTokens,
   getConversation,

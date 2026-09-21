@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1504 cases à cocher, 650 cochées** — 288 entrées sur 337 ont encore des cases ouvertes.
+**1506 cases à cocher, 650 cochées** — 288 entrées sur 337 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -182,7 +182,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 19 · [Refonte Fil & Discussion — Priorité haute — gestes, minuteurs, permissions (le plus susceptible de casser)](#refonte-fil--discussion--priorité-haute--gestes-minuteurs-permissions-le-plus-susceptible-de-casser) · *Fil, stories, salons audio et podcasts*
 - 5 · [⬜ Événement supprimé : il disparaît partout (2026-09-12)](#-événement-supprimé--il-disparaît-partout-2026-09-12) · *Ambassades, démarches, carte, entreprises et événements*
 - 13 · [Quatrième vague — écrans repris en production (2026-08-03)](#quatrième-vague--écrans-repris-en-production-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
-- 3 · [⬜ `public.friends` : le serveur seul écrit l'audience (2026-09-21)](#-publicfriends--le-serveur-seul-écrit-laudience-2026-09-21) · *Backend, sécurité et observabilité*
+- 5 · [⬜ `public.friends` : le serveur seul écrit l'audience (2026-09-21)](#-publicfriends--le-serveur-seul-écrit-laudience-2026-09-21) · *Backend, sécurité et observabilité*
 - 5 · [⬜ Configuration distante `app-config` (2026-08-27)](#-configuration-distante-app-config-2026-08-27) · *Backend, sécurité et observabilité*
 - 5 · [⬜ Notice « une nouvelle version est disponible » (2026-09-14)](#-notice--une-nouvelle-version-est-disponible--2026-09-14) · *Publication et plateformes*
 - 3 · [⬜ Deux bibliothèques natives réalignées sur 16 Ko (2026-09-08)](#-deux-bibliothèques-natives-réalignées-sur-16-ko-2026-09-08) · *Publication et plateformes*
@@ -357,7 +357,7 @@ Par domaine :
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 65 à faire, 51 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 67 à faire, 34 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 153 à faire, 32 faites
-- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 69 à faire, 45 faites
+- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 71 à faire, 45 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 41 à faire, 28 faites
 - [15. Site web](#15-site-web) — 32 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 32 à faire, 46 faites
@@ -19506,7 +19506,36 @@ droit était là.
 (`feed_supabase_datasource.dart:310`, `feed_personalization_provider.dart:51`).
 Les amitiés sont écrites par `setFriendship` avec la clé de service.
 
-**⚠️ Ce que ça ne ferme PAS — le vrai trou reste ouvert.** La règle Firestore
+**Le vrai trou : corrigé dans le dépôt, NON DÉPLOYÉ.** Deux déclencheurs de
+`functions/index.js`, à envoyer par `firebase deploy --only
+functions:onFriendRequestAccepted,functions:mirrorFriendToSupabase` :
+
+- `onFriendRequestAccepted` (nouveau) écrit les deux sens dans
+  `public.friends` à la transition `pending → accepted`. C'est désormais le
+  seul chemin d'entrée. Il marche avec **toutes les versions de l'app déjà
+  installées** : cette mise à jour n'a pas changé côté client.
+- `mirrorFriendToSupabase` reflète toujours un retrait, mais ne reflète un
+  ajout que si le sens inverse existe déjà. Depuis la migration ci-dessus,
+  une ligne n'a pu y arriver que par la clé de service : l'existence du sens
+  inverse est donc une preuve de consentement.
+
+Banc `tools/rules_tests/amitie_consentie.mjs`, 11 cas, 0 échec — la sonde
+contre la production en lecture seule, la décision des déclencheurs avec
+Supabase bouchonné (rien ne sort de la machine). Garde retirée : B3 tombe,
+donc le banc sait échouer.
+
+⚠️ **Tant que ce n'est pas déployé**, l'ancien miroir tourne et l'amitié
+forcée reste possible. Après déploiement, surveiller dans les journaux
+`mirrorFriendToSupabase: ajout … ignoré` : un seul, sur un parcours normal,
+signalerait un chemin d'acceptation que je n'ai pas vu.
+
+- [ ] **Accepter une demande d'ami** après déploiement : l'ami apparaît des
+  deux côtés, et le journal ne porte aucun « ajout … ignoré ».
+- [ ] **Auto-acceptation croisée** (deux personnes s'envoient une demande
+  l'une à l'autre) : `sendFriendRequest` accepte la demande inverse — même
+  transition, donc même déclencheur, à confirmer en vrai.
+
+**⚠️ Ce que la migration seule ne fermait PAS.** La règle Firestore
 `users/{userId}/friends/{friendId}` autorise l'écriture dès que
 `friendId == request.auth.uid` : n'importe qui peut s'inscrire dans la liste
 d'amis d'autrui, et `mirrorFriendToSupabase` recopie la ligne dans

@@ -16,6 +16,7 @@ const {
   createNotification,
   getLocalEventRecipients,
   setFriendship,
+  friendshipExists,
   claimDueAccountDeletions,
   completeAccountDeletion,
   isConfigured: isSupabaseConfigured,
@@ -2543,22 +2544,104 @@ exports.onOrderUpdated = functions.firestore
 const LOCAL_EVENT_RADIUS_KM = 50;
 
 /**
+ * Une demande d'ami acceptée ouvre l'audience, dans les deux sens.
+ *
+ * C'est le SEUL chemin par lequel une amitié entre dans `public.friends`.
+ * Il s'appuie sur la transition `pending → accepted`, que seules les règles
+ * laissent faire au destinataire de la demande (`firestore.rules`,
+ * `match /friend_requests/{requestId}`), et que l'expéditeur ne peut pas
+ * fabriquer puisque la création exige `senderId == request.auth.uid`.
+ *
+ * **Pourquoi ici et pas dans le miroir.** Le client supprime la demande juste
+ * après l'avoir acceptée (`_oublierDemande`, `friend_remote_datasource.dart`).
+ * Le document a donc disparu quelques centaines de millisecondes plus tard :
+ * aucune garde placée ailleurs ne peut plus vérifier le consentement. Un
+ * déclencheur sur la mise à jour, lui, reçoit l'événement avec ses données,
+ * que le document survive ou non — et il marche avec toutes les versions de
+ * l'app déjà installées, puisque cette mise à jour n'a pas changé.
+ */
+exports.onFriendRequestAccepted = functions.firestore
+    .document("friend_requests/{requestId}")
+    .onUpdate(async (change, context) => {
+        const avant = change.before.data() || {};
+        const apres = change.after.data() || {};
+
+        if (avant.status !== "pending" || apres.status !== "accepted") {
+            return null;
+        }
+
+        const senderId = apres.senderId;
+        const receiverId = apres.receiverId;
+        if (!senderId || !receiverId || senderId === receiverId) {
+            console.error(
+                `onFriendRequestAccepted: ${context.params.requestId} ` +
+                "sans expéditeur ni destinataire exploitables",
+            );
+            return null;
+        }
+
+        // Les deux sens, indépendamment : `est_ami_de(auteur, lecteur)` ne lit
+        // que `user_id = auteur`, donc une seule ligne n'ouvrirait l'audience
+        // que d'un côté. Un échec est signalé sans emporter l'autre écriture.
+        const resultats = await Promise.all([
+            setFriendship(senderId, receiverId, true),
+            setFriendship(receiverId, senderId, true),
+        ]);
+        if (resultats.some((ok) => !ok)) {
+            console.error(
+                `onFriendRequestAccepted: ${senderId} <-> ${receiverId} ` +
+                `partiellement reflété (${resultats.join(", ")})`,
+            );
+        }
+        return null;
+    });
+
+/**
  * Miroir des amitiés Firestore vers `public.friends` (Supabase).
  *
  * L'audience « Amis » des publications et des stories est tranchée par la
  * base (`peut_voir_publication` / `peut_voir_story`), qui ne lit pas
- * Firestore. Chaque document `users/{userId}/friends/{friendId}` créé ou
- * supprimé est reflété tel quel — une ligne par sens, comme dans Firestore.
- * La reprise des amitiés existantes est faite par la migration
+ * Firestore. La reprise des amitiés existantes est faite par la migration
  * 20260912230000_audience_publications_et_stories.sql.
+ *
+ * **Ce miroir n'ouvre plus d'audience de lui-même.** La règle
+ * `users/{userId}/friends/{friendId}` autorise l'écriture dès que
+ * `friendId == request.auth.uid` — c'est ce qui permet au destinataire d'une
+ * demande d'écrire dans la liste de l'expéditeur au moment de l'acceptation,
+ * et c'est aussi ce qui permettait à n'importe qui de s'inscrire dans la liste
+ * d'amis d'autrui. Le miroir recopiait la ligne telle quelle, avec la clé de
+ * service, dans le sens qui donne accès : une amitié forcée, donc la lecture
+ * des publications et stories « Amis » de la victime. Les règles ne savent pas
+ * faire de requête, elles ne peuvent pas trancher ; c'est ici que ça se joue.
+ *
+ * Deux régimes depuis :
+ *
+ * - **Retrait** : toujours reflété. Fermer une audience ne peut pas être une
+ *   escalade, et `removeFriend` supprime bien les deux sens.
+ * - **Ajout** : reflété seulement si le sens inverse existe DÉJÀ dans
+ *   `public.friends`. Depuis la migration 20260921021300, cette table n'est
+ *   plus inscriptible par un client : une ligne n'a donc pu y arriver que par
+ *   `onFriendRequestAccepted`. Le miroir ne sert plus qu'à rattraper une
+ *   amitié à moitié écrite, jamais à en créer une.
+ *
+ * L'ordre des deux déclencheurs n'a pas d'importance : ils naissent du même
+ * lot. Si le miroir passe le premier, il refuse l'ajout, et
+ * `onFriendRequestAccepted` écrit les deux lignes juste après.
  */
 exports.mirrorFriendToSupabase = functions.firestore
     .document("users/{userId}/friends/{friendId}")
     .onWrite(async (change, context) => {
         const { userId, friendId } = context.params;
         const present = change.after.exists;
-        // Une mise à jour ré-écrit aussi la ligne (upsert idempotent) : un
-        // miroir manqué une fois se répare à la prochaine écriture.
+
+        if (present && !(await friendshipExists(friendId, userId))) {
+            console.warn(
+                `mirrorFriendToSupabase: ajout ${userId} -> ${friendId} ` +
+                "ignoré — aucune demande acceptée ne l'adosse",
+            );
+            return null;
+        }
+
         const ok = await setFriendship(userId, friendId, present);
         if (!ok) {
             console.error(

@@ -46,6 +46,17 @@ le diagnostic ment complètement :
 Après `flutter pub get` : « No issues found ». Aucune de ces 23 erreurs
 n'existait.
 
+**Même piège pour Node, et il ment autant** : faire `cd functions && npm
+install` dans le worktree avant d'y lancer un banc ou un lint qui charge
+`functions/index.js`. Sans `functions/node_modules` à lui, Node remonte
+l'arborescence — le worktree vit **dans** le dépôt principal — et charge le
+`firebase-functions` de la **racine** du dépôt principal (v7, API v2) au lieu
+du 4.9 déclaré par `functions/package.json` (API v1). Constaté le 2026-09-21 :
+l'erreur tombe sur `functions.firestore.document is not a function`, à la
+ligne 366, dans un fichier qu'on n'a pas touché — rien n'indique que c'est une
+histoire de résolution de modules. `node -p "require.resolve('firebase-functions')"`
+donne la réponse en une ligne : le chemin rendu n'est pas celui du worktree.
+
 `supabase/.temp/` porte le lien vers le projet distant (ignoré par git,
 `.gitignore:80`). Sans lui, toute commande `--linked` — `db query`, `db push`,
 `migration list` — échoue sur « Cannot find project ref. Have you run supabase
