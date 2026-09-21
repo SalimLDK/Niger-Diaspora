@@ -19581,7 +19581,17 @@ La table est saine : 24 lignes, 12 paires toutes symétriques.
 
 **Priorité P1** · importance 4/5 — Douze collections Firestore déclenchent une Cloud Function qui bouge de l'argent en Admin SDK : créer le document, c'est ordonner le virement. Les règles laissaient n'importe qui le créer. Rien de tout cela n'a jamais servi — à rouvrir délibérément le jour où les paiements s'ouvrent.
 
-`firestore.rules` — **NON DÉPLOYÉ** à l'écriture de cette entrée.
+`firestore.rules` — **DÉPLOYÉ le 2026-09-21**, relu par l'API
+`firebaserules` : la production est identique au dépôt, hors commentaires, et
+porte 13 `allow create: if false`.
+
+**Trois Edge Functions supprimées** le même jour, du déploiement et du dépôt :
+`create-payment-intent` (les métadonnées du client écrasaient `transaction_id`
+et `user_id`), `verify-order-payment` (elle acceptait n'importe quel
+PaymentIntent réussi) et `process-escrow-release` (elle virait sur une
+commande fabriquée). **Aucune n'a jamais été référencée par `lib/` dans tout
+l'historique git** — aucun APK ne peut les appeler. La source reste dans
+l'historique si elles doivent revenir. Il reste 14 Edge Functions.
 
 `escrow_transactions`, `tips`, `roomTickets`, `roomReplays`,
 `creatorSubscriptions`, `creatorProfiles`, `payouts`,
