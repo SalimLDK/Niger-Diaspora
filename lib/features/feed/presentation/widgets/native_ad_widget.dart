@@ -28,6 +28,14 @@ class _NativeAdWidgetState extends State<NativeAdWidget> {
   }
 
   void _loadAd() {
+    // RGPD : sans consentement suffisant (UMP), on NE demande PAS d'annonce —
+    // le fil affiche sa carte interne. Demander à AdMob dans ce cas serait à la
+    // fois non conforme et voué à l'échec (SDK non initialisé).
+    if (!TrackingConsentService.instance.canRequestAds) {
+      _failed = true;
+      return;
+    }
+
     final ad = NativeAd(
       adUnitId: AdConfig.nativeAdUnitId,
       // Sans consentement ATT explicite (iOS) on demande des annonces non

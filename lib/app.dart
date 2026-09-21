@@ -41,9 +41,9 @@ class _NigerDiasporaAppState extends ConsumerState<NigerDiasporaApp> {
     SchedulerBinding.instance.addPostFrameCallback((_) {
       _setupNotificationCallback();
       _setupE2EEDecryptionCallback();
-      // ATT (iOS) + démarrage d'AdMob. Après la première frame : Apple exige
-      // que l'app soit visible pour présenter la boîte de dialogue de suivi,
-      // sinon elle est ignorée en silence.
+      // Consentement pub (UMP/RGPD puis ATT iOS) + démarrage d'AdMob. Après la
+      // première frame : le formulaire UMP comme le prompt ATT exigent une app
+      // visible, sinon ils sont ignorés en silence.
       unawaited(TrackingConsentService.instance.initialize());
     });
   }
