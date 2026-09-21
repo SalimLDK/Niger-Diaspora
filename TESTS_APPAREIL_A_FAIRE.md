@@ -21279,8 +21279,9 @@ Play Store, exigences Android, build release, iOS.
 
 **Priorité P1** · importance 4/5 — Sept chemins Storage n'avaient aucun propriétaire, et `write` couvrait la réécriture : l'URL d'un média livrant son chemin, tout compte connecté pouvait remplacer la photo d'un commerce, l'image d'une publication ou le média d'une conversation. Reste à voir qu'un envoi réel passe toujours.
 
-`storage.rules` — **NON DÉPLOYÉ** à l'écriture de cette entrée
-(`firebase deploy --only storage`). Trois changements :
+`storage.rules` — **DÉPLOYÉ le 2026-09-21** (`firebase deploy --only
+storage`, ruleset `22df22d8`). Relu par l'API `firebaserules` juste après :
+la production est identique au dépôt, hors commentaires. Trois changements :
 
 - `messages`, `groups`, `events`, `products`, `businesses`, `posts`,
   `stories` exigent désormais un chemin LIBRE (`resource == null`). Aucun
