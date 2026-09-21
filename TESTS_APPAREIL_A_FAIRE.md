@@ -39,11 +39,11 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1517 cases à cocher, 650 cochées** — 292 entrées sur 341 ont encore des cases ouvertes.
+**1520 cases à cocher, 650 cochées** — 293 entrées sur 342 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
-**P0 — avant toute nouvelle version** (48)
+**P0 — avant toute nouvelle version** (49)
 
 - 7 · [⬜ Droits d'écriture sur `messages` resserrés : accusés et modification (2026-09-16)](#-droits-décriture-sur-messages-resserrés--accusés-et-modification-2026-09-16) · *Messagerie*
 - 8 · [⬜ Accusé « lu » mensonger, et aperçu chiffré qui ne venait jamais (2026-09-15)](#-accusé--lu--mensonger-et-aperçu-chiffré-qui-ne-venait-jamais-2026-09-15) · *Messagerie*
@@ -84,6 +84,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [⚠️ La légende d'une photo/vidéo part EN CLAIR (2026-09-09, non corrigé)](#-la-légende-dune-photovidéo-part-en-clair-2026-09-09-non-corrigé) · *Chiffrement de bout en bout et clés* · bloqué
 - 6 · [⬜ Clés de repli dérivées, servies par `crypto-keys` (2026-09-06)](#-clés-de-repli-dérivées-servies-par-crypto-keys-2026-09-06) · *Chiffrement de bout en bout et clés*
 - 5 · [⬜ 🔴 Modifier son profil réactivait ce qu'on avait coupé (2026-09-18)](#--modifier-son-profil-réactivait-ce-quon-avait-coupé-2026-09-18) · *Accueil, profil et réglages*
+- 3 · [⬜ Push arbitraire : type en liste fermée, blocage, quota (2026-09-21)](#-push-arbitraire--type-en-liste-fermée-blocage-quota-2026-09-21) · *Backend, sécurité et observabilité*
 - 1 · [⛔ Un groupe dont on est le seul membre refuse TOUS les messages (2026-09-09)](#-un-groupe-dont-on-est-le-seul-membre-refuse-tous-les-messages-2026-09-09) · *Groupes*
 - 2 · [E2EE réparé : la clé de signature est publiée avec le bundle (2026-08-23)](#e2ee-réparé--la-clé-de-signature-est-publiée-avec-le-bundle-2026-08-23) · *Chiffrement de bout en bout et clés* · bloqué
 - 5 · [🔴 Appels 1-à-1 mis en PAUSE (2026-08-14) — répondre à un appel ne faisait rigoureusement rien](#-appels-1-à-1-mis-en-pause-2026-08-14--répondre-à-un-appel-ne-faisait-rigoureusement-rien) · *Appels*
@@ -361,7 +362,7 @@ Par domaine :
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 65 à faire, 51 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 67 à faire, 34 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 153 à faire, 32 faites
-- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 71 à faire, 45 faites
+- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 74 à faire, 45 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 52 à faire, 28 faites
 - [15. Site web](#15-site-web) — 32 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 32 à faire, 46 faites
@@ -19574,6 +19575,50 @@ La table est saine : 24 lignes, 12 paires toutes symétriques.
   côtés, et la publication « Amis » de l'un devient visible à l'autre (créer
   une publication à cette audience pour le vérifier — il n'en existe aucune).
 - [ ] **Retirer un ami** : l'audience se referme des deux côtés.
+
+## ⬜ Push arbitraire : type en liste fermée, blocage, quota (2026-09-21)
+
+**Priorité P0** · importance 4/5 — N'importe quel compte connecté pouvait faire arriver sur le téléphone de n'importe qui une bannière de son cru, sous le type de son choix — `system` compris. Reste à voir que les notifications légitimes arrivent toujours.
+
+Migration `20260921032400_notification_type_ferme_et_quota.sql` — **NON
+APPLIQUÉE** à l'écriture de cette entrée.
+
+`create_user_notification` n'exigeait que deux choses : être connecté, et que
+le destinataire existe. `p_type`, `p_title`, `p_body` étaient libres, et le
+destinataire quelconque. Or `notifications` porte `trg_notify_push`, qui
+envoie un vrai push à l'insertion.
+
+Trois gardes :
+
+1. **Type en liste fermée** — les douze que `lib/` émet vraiment. `system`,
+   `message`, `messageMention` et les types de groupe viennent de
+   déclencheurs serveur qui écrivent directement dans `notifications` : ils ne
+   passent pas par cette RPC et ne sont pas concernés. Vérifié en base : les
+   types hors liste n'ont aucun `actor_id`, signature d'une écriture serveur.
+2. **Le blocage est respecté**, en silence — une erreur apprendrait à
+   l'appelant qu'il est bloqué.
+3. **Quota horaire** : 60 par émetteur, 10 par couple émetteur/destinataire.
+
+Banc `tools/rls_tests/notification_type_et_quota.sql`, 14 cas, contre la
+production en `BEGIN … ROLLBACK` : 7 échecs sans la migration, 0 avec.
+Il mesure aussi les **81 envois** que le `ROLLBACK` annule — `net.http_post`
+passe par la file transactionnelle de pg_net, donc aucun push ne part.
+
+⚠️ **Ce qui reste ouvert** : `p_title` et `p_body` demeurent du texte libre.
+Un compte peut donc encore écrire ce qu'il veut dans une bannière — sous un
+type légitime, vers quelqu'un qui ne l'a pas bloqué, et dans la limite du
+quota. La vraie fermeture serait de dériver le texte du type et du nom de
+l'émetteur côté serveur : les textes sont déjà des chaînes françaises en dur
+dans `lib/` (ex. `friend_repository_impl.dart:37`), donc rien ne serait perdu,
+mais ça touche douze sites d'appel.
+
+- [ ] **Demande d'ami, acceptation, commentaire, inscription à un
+  événement** : la notification arrive toujours chez le destinataire. C'est
+  le test qui compte — un type oublié dans la liste fermée ferait échouer la
+  RPC, et l'appelant **avale l'erreur** (`catch` qui n'interrompt rien).
+- [ ] **Bloquer quelqu'un, puis se faire notifier par lui** : rien n'arrive.
+- [ ] **Surveiller le journal** : `type … non autorisé` sur un parcours
+  normal désigne un type manquant dans la liste.
 
 ## ⬜ `users` n'est plus lisible sans compte (2026-09-20)
 
