@@ -7,6 +7,7 @@ const admin = require("firebase-admin");
 const { GoogleAuth } = require("google-auth-library");
 const { decryptText } = require("./encryption");
 const { cheminStorageSur } = require("./chemins_storage");
+const { peutSupprimerConversationPourTous } = require("./autorisations");
 const partners = require("./partners");
 // Tokens/profils/conversations : lus dans Supabase, PAS dans Firestore.
 const {
@@ -4930,30 +4931,35 @@ exports.deleteConversationForEveryone = functions.https.onCall(async (data, cont
     }
 
     try {
-        // Recuperer la conversation
+        // L'autorisation se lit dans SUPABASE, où vit la conversation depuis
+        // la migration — jamais dans le document Firestore du même nom.
+        //
+        // Celui-ci se crée à volonté : la règle déployée n'exige que
+        // `request.auth.uid in request.resource.data.participantIds`, et plus
+        // rien ne l'alimente. Le relire revenait à demander à l'attaquant s'il
+        // est autorisé. Connaître un identifiant de conversation — ce que
+        // garde n'importe quel ancien membre — suffisait alors à faire
+        // effacer tout `messages/<id>/` du Storage, c'est-à-dire les médias
+        // de la conversation vivante. Voir functions/autorisations.js.
+        const conversation = await getConversation(conversationId);
+        const verdict = peutSupprimerConversationPourTous(conversation, userId);
+
+        if (!verdict.autorise) {
+            console.warn(
+                `[deleteConversationForEveryone] refusé pour ${userId} : ${verdict.motif}`,
+            );
+            throw new functions.https.HttpsError(
+                conversation ? "permission-denied" : "not-found",
+                conversation
+                    ? "Seul un admin ou le createur peut supprimer pour tous"
+                    : "Conversation introuvable",
+            );
+        }
+
         const convDoc = await admin.firestore()
             .collection("conversations")
             .doc(conversationId)
             .get();
-
-        if (!convDoc.exists) {
-            throw new functions.https.HttpsError(
-                "not-found",
-                "Conversation introuvable"
-            );
-        }
-
-        const convData = convDoc.data();
-        const creatorId = convData.createdBy;
-        const adminIds = convData.adminIds || [];
-
-        // Verifier permissions COTE SERVEUR
-        if (creatorId !== userId && !adminIds.includes(userId)) {
-            throw new functions.https.HttpsError(
-                "permission-denied",
-                "Seul un admin ou le createur peut supprimer pour tous"
-            );
-        }
 
         // Proceder a la suppression
         const batch = admin.firestore().batch();

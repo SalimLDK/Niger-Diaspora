@@ -39,11 +39,11 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1515 cases à cocher, 650 cochées** — 291 entrées sur 340 ont encore des cases ouvertes.
+**1517 cases à cocher, 650 cochées** — 292 entrées sur 341 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
-**P0 — avant toute nouvelle version** (47)
+**P0 — avant toute nouvelle version** (48)
 
 - 7 · [⬜ Droits d'écriture sur `messages` resserrés : accusés et modification (2026-09-16)](#-droits-décriture-sur-messages-resserrés--accusés-et-modification-2026-09-16) · *Messagerie*
 - 8 · [⬜ Accusé « lu » mensonger, et aperçu chiffré qui ne venait jamais (2026-09-15)](#-accusé--lu--mensonger-et-aperçu-chiffré-qui-ne-venait-jamais-2026-09-15) · *Messagerie*
@@ -73,6 +73,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [Réglages/Carte — deux interrupteurs de partage de position désynchronisés (2026-08-13)](#réglagescarte--deux-interrupteurs-de-partage-de-position-désynchronisés-2026-08-13) · *Ambassades, démarches, carte, entreprises et événements*
 - 6 · [⬜ 🔴 Bloquer un utilisateur ne bloque rien — corrigé (2026-09-14)](#--bloquer-un-utilisateur-ne-bloque-rien--corrigé-2026-09-14) · *Accueil, profil et réglages* · bloqué
 - 4 · [⬜ `users` n'est plus lisible sans compte (2026-09-20)](#-users-nest-plus-lisible-sans-compte-2026-09-20) · *Backend, sécurité et observabilité*
+- 2 · [⬜ Supprimer une conversation pour tous : l'autorisation vient de Supabase (2026-09-21)](#-supprimer-une-conversation-pour-tous--lautorisation-vient-de-supabase-2026-09-21) · *Publication et plateformes*
 - 4 · [⬜ Le serveur ne supprime plus un chemin Storage dicté par le client (2026-09-21)](#-le-serveur-ne-supprime-plus-un-chemin-storage-dicté-par-le-client-2026-09-21) · *Publication et plateformes*
 - 8 · [⬜ Divulgation préalable de la localisation (refus Play du 2026-09-09)](#-divulgation-préalable-de-la-localisation-refus-play-du-2026-09-09) · *Publication et plateformes*
 - 3 · [⬜ Compte de test dédié : première connexion (2026-09-09)](#-compte-de-test-dédié--première-connexion-2026-09-09) · *Appareils, comptes de test et méthode*
@@ -361,7 +362,7 @@ Par domaine :
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 67 à faire, 34 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 153 à faire, 32 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 71 à faire, 45 faites
-- [14. Publication et plateformes](#14-publication-et-plateformes) — 50 à faire, 28 faites
+- [14. Publication et plateformes](#14-publication-et-plateformes) — 52 à faire, 28 faites
 - [15. Site web](#15-site-web) — 32 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 32 à faire, 46 faites
 
@@ -21276,6 +21277,48 @@ applicable à des utilisateurs répartis sur plusieurs fuseaux.
 Play Store, exigences Android, build release, iOS.
 
 ---
+## ⬜ Supprimer une conversation pour tous : l'autorisation vient de Supabase (2026-09-21)
+
+**Priorité P0** · importance 5/5 — Connaître un identifiant de conversation suffisait à faire effacer par le serveur TOUS ses médias — photos, vidéos, notes vocales — y compris ceux d'une conversation vivante. Reste à voir qu'une suppression légitime fonctionne encore.
+
+`functions/autorisations.js` (nouveau) + `deleteConversationForEveryone` —
+**NON DÉPLOYÉ** à l'écriture de cette entrée.
+
+**Le défaut n'était pas le chemin — il était correct — mais l'autorisation.**
+La fonction la lisait dans un document **Firestore** `conversations/<id>`
+(`createdBy`, `adminIds`). Or la règle déployée n'exige que
+`request.auth.uid in request.resource.data.participantIds` pour le créer, et
+**plus rien n'alimente ces documents depuis la migration vers Supabase**.
+N'importe qui créait donc `conversations/<id de son choix>` en s'y déclarant
+créateur, appelait la fonction, et le serveur le croyait : le document
+n'était pas une preuve, c'était une déclaration de l'attaquant sur lui-même.
+
+Suivait `deleteFiles({prefix: 'messages/<id>/'})` — et c'est là que vivent
+les médias des conversations **vivantes**
+(`message_supabase_datasource.dart:1558,1927`). Un ancien membre, qui garde
+l'identifiant, effaçait tout.
+
+L'autorisation vient maintenant de Supabase (`getConversation`, étendu à
+`created_by` et `data.adminIds`) : participant d'abord, puis créateur ou
+administrateur. Une conversation inconnue de Supabase est refusée — c'est
+précisément le cas du document fabriqué.
+
+Banc `tools/rules_tests/suppression_conversation.mjs`, 13 cas, sans émulateur
+ni réseau : 6 échecs avec l'ancien corps, 0 avec le nouveau.
+
+- [ ] **Supprimer pour tous une conversation dont on est créateur ou admin**
+  (si un point d'entrée existe encore) : elle disparaît, médias compris.
+  C'est le test qui compte — si `getConversation` rendait `null` à tort, la
+  suppression serait refusée en `not-found`, ce qui ressemble à une
+  conversation absente.
+- [ ] **Surveiller le journal** : une ligne
+  `[deleteConversationForEveryone] refusé … conversation inconnue` sur un
+  parcours normal signalerait que la lecture Supabase échoue.
+
+⚠️ **Aucun appel depuis `lib/`** : comme les quatre précédentes, c'est un
+reste de l'ère Firebase, corrigé plutôt que supprimé parce que des APK
+installés peuvent encore l'appeler.
+
 ## ⬜ Le serveur ne supprime plus un chemin Storage dicté par le client (2026-09-21)
 
 **Priorité P0** · importance 5/5 — N'importe quel compte connecté pouvait faire effacer par le serveur **n'importe quel objet du bucket**, y compris la sauvegarde d'identité Signal d'autrui. Reste à voir qu'une suppression légitime fonctionne encore.

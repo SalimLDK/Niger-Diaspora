@@ -93,7 +93,7 @@ async function getConversation(conversationId) {
   const url =
     `${SUPABASE_URL}/rest/v1/conversations` +
     `?id=eq.${encodeURIComponent(conversationId)}` +
-    `&select=id,type,participant_ids,group_id,data`;
+    `&select=id,type,participant_ids,group_id,created_by,data`;
   const res = await fetch(url, { headers: authHeaders() });
   if (!res.ok) {
     console.error(`Supabase getConversation ${res.status}: ${await res.text()}`);
@@ -108,6 +108,12 @@ async function getConversation(conversationId) {
     type: row.type || "individual",
     participantIds: Array.isArray(row.participant_ids) ? row.participant_ids : [],
     groupId: row.group_id || "",
+    // `created_by` et `data.adminIds` servent à `deleteConversationForEveryone`,
+    // qui lisait son autorisation dans un document Firestore que n'importe qui
+    // pouvait créer. Ils viennent d'ici parce que c'est ici que vit la
+    // conversation depuis la migration.
+    createdBy: row.created_by || "",
+    adminIds: Array.isArray(data.adminIds) ? data.adminIds : [],
     name: data.name || "",
     imageUrl: data.image_url || "",
     mutedBy: data.muted_by || {},
