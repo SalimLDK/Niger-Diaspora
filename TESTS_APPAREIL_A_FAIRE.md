@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1524 cases à cocher, 650 cochées** — 295 entrées sur 345 ont encore des cases ouvertes.
+**1524 cases à cocher, 650 cochées** — 295 entrées sur 346 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -19490,6 +19490,66 @@ parce qu'il change un **comportement**, pas seulement un habillage :
 Supabase et Firebase côté serveur, accès anon, stockage, journaux, Crashlytics, back-office.
 
 ---
+
+## ⬜ Promotion payante et badge « vérifié » fermés au client (2026-09-21)
+
+**Priorité P1** · importance 4/5 — Le drapeau `businessDirectory` est fermé et la production ne porte que 2 fiches, mais ce durcissement change le comportement d'un écran d'édition que personne n'a jamais ouvert sur un téléphone.
+
+Migration `20260921071500_boost_et_badge_verifie_fermes.sql` — **APPLIQUÉE le
+2026-09-21** (`db push`, seule en file). `firestore.rules` **DÉPLOYÉ** le même
+jour, relu par l'API `firebaserules` : la production est identique au dépôt,
+15 `allow create: if false`. Banc `tools/rls_tests/boost_et_badge_verifie.sql`,
+17 cas : **9 échecs sans la migration, 0 avec**, puis 0 sur l'état vivant. Les
+2 fiches existantes sont intactes (0 vérifiée, 0 promue, 2 actives).
+
+**L'audit nommait `business_boosts` ; c'était la quittance, pas la caisse.**
+`businesses_update_owner` n'avait ni `WITH CHECK` ni restriction de colonnes :
+le propriétaire réécrivait toute sa ligne, `is_boosted`, `boost_expires_at` et
+**`is_verified`** compris. Se promouvoir dix ans et se décerner le badge de
+confiance était le chemin nominal du code, pas une ruse —
+`updateBusinessBoostStatus` (`business_supabase_datasource.dart:431`) pose
+`is_boosted` directement, et `_versLigne` (`:106`) envoie `is_verified` à
+chaque enregistrement.
+
+**Pourquoi un déclencheur et pas un `REVOKE` par colonnes :** `updateBusiness`
+(`:338`) envoie **toute** la ligne à chaque retouche — changer le téléphone
+réécrit `is_verified` avec sa valeur courante. Un `REVOKE UPDATE (…)` aurait
+fait échouer la requête entière en 42501 sur la moindre modification (le piège
+de l'upsert, déjà payé sur `mls_messages`). La garde compare les **valeurs**,
+pas les colonnes écrites : une réécriture à l'identique passe. C'est le cas 10
+du banc, et c'est celui qui compte le plus.
+
+**À vérifier sur appareil** (rien n'a été vu tourner, le drapeau est fermé) :
+
+- ouvrir une fiche, changer le nom, le téléphone, la description, les horaires
+  et enregistrer — **doit passer**. Si ça tombe en 42501, la garde est trop
+  large et c'est elle qu'il faut corriger, pas le client ;
+- créer une entreprise de bout en bout ;
+- côté back-office : vérifier une fiche (`admin_provider.dart:547` et `:577`)
+  et basculer la promotion (`:~600`) — les deux passent par PostgREST sous
+  l'identité de l'administrateur, et le banc les couvre (cas 15 et 16), mais
+  jamais depuis l'écran ;
+- le compteur de vues d'une fiche doit continuer de monter
+  (`increment_business_view_count`, chemin `SECURITY DEFINER`).
+
+**⚠️ Risque connu, étroit, assumé.** `updateBusiness` renvoie le modèle que
+l'écran détient. Si un administrateur vérifie la fiche pendant que son
+propriétaire a l'écran d'édition ouvert, la prochaine modification, même
+innocente, lèvera 42501 sur une valeur périmée. Le remède définitif est côté
+client : cesser d'envoyer `is_verified`, `is_boosted` et `boost_expires_at`
+dans `_versLigne`. À faire avec la prochaine version cliente.
+
+**Trouvé au passage, NON corrigé — la note des entreprises n'est calculée par
+personne.** Le commentaire de `_versLigne` (`:86-89`) exclut `rating`,
+`review_count`, `follower_count` et `view_count` en affirmant que « la base les
+tient (génération, triggers d'agrégat) ». Mesuré : **aucun déclencheur
+n'existe** sur `business_reviews` — seul `update_updated_at` sur
+`business_posts`. Ces colonnes ne bougent donc jamais, et l'annuaire affichera
+0,00 étoile quoi qu'il arrive. La garde les protège désormais d'un `PATCH`
+direct (cas 7), ce qui ferme la faille mais pas le défaut.
+
+---
+
 
 ## ⬜ Salons audio : l'argent et l'identité repassent au serveur (2026-09-21)
 

@@ -644,8 +644,26 @@ service cloud.firestore {
       // Allow listing only for the business owner (enforced filter)
       allow list: if isAuthenticated() && resource.data.businessOwnerId == request.auth.uid;
       allow get: if isAuthenticated() && resource.data.businessOwnerId == request.auth.uid;
-      allow create: if isAuthenticated() && request.resource.data.businessOwnerId == request.auth.uid;
-      allow update, delete: if isAuthenticated() && resource.data.businessOwnerId == request.auth.uid;
+      // ── FERMÉ 2026-09-21 ────────────────────────────────────────────
+      // Voir « CHAÎNE DE PAIEMENT » en tête de ce fichier.
+      //
+      // Une promotion payante que le client s'accorde lui-même : `create`
+      // n'exigeait que `businessOwnerId == auth.uid`, donc le montant, le
+      // type, la durée et la date de fin venaient de l'acheteur.
+      //
+      // Chemin MORT, mesuré le 2026-09-21 : le module Entreprises a basculé
+      // sur Supabase le 2026-09-10 (`business_supabase_datasource.dart`), et
+      // Firestore porte 0 document dans `businesses`, `business_boosts`,
+      // `business_posts` et `business_reviews`. La quittance côté Supabase
+      // est fermée le même jour (migration 20260921071500), avec l'effet
+      // payant lui-même — `businesses.is_boosted` — et le badge
+      // `is_verified`, tous deux en libre-service jusqu'ici.
+      //
+      // La lecture reste, pour que d'anciens documents restent consultables
+      // s'il en réapparaissait. Le bloc administrateur, plus bas dans ce
+      // fichier, garde son `read, update`.
+      allow create: if false;
+      allow update, delete: if false;
     }
 
     // Legal Content - publicly readable, only admin can write
