@@ -312,10 +312,15 @@
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyCnbdymYwzJXPA2YY1PMexCU_iGaN5tPek" />
-        <!-- AdMob App ID (test) -->
+        <!-- AdMob App ID de PRODUCTION. Le manifeste portait l'App ID de TEST
+             de Google (ca-app-pub-3940256099942544~3347511713) : Play refuse
+             une app publiée avec l'App ID de test, et les vraies pubs ne
+             s'affichent pas. La valeur ci-dessous est celle d'`AdConfig`
+             (lib/core/constants/ad_config.dart, `androidAppId`), déjà celle du
+             propriétaire. Corrigé le 2026-09-21. -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-3940256099942544~3347511713" />
+            android:value="ca-app-pub-4674966180025040~9171762097" />
 
         <!-- Notifications affichées par le SDK Firebase (app en arrière-plan ou
              tuée) : sans ces deux lignes, il retombait sur @mipmap/ic_launcher,
