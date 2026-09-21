@@ -39,13 +39,13 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1549 cases à cocher, 682 cochées** — 306 entrées sur 357 ont encore des cases ouvertes.
+**1551 cases à cocher, 682 cochées** — 306 entrées sur 357 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
 **P0 — avant toute nouvelle version** (51)
 
-- 8 · [⬜ Temps réel après l'arrière-plan, et texte supprimé dans la liste (2026-09-21)](#-temps-réel-après-larrière-plan-et-texte-supprimé-dans-la-liste-2026-09-21) · *Messagerie*
+- 10 · [⬜ Temps réel après l'arrière-plan, et texte supprimé dans la liste (2026-09-21)](#-temps-réel-après-larrière-plan-et-texte-supprimé-dans-la-liste-2026-09-21) · *Messagerie*
 - 5 · [⬜ Droits d'écriture sur `messages` resserrés : accusés et modification (2026-09-16)](#-droits-décriture-sur-messages-resserrés--accusés-et-modification-2026-09-16) · *Messagerie*
 - 2 · [⬜ Accusé « lu » mensonger, et aperçu chiffré qui ne venait jamais (2026-09-15)](#-accusé--lu--mensonger-et-aperçu-chiffré-qui-ne-venait-jamais-2026-09-15) · *Messagerie*
 - 9 · [⬜ L'aperçu de la liste dit pourquoi il est vide (2026-09-15)](#-laperçu-de-la-liste-dit-pourquoi-il-est-vide-2026-09-15) · *Messagerie*
@@ -364,7 +364,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 341 à faire, 143 faites
+- [2. Messagerie](#2-messagerie) — 343 à faire, 143 faites
 - [3. Groupes](#3-groupes) — 149 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 144 à faire, 45 faites
 - [5. Appels](#5-appels) — 26 à faire, 8 faites
@@ -720,6 +720,20 @@ après une modification (`message_repository_impl.dart`). Tenu par
 - [ ] **Discussion chiffrée ouverte HORS LIGNE**, message reçu entre-temps,
   réseau rétabli sans toucher → le message s'insère seul. Le canal `mls_new`
   relit désormais dès son premier `subscribed` (celui du retour du réseau).
+- [ ] **Fil complet après une coupure** : discussion chiffrée ouverte hors
+  ligne, message reçu, réseau rétabli, revenir à la liste puis rouvrir → TOUT
+  le fil du jour est là, pas seulement le dernier message. Le 2026-09-21 sur
+  SM A515F il sautait de mardi à PE1 : le rattrapage de fond de la liste
+  faisait naître le fil avec le seul delta, et l'amorçage depuis le cache était
+  ensuite sauté (`MlsGateway.amorcer` complète désormais un fil vivant ; test
+  dans `mls_metadonnees_test.dart`, échoue sur l'ancien code). Probablement
+  aussi la cause d'origine de « Le fil chiffré se tronque au redémarrage dès
+  qu'un message arrive en direct ».
+- [ ] **Carte « Messages non lus » de l'Accueil** : ouvrir une discussion
+  chiffrée depuis une bannière, lire, revenir à l'Accueil → le compte retombe.
+  Vu à 5 au lieu de 0 sur le +26 ; corrigé par `bf64ffe` (la lecture chiffrée
+  fait rejouer la liste, dont l'Accueil additionne les pastilles), absent du
+  +26.
 - [ ] **Statut en ligne** (même livraison, `online_status_provider.dart`) :
   couper « Afficher mon statut en ligne » dans Réglages, modifier sa bio,
   enregistrer → `show_online_status` reste `false` en base.
