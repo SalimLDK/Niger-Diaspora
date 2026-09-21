@@ -19577,7 +19577,13 @@ pas une vue, et aucune sauvegarde n'existe.
 ## ⬜ Avis sur les entreprises : basculés de Firestore vers Supabase (2026-09-21)
 
 **Priorité P2** · importance 3/5 — L'annuaire affichait 0 avis et aucune note quelles que soient les évaluations : les avis allaient dans Firestore, les entreprises vivent dans Supabase. Le drapeau `businessDirectory` est fermé et la production porte 2 fiches, 0 avis.
-*Bloqué : migrations `20260921083000` et `20260921090000` NON APPLIQUÉES (l'application a été refusée par le classificateur de permissions, à lancer par Salim) ; puis une version cliente, puis le drapeau à ouvrir sur un appareil.*
+*Bloqué : une version cliente construite depuis `e2dca73` ou après, puis le drapeau à ouvrir sur un appareil.*
+
+Migrations `20260921083000` et `20260921090000` **APPLIQUÉES le 2026-09-21**
+(par Salim). Bancs relancés sur l'état vivant : 41/41, 19/19, et
+`boost_et_badge_verifie.sql` toujours 17/17. Relu ensuite : 4 policies,
+2 déclencheurs, 3 fonctions DEFINER, 0 avis, 0 signalement, aucun résidu du
+banc ; les 2 fiches réelles sont à `NULL / 0` (l'une était à `0.00` sans avis).
 
 **Côté base** — deux migrations, répétées ensemble en `BEGIN … ROLLBACK` sur la
 production (qui porte déjà `20260921080000`) :
