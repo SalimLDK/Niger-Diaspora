@@ -42,6 +42,21 @@ void main() {
             'reste absent de la discussion affichée');
   });
 
+  test('le canal des mises à jour de messages relit au rejoint', () {
+    final corps = _corps(
+      _source(datasource),
+      'Stream<MessageModel> getMessageUpdatesStream(',
+    );
+    expect(corps, contains('rattrapageAuRejoint('),
+        reason: 'sans rattrapage, un accusé de lecture ou une réaction '
+            'survenus pendant l\'arrière-plan restent absents de la '
+            'discussion affichée');
+    // La relecture passe par le même convertisseur brut que le rappel : le
+    // chemin asynchrone déchiffrerait, et un second déchiffrement Signal
+    // échoue.
+    expect(corps, isNot(contains('_msgFromRowAsync(')));
+  });
+
   test('le retour avec un jeton périmé réabonne le temps réel', () {
     final pont = _source('lib/core/services/supabase_auth_bridge.dart');
     final debut = pont.indexOf('void reprendreApresRetourReseau()');

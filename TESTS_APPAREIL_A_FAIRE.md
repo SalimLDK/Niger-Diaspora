@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1548 cases à cocher, 675 cochées** — 305 entrées sur 356 ont encore des cases ouvertes.
+**1551 cases à cocher, 675 cochées** — 306 entrées sur 357 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -97,7 +97,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (106)
+**P1 — fonction importante, jamais vérifiée** (107)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -174,6 +174,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⛔ « Diaspo Niger s'arrête systématiquement » sur Android 15+ (2026-09-09)](#--diaspo-niger-sarrête-systématiquement--sur-android-15-2026-09-09) · *Publication et plateformes*
 - 4 · [⚠️ Rapatriement iOS : deux dépendances **Android** changent de version majeure (2026-09-08)](#-rapatriement-ios--deux-dépendances-android-changent-de-version-majeure-2026-09-08) · *Publication et plateformes*
 - 9 · [⬜ La page de suppression de compte demande la suppression au lieu de l'exécuter (2026-09-19)](#-la-page-de-suppression-de-compte-demande-la-suppression-au-lieu-de-lexécuter-2026-09-19) · *Site web*
+- 3 · [⬜ Accusés et réactions reçus pendant l'arrière-plan, discussion en clair (2026-09-21)](#-accusés-et-réactions-reçus-pendant-larrière-plan-discussion-en-clair-2026-09-21) · *Messagerie*
 - 9 · [⬜ Partager vers une discussion — groupe et 1:1 (2026-09-09)](#-partager-vers-une-discussion--groupe-et-11-2026-09-09) · *Messagerie*
 - 2 · [Accusés livré/lu séparés — sheet infos du message (2026-08-13)](#accusés-livrélu-séparés--sheet-infos-du-message-2026-08-13) · *Messagerie* · bloqué
 - 9 · [⬜ Pays en toutes lettres : groupes officiels et filtre par pays (2026-09-13)](#-pays-en-toutes-lettres--groupes-officiels-et-filtre-par-pays-2026-09-13) · *Groupes*
@@ -363,7 +364,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 335 à faire, 141 faites
+- [2. Messagerie](#2-messagerie) — 338 à faire, 141 faites
 - [3. Groupes](#3-groupes) — 149 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 144 à faire, 45 faites
 - [5. Appels](#5-appels) — 26 à faire, 8 faites
@@ -622,6 +623,34 @@ Crashlytics.
 # 2. Messagerie
 
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
+
+---
+
+## ⬜ Accusés et réactions reçus pendant l'arrière-plan, discussion en clair (2026-09-21)
+
+**Priorité P1** · importance 3/5 — dans une discussion non chiffrée restée
+ouverte, un accusé de lecture, une réaction ou un épinglage survenu pendant
+l'arrière-plan n'apparaissait qu'à la réouverture de la discussion.
+
+`getMessageUpdatesStream` (`message_supabase_datasource.dart`) s'abonnait aux
+UPDATE de `messages` sans rattrapage au rejoint ; il relit désormais les 50
+derniers messages de la discussion quand le canal est rejoint, et l'écran
+n'applique que leurs métadonnées aux messages déjà affichés. Complète
+« Temps réel après l'arrière-plan, et texte supprimé dans la liste », qui
+couvrait le canal chiffré. Tenu par
+`test/core/services/temps_reel_apres_arriere_plan_test.dart` (branchement
+seulement).
+
+- [ ] **HOME court, accusé** : envoyer un message en clair, HOME ; l'autre
+  téléphone ouvre la discussion ; revenir → la double coche « Lu » est là
+  **sans rouvrir** la discussion (logcat : `realtime: rejoint « msg_updates »
+  → rattrapage`).
+- [ ] **HOME court, réaction** : même parcours avec une réaction posée par
+  l'autre pendant l'absence.
+- [ ] **Pas de régression de contenu** : après le retour, les photos, cartes
+  de post et réponses citées des 50 derniers messages s'affichent toujours
+  (le rattrapage émet des lignes brutes, l'écran doit garder le contenu
+  déjà déchiffré).
 
 ---
 

@@ -1044,6 +1044,37 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     final channelName = 'msg_updates:$conversationId:${_channelSeq++}';
     final ch = _channel(channelName);
 
+    /// Relit les dernières lignes de la discussion au rejoint du canal.
+    ///
+    /// Un abonnement nu perdait tout UPDATE survenu pendant l'arrière-plan
+    /// (`supabase_flutter` coupe le socket, Postgres ne rejoue rien) : accusés
+    /// de lecture, réactions, épinglage restaient figés sur l'écran ouvert
+    /// jusqu'à sa réouverture. `messages` n'a pas de colonne `updated_at` : on
+    /// ne sait pas QUELLES lignes ont bougé, on relit donc la dernière page —
+    /// là où tombent presque tous les UPDATE d'une discussion affichée.
+    ///
+    /// Relire sans risque : chaque ligne sort brute par `_msgFromRow`, comme
+    /// dans le rappel temps réel, et l'écouteur (`_listenForMessageUpdates`)
+    /// ne touche qu'aux messages déjà affichés, par identifiant, en gardant
+    /// leur contenu déjà déchiffré. Rien n'est déchiffré ici — pas de second
+    /// déchiffrement Signal à craindre, contrairement au canal `messages`.
+    Future<void> rattraper() async {
+      try {
+        final rows = await _supabase
+            .from('messages')
+            .select()
+            .eq('conversation_id', conversationId)
+            .order('created_at', ascending: false)
+            .limit(50);
+        for (final row in rows) {
+          if (controller.isClosed) return;
+          controller.add(_msgFromRow(row));
+        }
+      } catch (e) {
+        debugPrint('rattrapage msg_updates $conversationId : $e');
+      }
+    }
+
     ch
         .onPostgresChanges(
           event: PostgresChangeEvent.update,
@@ -1061,7 +1092,9 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
             }
           },
         )
-        .subscribe();
+        .subscribe(
+          rattrapageAuRejoint(rattraper, etiquette: 'msg_updates'),
+        );
 
     controller.onCancel = () {
       unawaited(ch.unsubscribe());
