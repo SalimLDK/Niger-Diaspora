@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1501 cases à cocher, 650 cochées** — 287 entrées sur 336 ont encore des cases ouvertes.
+**1504 cases à cocher, 650 cochées** — 288 entrées sur 337 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -92,7 +92,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (97)
+**P1 — fonction importante, jamais vérifiée** (98)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -182,6 +182,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 19 · [Refonte Fil & Discussion — Priorité haute — gestes, minuteurs, permissions (le plus susceptible de casser)](#refonte-fil--discussion--priorité-haute--gestes-minuteurs-permissions-le-plus-susceptible-de-casser) · *Fil, stories, salons audio et podcasts*
 - 5 · [⬜ Événement supprimé : il disparaît partout (2026-09-12)](#-événement-supprimé--il-disparaît-partout-2026-09-12) · *Ambassades, démarches, carte, entreprises et événements*
 - 13 · [Quatrième vague — écrans repris en production (2026-08-03)](#quatrième-vague--écrans-repris-en-production-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
+- 3 · [⬜ `public.friends` : le serveur seul écrit l'audience (2026-09-21)](#-publicfriends--le-serveur-seul-écrit-laudience-2026-09-21) · *Backend, sécurité et observabilité*
 - 5 · [⬜ Configuration distante `app-config` (2026-08-27)](#-configuration-distante-app-config-2026-08-27) · *Backend, sécurité et observabilité*
 - 5 · [⬜ Notice « une nouvelle version est disponible » (2026-09-14)](#-notice--une-nouvelle-version-est-disponible--2026-09-14) · *Publication et plateformes*
 - 3 · [⬜ Deux bibliothèques natives réalignées sur 16 Ko (2026-09-08)](#-deux-bibliothèques-natives-réalignées-sur-16-ko-2026-09-08) · *Publication et plateformes*
@@ -356,7 +357,7 @@ Par domaine :
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 65 à faire, 51 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 67 à faire, 34 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 153 à faire, 32 faites
-- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 66 à faire, 45 faites
+- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 69 à faire, 45 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 41 à faire, 28 faites
 - [15. Site web](#15-site-web) — 32 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 32 à faire, 46 faites
@@ -19482,6 +19483,53 @@ parce qu'il change un **comportement**, pas seulement un habillage :
 Supabase et Firebase côté serveur, accès anon, stockage, journaux, Crashlytics, back-office.
 
 ---
+
+## ⬜ `public.friends` : le serveur seul écrit l'audience (2026-09-21)
+
+**Priorité P1** · importance 3/5 — Un compte connecté pouvait insérer, modifier et supprimer ses propres lignes d'amitié par PostgREST, alors que cette table décide des audiences « Amis » et « Abonnés ». Le fil doit continuer de lire ses amitiés.
+
+Migration `20260921021300_friends_ecriture_serveur_seul.sql` — **NON
+APPLIQUÉE** à l'écriture de cette entrée. `REVOKE ALL … FROM anon`,
+lecture seule pour `authenticated`, les deux policies passées de `public` à
+`authenticated`.
+
+Banc `tools/rls_tests/friends_ecriture_serveur_seul.sql`, 12 cas, contre la
+production en `BEGIN … ROLLBACK` : 8 échecs sans la migration, 0 avec. Le banc
+n'écrit rien — il vise une paire telle quelle, et comme Postgres vérifie le
+privilège **avant** d'exécuter, tout résultat autre que 42501 prouve que le
+droit était là.
+
+`lib/` ne fait que LIRE cette table, deux fois, toujours avec `user_id = soi`
+(`feed_supabase_datasource.dart:310`, `feed_personalization_provider.dart:51`).
+Les amitiés sont écrites par `setFriendship` avec la clé de service.
+
+**⚠️ Ce que ça ne ferme PAS — le vrai trou reste ouvert.** La règle Firestore
+`users/{userId}/friends/{friendId}` autorise l'écriture dès que
+`friendId == request.auth.uid` : n'importe qui peut s'inscrire dans la liste
+d'amis d'autrui, et `mirrorFriendToSupabase` recopie la ligne dans
+`public.friends` avec la clé de service — dans le sens qui donne accès
+(`est_ami_de(auteur, lecteur)` lit `user_id = auteur`). Cette migration
+n'enlève que la porte directe.
+
+Pourquoi ce n'est pas corrigé du même coup : les règles Firestore ne savent
+pas faire de requête, et la preuve du consentement est **détruite** —
+`_oublierDemande` supprime la demande d'ami juste après l'acceptation
+(`friend_remote_datasource.dart:200`). Ni la règle ni le miroir ne peuvent
+donc vérifier « une demande acceptée existe ». La correction demande un
+déclencheur serveur sur la transition `pending → accepted` (que l'événement
+porte, même si le document est supprimé ensuite), et le miroir réduit aux
+suppressions. Décrit dans `docs/deploiement/AUDIT_PRE_PROD_2026-09-20.md`.
+
+**Matière exposée à ce jour : AUCUNE.** Mesuré le 2026-09-20 : 6 publications
+et 6 stories, toutes `public` ; 0 contenu en audience « amis » ou « abonnés ».
+La table est saine : 24 lignes, 12 paires toutes symétriques.
+
+- [ ] **Fil et personnalisation** : ouvrir le fil avec un compte qui a des
+  amis — les publications d'amis s'affichent, et « Découvrir » ne se vide pas.
+- [ ] **Accepter une demande d'ami de bout en bout** : l'ami apparaît des deux
+  côtés, et la publication « Amis » de l'un devient visible à l'autre (créer
+  une publication à cette audience pour le vérifier — il n'en existe aucune).
+- [ ] **Retirer un ami** : l'audience se referme des deux côtés.
 
 ## ⬜ `users` n'est plus lisible sans compte (2026-09-20)
 
