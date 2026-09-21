@@ -143,7 +143,15 @@ class MessageRepositoryImpl implements MessageRepository {
       derniere = conversations;
       return conversations;
     });
-    final rejeu = _rattrapageFini.stream
+    // Une lecture chiffrée ne touche pas la ligne `conversations` : sans ce
+    // signal, la pastille gardait l'ancien compte en sortant de la
+    // discussion (voir `MlsGateway.lecturesAvancees`). Groupé : l'écran
+    // avance le curseur par lots rapprochés, une relecture suffit.
+    final lectures =
+        mlsGateway?.lecturesAvancees
+            .debounceTime(const Duration(milliseconds: 300)) ??
+        const Stream<void>.empty();
+    final rejeu = Rx.merge([_rattrapageFini.stream, lectures])
         .map((_) => derniere)
         .where((c) => c != null)
         .cast<List<ConversationModel>>();

@@ -123,8 +123,16 @@ class _Passerelle implements MlsGateway {
     return fil;
   }
 
+  /// Ce que la vue `mls_unread_counts` rendrait.
+  Map<String, ({int nonLus, int mentions})> compteurs = const {};
+
   @override
-  Future<Map<String, ({int nonLus, int mentions})>> nonLus() async => const {};
+  Future<Map<String, ({int nonLus, int mentions})>> nonLus() async => compteurs;
+
+  final lectures = StreamController<void>.broadcast();
+
+  @override
+  Stream<void> get lecturesAvancees => lectures.stream;
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -341,6 +349,37 @@ void main() {
         reason: 'la passe reportée doit déchiffrer le second message',
       );
       expect(passerelle.appelsMessages, 2);
+    });
+
+    test('une lecture chiffrée fait retomber la pastille sans attendre le '
+        'serveur', () async {
+      // 2026-09-21, SM A515F : « Testeurs » gardait 1 non lu en sortant de
+      // la discussion, 0 en base. Lire un message chiffré n'écrit que dans
+      // `mls_message_receipts` : la ligne `conversations` ne bouge pas, et
+      // la liste ne se rejouait jamais.
+      final passerelle = _Passerelle(const [])
+        ..compteurs = {'c1': (nonLus: 2, mentions: 0)};
+      final depot = MessageRepositoryImpl(
+        remoteDataSource: _Source(),
+        networkInfo: _Reseau(),
+        cacheService: _Cache(),
+        mlsGateway: passerelle,
+      );
+
+      final pastilles = <int>[];
+      final sub = depot.getConversations('moi').listen((e) {
+        e.fold((_) {}, (l) => pastilles.add(l.single.unreadCount['moi'] ?? 0));
+      });
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+      expect(pastilles, [2]);
+
+      passerelle.compteurs = {'c1': (nonLus: 0, mentions: 0)};
+      passerelle.lectures.add(null);
+      await Future<void>.delayed(const Duration(milliseconds: 500));
+      await sub.cancel();
+
+      expect(pastilles.last, 0,
+          reason: "sans rejeu, la pastille reste sur l'ancien compte");
     });
 
     test('rien à rattraper : une seule émission, aucun rejeu', () async {

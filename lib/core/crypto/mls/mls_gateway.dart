@@ -678,6 +678,25 @@ class MlsGateway {
   Future<void> marquerLus(String conversationId) async {
     final ids = await _meta.messagesDesAutres(conversationId);
     await _meta.marquer(ids, lu: true);
+    _signalerLecture();
+  }
+
+  /// Émis après chaque lecture enregistrée (curseur avancé, conversation
+  /// marquée lue).
+  ///
+  /// La liste des discussions ne se rejoue que quand la ligne
+  /// `conversations` change côté serveur. Pour une conversation en clair,
+  /// marquer lu la touche (`unreadCount`) ; pour une conversation chiffrée,
+  /// la lecture ne vit que dans `mls_message_receipts` — la liste ne
+  /// l'apprenait jamais, et sa pastille restait sur l'ancien compte après
+  /// avoir quitté la discussion. Vu sur SM A515F le 2026-09-21 : « Testeurs »
+  /// figé à 1 non lu, 0 en base.
+  Stream<void> get lecturesAvancees => _lecturesAvancees.stream;
+  final StreamController<void> _lecturesAvancees =
+      StreamController<void>.broadcast();
+
+  void _signalerLecture() {
+    if (!_lecturesAvancees.isClosed) _lecturesAvancees.add(null);
   }
 
   /// Le dernier message lu de cette conversation — le curseur dont le
@@ -694,8 +713,10 @@ class MlsGateway {
   }) => _meta.premierNonLu(conversationId, apres: apres);
 
   /// Avance le curseur jusqu'à [jusqua] inclus, sans marquer au-delà.
-  Future<void> avancerCurseur(String conversationId, DateTime jusqua) =>
-      _meta.marquerLusJusqua(conversationId, jusqua);
+  Future<void> avancerCurseur(String conversationId, DateTime jusqua) async {
+    await _meta.marquerLusJusqua(conversationId, jusqua);
+    _signalerLecture();
+  }
 
   Future<void> marquerLivres(String conversationId) async {
     final ids = await _meta.messagesDesAutres(conversationId);

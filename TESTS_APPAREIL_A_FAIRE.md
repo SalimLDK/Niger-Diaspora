@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1562 cases à cocher, 653 cochées** — 303 entrées sur 354 ont encore des cases ouvertes.
+**1564 cases à cocher, 653 cochées** — 304 entrées sur 355 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -96,7 +96,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (105)
+**P1 — fonction importante, jamais vérifiée** (106)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -108,6 +108,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [⬜ Verrou de version minimale et multi-appareil (2026-09-15)](#-verrou-de-version-minimale-et-multi-appareil-2026-09-15) · *Comptes, session et onboarding*
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
+- 2 · [⬜ La pastille de non-lus retombe en quittant une discussion chiffrée (2026-09-21)](#-la-pastille-de-non-lus-retombe-en-quittant-une-discussion-chiffrée-2026-09-21) · *Messagerie*
 - 4 · [⬜ Les premiers messages reçus restent « Message chiffré » dans la liste (2026-09-21)](#-les-premiers-messages-reçus-restent--message-chiffré--dans-la-liste-2026-09-21) · *Messagerie*
 - 7 · [⬜ Ouvrir une discussion lit ce qui est à l'écran, tout de suite (2026-09-16)](#-ouvrir-une-discussion-lit-ce-qui-est-à-lécran-tout-de-suite-2026-09-16) · *Messagerie*
 - 6 · [⬜ Lecture par curseur dans les discussions en clair (2026-09-16)](#-lecture-par-curseur-dans-les-discussions-en-clair-2026-09-16) · *Messagerie*
@@ -361,7 +362,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 342 à faire, 126 faites
+- [2. Messagerie](#2-messagerie) — 344 à faire, 126 faites
 - [3. Groupes](#3-groupes) — 149 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 147 à faire, 42 faites
 - [5. Appels](#5-appels) — 26 à faire, 8 faites
@@ -620,6 +621,30 @@ Crashlytics.
 # 2. Messagerie
 
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
+
+---
+
+## ⬜ La pastille de non-lus retombe en quittant une discussion chiffrée (2026-09-21)
+
+**Priorité P1** · importance 4/5 — signalé par Salim le 2026-09-21 : la page
+Messages ne se met pas à jour après avoir quitté une discussion.
+
+Reproduit sur SM A515F (1.2.2+26) : « Testeurs » à 2 non lus, ouverte (les
+deux messages affichés), retour → la tuile reste à **1**, alors que la base
+dit 0 (`mls_message_receipts`, `read_at` posés à 20:23:44 et 20:23:47 UTC).
+Lire un message chiffré ne touche pas la ligne `conversations`, seule chose
+qui faisait rejouer la liste. `MlsGateway.lecturesAvancees` la fait désormais
+rejouer après chaque lecture (`message_repository_impl.dart`).
+
+Tenu par `test/features/messages/apercu_rattrapage_rejoue_test.dart` (« une
+lecture chiffrée fait retomber la pastille… », 2 au lieu de 0 sur l'ancien
+code). Jamais vu sur appareil :
+
+- [ ] **Discussion chiffrée avec non-lus** : l'ouvrir, revenir → la pastille
+      de la tuile, le compteur « N non lus » de l'en-tête et le badge de
+      l'onglet Messages tombent à 0 en ≤ 1 s, sans tirer-pour-rafraîchir.
+- [ ] **Longue discussion, lue en partie** (défilement partiel) : le compte
+      restant est juste, pas 0.
 
 ---
 
