@@ -542,63 +542,32 @@ service cloud.firestore {
         (resource.data.buyerId == request.auth.uid ||
          resource.data.sellerId == request.auth.uid);
 
-      // Only buyer can create orders
-      allow create: if isAuthenticated() && request.resource.data.buyerId == request.auth.uid;
-
-      // Controlled updates based on role and valid state transitions
-      allow update: if isAuthenticated() && (
-        // ========== SELLER PERMISSIONS ==========
-        (resource.data.sellerId == request.auth.uid && (
-          // Mark as shipped (from paid status) - can include tracking number and timestamp
-          (request.resource.data.status == 'shipped' &&
-           resource.data.status == 'paid' &&
-           request.resource.data.diff(resource.data).affectedKeys()
-             .hasOnly(['status', 'shippedAt', 'trackingNumber'])) ||
-
-          // Cancel order (only before shipping) - includes cancellation reason and timestamp
-          (request.resource.data.status == 'cancelled' &&
-           resource.data.status in ['pending', 'paid'] &&
-           request.resource.data.diff(resource.data).affectedKeys()
-             .hasOnly(['status', 'cancelledAt', 'cancellationReason', 'escrowStatus'])) ||
-
-          // Update tracking number or seller note only (no status change)
-          (request.resource.data.status == resource.data.status &&
-           request.resource.data.diff(resource.data).affectedKeys()
-             .hasOnly(['trackingNumber', 'sellerNote']))
-        )) ||
-
-        // ========== BUYER PERMISSIONS ==========
-        (resource.data.buyerId == request.auth.uid && (
-          // Confirm delivery (from shipped status)
-          (request.resource.data.status == 'delivered' &&
-           resource.data.status == 'shipped' &&
-           request.resource.data.diff(resource.data).affectedKeys()
-             .hasOnly(['status', 'deliveredAt'])) ||
-
-          // Note (BUG-04): the buyer used to be able to update an order to
-          // status='completed' directly. That allowed funds to be marked as
-          // released without any actual Stripe Transfer. The buyer must now
-          // create an `escrow_release_requests` document, which triggers the
-          // `processEscrowRelease` Cloud Function (admin SDK) — that function
-          // is the only writer that may set status='completed' here.
-
-          // Cancel order (only before shipping) — escrowStatus is set by Cloud Functions only
-          (request.resource.data.status == 'cancelled' &&
-           resource.data.status in ['pending', 'paid'] &&
-           request.resource.data.diff(resource.data).affectedKeys()
-             .hasOnly(['status', 'cancelledAt', 'cancellationReason'])) ||
-
-          // Update buyer note only (no status change)
-          (request.resource.data.status == resource.data.status &&
-           request.resource.data.diff(resource.data).affectedKeys()
-             .hasOnly(['buyerNote']))
-        )) ||
-
-        // ========== PAYMENT STATUS UPDATE ==========
-        // Security: payment status (pending -> paid) must be handled by Cloud Functions only
-        // to ensure actual Stripe payment was completed before marking as paid
-        false
-      );
+      // ── FERMÉ 2026-09-21 ────────────────────────────────────────────
+      // Voir « Chaîne de paiement » en tête de ce fichier.
+      //
+      // La CRÉATION était la porte : `buyerId == auth.uid` et rien d'autre.
+      // L'acheteur posait donc lui-même `totalAmount`, `sellerAmount`,
+      // `status`, `escrowStatus`, `paidAt` et `paymentIntentId` — le prix
+      // n'était jamais relu depuis `products`.
+      //
+      // La MISE À JOUR, elle, était déjà bien gardée : rôle, transition et
+      // liste de champs, et la note BUG-04 avait déjà sorti la libération du
+      // séquestre vers `escrow_release_requests` + Cloud Function. À tel
+      // point que `MarketplaceRemoteDataSource.releaseEscrow()`, qui pose
+      // `status: 'completed'` et `escrowStatus: 'released'`, est du code MORT
+      // depuis : les règles le refusent déjà.
+      //
+      // Pourquoi fermer quand même : `escrow_release_requests` est fermée
+      // depuis ce jour, donc aucune commande ne peut plus atteindre
+      // `completed` — la vente est de toute façon sans issue. Et mesuré le
+      // 2026-09-21 : 0 commande et 0 produit dans Firestore, 0 commande dans
+      // Supabase, drapeau `marketplace` fermé. Rien n'existe à casser.
+      //
+      // Rouvrir demandera un séquestre tenu par le serveur : prix relu depuis
+      // `products`, paiement confirmé auprès de Stripe, et le passage à
+      // `paid` comme à `completed` réservé à une Cloud Function.
+      allow create: if false;
+      allow update: if false;
 
       allow delete: if false; // Orders should not be deleted
     }

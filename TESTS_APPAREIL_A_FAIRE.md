@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1522 cases à cocher, 650 cochées** — 294 entrées sur 343 ont encore des cases ouvertes.
+**1524 cases à cocher, 650 cochées** — 295 entrées sur 344 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -95,7 +95,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (100)
+**P1 — fonction importante, jamais vérifiée** (101)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -158,6 +158,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ Champ ville : recherche dans le référentiel (2026-09-13)](#-champ-ville--recherche-dans-le-référentiel-2026-09-13) · *Accueil, profil et réglages*
 - 7 · [Bascule en anglais — ~1 600 chaînes branchées, rien vu à l'écran (2026-08-06)](#bascule-en-anglais--1-600-chaînes-branchées-rien-vu-à-lécran-2026-08-06) · *Design, thème, langue et mise en page* · bloqué
 - 2 · [Refonte des maquettes d'authentification](#refonte-des-maquettes-dauthentification) · *Design, thème, langue et mise en page* · bloqué
+- 2 · [⬜ `orders` : la vente ne se pilote plus depuis le client (2026-09-21)](#-orders--la-vente-ne-se-pilote-plus-depuis-le-client-2026-09-21) · *Backend, sécurité et observabilité*
 - 2 · [⬜ Chaîne de paiement : plus d'ordre de virement venu du client (2026-09-21)](#-chaîne-de-paiement--plus-dordre-de-virement-venu-du-client-2026-09-21) · *Backend, sécurité et observabilité*
 - 3 · [⬜ Les echecs attrapes remontent enfin a Crashlytics (2026-09-14)](#-les-echecs-attrapes-remontent-enfin-a-crashlytics-2026-09-14) · *Backend, sécurité et observabilité*
 - 5 · [⬜ Balayage des invariants de données — 2 anomalies en production (2026-09-14)](#-balayage-des-invariants-de-données--2-anomalies-en-production-2026-09-14) · *Backend, sécurité et observabilité* · bloqué
@@ -363,7 +364,7 @@ Par domaine :
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 65 à faire, 51 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 67 à faire, 34 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 153 à faire, 32 faites
-- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 76 à faire, 45 faites
+- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 78 à faire, 45 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 52 à faire, 28 faites
 - [15. Site web](#15-site-web) — 32 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 32 à faire, 46 faites
@@ -19576,6 +19577,47 @@ La table est saine : 24 lignes, 12 paires toutes symétriques.
   côtés, et la publication « Amis » de l'un devient visible à l'autre (créer
   une publication à cette audience pour le vérifier — il n'en existe aucune).
 - [ ] **Retirer un ami** : l'audience se referme des deux côtés.
+
+## ⬜ `orders` : la vente ne se pilote plus depuis le client (2026-09-21)
+
+**Priorité P1** · importance 4/5 — Dernière pièce de la chaîne de paiement. L'acheteur posait lui-même le montant et le statut à la création. Et la résolution de litige du back-office ne marchait pas — elle est réparée au passage.
+
+Deux côtés, **NON DÉPLOYÉS** à l'écriture de cette entrée :
+
+- `firestore.rules` — le parcours marketplace vit là
+  (`marketplace_remote_datasource.dart`). `allow create` et `allow update`
+  passent à `if false`.
+- migration `20260921034600_orders_ecriture_fermee.sql` — côté Supabase :
+  INSERT fermé, UPDATE réservé aux administrateurs et limité par GRANT aux
+  six colonnes de litige.
+
+**Ce que j'avais mal lu, et qui mérite d'être dit.** J'ai d'abord annoncé que
+le client libérait lui-même le séquestre. C'est vrai du code Dart
+(`releaseEscrow()` pose `status: 'completed'`), mais **faux des règles
+déployées** : la note BUG-04 l'avait déjà sorti vers
+`escrow_release_requests` + Cloud Function. Ce Dart est donc du code MORT que
+les règles refusent déjà. Le vrai trou était la **création**, libre de tout
+champ : `totalAmount`, `sellerAmount`, `status`, `escrowStatus`, `paidAt`.
+
+**Une panne silencieuse trouvée en chemin.** La résolution de litige du
+back-office touchait **0 ligne**, sans rien dire. Un administrateur n'est ni
+acheteur ni vendeur, donc `orders_select_parties` ne lui montre rien — et
+Postgres applique les policies de SELECT aux lignes qu'un `UPDATE … WHERE`
+doit d'abord retrouver. La migration ajoute `orders_select_admin` : le cas 10
+du banc échouait AVANT comme après sans elle.
+
+Banc `tools/rls_tests/orders_ecriture_fermee.sql`, 11 cas, contre la
+production en `BEGIN … ROLLBACK` : 9 échecs sans la migration, 0 avec.
+Rien n'existe à casser — 0 commande et 0 produit des deux côtés, drapeau
+`marketplace` fermé.
+
+- [ ] **Back-office → litiges**, une fois une commande existante : la liste
+  affiche quelque chose, et « résoudre » enregistre vraiment. C'est la
+  réparation à vérifier, pas la fermeture.
+- [ ] **Le jour où la marketplace rouvre** : séquestre tenu par le serveur —
+  prix relu depuis `products`, paiement confirmé auprès de Stripe, passages à
+  `paid` et `completed` réservés à une fonction. Ne pas rétablir l'ancienne
+  règle de création.
 
 ## ⬜ Chaîne de paiement : plus d'ordre de virement venu du client (2026-09-21)
 
