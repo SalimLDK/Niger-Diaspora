@@ -21945,13 +21945,26 @@ Play Store, exigences Android, build release, iOS.
   passe bien `PRODUCTION=true`. Paiement entièrement fermé aujourd'hui, donc
   sans effet vivant — à corriger avant toute réouverture (faire échouer
   franchement en prod plutôt que servir la clé de test).
-- **Consentement UMP (RGPD)** absent : `tracking_consent_service.dart` gère
-  l'ATT (iOS) mais pas l'UMP de Google (formulaire de consentement aux pubs
-  personnalisées). À câbler côté AdMob console + client
-  (`ConsentInformation`), non testable sans pubs réelles.
-- **Clé Google Maps du manifeste** : `AIzaSyCnbdymYwzJXPA2YY1PMexCU_iGaN5tPek`,
-  annotée « NEW TEST KEY (No App Restrictions) » — non restreinte. À restreindre
-  par signature d'app dans la console Google Cloud.
+- **✅ Consentement UMP (RGPD) CÂBLÉ le 2026-09-21** (commit `29d37b2`) :
+  `tracking_consent_service.dart` recueille l'UMP (`requestConsentInfoUpdate` +
+  `loadAndShowConsentFormIfRequired`) avant l'ATT, et n'initialise AdMob que si
+  `canRequestAds` ; `NativeAdWidget` n'appelle plus AdMob sans consentement.
+  **Reste côté propriétaire** : publier le message GDPR dans la console AdMob
+  (Confidentialité et messages). **Vérif appareil (EEE)** : forcer
+  `ConsentDebugSettings(debugGeography: eea, testIdentifiers: […])`, l'app doit
+  montrer le formulaire ; hors EEE, pas de formulaire et les pubs se chargent.
+- **⬜ Clé Google Maps non restreinte** — action console du propriétaire, avec
+  un piège. La clé du manifeste (`com.google.android.geo.API_KEY`,
+  `AIzaSyCnbdymYwzJXPA2YY1PMexCU_iGaN5tPek`, « No App Restrictions ») est **la
+  MÊME** que celle servie par `app-config` (`GOOGLE_MAPS_API_KEY`, usages REST
+  Dart). La restreindre « aux apps Android » **casserait** l'usage REST. Il faut
+  donc **deux clés** : (a) une clé Maps **restreinte Android** dans le manifeste
+  — restriction « Applications Android » avec `com.diasponiger.diasponiger` +
+  l'empreinte **SHA-1 du certificat de release** (`keytool -list -v -keystore
+  diaspo-niger-release.jks -alias <alias>` ; le keystore n'est pas dans le
+  worktree, à faire côté propriétaire), API restreinte à « Maps SDK for
+  Android » ; (b) une clé séparée pour le REST (restreinte par API/IP), servie
+  par `app-config`. Ne pas fusionner les deux.
 
 ### ⬜ iOS — non traitable en aveugle sous Windows (Mac/Xcode requis)
 - **Entitlements non référencés** : `ios/Runner/Runner.entitlements` existe mais
