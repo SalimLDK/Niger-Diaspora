@@ -21281,7 +21281,13 @@ Play Store, exigences Android, build release, iOS.
 **Priorité P0** · importance 5/5 — N'importe quel compte connecté pouvait faire effacer par le serveur **n'importe quel objet du bucket**, y compris la sauvegarde d'identité Signal d'autrui. Reste à voir qu'une suppression légitime fonctionne encore.
 
 `functions/chemins_storage.js` (nouveau) + cinq appels dans
-`functions/index.js` — **NON DÉPLOYÉ** à l'écriture de cette entrée.
+`functions/index.js` — **DÉPLOYÉ le 2026-09-21**, les quatre fonctions une
+par une : les deux planifiées d'abord (elles parcourent TOUTES les
+conversations sans que personne n'appelle rien), puis les deux appelables.
+Le passage de 03:02, juste avant, était sain (« Deleted 0 messages and 0
+files ») ; **le premier passage sur le nouveau code n'a pas encore eu lieu**
+— toutes les heures pour `cleanupExpiredMessages`, toutes les 6 h pour
+`cleanupExpiredMediaFiles`.
 
 **L'attaque, de bout en bout.** Les règles Storage durcies le même jour n'y
 pouvaient RIEN : ces suppressions passent par l'**Admin SDK**, qui les ignore.
