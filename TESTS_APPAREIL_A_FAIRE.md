@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1539 cases à cocher, 722 cochées** — 310 entrées sur 362 ont encore des cases ouvertes.
+**1530 cases à cocher, 731 cochées** — 310 entrées sur 362 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -64,7 +64,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [⬜ Une conversation ne bascule plus sans ses participants (2026-09-15)](#-une-conversation-ne-bascule-plus-sans-ses-participants-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ MLS ouvert pour un seul compte (phase 5, 2026-09-15)](#-mls-ouvert-pour-un-seul-compte-phase-5-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 5 · [⬜ Signal remis en service : la garde de session sur les lectures de clés (2026-09-14)](#-signal-remis-en-service--la-garde-de-session-sur-les-lectures-de-clés-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
-- 12 · [⬜ Cinq messages reçus, un seul lisible : la bannière ne s'empilait pas (2026-09-16)](#-cinq-messages-reçus-un-seul-lisible--la-bannière-ne-sempilait-pas-2026-09-16) · *Notifications et push*
+- 11 · [⬜ Cinq messages reçus, un seul lisible : la bannière ne s'empilait pas (2026-09-16)](#-cinq-messages-reçus-un-seul-lisible--la-bannière-ne-sempilait-pas-2026-09-16) · *Notifications et push*
 - 3 · [⬜ Aperçu MLS quand l'app est OUVERTE (le même message, l'autre isolate)](#-aperçu-mls-quand-lapp-est-ouverte-le-même-message-lautre-isolate) · *Notifications et push*
 - 7 · [⬜ Aperçu des notifications MLS reconstruit sur l'appareil (phase 4, Android)](#-aperçu-des-notifications-mls-reconstruit-sur-lappareil-phase-4-android) · *Notifications et push*
 - 6 · [⬜ Accepter une demande d'ami : « Erreur de chargement » (2026-09-14)](#-accepter-une-demande-dami---erreur-de-chargement--2026-09-14) · *Notifications et push* · bloqué
@@ -148,9 +148,9 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [⬜ Cartes de partage chiffrées au repos (2026-09-09)](#-cartes-de-partage-chiffrées-au-repos-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
 - 4 · [Messages de groupe qui redeviennent indéchiffrables après réouverture (2026-08-13)](#messages-de-groupe-qui-redeviennent-indéchiffrables-après-réouverture-2026-08-13) · *Chiffrement de bout en bout et clés* · bloqué
 - 4 · [⬜ Appel entrant : le nom et la photo de l'appelant viennent de la base (2026-09-21)](#-appel-entrant--le-nom-et-la-photo-de-lappelant-viennent-de-la-base-2026-09-21) · *Appels*
-- 5 · [⬜ Notifications entre comptes : le serveur rédige le texte et filtre les données (2026-09-21)](#-notifications-entre-comptes--le-serveur-rédige-le-texte-et-filtre-les-données-2026-09-21) · *Notifications et push*
-- 7 · [⬜ Une édition corrige la bannière déjà posée (2026-09-16)](#-une-édition-corrige-la-bannière-déjà-posée-2026-09-16) · *Notifications et push*
-- 12 · [⬜ Trois cas de messagerie que les notifications ne couvraient pas (2026-09-16)](#-trois-cas-de-messagerie-que-les-notifications-ne-couvraient-pas-2026-09-16) · *Notifications et push*
+- 4 · [⬜ Notifications entre comptes : le serveur rédige le texte et filtre les données (2026-09-21)](#-notifications-entre-comptes--le-serveur-rédige-le-texte-et-filtre-les-données-2026-09-21) · *Notifications et push*
+- 2 · [⬜ Une édition corrige la bannière déjà posée (2026-09-16)](#-une-édition-corrige-la-bannière-déjà-posée-2026-09-16) · *Notifications et push*
+- 10 · [⬜ Trois cas de messagerie que les notifications ne couvraient pas (2026-09-16)](#-trois-cas-de-messagerie-que-les-notifications-ne-couvraient-pas-2026-09-16) · *Notifications et push*
 - 7 · [⬜ Types, libellés et bascules : trois écarts entre ce qui est écrit et ce qui est lu (2026-09-16)](#-types-libellés-et-bascules--trois-écarts-entre-ce-qui-est-écrit-et-ce-qui-est-lu-2026-09-16) · *Notifications et push*
 - 9 · [⬜ Aperçu des notifications MLS sur iOS : une extension, pas un isolate (phase 4, moitié iOS)](#-aperçu-des-notifications-mls-sur-ios--une-extension-pas-un-isolate-phase-4-moitié-ios) · *Notifications et push* · bloqué
 - 9 · [Page Notifications à plat + heure sur le seul dernier message d'une rafale (2026-08-23)](#page-notifications-à-plat--heure-sur-le-seul-dernier-message-dune-rafale-2026-08-23) · *Notifications et push*
@@ -372,7 +372,7 @@ Par domaine :
 - [3. Groupes](#3-groupes) — 149 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 134 à faire, 55 faites
 - [5. Appels](#5-appels) — 26 à faire, 8 faites
-- [6. Notifications et push](#6-notifications-et-push) — 154 à faire, 88 faites
+- [6. Notifications et push](#6-notifications-et-push) — 145 à faire, 97 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 69 à faire, 10 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 118 à faire, 16 faites
@@ -11021,9 +11021,13 @@ nouvel algorithme, rejoués sur les **1 548 notifications réelles**, donnent
 1 548 blocs `data` identiques. Après déploiement : code en ligne relu, égal au
 dépôt ; la fonction démarre (401 sans secret).
 
-- [ ] **un push réel passe par la v33** — relire `net._http_response` après
+- [x] **un push réel passe par la v33** — relire `net._http_response` après
   la prochaine notification (HTTP 200 attendus), et qu'un message de
   discussion arrive toujours sur un téléphone.
+  ✅ Passe du 2026-09-22 (~02:50–03:00), build Play 1.2.2+26 (f22aaff) : `net._http_response` sur 3 h → 46 réponses, **toutes 200**
+  `{"sent":1,"removed":0}` ; la fonction déployée est désormais la **v34**
+  (successeur de la v33), et les pushs arrivent bien sur le Pixel (bannières
+  relues par `dumpsys notification`).
 
 ---
 
@@ -11284,21 +11288,35 @@ Fichiers : migration `20260916200000`,
 (`_corrigerBanniereApresEdition`),
 [notification_pile_messages.dart](lib/core/services/notification_pile_messages.dart).
 
-- [ ] **Bannière affichée, l'autre corrige son message** : la bannière montre
+- [x] **Bannière affichée, l'autre corrige son message** : la bannière montre
   le **nouveau** texte, **sans** sonner ni vibrer une seconde fois.
-- [ ] **Conversation déjà lue, l'autre corrige** : **aucune** bannière ne
+  ✅ Passe du 2026-09-22 (~02:50–03:00), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : Pixel fermé, PU1 reçu → « PU1 · 02:58 » ; Sim le modifie →
+  la même bannière dit « PU1 EDIT · 02:58 » (heure d'origine gardée),
+  drapeaux `ONLY_ALERT_ONCE|SILENT`, `when` inchangé : pas de nouvelle alerte.
+- [x] **Conversation déjà lue, l'autre corrige** : **aucune** bannière ne
   réapparaît. C'est le point le plus important.
-- [ ] **Édition en conversation chiffrée** : même comportement — le texte
+  ✅ Passe du 2026-09-22 (~02:50–03:00), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : PT1–PT10 lus, Pixel fermé, Sim modifie PT10 → aucune
+  bannière dans le volet. Côté serveur, un `messageEdited` est bien créé et
+  poussé (règle du 21/09 : bannière envoyée depuis 24 h, lue ou non) ; c'est
+  l'appareil qui refuse de la reposer, le message n'étant plus dans sa pile.
+- [x] **Édition en conversation chiffrée** : même comportement — le texte
   corrigé s'affiche, et il a bien été déchiffré sur l'appareil.
-- [ ] **Puis ouvrir la conversation** : le message reste **lisible**. C'est le
+  ✅ Passe du 2026-09-22 (~02:50–03:00), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : le cas ci-dessus est en MLS — le texte corrigé de la
+  bannière a été déchiffré sur l'appareil (le serveur ne voit qu'un
+  `kind=control`).
+- [x] **Puis ouvrir la conversation** : le message reste **lisible**. C'est le
   test du cliquet : corriger une bannière passe par la copie jetable.
+  ✅ Passe du 2026-09-22 (~02:50–03:00), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : relance à froid → « PU1 EDIT · modifié », « PT9 EDIT »,
+  « PT10 EDIT » lisibles, et le volet se vide.
 - [ ] **Réaction ou suppression en chiffré** : elles passent par le même
   transport de contrôle mais ne doivent **rien** changer à la bannière.
 - [ ] **Pile de plusieurs messages** : seule la ligne corrigée change, elle
   garde sa place et son heure d'envoi.
   ⛔ Passe du 2026-09-21, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS (MLS) : PA2 modifié en PA2M à 18:13 ; la pile de Sim affichait encore « PA2 · 18:00 » à 18:21. L'édition ne corrige pas la ligne déjà posée.
-- [ ] **Édition d'un message ancien** (hors des 6 de la pile) : rien ne se
+- [x] **Édition d'un message ancien** (hors des 6 de la pile) : rien ne se
   passe, et surtout aucune bannière ne surgit.
+  ✅ Passe du 2026-09-22 (~02:50–03:00), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : bannière « PU1 EDIT » posée, Sim modifie PT9 (lu, hors
+  pile) → volet inchangé, aucune bannière nouvelle.
 
 ---
 
@@ -11344,9 +11362,13 @@ Fichiers : [notification_pile_messages.dart](lib/core/services/notification_pile
   `number=6` : rien ne dit que 12 messages sont arrivés.
 - [ ] **Groupe qui s'anime, app tuée** : la bannière porte le nom du groupe en
   titre et **chaque message précédé de son expéditeur**.
-- [ ] **Ouvrir la conversation, puis recevoir un nouveau message** : la
+- [x] **Ouvrir la conversation, puis recevoir un nouveau message** : la
   bannière ne montre QUE le nouveau — les lus ne reviennent pas.
   ⛔ Passe du 2026-09-21, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : la pile n'est PAS vidée par la lecture. Après avoir lu PA2 (18:02) et rouvert la discussion (18:11), la bannière de PA8–PA10 contenait encore « PA2 · 18:00 » — et « PA6SECRET · 18:14 », supprimé pour tous entre-temps : le texte supprimé reste lisible dans le volet. PA7, reçu app au premier plan, a formé une bannière séparée hors de la pile.
+  ✅ Passe du 2026-09-22 (~02:50–03:00), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : cette fois la pile s'est vidée. PT1–PT10 lus par
+  l'ouverture de 02:47 ; Pixel fermé, PU1 reçu à 02:58 → bannière
+  `number=1`, « PU1 » seul, aucun PT. (L'échec d'hier portait sur une
+  réouverture ; ici, ouverture à froid.)
 - [ ] **Deux conversations en parallèle** : deux bannières distinctes, chacune
   avec sa propre pile.
 - [ ] **Pastille du lanceur** (Samsung, Xiaomi) : le chiffre suit le nombre de
@@ -11494,8 +11516,16 @@ Fichiers : migrations `20260916120000` et `20260916130000`,
 - [ ] **Droits de la table** : marquer lu, supprimer une notification et faire
   défiler la liste marchent toujours. C'est ce que le `REVOKE ALL` pouvait
   casser — vérifié par banc côté serveur, jamais depuis l'app.
-- [ ] **Retirer cette réaction** : la notification disparaît de la liste.
-- [ ] **Réagir à son propre message** : aucune notification.
+- [x] **Retirer cette réaction** : la notification disparaît de la liste.
+  ✅ Passe du 2026-09-22 (~02:50–03:00), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : Pixel fermé, Sim pose 😮 sur PK1 → ligne `messageReaction`
+  non lue + bannière ; Sim la retire → la ligne est **supprimée** (0), la
+  réaction aussi. ⚠️ La **bannière** « A réagi 😮 » reste dans le volet du Pixel
+  jusqu'à l'ouverture de la discussion. Et une notification déjà **lue** n'est
+  pas supprimée (voulu : `AND NOT n.is_read`) — deux lignes lues 👍/🙏 de la
+  veille sont restées.
+- [x] **Réagir à son propre message** : aucune notification.
+  ✅ Passe du 2026-09-22 (~02:50–03:00), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : Sim pose 👍 sur son PT10 → réaction enregistrée, **aucune**
+  ligne `notifications` ni pour Sim ni pour Salim ; retirée ensuite.
 - [ ] **Conversation en sourdine + mention** (conversation en clair) : la
   bannière arrive, libellée « Mention », et l'appui ouvre **la discussion**.
 - [ ] **Conversation en sourdine sans mention** : toujours silencieuse.
