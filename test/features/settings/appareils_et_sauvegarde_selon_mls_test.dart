@@ -136,7 +136,31 @@ void main() {
           reason: 'une fiche révoquée dit désormais quand');
     });
 
-    testWidgets('compte encore en Signal : la liste Signal, sans registre MLS',
+    testWidgets('compte encore en Signal, sans appareil MLS : la liste Signal seule',
+        (tester) async {
+      final sync = _FauxSync();
+      await monter(
+        tester,
+        const DevicesScreen(),
+        mlsActif: false,
+        autres: [
+          deviceSyncServiceProvider.overrideWithValue(sync),
+          mlsDevicesProvider.overrideWith((ref, _) async => const []),
+        ],
+      );
+
+      expect(sync.lectures, 1);
+      expect(find.text(l10n.noDeviceRegistered), findsOneWidget);
+      expect(find.text(l10n.mlsDevicesExplain), findsNothing);
+      expect(find.text(l10n.mlsDevicesSectionTitle), findsNothing);
+    });
+
+    // Avant le 2026-09-22, ce cas ne montrait QUE la liste Signal, et le
+    // registre n'était même pas lu. Or un compte hors du drapeau entre dans
+    // une conversation chiffrée dès que l'autre bout l'a basculée : sur le
+    // Pixel de Salim, deux appareils MLS actifs, aucun code de sécurité à
+    // l'écran. Le registre se lit donc, et s'ajoute dès qu'il sert.
+    testWidgets('compte hors drapeau déjà en MLS : le registre s\'ajoute',
         (tester) async {
       var registreLu = false;
       final sync = _FauxSync();
@@ -153,10 +177,13 @@ void main() {
         ],
       );
 
-      expect(sync.lectures, 1);
-      expect(find.text(l10n.noDeviceRegistered), findsOneWidget);
-      expect(find.text(l10n.mlsDevicesExplain), findsNothing);
-      expect(registreLu, isFalse);
+      expect(registreLu, isTrue);
+      expect(sync.lectures, 1, reason: 'la liste Signal reste lue et montrée');
+      expect(find.text(l10n.mlsDevicesSectionTitle), findsOneWidget);
+      expect(find.text(l10n.mlsDevicesExplain), findsOneWidget);
+      expect(find.text('Samsung actuel'), findsOneWidget);
+      expect(find.text(l10n.noDeviceRegistered), findsNothing,
+          reason: 'une liste Signal vide ne doit pas cacher le registre');
     });
   });
 

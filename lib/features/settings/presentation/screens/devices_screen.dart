@@ -20,6 +20,18 @@ import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 /// Nombre maximal d'appareils par compte, imposé par la synchro E2EE.
 const int _kMaxDevices = 5;
 
+/// Le registre MLS s'affiche-t-il **en plus** de la liste Signal ?
+///
+/// Seulement pour un compte hors du drapeau (le drapeau, lui, remplace la
+/// liste Signal par le registre) qui a au moins un appareil MLS non révoqué :
+/// c'est la preuve qu'il est déjà dans une conversation chiffrée. Registre pas
+/// encore lu, ou illisible : rien de plus, l'écran reste celui d'avant.
+bool registreMlsEnPlus({
+  required bool drapeauMls,
+  required List<MlsDeviceRecord>? appareilsMls,
+}) =>
+    !drapeauMls && (appareilsMls?.any((a) => !a.estRevoque) ?? false);
+
 /// Écran de gestion des appareils connectés (fiche 20b) : bandeau
 /// d'explication chiffré, carte « cet appareil » mise en avant, empreinte de
 /// clé lisible, et Renommer / Révoquer sortis du menu ⋯.
@@ -32,6 +44,15 @@ const int _kMaxDevices = 5;
 /// comptes, eux, chiffrent encore en Signal (deux messages ce jour-là) : ils
 /// gardent cette liste, et le registre MLS leur reste caché tant qu'ils ne
 /// s'en servent pas.
+///
+/// **« S'en servir » se lit sur le registre, pas sur le drapeau.** Un compte
+/// hors du drapeau entre quand même dans une conversation chiffrée dès que
+/// l'autre bout l'a basculée : ses appareils s'inscrivent dans `mls_devices`,
+/// ses messages partent en MLS. Il gardait pourtant la seule liste Signal,
+/// sans registre ni code de sécurité — il ne pouvait vérifier aucune clé
+/// (Pixel, 2026-09-22 : deux appareils MLS actifs, écran « 2 sur 5 »). Il
+/// voit désormais les deux listes, le registre sous la sienne. Voir
+/// [registreMlsEnPlus].
 class DevicesScreen extends ConsumerStatefulWidget {
   const DevicesScreen({super.key});
 
@@ -250,6 +271,13 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
     ref.listen<bool>(mlsMessagesActifsProvider, (_, actif) {
       if (!actif) unawaited(_loadDevices());
     });
+    final uid = ref.watch(uidFirebaseProvider);
+    final avecRegistre = registreMlsEnPlus(
+      drapeauMls: mlsActif,
+      appareilsMls: mlsActif || uid == null
+          ? null
+          : ref.watch(mlsDevicesProvider(uid)).valueOrNull,
+    );
 
     return Scaffold(
       backgroundColor: context.backgroundColor,
@@ -267,11 +295,17 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
                       : RefreshIndicator(
                         // Remplace le bouton d'actualisation de l'en-tête,
                         // que la fiche ne prévoit pas.
-                        onRefresh: _loadDevices,
+                        onRefresh: () async {
+                          await _loadDevices();
+                          if (uid != null) ref.invalidate(mlsDevicesProvider(uid));
+                        },
                         child:
-                            _devices.isEmpty
+                            _devices.isEmpty && !avecRegistre
                                 ? _buildEmptyState(context)
-                                : _buildDevicesList(context),
+                                : _buildDevicesList(
+                                  context,
+                                  registreDe: avecRegistre ? uid : null,
+                                ),
                       ),
             ),
           ],
@@ -364,31 +398,49 @@ class _DevicesScreenState extends ConsumerState<DevicesScreen> {
     );
   }
 
-  Widget _buildDevicesList(BuildContext context) {
+  /// [registreDe] : le compte dont le registre MLS s'affiche **sous** la
+  /// liste Signal (voir [registreMlsEnPlus]), ou `null`.
+  Widget _buildDevicesList(BuildContext context, {String? registreDe}) {
     return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
       children: [
-        _InfoBanner(count: _devices.length),
-        const SizedBox(height: 14),
-        // Si aucune carte ne porte « CET APPAREIL », l'utilisateur a devant
-        // lui des lignes indiscernables et peut révoquer la sienne. Le dire
-        // vaut mieux que de laisser deviner.
-        if (_devices.every((d) => d.deviceId != _currentDeviceId)) ...[
-          const _UnknownCurrentDeviceNotice(),
+        if (_devices.isNotEmpty) ...[
+          _InfoBanner(count: _devices.length),
           const SizedBox(height: 14),
+          // Si aucune carte ne porte « CET APPAREIL », l'utilisateur a devant
+          // lui des lignes indiscernables et peut révoquer la sienne. Le dire
+          // vaut mieux que de laisser deviner.
+          if (_devices.every((d) => d.deviceId != _currentDeviceId)) ...[
+            const _UnknownCurrentDeviceNotice(),
+            const SizedBox(height: 14),
+          ],
+          for (final device in _devices)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: _DeviceCard(
+                device: device,
+                isCurrent: device.deviceId == _currentDeviceId,
+                onRename: () => _renameDevice(device),
+                onRevoke: () => _revokeDevice(device),
+              ),
+            ),
+          const SizedBox(height: 4),
+          const _LimitNotice(),
         ],
-        for (final device in _devices)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 10),
-            child: _DeviceCard(
-              device: device,
-              isCurrent: device.deviceId == _currentDeviceId,
-              onRename: () => _renameDevice(device),
-              onRevoke: () => _revokeDevice(device),
+        if (registreDe != null) ...[
+          SizedBox(height: _devices.isEmpty ? 4 : 28),
+          Text(
+            l10n.mlsDevicesSectionTitle,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: context.textPrimaryColor,
             ),
           ),
-        const SizedBox(height: 4),
-        const _LimitNotice(),
+          const SizedBox(height: 8),
+          _MlsRegistrySection(userId: registreDe),
+        ],
       ],
     );
   }
@@ -801,8 +853,9 @@ class _CardAction extends StatelessWidget {
 // ---------------------------------------------------------------------------
 
 /// La liste `mls_devices` du compte — le seul contenu de l'écran pour un
-/// compte passé à MLS. Pas de titre : la barre dit déjà « Appareils
-/// enregistrés ».
+/// compte passé à MLS, sans titre : la barre dit déjà « Appareils
+/// enregistrés ». Sous la liste Signal d'un compte hors drapeau, l'appelant
+/// pose le titre (`mlsDevicesSectionTitle`).
 class _MlsRegistrySection extends ConsumerWidget {
   final String userId;
 

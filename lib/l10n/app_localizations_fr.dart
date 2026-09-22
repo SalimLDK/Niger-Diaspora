@@ -12464,6 +12464,9 @@ class AppLocalizationsFr extends AppLocalizations {
       'Chaque installation de l\'application est un appareil, avec sa propre clé. Désinstaller puis réinstaller en crée un nouveau : révoquez ceux que vous n\'utilisez plus.';
 
   @override
+  String get mlsDevicesSectionTitle => 'Discussions chiffrées de bout en bout';
+
+  @override
   String get mlsSecurityCodeLabel => 'Code de sécurité';
 
   @override

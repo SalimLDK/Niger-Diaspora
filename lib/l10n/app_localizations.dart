@@ -22910,6 +22910,12 @@ abstract class AppLocalizations {
   /// **'Chaque installation de l\'application est un appareil, avec sa propre clé. Désinstaller puis réinstaller en crée un nouveau : révoquez ceux que vous n\'utilisez plus.'**
   String get mlsDevicesExplain;
 
+  /// No description provided for @mlsDevicesSectionTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Discussions chiffrées de bout en bout'**
+  String get mlsDevicesSectionTitle;
+
   /// No description provided for @mlsSecurityCodeLabel.
   ///
   /// In fr, this message translates to:

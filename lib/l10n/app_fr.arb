@@ -5854,6 +5854,7 @@
     }
   },
   "mlsDevicesExplain": "Chaque installation de l'application est un appareil, avec sa propre clé. Désinstaller puis réinstaller en crée un nouveau : révoquez ceux que vous n'utilisez plus.",
+  "mlsDevicesSectionTitle": "Discussions chiffrées de bout en bout",
   "mlsSecurityCodeLabel": "Code de sécurité",
   "majObligatoireTitre": "Mise à jour requise",
   "majObligatoireTexte": "Cette version de l'application n'est plus prise en charge. Installez la dernière version pour continuer — vos messages et vos clés restent sur cet appareil.",

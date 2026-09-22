@@ -5125,6 +5125,7 @@
   "groupNoticeAdminRemovedByYou": "You removed {cible} as an admin",
   "groupNoticeAdminRemovedToYou": "{acteur} removed you as an admin",
   "mlsDevicesExplain": "Each installation of the app is a device with its own key. Uninstalling and reinstalling creates a new one: revoke the ones you no longer use.",
+  "mlsDevicesSectionTitle": "End-to-end encrypted chats",
   "mlsSecurityCodeLabel": "Security code",
   "majObligatoireTitre": "Update required",
   "majObligatoireTexte": "This version of the app is no longer supported. Install the latest version to continue — your messages and keys stay on this device.",

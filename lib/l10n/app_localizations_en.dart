@@ -12335,6 +12335,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Each installation of the app is a device with its own key. Uninstalling and reinstalling creates a new one: revoke the ones you no longer use.';
 
   @override
+  String get mlsDevicesSectionTitle => 'End-to-end encrypted chats';
+
+  @override
   String get mlsSecurityCodeLabel => 'Security code';
 
   @override

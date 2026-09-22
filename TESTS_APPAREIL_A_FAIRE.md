@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1524 cases à cocher, 737 cochées** — 310 entrées sur 362 ont encore des cases ouvertes.
+**1525 cases à cocher, 737 cochées** — 310 entrées sur 362 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -62,7 +62,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [⬜ Un média chiffré de plus de 10 Mo était illisible (2026-09-16)](#-un-média-chiffré-de-plus-de-10-mo-était-illisible-2026-09-16) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ Ouvrir une discussion ne la bascule plus (2026-09-15)](#-ouvrir-une-discussion-ne-la-bascule-plus-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ Une conversation ne bascule plus sans ses participants (2026-09-15)](#-une-conversation-ne-bascule-plus-sans-ses-participants-2026-09-15) · *Chiffrement de bout en bout et clés*
-- 3 · [⬜ MLS ouvert pour un seul compte (phase 5, 2026-09-15)](#-mls-ouvert-pour-un-seul-compte-phase-5-2026-09-15) · *Chiffrement de bout en bout et clés*
+- 4 · [⬜ MLS ouvert pour un seul compte (phase 5, 2026-09-15)](#-mls-ouvert-pour-un-seul-compte-phase-5-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 5 · [⬜ Signal remis en service : la garde de session sur les lectures de clés (2026-09-14)](#-signal-remis-en-service--la-garde-de-session-sur-les-lectures-de-clés-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
 - 11 · [⬜ Cinq messages reçus, un seul lisible : la bannière ne s'empilait pas (2026-09-16)](#-cinq-messages-reçus-un-seul-lisible--la-bannière-ne-sempilait-pas-2026-09-16) · *Notifications et push*
 - 3 · [⬜ Aperçu MLS quand l'app est OUVERTE (le même message, l'autre isolate)](#-aperçu-mls-quand-lapp-est-ouverte-le-même-message-lautre-isolate) · *Notifications et push*
@@ -370,7 +370,7 @@ Par domaine :
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
 - [2. Messagerie](#2-messagerie) — 342 à faire, 172 faites
 - [3. Groupes](#3-groupes) — 149 à faire, 64 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 131 à faire, 58 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 132 à faire, 58 faites
 - [5. Appels](#5-appels) — 26 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 144 à faire, 98 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
@@ -9129,6 +9129,17 @@ Couvert hors appareil par
       le drapeau du compte (`mlsMessagesActifsProvider`), pas sur « a des
       discussions chiffrées ». Il ne peut donc pas vérifier la clé de son
       interlocuteur ni la sienne.
+      **Corrigé le 2026-09-22** (branche `claude/ecran-appareils-2209`) : hors
+      drapeau, dès qu'un appareil MLS non révoqué existe, l'écran ajoute sous
+      la liste Signal une section « Discussions chiffrées de bout en bout »
+      (registre, codes de sécurité, révocation) — `registreMlsEnPlus`, gardes
+      `test/features/settings/ecran_appareils_registre_mls_test.dart` et
+      `appareils_et_sauvegarde_selon_mls_test.dart`.
+- [ ] **Écran Appareils d'un compte hors drapeau déjà en MLS** (Pixel de
+      Salim, sur un build qui porte le correctif) : la liste Signal, puis la
+      section « Discussions chiffrées de bout en bout » avec ses 2 appareils
+      actifs et leur code de sécurité ; lisible en sombre à la police 1,3 ;
+      « Révoquer » absent sur « CET APPAREIL ».
 - [ ] **Prise d'effet sans relancer l'app** : le drapeau est lu à chaque
       appel, pas au démarrage.
 - [ ] **Écran d'administration** : la liste n'y est pas éditable. Juger s'il
