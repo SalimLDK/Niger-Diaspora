@@ -16,6 +16,12 @@ Une entrée sans aucune case (méthode, recette, contexte) reste en place.
 
     python tools/archiver_tests_appareil.py            # archive, puis régénère le sommaire
     python tools/archiver_tests_appareil.py --dry-run  # compte sans rien écrire
+    python tools/archiver_tests_appareil.py --garder="Exclure un membre"
+
+`--garder=<morceau de titre>` (répétable) laisse une entrée intacte. Pour
+l'autre agent : si son travail non committé touche une entrée, l'archiver
+lui ferait un conflit au milieu de son travail — la garder, archiver le
+reste, et la reprendre au passage suivant.
 """
 import datetime
 import re
@@ -107,7 +113,7 @@ def _descendre(bloc):
     return out
 
 
-def archiver(texte, date):
+def archiver(texte, date, garder=()):
     lignes = texte.split('\n')
     libre = _hors_code(lignes)
 
@@ -136,6 +142,8 @@ def archiver(texte, date):
     entieres = partielles = cases = 0
 
     for debut, titre, dom, fin in entrees:
+        if any(g in titre for g in garder):
+            continue
         idx = range(debut, fin)
         ouvertes = sum(1 for k in idx if libre[k] and _OUVERTE.match(lignes[k]))
         cochees = [k for k in idx if libre[k] and _COCHEE.match(lignes[k])]
@@ -206,7 +214,8 @@ def main():
         print('conflit de fusion non résolu -- rien touché')
         return 1
     date = datetime.date.today().isoformat()
-    liste, section, (entieres, partielles, cases) = archiver(texte, date)
+    garder = [a.split('=', 1)[1] for a in sys.argv[1:] if a.startswith('--garder=')]
+    liste, section, (entieres, partielles, cases) = archiver(texte, date, garder)
     print(f'{entieres} entrées entières, {cases} cases '
           f'(dont celles de {partielles} entrées encore ouvertes)')
     if essai or not cases:
