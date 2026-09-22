@@ -168,7 +168,9 @@ class _MessagePreviewCard extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              l10n.messageSentAt(_formatFullDateTime(message.createdAt)),
+              l10n.messageSentAt(
+                _formatFullDateTime(message.createdAt, l10n.localeName),
+              ),
               style: TextStyle(
                 fontSize: 13,
                 color: context.textSecondaryColor,
@@ -668,7 +670,7 @@ List<String> _sortByTimestamp(
 
 /// « Modifié · `date` », ou « Modifié 3 fois · `date` » au-delà d'une fois.
 String _libelleModification(AppLocalizations l10n, MessageEntity message) {
-  final quand = _formatFullDateTime(message.editedAt!);
+  final quand = _formatFullDateTime(message.editedAt!, l10n.localeName);
   // `editHistory` est absent des messages modifiés avant qu'on ne le tienne :
   // une modification datée sans historique en vaut une.
   final nombre = message.editHistory?.length ?? 0;
@@ -676,9 +678,12 @@ String _libelleModification(AppLocalizations l10n, MessageEntity message) {
   return '${l10n.editedCountLabel(nombre)} · $quand';
 }
 
-String _formatFullDateTime(DateTime dateTime) {
+/// [locale] est obligatoire : sans lui `DateFormat` prend la locale par défaut
+/// d'`intl`, jamais fixée ici, et l'écran écrivait « Sep 22, 2026 » à un
+/// usager francophone (SM A515F, 2026-09-22).
+String _formatFullDateTime(DateTime dateTime, String locale) {
   final local = dateTime.toLocal();
-  return DateFormat.yMMMd().add_Hm().format(local);
+  return DateFormat.yMMMd(locale).add_Hm().format(local);
 }
 
 String _formatRelativeDateTime(BuildContext context, DateTime dateTime) {
@@ -697,5 +702,5 @@ String _formatRelativeDateTime(BuildContext context, DateTime dateTime) {
   if (dateDay == yesterday) {
     return l10n.yesterday(timeStr);
   }
-  return DateFormat.yMMMd().add_Hm().format(local);
+  return DateFormat.yMMMd(l10n.localeName).add_Hm().format(local);
 }

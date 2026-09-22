@@ -1604,7 +1604,13 @@ modification est expiré (25 min) ».
     compte `ConnectivityResult.vpn` seul comme une connexion, donc la garde
     `NetworkFailure` d'`editMessage` est sautée, et l'exception réseau de
     `passerelle.modifier` tombe dans le `catch` générique (`unexpectedError`).
-    Tout utilisateur avec un VPN permanent verra ce message. Non corrigé.
+    Tout utilisateur avec un VPN permanent verra ce message.
+    **Corrigé le 2026-09-22** : `estConnecte` (`network_info.dart`) ne compte
+    plus le VPN seul — en service, il porte son transport (`dumpsys` du
+    A515F en ligne : `Transports: WIFI|VPN`) ; et `editMessage` rend une
+    `NetworkFailure` sur toute panne réseau (`estPanneReseau`). À revoir
+    sur un build qui le porte : mode avion → message de connexion ; et
+    surtout, **en ligne avec le VPN**, tout doit continuer de partir.
 - [ ] **« Infos » dit quand.** Le panneau d'informations d'un message modifié
   doit afficher « Modifié · <date> », et « Modifié N fois · <date> » au-delà
   d'une modification. Le texte d'avant n'est **pas** conservé : il n'y a pas
@@ -1616,6 +1622,8 @@ modification est expiré (25 min) ».
   `DateFormat.yMMMd()` sans locale, alors que le reste de l'app écrit
   « 11 sept. 2026 ». « Modifié N fois » non vu (la 2ᵉ modification a échoué
   hors ligne).
+  **Date corrigée le 2026-09-22** : `DateFormat.yMMMd(l10n.localeName)`.
+  À revoir : « 22 sept. 2026 01:30 ».
 
 Fichiers : `lib/features/messages/presentation/widgets/message_input.dart`,
 `message_bubble.dart`, `message_info_sheet.dart`,
@@ -8774,7 +8782,14 @@ Fichiers : [mls_metadonnees.dart](lib/core/crypto/mls/mls_metadonnees.dart)
       `message_repository_impl.dart`) ; hors ligne, le fil ressert le dernier
       instantané Hive. Et réseau revenu **discussion restée ouverte**, l'écran est
       resté faux plus d'une minute ; seule la relance à froid en ligne a remis
-      l'état juste (PH1 sans réaction, 👍 sur PK1). Non corrigé.
+      l'état juste (PH1 sans réaction, 👍 sur PK1).
+      **Corrigé le 2026-09-22** (branche `claude/defauts-hors-ligne-2209`) :
+      `toggleReaction` et `toggleStarMessage` reportent la réaction ou l'étoile
+      dans le cache Hive après l'écriture serveur (`reporterDansLeCache`),
+      garde `test/features/messages/passe_adb_2209_hors_ligne_test.dart`. À revoir sur un build qui le porte : poser,
+      retirer, puis mode avion + relance à froid → l'écran montre le dernier
+      état. Le « réseau revenu, discussion ouverte, écran figé » n'est pas
+      traité ici (rechargement au retour du réseau).
 
 ---
 

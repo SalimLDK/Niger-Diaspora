@@ -10,6 +10,7 @@ import 'package:dartz/dartz.dart';
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:video_compress/video_compress.dart';
 
+import '../../../../core/errors/classification_erreurs.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../../../core/network/network_info.dart';
@@ -28,6 +29,33 @@ import '../datasources/message_remote_datasource.dart';
 import '../models/conversation_model.dart';
 import '../models/message_model.dart';
 import '../../../feed/domain/entities/post_entity.dart' show MentionedUser;
+
+/// Reporte dans le cache Hive une métadonnée qui vient d'être écrite au
+/// serveur (réaction, étoile).
+///
+/// Sans lui, réagir ou étoiler ne touchait que l'état en mémoire et le
+/// serveur : hors ligne, le fil ressert le cache et montrait l'état d'avant —
+/// une réaction retirée revenue, une réaction posée absente (SM A515F,
+/// 2026-09-22). Un message absent du cache est laissé tel quel, et un échec
+/// d'écriture locale ne fait pas échouer l'action, déjà faite côté serveur.
+@visibleForTesting
+Future<void> reporterDansLeCache(
+  CacheService cache,
+  String conversationId,
+  String messageId,
+  void Function(Map<String, dynamic> message) maj,
+) async {
+  try {
+    final enCache = cache.getCachedMessages(conversationId);
+    final i = enCache.indexWhere((m) => m['id'] == messageId);
+    if (i == -1) return;
+    final copie = Map<String, dynamic>.from(enCache[i]);
+    maj(copie);
+    await cache.cacheMessages(conversationId, [copie]);
+  } catch (e) {
+    dev.log('Cache non mis à jour', name: 'message_repository_impl', error: e);
+  }
+}
 
 class MessageRepositoryImpl implements MessageRepository {
   final MessageRemoteDataSource remoteDataSource;
@@ -2472,15 +2500,29 @@ class MessageRepositoryImpl implements MessageRepository {
   }) async {
     try {
       final passerelle = await _passerelleMessage(conversationId, messageId);
+      bool? etoile;
       if (passerelle != null) {
-        await passerelle.basculerEtoile(messageId);
-        return const Right(null);
+        etoile = await passerelle.basculerEtoile(messageId);
+      } else {
+        await remoteDataSource.toggleStarMessage(
+          conversationId: conversationId,
+          messageId: messageId,
+          userId: userId,
+        );
       }
-      await remoteDataSource.toggleStarMessage(
-        conversationId: conversationId,
-        messageId: messageId,
-        userId: userId,
-      );
+      await reporterDansLeCache(cacheService, conversationId, messageId, (m) {
+        final par = <String>[
+          for (final u in (m['starredBy'] as List?) ?? const []) u.toString(),
+        ];
+        final maintenant = etoile ?? !par.contains(userId);
+        par.remove(userId);
+        if (maintenant) par.add(userId);
+        if (par.isEmpty) {
+          m.remove('starredBy');
+        } else {
+          m['starredBy'] = par;
+        }
+      });
       return const Right(null);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
@@ -2506,9 +2548,7 @@ class MessageRepositoryImpl implements MessageRepository {
         } else {
           await passerelle.reagir(messageId, emoji);
         }
-        return const Right(null);
-      }
-      if (retirer) {
+      } else if (retirer) {
         await remoteDataSource.removeReaction(
           conversationId: conversationId,
           messageId: messageId,
@@ -2522,6 +2562,21 @@ class MessageRepositoryImpl implements MessageRepository {
           emoji: emoji,
         );
       }
+      await reporterDansLeCache(cacheService, conversationId, messageId, (m) {
+        final reactions = <String, dynamic>{
+          ...?(m['reactions'] as Map?)?.cast<String, dynamic>(),
+        };
+        if (retirer) {
+          reactions.remove(userId);
+        } else {
+          reactions[userId] = emoji;
+        }
+        if (reactions.isEmpty) {
+          m.remove('reactions');
+        } else {
+          m['reactions'] = reactions;
+        }
+      });
       return const Right(null);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
@@ -2683,6 +2738,12 @@ class MessageRepositoryImpl implements MessageRepository {
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
     } catch (e) {
+      // La garde d'entrée ne voit pas tout (portail captif, réseau qui tombe
+      // pendant l'envoi) : une coupure doit se dire coupure, pas « erreur
+      // inattendue ».
+      if (estPanneReseau(e)) {
+        return Left(NetworkFailure(AppErrorMessages.networkError));
+      }
       dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
       return Left(ServerFailure(AppErrorMessages.unexpectedError));
     }
