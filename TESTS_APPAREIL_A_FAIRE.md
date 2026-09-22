@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1549 cases à cocher, 712 cochées** — 310 entrées sur 362 ont encore des cases ouvertes.
+**1548 cases à cocher, 713 cochées** — 310 entrées sur 362 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -231,7 +231,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⬜ Sondage dans une discussion privée (2026-09-12)](#-sondage-dans-une-discussion-privée-2026-09-12) · *Messagerie*
 - 5 · [⬜ Cartes de post et d'événement lisibles dans une bulle envoyée (2026-09-12)](#-cartes-de-post-et-dévénement-lisibles-dans-une-bulle-envoyée-2026-09-12) · *Messagerie*
 - 4 · [⬜ Copier : légendes, positions, sondages, un passage, une sélection (2026-09-12)](#-copier--légendes-positions-sondages-un-passage-une-sélection-2026-09-12) · *Messagerie*
-- 8 · [Messagerie — un filtre sans résultat n'est pas une messagerie vide (2026-08-06)](#messagerie--un-filtre-sans-résultat-nest-pas-une-messagerie-vide-2026-08-06) · *Messagerie*
+- 7 · [Messagerie — un filtre sans résultat n'est pas une messagerie vide (2026-08-06)](#messagerie--un-filtre-sans-résultat-nest-pas-une-messagerie-vide-2026-08-06) · *Messagerie*
 - 4 · [Composeur — largeur de la pilule et « + » en clair (2026-08-05)](#composeur--largeur-de-la-pilule-et----en-clair-2026-08-05) · *Messagerie*
 - 6 · [Recherche messagerie — le clavier demandait deux taps (§9b, 2026-08-04)](#recherche-messagerie--le-clavier-demandait-deux-taps-9b-2026-08-04) · *Messagerie*
 - 4 · [Zone de saisie des messages — barre multi-ligne (2026-08-04)](#zone-de-saisie-des-messages--barre-multi-ligne-2026-08-04) · *Messagerie*
@@ -368,7 +368,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 354 à faire, 160 faites
+- [2. Messagerie](#2-messagerie) — 353 à faire, 161 faites
 - [3. Groupes](#3-groupes) — 149 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 134 à faire, 55 faites
 - [5. Appels](#5-appels) — 26 à faire, 8 faites
@@ -4469,15 +4469,21 @@ comme `reglages_sans_doublon_test.dart` : monter `MessagesScreen` exigerait
 l10n, GoRouter, une session Supabase et une dizaine de providers, et
 `_buildConversationList` est privée.
 
-- [ ] **Puce « Non lus », tout étant lu** : « Aucun message non lu » + le lien
+- [x] **Puce « Non lus », tout étant lu** : « Aucun message non lu » + le lien
       « Afficher toutes les conversations », et **pas** la fiche 9e. Le lien
       doit ramener sur « Tous » avec la liste complète.
+      ✅ Passe du 2026-09-22 (~01:55), build Play 1.2.2+26 (f22aaff), SM A515F (Sim, clair) : tout lu → « Aucun message non lu » et le bouton « Afficher toutes
+      les conversations », pas la fiche 9e ; le bouton ramène sur « Tous », liste
+      complète (Mes notes, Salim L., Testeurs, Diaspora Niger — NE…).
 - [ ] **Puce « Groupes » sur un compte sans groupe** : « Aucune conversation de
       groupe », même sortie.
 - [ ] **Messagerie réellement vide** (compte neuf) : la fiche 9e s'affiche
       toujours, elle — c'est elle qu'on ne voulait pas perdre.
 - [ ] **Archives vides** et **recherche sans résultat** : inchangés, ils ont
       leurs propres états vides depuis toujours.
+      ⬜ moitié, Passe du 2026-09-22 (~01:55), build Play 1.2.2+26 (f22aaff), SM A515F (Sim, clair) : puce « Archives » → « Aucune conversation archivée ».
+      Recherche sans résultat pas faite : la passe a été arrêtée (quelqu'un s'est
+      servi du téléphone).
 - [ ] **Thème sombre** sur les deux nouveaux états : l'icône est posée à
       `textTertiaryColor` à 50 %, le texte à `textSecondaryColor` — vérifier
       qu'ils restent lisibles.
