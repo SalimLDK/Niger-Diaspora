@@ -1121,6 +1121,7 @@ class PaginatedMessagesNotifier extends StateNotifier<MessagePaginationState> {
                 userId: currentUser.id,
               );
       resultat.fold((echec) => throw Exception(echec.message), (_) {});
+      _ref.invalidate(starredMessagesProvider(conversationId));
     } catch (e) {
       final revertedMessages = List<MessageEntity>.from(state.messages);
       if (revertedMessages.length > messageIndex &&
@@ -2518,7 +2519,11 @@ class DeleteMessageNotifier extends StateNotifier<AsyncValue<void>> {
 
 // ============ Messages favoris ============
 
-final starredMessagesProvider = FutureProvider.family<List<MessageEntity>, String>((ref, conversationId) async {
+/// `autoDispose` : sans lui, la liste était calculée une fois par processus.
+/// Retirer une étoile laissait le message dans la liste jusqu'à la relance
+/// de l'app (vu sur SM A515F le 2026-09-22). [PaginatedMessagesNotifier.toggleStar]
+/// l'invalide aussi, pour le cas où l'écran des favoris reste dans la pile.
+final starredMessagesProvider = FutureProvider.autoDispose.family<List<MessageEntity>, String>((ref, conversationId) async {
   final currentUser = ref.watch(currentUserAsyncProvider).valueOrNull;
   if (currentUser == null) return [];
 

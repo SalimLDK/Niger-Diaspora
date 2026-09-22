@@ -967,8 +967,15 @@ class _NewConversationScreenState extends ConsumerState<NewConversationScreen> {
   }
 
   Widget _buildRecentTile(ConversationEntity conversation, String myId) {
-    final name = conversation.name ?? l10n.user;
-    final photoUrl = conversation.imageUrl;
+    // Un 1:1 n'a pas de `name` : c'est le profil du correspondant qui le
+    // porte, comme dans la liste des discussions (`ConversationItem`). Lire
+    // `conversation.name` seul affichait « Utilisateur » sur chaque ligne.
+    final autreId = conversation.getOtherParticipantId(myId);
+    final profil = autreId.isEmpty
+        ? null
+        : ref.watch(userStreamProvider(autreId)).valueOrNull;
+    final name = profil?.displayName ?? conversation.name ?? l10n.user;
+    final photoUrl = profil?.photoUrl ?? conversation.imageUrl;
     return GestureDetector(
       onTap: () => context.push(
         '/messages/${conversation.id}',
@@ -976,7 +983,7 @@ class _NewConversationScreenState extends ConsumerState<NewConversationScreen> {
           'name': name,
           'imageUrl': photoUrl,
           'isGroup': false,
-          'otherUserId': conversation.getOtherParticipantId(myId),
+          'otherUserId': autreId,
         },
       ),
       child: Padding(

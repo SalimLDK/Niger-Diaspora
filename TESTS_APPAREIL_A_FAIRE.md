@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1554 cases à cocher, 706 cochées** — 311 entrées sur 362 ont encore des cases ouvertes.
+**1555 cases à cocher, 706 cochées** — 311 entrées sur 362 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -131,7 +131,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [⬜ Sondage : voter se voit enfin, et les votants aussi (2026-09-14)](#-sondage--voter-se-voit-enfin-et-les-votants-aussi-2026-09-14) · *Messagerie*
 - 2 · [✅ Un échec de lecture en messagerie se voit, sans effacer l'écran — corrigé, vérifié SM A515F (2026-09-14)](#-un-échec-de-lecture-en-messagerie-se-voit-sans-effacer-lécran--corrigé-vérifié-sm-a515f-2026-09-14) · *Messagerie*
 - 4 · [✅ L'identité du correspondant revient seule après une coupure — corrigé, vérifié SM A515F (2026-09-14)](#-lidentité-du-correspondant-revient-seule-après-une-coupure--corrigé-vérifié-sm-a515f-2026-09-14) · *Messagerie*
-- 2 · [⬜ Nom et avatar du correspondant dans la liste des discussions (2026-09-13)](#-nom-et-avatar-du-correspondant-dans-la-liste-des-discussions-2026-09-13) · *Messagerie*
+- 3 · [⬜ Nom et avatar du correspondant dans la liste des discussions (2026-09-13)](#-nom-et-avatar-du-correspondant-dans-la-liste-des-discussions-2026-09-13) · *Messagerie*
 - 4 · [⬜ Réactions : double tap, cœur rouge, notification, mise à jour (2026-09-12)](#-réactions--double-tap-cœur-rouge-notification-mise-à-jour-2026-09-12) · *Messagerie*
 - 14 · [⬜ Gérer les membres d'un groupe : notices dans le fil, et deux listes d'admins réconciliées (2026-09-17)](#-gérer-les-membres-dun-groupe--notices-dans-le-fil-et-deux-listes-dadmins-réconciliées-2026-09-17) · *Groupes*
 - 5 · [⬜ Exclure un membre d'un groupe échouait toujours (2026-09-17)](#-exclure-un-membre-dun-groupe-échouait-toujours-2026-09-17) · *Groupes*
@@ -369,7 +369,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 355 à faire, 158 faites
+- [2. Messagerie](#2-messagerie) — 356 à faire, 158 faites
 - [3. Groupes](#3-groupes) — 149 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 138 à faire, 51 faites
 - [5. Appels](#5-appels) — 26 à faire, 8 faites
@@ -3400,7 +3400,14 @@ Android et la suspension des timers n'existent pas sous `flutter test`.
       (`new_conversation_screen.dart`) écrit `conversation.name ?? l10n.user` et
       `conversation.imageUrl` — or la section ne garde que des 1:1
       (`isIndividual`), qui n'ont pas de `name` : le correspondant n'est jamais
-      résolu par son profil comme le fait la liste. Non corrigé dans cette passe.
+      résolu par son profil comme le fait la liste.
+      **Corrigé le 2026-09-22** (branche `claude/trois-defauts-2209`) : la tuile
+      lit `userStreamProvider(autre)` comme `ConversationItem`, garde
+      `test/features/messages/passe_adb_2209_trois_defauts_test.dart`.
+- [ ] **« Contacts récents »** (Nouvelle conversation) : chaque 1:1 porte le
+      nom et la photo du correspondant, plus « Utilisateur » ; le tap ouvre
+      la bonne discussion avec le bon en-tête. *Attend un build qui porte le
+      correctif du 2026-09-22.*
 - [x] **« Mes notes »** (fil à participant unique) : titre correct — vérifié
       SM A515F le 2026-09-13. L'absence de requête de profil sur identifiant
       vide, elle, ne se voit pas à l'écran : elle tient à la garde
@@ -9042,6 +9049,12 @@ Couvert hors appareil par
       base64, sans casse) et il est affiché tel quel, ni déchiffré ni écarté
       (`message_repository_impl.dart`, `message_supabase_datasource.dart`). Les
       heures sans date (16:02, 04:57, 23:39, 15:36) ne disent pas de quel jour.
+      **Corrigé le 2026-09-22** : la recherche serveur déchiffre
+      (`_msgFromRowAsync`) puis ne garde que les lignes dont le CLAIR contient
+      le mot (`garderSiLeClairContient`, qui écarte aussi les marqueurs
+      d'échec). À revoir sur un build qui le porte : « Yo » ne doit plus
+      ressortir de chiffré, « message » ne doit pas ressortir « [Message
+      illisible] ».
 - [x] **Un mot présent des deux côtés** : une seule occurrence par message,
       pas de doublon.
       ✅ Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff), SM A515F (Sim, clair, police 1,0) : « PE1 » → une seule ligne (la citation dans PF1 ne
@@ -9058,8 +9071,10 @@ Couvert hors appareil par
       (`message_provider.dart`) est un `FutureProvider.family` **sans
       `autoDispose`**, que rien n'invalide — la liste est figée sur son premier
       calcul pour toute la vie du processus (vaut aussi dans l'autre sens : un
-      message étoilé après la première ouverture n'y entrerait pas). Non corrigé
-      dans cette passe.
+      message étoilé après la première ouverture n'y entrerait pas).
+      **Corrigé le 2026-09-22** : `autoDispose` + invalidation dans
+      `toggleStar`. À revoir sur un build qui le porte : retirer, rouvrir la
+      liste → parti ; étoiler après une première ouverture → présent.
 - [ ] **Galerie d'une conversation basculée** : les photos chiffrées y sont,
       et s'ouvrent en plein écran. Croiser avec l'entrée « Pièces jointes
       chiffrées ».

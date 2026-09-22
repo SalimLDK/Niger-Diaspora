@@ -75,6 +75,37 @@ const _kChampMediaChiffre = 'mediaChiffre';
 const _kApercuSupprime = 'lastMessageDeleted';
 const _kApercuExpire = 'lastMessageExpired';
 
+/// Forme du repli AES stocké : « iv:ct », ou « `v<n>:iv:ct` » avec une clé
+/// dérivée. Filet pour le cas où le déchiffrement n'a pas eu lieu (service
+/// crypto absent) : un contenu de cette forme n'est jamais du texte.
+final _kFormeChiffre = RegExp(
+  r'^(v\d+:)?[A-Za-z0-9+/]{16,}={0,2}:[A-Za-z0-9+/]{16,}={0,2}$',
+);
+
+/// Ne garde des résultats de recherche que ceux dont le CLAIR contient
+/// [recherche] (sans casse).
+///
+/// Le serveur cherche dans ce qu'il stocke, donc dans le chiffré : ses
+/// réponses comptent des faux positifs (« Yo » dans le base64), et des
+/// messages indéchiffrables dont le marqueur contient lui-même le mot
+/// (« message » trouve « [Message illisible] »). Ni l'un ni l'autre n'est
+/// une réponse.
+List<MessageModel> garderSiLeClairContient(
+  Iterable<MessageModel> resultats,
+  String recherche,
+) {
+  final aiguille = recherche.trim().toLowerCase();
+  if (aiguille.isEmpty) return const [];
+  return [
+    for (final m in resultats)
+      if (!isUndecryptableContent(m.content) &&
+          !m.content.startsWith('gcm:') &&
+          !_kFormeChiffre.hasMatch(m.content.trim()) &&
+          m.content.toLowerCase().contains(aiguille))
+        m,
+  ];
+}
+
 /// Supabase implementation of [MessageRemoteDataSource].
 ///
 /// Uses a NoSQL-like schema where minimal typed columns are indexed (id,
@@ -3453,7 +3484,13 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
           .order('created_at', ascending: false)
           .limit(limit);
 
-      return rows.map(_msgFromRow).toList();
+      // L'`ilike` porte sur ce qui est STOCKÉ : pour un message chiffré, le
+      // ciphertext. « Yo » y trouvait « v1:/YO6lTZ8e… » (base64, sans casse),
+      // et l'écran affichait le chiffré brut (SM A515F, 2026-09-22). On
+      // déchiffre comme pour le fil, puis on ne garde que ce dont le CLAIR
+      // contient la recherche.
+      final modeles = await Future.wait(rows.map(_msgFromRowAsync));
+      return garderSiLeClairContient(modeles, query);
     } catch (e) {
       throw ServerException('searchMessagesInConversation error: $e');
     }
