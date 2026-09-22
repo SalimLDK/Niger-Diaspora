@@ -86,6 +86,73 @@ class FeedSegmentedControl<T> extends StatelessWidget {
   }
 }
 
+/// Réduction à appliquer pour qu'un libellé de largeur [naturelle] tienne
+/// dans [disponible] : `1` s'il tient tel quel, un facteur entre [minimum] et
+/// 1 s'il tient une fois réduit, `null` s'il ne tiendrait qu'illisible — la
+/// troncature reprend alors la main.
+@visibleForTesting
+double? reductionPourTenir(
+  double naturelle,
+  double disponible, {
+  double minimum = 0.8,
+}) {
+  if (naturelle <= disponible) return 1;
+  if (naturelle <= 0 || disponible <= 0) return null;
+  final facteur = disponible / naturelle;
+  return facteur >= minimum ? facteur : null;
+}
+
+/// Le libellé d'un segment : **réduit** pour tenir plutôt que tronqué.
+///
+/// Le plafond d'échelle à 1,15 ne suffisait pas. Vu sur Pixel 10 Pro XL le
+/// 2026-09-22 (police 1,3 **et texte en gras**, build Play 1.2.2+26) :
+/// l'onglet s'affichait encore « Abonneme… ». Le gras d'accessibilité
+/// d'Android (`MediaQuery.boldTextOf`) élargit chaque lettre et échappe au
+/// plafond, qui ne borne que la taille. Trois onglets de même largeur ne
+/// laissaient plus assez de place au mot.
+///
+/// Désormais le libellé est mesuré tel qu'il sera dessiné — gras compris —
+/// et réduit jusqu'à 80 % s'il le faut. Au-delà, il serait illisible : on
+/// garde alors les points de suspension.
+class _LibelleAjuste extends StatelessWidget {
+  const _LibelleAjuste({required this.texte, required this.style});
+
+  final String texte;
+  final TextStyle style;
+
+  @override
+  Widget build(BuildContext context) {
+    final gras = MediaQuery.boldTextOf(context);
+    final dessine = gras
+        ? style.merge(const TextStyle(fontWeight: FontWeight.bold))
+        : style;
+    final tronque = Text(
+      texte,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: style,
+    );
+    return LayoutBuilder(
+      builder: (context, contraintes) {
+        if (!contraintes.hasBoundedWidth) return tronque;
+        final mesure = TextPainter(
+          text: TextSpan(text: texte, style: dessine),
+          maxLines: 1,
+          textDirection: Directionality.of(context),
+          textScaler: MediaQuery.textScalerOf(context),
+        )..layout();
+        final reduction = reductionPourTenir(mesure.width, contraintes.maxWidth);
+        mesure.dispose();
+        if (reduction == null || reduction == 1) return tronque;
+        return FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(texte, maxLines: 1, style: style),
+        );
+      },
+    );
+  }
+}
+
 class _SegmentOption<T> extends StatelessWidget {
   final FeedSegment<T> segment;
   final bool isActive;
@@ -144,10 +211,8 @@ class _SegmentOption<T> extends StatelessWidget {
               // « Abonnem… » alors que le reste de l'écran grandit normalement.
               child: MediaQuery.withClampedTextScaling(
                 maxScaleFactor: 1.15,
-                child: Text(
-                  segment.label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                child: _LibelleAjuste(
+                  texte: segment.label,
                   style: TextStyle(
                     fontSize: 13,
                     color: fg,

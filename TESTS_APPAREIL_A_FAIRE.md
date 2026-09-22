@@ -15907,7 +15907,14 @@ structure. Commit `3833fbe` (`feed_tokens.dart`, `feed_text.dart`,
   mais l'onglet est **encore tronqué** : « Abonneme… ». Cause, par le code :
   `FeedSegmentedControl` (`feed_segmented_control.dart`) donne aux trois
   onglets la même largeur (`Expanded`) avec `TextOverflow.ellipsis` ; à 1,3 +
-  gras, « Abonnements » ne tient pas dans un tiers. Non corrigé.
+  gras, « Abonnements » ne tient pas dans un tiers. Le plafond d'échelle à
+  1,15 posé avant ne voyait pas le **gras d'accessibilité**
+  (`MediaQuery.boldTextOf`), qui élargit chaque lettre.
+  **Corrigé le 2026-09-22** (branche `claude/onglet-abonnements-2209`) : le
+  libellé est mesuré tel qu'il sera dessiné, gras compris, et **réduit**
+  jusqu'à 80 % pour tenir (`reductionPourTenir`, `FittedBox`) ; en deçà,
+  l'ellipse reprend. Garde `test/features/feed/feed_segmented_control_test.dart`.
+  À revoir sur le Pixel avec un build qui le porte : « Abonnements » entier.
 - [ ] Autres écrans du fil en sombre : Mes abonnements, Mes publications,
   Enregistrés — rayons et pastilles comme en clair.
 
