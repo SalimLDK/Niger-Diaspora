@@ -134,6 +134,8 @@ const CLE_PREFERENCE_PAR_TYPE: Record<string, string> = {
   // Couper « Messages » coupe aussi les corrections : sans bannière à
   // corriger, elles n'ont plus d'objet.
   'messageEdited': 'messages',
+  // Idem pour le retrait d'un message supprimé de la bannière.
+  'messageDeleted': 'messages',
 
   // Les gens.
   'friendRequest': 'friend_requests',
@@ -375,7 +377,10 @@ Deno.serve(async (req) => {
     // système affiche quoi que ce soit. Il ne vient pas annoncer, il vient
     // corriger une bannière déjà posée — et l'appareil la met à jour en place,
     // sans la faire re-sonner.
-    const isMessageType = type === 'message' || type === 'messageEdited'
+    // `messageDeleted` aussi : il vient RETIRER une ligne de la bannière d'un
+    // message supprimé pour tous ou expiré, jamais en annoncer une.
+    const estCorrection = type === 'messageEdited' || type === 'messageDeleted'
+    const isMessageType = type === 'message' || estCorrection
     const fcmMessage: Record<string, unknown> = isMessageType
       ? {
           data: dataMap,
@@ -384,7 +389,7 @@ Deno.serve(async (req) => {
             headers: apnsHeaders,
             // Une correction ne porte pas d'alerte iOS : elle réveille
             // l'extension (`content-available`) et rien de plus.
-            payload: type === 'messageEdited'
+            payload: estCorrection
               ? { aps: { ...aps, badge: undefined } }
               : { aps: { ...aps, alert: { title, body } } },
           },

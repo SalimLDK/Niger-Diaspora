@@ -268,6 +268,46 @@ void main() {
     });
   });
 
+  group('un message supprimé quitte la pile', () {
+    // 2026-09-21, SM A515F : « PA6SECRET », supprimé pour tous, restait
+    // lisible dans la bannière empilée. Le signal `messageDeleted` retire sa
+    // ligne ; la bannière est reposée avec le reste, ou retirée si vide.
+    test("seule sa ligne part, l'ordre du reste tient", () async {
+      for (final n in [1, 2, 3]) {
+        await PileMessagesNotifiees.empiler(
+            conversationId: 'c1', messageId: 'm$n', texte: 't$n', expediteur: 'A');
+      }
+      final reste = await PileMessagesNotifiees.retirer(
+          conversationId: 'c1', messageId: 'm2');
+      expect(reste?.map((m) => m.texte), ['t1', 't3']);
+      expect((await PileMessagesNotifiees.lire('c1')).map((m) => m.texte),
+          ['t1', 't3']);
+    });
+
+    test('absent de la pile : null, rien ne bouge', () async {
+      await PileMessagesNotifiees.empiler(
+          conversationId: 'c1', messageId: 'm1', texte: 't1', expediteur: 'A');
+      expect(
+        await PileMessagesNotifiees.retirer(conversationId: 'c1', messageId: 'mX'),
+        isNull,
+        reason: 'aucune bannière à toucher — surtout pas à en recréer une',
+      );
+      expect((await PileMessagesNotifiees.lire('c1')).single.texte, 't1');
+    });
+
+    test('le dernier retiré : pile vide, conversation plus en attente',
+        () async {
+      await PileMessagesNotifiees.empiler(
+          conversationId: 'c1', messageId: 'm1', texte: 't1', expediteur: 'A');
+      final reste = await PileMessagesNotifiees.retirer(
+          conversationId: 'c1', messageId: 'm1');
+      expect(reste, isEmpty);
+      expect(await PileMessagesNotifiees.lire('c1'), isEmpty);
+      expect(await PileMessagesNotifiees.conversationsEnAttente(),
+          isNot(contains('c1')));
+    });
+  });
+
   group('la pile se vide quand la conversation est vue', () {
     test('vider une conversation ne touche pas l’autre', () async {
       await PileMessagesNotifiees.empiler(

@@ -43,6 +43,8 @@ const Map<String, String> kClePreferenceParType = {
   // Couper « Messages » coupe aussi les corrections : sans bannière à
   // corriger, elles n'ont plus d'objet.
   'messageEdited': 'messages',
+  // Idem pour le retrait d'un message supprimé de la bannière.
+  'messageDeleted': 'messages',
 
   // Les gens.
   'friendRequest': 'friend_requests',

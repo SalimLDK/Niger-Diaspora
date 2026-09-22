@@ -16,7 +16,9 @@ void main() {
       // de frappe corrigée.
       expect(
         NotificationSupabaseDataSource.filtreTypesAffiches,
-        'type.is.null,type.not.in.(message,messageReaction,messageEdited)',
+        // `messageDeleted` depuis le 2026-09-21 : même régime, il retire une
+        // ligne d'une bannière et n'annonce rien.
+        'type.is.null,type.not.in.(message,messageReaction,messageEdited,messageDeleted)',
       );
     });
 

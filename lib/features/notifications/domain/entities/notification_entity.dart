@@ -132,6 +132,10 @@ enum NotificationType {
   // bannière à jour en place, et la ligne est écrite `is_read` d'emblée. Elle
   // figure donc dans `kTypesHorsEcranNotifications`.
   messageEdited,
+  // Retrait d'un message supprimé pour tous (ou expiré) d'une bannière déjà
+  // posée. Même régime que `messageEdited` : jamais annoncée, `is_read`
+  // d'emblée, hors de l'écran Notifications.
+  messageDeleted,
 }
 
 /// Types que l'écran Notifications n'affiche pas, et que la pastille de la
@@ -153,6 +157,7 @@ const kTypesHorsEcranNotifications = {
   // Celle-ci n'annonce rien : elle corrige une bannière. L'afficher dans la
   // liste montrerait une entrée pour chaque faute de frappe corrigée.
   NotificationType.messageEdited,
+  NotificationType.messageDeleted,
 };
 
 extension NotificationTypeExtension on NotificationType {
@@ -258,6 +263,8 @@ extension NotificationTypeExtension on NotificationType {
         return 'Mention';
       case NotificationType.messageEdited:
         return 'Message modifié';
+      case NotificationType.messageDeleted:
+        return 'Message supprimé';
     }
   }
 
@@ -355,6 +362,8 @@ extension NotificationTypeExtension on NotificationType {
         return 'alternate_email';
       case NotificationType.messageEdited:
         return 'edit';
+      case NotificationType.messageDeleted:
+        return 'delete';
     }
   }
 }

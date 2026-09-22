@@ -184,6 +184,39 @@ class PileMessagesNotifiees {
     }
   }
 
+  /// Retire un message supprimé pour tous (ou expiré) de la pile, et rend ce
+  /// qu'il en reste.
+  ///
+  /// Rend `null` si le message n'y est pas : aucune bannière à toucher. Sans
+  /// ce retrait, le texte supprimé restait lisible dans le volet Android — vu
+  /// le 2026-09-21 sur SM A515F, « PA6SECRET » encore affiché dans la pile
+  /// après « Supprimer pour tous ».
+  static Future<List<MessageEmpile>?> retirer({
+    required String conversationId,
+    required String messageId,
+  }) async {
+    if (messageId.isEmpty) return null;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final pile = _lireDepuis(prefs, conversationId);
+      final avant = pile.length;
+      pile.removeWhere((m) => m.messageId == messageId);
+      if (pile.length == avant) return null;
+      if (pile.isEmpty) {
+        await vider(conversationId);
+      } else {
+        await prefs.setString(
+          cleDe(conversationId),
+          jsonEncode([for (final m in pile) m.versJson()]),
+        );
+      }
+      return pile;
+    } catch (e) {
+      debugPrint('PileMessagesNotifiees: retrait impossible ($e)');
+      return null;
+    }
+  }
+
   /// La pile de [conversationId], expirés retirés.
   static Future<List<MessageEmpile>> lire(String conversationId) async {
     try {

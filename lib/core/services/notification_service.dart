@@ -582,6 +582,12 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     return;
   }
 
+  // Un message supprimé pour tous, ou expiré : sa ligne quitte la bannière.
+  if (type == 'messageDeleted') {
+    await _retirerDeLaBanniereApresSuppression(data);
+    return;
+  }
+
   // Only handle message notifications for delivery confirmation
   if (type == 'message') {
     final conversationId = data['conversationId'];
@@ -686,6 +692,58 @@ Future<void> _showFallbackMessageNotification({
     pile: pile,
     quand: quand,
     silencieux: false,
+  );
+}
+
+/// Retire de la bannière un message supprimé pour tous ou expiré.
+///
+/// Le serveur n'envoie ce signal qu'aux destinataires qui ont reçu un push de
+/// message dans la conversation depuis 24 h — la durée de vie de la pile —,
+/// et ne porte que des identifiants : rien à déchiffrer. La pile décide
+/// ensuite : message absent → rien ; pile vidée → bannière retirée ; sinon
+/// bannière reposée EN SILENCE avec les messages restants.
+///
+/// Sans lui, le texte supprimé restait lisible dans le volet : vu le
+/// 2026-09-21 sur SM A515F, « PA6SECRET » affiché dans la bannière empilée
+/// après « Supprimer pour tous », et encore au retour au premier plan.
+@pragma('vm:entry-point')
+Future<void> _retirerDeLaBanniereApresSuppression(
+  Map<String, dynamic> data,
+) async {
+  final conversationId = data['conversationId'] as String?;
+  final messageId = data['messageId'] as String?;
+  if (conversationId == null || conversationId.isEmpty) return;
+  if (messageId == null || messageId.isEmpty) return;
+
+  final pile = await PileMessagesNotifiees.retirer(
+    conversationId: conversationId,
+    messageId: messageId,
+  );
+  if (pile == null) return;
+
+  if (pile.isEmpty) {
+    final plugin = FlutterLocalNotificationsPlugin();
+    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const iosSettings = DarwinInitializationSettings();
+    await plugin.initialize(
+      const InitializationSettings(android: androidSettings, iOS: iosSettings),
+    );
+    // Même couple (tag, id 0) que la bannière posée — voir
+    // `_posterBanniereMessagerie`.
+    await plugin.cancel(0, tag: 'msg_$conversationId');
+    return;
+  }
+
+  await _posterBanniereMessagerie(
+    conversationId: conversationId,
+    title: data['conversationTitle'] as String? ??
+        data['senderName'] as String? ??
+        'Message',
+    body: pile.last.texte,
+    data: data,
+    pile: pile,
+    quand: pile.last.quand,
+    silencieux: true,
   );
 }
 
@@ -1866,6 +1924,14 @@ class NotificationService {
     // — ne ressorte pas le texte d'avant.
     if (type == 'messageEdited') {
       await _corrigerPileApresEdition(data);
+      return;
+    }
+
+    // Contrairement à l'édition, la suppression agit aussi au premier plan
+    // sur la bannière AFFICHÉE : le volet peut la montrer app ouverte, et
+    // c'est précisément le texte qu'on vient de retirer.
+    if (type == 'messageDeleted') {
+      await _retirerDeLaBanniereApresSuppression(data);
       return;
     }
 

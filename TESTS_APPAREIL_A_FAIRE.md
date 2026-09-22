@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1567 cases à cocher, 687 cochées** — 310 entrées sur 361 ont encore des cases ouvertes.
+**1570 cases à cocher, 687 cochées** — 310 entrées sur 361 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -111,7 +111,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
 - 5 · [⬜ Médias déchiffrés effacés du disque : suppression, déconnexion, compte supprimé (2026-09-21)](#-médias-déchiffrés-effacés-du-disque--suppression-déconnexion-compte-supprimé-2026-09-21) · *Messagerie*
 - 4 · [⬜ Message chiffré supprimé pour tous : plus de clair en mémoire ni dans le cache (2026-09-21)](#-message-chiffré-supprimé-pour-tous--plus-de-clair-en-mémoire-ni-dans-le-cache-2026-09-21) · *Messagerie*
-- 6 · [⬜ Manquements de la passe du 2026-09-21 : cinq correctifs à voir sur appareil](#-manquements-de-la-passe-du-2026-09-21--cinq-correctifs-à-voir-sur-appareil) · *Messagerie*
+- 9 · [⬜ Manquements de la passe du 2026-09-21 : cinq correctifs à voir sur appareil](#-manquements-de-la-passe-du-2026-09-21--cinq-correctifs-à-voir-sur-appareil) · *Messagerie*
 - 2 · [⬜ La pastille de non-lus retombe en quittant une discussion chiffrée (2026-09-21)](#-la-pastille-de-non-lus-retombe-en-quittant-une-discussion-chiffrée-2026-09-21) · *Messagerie*
 - 4 · [⬜ Les premiers messages reçus restent « Message chiffré » dans la liste (2026-09-21)](#-les-premiers-messages-reçus-restent--message-chiffré--dans-la-liste-2026-09-21) · *Messagerie*
 - 7 · [⬜ Ouvrir une discussion lit ce qui est à l'écran, tout de suite (2026-09-16)](#-ouvrir-une-discussion-lit-ce-qui-est-à-lécran-tout-de-suite-2026-09-16) · *Messagerie*
@@ -368,7 +368,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 364 à faire, 143 faites
+- [2. Messagerie](#2-messagerie) — 367 à faire, 143 faites
 - [3. Groupes](#3-groupes) — 149 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 142 à faire, 47 faites
 - [5. Appels](#5-appels) — 26 à faire, 8 faites
@@ -819,6 +819,19 @@ et texte supprimé dans la liste »).*
   changeant d'onglet et en refermant le panneau.
 - [ ] **« Aucun émoji récent »** en français, lisible en thème sombre, à la
   place de « No Recents » (sélecteur d'émojis et de réactions).
+- [ ] **Bannière et message supprimé pour tous** (DÉPLOYÉ le 2026-09-21 :
+  migration `20260921230000`, send-push v34) : A envoie deux messages, B en
+  arrière-plan, A supprime le second pour tous → la bannière de B ne garde
+  que le premier, SANS re-sonner ; supprimer les deux → la bannière
+  disparaît. Côté serveur déjà vérifié en réel : suppression de PL1 → ligne
+  `messageDeleted` pour Salim, push `200 {"sent":1}`, et **aucune bannière
+  parasite** sur le Pixel encore en +26 (l'ancien client ignore le signal).
+- [ ] **Édition après lecture** : A corrige un message que B a déjà lu mais
+  dont la bannière est encore dans le volet → la bannière prend le nouveau
+  texte (le garde serveur ne demande plus une notification NON LUE, seulement
+  une bannière envoyée depuis 24 h).
+- [ ] **Message éphémère expiré** pendant que sa bannière est affichée → sa
+  ligne quitte la bannière (même signal, sur ciphertext vidé).
 - [ ] **Carte, calque « Membres » coupé mais position partagée** : le titre
   dit « Membres masqués sur la carte » et précise que la position reste
   partagée, au lieu de « Mode privé activé ». Position non partagée : le

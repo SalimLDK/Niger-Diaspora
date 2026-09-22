@@ -102,6 +102,7 @@ class NotificationReadSync {
     'messageReaction',
     'messageMention',
     'messageEdited',
+    'messageDeleted',
   ];
 
   // Les écrans destinataires. UNE table, lue deux fois : à l'OUVERTURE
