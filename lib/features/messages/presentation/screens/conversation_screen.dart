@@ -569,6 +569,10 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
           .read(lectureServeurProvider)
           .relever(widget.conversationId);
       _curseurALOuverture = repere.curseurA?.toLocal();
+      // Rien d'annoncé par la liste (lien profond, notification, démarrage à
+      // froid) : le serveur sait jusqu'où vont les non-lus. Sans cette
+      // échéance, [_filVaJusquAuBout] tenait le fil du cache pour complet.
+      _dernierMessageAnnonce ??= repere.echeanceDuFil?.toLocal();
       if (repere.aUnSeparateur) {
         _repereServeur = (id: repere.premierNonLuId!, nombre: repere.nonLus);
       }
@@ -607,6 +611,9 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
           final nombre = compteurs[widget.conversationId]?.nonLus ?? 0;
           if (nombre > 0) {
             _repereServeur = (id: premier.id, nombre: nombre);
+            // Même échéance que [_releverCurseur], à défaut du dernier : le fil
+            // doit au moins aller jusqu'au premier non-lu.
+            _dernierMessageAnnonce ??= premier.quand.toLocal();
           }
         }
       }

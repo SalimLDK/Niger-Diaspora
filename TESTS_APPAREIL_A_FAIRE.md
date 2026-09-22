@@ -1256,10 +1256,22 @@ Recette : `supabase db query --linked -f supabase/diagnostics/2026-09-15_recus_b
       relevé est fait pour éviter).
       ⛔ Passe du 2026-09-22 (~02:00–02:30), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : **aucun saut** avec 10 ou 13 non-lus : pas de séparateur
       « N messages non lus », écran posé sur les derniers. Avec 3 non-lus (qui
-      tiennent à l'écran), le séparateur s'affiche bien. Hypothèse, non établie
-      par le code : le premier non-lu est cherché avant que le rattrapage MLS
-      n'ait ajouté les nouveaux messages au fil (ils arrivent après le cache, cf.
-      rafale).
+      tiennent à l'écran), le séparateur s'affiche bien. **Cause, par le code** :
+      les deux ouvertures passaient par le **lien profond**. `state.extra` y
+      est nul et la liste des discussions pas encore chargée, donc
+      `_dernierMessageAnnonce` reste nul ; `_filVaJusquAuBout` rendait alors
+      « complet » (« rien à quoi comparer »). Le fil du cache — sans les
+      nouveaux messages chiffrés — décidait du placement : premier non-lu
+      absent, écran posé en bas, et le placement ne se rejoue pas. Même
+      chemin pour un tap sur une notification.
+      **Corrigé le 2026-09-22** (branche `claude/saut-non-lu-2209`) : à défaut
+      d'annonce de la liste, l'échéance vient du repère serveur
+      (`RepereDeLecture.echeanceDuFil` : date du dernier non-lu, à défaut du
+      premier) ; l'écran attend le fil réseau (≤ 6 s) avant de se placer.
+      Garde `test/features/messages/saut_premier_non_lu_lien_profond_test.dart`.
+      À revoir sur un build qui le porte : même recette (Pixel fermé, 10+
+      messages, ouverture par lien profond PUIS par tap sur la bannière) →
+      séparateur, placement sur le premier non-lu, `read_at` nul sous le pli.
 - [ ] **Côté A** : « Lu » apparaît sur les bulles affichées chez B, « Envoyé »
       ou « Distribué » sur les autres.
       ⛔ Passe du 2026-09-22 (~02:00–02:30), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : chez Sim, relance à froid → « Lu » sur PR1–PR10, y compris

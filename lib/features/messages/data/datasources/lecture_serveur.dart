@@ -47,6 +47,19 @@ class RepereDeLecture {
   /// fonction qui les a rendus dans le même instantané.
   bool get aUnSeparateur => premierNonLuId != null && nonLus > 0;
 
+  /// Jusqu'où le fil affiché doit aller pour contenir tous les non-lus : la
+  /// date du plus récent, à défaut celle du premier. `null` s'il n'y a rien à
+  /// lire.
+  ///
+  /// Sert quand la liste des discussions n'a rien annoncé — ouverture par lien
+  /// profond ou par notification, liste pas encore chargée. Sans échéance, le
+  /// fil tiré du cache passait pour complet alors que les nouveaux messages
+  /// chiffrés n'y sont jamais : l'écran se posait en bas pour de bon, et le
+  /// curseur marquait lus des messages jamais affichés (Pixel, 2026-09-22 :
+  /// 13 non-lus lus à la même milliseconde, 5 à l'écran).
+  DateTime? get echeanceDuFil =>
+      aUnSeparateur ? (dernierNonLuA ?? premierNonLuA) : null;
+
   /// Lit la réponse de `repere_de_lecture`.
   ///
   /// PostgREST rend une fonction `RETURNS TABLE` sous forme de **liste**, même
