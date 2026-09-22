@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1530 cases à cocher, 731 cochées** — 310 entrées sur 362 ont encore des cases ouvertes.
+**1528 cases à cocher, 733 cochées** — 310 entrées sur 362 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -132,7 +132,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [✅ Un échec de lecture en messagerie se voit, sans effacer l'écran — corrigé, vérifié SM A515F (2026-09-14)](#-un-échec-de-lecture-en-messagerie-se-voit-sans-effacer-lécran--corrigé-vérifié-sm-a515f-2026-09-14) · *Messagerie*
 - 4 · [✅ L'identité du correspondant revient seule après une coupure — corrigé, vérifié SM A515F (2026-09-14)](#-lidentité-du-correspondant-revient-seule-après-une-coupure--corrigé-vérifié-sm-a515f-2026-09-14) · *Messagerie*
 - 3 · [⬜ Nom et avatar du correspondant dans la liste des discussions (2026-09-13)](#-nom-et-avatar-du-correspondant-dans-la-liste-des-discussions-2026-09-13) · *Messagerie*
-- 4 · [⬜ Réactions : double tap, cœur rouge, notification, mise à jour (2026-09-12)](#-réactions--double-tap-cœur-rouge-notification-mise-à-jour-2026-09-12) · *Messagerie*
+- 3 · [⬜ Réactions : double tap, cœur rouge, notification, mise à jour (2026-09-12)](#-réactions--double-tap-cœur-rouge-notification-mise-à-jour-2026-09-12) · *Messagerie*
 - 14 · [⬜ Gérer les membres d'un groupe : notices dans le fil, et deux listes d'admins réconciliées (2026-09-17)](#-gérer-les-membres-dun-groupe--notices-dans-le-fil-et-deux-listes-dadmins-réconciliées-2026-09-17) · *Groupes*
 - 5 · [⬜ Exclure un membre d'un groupe échouait toujours (2026-09-17)](#-exclure-un-membre-dun-groupe-échouait-toujours-2026-09-17) · *Groupes*
 - 4 · [⬜ Noms des candidats à l'invitation et à l'ajout en appel (2026-09-14)](#-noms-des-candidats-à-linvitation-et-à-lajout-en-appel-2026-09-14) · *Groupes*
@@ -149,7 +149,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Messages de groupe qui redeviennent indéchiffrables après réouverture (2026-08-13)](#messages-de-groupe-qui-redeviennent-indéchiffrables-après-réouverture-2026-08-13) · *Chiffrement de bout en bout et clés* · bloqué
 - 4 · [⬜ Appel entrant : le nom et la photo de l'appelant viennent de la base (2026-09-21)](#-appel-entrant--le-nom-et-la-photo-de-lappelant-viennent-de-la-base-2026-09-21) · *Appels*
 - 4 · [⬜ Notifications entre comptes : le serveur rédige le texte et filtre les données (2026-09-21)](#-notifications-entre-comptes--le-serveur-rédige-le-texte-et-filtre-les-données-2026-09-21) · *Notifications et push*
-- 2 · [⬜ Une édition corrige la bannière déjà posée (2026-09-16)](#-une-édition-corrige-la-bannière-déjà-posée-2026-09-16) · *Notifications et push*
+- 1 · [⬜ Une édition corrige la bannière déjà posée (2026-09-16)](#-une-édition-corrige-la-bannière-déjà-posée-2026-09-16) · *Notifications et push*
 - 10 · [⬜ Trois cas de messagerie que les notifications ne couvraient pas (2026-09-16)](#-trois-cas-de-messagerie-que-les-notifications-ne-couvraient-pas-2026-09-16) · *Notifications et push*
 - 7 · [⬜ Types, libellés et bascules : trois écarts entre ce qui est écrit et ce qui est lu (2026-09-16)](#-types-libellés-et-bascules--trois-écarts-entre-ce-qui-est-écrit-et-ce-qui-est-lu-2026-09-16) · *Notifications et push*
 - 9 · [⬜ Aperçu des notifications MLS sur iOS : une extension, pas un isolate (phase 4, moitié iOS)](#-aperçu-des-notifications-mls-sur-ios--une-extension-pas-un-isolate-phase-4-moitié-ios) · *Notifications et push* · bloqué
@@ -368,11 +368,11 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 344 à faire, 170 faites
+- [2. Messagerie](#2-messagerie) — 343 à faire, 171 faites
 - [3. Groupes](#3-groupes) — 149 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 134 à faire, 55 faites
 - [5. Appels](#5-appels) — 26 à faire, 8 faites
-- [6. Notifications et push](#6-notifications-et-push) — 145 à faire, 97 faites
+- [6. Notifications et push](#6-notifications-et-push) — 144 à faire, 98 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 69 à faire, 10 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 118 à faire, 16 faites
@@ -3633,7 +3633,7 @@ Constaté sur le Pixel, discussion Salim → Sim A (captures de session).
   ⬜ en partie, Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff) : ❤️ rouge sous la bulle, dans la barre et dans la
   feuille d'appui long (SM A515F (Sim, clair, police 1,0)), et sous la bulle côté Pixel 10 Pro XL (Salim, sombre, police 1,3 + gras). Pas vus : bulle
   « emoji seul », composeur, aperçu de liste, ☀️, salons audio.
-- [ ] **Notification** : Sim réagit à un message de Salim → Salim reçoit
+- [x] **Notification** : Sim réagit à un message de Salim → Salim reçoit
   « Sim · A réagi ❤️ à votre message », app fermée comme ouverte ; le tap
   ouvre la discussion. Changer d'emoji ne fait pas une 2e ligne en base
   (l'écran Notifications ne montre plus les réactions depuis le 2026-09-13 —
@@ -3654,6 +3654,10 @@ Constaté sur le Pixel, discussion Salim → Sim A (captures de session).
   - **tap** sur la bannière (volet ouvert par `cmd statusbar`) → ouvre la
     discussion avec Sim A, bannière retirée.
   Reste : la sourdine.
+  ✅ Passe du 2026-09-22 (~03:10–03:17), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : la **sourdine** aussi — Sim met le 1:1 en sourdine depuis la
+  liste (`mutedBy` : `forever`), Salim réagit 😂 à PV3 → réaction enregistrée,
+  **aucune** notification ni bannière chez Sim. Sourdine levée ensuite
+  (« Réactiver les notifications »), `mutedBy` revenu à `{}` comme avant.
 - [ ] **Mise à jour croisée** : les deux téléphones sur la même discussion,
   réagir en rafale d'un côté puis de l'autre, quitter/rouvrir la discussion
   entre deux : chaque réaction apparaît chez l'autre sans relancer l'app, et
@@ -11310,9 +11314,17 @@ Fichiers : migration `20260916200000`,
   « PT10 EDIT » lisibles, et le volet se vide.
 - [ ] **Réaction ou suppression en chiffré** : elles passent par le même
   transport de contrôle mais ne doivent **rien** changer à la bannière.
-- [ ] **Pile de plusieurs messages** : seule la ligne corrigée change, elle
+  ⬜ moitié, Passe du 2026-09-22 (~03:10–03:17), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : **réaction** de Sim sur PK1, pile PV affichée →
+  bannière de réaction séparée (« A réagi 👍 à votre message »), la pile PV
+  reste identique (`when` inchangé). Suppression pas faite (son traitement
+  change sur le +28).
+- [x] **Pile de plusieurs messages** : seule la ligne corrigée change, elle
   garde sa place et son heure d'envoi.
   ⛔ Passe du 2026-09-21, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS (MLS) : PA2 modifié en PA2M à 18:13 ; la pile de Sim affichait encore « PA2 · 18:00 » à 18:21. L'édition ne corrige pas la ligne déjà posée.
+  ✅ Passe du 2026-09-22 (~03:10–03:17), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : Pixel fermé, PV1–PV3 → pile `number=3` ; Sim modifie PV2 →
+  lignes « PV1 · 03:09 », « **PV2 EDIT** · 03:09 », « PV3 · 03:09 » : seule la
+  ligne corrigée change, à sa place, avec son heure ; `when` et `number`
+  inchangés, `ONLY_ALERT_ONCE`. (L'échec d'hier ne se reproduit plus.)
 - [x] **Édition d'un message ancien** (hors des 6 de la pile) : rien ne se
   passe, et surtout aucune bannière ne surgit.
   ✅ Passe du 2026-09-22 (~02:50–03:00), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : bannière « PU1 EDIT » posée, Sim modifie PT9 (lu, hors
@@ -11513,6 +11525,10 @@ Fichiers : migrations `20260916120000` et `20260916130000`,
 - [ ] **Réagir à une photo, à un texte, à un sondage** : le libellé suit
   (« votre photo », « votre message », « votre sondage »), et il est le même
   en clair et en chiffré.
+  ⬜ en partie, Passe du 2026-09-22 (~03:10–03:17), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : Salim réagit 👍 au sondage « PQ Sondage » de Sim
+  (double tap sur la question, aucun vote parti) → notification et bannière
+  chez Sim, app fermée : « A réagi 👍 à votre **sondage** » ; sur un texte :
+  « … à votre message ». Photo non testée, et seulement en chiffré.
 - [ ] **Droits de la table** : marquer lu, supprimer une notification et faire
   défiler la liste marchent toujours. C'est ce que le `REVOKE ALL` pouvait
   casser — vérifié par banc côté serveur, jamais depuis l'app.
