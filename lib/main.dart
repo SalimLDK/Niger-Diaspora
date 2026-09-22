@@ -16,6 +16,8 @@ import 'core/errors/classification_erreurs.dart';
 import 'core/errors/journal_echecs.dart';
 import 'core/utils/logs_release.dart';
 import 'core/utils/licences_polices.dart';
+import 'core/utils/exclusion_sauvegarde_ios.dart';
+import 'package:path_provider/path_provider.dart';
 import 'core/constants/app_config.dart';
 import 'core/services/app_review_service.dart';
 import 'core/services/notification_service.dart';
@@ -255,6 +257,18 @@ Future<void> _demarrer() async {
 
   // Initialize Hive for local storage
   await Hive.initFlutter();
+  // Hive range ses boîtes dans le répertoire documents, dont le cache des
+  // messages en clair : hors de la sauvegarde iCloud, comme `app_flutter/`
+  // l'est des sauvegardes Android (`regles_sauvegarde.xml`). En tâche de
+  // fond : ne retarde pas le premier rendu.
+  if (!kIsWeb) {
+    unawaited(
+      getApplicationDocumentsDirectory().then(
+        (d) => exclureDeLaSauvegardeIos(d, etiquette: 'Hive'),
+        onError: (Object _) {},
+      ),
+    );
+  }
 
   // Initialize cache service for offline mode
   //

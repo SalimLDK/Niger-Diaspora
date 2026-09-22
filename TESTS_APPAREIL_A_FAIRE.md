@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1561 cases à cocher, 687 cochées** — 309 entrées sur 360 ont encore des cases ouvertes.
+**1564 cases à cocher, 687 cochées** — 310 entrées sur 361 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -97,7 +97,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (109)
+**P1 — fonction importante, jamais vérifiée** (110)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -109,6 +109,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [⬜ Verrou de version minimale et multi-appareil (2026-09-15)](#-verrou-de-version-minimale-et-multi-appareil-2026-09-15) · *Comptes, session et onboarding*
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
+- 3 · [⬜ Le clair des messages exclu des sauvegardes Google et iCloud (2026-09-21)](#-le-clair-des-messages-exclu-des-sauvegardes-google-et-icloud-2026-09-21) · *Messagerie*
 - 5 · [⬜ Médias déchiffrés effacés du disque : suppression, déconnexion, compte supprimé (2026-09-21)](#-médias-déchiffrés-effacés-du-disque--suppression-déconnexion-compte-supprimé-2026-09-21) · *Messagerie*
 - 4 · [⬜ Message chiffré supprimé pour tous : plus de clair en mémoire ni dans le cache (2026-09-21)](#-message-chiffré-supprimé-pour-tous--plus-de-clair-en-mémoire-ni-dans-le-cache-2026-09-21) · *Messagerie*
 - 2 · [⬜ La pastille de non-lus retombe en quittant une discussion chiffrée (2026-09-21)](#-la-pastille-de-non-lus-retombe-en-quittant-une-discussion-chiffrée-2026-09-21) · *Messagerie*
@@ -367,7 +368,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 358 à faire, 143 faites
+- [2. Messagerie](#2-messagerie) — 361 à faire, 143 faites
 - [3. Groupes](#3-groupes) — 149 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 142 à faire, 47 faites
 - [5. Appels](#5-appels) — 26 à faire, 8 faites
@@ -626,6 +627,43 @@ Crashlytics.
 # 2. Messagerie
 
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
+
+---
+
+## ⬜ Le clair des messages exclu des sauvegardes Google et iCloud (2026-09-21)
+
+**Priorité P1** · importance 4/5 — les médias chiffrés déjà déchiffrés et le
+cache Hive des messages (texte clair des messages chiffrés, seule copie
+lisible d'un message MLS) partaient dans la sauvegarde Google, dans le
+transfert vers un téléphone neuf et, sur iOS, dans iCloud.
+
+Les règles Android (`regles_sauvegarde.xml`, `regles_extraction_donnees.xml`,
+deux blocs) n'excluaient que `files/mls/`. Elles excluent maintenant aussi
+`files/medias_dechiffres/` et **tout** `app_flutter/` (répertoire documents :
+boîtes Hive, file d'envoi, téléchargements, podcasts) — en entier, pour
+qu'une boîte ajoutée plus tard le soit d'office. Sur iOS, le drapeau
+`isExcludedFromBackup` est posé sur les deux dossiers
+(`exclusion_sauvegarde_ios.dart`, appelé par `MediaDechiffreCache` et
+`main.dart`) — ⚠️ Swift jamais exécuté, pas de Mac. Tenu par
+`test/core/crypto/etat_mls_hors_sauvegarde_test.dart` (rouge sans les règles).
+
+Conséquence voulue : une restauration sur un téléphone neuf repart sans cache
+local ni file d'envoi — les discussions se rechargent du serveur ; les
+messages MLS d'avant la restauration, dont le clair n'existait que dans ce
+cache, n'étaient de toute façon pas relisibles (la base MLS était déjà
+exclue).
+
+- [ ] **Le build passe** : `flutter build appbundle --release` va jusqu'au
+  bout — `aapt2` refuse un XML de règles invalide à
+  `:app:mergeReleaseResources` (7 min perdues le 2026-09-15 sur un tiret
+  double).
+- [ ] **Restauration** (téléphone de test, pas le Pixel) : sauvegarde Google
+  puis restauration sur un appareil remis à zéro → l'app démarre, se
+  reconnecte, les discussions se rechargent ; aucun plantage sur un cache
+  absent.
+- [ ] **iOS** (dès qu'un build existe) : Réglages › iCloud › Gérer le
+  stockage › Sauvegardes › l'app — la taille ne grossit pas avec les photos
+  reçues.
 
 ---
 
