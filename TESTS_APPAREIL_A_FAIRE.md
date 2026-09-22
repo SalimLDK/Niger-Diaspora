@@ -39,15 +39,15 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1294 cases à cocher, 10 cochées** — 278 entrées sur 290 ont encore des cases ouvertes.
+**1290 cases à cocher, 27 cochées** — 284 entrées sur 296 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
-**P0 — avant toute nouvelle version** (46)
+**P0 — avant toute nouvelle version** (47)
 
 - 10 · [⬜ Temps réel après l'arrière-plan, et texte supprimé dans la liste (2026-09-21)](#-temps-réel-après-larrière-plan-et-texte-supprimé-dans-la-liste-2026-09-21) · *Messagerie*
 - 5 · [⬜ Droits d'écriture sur `messages` resserrés : accusés et modification (2026-09-16)](#-droits-décriture-sur-messages-resserrés--accusés-et-modification-2026-09-16) · *Messagerie*
-- 8 · [⬜ L'aperçu de la liste dit pourquoi il est vide (2026-09-15)](#-laperçu-de-la-liste-dit-pourquoi-il-est-vide-2026-09-15) · *Messagerie*
+- 7 · [⬜ L'aperçu de la liste dit pourquoi il est vide (2026-09-15)](#-laperçu-de-la-liste-dit-pourquoi-il-est-vide-2026-09-15) · *Messagerie*
 - 2 · [⬜ Un fil chiffré survit au redémarrage de l'application (2026-09-15)](#-un-fil-chiffré-survit-au-redémarrage-de-lapplication-2026-09-15) · *Messagerie*
 - 5 · [⬜ Un message non envoyé ne disparaît plus, et repart tout seul (2026-09-14)](#-un-message-non-envoyé-ne-disparaît-plus-et-repart-tout-seul-2026-09-14) · *Messagerie*
 - 6 · [⬜ Une discussion ouverte ne reste plus prisonnière de son cache (2026-09-14)](#-une-discussion-ouverte-ne-reste-plus-prisonnière-de-son-cache-2026-09-14) · *Messagerie*
@@ -57,32 +57,33 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⬜ MLS après un démarrage à froid : lire et envoyer dans une conversation chiffrée (2026-09-16)](#-mls-après-un-démarrage-à-froid--lire-et-envoyer-dans-une-conversation-chiffrée-2026-09-16) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ La notification gardait le ciphertext que le message avait perdu (2026-09-16)](#-la-notification-gardait-le-ciphertext-que-le-message-avait-perdu-2026-09-16) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ Un média chiffré de plus de 10 Mo était illisible (2026-09-16)](#-un-média-chiffré-de-plus-de-10-mo-était-illisible-2026-09-16) · *Chiffrement de bout en bout et clés*
-- 3 · [⬜ Ouvrir une discussion ne la bascule plus (2026-09-15)](#-ouvrir-une-discussion-ne-la-bascule-plus-2026-09-15) · *Chiffrement de bout en bout et clés*
+- 2 · [⬜ Ouvrir une discussion ne la bascule plus (2026-09-15)](#-ouvrir-une-discussion-ne-la-bascule-plus-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ Une conversation ne bascule plus sans ses participants (2026-09-15)](#-une-conversation-ne-bascule-plus-sans-ses-participants-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ MLS ouvert pour un seul compte (phase 5, 2026-09-15)](#-mls-ouvert-pour-un-seul-compte-phase-5-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 5 · [⬜ Signal remis en service : la garde de session sur les lectures de clés (2026-09-14)](#-signal-remis-en-service--la-garde-de-session-sur-les-lectures-de-clés-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
-- 10 · [⬜ Cinq messages reçus, un seul lisible : la bannière ne s'empilait pas (2026-09-16)](#-cinq-messages-reçus-un-seul-lisible--la-bannière-ne-sempilait-pas-2026-09-16) · *Notifications et push*
+- 6 · [⬜ Cinq messages reçus, un seul lisible : la bannière ne s'empilait pas (2026-09-16)](#-cinq-messages-reçus-un-seul-lisible--la-bannière-ne-sempilait-pas-2026-09-16) · *Notifications et push*
 - 2 · [⬜ Aperçu MLS quand l'app est OUVERTE (le même message, l'autre isolate)](#-aperçu-mls-quand-lapp-est-ouverte-le-même-message-lautre-isolate) · *Notifications et push*
 - 6 · [⬜ Aperçu des notifications MLS reconstruit sur l'appareil (phase 4, Android)](#-aperçu-des-notifications-mls-reconstruit-sur-lappareil-phase-4-android) · *Notifications et push*
-- 6 · [⬜ Accepter une demande d'ami : « Erreur de chargement » (2026-09-14)](#-accepter-une-demande-dami---erreur-de-chargement--2026-09-14) · *Notifications et push* · bloqué
+- 4 · [⬜ Accepter une demande d'ami : « Erreur de chargement » (2026-09-14)](#-accepter-une-demande-dami---erreur-de-chargement--2026-09-14) · *Notifications et push* · bloqué
 - 21 · [⬜ Supprimer mon compte : demande, 30 jours, annulation, purge (2026-09-18)](#-supprimer-mon-compte--demande-30-jours-annulation-purge-2026-09-18) · *Comptes, session et onboarding*
 - 9 · [⬜ Expulsion admin et bannissement : ils n'éjectaient personne (2026-09-16)](#-expulsion-admin-et-bannissement--ils-néjectaient-personne-2026-09-16) · *Comptes, session et onboarding*
 - 6 · [⬜ Qui peut voir un événement : discussion, groupes, personnes, tout le monde (2026-09-12)](#-qui-peut-voir-un-événement--discussion-groupes-personnes-tout-le-monde-2026-09-12) · *Ambassades, démarches, carte, entreprises et événements*
 - 2 · [Réglages/Carte — deux interrupteurs de partage de position désynchronisés (2026-08-13)](#réglagescarte--deux-interrupteurs-de-partage-de-position-désynchronisés-2026-08-13) · *Ambassades, démarches, carte, entreprises et événements*
-- 6 · [⬜ 🔴 Bloquer un utilisateur ne bloque rien — corrigé (2026-09-14)](#--bloquer-un-utilisateur-ne-bloque-rien--corrigé-2026-09-14) · *Accueil, profil et réglages* · bloqué
-- 8 · [⬜ `users` : un compte connecté lit e-mail, position et jetons d'autrui (2026-09-21)](#-users--un-compte-connecté-lit-e-mail-position-et-jetons-dautrui-2026-09-21) · *Backend, sécurité et observabilité*
-- 4 · [⬜ `users` n'est plus lisible sans compte (2026-09-20)](#-users-nest-plus-lisible-sans-compte-2026-09-20) · *Backend, sécurité et observabilité*
+- 4 · [⬜ 🔴 Bloquer un utilisateur ne bloque rien — corrigé (2026-09-14)](#--bloquer-un-utilisateur-ne-bloque-rien--corrigé-2026-09-14) · *Accueil, profil et réglages* · bloqué
+- 7 · [⬜ `users` : un compte connecté lit e-mail, position et jetons d'autrui (2026-09-21)](#-users--un-compte-connecté-lit-e-mail-position-et-jetons-dautrui-2026-09-21) · *Backend, sécurité et observabilité*
+- 3 · [⬜ `users` n'est plus lisible sans compte (2026-09-20)](#-users-nest-plus-lisible-sans-compte-2026-09-20) · *Backend, sécurité et observabilité*
 - 4 · [⬜ Bloqueurs de publication — Play & iOS (état 2026-09-21)](#-bloqueurs-de-publication--play--ios-état-2026-09-21) · *Publication et plateformes*
 - 4 · [⬜ Le serveur ne supprime plus un chemin Storage dicté par le client (2026-09-21)](#-le-serveur-ne-supprime-plus-un-chemin-storage-dicté-par-le-client-2026-09-21) · *Publication et plateformes*
 - 5 · [⬜ Divulgation préalable de la localisation (refus Play du 2026-09-09)](#-divulgation-préalable-de-la-localisation-refus-play-du-2026-09-09) · *Publication et plateformes*
 - 3 · [⬜ Compte de test dédié : première connexion (2026-09-09)](#-compte-de-test-dédié--première-connexion-2026-09-09) · *Appareils, comptes de test et méthode*
 - 4 · [⬜ Écrire dans une conversation exige d'en être participant (2026-09-20)](#-écrire-dans-une-conversation-exige-den-être-participant-2026-09-20) · *Messagerie*
-- 3 · [⬜ GIF et sticker envoyés en MLS : la bulle ne montrait rien (2026-09-16)](#-gif-et-sticker-envoyés-en-mls--la-bulle-ne-montrait-rien-2026-09-16) · *Messagerie*
-- 6 · [⬜ GIFs via `gif-proxy` — clés sorties de l'APK (2026-08-27)](#-gifs-via-gif-proxy--clés-sorties-de-lapk-2026-08-27) · *Messagerie*
-- 3 · [⬜ Citations et modifications : plus de texte en clair (2026-09-09)](#-citations-et-modifications--plus-de-texte-en-clair-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
+- 2 · [⬜ GIF et sticker envoyés en MLS : la bulle ne montrait rien (2026-09-16)](#-gif-et-sticker-envoyés-en-mls--la-bulle-ne-montrait-rien-2026-09-16) · *Messagerie*
+- 5 · [⬜ GIFs via `gif-proxy` — clés sorties de l'APK (2026-08-27)](#-gifs-via-gif-proxy--clés-sorties-de-lapk-2026-08-27) · *Messagerie*
+- 2 · [⬜ Citations et modifications : plus de texte en clair (2026-09-09)](#-citations-et-modifications--plus-de-texte-en-clair-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
 - 3 · [⚠️ La légende d'une photo/vidéo part EN CLAIR (2026-09-09, non corrigé)](#-la-légende-dune-photovidéo-part-en-clair-2026-09-09-non-corrigé) · *Chiffrement de bout en bout et clés* · bloqué
 - 6 · [⬜ Clés de repli dérivées, servies par `crypto-keys` (2026-09-06)](#-clés-de-repli-dérivées-servies-par-crypto-keys-2026-09-06) · *Chiffrement de bout en bout et clés*
-- 5 · [⬜ 🔴 Modifier son profil réactivait ce qu'on avait coupé (2026-09-18)](#--modifier-son-profil-réactivait-ce-quon-avait-coupé-2026-09-18) · *Accueil, profil et réglages*
+- 3 · [⬜ Bloquer laisse passer les messages et les publications (2026-09-22)](#-bloquer-laisse-passer-les-messages-et-les-publications-2026-09-22) · *Accueil, profil et réglages*
+- 3 · [⬜ 🔴 Modifier son profil réactivait ce qu'on avait coupé (2026-09-18)](#--modifier-son-profil-réactivait-ce-quon-avait-coupé-2026-09-18) · *Accueil, profil et réglages*
 - 3 · [⬜ Push arbitraire : type en liste fermée, blocage, quota (2026-09-21)](#-push-arbitraire--type-en-liste-fermée-blocage-quota-2026-09-21) · *Backend, sécurité et observabilité*
 - 1 · [⛔ Un groupe dont on est le seul membre refuse TOUS les messages (2026-09-09)](#-un-groupe-dont-on-est-le-seul-membre-refuse-tous-les-messages-2026-09-09) · *Groupes*
 - 4 · [🔴 Appels 1-à-1 mis en PAUSE (2026-08-14) — répondre à un appel ne faisait rigoureusement rien](#-appels-1-à-1-mis-en-pause-2026-08-14--répondre-à-un-appel-ne-faisait-rigoureusement-rien) · *Appels*
@@ -92,7 +93,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 6 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (107)
+**P1 — fonction importante, jamais vérifiée** (110)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -104,6 +105,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [⬜ Verrou de version minimale et multi-appareil (2026-09-15)](#-verrou-de-version-minimale-et-multi-appareil-2026-09-15) · *Comptes, session et onboarding*
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
+- 2 · [⬜ Note vocale : l'enregistrement continue sans doigt après la demande de micro (2026-09-22)](#-note-vocale--lenregistrement-continue-sans-doigt-après-la-demande-de-micro-2026-09-22) · *Messagerie*
 - 8 · [⬜ Présence « En ligne » : elle suit enfin l'état réel (2026-09-22)](#-présence--en-ligne---elle-suit-enfin-létat-réel-2026-09-22) · *Messagerie*
 - 3 · [⬜ Le clair des messages exclu des sauvegardes Google et iCloud (2026-09-21)](#-le-clair-des-messages-exclu-des-sauvegardes-google-et-icloud-2026-09-21) · *Messagerie*
 - 5 · [⬜ Médias déchiffrés effacés du disque : suppression, déconnexion, compte supprimé (2026-09-21)](#-médias-déchiffrés-effacés-du-disque--suppression-déconnexion-compte-supprimé-2026-09-21) · *Messagerie*
@@ -144,6 +146,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [⬜ Cartes de partage chiffrées au repos (2026-09-09)](#-cartes-de-partage-chiffrées-au-repos-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
 - 4 · [Messages de groupe qui redeviennent indéchiffrables après réouverture (2026-08-13)](#messages-de-groupe-qui-redeviennent-indéchiffrables-après-réouverture-2026-08-13) · *Chiffrement de bout en bout et clés* · bloqué
 - 4 · [⬜ Appel entrant : le nom et la photo de l'appelant viennent de la base (2026-09-21)](#-appel-entrant--le-nom-et-la-photo-de-lappelant-viennent-de-la-base-2026-09-21) · *Appels*
+- 2 · [⬜ Quota de notifications : dix messages suffisent à faire taire le reste (2026-09-22)](#-quota-de-notifications--dix-messages-suffisent-à-faire-taire-le-reste-2026-09-22) · *Notifications et push*
 - 4 · [⬜ Notifications entre comptes : le serveur rédige le texte et filtre les données (2026-09-21)](#-notifications-entre-comptes--le-serveur-rédige-le-texte-et-filtre-les-données-2026-09-21) · *Notifications et push*
 - 1 · [⬜ Une édition corrige la bannière déjà posée (2026-09-16)](#-une-édition-corrige-la-bannière-déjà-posée-2026-09-16) · *Notifications et push*
 - 10 · [⬜ Trois cas de messagerie que les notifications ne couvraient pas (2026-09-16)](#-trois-cas-de-messagerie-que-les-notifications-ne-couvraient-pas-2026-09-16) · *Notifications et push*
@@ -177,6 +180,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [⬜ Groupe privé par lien : demander à rejoindre (2026-09-10)](#-groupe-privé-par-lien--demander-à-rejoindre-2026-09-10) · *Groupes* · bloqué
 - 8 · [⬜ Acceptation et départ d'un groupe : rien ne bougeait chez les autres (2026-09-09)](#-acceptation-et-départ-dun-groupe--rien-ne-bougeait-chez-les-autres-2026-09-09) · *Groupes* · bloqué
 - 7 · [Groupes — défauts trouvés en vérifiant les épingles (2026-08-05)](#groupes--défauts-trouvés-en-vérifiant-les-épingles-2026-08-05) · *Groupes*
+- 1 · [⬜ Groupe chiffré : un administrateur ne peut rien retirer (2026-09-22)](#-groupe-chiffré--un-administrateur-ne-peut-rien-retirer-2026-09-22) · *Chiffrement de bout en bout et clés*
 - 1 · [✅ Le bandeau « 1 message non lu » d'une conversation basculée (2026-09-15)](#-le-bandeau--1-message-non-lu--dune-conversation-basculée-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 8 · [⬜ Transfert des clés par QR, sans passphrase (2026-09-08)](#-transfert-des-clés-par-qr-sans-passphrase-2026-09-08) · *Chiffrement de bout en bout et clés* · bloqué
 - 5 · [⬜ Réglages de notification par type : local et serveur ne divergent plus (2026-09-18)](#-réglages-de-notification-par-type--local-et-serveur-ne-divergent-plus-2026-09-18) · *Notifications et push*
@@ -202,7 +206,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (89)
+**P2 — fonction secondaire ou cas limite** (90)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -237,6 +241,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ Les deux bandeaux de clés retirés : ils promettaient faux (2026-09-16)](#-les-deux-bandeaux-de-clés-retirés--ils-promettaient-faux-2026-09-16) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ L'expéditeur MLS datait lui-même ses propres messages (2026-09-15)](#-lexpéditeur-mls-datait-lui-même-ses-propres-messages-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ L'appartenance MLS se réconcilie au moment du changement (phase 8, 2026-09-15)](#-lappartenance-mls-se-réconcilie-au-moment-du-changement-phase-8-2026-09-15) · *Chiffrement de bout en bout et clés*
+- 3 · [⬜ Écran Notifications : une demande d'ami sans nom, et une ligne vide (2026-09-22)](#-écran-notifications--une-demande-dami-sans-nom-et-une-ligne-vide-2026-09-22) · *Notifications et push*
 - 16 · [⬜ Notifications lues à l'ouverture de leur écran : profil, groupe, commandes, fiche, mentions (2026-09-19)](#-notifications-lues-à-louverture-de-leur-écran--profil-groupe-commandes-fiche-mentions-2026-09-19) · *Notifications et push*
 - 5 · [⬜ Cycle de vie d'une demande d'ami : six trous soldés (2026-09-15)](#-cycle-de-vie-dune-demande-dami--six-trous-soldés-2026-09-15) · *Notifications et push* · bloqué
 - 2 · [✅ Filtre hashtag : réparé et vérifié sur SM A515F (2026-09-14)](#-filtre-hashtag--réparé-et-vérifié-sur-sm-a515f-2026-09-14) · *Liens profonds, navigation et QR codes*
@@ -294,7 +299,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [✅ Bulle de chargement d'une vidéo pendant l'upload (2026-08-30)](#-bulle-de-chargement-dune-vidéo-pendant-lupload-2026-08-30) · *Messagerie*
 - 21 · [Refonte Fil & Discussion — Priorité basse — cosmétique, faible risque](#refonte-fil--discussion--priorité-basse--cosmétique-faible-risque) · *Fil, stories, salons audio et podcasts*
 
-**P3 — confort, cosmétique, fonction en pause** (36)
+**P3 — confort, cosmétique, fonction en pause** (37)
 
 - 3 · [⬜ Polices embarquées : plus de téléchargement au premier affichage (2026-09-11)](#-polices-embarquées--plus-de-téléchargement-au-premier-affichage-2026-09-11) · *Design, thème, langue et mise en page* · bloqué
 - 2 · [⬜ Icône du lanceur repeinte en vert (2026-09-07)](#-icône-du-lanceur-repeinte-en-vert-2026-09-07) · *Design, thème, langue et mise en page*
@@ -307,6 +312,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⬜ Écran de démarrage repeint en vert (2026-09-07)](#-écran-de-démarrage-repeint-en-vert-2026-09-07) · *Design, thème, langue et mise en page*
 - 5 · [Guide de style — alignement des jetons (2026-08-03)](#guide-de-style--alignement-des-jetons-2026-08-03) · *Design, thème, langue et mise en page*
 - 3 · [⬜ Les ~920 `debugPrint` restants neutralisés en release (2026-09-09)](#-les-920-debugprint-restants-neutralisés-en-release-2026-09-09) · *Backend, sécurité et observabilité* · bloqué
+- 2 · [⬜ Sélecteur de GIF : la recherche se tape à l'aveugle (2026-09-22)](#-sélecteur-de-gif--la-recherche-se-tape-à-laveugle-2026-09-22) · *Messagerie*
 - 2 · [⬜ Fiches de partage : libellés sur une ligne, vrais logos, bouton (2026-09-20)](#-fiches-de-partage--libellés-sur-une-ligne-vrais-logos-bouton-2026-09-20) · *Messagerie*
 - 6 · [⬜ Squelette de chargement de la messagerie (2026-09-15)](#-squelette-de-chargement-de-la-messagerie-2026-09-15) · *Messagerie*
 - 7 · [⬜ Une couleur par pièce jointe dans le « + » (2026-09-14)](#-une-couleur-par-pièce-jointe-dans-le----2026-09-14) · *Messagerie*
@@ -336,18 +342,18 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 0 faites
-- [2. Messagerie](#2-messagerie) — 317 à faire, 0 faites
+- [2. Messagerie](#2-messagerie) — 318 à faire, 3 faites
 - [3. Groupes](#3-groupes) — 128 à faire, 0 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 122 à faire, 2 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 121 à faire, 4 faites
 - [5. Appels](#5-appels) — 24 à faire, 1 faites
-- [6. Notifications et push](#6-notifications-et-push) — 116 à faire, 0 faites
+- [6. Notifications et push](#6-notifications-et-push) — 115 à faire, 6 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 36 à faire, 0 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 63 à faire, 0 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 101 à faire, 0 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 62 à faire, 0 faites
-- [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 59 à faire, 1 faites
+- [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 58 à faire, 5 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 108 à faire, 5 faites
-- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 67 à faire, 0 faites
+- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 65 à faire, 2 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 46 à faire, 1 faites
 - [15. Site web](#15-site-web) — 23 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 19 à faire, 0 faites
@@ -437,6 +443,28 @@ du SM A515F (compte « Sim A », non-admin, sans pays renseigné).
 # 2. Messagerie
 
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
+
+---
+
+## ⬜ Note vocale : l'enregistrement continue sans doigt après la demande de micro (2026-09-22)
+
+**Priorité P1** · importance 4/5 — La toute première note vocale fait démarrer un enregistrement qu'on ne peut plus arrêter : le micro reste ouvert, doigt levé.
+
+Vu sur le Pixel (build +26) le 2026-09-22, permission micro jamais accordée : appui long sur le micro → boîte système « Autoriser Diaspo Niger à enregistrer de l'audio ? » → « Uniquement cette fois-ci ». L'appui long est coupé par la boîte, mais l'enregistrement démarre quand même (« Glisser ‹ pour annuler · ↑ pour verrouiller ») et continue sans doigt posé : 0:37 atteint, ni un tap ni un appui-relâché sur le micro ne l'arrêtent. Seul un glissé vers la gauche l'a arrêté (et a fait quitter la discussion). Rien n'a été envoyé ; `appops` : 46 s d'enregistrement. Le second essai, permission acquise, marche normalement.
+
+- [ ] Première note vocale, permission jamais demandée : après la boîte système, aucun enregistrement ne démarre tant qu'on ne rappuie pas.
+- [ ] Même chose avec « Ne pas autoriser » : message clair, aucun enregistrement.
+
+---
+
+## ⬜ Sélecteur de GIF : la recherche se tape à l'aveugle (2026-09-22)
+
+**Priorité P3** · importance 2/5 — En cherchant un GIF, le clavier recouvre tout le sélecteur : on ne voit ni le champ ni ce qu'on tape.
+
+Vu sur le Pixel le 2026-09-22 : « Recherche » ouvre le clavier, qui prend la place du panneau GIF (champ de recherche invisible) ; le texte et les résultats n'apparaissent qu'une fois le clavier fermé. Et l'onglet Émojis vide dit « No Recents », en anglais.
+
+- [ ] Le champ de recherche reste visible au-dessus du clavier pendant la frappe.
+- [ ] « No Recents » traduit.
 
 ---
 
@@ -799,6 +827,7 @@ liste des discussions, l'aperçu des premiers messages qui arrivent reste
   invitation, lien) : l'envoi passe dès l'ouverture de la discussion.
 - [ ] **« Mes notes »** et **partage vers une discussion** (publication,
   profil) : l'envoi passe.
+  ✅ « Mes notes », Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim) (Sim) : NOTE G1 part (`mls_messages`), bulle « Envoyé ». Partage vers une discussion non testé.
 - [ ] **Après avoir quitté un groupe, ou en avoir été retiré** : la discussion
   n'accepte plus rien — et l'échec se dit à l'écran, pas en silence.
 
@@ -967,6 +996,7 @@ seul téléphone ne peut pas le voir. D'où deux appareils, obligatoirement.
 - [ ] **Modération** : dans un groupe, un admin fait « supprimer pour tout le
       monde » sur le message d'un membre → la bulle passe à « message
       supprimé » chez les deux
+  ⛔ Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), groupe MLS « Testeurs » (Salim admin) : « Supprimer pour tous » est PROPOSÉ à l'admin sur le message de Sim ; le toucher ne fait rien (`is_deleted` faux, ciphertext intact, bulle inchangée des deux côtés). Voir « Groupe chiffré : un administrateur ne peut rien retirer ».
 - [ ] **Conversation chiffrée (MLS)** : les accusés et la modification s'y
       comportent pareil — `mls_messages` est une autre table, avec ses propres
       droits, et n'a pas été touchée par cette migration
@@ -1025,8 +1055,9 @@ message reçu **pendant que la liste est à l'écran**.
 
 - [ ] **Les deux GIFs du 2026-09-16** (05:05 UTC) s'affichent après mise à
       jour, au lieu du cadre cassé
-- [ ] **Sticker animé** : l'animation joue, elle ne se fige pas sur la
+- [x] **Sticker animé** : l'animation joue, elle ne se fige pas sur la
       première trame (`isAnimated` relu)
+  ✅ Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), groupe MLS : sticker « smiley fête » animé chez le destinataire (trames différentes sur 5 captures). Un GIF « chat » envoyé ensuite s'affiche aussi des deux côtés et s'anime (30 % des pixels changent en 0,7 s). Les deux GIFs du 16/09 n'ont pas été revus.
 - [ ] **Conversation non basculée** : toujours bon — ce chemin-là passait par
       `data->>'fileUrl'` et n'a jamais été touché
 
@@ -1291,12 +1322,14 @@ l'écran.
   tuile dit « Message chiffré », **pas** « Message expiré » — ce qu'elle
   disait depuis que la purge a appris à vider l'aperçu, en annonçant la
   disparition de messages vivants.
-- [ ] **Conversation neuve** : une discussion sans aucun message dit toujours
+- [x] **Conversation neuve** : une discussion sans aucun message dit toujours
   « Nouvelle conversation ».
+  ✅ Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim) : les discussions sans message affichent « Nouvelle conversation » (Pixel, sombre, lisible).
 - [ ] **Hors ligne / après redémarrage** : le libellé survit au cache Hive —
   rouvrir l'application en mode avion doit encore afficher « Message
   supprimé », pas le texte.
 - [ ] **Thème sombre** : les trois libellés restent lisibles dans la liste.
+  Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim) : « Nouvelle conversation » lisible en sombre (Pixel) ; « Message supprimé » et « Message expiré » non vus dans une tuile ce jour-là.
 
 - ✔ 2 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ L'aperçu de la liste dit pourquoi il est vide (2026-09-15) »).
 
@@ -2005,6 +2038,7 @@ remède reste porté **une seule fois** par le bandeau en tête de discussion
       introuvable », ni le bouton « Récupérer la clé de groupe », ni
       « [Message illisible] » : une ligne grise « Message indisponible sur cet
       appareil » à la place.
+  Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim) : dans « Mes notes » de Sim, un vieux message (11 sept.) s'affiche en ligne grise « Message indisponible sur cet appareil » — la forme attendue. Le fil de la capture d'origine n'a pas été rouvert.
 - [ ] Une photo **sans légende** s'affiche normalement — la garde lit la
       LISTE, pas `isUndecryptableContent`, qui tient le vide pour illisible et
       masquerait chaque média sans légende.
@@ -2105,8 +2139,9 @@ quitter la discussion, y revenir, faire un pull-to-refresh.
 Fichiers : `supabase/functions/gif-proxy/index.ts`,
 `lib/features/gifs/data/datasources/gif_proxy_datasource.dart`.
 
-- [ ] Recherche : taper un mot renvoie des résultats (chemin `search`)
+- [x] Recherche : taper un mot renvoie des résultats (chemin `search`)
   ⛔ Passe du 2026-09-21, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS (SM A515F) : « Recherche » lève le clavier, qui RECOUVRE le panneau : aucun champ visible ni exposé à l'accessibilité, on tape à l'aveugle, aucun résultat observable.
+  ✅ Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim) : « chat » → grille de résultats. ⚠️ Voir « Sélecteur de GIF : la recherche se tape à l'aveugle ».
 - [ ] **Un seul aller-retour par requête** : le repli entre fournisseurs est
       passé côté serveur (`provider: 'auto'`). Avant, le client tentait Tenor —
       jamais configuré — puis Giphy, soit deux appels de fonction par frappe.
@@ -3572,6 +3607,18 @@ Signal 1:1 et groupes, repli AES, clés dérivées, sauvegarde et transfert des 
 
 ---
 
+## ⬜ Groupe chiffré : un administrateur ne peut rien retirer (2026-09-22)
+
+**Priorité P1** · importance 3/5 — Un administrateur de groupe chiffré se voit proposer « Supprimer pour tous » sur le message d'un membre, et rien ne se passe : aucune modération n'est possible.
+
+Mesuré le 2026-09-22 dans « Testeurs » (MLS, Salim admin) : le geste ne change rien, ni en base ni à l'écran. `mls_supprimer_pour_tous` exige `sender_id = firebase_uid()` : la suppression d'un message chiffré est réservée à son expéditeur. Depuis `e5cf4fb` l'échec s'affiche, mais l'option reste proposée à l'admin d'un groupe.
+
+À décider : ouvrir la RPC aux administrateurs du groupe, ou retirer l'option pour les messages d'autrui en groupe chiffré.
+
+- [ ] Après décision : l'admin retire le message d'un membre (ou ne se le voit plus proposer), vérifié à deux téléphones.
+
+---
+
 ## ⬜ Pixel réinstallé : la discussion MLS avec Sim A se rouvre malgré des Welcome périmés (2026-09-21)
 
 **Priorité P1** · importance 4/5 — relevé par Salim : « 3 non lus » sur Sim A
@@ -3821,6 +3868,7 @@ Fichiers : `supabase/migrations/20260916030000_mls_notifications_suivent_le_mess
 - [ ] **Supprimer pour tous, destinataire hors ligne** : couper le réseau du
   second téléphone, supprimer pour tous depuis le premier, rétablir le
   réseau. La notification ne doit **pas** faire apparaître le texte.
+  ⛔ Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : Sim en mode avion, Salim envoie « SECRET C1 » puis le supprime pour tous ; réseau rétabli → bannière de Sim « SECRET C1 · 06:21 » (06:22:44), redessinée à 06:22:54 (2e push) SANS retrait. Attendu sur le +26 : le retrait de pile (`d91ec7f`) n'y est pas. À refaire sur le +28 en surveillant l'ORDRE : les deux pushs arrivent en rafale au retour du réseau, et un retrait traité avant l'arrivée du message ne trouve rien à retirer.
 - [ ] **Message éphémère expiré** : même contrôle après l'échéance.
 - [ ] **Édition** : corriger un message déjà notifié ; la notification reste
   **non lue** si elle l'était (c'est la différence voulue avec la
@@ -3980,7 +4028,8 @@ Fichiers : [mls_conversation_service.dart](lib/core/crypto/mls/mls_conversation_
 - [ ] **Puis envoyer** : la bascule a lieu à ce moment-là, pas avant.
 - [ ] **Recevoir dans une discussion déjà basculée par l'autre** : l'ouvrir
       doit suffire à rejoindre le groupe et à déchiffrer.
-- [ ] **Parcourir la liste des discussions** : aucune ne bascule au passage.
+- [x] **Parcourir la liste des discussions** : aucune ne bascule au passage.
+  ✅ Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim) : « Groupe de test prive » (non basculé) ouvert sur les DEUX téléphones → `mls_since` nul, 0 `conversation_devices` ; liste défilée 4 fois des deux côtés → 12/15 conversations non basculées avant ET après. (Rien envoyé dans ce groupe : dernière discussion de test non basculée.)
 
 - ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Ouvrir une discussion ne la bascule plus (2026-09-15) »).
 
@@ -4488,6 +4537,7 @@ garde plus que la date — rien ne l'affichait.
   Restent donc : photo avec légende, note vocale, sticker.
   à une note vocale, à une localisation, à un sticker. La citation doit
   s'afficher au-dessus de la bulle, chez l'expéditeur **et** chez l'autre.
+  Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), groupe MLS : réponse à un TEXTE → arrive en direct chez Sim avec la citation « Vous · MODO D1 ». ✅ pour ce cas.
 - [ ] ⚠️ **L'aperçu de la liste des discussions garde l'ancien texte après une
   modification** (vu le 2026-09-11 sur le Pixel : la ligne « Sim A » affichait
   encore `REPONSE-TEXTE-1756` alors que la bulle disait `…-EDIT1`).
@@ -4496,11 +4546,12 @@ garde plus que la date — rien ne l'affichait.
   1:1.
   `lastMessage` n'est pas réécrit par `editMessage` — cohérent avec la liste
   « pas encore branchés » de « Clés de repli dérivées ».
-- [ ] ⚠️ **« Modifier » est introuvable sans le savoir** : l'entrée n'est ni
+- [x] ⚠️ **« Modifier » est introuvable sans le savoir** : l'entrée n'est ni
   dans le menu d'appui long ni dans un sous-menu nommé — il faut toucher
   « Autres actions », **puis faire défiler** la feuille jusqu'en bas (elle
   vient après Infos du message, Partager, Sélectionner). Trois essais y ont
   été perdus ici. À rapprocher de la maquette : est-ce voulu ?
+  ✅ Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim) : « Modifier » est désormais la 2e entrée du menu d'appui long (Répondre, Modifier, Copier…) sur son propre message.
 
 - ✔ 5 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Citations et modifications : plus de texte en clair (2026-09-09) »).
 
@@ -5012,6 +5063,31 @@ Chaîne FCM, aperçus, réponse rapide, écran Notifications.
 
 ---
 
+## ⬜ Quota de notifications : dix messages suffisent à faire taire le reste (2026-09-22)
+
+**Priorité P1** · importance 4/5 — Après une dizaine de messages échangés dans l'heure, accepter une demande d'ami, commenter ou s'inscrire à un événement ne prévient plus personne, sans aucune erreur.
+
+Mesuré le 2026-09-22 : Salim accepte la demande d'ami de Sim, l'amitié est bien écrite, mais Sim ne reçoit **rien**. Rejoué en transaction annulée : `create_user_notification` lève « quota horaire atteint pour ce destinataire ». Le quota par couple (10/h, `20260921100000_notification_textes_serveur.sql`) compte **toutes** les lignes `notifications` à `data->>'actor_id'` — y compris celles que les déclencheurs de messagerie posent (11 `message`, 1 `messageDeleted`, 1 `messageEdited` dans l'heure). L'appelant avale l'erreur (`createNotification` → `signalerEchecSilencieux`).
+
+Piste : ne compter que les types émis par la RPC elle-même (ou marquer les lignes qu'elle crée).
+
+- [ ] Après correctif : échanger une quinzaine de messages, puis accepter une demande d'ami → « Demande d'ami acceptée » arrive.
+- [ ] Le quota protège toujours : 11 notifications émises par la RPC vers la même personne dans l'heure → la 11e est refusée.
+
+---
+
+## ⬜ Écran Notifications : une demande d'ami sans nom, et une ligne vide (2026-09-22)
+
+**Priorité P2** · importance 3/5 — Dans la liste des notifications, on ne sait pas qui demande à être ami, et une ligne n'affiche rien du tout.
+
+Vu sur le Pixel (build +26, sombre) le 2026-09-22 : la ligne « Nouvelle demande d'ami · À l'instant » ne porte ni le nom de l'expéditeur (le texte « Sim A souhaite vous ajouter en ami » est pourtant en base et dans le push) ni Accepter/Refuser — il faut l'ouvrir pour les trouver. Juste en dessous, une ligne « HIER · IL Y A 7 H » n'a ni titre ni texte. Et le compteur « 3 non lues » ne bouge pas après avoir traité la demande (`is_read` vrai en base).
+
+- [ ] La ligne d'une demande d'ami dit qui la fait.
+- [ ] Identifier la notification vide (type, `title`/`body` en base) et ce qu'elle devrait dire.
+- [ ] Le compteur de non-lues suit le traitement de la demande sans rouvrir l'écran.
+
+---
+
 ## ⬜ Notifications entre comptes : le serveur rédige le texte et filtre les données (2026-09-21)
 
 **Priorité P1** · importance 4/5 — Fermeture d'un faux appel entrant et d'un hameçonnage possibles depuis n'importe quel compte. Côté app rien ne change, mais tous les textes de ces notifications viennent maintenant du serveur : à relire à l'écran une fois.
@@ -5252,12 +5328,15 @@ autre appareil), plafonne à 6 messages, ignore un même `messageId` empilé deu
 fois (un push peut arriver en double), oublie ce qui a plus de 24 h, et
 disparaît entièrement à la déconnexion — elle porte du texte en clair.
 
-- [ ] **Groupe qui s'anime, app tuée** : la bannière porte le nom du groupe en
+- [x] **Groupe qui s'anime, app tuée** : la bannière porte le nom du groupe en
   titre et **chaque message précédé de son expéditeur**.
-- [ ] **Deux conversations en parallèle** : deux bannières distinctes, chacune
+  ✅ Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), groupe MLS « Testeurs » : GRP A1..A3 app tuée → UNE bannière, « Testeurs » en en-tête, « Salim L. » une fois, 3 lignes déchiffrées dans l'ordre (`number=3`).
+- [x] **Deux conversations en parallèle** : deux bannières distinctes, chacune
   avec sa propre pile.
-- [ ] **Pastille du lanceur** (Samsung, Xiaomi) : le chiffre suit le nombre de
+  ✅ Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim) : Testeurs (3) puis 1:1 (2) → deux bannières distinctes (`msg_<conversation>`), chacune sa pile.
+- [x] **Pastille du lanceur** (Samsung, Xiaomi) : le chiffre suit le nombre de
   messages en attente, pas « 1 ».
+  ✅ Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), lanceur Samsung (SM A515F) : « Diaspo Niger, 5 notifications » pour 3 + 2 messages en attente.
 - [ ] **Passer du premier plan à l'arrière-plan en cours de conversation** :
   les messages vus au premier plan figurent encore dans la bannière suivante.
   Passe du 2026-09-21 (20 h), build Play 1.2.2+26, Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : PK1 reçu discussion affichée, HOME, PK2 reçu → la bannière ne montre QUE PK2 (`number=1`). Contraire à cette case, conforme à « les lus ne reviennent pas » plus haut dans la même entrée : les deux règles se contredisent, à trancher.
@@ -5269,7 +5348,8 @@ disparaît entièrement à la déconnexion — elle porte du texte en clair.
   après, puis regarder la bannière. Celui d'avant doit porter « hier », sinon
   l'ordre paraît faux — 23:50 semble plus tard que 00:05. La fenêtre de la pile
   est de 24 h, donc le cas est atteignable toutes les nuits.
-- [ ] **Groupe** : chaque ligne montre son expéditeur **une seule fois**.
+- [x] **Groupe** : chaque ligne montre son expéditeur **une seule fois**.
+  ✅ Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim) : l'en-tête « Salim L. » apparaît une fois au-dessus des trois lignes (deux membres seulement : l'alternance n'est pas testable).
 - [ ] **En groupe, deux personnes qui alternent** : les en-têtes alternent aussi,
   et chaque bloc reste attribué à la bonne personne.
 - [ ] **Deux membres d'un groupe portant le même nom affiché** : ils ne sont pas
@@ -5480,10 +5560,12 @@ supprimée. Un seul écrivain de l'état MLS : l'application.
 - [ ] **Accepter depuis l'écran Amis** (onglet « Reçues ») : même résultat.
   Cet écran n'affichait **rien** en cas d'échec — ni sur « Accepter », ni sur
   « Refuser », ni sur « Annuler » ; il affiche désormais une erreur rouge.
-- [ ] **Accepter depuis la fiche de profil** : même résultat. Le message
+- [x] **Accepter depuis la fiche de profil** : même résultat. Le message
   d'échec y rendait l'exception brute (chemin du document Firestore et uid) ;
   il passe par `messageErreurUsager`.
-- [ ] **Retirer un ami** : les deux entrées disparaissent des deux côtés.
+  ✅ Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim) : Sim envoie la demande, Salim touche la notification → fiche de Sim avec Refuser/Accepter → Accepter : `public.friends` rétabli dans les deux sens. ⚠️ Mais la notification « acceptée » n'arrive pas : voir « Quota de notifications : dix messages suffisent à faire taire le reste ».
+- [x] **Retirer un ami** : les deux entrées disparaissent des deux côtés.
+  ✅ Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim) : Sim, Mes amis → Retirer des amis → « Aucun ami », et les DEUX lignes de `public.friends` supprimées. Firestore non lu (lecture refusée au classificateur).
 - [ ] **Message d'échec** : couper le réseau et accepter → « Connexion
   indisponible… », pas « Erreur de chargement » (qui ne distinguait pas un
   réseau coupé d'un refus de droits).
@@ -7635,6 +7717,23 @@ Grille d'accueil et « Tous les services », profil, pseudo, réglages, feature 
 
 ---
 
+## ⬜ Bloquer laisse passer les messages et les publications (2026-09-22)
+
+**Priorité P0** · importance 4/5 — Bloquer quelqu'un promet « Vous ne recevrez plus de messages de sa part » : ses messages arrivent quand même, avec bannière, et ses publications restent dans le fil.
+
+Trouvé à deux téléphones le 2026-09-22 (build Play 1.2.2+26), Sim bloque Salim :
+
+- Salim écrit à Sim : le message est **écrit** dans `mls_messages`, la **bannière** « BLOQ F1 » s'affiche chez Sim, la tuile de la liste l'annonce. Seul le fil remplace le composeur par « Vous avez bloqué cet utilisateur ». Côté serveur, ni la policy `INSERT` de `mls_messages`, ni `mls_notify_recipients`, ni `notify_recipients_on_message_insert` (voie en clair) ne lisent `blocked_users`.
+- Les publications de Salim restent visibles pour Sim : `private.peut_voir_publication_pour` n'a **aucune** clause `blocked_users` — seule `peut_voir_story_pour` l'a (migrations `20260912230000` et `20260918224100`). Le fil ne filtre pas non plus côté client.
+
+À décider : refuser l'écriture (1:1) ou seulement taire la notification et masquer le fil ; ajouter la clause de blocage aux publications comme aux stories.
+
+- [ ] Après correctif : Sim bloque Salim, Salim écrit → aucune bannière chez Sim, aucune tuile qui l'annonce.
+- [ ] Après correctif : la publication de Salim n'apparaît plus dans le fil de Sim ; elle revient après déblocage.
+- [ ] Groupe commun (Testeurs) : définir et vérifier ce que devient un message de la personne bloquée.
+
+---
+
 ## ⬜ Modifier le profil : libellés tronqués et code SMS illisible (2026-09-21)
 
 **Priorité P2** · importance 3/5 — Signalé par Salim sur capture (thème
@@ -7690,16 +7789,19 @@ Fichiers :
   notifications_enabled from users where id='…'"` rend trois `false`. Avant :
   trois `true`.
   ⛔ Passe du 2026-09-21 (soir), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : position et notifications restent coupées (base : false), mais **`show_online_status` repasse à `true`**. L'interrupteur « statut en ligne » écrit par `OnlineStatusService` sans prévenir `ProfileNotifier` : `currentProfile()` garde `true`, et l'enregistrement réécrit toutes les colonnes. Corrigé ensuite (`appliquerSansEcrire`, `online_status_visibility_test.dart` échoue sur l'ancien code) — à revérifier sur un build qui le contient.
-- [ ] **Compétences et région** : renseignées avant la modification, intactes
+- [x] **Compétences et région** : renseignées avant la modification, intactes
   après.
-- [ ] **Après un redémarrage à froid** (profil pas encore en cache), modifier
+  ✅ région, Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim) (Sim) : région Dosso + intérêts Culture/Cuisine posés, relance à froid, bio seule modifiée → `origin_region` et `interests` intacts, les trois bascules inchangées. ⚠️ Compétences : aucun champ pour les saisir dans « Modifier le profil ».
+- [x] **Après un redémarrage à froid** (profil pas encore en cache), modifier
   puis enregistrer : l'enregistrement aboutit — le profil est retrouvé au lieu
   d'être reconstruit. Même parcours pour l'**assistant de configuration**
   (onboarding) : « Terminer » aboutit du premier coup, sans passer par
   « Réessayer » — il partage désormais `currentProfile()` avec l'écran de
   modification, alors qu'il en avait sa propre copie.
+  ✅ Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim) (Sim) : relance à froid, Modifier le profil, bio → Enregistrer aboutit du premier coup (PAbio2 en base).
 - [ ] **Réseau coupé** : « Enregistrer » affiche l'erreur existante, l'écran
   reste ouvert et le spinner s'arrête.
+  ⛔ Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim) (Sim, mode avion ; le VPN du A515F reste « connecté », l'app se croit en ligne) : « Enregistrer » → spinner à la place du bouton, AUCUNE erreur pendant 2 min 30 ; réseau rétabli, spinner toujours là une minute plus tard et bio NON écrite. `_saveProfile` (`edit_profile_screen.dart:461`) n'a ni `try/finally` ni délai autour de `currentProfile()`/`updateProfile()` : `_isLoading` n'est jamais remis.
 - [ ] **Comptes de test existants** : lire ces trois colonnes sur les comptes qui
   ont déjà modifié leur profil, pour mesurer s'ils ont été touchés.
 
@@ -7828,12 +7930,15 @@ d'exceptions de `test/core/errors/echec_muet_test.dart` — il avait **deux**
 branches muettes (suppression d'un avis, réponse du gérant), pas la seule que
 sa note d'exception décrivait.
 
-- [ ] **Bloquer** depuis la fiche de profil : la personne apparaît dans
+- [x] **Bloquer** depuis la fiche de profil : la personne apparaît dans
   Réglages → Utilisateurs bloqués, et **en base** — `users/{moi}/blocked_users`
   côté Firestore **et** une ligne dans `public.blocked_users`.
+  ✅ Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim) : Sim bloque Salim (fiche contact ⋮ → Bloquer l'utilisateur) → « Salim L. · Bloqué le 22/09/2026 » dans Réglages › Utilisateurs bloqués, ligne dans `public.blocked_users`. Firestore non lu. ⚠️ Mais le blocage ne bloque ni les messages ni les publications : voir « Bloquer laisse passer les messages et les publications ».
 - [ ] **Ses publications disparaissent** du fil (c'est la policy Supabase qui
   tranche, donc le miroir doit être écrit).
-- [ ] **Débloquer** : les deux disparaissent, des deux bases.
+  ⛔ Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim) : simulé en Sim (BEGIN/ROLLBACK, rôle authenticated) → la publication publique de Salim reste lisible. `private.peut_voir_publication_pour` n'a aucune clause `blocked_users` (seule `peut_voir_story_pour` l'a), et le fil ne filtre pas côté client.
+- [x] **Débloquer** : les deux disparaissent, des deux bases.
+  ✅ Supabase, Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim) : « Aucun utilisateur bloqué », ligne supprimée. Firestore non lu.
 - [ ] **Bloquer depuis un signalement** (case « bloquer aussi ») : la ligne
   arrive dans les deux bases, et un échec du blocage seul se dit à l'écran
   sans faire croire que le signalement a échoué.
@@ -9046,8 +9151,9 @@ tourner) :
   affiche bien des marqueurs ;
 - [ ] une session révoquée par un administrateur éjecte bien l'appareil, un
   bannissement aussi ;
-- [ ] la liste des discussions garde les noms après une coupure réseau (le
+- [x] la liste des discussions garde les noms après une coupure réseau (le
   flux de profil relit à la reconnexion, comme `.stream()` le faisait) ;
+  ✅ Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim) (Sim) : mode avion 15 s puis réseau ; 25 s après, mêmes noms et aperçus, aucun « Utilisateur ».
 - [ ] puis, après publication et pose du verrou : répéter la cible par son
   banc (0 échec attendu) avant de l'appliquer.
 
@@ -9178,7 +9284,9 @@ Trois gardes :
   événement** : la notification arrive toujours chez le destinataire. C'est
   le test qui compte — un type oublié dans la liste fermée ferait échouer la
   RPC, et l'appelant **avale l'erreur** (`catch` qui n'interrompt rien).
+  Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim) : demande d'ami ✅ (push « Nouvelle demande d'ami · Sim A souhaite vous ajouter en ami » sur le Pixel) ; acceptation ⛔ — refusée par le quota : voir « Quota de notifications : dix messages suffisent à faire taire le reste ».
 - [ ] **Bloquer quelqu'un, puis se faire notifier par lui** : rien n'arrive.
+  ⛔ pour les messages, Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim) : Salim bloqué par Sim lui écrit → bannière « BLOQ F1 » chez Sim. Les notifications de messages ne passent pas par `create_user_notification` ; voir « Bloquer laisse passer les messages et les publications ».
 - [ ] **Surveiller le journal** : `type … non autorisé` sur un parcours
   normal désigne un type manquant dans la liste.
 
@@ -9213,8 +9321,9 @@ non privé ; elle rendra désormais 42501. Lu dans le code :
   et l'enregistrement du profil aboutit (le premier échange d'un compte neuf
   échoue : sans session, `isHandleAvailable` rend « libre » sans interroger
   et laisse la contrainte UNIQUE trancher).
-- [ ] **Recherche de membres et carte** juste après l'ouverture : des
+- [x] **Recherche de membres et carte** juste après l'ouverture : des
   résultats, pas un écran d'erreur.
+  ✅ Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim) (Sim) : dès l'apparition de l'accueil après démarrage à froid, « Salim » → Membres 1, Amis 1 ; carte → « 1 membre autour », Salim L. à 41 m.
 
 ## ⬜ Les echecs attrapes remontent enfin a Crashlytics (2026-09-14)
 
@@ -10010,6 +10119,7 @@ Ce que ce passage change au comportement Android — à regarder sur appareil,
       système devient le défaut. Revérifier les sorties d'écran par geste de
       retour, notamment les routes de lien profond (cf. la règle
       « couvrir les TROIS sorties »).
+  Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), Pixel (Android 16) : lien profond à froid puis Retour — discussion → liste Messages ✅, Réglages → Accueil ✅, Notifications → Accueil ✅ ; onglet Groupes → l'app se FERME au lieu de revenir à l'Accueil ⚠️. Aucun écran noir. (Retour par `KEYCODE_BACK`, pas par le geste animé.)
 
 - ✔ 2 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Passage à targetSdk 36 (Android 16) — exigence Play (2026-09-08) »).
 
