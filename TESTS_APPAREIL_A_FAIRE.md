@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1530 cases à cocher, 740 cochées** — 311 entrées sur 363 ont encore des cases ouvertes.
+**1528 cases à cocher, 742 cochées** — 311 entrées sur 363 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -225,7 +225,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [⬜ « Supprimer pour tous » proposé sur le message de l'autre en 1:1 (2026-09-21)](#--supprimer-pour-tous--proposé-sur-le-message-de-lautre-en-11-2026-09-21) · *Messagerie*
 - 3 · [⬜ Le séparateur « N messages non lus » part quand tout est lu (2026-09-17)](#-le-séparateur--n-messages-non-lus--part-quand-tout-est-lu-2026-09-17) · *Messagerie*
 - 3 · [⬜ « Distribué » et « Lu » ne tombent plus à la même seconde (2026-09-16)](#--distribué--et--lu--ne-tombent-plus-à-la-même-seconde-2026-09-16) · *Messagerie*
-- 3 · [⬜ Forme de la bulle qui cite un message (2026-09-16)](#-forme-de-la-bulle-qui-cite-un-message-2026-09-16) · *Messagerie*
+- 1 · [⬜ Forme de la bulle qui cite un message (2026-09-16)](#-forme-de-la-bulle-qui-cite-un-message-2026-09-16) · *Messagerie*
 - 5 · [⬜ « Modifier le message » : saisie en ligne, fenêtre de 48 h, motifs dits (2026-09-16)](#--modifier-le-message---saisie-en-ligne-fenêtre-de-48-h-motifs-dits-2026-09-16) · *Messagerie*
 - 5 · [⬜ Le repère de bascule ne parle plus français à tout le monde (2026-09-15)](#-le-repère-de-bascule-ne-parle-plus-français-à-tout-le-monde-2026-09-15) · *Messagerie*
 - 2 · [⬜ « Sélectionner » sort de « Autres actions » (2026-09-14)](#--sélectionner--sort-de--autres-actions--2026-09-14) · *Messagerie*
@@ -369,7 +369,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 348 à faire, 174 faites
+- [2. Messagerie](#2-messagerie) — 346 à faire, 176 faites
 - [3. Groupes](#3-groupes) — 149 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 132 à faire, 58 faites
 - [5. Appels](#5-appels) — 26 à faire, 8 faites
@@ -702,6 +702,12 @@ SM A515F = Sim observé, nœud `presence/<uid Sim>` lu par
       « En ligne » (`inactive` n'écrit plus rien).
 - [ ] **Un push réveille l'app de A en arrière-plan** : A ne passe PAS
       « En ligne ».
+      Passe du 2026-09-22 (~05:10), build Play 1.2.2+26 (f22aaff) — **constaté sur le +26 avant correctif** : l'app de Sim à l'accueil
+      depuis 04:36 (processus vivant), Salim envoie PQR1 à 05:11:15 → le nœud
+      `presence/<Sim>` repasse `isOnline: true` à 05:11:25 et le Pixel affiche
+      Sim « En ligne », sans écran affiché chez Sim. C'est la reconnexion
+      `.info/connected` → `_setOnline` en arrière-plan, que la garde
+      `_auPremierPlan` de `c274142` supprime : à revoir sur le nouveau build.
 - [ ] **Ancien build** chez A (sans le correctif), nouveau chez B : A en
       ligne reste affiché « En ligne » (ancienne règle, faute de battement).
 - [ ] **« Afficher mon statut en ligne » coupé** chez A : aucun battement,
@@ -1665,8 +1671,12 @@ La forme est fixée par `test/features/messages/bulle_citation_forme_test.dart`
 et a été regardée en golden jetable (« Aperçu UI sans build »). Ce qu'un
 golden ne dit pas :
 
-- [ ] **Thème sombre** : l'aplat blanc à 14 % sur le vert `#009600` — détaché
+- [x] **Thème sombre** : l'aplat blanc à 14 % sur le vert `#009600` — détaché
   sans virer au laiteux.
+  ✅ Passe du 2026-09-22 (~05:10), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : Salim répond à PZ2 en le citant (« PQR1 ») → sur le Pixel
+  (sombre, police 1,3 + gras), la bulle envoyée porte un encart vert plus
+  clair « Sim A · PZ2 », détaché du vert de la bulle sans virer au laiteux,
+  filet blanc à gauche.
 - [x] **Échelle de police à 130 %** (réglages Android) : la citation tient sur
   ses deux lignes, la bulle ne déborde pas. Voir « Échelle de police ».
   ✅ Passe du 2026-09-22 (suite, ~01:20–01:40), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim, sombre, police 1,3 + gras) : PF1 (reçue, cite « Vous · PE1 ») à la police 1,3 + gras →
@@ -1674,10 +1684,12 @@ golden ne dit pas :
 - [ ] **Réponse à une photo, puis à une note vocale** : ces bulles passent par
   le chemin SANS `IntrinsicWidth` — la citation ne s'y étire pas, et rien ne
   doit lever.
-- [ ] **Bulle reçue** portant une citation, en clair et en sombre.
+- [x] **Bulle reçue** portant une citation, en clair et en sombre.
   ⬜ moitié, Passe du 2026-09-22 (suite, ~01:20–01:40), build Play 1.2.2+26 (f22aaff) : vue en **sombre** sur le Pixel 10 Pro XL (Salim, sombre, police 1,3 + gras) (PF1 : fond gris foncé,
   filet orange, « Vous » en orange, lisible). En clair, pas de bulle reçue
   citante dans le 1:1 côté Sim.
+  ✅ Passe du 2026-09-22 (~05:10), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : la moitié claire — sur le SM A515F (clair), PQR1 reçu sous
+  « 1 message non lu » : encart gris « Vous · PZ2 », filet orange, lisible.
 
 ---
 
