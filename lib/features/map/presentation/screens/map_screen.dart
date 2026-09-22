@@ -32,6 +32,7 @@ import '../../../businesses/domain/entities/business_entity.dart';
 import '../../../../core/extensions/business_entity_extensions.dart';
 import '../../../../core/services/feature_flag_service.dart';
 import '../../../../core/services/preferences_service.dart';
+import '../../../profile/presentation/providers/profile_preferences_provider.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../../settings/presentation/providers/blocked_users_provider.dart';
 import '../../../../features/map/presentation/utils/cluster_marker_generator.dart';
@@ -3043,6 +3044,16 @@ class _MapScreenState extends ConsumerState<MapScreen>
 
   Widget _buildLocationPitchCard(AppLocalizations l10n, bool nearbyEnabled) {
     final accent = context.adaptivePrimaryColor;
+    // Le calque « Membres » n'est qu'un filtre d'affichage local ; le
+    // consentement, lui, est `share_location`. La carte annonçait « Mode privé
+    // activé » dès que le calque était coupé — y compris quand la position
+    // restait partagée et publiée. Vu le 2026-09-21 sur SM A515F : position
+    // mise à jour à 20:27, carte « Mode privé ». Un libellé de confidentialité
+    // qui dit le contraire de la réalité, dans une app refusée cinq fois par
+    // Play sur la divulgation de localisation.
+    final masqueMaisPartagee = !nearbyEnabled &&
+        (ref.watch(profilePreferenceProvider(ProfilePreference.shareLocation)) ??
+            false);
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
       decoration: BoxDecoration(
@@ -3072,6 +3083,8 @@ class _MapScreenState extends ConsumerState<MapScreen>
           Text(
             nearbyEnabled
                 ? l10n.locationRequiredToSeeMembers
+                : masqueMaisPartagee
+                ? l10n.nearbyMembersHiddenWhileSharing
                 : l10n.nearbyMembersDisabled,
             style: TextStyle(
               fontSize: 19,
@@ -3082,7 +3095,9 @@ class _MapScreenState extends ConsumerState<MapScreen>
           ),
           const SizedBox(height: 8),
           Text(
-            l10n.locationReciprocity,
+            masqueMaisPartagee
+                ? l10n.nearbyMembersHiddenWhileSharingBody
+                : l10n.locationReciprocity,
             style: TextStyle(
               fontSize: 14,
               height: 1.55,

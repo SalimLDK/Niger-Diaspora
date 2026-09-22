@@ -52,6 +52,15 @@ class EmojiStickerPicker extends ConsumerStatefulWidget {
   /// Onglet ouvert au montage, s'il est disponible.
   final MessagePickerTab initialTab;
 
+  /// Signale qu'un champ de recherche du panneau est ouvert (ou refermé).
+  ///
+  /// Le composeur affiche ce panneau À LA PLACE du clavier : quand le champ de
+  /// recherche prend le focus, le clavier monte et le panneau se repliait
+  /// jusqu'à zéro — son propre champ avec lui. Vu le 2026-09-21 sur SM A515F :
+  /// « Recherche » levait un clavier sous lequel on tapait à l'aveugle. Averti,
+  /// le composeur garde le panneau au-dessus du clavier le temps de la saisie.
+  final ValueChanged<bool>? onRechercheOuverte;
+
   const EmojiStickerPicker({
     super.key,
     required this.onEmojiSelected,
@@ -60,6 +69,7 @@ class EmojiStickerPicker extends ConsumerStatefulWidget {
     this.onGifSelected,
     this.height = 300,
     this.initialTab = MessagePickerTab.emojis,
+    this.onRechercheOuverte,
   });
 
   @override
@@ -335,6 +345,13 @@ class _EmojiStickerPickerState extends ConsumerState<EmojiStickerPicker> {
               height: constraints.maxHeight,
               checkPlatformCompatibility: true,
               emojiViewConfig: emoji_picker.EmojiViewConfig(
+                // Le défaut de la bibliothèque est « No Recents », en dur et en
+                // `black26` : anglais, et invisible en thème sombre.
+                noRecents: Text(
+                  AppLocalizations.of(context)!.noRecentEmojis,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 16, color: context.textTertiaryColor),
+                ),
                 columns: 8,
                 emojiSizeMax: 28 * (Platform.isIOS ? 1.30 : 1.0),
                 backgroundColor: context.surfaceColor,
@@ -414,9 +431,11 @@ class _EmojiStickerPickerState extends ConsumerState<EmojiStickerPicker> {
       _stickerQuery = '';
     });
     _resetGifQuery();
+    widget.onRechercheOuverte?.call(false);
   }
 
   void _openSearch(MessagePickerTab actif) {
+    widget.onRechercheOuverte?.call(true);
     if (actif == MessagePickerTab.emojis) {
       _showEmojiSearch?.call();
       return;
@@ -431,6 +450,7 @@ class _EmojiStickerPickerState extends ConsumerState<EmojiStickerPicker> {
       _stickerQuery = '';
     });
     _resetGifQuery();
+    widget.onRechercheOuverte?.call(false);
   }
 
   void _onQueryChanged(MessagePickerTab actif, String value) {

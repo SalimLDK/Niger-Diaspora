@@ -63,6 +63,16 @@ class _FauxServeur implements ProfileRemoteDataSource {
     colonneLocalEvents = enabled;
   }
 
+  /// `show_message_preview` reçus, dans l'ordre.
+  final apercusRecus = <bool>[];
+  bool refuseApercu = false;
+
+  @override
+  Future<void> updateShowMessagePreview(String userId, bool show) async {
+    apercusRecus.add(show);
+    if (refuseApercu) throw StateError('colonne aperçu refusée');
+  }
+
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
@@ -199,6 +209,36 @@ void main() {
       expect(serveur.cartesRecues, hasLength(1),
           reason: '${entry.key}: la carte devait bien être tentée');
     }
+  });
+
+  group('« Aperçu des messages » : le réglage existe et atteint le serveur',
+      () {
+    // 2026-09-21 : `send-push` lisait `show_message_preview`, mais aucun
+    // écran ne permettait de le changer — ni de passer par ce provider.
+    test("couper l'aperçu écrit la colonne et la préférence locale",
+        () async {
+      final serveur = _FauxServeur();
+      final c = await conteneur(serveur);
+      expect(etat(c).messagePreviewEnabled, isTrue);
+
+      final ok = await notifier(c).setMessagePreviewEnabled(false);
+
+      expect(ok, isTrue);
+      expect(serveur.apercusRecus, [false]);
+      expect(etat(c).messagePreviewEnabled, isFalse);
+      expect(PreferencesService.instance.showMessagePreview, isFalse);
+    });
+
+    test('refusé par le serveur : tout revient à « affiché »', () async {
+      final serveur = _FauxServeur()..refuseApercu = true;
+      final c = await conteneur(serveur);
+
+      final ok = await notifier(c).setMessagePreviewEnabled(false);
+
+      expect(ok, isFalse);
+      expect(etat(c).messagePreviewEnabled, isTrue);
+      expect(PreferencesService.instance.showMessagePreview, isTrue);
+    });
   });
 
   group('« Événements locaux » : colonne dédiée puis carte', () {

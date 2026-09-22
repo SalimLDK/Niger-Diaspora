@@ -102,6 +102,15 @@ class NotificationSettingsScreen extends ConsumerWidget {
                 value: preferences.messagesEnabled,
                 onChanged: gatedSynced(notifier.setMessagesEnabled),
               ),
+              // Le serveur respectait déjà `show_message_preview`, sans
+              // qu'aucun écran permette de le changer (constaté 2026-09-21).
+              DesignSettingsSwitchTile(
+                icon: const Icon(Icons.visibility_outlined),
+                title: l10n.messagePreview,
+                subtitle: 'Afficher le texte dans la notification',
+                value: preferences.messagePreviewEnabled,
+                onChanged: gatedSynced(notifier.setMessagePreviewEnabled),
+              ),
               DesignSettingsSwitchTile(
                 icon: const Icon(Icons.person_add_alt),
                 title: l10n.notifyFriendRequests,

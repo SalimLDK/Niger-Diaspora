@@ -1253,7 +1253,37 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
           callback: (payload) {
             if (!controller.isClosed) controller.add(null);
           },
-        )
+        );
+
+    // Accusés et réactions : ils vivent dans leurs propres tables (décision
+    // J), que rien n'écoutait. L'expéditeur ne voyait donc jamais « Lu » ni la
+    // réaction de l'autre en direct — seulement à la réouverture ou au message
+    // suivant. Vu le 2026-09-21 à deux téléphones : « Envoyé » plus d'une
+    // minute après la lecture, discussion ouverte.
+    //
+    // Sans filtre : ces tables n'ont pas de `conversation_id`. Le RLS
+    // (`mls_message_participant`) ne laisse passer que les conversations dont
+    // on est membre ; un événement d'une autre discussion coûte une relecture
+    // incrémentale de celle-ci, rien de plus. Pas de `delete` : le temps réel
+    // n'applique pas le RLS aux suppressions — un retrait de réaction se voit
+    // donc au prochain rafraîchissement, pas en direct.
+    for (final table in const ['mls_message_receipts', 'mls_message_reactions']) {
+      for (final evenement in const [
+        PostgresChangeEvent.insert,
+        PostgresChangeEvent.update,
+      ]) {
+        ch.onPostgresChanges(
+          event: evenement,
+          schema: 'public',
+          table: table,
+          callback: (_) {
+            if (!controller.isClosed) controller.add(null);
+          },
+        );
+      }
+    }
+
+    ch
         // Le rattrapage au rejoint, comme le canal `messages` : un abonnement
         // nu laissait perdu tout message arrivé pendant l'arrière-plan. Vu le
         // 2026-09-21 sur SM A515F : discussion affichée, HOME, un message

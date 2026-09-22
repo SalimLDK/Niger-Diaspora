@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1556 cases à cocher, 687 cochées** — 308 entrées sur 359 ont encore des cases ouvertes.
+**1562 cases à cocher, 687 cochées** — 309 entrées sur 360 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -97,7 +97,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (108)
+**P1 — fonction importante, jamais vérifiée** (109)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -110,6 +110,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
 - 4 · [⬜ Message chiffré supprimé pour tous : plus de clair en mémoire ni dans le cache (2026-09-21)](#-message-chiffré-supprimé-pour-tous--plus-de-clair-en-mémoire-ni-dans-le-cache-2026-09-21) · *Messagerie*
+- 6 · [⬜ Manquements de la passe du 2026-09-21 : cinq correctifs à voir sur appareil](#-manquements-de-la-passe-du-2026-09-21--cinq-correctifs-à-voir-sur-appareil) · *Messagerie*
 - 2 · [⬜ La pastille de non-lus retombe en quittant une discussion chiffrée (2026-09-21)](#-la-pastille-de-non-lus-retombe-en-quittant-une-discussion-chiffrée-2026-09-21) · *Messagerie*
 - 4 · [⬜ Les premiers messages reçus restent « Message chiffré » dans la liste (2026-09-21)](#-les-premiers-messages-reçus-restent--message-chiffré--dans-la-liste-2026-09-21) · *Messagerie*
 - 7 · [⬜ Ouvrir une discussion lit ce qui est à l'écran, tout de suite (2026-09-16)](#-ouvrir-une-discussion-lit-ce-qui-est-à-lécran-tout-de-suite-2026-09-16) · *Messagerie*
@@ -366,7 +367,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 353 à faire, 143 faites
+- [2. Messagerie](#2-messagerie) — 359 à faire, 143 faites
 - [3. Groupes](#3-groupes) — 149 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 142 à faire, 47 faites
 - [5. Appels](#5-appels) — 26 à faire, 8 faites
@@ -737,6 +738,39 @@ pour tous : plus de clair en mémoire ni dans le cache » ci-dessus.
   rouvrir la discussion (chemin du cache) → toujours la pierre tombale.
 - [ ] **Modifier puis supprimer vite** : l'autre modifie puis supprime dans
   la foulée → la pierre tombale reste, le texte modifié ne réapparaît pas.
+
+---
+
+## ⬜ Manquements de la passe du 2026-09-21 : cinq correctifs à voir sur appareil
+
+**Priorité P1** · importance 4/5 — trouvés à deux téléphones sur le +26,
+corrigés dans le code, jamais vus tourner.
+
+*Bloqué : build Play à mettre à jour (voir « Temps réel après l'arrière-plan,
+et texte supprimé dans la liste »).*
+
+- [ ] **« Lu » et réactions en direct côté expéditeur (MLS)** : A écrit, B
+  lit → la coche de A passe à « Lu » en quelques secondes, discussion
+  ouverte, sans rouvrir. Même chose pour une réaction de B. Le canal `mls_new`
+  écoute désormais `mls_message_receipts` et `mls_message_reactions`. Limite :
+  un retrait de réaction ne se voit qu'au rafraîchissement suivant.
+- [ ] **Sourdine dans le menu de la discussion** : pendant la sourdine, le
+  menu dit « Réactiver les notifications » et la lève (`isMuted` n'était
+  jamais passé au menu ; test `menu_options_porte_son_etat_test.dart`).
+- [ ] **Réglages › Notifications › Aperçu des messages** : l'interrupteur
+  existe ; le couper → la bannière suivante dit « Nouveau message » sans le
+  texte (colonne `show_message_preview`, lue par send-push) ; le rallumer →
+  texte de retour. Tests dans `notification_type_prefs_test.dart`.
+- [ ] **Recherche GIF / stickers / émojis** : « Recherche » garde le panneau
+  AU-DESSUS du clavier (240 dp) — le champ reste visible, les résultats
+  s'affichent pendant la frappe. Vérifier aussi le retour à la normale en
+  changeant d'onglet et en refermant le panneau.
+- [ ] **« Aucun émoji récent »** en français, lisible en thème sombre, à la
+  place de « No Recents » (sélecteur d'émojis et de réactions).
+- [ ] **Carte, calque « Membres » coupé mais position partagée** : le titre
+  dit « Membres masqués sur la carte » et précise que la position reste
+  partagée, au lieu de « Mode privé activé ». Position non partagée : le
+  libellé d'avant.
 
 ---
 

@@ -1909,6 +1909,13 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
             // Mesuré sur SM A515F le 2026-09-15 : base à 86400, écran à
             // « Désactivé », messages horodatés à 24 h malgré tout.
             autoDeleteAfterSeconds: conversation?.autoDeleteAfterSeconds,
+            // Même oubli que le minuteur ci-dessus : sans lui, le menu disait
+            // « Mettre en sourdine » pendant la sourdine et n'offrait jamais de
+            // la lever. Vu le 2026-09-21 sur SM A515F : sourdine posée (en
+            // base), menu inchangé ; seul l'appui long de la liste la levait.
+            isMuted:
+                currentUser != null &&
+                (conversation?.isMutedBy(currentUser.id) ?? false),
             otherUserId: _effectiveOtherUserId,
             otherUserName: displayName,
             otherUserPhotoUrl: displayImage,

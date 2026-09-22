@@ -16,6 +16,9 @@ class NotificationPreferences {
   final bool eventRemindersEnabled;
   final bool localEventsEnabled;
   final bool systemMessagesEnabled;
+
+  /// Le texte du message dans la notification. Coupé : « Nouveau message ».
+  final bool messagePreviewEnabled;
   final bool soundEnabled;
   final bool vibrationEnabled;
   final bool quietHoursEnabled;
@@ -33,6 +36,7 @@ class NotificationPreferences {
     required this.eventRemindersEnabled,
     required this.localEventsEnabled,
     required this.systemMessagesEnabled,
+    this.messagePreviewEnabled = true,
     required this.soundEnabled,
     required this.vibrationEnabled,
     required this.quietHoursEnabled,
@@ -51,6 +55,7 @@ class NotificationPreferences {
     bool? eventRemindersEnabled,
     bool? localEventsEnabled,
     bool? systemMessagesEnabled,
+    bool? messagePreviewEnabled,
     bool? soundEnabled,
     bool? vibrationEnabled,
     bool? quietHoursEnabled,
@@ -71,6 +76,8 @@ class NotificationPreferences {
       localEventsEnabled: localEventsEnabled ?? this.localEventsEnabled,
       systemMessagesEnabled:
           systemMessagesEnabled ?? this.systemMessagesEnabled,
+      messagePreviewEnabled:
+          messagePreviewEnabled ?? this.messagePreviewEnabled,
       soundEnabled: soundEnabled ?? this.soundEnabled,
       vibrationEnabled: vibrationEnabled ?? this.vibrationEnabled,
       quietHoursEnabled: quietHoursEnabled ?? this.quietHoursEnabled,
@@ -99,6 +106,7 @@ class NotificationPreferencesNotifier
       eventRemindersEnabled: _prefs.notifyEventReminders,
       localEventsEnabled: _prefs.notifyLocalEvents,
       systemMessagesEnabled: _prefs.notifySystemMessages,
+      messagePreviewEnabled: _prefs.showMessagePreview,
       soundEnabled: _prefs.notificationSound,
       vibrationEnabled: _prefs.notificationVibration,
       quietHoursEnabled: _prefs.quietHoursEnabled,
@@ -324,6 +332,22 @@ class NotificationPreferencesNotifier
     read: (s) => s.systemMessagesEnabled,
     writeLocal: _prefs.setNotifySystemMessages,
     apply: (s, v) => s.copyWith(systemMessagesEnabled: v),
+  );
+
+  /// Aperçu du texte dans les notifications de message.
+  ///
+  /// Le serveur l'appliquait déjà (`send-push` remplace le texte par
+  /// « Nouveau message » quand `show_message_preview` est faux, et l'appareil
+  /// ne reconstruit alors pas l'aperçu chiffré) — mais aucun écran ne
+  /// permettait de le changer. Constaté le 2026-09-21.
+  Future<bool> setMessagePreviewEnabled(bool enabled) => _setTypePref(
+    enabled,
+    read: (s) => s.messagePreviewEnabled,
+    writeLocal: _prefs.setShowMessagePreview,
+    apply: (s, v) => s.copyWith(messagePreviewEnabled: v),
+    writeColumn: (userId, value) => ref
+        .read(profileRemoteDataSourceProvider)
+        .updateShowMessagePreview(userId, value),
   );
 
   Future<void> setSoundEnabled(bool enabled) async {
