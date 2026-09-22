@@ -269,6 +269,12 @@ permissions runtime (caméra/localisation), le thème sombre, et tout ce que
 Ne pas attendre la fin de la tâche pour le faire : l'ajouter au fil de
 l'eau, dans le même commit que le changement concerné si possible.
 
+Le vérifié ne reste pas dans la liste : `python tools/archiver_tests_appareil.py`
+le déplace, notes comprises, dans `TESTS_APPAREIL_FAITS.md` (archivé une
+première fois le 2026-09-22 : 755 cases, 35 entrées entières). Ne pas le
+lancer pendant que l'autre agent a ce fichier en cours : il réécrit des
+milliers de lignes, le conflit serait pour lui.
+
 Le fichier est classé par domaine (titres `# N.`) : une nouvelle entrée va
 **en tête de son domaine**, jamais en tête du fichier, porte sous son titre sa
 ligne `**Priorité P0…P3** · importance n/5` (barème dans le préambule du
