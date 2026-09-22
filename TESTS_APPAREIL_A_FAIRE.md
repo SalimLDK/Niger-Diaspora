@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1525 cases à cocher, 745 cochées** — 311 entrées sur 363 ont encore des cases ouvertes.
+**1521 cases à cocher, 749 cochées** — 311 entrées sur 363 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -129,7 +129,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 12 · [⬜ Pièces jointes chiffrées — images, documents, audio (C4, 2026-09-14)](#-pièces-jointes-chiffrées--images-documents-audio-c4-2026-09-14) · *Messagerie*
 - 8 · [⬜ Désigner quelqu'un ouvre sa discussion, plus le sélecteur (2026-09-14)](#-désigner-quelquun-ouvre-sa-discussion-plus-le-sélecteur-2026-09-14) · *Messagerie*
 - 4 · [⬜ En sélection, la bulle ne fait plus que cocher (2026-09-14)](#-en-sélection-la-bulle-ne-fait-plus-que-cocher-2026-09-14) · *Messagerie*
-- 3 · [⬜ Sondage : voter se voit enfin, et les votants aussi (2026-09-14)](#-sondage--voter-se-voit-enfin-et-les-votants-aussi-2026-09-14) · *Messagerie*
+- 2 · [⬜ Sondage : voter se voit enfin, et les votants aussi (2026-09-14)](#-sondage--voter-se-voit-enfin-et-les-votants-aussi-2026-09-14) · *Messagerie*
 - 2 · [✅ Un échec de lecture en messagerie se voit, sans effacer l'écran — corrigé, vérifié SM A515F (2026-09-14)](#-un-échec-de-lecture-en-messagerie-se-voit-sans-effacer-lécran--corrigé-vérifié-sm-a515f-2026-09-14) · *Messagerie*
 - 4 · [✅ L'identité du correspondant revient seule après une coupure — corrigé, vérifié SM A515F (2026-09-14)](#-lidentité-du-correspondant-revient-seule-après-une-coupure--corrigé-vérifié-sm-a515f-2026-09-14) · *Messagerie*
 - 3 · [⬜ Nom et avatar du correspondant dans la liste des discussions (2026-09-13)](#-nom-et-avatar-du-correspondant-dans-la-liste-des-discussions-2026-09-13) · *Messagerie*
@@ -323,7 +323,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Guide de style — alignement des jetons (2026-08-03)](#guide-de-style--alignement-des-jetons-2026-08-03) · *Design, thème, langue et mise en page*
 - 5 · [Bascule design_v2 → production, famille 5 : accueil et envoi d'argent (2026-08-03)](#bascule-design_v2--production-famille-5--accueil-et-envoi-dargent-2026-08-03) · *Design, thème, langue et mise en page*
 - 3 · [⬜ Les ~920 `debugPrint` restants neutralisés en release (2026-09-09)](#-les-920-debugprint-restants-neutralisés-en-release-2026-09-09) · *Backend, sécurité et observabilité* · bloqué
-- 5 · [⬜ Fiches de partage : libellés sur une ligne, vrais logos, bouton (2026-09-20)](#-fiches-de-partage--libellés-sur-une-ligne-vrais-logos-bouton-2026-09-20) · *Messagerie*
+- 2 · [⬜ Fiches de partage : libellés sur une ligne, vrais logos, bouton (2026-09-20)](#-fiches-de-partage--libellés-sur-une-ligne-vrais-logos-bouton-2026-09-20) · *Messagerie*
 - 6 · [⬜ Squelette de chargement de la messagerie (2026-09-15)](#-squelette-de-chargement-de-la-messagerie-2026-09-15) · *Messagerie*
 - 7 · [⬜ Une couleur par pièce jointe dans le « + » (2026-09-14)](#-une-couleur-par-pièce-jointe-dans-le----2026-09-14) · *Messagerie*
 - 6 · [Discussion — ÉCO rejoint la ligne épinglée (fiche 6b, 2026-08-05)](#discussion--éco-rejoint-la-ligne-épinglée-fiche-6b-2026-08-05) · *Messagerie*
@@ -369,7 +369,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 343 à faire, 179 faites
+- [2. Messagerie](#2-messagerie) — 339 à faire, 183 faites
 - [3. Groupes](#3-groupes) — 149 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 132 à faire, 58 faites
 - [5. Appels](#5-appels) — 26 à faire, 8 faites
@@ -1208,19 +1208,27 @@ correctif : il ne remplace pas l'appareil pour autant.
 ⚠️ Sur ce Pixel, deux réglages comptent : `font_scale` 1,3 **et** texte en gras
 (`font_weight_adjustment` 300). Un test à 1,0 sans gras ne prouve rien.
 
-- [ ] **Profil, échelle 1,3 + texte en gras** : Partager mon profil → « WhatsApp »,
+- [x] **Profil, échelle 1,3 + texte en gras** : Partager mon profil → « WhatsApp »,
       « Facebook », « X » et « Plus » tiennent chacun sur une seule ligne, sans
       coupure ni débordement. Le texte rétréci reste lisible. (Le Pixel, ou le
       A515F réglé à 1,3 et gras : à 1,0 sans gras le défaut n'existe pas.)
+      ✅ Passe du 2026-09-22 (~05:35–05:45), build Play 1.2.2+26 (f22aaff, contient 37465e9), Pixel 10 Pro XL (Salim, sombre, police 1,3 + texte en gras) : « WhatsApp », « Facebook », « X », « Plus » chacun sur une
+      seule ligne, sans coupure, lisibles. La carte est plus haute que l'écran à
+      cette échelle : le bouton « Envoyer dans une discussion » est à moitié sous
+      le pli à l'ouverture, et apparaît en entier en faisant défiler la carte.
 - [x] **Profil, logos, thème clair** : WhatsApp, Facebook et X montrent leur logo de
       marque (X : logo blanc sur pastille noire), « Plus » ses trois points — vu
       SM A515F, build 1.2.2+23, 2026-09-20.
-- [ ] **Profil, logos, thème sombre** : le X passe en blanc avec logo noir.
+- [x] **Profil, logos, thème sombre** : le X passe en blanc avec logo noir.
+      ✅ Passe du 2026-09-22 (~05:35–05:45), build Play 1.2.2+26 (f22aaff, contient 37465e9), Pixel 10 Pro XL (Salim, sombre, police 1,3 + texte en gras) : X sur pastille blanche, logo noir ; WhatsApp, Facebook et
+      « Plus » gardent leur logo et leur teinte.
 - [x] **Bouton « Envoyer dans une discussion », profil, à 1,0** : une seule ligne,
       l'icône et le texte à distance des bords — vu SM A515F, build 1.2.2+23,
       2026-09-20. « Scanner un QR code », dessous, inchangé.
-- [ ] **Bouton, à 1,3 + texte en gras** : toujours une seule ligne, l'icône n'est
+- [x] **Bouton, à 1,3 + texte en gras** : toujours une seule ligne, l'icône n'est
       plus collée au bord gauche ; le texte rétréci reste lisible.
+      ✅ Passe du 2026-09-22 (~05:35–05:45), build Play 1.2.2+26 (f22aaff, contient 37465e9), Pixel 10 Pro XL (Salim, sombre, police 1,3 + texte en gras) : « Envoyer dans une discussion » sur une ligne, icône à
+      distance du bord gauche, texte lisible (après défilement de la carte).
 - [ ] **Groupe** : fiche « Partager le groupe » — mêmes libellés sur une ligne
       à 1,3 (elle partage désormais la tuile du profil), logos inchangés, et le
       même bouton, dans la couleur secondaire du compte (le profil prend
@@ -2252,6 +2260,10 @@ Fichiers : [messages_skeleton.dart](lib/features/messages/presentation/widgets/m
   vite pour qu'on le perçoive.
 - [ ] **Thème sombre** sur les deux écrans : les blocs doivent rester lisibles
   sur `#0F0D0A` sans virer au gris froid, et le balayage rester discret.
+  Passe du 2026-09-22 (~05:35–05:45), build Play 1.2.2+26 (f22aaff, contient 37465e9), Pixel 10 Pro XL (Salim, sombre, police 1,3 + texte en gras) : rafale de 14 captures SUR le Pixel à l'ouverture à froid
+  d'une discussion : écran de démarrage puis la discussion depuis le cache,
+  **aucune** image de squelette — même constat qu'en clair, il faut un cache
+  froid.
 - [ ] **Fond de discussion personnalisé** : avec un papier peint choisi
   (« Fond de discussion »), vérifier que les bulles du squelette ne
   deviennent pas illisibles par-dessus.
@@ -3140,6 +3152,10 @@ d'abord à 2,0:1, a reçu un or assombri pour le thème clair (3,85:1).
   or assombri (voir « Une couleur par service dans les deux grilles »).
 - [ ] **Thème sombre** : les huit icônes restent lisibles sur leur aplat à
   12 %.
+  ⬜ presque, Passe du 2026-09-22 (~05:35–05:45), build Play 1.2.2+26 (f22aaff, contient 37465e9), Pixel 10 Pro XL (Salim, sombre, police 1,3 + texte en gras) : dans un 1:1, le « + » en montre **six** (Caméra,
+  Photos, Documents, Position, Sondage, Événement), toutes lisibles sur leur
+  aplat teinté. Les deux autres (propres aux groupes ?) pas vues. Aucune
+  touchée.
 - [ ] **Compte en thème Orange puis Vert** : les tuiles ne suivent plus
   l'accent du compte. Le « + » lui-même, lui, le suit toujours — vérifier que
   le panneau ne jure pas avec la pastille qui l'ouvre.
@@ -3210,11 +3226,16 @@ Voir « Sondage dans une discussion privée » pour le parcours de création.
       empire avec la police. À reprendre.
 - [x] **Thème sombre** : carte vérifiée SM A515F — fond sombre, notice
       lisible en gris, option choisie encadrée en violet, pied sur une ligne.
-- [ ] **Thème sombre** : la feuille de création et l'écran de résultats.
+- [x] **Thème sombre** : la feuille de création et l'écran de résultats.
       ⬜ moitié, Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff) : écran de résultats vu en sombre sur le Pixel 10 Pro XL (Salim, sombre, police 1,3 + gras) —
       lisible, options encadrées en violet clair, notice anonyme en gris. Feuille
       de création pas vue en sombre (le Pixel est le vrai compte : pas de sondage
       créé depuis lui).
+      ✅ Passe du 2026-09-22 (~05:35–05:45), build Play 1.2.2+26 (f22aaff, contient 37465e9), Pixel 10 Pro XL (Salim, sombre, police 1,3 + texte en gras) : la **feuille de création** en sombre — champs, bascules,
+      notice « Les votes ne sont pas anonymes », durées (« Illimité » passe à la
+      ligne à 1,3, sans coupure), « Publier » : tout lisible. Fermée sans publier
+      (0 sondage créé). Détail : la feuille monte jusque sous la barre d'état,
+      sa poignée passe par-dessus.
 - [x] **Coin de queue de la bulle envoyée** : plus de triangle vert sous la
       carte — elle reprend les rayons de la bulle. Vérifié SM A515F sur les
       deux bulles envoyées et sans régression sur la bulle reçue.
@@ -4692,6 +4713,9 @@ l10n, GoRouter, une session Supabase et une dizaine de providers, et
 - [ ] **Thème sombre** sur les deux nouveaux états : l'icône est posée à
       `textTertiaryColor` à 50 %, le texte à `textSecondaryColor` — vérifier
       qu'ils restent lisibles.
+      ⬜ moitié, Passe du 2026-09-22 (~05:35–05:45), build Play 1.2.2+26 (f22aaff, contient 37465e9), Pixel 10 Pro XL (Salim, sombre, police 1,3 + texte en gras) : « Non lus », tout étant lu → icône double coche
+      grise, « Aucun message non lu », « Afficher toutes les conversations » en
+      orange : lisibles. L'état « Groupes » vide n'existe pas sur ce compte.
 
 ### Le `country_code` n'est plus un problème (vérifié en base le 2026-08-06)
 
@@ -15879,6 +15903,11 @@ structure. Commit `3833fbe` (`feed_tokens.dart`, `feed_text.dart`,
   après la capture. (2026-09-13 21:44)
 - [ ] **Pixel** (`font_scale` 1.3) : « Abonnements » n'est plus tronqué et la
   date du fil tient sur sa ligne. *Bloqué : le Pixel porte la version Play Store.*
+  ⛔ Passe du 2026-09-22 (~05:35–05:45), build Play 1.2.2+26 (f22aaff, contient 37465e9), Pixel 10 Pro XL (Salim, sombre, police 1,3 + texte en gras) : la date « MARDI 22 SEPTEMBRE 2026 » tient sur sa ligne,
+  mais l'onglet est **encore tronqué** : « Abonneme… ». Cause, par le code :
+  `FeedSegmentedControl` (`feed_segmented_control.dart`) donne aux trois
+  onglets la même largeur (`Expanded`) avec `TextOverflow.ellipsis` ; à 1,3 +
+  gras, « Abonnements » ne tient pas dans un tiers. Non corrigé.
 - [ ] Autres écrans du fil en sombre : Mes abonnements, Mes publications,
   Enregistrés — rayons et pastilles comme en clair.
 
