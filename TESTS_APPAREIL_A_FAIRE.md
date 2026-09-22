@@ -654,6 +654,28 @@ garde l'ancienne règle. Règles RTDB inchangées (celles en service, relues le
 `test/core/services/presence_fraicheur_test.dart`. Coût : une écriture RTDB
 par minute et par utilisateur au premier plan.
 
+**Mesures AVANT correctif** (build Play 1.2.2+26, 2026-09-22 ~04:30–04:40,
+SM A515F = Sim observé, nœud `presence/<uid Sim>` lu par
+`firebase database:get`, en-tête lu sur le Pixel tant qu'il était éveillé) :
+
+- **Mode avion, app au premier plan** : `isOnline: true` pendant **~88 s**,
+  puis `false` posé par `onDisconnect` (serveur) ; en-tête « Vu il y a moins
+  d'une minute » au relevé suivant. Le `lastSeen` retenu est l'heure du
+  constat serveur, pas celle de la dernière activité.
+- **Retour à l'accueil, réseau branché — 3 essais sur 3 restent « en
+  ligne »** : deux fois la **course** (la dernière écriture reçue est
+  `isOnline: true`, datée de l'instant du retour à l'accueil : le `true` de
+  `inactive` arrive après les `false`), une fois **aucune écriture** reçue
+  (`lastSeen` inchangé). Chaque fois, `false` n'arrive que par
+  `onDisconnect`, **93 à 95 s** plus tard.
+- ⚠️ **Limite du correctif, à vérifier** : la file et la garde « premier
+  plan » suppriment la course de l'essai 1. Mais si l'app est gelée par
+  Android dès le passage en arrière-plan (essai 3 : même le `false` n'est
+  jamais parti), le correctif n'y peut rien côté écriture, et la fraîcheur
+  côté lecteur (150 s) ne fait pas mieux que les ~95 s actuelles. Case
+  « A passe en arrière-plan » ci-dessous : mesurer le délai réel sur le
+  nouveau build avant de conclure.
+
 - [ ] **Mode avion, app fermée** chez A : B voit A « En ligne » **au plus
       ~2 min 30**, puis « Vu il y a … » sans rien toucher.
 - [ ] **A utilise l'app** plusieurs minutes (écrit, lit, fait défiler) : B
