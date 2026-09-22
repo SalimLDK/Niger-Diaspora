@@ -96,13 +96,19 @@ class OnlineStatusService {
   // applique, sinon on l'afficherait hors ligne alors qu'il est là.
 
   /// Période du battement de présence, au premier plan.
-  static const battement = Duration(seconds: 60);
+  ///
+  /// 20 s et non 60 : c'est le **filet** quand l'app est gelée par Android
+  /// avant d'avoir pu écrire « hors ligne » (mesuré le 2026-09-22 sur
+  /// SM A515F : au retour à l'accueil, une fois sur trois aucune écriture
+  /// n'arrivait, et seul `onDisconnect` jouait, ~95 s plus tard). Avec 20 s,
+  /// un lecteur à jour tient le compte pour hors ligne en moins d'une minute.
+  static const battement = Duration(seconds: 20);
 
   /// Au-delà, un `isOnline` à vrai est périmé : deux battements manqués, plus
-  /// une marge pour la latence et l'horloge.
+  /// une marge pour la latence et l'horloge (55 s pour 20 s).
   @visibleForTesting
   static Duration fraicheurPour(int battementSecondes) =>
-      Duration(seconds: battementSecondes * 2 + 30);
+      Duration(seconds: battementSecondes * 2 + 15);
 
   /// La règle d'affichage « En ligne », sur le nœud `presence/<uid>` brut.
   ///
@@ -137,6 +143,32 @@ class OnlineStatusService {
       etat == null ||
       etat == AppLifecycleState.resumed ||
       etat == AppLifecycleState.inactive;
+
+  /// Ce que fait la présence à chaque état du cycle de vie.
+  ///
+  /// - `resumed` : en ligne.
+  /// - `inactive` : **rien**. C'est un état de passage (volet de
+  ///   notifications, sélecteur d'apps, et surtout le chemin vers
+  ///   l'arrière-plan : `inactive` → `hidden` → `paused`). Y écrire « en
+  ///   ligne » faisait partir un `true` au moment où l'app s'en allait, qui
+  ///   arrivait parfois APRÈS le `false` (2 fois sur 3 le 2026-09-22).
+  /// - `hidden`, `paused`, `detached` : hors ligne, tout de suite.
+  @visibleForTesting
+  static bool? presencePour(AppLifecycleState etat) => switch (etat) {
+    AppLifecycleState.resumed => true,
+    AppLifecycleState.inactive => null,
+    AppLifecycleState.hidden ||
+    AppLifecycleState.paused ||
+    AppLifecycleState.detached => false,
+  };
+
+  /// La préférence « Afficher mon statut en ligne », gardée en mémoire.
+  ///
+  /// Relue sur le réseau à chaque passage en ligne, elle retardait l'écriture
+  /// RTDB — et, dans la file, tout ce qui suivait, dont le « hors ligne » du
+  /// passage en arrière-plan. Lue une fois à la mise en place, tenue à jour
+  /// par [updateOnlineStatusVisibility], et relue en arrière-plan au retour.
+  bool? _visibleEnMemoire;
 
   /// Les écritures de présence, une à la fois, dans l'ordre des événements.
   ///
@@ -265,6 +297,7 @@ class OnlineStatusService {
     try {
       // Check user's privacy preference
       final showOnlineStatus = await _showOnlineStatus(userId);
+      _visibleEnMemoire = showOnlineStatus;
 
       if (!showOnlineStatus) {
         // debugPrint(
@@ -335,10 +368,25 @@ class OnlineStatusService {
     // debugPrint('🔄 OnlineStatusService: Lifecycle state changed to $state');
 
     final userId = _currentUserId!;
-    _auPremierPlan = _estAuPremierPlan(state);
-    if (_auPremierPlan) {
+    final enLigne = presencePour(state);
+    if (enLigne == null) return;
+    _auPremierPlan = enLigne;
+    if (enLigne) {
       await _enFile(() => _setOnline(userId));
+      // Le réglage a pu changer ailleurs pendant l'absence : relu sans
+      // retarder l'écriture qui précède.
+      unawaited(_relireVisibilite(userId));
     } else {
+      _heartbeatTimer?.cancel();
+      await _enFile(() => _setOffline(userId));
+    }
+  }
+
+  Future<void> _relireVisibilite(String userId) async {
+    final visible = await _showOnlineStatus(userId);
+    final avant = _visibleEnMemoire;
+    _visibleEnMemoire = visible;
+    if (avant != false && !visible) {
       await _enFile(() => _setOffline(userId));
     }
   }
@@ -364,8 +412,10 @@ class OnlineStatusService {
     }
 
     try {
-      // Check privacy preference
-      final showOnlineStatus = await _showOnlineStatus(userId);
+      // Check privacy preference — en mémoire : pas d'aller-retour réseau
+      // avant l'écriture (voir [_visibleEnMemoire]).
+      final showOnlineStatus =
+          _visibleEnMemoire ??= await _showOnlineStatus(userId);
 
       if (!showOnlineStatus) {
         // debugPrint(
@@ -383,8 +433,9 @@ class OnlineStatusService {
       // Update Realtime Database
       await _presenceRef!.set(_noeudEnLigne);
 
-      // Also mirror into Supabase for persistence
-      await _persistStatus(userId, isOnline: true);
+      // Miroir Supabase hors de la file : il ne doit pas retarder l'écriture
+      // de présence suivante (le « hors ligne » d'un départ en arrière-plan).
+      unawaited(_persistStatus(userId, isOnline: true));
 
       // Start heartbeat to keep lastSeen fresh
       // (This fix preventing "ghosts" who crash and stay online in Firestore forever)
@@ -426,7 +477,7 @@ class OnlineStatusService {
           }
           await ref.update(_noeudEnLigne);
           if (timer.tick % parMiroir == 0) {
-            await _persistStatus(userId, isOnline: true);
+            unawaited(_persistStatus(userId, isOnline: true));
           }
         }),
       );
@@ -465,8 +516,8 @@ class OnlineStatusService {
         'lastSeen': ServerValue.timestamp,
       });
 
-      // Also mirror into Supabase for persistence
-      await _persistStatus(userId, isOnline: false);
+      // Miroir Supabase hors de la file, comme pour le passage en ligne.
+      unawaited(_persistStatus(userId, isOnline: false));
     } catch (e) {
       if (e is FirebaseException && e.code == 'permission-denied') {
         // debugPrint(
@@ -536,6 +587,7 @@ class OnlineStatusService {
     }
 
     await writeShowOnlineStatus(_supabase, userId, showStatus);
+    _visibleEnMemoire = showStatus;
 
     try {
       if (showStatus) {
@@ -622,6 +674,8 @@ class OnlineStatusService {
     _presenceRef = null;
     _connectedRef = null;
     _currentUserId = null;
+    // Préférence d'un autre compte : à relire pour le prochain.
+    _visibleEnMemoire = null;
 
     // debugPrint('🔄 OnlineStatusService: Presence tracking torn down');
   }

@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1529 cases à cocher, 740 cochées** — 311 entrées sur 363 ont encore des cases ouvertes.
+**1530 cases à cocher, 740 cochées** — 311 entrées sur 363 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -109,7 +109,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [⬜ Verrou de version minimale et multi-appareil (2026-09-15)](#-verrou-de-version-minimale-et-multi-appareil-2026-09-15) · *Comptes, session et onboarding*
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
-- 7 · [⬜ Présence « En ligne » : elle suit enfin l'état réel (2026-09-22)](#-présence--en-ligne---elle-suit-enfin-létat-réel-2026-09-22) · *Messagerie*
+- 8 · [⬜ Présence « En ligne » : elle suit enfin l'état réel (2026-09-22)](#-présence--en-ligne---elle-suit-enfin-létat-réel-2026-09-22) · *Messagerie*
 - 3 · [⬜ Le clair des messages exclu des sauvegardes Google et iCloud (2026-09-21)](#-le-clair-des-messages-exclu-des-sauvegardes-google-et-icloud-2026-09-21) · *Messagerie*
 - 5 · [⬜ Médias déchiffrés effacés du disque : suppression, déconnexion, compte supprimé (2026-09-21)](#-médias-déchiffrés-effacés-du-disque--suppression-déconnexion-compte-supprimé-2026-09-21) · *Messagerie*
 - 4 · [⬜ Message chiffré supprimé pour tous : plus de clair en mémoire ni dans le cache (2026-09-21)](#-message-chiffré-supprimé-pour-tous--plus-de-clair-en-mémoire-ni-dans-le-cache-2026-09-21) · *Messagerie*
@@ -369,7 +369,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 347 à faire, 174 faites
+- [2. Messagerie](#2-messagerie) — 348 à faire, 174 faites
 - [3. Groupes](#3-groupes) — 149 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 132 à faire, 58 faites
 - [5. Appels](#5-appels) — 26 à faire, 8 faites
@@ -643,7 +643,8 @@ n'écrivait que dans Supabase, que l'en-tête ne lit pas ; et les écritures du
 cycle de vie (`inactive` → `hidden` → `paused`) pouvaient se croiser, un
 `true` retardé par une lecture Supabase arrivant après les `false`.
 
-Corrigé (branche `claude/presence-2209`) : au premier plan, battement RTDB de
+Corrigé (branche `claude/presence-2209`, période et seuil revus par le second
+correctif plus bas : 20 s et 55 s) : au premier plan, battement RTDB de
 60 s qui rafraîchit `lastSeen` et réaffirme `isOnline`, marqué
 `battement: 60` ; un lecteur tient pour hors ligne un `isOnline` dont le
 `lastSeen` a plus de 150 s (heure du serveur, `.info/serverTimeOffset`),
@@ -675,22 +676,38 @@ SM A515F = Sim observé, nœud `presence/<uid Sim>` lu par
   côté lecteur (150 s) ne fait pas mieux que les ~95 s actuelles. Case
   « A passe en arrière-plan » ci-dessous : mesurer le délai réel sur le
   nouveau build avant de conclure.
+- **Second correctif, 2026-09-22** (branche `claude/presence-arriere-plan-2209`) :
+  `inactive` n'écrit plus rien (seul `resumed` met en ligne : la course
+  disparaît à la source) ; la préférence de visibilité est gardée en mémoire
+  et les miroirs Supabase sortent de la file, donc **rien ne précède** le
+  « hors ligne » de `hidden` ; et le battement passe à **20 s**, fraîcheur
+  **55 s** : même si l'app est gelée avant d'écrire, un lecteur à jour la
+  voit hors ligne en moins d'une minute (au lieu de ~95 s par
+  `onDisconnect`). Coût : 3 écritures RTDB par minute et par utilisateur au
+  premier plan. Pas de coupure volontaire de la connexion RTDB : elle
+  porte aussi la signalisation des appels, qui doit survivre à
+  l'arrière-plan.
 
-- [ ] **Mode avion, app fermée** chez A : B voit A « En ligne » **au plus
-      ~2 min 30**, puis « Vu il y a … » sans rien toucher.
+- [ ] **Mode avion, app fermée** chez A : B voit A « En ligne » **moins
+      d'une minute et demie** (55 s de fraîcheur + 30 s de réévaluation au
+      pire), puis « Vu il y a … » sans rien toucher.
 - [ ] **A utilise l'app** plusieurs minutes (écrit, lit, fait défiler) : B
       le voit « En ligne » sans interruption, y compris après une coupure
       réseau brève chez A.
 - [ ] **A passe en arrière-plan** (bouton accueil) : B voit « Vu à l'instant »
       en quelques secondes, et plus « En ligne » ; A revient : « En ligne ».
+      Refaire 3 fois (mesure d'avant : 3 sur 3 restaient ~95 s) en lisant
+      `presence/<uid>` : la dernière écriture doit être `isOnline: false`.
+- [ ] **Volet de notifications tiré** chez A, app ouverte : A reste
+      « En ligne » (`inactive` n'écrit plus rien).
 - [ ] **Un push réveille l'app de A en arrière-plan** : A ne passe PAS
       « En ligne ».
 - [ ] **Ancien build** chez A (sans le correctif), nouveau chez B : A en
       ligne reste affiché « En ligne » (ancienne règle, faute de battement).
 - [ ] **« Afficher mon statut en ligne » coupé** chez A : aucun battement,
       A reste hors ligne pour tous.
-- [ ] `presence/<uid>` dans RTDB : `battement` = 60 et `lastSeen` avance
-      d'environ une minute tant que l'app est affichée.
+- [ ] `presence/<uid>` dans RTDB : `battement` = 20 et `lastSeen` avance
+      d'environ 20 s tant que l'app est affichée.
 
 ---
 
