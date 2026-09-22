@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1295 cases à cocher, 10 cochées** — 278 entrées sur 290 ont encore des cases ouvertes.
+**1294 cases à cocher, 10 cochées** — 278 entrées sur 290 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -130,7 +130,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [⬜ Nom et avatar du correspondant dans la liste des discussions (2026-09-13)](#-nom-et-avatar-du-correspondant-dans-la-liste-des-discussions-2026-09-13) · *Messagerie*
 - 2 · [⬜ Réactions : double tap, cœur rouge, notification, mise à jour (2026-09-12)](#-réactions--double-tap-cœur-rouge-notification-mise-à-jour-2026-09-12) · *Messagerie*
 - 14 · [⬜ Gérer les membres d'un groupe : notices dans le fil, et deux listes d'admins réconciliées (2026-09-17)](#-gérer-les-membres-dun-groupe--notices-dans-le-fil-et-deux-listes-dadmins-réconciliées-2026-09-17) · *Groupes*
-- 5 · [⬜ Exclure un membre d'un groupe échouait toujours (2026-09-17)](#-exclure-un-membre-dun-groupe-échouait-toujours-2026-09-17) · *Groupes*
+- 4 · [⬜ Exclure un membre d'un groupe échouait toujours (2026-09-17)](#-exclure-un-membre-dun-groupe-échouait-toujours-2026-09-17) · *Groupes*
 - 4 · [⬜ Noms des candidats à l'invitation et à l'ajout en appel (2026-09-14)](#-noms-des-candidats-à-linvitation-et-à-lajout-en-appel-2026-09-14) · *Groupes*
 - 3 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
 - 5 · [⬜ Pixel réinstallé : la discussion MLS avec Sim A se rouvre malgré des Welcome périmés (2026-09-21)](#-pixel-réinstallé--la-discussion-mls-avec-sim-a-se-rouvre-malgré-des-welcome-périmés-2026-09-21) · *Chiffrement de bout en bout et clés*
@@ -337,7 +337,7 @@ Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 0 faites
 - [2. Messagerie](#2-messagerie) — 317 à faire, 0 faites
-- [3. Groupes](#3-groupes) — 129 à faire, 0 faites
+- [3. Groupes](#3-groupes) — 128 à faire, 0 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 122 à faire, 2 faites
 - [5. Appels](#5-appels) — 24 à faire, 1 faites
 - [6. Notifications et push](#6-notifications-et-push) — 116 à faire, 0 faites
@@ -2780,37 +2780,16 @@ membre restait.
 
 `removeUserFromGroup`
 ([message_supabase_datasource.dart](lib/features/messages/data/datasources/message_supabase_datasource.dart))
-écrivait d'abord un message système « Un utilisateur a été retiré du groupe »
-(`sender_id = 'system'`) et ne retirait la personne qu'ensuite. La base refuse
-cet INSERT **partout** : la policy `messages_insert` exige `firebase_uid() =
-sender_id` (depuis `20260526270000`), et une conversation basculée en MLS le
-refuse même avant la policy, par déclencheur (23514). L'exception sautait la
-mise à jour de `participant_ids`.
+écrivait d'abord un message système que la base refuse partout (policy
+`messages_insert`, et déclencheur 23514 sur une conversation MLS) ;
+l'exception sautait le retrait. Aucune exclusion n'avait jamais abouti par
+l'app. Corrigé par `7b3794f` ; le retrait passe désormais par la RPC
+`exclure_du_groupe` (migration `20260917013200` appliquée), qui pose aussi la
+notice hors MLS — voir « Gérer les membres d'un groupe ». Tests :
+`test/features/messages/retrait_membre_groupe_test.dart`.
 
-Mesuré en production le 2026-09-17, transaction annulée
-([tools/rls_tests/retrait_membre_groupe.sql](tools/rls_tests/retrait_membre_groupe.sql),
-9 cas) : 23514 sur le groupe chiffré `d41d4ea0…`, et **pas une ligne
-système** dans toute la table `messages` — aucune exclusion n'a jamais abouti
-par l'app. Les bancs précédents (voir « Inviter des membres dans un groupe
-privé ») rejouaient la mise à jour SQL, jamais le chemin de l'app : ils ne
-pouvaient pas le voir.
-
-Corrigé : plus de message système (le client ne peut pas l'écrire ; une notice
-devra venir du serveur, et hors MLS seulement), et le retrait lève au lieu de
-réussir à vide — conversation illisible, ou mise à jour qui ne touche aucune
-ligne. `test/features/messages/retrait_membre_groupe_test.dart` : 4 cas, les
-4 tombent sur l'ancien code.
-
-➡️ **Suite** : la notice serveur promise ici existe, voir « Gérer les membres
-d'un groupe » juste au-dessus. Ce fichier de test y a grossi à 12 cas, et
-couvre maintenant l'appel RPC ; le chemin décrit ci-dessous n'est plus qu'un
-repli tant que la migration n'est pas appliquée.
-
-⚠️ **Rien de visible ne disparaît** : le message « Un utilisateur a été retiré
-du groupe » n'a jamais existé dans aucun fil.
-
-Pas bloqué : les deux téléphones portent un build debug, mais il faut un build
-qui contient le correctif.
+Testable avec les deux téléphones : le build Play 1.2.2+26 (`f22aaff`)
+contient le correctif et le menu d'administration qui l'expose (`417b64d`).
 
 - [ ] **Groupe en clair** : l'administrateur ouvre Membres, appui long sur un
       membre → « Retirer du groupe » → confirmer. « Membre retiré », la ligne
@@ -2824,8 +2803,6 @@ qui contient le correctif.
 - [ ] **Côté exclu** : le groupe quitte les onglets Groupes et Messages sans
       redémarrage (voir « Acceptation et départ d'un groupe : rien ne bougeait
       chez les autres »), et rouvrir la discussion ne l'y remet pas.
-- [ ] **Réseau coupé** au moment de confirmer : « Erreur lors du retrait », et
-      au retour du réseau le membre est toujours là.
 
 ---
 
