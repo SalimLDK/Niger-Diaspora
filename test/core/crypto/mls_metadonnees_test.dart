@@ -185,6 +185,7 @@ MlsGateway _passerelle(
   _MetaEspion meta, {
   String? mlsSince = '2026-09-15T00:00:00Z',
   bool actif = true,
+  void Function(Iterable<String> messageIds)? surSuppression,
 }) =>
     MlsGateway(
       userId: 'u1',
@@ -193,6 +194,7 @@ MlsGateway _passerelle(
       delivery: _TransportFige(mlsSince),
       metadonnees: meta,
       nomDe: (id) async => 'Nom',
+      surSuppression: surSuppression,
     );
 
 String _source(String chemin) =>
@@ -906,6 +908,30 @@ void main() {
       await passerelle.modifier(
           conversationId: 'c1', messageId: 'm1', nouveauTexte: 'REVENU');
       vide((await passerelle.messages('c1')).single);
+    });
+
+    test('chaque suppression apprise est signalée, pour effacer le média '
+        'déchiffré du disque', () async {
+      // Le fichier `medias_dechiffres/<id>.jpg` n'est pas dans le fil : sans
+      // ce signal, il restait en clair jusqu'à la désinstallation.
+      final signales = <String>{};
+      final meta = _MetaReglable();
+      final passerelle = _passerelle(_ServiceFige(const []), meta,
+          surSuppression: signales.addAll);
+
+      // Par l'amorçage : une copie de cache déjà marquée.
+      passerelle.amorcer('c1', [plein('m1', supprime: true), plein('m2')]);
+      expect(signales, {'m1'});
+
+      // Par le serveur, au recollage.
+      meta.actuel = const MlsMetadonneesLot(supprimes: {'m2'});
+      await passerelle.messages('c1');
+      expect(signales, {'m1', 'm2'});
+
+      // Par le geste de l'auteur.
+      passerelle.amorcer('c2', [plein('m3')]);
+      await passerelle.supprimerPourTous('m3');
+      expect(signales, contains('m3'));
     });
 
     test('ce qui part au cache est vidé, ce qui en revient aussi', () {

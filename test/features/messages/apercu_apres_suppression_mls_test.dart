@@ -144,16 +144,19 @@ void main() {
   late MessageRepositoryImpl depot;
   late List<ConversationEntity> vues;
   late StreamSubscription<void> sub;
+  late List<String> oublies;
 
   setUp(() async {
     cache = _Cache();
     await cache.cacheMessages('c1', [_dernier('PA6SECRET')]);
     passerelle = _Passerelle();
+    oublies = [];
     depot = MessageRepositoryImpl(
       remoteDataSource: _Source(),
       networkInfo: _Reseau(),
       cacheService: cache,
       mlsGateway: passerelle,
+      oublierMedias: oublies.addAll,
     );
     vues = [];
     sub = depot.getConversations('moi').listen((e) {
@@ -231,6 +234,26 @@ void main() {
     expect(entree['id'], 'm1');
     expect(DateTime.parse(entree['createdAt'] as String), _quand);
     expect(entree['readBy'], ['moi', 'autre']);
+  });
+
+  test('supprimer pour tous : le média déchiffré du message est oublié du '
+      'disque', () async {
+    await depot.deleteMessageForEveryone(conversationId: 'c1', messageId: 'm1');
+    expect(oublies, ['m1']);
+  });
+
+  test('un message déjà supprimé lu depuis le cache fait oublier son média',
+      () async {
+    // Supprimé pendant que la discussion était fermée : on l'apprend au
+    // chargement suivant.
+    await cache.cacheMessages('c1', [
+      {..._dernier(''), 'deletedForEveryone': true},
+      {..._dernier('vivant'), 'id': 'm2'},
+    ]);
+
+    depot.getCachedMessages(conversationId: 'c1');
+
+    expect(oublies, ['m1']);
   });
 
   test('modifier son dernier message : la tuile prend le nouveau texte',

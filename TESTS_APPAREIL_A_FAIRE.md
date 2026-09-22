@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1556 cases à cocher, 687 cochées** — 308 entrées sur 359 ont encore des cases ouvertes.
+**1561 cases à cocher, 687 cochées** — 309 entrées sur 360 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -97,7 +97,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (108)
+**P1 — fonction importante, jamais vérifiée** (109)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -109,6 +109,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [⬜ Verrou de version minimale et multi-appareil (2026-09-15)](#-verrou-de-version-minimale-et-multi-appareil-2026-09-15) · *Comptes, session et onboarding*
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
+- 5 · [⬜ Médias déchiffrés effacés du disque : suppression, déconnexion, compte supprimé (2026-09-21)](#-médias-déchiffrés-effacés-du-disque--suppression-déconnexion-compte-supprimé-2026-09-21) · *Messagerie*
 - 4 · [⬜ Message chiffré supprimé pour tous : plus de clair en mémoire ni dans le cache (2026-09-21)](#-message-chiffré-supprimé-pour-tous--plus-de-clair-en-mémoire-ni-dans-le-cache-2026-09-21) · *Messagerie*
 - 2 · [⬜ La pastille de non-lus retombe en quittant une discussion chiffrée (2026-09-21)](#-la-pastille-de-non-lus-retombe-en-quittant-une-discussion-chiffrée-2026-09-21) · *Messagerie*
 - 4 · [⬜ Les premiers messages reçus restent « Message chiffré » dans la liste (2026-09-21)](#-les-premiers-messages-reçus-restent--message-chiffré--dans-la-liste-2026-09-21) · *Messagerie*
@@ -366,7 +367,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 353 à faire, 143 faites
+- [2. Messagerie](#2-messagerie) — 358 à faire, 143 faites
 - [3. Groupes](#3-groupes) — 149 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 142 à faire, 47 faites
 - [5. Appels](#5-appels) — 26 à faire, 8 faites
@@ -625,6 +626,52 @@ Crashlytics.
 # 2. Messagerie
 
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
+
+---
+
+## ⬜ Médias déchiffrés effacés du disque : suppression, déconnexion, compte supprimé (2026-09-21)
+
+**Priorité P1** · importance 4/5 — une photo, un audio ou un document
+chiffré, une fois affiché, restait **en clair** sur le téléphone jusqu'à la
+désinstallation : message supprimé pour tous, déconnexion, compte supprimé
+n'y changeaient rien. Le dossier étant commun aux comptes, le compte suivant
+sur le téléphone héritait des médias du précédent.
+
+`MediaDechiffreCache` écrit chaque média déchiffré dans
+`<support>/medias_dechiffres/<messageId>.<ext>`. Son `vider()` était
+documenté « à appeler à la déconnexion » et n'était appelé nulle part.
+Désormais :
+- **suppression pour tous / expiration purgée par le serveur** (pas au
+  simple passage du minuteur côté client) : `OubliMediasLocaux` efface le
+  fichier du message, et la pièce jointe téléchargée (`FileDownloadService`,
+  qui n'était purgée qu'à la déconnexion). Prévenu par la passerelle quand
+  elle vide son fil (MLS, y compris le rattrapage de fond de la liste) et
+  par le dépôt (messages en clair : cache, pagination, temps réel, mises à
+  jour, et le geste lui-même) ;
+- **déconnexion** : `vider()` dans `signOut` (`auth_provider.dart`) ;
+- **compte supprimé** : 5ᵉ étape de `MaterielLocal.effacer`, qui lève si un
+  fichier résiste (effacement retenté au démarrage suivant).
+
+Tenu par `test/core/services/oubli_medias_locaux_test.dart`,
+`effacement_local_differe_test.dart`, `mls_metadonnees_test.dart` (signal de
+la passerelle) et `apercu_apres_suppression_mls_test.dart` (dépôt).
+
+Vérification sur un build **debug** (`run-as` exige un paquet débogable) :
+`adb shell run-as com.diasponiger.diasponiger ls files/medias_dechiffres`.
+
+- [ ] **Suppression pour tous, destinataire** : recevoir une photo chiffrée,
+  l'afficher (le fichier `<id>.jpg` apparaît dans le dossier) ; l'autre la
+  supprime pour tout le monde → le fichier disparaît, discussion ouverte ou
+  non.
+- [ ] **Suppression pour tous, discussion fermée** : même chose, mais la
+  suppression arrive app fermée → le fichier part à la réouverture de la
+  discussion (ou dès le rattrapage de fond de la liste pour un fil MLS).
+- [ ] **Pièce jointe téléchargée** : télécharger un document, le faire
+  supprimer pour tous → le fichier téléchargé disparaît aussi.
+- [ ] **Déconnexion** : afficher quelques médias, se déconnecter → dossier
+  vide.
+- [ ] **Pas de régression** : après reconnexion, les médias encore vivants se
+  réaffichent (retéléchargés et redéchiffrés une fois), sans erreur.
 
 ---
 

@@ -72,9 +72,34 @@ class MessageRepositoryImpl implements MessageRepository {
     this.mediaEncryptionService,
     bool Function()? mediasChiffresActifs,
     this.mlsGateway,
+    this.oublierMedias,
   }) : cacheService = cacheService ?? CacheService.instance,
        blurhashService = blurhashService ?? BlurhashService(),
        mediasChiffresActifs = mediasChiffresActifs ?? (() => false);
+
+  /// Efface les copies locales en clair (média déchiffré, pièce jointe
+  /// téléchargée) des messages qu'on lui nomme — `OubliMediasLocaux`.
+  /// Nulle dans les tests qui n'en ont pas besoin.
+  final void Function(Iterable<String> messageIds)? oublierMedias;
+
+  /// Prévient [oublierMedias] des messages supprimés pour tous parmi
+  /// [messages], et les rend tels quels.
+  ///
+  /// Posé sur les chemins par où un message en clair arrive à l'écran :
+  /// c'est là qu'on apprend qu'il a été supprimé, que ce soit en direct, au
+  /// rattrapage, ou au chargement d'une discussion restée fermée pendant la
+  /// suppression. Les messages MLS, eux, sont signalés par la passerelle
+  /// quand elle vide son fil.
+  List<MessageEntity> _signalerSupprimes(List<MessageEntity> messages) {
+    final oublier = oublierMedias;
+    if (oublier == null || messages.isEmpty) return messages;
+    final ids = [
+      for (final m in messages)
+        if (m.deletedForEveryone) m.id,
+    ];
+    if (ids.isNotEmpty) oublier(ids);
+    return messages;
+  }
 
   /// Collapse duplicate 1:1 conversations that share the same participant pair.
   ///
@@ -480,7 +505,7 @@ class MessageRepositoryImpl implements MessageRepository {
               .map((m) => MessageModel.fromJson(m).toEntity())
               .toList();
 
-      return Right(entities);
+      return Right(_signalerSupprimes(entities));
     } catch (e) {
       return Left(CacheFailure(e.toString()));
     }
@@ -1627,7 +1652,9 @@ class MessageRepositoryImpl implements MessageRepository {
         final trimmed = hasMore ? messages.sublist(1) : messages;
         final healed = _healUndecryptableMessages(conversationId, trimmed);
 
-        final entities = healed.map((m) => m.toEntity()).toList();
+        final entities = _signalerSupprimes(
+          healed.map((m) => m.toEntity()).toList(),
+        );
 
         // Cache the messages
         final messageMaps = healed.map((m) => m.toJson()).toList();
@@ -1670,10 +1697,9 @@ class MessageRepositoryImpl implements MessageRepository {
           return const Left(CacheFailure('Aucun message en cache'));
         }
 
-        final entities =
-            cachedMessages
-                .map((m) => MessageModel.fromJson(m).toEntity())
-                .toList();
+        final entities = _signalerSupprimes(
+          cachedMessages.map((m) => MessageModel.fromJson(m).toEntity()).toList(),
+        );
 
         final totalCached = cacheService.getCachedMessagesCount(conversationId);
         final hasMore = entities.length < totalCached;
@@ -1761,7 +1787,9 @@ class MessageRepositoryImpl implements MessageRepository {
           );
 
           return Right<Failure, List<MessageEntity>>(
-            healed.map((m) => m.toEntity()).toList(),
+            _signalerSupprimes(
+              healed.map((m) => m.toEntity()).toList(),
+            ),
           );
         })
         .handleError((error) {
@@ -1832,7 +1860,9 @@ class MessageRepositoryImpl implements MessageRepository {
     return remoteDataSource
         .getMessageUpdatesStream(conversationId: conversationId)
         .map((message) {
-          return Right<Failure, MessageEntity>(message.toEntity());
+          final entite = message.toEntity();
+          _signalerSupprimes([entite]);
+          return Right<Failure, MessageEntity>(entite);
         })
         .handleError((error) {
           return Left<Failure, MessageEntity>(ServerFailure(error.toString()));
@@ -2277,12 +2307,14 @@ class MessageRepositoryImpl implements MessageRepository {
       if (passerelle != null) {
         await passerelle.supprimerPourTous(messageId);
         await _marquerSupprimeDansLeCache(conversationId, messageId);
+        oublierMedias?.call([messageId]);
         return const Right(null);
       }
       await remoteDataSource.deleteMessageForEveryone(
         conversationId: conversationId,
         messageId: messageId,
       );
+      oublierMedias?.call([messageId]);
       return const Right(null);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));

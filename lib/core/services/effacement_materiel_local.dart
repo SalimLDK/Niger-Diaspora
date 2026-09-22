@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../crypto/mls/mls_chemin_base.dart';
 import 'crypto/derived_key_store.dart';
+import 'e2ee/media_dechiffre_cache.dart';
 import 'e2ee/secure_key_storage.dart';
 
 /// Ce qui a été retiré, pour le journal et pour les tests.
@@ -19,7 +20,7 @@ class ResumeEffacement {
 }
 
 /// Détruit ce que ce téléphone garde d'UN compte : la base MLS, les clés Signal,
-/// les clés dérivées, les vérifications et les curseurs.
+/// les clés dérivées, les vérifications, les curseurs et les médias déchiffrés.
 ///
 /// **Pourquoi ce service existe.** Aucune déconnexion ni suppression n'efface la
 /// base MLS locale — un fichier par compte, **en clair** (voir
@@ -42,15 +43,19 @@ class MaterielLocal {
     Future<SharedPreferences> Function()? preferences,
     Future<void> Function(String uid)? effacerSignal,
     Future<void> Function()? viderClesDerivees,
+    Future<int> Function()? effacerMediasDechiffres,
   })  : _dossierMls = dossierMls ?? dossierBaseMls,
         _preferences = preferences ?? SharedPreferences.getInstance,
         _effacerSignal = effacerSignal ?? _effacerSignalParDefaut,
-        _viderClesDerivees = viderClesDerivees ?? _viderClesDeriveesParDefaut;
+        _viderClesDerivees = viderClesDerivees ?? _viderClesDeriveesParDefaut,
+        _effacerMediasDechiffres =
+            effacerMediasDechiffres ?? MediaDechiffreCache.effacerTout;
 
   final Future<Directory> Function() _dossierMls;
   final Future<SharedPreferences> Function() _preferences;
   final Future<void> Function(String uid) _effacerSignal;
   final Future<void> Function() _viderClesDerivees;
+  final Future<int> Function() _effacerMediasDechiffres;
 
   /// Les fichiers qu'un moteur SQLite laisse à côté de la base.
   static const _suffixes = ['', '-wal', '-shm', '-journal'];
@@ -110,6 +115,16 @@ class MaterielLocal {
       await _viderClesDerivees();
     } catch (e) {
       echecs.add('clés dérivées ($e)');
+    }
+
+    // 5. Les médias chiffrés déjà déchiffrés, écrits en clair sur le disque.
+    //    Le dossier ne porte pas d'uid — il est commun aux comptes du
+    //    téléphone : on le vide en entier, comme la déconnexion. Un autre
+    //    compte n'y perd qu'un cache, retéléchargé à la demande.
+    try {
+      await _effacerMediasDechiffres();
+    } catch (e) {
+      echecs.add('médias déchiffrés ($e)');
     }
 
     if (echecs.isNotEmpty) {
