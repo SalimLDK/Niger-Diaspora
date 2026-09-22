@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1521 cases à cocher, 749 cochées** — 311 entrées sur 363 ont encore des cases ouvertes.
+**1512 cases à cocher, 758 cochées** — 311 entrées sur 363 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -261,14 +261,14 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 9 · [⬜ Démarches consulaires : données réelles à la place des délais inventés (2026-09-07)](#-démarches-consulaires--données-réelles-à-la-place-des-délais-inventés-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
 - 2 · [⬜ Modifier le profil : libellés tronqués et code SMS illisible (2026-09-21)](#-modifier-le-profil--libellés-tronqués-et-code-sms-illisible-2026-09-21) · *Accueil, profil et réglages*
 - 9 · [⬜ Un refus du serveur ne ment plus : interrupteurs, snackbars, connexion admin (2026-09-18)](#-un-refus-du-serveur-ne-ment-plus--interrupteurs-snackbars-connexion-admin-2026-09-18) · *Accueil, profil et réglages*
-- 6 · [⬜ L'écran des appareils ne promet plus ce qu'il ne fait pas (2026-09-16)](#-lécran-des-appareils-ne-promet-plus-ce-quil-ne-fait-pas-2026-09-16) · *Accueil, profil et réglages*
-- 6 · [⬜ Noter l'application : bouton des Réglages et invitation automatique (2026-09-14)](#-noter-lapplication--bouton-des-réglages-et-invitation-automatique-2026-09-14) · *Accueil, profil et réglages*
+- 5 · [⬜ L'écran des appareils ne promet plus ce qu'il ne fait pas (2026-09-16)](#-lécran-des-appareils-ne-promet-plus-ce-quil-ne-fait-pas-2026-09-16) · *Accueil, profil et réglages*
+- 5 · [⬜ Noter l'application : bouton des Réglages et invitation automatique (2026-09-14)](#-noter-lapplication--bouton-des-réglages-et-invitation-automatique-2026-09-14) · *Accueil, profil et réglages*
 - 3 · [⬜ Groupes en commun ouvrables depuis un profil (2026-09-13)](#-groupes-en-commun-ouvrables-depuis-un-profil-2026-09-13) · *Accueil, profil et réglages*
 - 6 · [Pseudo (@handle) — ligne d'appel sur son propre profil](#pseudo-handle--ligne-dappel-sur-son-propre-profil) · *Accueil, profil et réglages*
 - 1 · [⬜ L'en-tête d'un sondage effaçait son auteur dans une bulle — corrigé, à revoir (2026-09-15)](#-len-tête-dun-sondage-effaçait-son-auteur-dans-une-bulle--corrigé-à-revoir-2026-09-15) · *Design, thème, langue et mise en page*
 - 1 · [⬜ Le pied d'un sondage déborde encore en mode vote — NON corrigé (2026-09-15)](#-le-pied-dun-sondage-déborde-encore-en-mode-vote--non-corrigé-2026-09-15) · *Design, thème, langue et mise en page*
 - 7 · [⬜ L'étape « Thème » dit enfin la vérité sur l'accent (2026-09-14)](#-létape--thème--dit-enfin-la-vérité-sur-laccent-2026-09-14) · *Design, thème, langue et mise en page*
-- 4 · [⬜ Le sigle DN est le même partout (2026-09-13)](#-le-sigle-dn-est-le-même-partout-2026-09-13) · *Design, thème, langue et mise en page*
+- 2 · [⬜ Le sigle DN est le même partout (2026-09-13)](#-le-sigle-dn-est-le-même-partout-2026-09-13) · *Design, thème, langue et mise en page*
 - 3 · [✅ Recolorisation orange/vert — vue sur appareil, partiellement (2026-08-25)](#-recolorisation-orangevert--vue-sur-appareil-partiellement-2026-08-25) · *Design, thème, langue et mise en page*
 - 4 · [Discussion en paysage — débordement de 4,1 px (vu le 2026-08-05)](#discussion-en-paysage--débordement-de-41-px-vu-le-2026-08-05) · *Design, thème, langue et mise en page*
 - 2 · [Thème sombre — jetons clairs codés en dur](#thème-sombre--jetons-clairs-codés-en-dur) · *Design, thème, langue et mise en page*
@@ -319,7 +319,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 12 · [Salons audio — monétisation](#salons-audio--monétisation) · *Fil, stories, salons audio et podcasts* · bloqué
 - 9 · [⬜ Point d'accent après chaque titre d'écran (2026-09-13)](#-point-daccent-après-chaque-titre-décran-2026-09-13) · *Design, thème, langue et mise en page*
 - 4 · [⬜ Teinte des notifications système en vert (2026-09-07)](#-teinte-des-notifications-système-en-vert-2026-09-07) · *Design, thème, langue et mise en page* · bloqué
-- 3 · [⬜ Écran de démarrage repeint en vert (2026-09-07)](#-écran-de-démarrage-repeint-en-vert-2026-09-07) · *Design, thème, langue et mise en page*
+- 1 · [⬜ Écran de démarrage repeint en vert (2026-09-07)](#-écran-de-démarrage-repeint-en-vert-2026-09-07) · *Design, thème, langue et mise en page*
 - 8 · [Guide de style — alignement des jetons (2026-08-03)](#guide-de-style--alignement-des-jetons-2026-08-03) · *Design, thème, langue et mise en page*
 - 5 · [Bascule design_v2 → production, famille 5 : accueil et envoi d'argent (2026-08-03)](#bascule-design_v2--production-famille-5--accueil-et-envoi-dargent-2026-08-03) · *Design, thème, langue et mise en page*
 - 3 · [⬜ Les ~920 `debugPrint` restants neutralisés en release (2026-09-09)](#-les-920-debugprint-restants-neutralisés-en-release-2026-09-09) · *Backend, sécurité et observabilité* · bloqué
@@ -338,7 +338,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [✅ Profil : la carte de statistiques débordait par la droite — corrigé et vérifié Pixel 10 Pro XL (2026-09-08)](#-profil--la-carte-de-statistiques-débordait-par-la-droite--corrigé-et-vérifié-pixel-10-pro-xl-2026-09-08) · *Accueil, profil et réglages*
 - 2 · [Version de l'app et téléphone du support (2026-08-03)](#version-de-lapp-et-téléphone-du-support-2026-08-03) · *Accueil, profil et réglages*
 - 2 · [⬜ Deux textes du fil que `font_scale` 1.3 abime — corrigés, à revoir (2026-09-14)](#-deux-textes-du-fil-que-font_scale-13-abime--corrigés-à-revoir-2026-09-14) · *Design, thème, langue et mise en page*
-- 5 · [⬜ Une couleur par service dans les deux grilles (2026-09-14)](#-une-couleur-par-service-dans-les-deux-grilles-2026-09-14) · *Design, thème, langue et mise en page*
+- 2 · [⬜ Une couleur par service dans les deux grilles (2026-09-14)](#-une-couleur-par-service-dans-les-deux-grilles-2026-09-14) · *Design, thème, langue et mise en page*
 - 1 · [✅ Le thème choisi ne survivait jamais à un redémarrage — corrigé (2026-08-25)](#-le-thème-choisi-ne-survivait-jamais-à-un-redémarrage--corrigé-2026-08-25) · *Design, thème, langue et mise en page*
 - 1 · [Sigle « DN » corrigé + illustrations d'onboarding générées (2026-08-25)](#sigle--dn--corrigé--illustrations-donboarding-générées-2026-08-25) · *Design, thème, langue et mise en page* · bloqué
 - 3 · [Débordement du champ « Type * » — création d'ambassade (2026-08-04)](#débordement-du-champ--type----création-dambassade-2026-08-04) · *Design, thème, langue et mise en page* · bloqué
@@ -378,8 +378,8 @@ Par domaine :
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 69 à faire, 10 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 118 à faire, 16 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 65 à faire, 51 faites
-- [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 69 à faire, 34 faites
-- [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 153 à faire, 32 faites
+- [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 67 à faire, 36 faites
+- [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 146 à faire, 39 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 92 à faire, 45 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 56 à faire, 31 faites
 - [15. Site web](#15-site-web) — 32 à faire, 0 faites
@@ -18066,7 +18066,9 @@ Fichiers :
 - [ ] **Grande police** (réglages système à fond) : les deux boutons de carte
   — « Renommer » / « Supprimer » — tiennent côte à côte sans rognage. Rien
   n'a été rendu en image, les libellés ayant seulement changé de mot.
-- [ ] **Thème sombre** sur les deux bandeaux (info et plafond).
+- [x] **Thème sombre** sur les deux bandeaux (info et plafond).
+  ✅ Passe du 2026-09-22 (~05:45–05:57), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim, sombre, police 1,3 + texte en gras) : bandeau d'information « Inscrits : 2 sur 5 » et notice
+  du plafond lisibles sur le fond sombre, icônes comprises.
 - [ ] **Anglais** : basculer la langue et relire les mêmes écrans.
 
 ---
@@ -18225,9 +18227,13 @@ tient les seuils, le recalage d'une horloge menteuse, et le point qui compte :
 un `requestReview()` muet ne doit pas relancer la demande à **chaque**
 ouverture. Ce que le banc ne peut pas voir :
 
-- [ ] **La tuile est là** : Réglages → « Application », étoile, entre
+- [x] **La tuile est là** : Réglages → « Application », étoile, entre
       « Aide & FAQ » et « À propos », en clair **et** en sombre.
       (`settings_screen.dart`)
+      ✅ Passe du 2026-09-22 (~05:45–05:57), build Play 1.2.2+26 (f22aaff) : « Noter l'application · Votre avis compte, et il aide l'app à
+      se faire connaître », étoile orange, entre « Aide & FAQ » et « À propos »,
+      sur le SM A515F (Sim, clair, police 1,0) **et** sur le Pixel 10 Pro XL (Salim, sombre, police 1,3 + texte en gras) (sous-titre sur deux lignes, sans
+      coupure). Pas touchée.
 - [ ] **L'appui ouvre l'application Play Store** sur la fiche Diaspo Niger, pas
       un navigateur ni « élément introuvable ». La fiche est bien publiée :
       vérifié en ligne le 2026-09-14 (Mirai Tech., 10+ téléchargements).
@@ -19105,19 +19111,29 @@ lue par « Tous les services » et par la grille de l'accueil. Contrastes
 calculés (icône sur son propre aplat) : ≥ 3,4:1 en clair sauf le Fil à 2,4:1
 (l'orange était déjà ainsi), ≥ 5,1:1 en nocturne.
 
-- [ ] **« Tous les services »** : cinq tuiles, cinq teintes distinctes — Fil
+- [x] **« Tous les services »** : cinq tuiles, cinq teintes distinctes — Fil
   orange, Annuaire teal, Ambassades bleu, Événements prune, Amis vert. Aucune
   paire voisine ne se ressemble.
-- [ ] **Grille de l'accueil** : le Fil, l'Annuaire et les Ambassades y portent
+  ✅ Passe du 2026-09-22 (~05:45–05:57), build Play 1.2.2+26 (f22aaff), sur les deux téléphones : Fil orange, Annuaire teal, Ambassades
+  bleu, Événements prune, Amis vert — cinq teintes nettement distinctes.
+- [x] **Grille de l'accueil** : le Fil, l'Annuaire et les Ambassades y portent
   la **même** couleur que dans « Tous les services » (c'est la régression la
   plus probable : deux écrans, une seule liste).
-- [ ] **Thème sombre** : les cinq icônes restent lisibles sur leur aplat à
+  ✅ Passe du 2026-09-22 (~05:45–05:57), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim, sombre, police 1,3 + texte en gras) : accueil → « Services » : Fil orange, Annuaire teal,
+  Ambassades bleu, les mêmes que « Tous les services ». (Sur l'accueil les
+  icônes sont posées sans pastille teintée ; dans « Tous les services », sur
+  un aplat.)
+- [x] **Thème sombre** : les cinq icônes restent lisibles sur leur aplat à
   15 % — en particulier le bleu des Ambassades, qui était le cas le pire.
+  ✅ Passe du 2026-09-22 (~05:45–05:57), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim, sombre, police 1,3 + texte en gras) : les cinq icônes lisibles sur leur aplat ; le bleu des
+  Ambassades se détache nettement.
 - [ ] **Compte en thème Orange** : les tuiles ne bougent plus avec l'accent du
   compte (elles ne lisent plus `adaptivePrimaryColor`). Vérifier que le résultat
   reste cohérent avec le reste de l'écran, boutons compris.
 - [ ] Le prune des Événements est la seule teinte hors guide de style : juger
   à l'œil si elle tient à côté du bleu des Ambassades, sa voisine de rangée.
+  Passe du 2026-09-22 (~05:45–05:57), build Play 1.2.2+26 (f22aaff) : vu en clair et en sombre à côté du bleu des Ambassades — les deux
+  se distinguent. Le jugement de goût reste à Salim, case laissée.
 
 ---
 
@@ -19135,10 +19151,14 @@ calculés (icône sur son propre aplat) : ≥ 3,4:1 en clair sauf le Fil à 2,4:
       même arrondi que l'écran de démarrage. Pas vu — l'appareil était
       connecté, et s'en déconnecter coûterait la session de test.
       (`auth_scaffold.dart`)
-- [ ] **Thème sombre** : le vert et le blanc du sigle tiennent sur le fond
+- [x] **Thème sombre** : le vert et le blanc du sigle tiennent sur le fond
       sombre — la couleur est fixe, elle ne suit plus `onPrimaryColor`.
-- [ ] **Échelle de police à 1,3** : le « DN » ne déborde pas de son carré
+      ✅ Passe du 2026-09-22 (~05:45–05:57), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim, sombre, police 1,3 + texte en gras) : sur l'écran de démarrage, « DN » blanc sur le vert fixe,
+      lisible sur le fond sombre.
+- [x] **Échelle de police à 1,3** : le « DN » ne déborde pas de son carré
       (le corps est proportionnel au côté, pas à la taille système).
+      ✅ Passe du 2026-09-22 (~05:45–05:57), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim, sombre, police 1,3 + texte en gras) (1,3 **et** gras) : « DN » entier, centré dans sa pastille,
+      aucune lettre coupée.
 - [ ] **Gabarit d'illustration** (onboarding, écrans à illustration) : la
       pastille 62 est bien centrée dans son bloc rayé.
 
@@ -19370,13 +19390,21 @@ La teinte est **fixe** : elle ne suit pas l'accent choisi par le compte
 (orange ou vert). Un compte en thème Orange verra donc un splash vert puis une
 app orange — c'est voulu, pas une dérive à corriger.
 
-- [ ] **Splash au démarrage à froid, thème clair.** Tuer l'app, la relancer :
+- [x] **Splash au démarrage à froid, thème clair.** Tuer l'app, la relancer :
       pastille « DN » et cercle de progression verts, sigle blanc lisible sur
       le vert, ombre portée verte discrète.
-- [ ] **Splash au démarrage à froid, thème sombre.** Même écran sur fond
+      ✅ Passe du 2026-09-22 (~05:45–05:57), build Play 1.2.2+26 (f22aaff), SM A515F (Sim, clair, police 1,0) : rafale de captures à l'ouverture à froid — pastille
+      « DN » verte, sigle blanc net, ombre verte discrète, cercle vert.
+      ⚠️ Défaut de texte vu sur la même image : le sous-titre est
+      « Connecter la diaspora nigerienne », **sans accent**, et écrit en dur
+      (`splash_screen.dart:41`, hors ARB : il reste en français en anglais).
+      Partout ailleurs l'app écrit « nigérienne ». Non corrigé.
+- [x] **Splash au démarrage à froid, thème sombre.** Même écran sur fond
       `surfaceVariantDark` (`#2D2820`) : vérifier que le vert `#009600` ne
       devient pas terne sur le fond foncé (aucune variante nocturne n'est
       prévue pour cette pastille, contrairement à `primaryGradientDark`).
+      ✅ Passe du 2026-09-22 (~05:45–05:57), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim, sombre, police 1,3 + texte en gras) : rafale à l'ouverture à froid — fond sombre, pastille
+      verte franche, pas terne, cercle vert lisible.
 - [ ] **Compte en thème Orange.** Confirmer que seul le splash est vert et que
       le reste de l'app reste orange (pas de contamination).
 - [x] **Sigle et arc du cercle verts, vus sur SM A515F** (thème Système/Orange,
