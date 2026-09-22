@@ -16193,6 +16193,11 @@ sur une voix réellement captée par le SFU.
 - [ ] **Drapeau par pays sur la liste des ambassades** (ajouté 2026-07-31) : correspondance normalisée (accents/casse ignorés) sur `ProfileOptions.countries` — vérifier le taux de correspondance réel sur les données de prod (repli silencieux si aucune correspondance, donc un drapeau manquant n'est pas un bug, juste à surveiller si ça arrive trop souvent).
 - [ ] Bandeau conséquences du blocage (comptes bloqués).
 - [ ] Écrans légaux fusionnés en onglets (CGU/confidentialité/code de conduite).
+- [ ] **Code de conduite hors ligne, texte accentué** (corrigé 2026-09-22) : le
+  texte de secours, affiché quand le document Firestore ne se charge pas, était
+  écrit sans un seul accent (« diaspora nigerienne », « vous vous engagez a »).
+  Mode avion, Réglages → Code de conduite : relire les 11 sections en français.
+  (`code_of_conduct_screen.dart`, garde `code_de_conduite_accents_test.dart`)
 - [ ] Mon espace : carte Brouillons (sauvegarde/reprise/suppression), tuile Hashtags suivis + bouton Suivre/Suivi sur le bandeau de filtre hashtag du fil.
 - [ ] Chip "groupes en commun" sur les cartes de demande d'ami.
 - [ ] Filtre "Archives" unifié dans la liste des messages (4e puce).

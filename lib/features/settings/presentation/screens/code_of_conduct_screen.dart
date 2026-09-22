@@ -106,12 +106,12 @@ class CodeOfConductScreen extends ConsumerWidget {
         _buildSection(
           context,
           isFrench
-              ? 'Bienvenue dans notre communaute'
+              ? 'Bienvenue dans notre communauté'
               : 'Welcome to our community',
           isFrench
-              ? 'Diaspo Niger est une plateforme de mise en relation pour la diaspora nigerienne. '
-                  'Ce code de conduite definit les regles de vie commune pour garantir un espace '
-                  'respectueux, securise et bienveillant pour tous les membres.'
+              ? 'Diaspo Niger est une plateforme de mise en relation pour la diaspora nigérienne. '
+                  'Ce code de conduite définit les règles de vie commune pour garantir un espace '
+                  'respectueux, sécurisé et bienveillant pour tous les membres.'
               : 'Diaspo Niger is a networking platform for the Nigerien diaspora. '
                   'This code of conduct defines the community guidelines to ensure a respectful, '
                   'safe and welcoming space for all members.',
@@ -120,13 +120,13 @@ class CodeOfConductScreen extends ConsumerWidget {
           context,
           isFrench ? '1. Respect et bienveillance' : '1. Respect and kindness',
           isFrench
-              ? 'En tant que membre de la diaspora nigerienne, vous vous engagez a :\n\n'
-                  '- Traiter tous les membres avec respect et dignite\n'
-                  '- Valoriser la diversite des parcours et des opinions\n'
-                  '- Communiquer de maniere constructive et courtoise\n'
-                  '- Eviter tout propos discriminatoire base sur l\'origine, la religion, '
-                  'le genre, l\'orientation sexuelle ou tout autre critere\n'
-                  '- Respecter les differentes cultures et traditions representees'
+              ? 'En tant que membre de la diaspora nigérienne, vous vous engagez à :\n\n'
+                  '- Traiter tous les membres avec respect et dignité\n'
+                  '- Valoriser la diversité des parcours et des opinions\n'
+                  '- Communiquer de manière constructive et courtoise\n'
+                  '- Éviter tout propos discriminatoire basé sur l\'origine, la religion, '
+                  'le genre, l\'orientation sexuelle ou tout autre critère\n'
+                  '- Respecter les différentes cultures et traditions représentées'
               : 'As a member of the Nigerien diaspora, you commit to:\n\n'
                   '- Treat all members with respect and dignity\n'
                   '- Value diversity of backgrounds and opinions\n'
@@ -141,13 +141,13 @@ class CodeOfConductScreen extends ConsumerWidget {
               ? '2. Communications et messagerie'
               : '2. Communications and messaging',
           isFrench
-              ? 'Dans vos echanges via l\'application, vous devez :\n\n'
-                  '- Ne pas envoyer de messages non sollicites ou de spam\n'
+              ? 'Dans vos échanges via l\'application, vous devez :\n\n'
+                  '- Ne pas envoyer de messages non sollicités ou de spam\n'
                   '- Ne pas harceler ou intimider d\'autres membres\n'
-                  '- Ne pas partager de contenu a caractere sexuel ou violent\n'
-                  '- Respecter le souhait des membres qui ne veulent pas etre contactes\n'
-                  '- Ne pas partager les conversations privees sans consentement\n'
-                  '- Signaler tout comportement inapproprie via le systeme de signalement'
+                  '- Ne pas partager de contenu à caractère sexuel ou violent\n'
+                  '- Respecter le souhait des membres qui ne veulent pas être contactés\n'
+                  '- Ne pas partager les conversations privées sans consentement\n'
+                  '- Signaler tout comportement inapproprié via le système de signalement'
               : 'In your exchanges via the application, you must:\n\n'
                   '- Not send unsolicited messages or spam\n'
                   '- Not harass or intimidate other members\n'
@@ -158,14 +158,14 @@ class CodeOfConductScreen extends ConsumerWidget {
         ),
         _buildSection(
           context,
-          isFrench ? '3. Groupes et evenements' : '3. Groups and events',
+          isFrench ? '3. Groupes et événements' : '3. Groups and events',
           isFrench
-              ? 'Lors de votre participation aux groupes et evenements :\n\n'
-                  '- Respectez les regles specifiques de chaque groupe\n'
-                  '- Contribuez de maniere positive aux discussions\n'
-                  '- N\'utilisez pas les groupes a des fins de promotion personnelle non autorisee\n'
-                  '- Honorez vos inscriptions aux evenements ou annulez a l\'avance\n'
-                  '- Ne creez pas d\'evenements fictifs ou trompeurs\n'
+              ? 'Lors de votre participation aux groupes et événements :\n\n'
+                  '- Respectez les règles spécifiques de chaque groupe\n'
+                  '- Contribuez de manière positive aux discussions\n'
+                  '- N\'utilisez pas les groupes à des fins de promotion personnelle non autorisée\n'
+                  '- Honorez vos inscriptions aux événements ou annulez à l\'avance\n'
+                  '- Ne créez pas d\'événements fictifs ou trompeurs\n'
                   '- Respectez les organisateurs et les autres participants'
               : 'When participating in groups and events:\n\n'
                   '- Respect the specific rules of each group\n'
@@ -181,12 +181,12 @@ class CodeOfConductScreen extends ConsumerWidget {
               ? '4. Marketplace et transactions'
               : '4. Marketplace and transactions',
           isFrench
-              ? 'Pour les activites commerciales sur la plateforme :\n\n'
-                  '- Decrivez vos produits et services de maniere honnete et precise\n'
+              ? 'Pour les activités commerciales sur la plateforme :\n\n'
+                  '- Decrivez vos produits et services de manière honnête et précise\n'
                   '- N\'affichez pas de prix trompeurs\n'
-                  '- Ne vendez pas de produits illegaux, contrefaits ou dangereux\n'
-                  '- Respectez vos engagements de livraison et de qualite\n'
-                  '- Repondez aux reclamations de maniere professionnelle\n'
+                  '- Ne vendez pas de produits illégaux, contrefaits ou dangereux\n'
+                  '- Respectez vos engagements de livraison et de qualité\n'
+                  '- Répondez aux réclamations de manière professionnelle\n'
                   '- Ne sollicitez pas d\'avis frauduleux'
               : 'For commercial activities on the platform:\n\n'
                   '- Describe your products and services honestly and accurately\n'
@@ -200,12 +200,12 @@ class CodeOfConductScreen extends ConsumerWidget {
           context,
           isFrench ? '5. Transferts d\'argent' : '5. Money transfers',
           isFrench
-              ? 'Concernant les fonctionnalites de transfert :\n\n'
-                  '- Utilisez les transferts uniquement a des fins legales\n'
-                  '- Ne participez pas a des activites de blanchiment d\'argent\n'
-                  '- Verifiez l\'identite des destinataires avant d\'envoyer des fonds\n'
+              ? 'Concernant les fonctionnalités de transfert :\n\n'
+                  '- Utilisez les transferts uniquement à des fins légales\n'
+                  '- Ne participez pas à des activités de blanchiment d\'argent\n'
+                  '- Vérifiez l\'identité des destinataires avant d\'envoyer des fonds\n'
                   '- Signalez toute tentative de fraude ou d\'arnaque\n'
-                  '- Protegez vos informations de paiement\n'
+                  '- Protégez vos informations de paiement\n'
                   '- N\'utilisez pas la plateforme pour des transactions suspectes'
               : 'Regarding transfer features:\n\n'
                   '- Use transfers only for legal purposes\n'
@@ -224,10 +224,10 @@ class CodeOfConductScreen extends ConsumerWidget {
               ? 'Pour les professionnels et entreprises :\n\n'
                   '- Fournissez des informations exactes sur votre entreprise\n'
                   '- Ne revendiquez pas de fausses certifications ou qualifications\n'
-                  '- Maintenez a jour vos horaires et coordonnees\n'
-                  '- Repondez aux avis de maniere professionnelle\n'
-                  '- Ne creez pas de faux profils d\'entreprise\n'
-                  '- Respectez les regles de publicite de la plateforme'
+                  '- Maintenez à jour vos horaires et coordonnées\n'
+                  '- Répondez aux avis de manière professionnelle\n'
+                  '- Ne créez pas de faux profils d\'entreprise\n'
+                  '- Respectez les règles de publicité de la plateforme'
               : 'For professionals and businesses:\n\n'
                   '- Provide accurate information about your business\n'
                   '- Do not claim false certifications or qualifications\n'
@@ -238,14 +238,14 @@ class CodeOfConductScreen extends ConsumerWidget {
         ),
         _buildSection(
           context,
-          isFrench ? '7. Protection de la vie privee' : '7. Privacy protection',
+          isFrench ? '7. Protection de la vie privée' : '7. Privacy protection',
           isFrench
-              ? 'Respectez la vie privee des autres membres :\n\n'
+              ? 'Respectez la vie privée des autres membres :\n\n'
                   '- Ne partagez pas les informations personnelles d\'autrui sans consentement\n'
-                  '- N\'utilisez pas les donnees de localisation pour traquer quelqu\'un\n'
-                  '- Respectez les parametres de confidentialite des membres\n'
-                  '- Ne capturez pas d\'ecran des conversations privees\n'
-                  '- Ne creez pas de faux profils ou n\'usurpez pas l\'identite d\'autrui'
+                  '- N\'utilisez pas les données de localisation pour traquer quelqu\'un\n'
+                  '- Respectez les paramètres de confidentialité des membres\n'
+                  '- Ne capturez pas d\'écran des conversations privées\n'
+                  '- Ne créez pas de faux profils ou n\'usurpez pas l\'identité d\'autrui'
               : 'Respect the privacy of other members:\n\n'
                   '- Do not share others\' personal information without consent\n'
                   '- Do not use location data to track someone\n'
@@ -258,13 +258,13 @@ class CodeOfConductScreen extends ConsumerWidget {
           isFrench ? '8. Contenu interdit' : '8. Prohibited content',
           isFrench
               ? 'Les contenus suivants sont strictement interdits :\n\n'
-                  '- Incitation a la haine ou a la violence\n'
+                  '- Incitation à la haine ou à la violence\n'
                   '- Propos diffamatoires ou calomnieux\n'
                   '- Pornographie ou contenu sexuellement explicite\n'
                   '- Apologie du terrorisme ou d\'activites criminelles\n'
                   '- Arnaques, phishing ou tentatives de fraude\n'
-                  '- Violation des droits d\'auteur ou de propriete intellectuelle\n'
-                  '- Fausses informations pouvant nuire a la communaute'
+                  '- Violation des droits d\'auteur ou de propriété intellectuelle\n'
+                  '- Fausses informations pouvant nuire à la communauté'
               : 'The following content is strictly prohibited:\n\n'
                   '- Incitement to hatred or violence\n'
                   '- Defamatory or slanderous remarks\n'
@@ -277,15 +277,15 @@ class CodeOfConductScreen extends ConsumerWidget {
         _buildSection(
           context,
           isFrench
-              ? '9. Signalement et moderation'
+              ? '9. Signalement et modération'
               : '9. Reporting and moderation',
           isFrench
-              ? 'Notre systeme de moderation :\n\n'
-                  '- Utilisez le bouton "Signaler" pour tout comportement inapproprie\n'
-                  '- Les signalements sont traites de maniere confidentielle\n'
+              ? 'Notre système de modération :\n\n'
+                  '- Utilisez le bouton "Signaler" pour tout comportement inapproprié\n'
+                  '- Les signalements sont traités de manière confidentielle\n'
                   '- Ne faites pas de signalements abusifs ou malveillants\n'
-                  '- Les faux signalements peuvent entrainer des sanctions\n'
-                  '- Cooperez avec l\'equipe de moderation si necessaire'
+                  '- Les faux signalements peuvent entraîner des sanctions\n'
+                  '- Coopérez avec l\'équipe de modération si nécessaire'
               : 'Our moderation system:\n\n'
                   '- Use the "Report" button for any inappropriate behavior\n'
                   '- Reports are handled confidentially\n'
@@ -300,11 +300,11 @@ class CodeOfConductScreen extends ConsumerWidget {
               ? 'En cas de non-respect de ce code de conduite :\n\n'
                   '- Avertissement pour les infractions mineures\n'
                   '- Suspension temporaire du compte\n'
-                  '- Restriction d\'acces a certaines fonctionnalites\n'
-                  '- Suppression definitive du compte en cas de violations graves ou repetees\n'
-                  '- Signalement aux autorites competentes si necessaire\n\n'
-                  'Les decisions de moderation peuvent faire l\'objet d\'un appel '
-                  'aupres de notre equipe support.'
+                  '- Restriction d\'accès à certaines fonctionnalités\n'
+                  '- Suppression définitive du compte en cas de violations graves ou répétées\n'
+                  '- Signalement aux autorités compétentes si nécessaire\n\n'
+                  'Les décisions de modération peuvent faire l\'objet d\'un appel '
+                  'auprès de notre équipe support.'
               : 'In case of non-compliance with this code of conduct:\n\n'
                   '- Warning for minor infractions\n'
                   '- Temporary account suspension\n'
@@ -318,10 +318,10 @@ class CodeOfConductScreen extends ConsumerWidget {
           isFrench ? '11. Contact' : '11. Contact',
           isFrench
               ? 'Pour toute question concernant ce code de conduite ou pour signaler '
-                  'un probleme :\n\n'
+                  'un problème :\n\n'
                   'Email : ${supportService.moderationEmail}\n'
                   'Support : ${supportService.supportEmail}\n\n'
-                  'Ensemble, construisons une communaute solidaire et respectueuse !'
+                  'Ensemble, construisons une communauté solidaire et respectueuse !'
               : 'For any questions about this code of conduct or to report an issue:\n\n'
                   'Email: ${supportService.moderationEmail}\n'
                   'Support: ${supportService.supportEmail}\n\n'
