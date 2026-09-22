@@ -29,6 +29,10 @@
   "passwordMinHelper": "Au moins 6 caractères",
   "e2eeFooterNote": "Vos messages sont chiffrés.",
   "joinDiaspora": "Rejoins la diaspora nigérienne",
+  "splashTagline": "Connecter la diaspora nigérienne",
+  "@splashTagline": {
+    "description": "Sous-titre de l'écran de démarrage, sous le nom de l'app"
+  },
   "continueWithGoogle": "Continuer avec Google",
   "continueWithApple": "Continuer avec Apple",
   "or": "ou",

@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1512 cases à cocher, 758 cochées** — 311 entrées sur 363 ont encore des cases ouvertes.
+**1513 cases à cocher, 758 cochées** — 311 entrées sur 363 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -319,7 +319,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 12 · [Salons audio — monétisation](#salons-audio--monétisation) · *Fil, stories, salons audio et podcasts* · bloqué
 - 9 · [⬜ Point d'accent après chaque titre d'écran (2026-09-13)](#-point-daccent-après-chaque-titre-décran-2026-09-13) · *Design, thème, langue et mise en page*
 - 4 · [⬜ Teinte des notifications système en vert (2026-09-07)](#-teinte-des-notifications-système-en-vert-2026-09-07) · *Design, thème, langue et mise en page* · bloqué
-- 1 · [⬜ Écran de démarrage repeint en vert (2026-09-07)](#-écran-de-démarrage-repeint-en-vert-2026-09-07) · *Design, thème, langue et mise en page*
+- 2 · [⬜ Écran de démarrage repeint en vert (2026-09-07)](#-écran-de-démarrage-repeint-en-vert-2026-09-07) · *Design, thème, langue et mise en page*
 - 8 · [Guide de style — alignement des jetons (2026-08-03)](#guide-de-style--alignement-des-jetons-2026-08-03) · *Design, thème, langue et mise en page*
 - 5 · [Bascule design_v2 → production, famille 5 : accueil et envoi d'argent (2026-08-03)](#bascule-design_v2--production-famille-5--accueil-et-envoi-dargent-2026-08-03) · *Design, thème, langue et mise en page*
 - 3 · [⬜ Les ~920 `debugPrint` restants neutralisés en release (2026-09-09)](#-les-920-debugprint-restants-neutralisés-en-release-2026-09-09) · *Backend, sécurité et observabilité* · bloqué
@@ -379,7 +379,7 @@ Par domaine :
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 118 à faire, 16 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 65 à faire, 51 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 67 à faire, 36 faites
-- [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 146 à faire, 39 faites
+- [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 147 à faire, 39 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 92 à faire, 45 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 56 à faire, 31 faites
 - [15. Site web](#15-site-web) — 32 à faire, 0 faites
@@ -19398,7 +19398,13 @@ app orange — c'est voulu, pas une dérive à corriger.
       ⚠️ Défaut de texte vu sur la même image : le sous-titre est
       « Connecter la diaspora nigerienne », **sans accent**, et écrit en dur
       (`splash_screen.dart:41`, hors ARB : il reste en français en anglais).
-      Partout ailleurs l'app écrit « nigérienne ». Non corrigé.
+      Partout ailleurs l'app écrit « nigérienne ». Corrigé ensuite :
+      clé ARB `splashTagline` (« Connecter la diaspora nigérienne » /
+      « Connecting the Nigerien diaspora »), garde
+      `test/features/auth/splash_sous_titre_test.dart`.
+- [ ] **Sous-titre du splash, nouveau build** : « nigérienne » accentué en
+      français ; en anglais, « Connecting the Nigerien diaspora » dès le
+      démarrage à froid. (`splash_screen.dart`)
 - [x] **Splash au démarrage à froid, thème sombre.** Même écran sur fond
       `surfaceVariantDark` (`#2D2820`) : vérifier que le vert `#009600` ne
       devient pas terne sur le fond foncé (aucune variante nocturne n'est

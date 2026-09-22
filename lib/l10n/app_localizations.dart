@@ -272,6 +272,12 @@ abstract class AppLocalizations {
   /// **'Rejoins la diaspora nigérienne'**
   String get joinDiaspora;
 
+  /// Sous-titre de l'écran de démarrage, sous le nom de l'app
+  ///
+  /// In fr, this message translates to:
+  /// **'Connecter la diaspora nigérienne'**
+  String get splashTagline;
+
   /// No description provided for @continueWithGoogle.
   ///
   /// In fr, this message translates to:

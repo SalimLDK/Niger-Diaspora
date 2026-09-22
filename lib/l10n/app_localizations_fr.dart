@@ -97,6 +97,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get joinDiaspora => 'Rejoins la diaspora nigérienne';
 
   @override
+  String get splashTagline => 'Connecter la diaspora nigérienne';
+
+  @override
   String get continueWithGoogle => 'Continuer avec Google';
 
   @override

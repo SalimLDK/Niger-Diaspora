@@ -37,8 +37,11 @@ class SplashScreen extends StatelessWidget {
               ).textTheme.displayMedium?.copyWith(color: context.textPrimaryColor),
             ),
             const SizedBox(height: 8),
+            // Était écrit en dur, sans accent (« nigerienne »), et restait en
+            // français sur un téléphone en anglais — vu sur SM A515F le
+            // 2026-09-22, build Play 1.2.2+26.
             Text(
-              'Connecter la diaspora nigerienne',
+              l10n.splashTagline,
               style: Theme.of(
                 context,
               ).textTheme.bodyLarge?.copyWith(color: context.textSecondaryColor),
