@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1573 cases à cocher, 687 cochées** — 311 entrées sur 362 ont encore des cases ouvertes.
+**1554 cases à cocher, 706 cochées** — 311 entrées sur 362 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -51,8 +51,8 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 9 · [⬜ L'aperçu de la liste dit pourquoi il est vide (2026-09-15)](#-laperçu-de-la-liste-dit-pourquoi-il-est-vide-2026-09-15) · *Messagerie*
 - 1 · [✅ Note vocale impossible à envoyer en conversation chiffrée (2026-09-15)](#-note-vocale-impossible-à-envoyer-en-conversation-chiffrée-2026-09-15) · *Messagerie*
 - 3 · [⛔ Le fil chiffré se tronque au redémarrage dès qu'un message arrive en direct (2026-09-16)](#-le-fil-chiffré-se-tronque-au-redémarrage-dès-quun-message-arrive-en-direct-2026-09-16) · *Messagerie*
-- 3 · [⬜ Un fil chiffré survit au redémarrage de l'application (2026-09-15)](#-un-fil-chiffré-survit-au-redémarrage-de-lapplication-2026-09-15) · *Messagerie*
-- 6 · [⬜ Un message non envoyé ne disparaît plus, et repart tout seul (2026-09-14)](#-un-message-non-envoyé-ne-disparaît-plus-et-repart-tout-seul-2026-09-14) · *Messagerie*
+- 2 · [⬜ Un fil chiffré survit au redémarrage de l'application (2026-09-15)](#-un-fil-chiffré-survit-au-redémarrage-de-lapplication-2026-09-15) · *Messagerie*
+- 5 · [⬜ Un message non envoyé ne disparaît plus, et repart tout seul (2026-09-14)](#-un-message-non-envoyé-ne-disparaît-plus-et-repart-tout-seul-2026-09-14) · *Messagerie*
 - 6 · [⬜ Une discussion ouverte ne reste plus prisonnière de son cache (2026-09-14)](#-une-discussion-ouverte-ne-reste-plus-prisonnière-de-son-cache-2026-09-14) · *Messagerie*
 - 4 · [⬜ Aucun marqueur technique dans une bulle (2026-09-09)](#-aucun-marqueur-technique-dans-une-bulle-2026-09-09) · *Messagerie*
 - 4 · [⬜ Un simple membre pouvait se nommer owner de son propre groupe (2026-09-17)](#-un-simple-membre-pouvait-se-nommer-owner-de-son-propre-groupe-2026-09-17) · *Groupes*
@@ -120,19 +120,19 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [⬜ « Message chiffré » qui ne s'en va pas dans la liste (2026-09-16)](#--message-chiffré--qui-ne-sen-va-pas-dans-la-liste-2026-09-16) · *Messagerie*
 - 5 · [✅ Curseur de lecture et séparateur « nouveaux messages » (2026-09-16)](#-curseur-de-lecture-et-séparateur--nouveaux-messages--2026-09-16) · *Messagerie*
 - 3 · [⬜ Pastille de non-lus, et séparateur « nouveaux messages » (2026-09-15)](#-pastille-de-non-lus-et-séparateur--nouveaux-messages--2026-09-15) · *Messagerie*
-- 4 · [⬜ « Mes notes » s'ouvre sans aller-retour réseau — vérifié SM A515F (2026-09-15)](#--mes-notes--souvre-sans-aller-retour-réseau--vérifié-sm-a515f-2026-09-15) · *Messagerie*
+- 3 · [⬜ « Mes notes » s'ouvre sans aller-retour réseau — vérifié SM A515F (2026-09-15)](#--mes-notes--souvre-sans-aller-retour-réseau--vérifié-sm-a515f-2026-09-15) · *Messagerie*
 - 4 · [⬜ La liste n'annonce plus « Utilisateur » ni « Message chiffré » (2026-09-15)](#-la-liste-nannonce-plus--utilisateur--ni--message-chiffré--2026-09-15) · *Messagerie*
 - 1 · [⬜ Modifier un message chiffré part parfois dans la mauvaise table (2026-09-15)](#-modifier-un-message-chiffré-part-parfois-dans-la-mauvaise-table-2026-09-15) · *Messagerie*
 - 12 · [⬜ Messages éphémères — minuteur réparé, purge serveur (2026-09-15)](#-messages-éphémères--minuteur-réparé-purge-serveur-2026-09-15) · *Messagerie*
 - 14 · [⬜ Aperçu et compteurs d'une conversation chiffrée (décision J, 2026-09-15)](#-aperçu-et-compteurs-dune-conversation-chiffrée-décision-j-2026-09-15) · *Messagerie*
 - 12 · [⬜ Pièces jointes chiffrées — images, documents, audio (C4, 2026-09-14)](#-pièces-jointes-chiffrées--images-documents-audio-c4-2026-09-14) · *Messagerie*
 - 8 · [⬜ Désigner quelqu'un ouvre sa discussion, plus le sélecteur (2026-09-14)](#-désigner-quelquun-ouvre-sa-discussion-plus-le-sélecteur-2026-09-14) · *Messagerie*
-- 9 · [⬜ En sélection, la bulle ne fait plus que cocher (2026-09-14)](#-en-sélection-la-bulle-ne-fait-plus-que-cocher-2026-09-14) · *Messagerie*
-- 5 · [⬜ Sondage : voter se voit enfin, et les votants aussi (2026-09-14)](#-sondage--voter-se-voit-enfin-et-les-votants-aussi-2026-09-14) · *Messagerie*
+- 5 · [⬜ En sélection, la bulle ne fait plus que cocher (2026-09-14)](#-en-sélection-la-bulle-ne-fait-plus-que-cocher-2026-09-14) · *Messagerie*
+- 3 · [⬜ Sondage : voter se voit enfin, et les votants aussi (2026-09-14)](#-sondage--voter-se-voit-enfin-et-les-votants-aussi-2026-09-14) · *Messagerie*
 - 2 · [✅ Un échec de lecture en messagerie se voit, sans effacer l'écran — corrigé, vérifié SM A515F (2026-09-14)](#-un-échec-de-lecture-en-messagerie-se-voit-sans-effacer-lécran--corrigé-vérifié-sm-a515f-2026-09-14) · *Messagerie*
 - 4 · [✅ L'identité du correspondant revient seule après une coupure — corrigé, vérifié SM A515F (2026-09-14)](#-lidentité-du-correspondant-revient-seule-après-une-coupure--corrigé-vérifié-sm-a515f-2026-09-14) · *Messagerie*
-- 3 · [⬜ Nom et avatar du correspondant dans la liste des discussions (2026-09-13)](#-nom-et-avatar-du-correspondant-dans-la-liste-des-discussions-2026-09-13) · *Messagerie*
-- 5 · [⬜ Réactions : double tap, cœur rouge, notification, mise à jour (2026-09-12)](#-réactions--double-tap-cœur-rouge-notification-mise-à-jour-2026-09-12) · *Messagerie*
+- 2 · [⬜ Nom et avatar du correspondant dans la liste des discussions (2026-09-13)](#-nom-et-avatar-du-correspondant-dans-la-liste-des-discussions-2026-09-13) · *Messagerie*
+- 4 · [⬜ Réactions : double tap, cœur rouge, notification, mise à jour (2026-09-12)](#-réactions--double-tap-cœur-rouge-notification-mise-à-jour-2026-09-12) · *Messagerie*
 - 14 · [⬜ Gérer les membres d'un groupe : notices dans le fil, et deux listes d'admins réconciliées (2026-09-17)](#-gérer-les-membres-dun-groupe--notices-dans-le-fil-et-deux-listes-dadmins-réconciliées-2026-09-17) · *Groupes*
 - 5 · [⬜ Exclure un membre d'un groupe échouait toujours (2026-09-17)](#-exclure-un-membre-dun-groupe-échouait-toujours-2026-09-17) · *Groupes*
 - 4 · [⬜ Noms des candidats à l'invitation et à l'ajout en appel (2026-09-14)](#-noms-des-candidats-à-linvitation-et-à-lajout-en-appel-2026-09-14) · *Groupes*
@@ -143,7 +143,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [⬜ La vidéo entre dans le chiffrement (2026-09-16)](#-la-vidéo-entre-dans-le-chiffrement-2026-09-16) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ Une réaction retirée disparaît vraiment de l'écran (2026-09-15)](#-une-réaction-retirée-disparaît-vraiment-de-lécran-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 8 · [⬜ Code de sécurité d'un appareil MLS (phase 7, 2026-09-15)](#-code-de-sécurité-dun-appareil-mls-phase-7-2026-09-15) · *Chiffrement de bout en bout et clés*
-- 8 · [⬜ Recherche, favoris et galerie d'une conversation chiffrée (2026-09-15)](#-recherche-favoris-et-galerie-dune-conversation-chiffrée-2026-09-15) · *Chiffrement de bout en bout et clés*
+- 4 · [⬜ Recherche, favoris et galerie d'une conversation chiffrée (2026-09-15)](#-recherche-favoris-et-galerie-dune-conversation-chiffrée-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ Registre d'appareils MLS — inscription à la connexion, KeyPackages, écran (phase 2, 2026-09-15)](#-registre-dappareils-mls--inscription-à-la-connexion-keypackages-écran-phase-2-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ Distribution des Sender Keys : la même porte, une marche plus loin (2026-09-14)](#-distribution-des-sender-keys--la-même-porte-une-marche-plus-loin-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
 - 7 · [⬜ Cartes de partage chiffrées au repos (2026-09-09)](#-cartes-de-partage-chiffrées-au-repos-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
@@ -228,8 +228,8 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [⬜ Forme de la bulle qui cite un message (2026-09-16)](#-forme-de-la-bulle-qui-cite-un-message-2026-09-16) · *Messagerie*
 - 6 · [⬜ « Modifier le message » : saisie en ligne, fenêtre de 48 h, motifs dits (2026-09-16)](#--modifier-le-message---saisie-en-ligne-fenêtre-de-48-h-motifs-dits-2026-09-16) · *Messagerie*
 - 5 · [⬜ Le repère de bascule ne parle plus français à tout le monde (2026-09-15)](#-le-repère-de-bascule-ne-parle-plus-français-à-tout-le-monde-2026-09-15) · *Messagerie*
-- 5 · [⬜ « Sélectionner » sort de « Autres actions » (2026-09-14)](#--sélectionner--sort-de--autres-actions--2026-09-14) · *Messagerie*
-- 3 · [⬜ Sondage dans une discussion privée (2026-09-12)](#-sondage-dans-une-discussion-privée-2026-09-12) · *Messagerie*
+- 2 · [⬜ « Sélectionner » sort de « Autres actions » (2026-09-14)](#--sélectionner--sort-de--autres-actions--2026-09-14) · *Messagerie*
+- 2 · [⬜ Sondage dans une discussion privée (2026-09-12)](#-sondage-dans-une-discussion-privée-2026-09-12) · *Messagerie*
 - 5 · [⬜ Cartes de post et d'événement lisibles dans une bulle envoyée (2026-09-12)](#-cartes-de-post-et-dévénement-lisibles-dans-une-bulle-envoyée-2026-09-12) · *Messagerie*
 - 4 · [⬜ Copier : légendes, positions, sondages, un passage, une sélection (2026-09-12)](#-copier--légendes-positions-sondages-un-passage-une-sélection-2026-09-12) · *Messagerie*
 - 8 · [Messagerie — un filtre sans résultat n'est pas une messagerie vide (2026-08-06)](#messagerie--un-filtre-sans-résultat-nest-pas-une-messagerie-vide-2026-08-06) · *Messagerie*
@@ -369,9 +369,9 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 370 à faire, 143 faites
+- [2. Messagerie](#2-messagerie) — 355 à faire, 158 faites
 - [3. Groupes](#3-groupes) — 149 à faire, 64 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 142 à faire, 47 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 138 à faire, 51 faites
 - [5. Appels](#5-appels) — 26 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 154 à faire, 88 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
@@ -999,6 +999,10 @@ code). Jamais vu sur appareil :
 - [ ] **Discussion chiffrée avec non-lus** : l'ouvrir, revenir → la pastille
       de la tuile, le compteur « N non lus » de l'en-tête et le badge de
       l'onglet Messages tombent à 0 en ≤ 1 s, sans tirer-pour-rafraîchir.
+      Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim, sombre, police 1,3 + gras) : reproduit comme attendu sur le +26 — sondage PA22 affiché
+      « 1 message non lu » à l'ouverture, `read_at` posé (00:39:25), retour à la
+      liste → tuile « Sim A » à **1** et « 1 non lu » dans l'en-tête. Le
+      correctif `bf64ffe` n'est pas dans f22aaff : à revoir sur le +28.
 - [ ] **Longue discussion, lue en partie** (défilement partiel) : le compte
       restant est juste, pas 0.
 
@@ -1722,11 +1726,17 @@ Réseau rétabli ensuite, vérifié à 15 ms.
 - [ ] Démarrage à froid en ligne, tap immédiat avant que la liste n'ait
       chargé : la tuile fait encore son aller-retour (spinner), et
       l'ouverture aboutit
+      ⬜ Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff), SM A515F (Sim, clair, police 1,0) : à froid par `diasponiger://messages`, tap sur la tuile
+      dès qu'elle paraît (+12 s, ralenti par `uiautomator`) → l'écran s'ouvre
+      (squelette puis fil). Mais la liste était déjà chargée : le tourniquet de la
+      tuile n'a pas été vu, la moitié qui compte reste à faire à la main.
 - [ ] Après un tirer-pour-rafraîchir, la première ouverture peut refaire
       l'aller-retour, les suivantes non
 - [ ] Compte neuf, « Mes notes » jamais créée : le premier tap la crée et la
       tuile prend son aperçu dans la liste
-- [ ] Même parcours depuis « Nouvelle conversation » (l'autre appelant)
+- [x] Même parcours depuis « Nouvelle conversation » (l'autre appelant)
+      ✅ Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff), SM A515F (Sim, clair, police 1,0) : « Nouvelle conversation » → « Mes notes » → l'écran
+      « Mes notes · Notes personnelles » s'ouvre en ~1 s.
 
 **L'aperçu perdu après un envoi chiffré était bien un défaut.** Il a d'abord
 été attribué au hors-ligne, à tort : reproduit ensuite **réseau branché**, la
@@ -2690,8 +2700,11 @@ Fichiers : [mls_conversation_service.dart](lib/core/crypto/mls/mls_conversation_
   l'application relancée deux fois entre les deux (le système la tuait sous
   la pression mémoire du build debug), et le fil a montré le texte à chaque
   réouverture — jamais un placeholder.
-- [ ] **Un troisième message** arrive après la réouverture : il se déchiffre
+- [x] **Un troisième message** arrive après la réouverture : il se déchiffre
   normalement (le curseur repris ne doit pas sauter ce qui est neuf).
+  ✅ Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff) : Pixel 10 Pro XL (Salim, sombre, police 1,3 + gras) relancé à froid (00:39), resté au premier plan ; « PA22ECHEC »
+  envoyé par Sim à 00:44:12 → affiché en clair dans la liste du Pixel ;
+  `mls_diagnostics` : 0 ligne sur l'heure.
 - [ ] **Vider le cache de l'application** puis rouvrir : les anciens messages
   deviennent des placeholders — attendu, c'est la limite du chiffrement — mais
   les nouveaux passent toujours.
@@ -2808,22 +2821,34 @@ atteignable depuis « Sélectionner » sorti de « Autres actions ». Couvert pa
 `test/features/messages/mode_selection_gestes_test.dart` (les trois cas
 tombent sans le correctif, vérifié).
 
-- [ ] **Sondage en sélection** : toucher une option coche la ligne, aucun
+- [x] **Sondage en sélection** : toucher une option coche la ligne, aucun
   vote ne part. Vérifier ensuite **dans le sondage lui-même** (sortir du mode,
   rouvrir) qu'aucune voix n'a été enregistrée.
+  ✅ Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff), SM A515F (Sim, clair, police 1,0), 1:1 MLS, sondage PA22 : en sélection (1 sélectionné),
+  toucher « Rouge » a basculé la ligne (sélection vidée, barre fermée) et
+  **aucun vote** n'est parti (`post_poll_votes` = 0, carte « Aucun vote »).
 - [ ] **Image, vidéo, aperçu de lien en sélection** : le tap coche, la
   visionneuse ne s'ouvre pas, le navigateur non plus.
 - [ ] **Note vocale en sélection** : le tap coche, la lecture ne démarre pas.
 - [ ] **Message en échec d'envoi, en sélection** : le tap coche, il ne
   relance pas l'envoi.
-- [ ] **Double-appui en sélection** : aucune réaction ne se pose.
-- [ ] **Glissement horizontal en sélection** : ne passe pas en réponse.
+- [x] **Double-appui en sélection** : aucune réaction ne se pose.
+  ✅ Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff), SM A515F (Sim, clair, police 1,0) : double-appui sur PK1 → coché puis décoché, aucune barre
+  de réactions, 0 réaction en base sur PK1.
+- [x] **Glissement horizontal en sélection** : ne passe pas en réponse.
+  ✅ Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff), SM A515F (Sim, clair, police 1,0) : glissé 150→700 px sur PK1 → rien, toujours « 2
+  sélectionnés », aucun bandeau de réponse.
 - [ ] **Défilement de la liste en sélection** : toujours fluide — l'absorption
   ne doit pas gêner le `ListView`, qui est au-dessus et non dedans.
-- [ ] **Appui long sur un deuxième message en sélection** : il s'ajoute à la
+- [x] **Appui long sur un deuxième message en sélection** : il s'ajoute à la
   sélection, sans rouvrir le menu d'actions.
+  ✅ Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff), SM A515F (Sim, clair, police 1,0) : appui long sur PJ2 → « 2 sélectionnés », aucune
+  feuille d'actions.
 - [ ] **Sortie du mode** : une fois la sélection vidée, le sondage redevient
   votable et l'image réouvrable. C'est la garde symétrique du banc.
+  ⬜ moitié, Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff), SM A515F (Sim, clair, police 1,0) : sélection vidée → le sondage redevient votable
+  (Rouge + Vert → « Voter » → 2 votes en base). Image non essayée (aucune
+  photo dans le 1:1).
 
 ---
 
@@ -2835,19 +2860,30 @@ L'entrée rejoint la liste visible, juste avant le filet de « Supprimer »
 ([message_bubble.dart](lib/features/messages/presentation/widgets/message_bubble.dart)).
 Couvert par `test/features/messages/menu_appui_long_selectionner_test.dart`.
 
-- [ ] **Appui long sur un message texte** : « Sélectionner » se lit au premier
+- [x] **Appui long sur un message texte** : « Sélectionner » se lit au premier
   écran, sans déplier « Autres actions ». Le toucher ferme la feuille et fait
   apparaître la barre « 1 sélectionné ».
-- [ ] **Appui long sur un sondage** : même menu. La carte de vote ne doit pas
+  ✅ Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff), SM A515F (Sim, clair, police 1,0) : appui long sur PH1 (reçu) → réactions, Répondre,
+  Copier, Transférer à…, Ajouter aux favoris, **Sélectionner** au premier
+  écran ; le toucher ferme la feuille, barre « 1 sélectionné ».
+- [x] **Appui long sur un sondage** : même menu. La carte de vote ne doit pas
   avaler le geste — ses options sont tactiles, c'est le cas qui pouvait
   échouer.
+  ✅ Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff), SM A515F (Sim, clair, police 1,0) : appui long sur la carte du sondage PA22 → même menu,
+  la carte n'avale pas le geste.
 - [ ] **La liste tient sans défiler** sur le SM A515F avec les six entrées
   (Répondre, Copier, Transférer, Épingler, Sélectionner, Supprimer) plus la
   rangée de réactions. À l'échelle de police 1,3, vérifier qu'« Autres
   actions » reste atteignable.
-- [ ] **En mode sélection, taper une option de sondage** coche le message
+  ⛔ Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff), SM A515F (Sim, clair, police 1,0), **police 1,0** : la liste ne tient PAS. Message reçu :
+  6ᵉ entrée « Signaler » hors écran (bornes 0,0 dans `uiautomator`) ;
+  sondage envoyé : « Supprimer » hors écran. La feuille s'arrête sur
+  « Sélectionner » (y 2016–2186). Pas d'« Épingler » ni d'« Autres actions »
+  dans ce menu MLS. Rien vu à 1,3 (réglage système interdit dans la passe).
+- [x] **En mode sélection, taper une option de sondage** coche le message
   au lieu de voter — corrigé depuis, voir « En sélection, la bulle ne fait
   plus que cocher ».
+  ✅ Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff) : voir « En sélection, la bulle ne fait plus que cocher ».
 - [ ] **Onde d'appui sur les entrées du menu** : la feuille passe de
   `Container` à `Material`, les `ListTile` peignaient leur onde derrière un
   fond opaque. Vérifier qu'un appui laisse maintenant une trace visible, en
@@ -2912,7 +2948,11 @@ Voir « Sondage dans une discussion privée » pour le parcours de création.
 - [x] **« Modifier mon vote »** : la sélection se rouvre sur son propre choix ;
       en choisir un autre le remplace (l'ancien compteur retombe) ;
       tout décocher affiche « Retirer mon vote » et remet le total à zéro.
-- [ ] **Sondage à choix multiple** : plusieurs cases, total = nombre de voix.
+- [x] **Sondage à choix multiple** : plusieurs cases, total = nombre de voix.
+      ✅ Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff), SM A515F (Sim, clair, police 1,0) : « PA22 Sondage multiple anonyme » créé dans le 1:1
+      (`allow_multiple` et `is_anonymous` vrais en base) ; cases à cocher, Rouge +
+      Vert → « Voter » → 50 % / 50 %, « 2 votes », `total_votes = 2` ; écran de
+      résultats « Votre choix » sur les deux, 1 · 50 % chacun.
 - [ ] **Sondage terminé** : « Sondage terminé » dans la ligne d'info, plus
       aucune façon de voter ni de se corriger.
 - [x] **Écran de résultats d'un sondage normal** : le badge « Votre choix »
@@ -2926,8 +2966,12 @@ Voir « Sondage dans une discussion privée » pour le parcours de création.
       a voté quoi », alors que le sondage a 2 voix. En base, sous l'identité du
       lecteur : `poll_option_voters` rend 0 ligne pour l'anonyme et 2 pour le
       sondage normal du même groupe.
-- [ ] **Créer** un sondage anonyme depuis la feuille (la bascule est éteinte
+- [x] **Créer** un sondage anonyme depuis la feuille (la bascule est éteinte
       par défaut) : c'est la seule moitié non rejouée à la main.
+      ✅ Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff), SM A515F (Sim, clair, police 1,0) : bascule « Sondage anonyme » éteinte par défaut,
+      allumée → notice « Sondage anonyme : personne ne voit qui a voté quoi. »
+      sous les bascules ; publié, `is_anonymous = true`. Résultats : aucun votant
+      listé, ni chez Sim ni chez Salim (Pixel 10 Pro XL (Salim, sombre, police 1,3 + gras)).
 - [ ] **La notice sous la question** : « Vote public : votre nom sera
       visible », ou « Vote anonyme » — lisible AVANT de choisir, dans la
       bulle comme dans le fil. *Les trois sondages du groupe Testeurs l'ont
@@ -2945,6 +2989,10 @@ Voir « Sondage dans une discussion privée » pour le parcours de création.
 - [x] **Thème sombre** : carte vérifiée SM A515F — fond sombre, notice
       lisible en gris, option choisie encadrée en violet, pied sur une ligne.
 - [ ] **Thème sombre** : la feuille de création et l'écran de résultats.
+      ⬜ moitié, Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff) : écran de résultats vu en sombre sur le Pixel 10 Pro XL (Salim, sombre, police 1,3 + gras) —
+      lisible, options encadrées en violet clair, notice anonyme en gris. Feuille
+      de création pas vue en sombre (le Pixel est le vrai compte : pas de sondage
+      créé depuis lui).
 - [x] **Coin de queue de la bulle envoyée** : plus de triangle vert sous la
       carte — elle reprend les rayons de la bulle. Vérifié SM A515F sur les
       deux bulles envoyées et sans régression sur la bulle reçue.
@@ -3019,8 +3067,14 @@ Voir « Sondage dans une discussion privée » pour le parcours de création.
       seconde fois. (`oublierMessageEnAttente` sur l'écho)
 - [ ] **Message de plus de 24 h** : il ne repart pas tout seul, il attend
       « Renvoyer ». (`kFenetreRenvoiAutomatique`)
-- [ ] **Échec en ligne** (et non hors ligne) : couper le réseau juste après
+- [x] **Échec en ligne** (et non hors ligne) : couper le réseau juste après
       l'appui sur envoyer. Même traitement — gardé, renvoyable.
+      ✅ Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff), SM A515F (Sim, clair, police 1,0), 1:1 MLS : « PA22ECHEC » envoyé puis mode avion dans la
+      même commande adb (00:42:39) → « Envoi… », puis « Non envoyé · Réessayer »
+      après le délai ; rien en base. Mode avion coupé à 00:44:04 sans rien
+      toucher → parti seul à 00:44:12, **une** ligne `mls_messages`, toujours une
+      seule 90 s plus tard (le battement de 60 s ne l'a pas renvoyé) ; bulle
+      « Envoyé ».
 - [ ] **La file ne gonfle pas** : après une série d'envois réussis, vérifier
       qu'il ne reste rien en attente.
 
@@ -3325,7 +3379,7 @@ Android et la suspension des timers n'existent pas sous `flutter test`.
 - [ ] **Profil privé** en face : le nom et la photo s'affichent quand même
       dans la liste (l'amitié/la discussion n'est pas un accès au profil, mais
       le nom doit rester lisible).
-- [ ] **Mode avion au lancement** puis retour réseau : la ligne se remplit
+- [x] **Mode avion au lancement** puis retour réseau : la ligne se remplit
       seule, sans afficher « Utilisateur » entre-temps.
       Mesuré deux fois le 2026-09-14 (SM A515F, release du jour), deux
       résultats : la liste s'est peinte depuis le cache en affichant
@@ -3336,6 +3390,17 @@ Android et la suspension des timers n'existent pas sous `flutter test`.
       case reste ouverte. L'en-tête d'une discussion, lui, ne se rattrape pas —
       voir « ✅ L'identité du correspondant revient seule après une
       coupure ».
+      ✅ Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff), SM A515F (Sim, clair, police 1,0) : mode avion, `force-stop`, `diasponiger://messages` →
+      liste peinte depuis le cache avec « Salim L. » (SL) et « Test Appareil »
+      (TA), **aucun « Utilisateur »** ; réseau rétabli : inchangé, toujours aucun
+      « Utilisateur » (3 relevés à 3 s).
+      ⛔ **Défaut nouveau, même famille, autre écran** : « Nouvelle conversation »
+      → « Contacts récents » affiche **trois lignes « Utilisateur »** avec l'initiale
+      « U ». Cause, par le code : `_buildRecentTile`
+      (`new_conversation_screen.dart`) écrit `conversation.name ?? l10n.user` et
+      `conversation.imageUrl` — or la section ne garde que des 1:1
+      (`isIndividual`), qui n'ont pas de `name` : le correspondant n'est jamais
+      résolu par son profil comme le fait la liste. Non corrigé dans cette passe.
 - [x] **« Mes notes »** (fil à participant unique) : titre correct — vérifié
       SM A515F le 2026-09-13. L'absence de requête de profil sur identifiant
       vide, elle, ne se voit pas à l'écran : elle tient à la garde
@@ -3352,10 +3417,14 @@ Android et la suspension des timers n'existent pas sous `flutter test`.
 
 *Bloqué : migration `20260912233000` à appliquer ; deux comptes.*
 
-- [ ] **« + » dans une DM** : « Sondage » présent ; créer (question + 2
+- [x] **« + » dans une DM** : « Sondage » présent ; créer (question + 2
   options) → bulle sondage chez les deux ; Sim vote, Salim voit le compte.
   (`conversation_screen.dart`, `create_poll_sheet.dart`,
   `poll_supabase_datasource.dart`)
+  ✅ Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff) : « + » du 1:1 MLS sur le SM A515F (Sim, clair, police 1,0) → « Sondage » présent (avec
+  Caméra, Photos, Documents, Position, Événement) ; question + 2 options →
+  bulle chez Sim ; après relance à froid, bulle chez Salim (Pixel 10 Pro XL (Salim, sombre, police 1,3 + gras)) avec
+  « Vote anonyme » et « 2 votes » (les deux voix de Sim).
 - [ ] « Mes notes » garde son brouillon de sondage (note texte), et un groupe
   garde ses permissions « qui peut créer un sondage ».
 - [ ] Avant la migration : message d'erreur explicite, pas d'écran figé.
@@ -3393,6 +3462,9 @@ Constaté sur le Pixel, discussion Salim → Sim A (captures de session).
   (`message_copy_text.dart`, `message_bubble.dart`)
 - [ ] **Position** → « Copier » colle l'adresse puis un lien Google Maps qui
   s'ouvre depuis une autre app. **Sondage** → la question.
+  ⬜ moitié, Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff), SM A515F (Sim, clair, police 1,0) : **sondage** → « Copier » colle la question
+  (« PA22 Sondage multiple anonyme », relu en collant dans le composeur, vidé
+  ensuite sans envoi). Position non essayée.
 - [ ] **Autres actions → « Sélectionner le texte »** : feuille avec le texte
   sélectionnable ; appui long dedans, choisir un numéro ou un lien, menu
   système Copier ; « Tout copier » ferme et copie tout. Message long : la
@@ -3403,6 +3475,11 @@ Constaté sur le Pixel, discussion Salim → Sim A (captures de session).
   vocal. Sélection de vocaux seuls → pas d'icône. Barre sur écran étroit
   (SM A515F, police 1.1) : le titre « N sélectionnés » ne déborde pas avec
   une icône de plus. (`conversation_screen.dart`)
+  ⬜ en partie, Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff), SM A515F (Sim, clair, police 1,0) : PH1 + PJ2 sélectionnés → icône Copier ;
+  collage = « [21/09/2026 20:04] Salim L. : PH1 » puis « [21/09/2026 20:12]
+  Salim L. : Salim L. a raison PJ2 », dans l'ordre. Pas de vocal dans le fil.
+  Barre : le titre est **tronqué en « 2 sélecti… »** dès la police 1,0 (il ne
+  déborde pas, mais ne se lit plus).
 
 ---
 
@@ -3412,19 +3489,34 @@ Constaté sur le Pixel, discussion Salim → Sim A (captures de session).
 
 *Bloqué : la notification et la mise à jour croisée demandent la migration `20260912220000_reaction_atomique_et_notification.sql` appliquée, et deux comptes (Pixel + SM A515F).*
 
-- [ ] **Double tap** sur une bulle (texte, photo, emoji seul) : une barre
+- [x] **Double tap** sur une bulle (texte, photo, emoji seul) : une barre
   flottante au-dessus de la bulle avec 👍 ❤️ 😂 🙏 😮 et un « + ». Choisir un
   emoji le pose ; toucher à côté ferme sans rien poser ; la barre ne sort
   jamais de l'écran (bulle tout en haut → barre en dessous).
   (`reaction_picker.dart`, `message_bubble.dart`)
+  ✅ Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff), SM A515F (Sim, clair, police 1,0), 1:1 MLS : double tap sur PH1 → barre 👍 ❤️ 😂 🙏 😮 +
+  au-dessus de la bulle ; toucher à côté la ferme, aucune ligne en base ; sur
+  la bulle du HAUT (PE1, juste sous l'en-tête) la barre reste à l'écran en
+  recouvrant l'en-tête (y 132–248) — elle ne passe pas dessous, mais ne sort
+  pas. ❤️ choisi dans la barre : posé (`mls_message_reactions`). Photo et
+  emoji seul non essayés (pas de photo à envoyer, cf. règles de la passe).
 - [ ] **« + »** (barre du double tap ET feuille d'appui long) : ouvre le
   sélecteur complet, recherche comprise (le clavier remonte la feuille) ;
   l'emoji choisi est posé.
+  ⬜ moitié, Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff), SM A515F (Sim, clair, police 1,0) : « + » de la barre du double tap → sélecteur
+  complet ; la loupe fait monter le clavier ET la feuille (champ visible) ;
+  « fire » → 🔥 posé sur PH1, une ligne en base. « + » de la feuille d'appui
+  long non essayé. L'onglet récents dit « No Recents » en anglais — déjà
+  consigné, corrigé pour le +28 (« Manquements de la passe du 2026-09-21 »).
+  La recherche du sélecteur est en mots-clés anglais (« fire »).
 - [ ] **Cœur rouge** : ❤️ rouge sous la bulle, dans la barre, dans le
   sélecteur, dans une bulle « emoji seul », dans le composeur en tapant, dans
   l'aperçu de la liste des discussions. Aussi ☀️. Et ⚠ reste un symbole de
   texte coloré dans les salons audio. (`assets/google_fonts/Inter-*.ttf`,
   `tools/polices_emoji_couleur.py`)
+  ⬜ en partie, Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff) : ❤️ rouge sous la bulle, dans la barre et dans la
+  feuille d'appui long (SM A515F (Sim, clair, police 1,0)), et sous la bulle côté Pixel 10 Pro XL (Salim, sombre, police 1,3 + gras). Pas vus : bulle
+  « emoji seul », composeur, aperçu de liste, ☀️, salons audio.
 - [ ] **Notification** : Sim réagit à un message de Salim → Salim reçoit
   « Sim · A réagi ❤️ à votre message », app fermée comme ouverte ; le tap
   ouvre la discussion. Changer d'emoji ne fait pas une 2e ligne en base
@@ -3432,10 +3524,19 @@ Constaté sur le Pixel, discussion Salim → Sim A (captures de session).
   voir « La messagerie sort de l'écran Notifications »).
   Aucune bannière si la discussion est déjà ouverte, ni si elle est en
   sourdine.
+  ⬜ en partie, Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff) : Sim pose 🔥 puis le remplace par ❤️ sur PH1 →
+  **une seule** ligne `mls_message_reactions` (❤️) et **une seule** ligne
+  `notifications` pour Salim (`messageReaction`, « Sim A » / « A réagi ❤️ à
+  votre message ») ; bannière lue dans le volet du Pixel
+  (`dumpsys notification --noredact`), app ouverte sur Réglages. Pas fait :
+  app fermée, tap sur la bannière, discussion ouverte, sourdine.
 - [ ] **Mise à jour croisée** : les deux téléphones sur la même discussion,
   réagir en rafale d'un côté puis de l'autre, quitter/rouvrir la discussion
   entre deux : chaque réaction apparaît chez l'autre sans relancer l'app, et
   l'accusé « Lu » ne disparaît plus. (`message_supabase_datasource.dart`)
+  ⬜ Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff) : pas mesuré en direct (le +26 ne rafraîchit pas les réactions
+  MLS en direct, connu). Après relance à froid du Pixel, le ❤️ de Sim est bien
+  sous PH1, « Lu » conservé.
 
 ---
 
@@ -3566,6 +3667,11 @@ Fichiers : `lib/core/services/e2ee/undecryptable_placeholders.dart`,
       masquerait chaque média sans légende.
 - [ ] Thème sombre : la ligne grise reste lisible (jetons `textTertiaryColor`
       / `iconTertiaryColor`, pas de teinte figée).
+      Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff), SM A515F (Sim, clair, police 1,0) (clair) : la bulle « Message indisponible sur cet appareil »
+      a enfin été vue une fois — dans « Mes notes », sur une note envoyée
+      « modifié 18:11 » du 11/09 : icône œil barré, texte gris italique sur la
+      bulle verte, aucun « [Message illisible] » ni bouton « Récupérer la clé ».
+      Pas vue en sombre (le Pixel n'a pas cette note).
 - [ ] ⚠️ Le cache local **fusionne**, il ne se vide pas : un message déjà
       empoisonné par `[Message illisible]` avant ce correctif le reste. Pour
       juger, viser un message encore lisible aujourd'hui, ou vider la
@@ -8920,19 +9026,46 @@ Couvert hors appareil par
 [lectures_conversation_chiffree_test.dart](test/features/messages/lectures_conversation_chiffree_test.dart)
 (11 cas).
 
-- [ ] **Chercher un mot d'un message chiffré** : il ressort, avec sa bulle et
+- [x] **Chercher un mot d'un message chiffré** : il ressort, avec sa bulle et
       son horodatage justes.
-- [ ] **Chercher un mot d'avant la bascule** : il ressort aussi, sous le
+      ✅ Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff), SM A515F (Sim, clair, police 1,0), 1:1 MLS : « PJ2 » → « Salim L. a raison PJ2 · 20:12 » ;
+      « PF1 » (envoyé par Sim) → « PF1 · 19:31 ». ⚠️ Le fond de la liste de
+      résultats est translucide : le fil se lit en transparence derrière.
+- [x] **Chercher un mot d'avant la bascule** : il ressort aussi, sous le
       séparateur.
-- [ ] **Un mot présent des deux côtés** : une seule occurrence par message,
+      ✅ Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff), SM A515F (Sim, clair, police 1,0) : « test » ressort `test-logs` (09/09) et `CLEF-TEST-1741`.
+      ⛔ **Défaut nouveau** : « Yo » ressort aussi une ligne qui affiche le
+      **ciphertext brut** « v1:/YO6lTZ8e0b69CLOgLRo7Q==:SEEiIX1Hm… » (04:57,
+      Salim). Cause, par le code : `searchMessagesInConversation` garde le
+      résultat serveur, un `ilike` sur `data->>content` — pour un ancien message
+      chiffré (repli AES `v1:`), c'est le chiffré qui matche (« YO » dans le
+      base64, sans casse) et il est affiché tel quel, ni déchiffré ni écarté
+      (`message_repository_impl.dart`, `message_supabase_datasource.dart`). Les
+      heures sans date (16:02, 04:57, 23:39, 15:36) ne disent pas de quel jour.
+- [x] **Un mot présent des deux côtés** : une seule occurrence par message,
       pas de doublon.
-- [ ] **Étoiler un message chiffré, puis ouvrir la liste des favoris** : il y
+      ✅ Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff), SM A515F (Sim, clair, police 1,0) : « PE1 » → une seule ligne (la citation dans PF1 ne
+      double pas) ; « Yo » → 4 lignes distinctes, aucun doublon.
+- [x] **Étoiler un message chiffré, puis ouvrir la liste des favoris** : il y
       est. C'était le défaut le plus trompeur, l'étoile s'affichant dans le
       fil pendant que la liste restait vide.
+      ✅ Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff), SM A515F (Sim, clair, police 1,0) : PJ1 étoilé (`mls_message_stars`, 00:21:43) → la liste
+      montre PK1 et PJ1, avec « Aller au message ».
 - [ ] **Retirer l'étoile** : il disparaît de la liste.
+      ⛔ **Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff), SM A515F (Sim, clair, police 1,0) : ÉCHEC.** Étoile retirée de PJ1 (ligne supprimée de
+      `mls_message_stars`), liste rouverte : PJ1 **y est toujours**. Il n'en sort
+      qu'après relance à froid. Cause, par le code : `starredMessagesProvider`
+      (`message_provider.dart`) est un `FutureProvider.family` **sans
+      `autoDispose`**, que rien n'invalide — la liste est figée sur son premier
+      calcul pour toute la vie du processus (vaut aussi dans l'autre sens : un
+      message étoilé après la première ouverture n'y entrerait pas). Non corrigé
+      dans cette passe.
 - [ ] **Galerie d'une conversation basculée** : les photos chiffrées y sont,
       et s'ouvrent en plein écran. Croiser avec l'entrée « Pièces jointes
       chiffrées ».
+      ⬜ Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff), SM A515F (Sim, clair, police 1,0) : « Médias partagés » du 1:1 → Photos · 0, Vidéos · 0,
+      Documents · 0. Rien à conclure : aucune photo visible dans ce fil, et
+      l'envoi de photo est exclu de la passe.
 - [ ] **Fil jamais ouvert sur cet appareil** : les trois écrans ne montrent
       rien de la partie chiffrée. Juger si c'est dit de façon acceptable, ou
       s'il faut un mot d'explication.
