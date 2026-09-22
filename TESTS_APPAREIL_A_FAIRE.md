@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1528 cases à cocher, 733 cochées** — 310 entrées sur 362 ont encore des cases ouvertes.
+**1524 cases à cocher, 737 cochées** — 310 entrées sur 362 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -62,7 +62,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [⬜ Un média chiffré de plus de 10 Mo était illisible (2026-09-16)](#-un-média-chiffré-de-plus-de-10-mo-était-illisible-2026-09-16) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ Ouvrir une discussion ne la bascule plus (2026-09-15)](#-ouvrir-une-discussion-ne-la-bascule-plus-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ Une conversation ne bascule plus sans ses participants (2026-09-15)](#-une-conversation-ne-bascule-plus-sans-ses-participants-2026-09-15) · *Chiffrement de bout en bout et clés*
-- 4 · [⬜ MLS ouvert pour un seul compte (phase 5, 2026-09-15)](#-mls-ouvert-pour-un-seul-compte-phase-5-2026-09-15) · *Chiffrement de bout en bout et clés*
+- 3 · [⬜ MLS ouvert pour un seul compte (phase 5, 2026-09-15)](#-mls-ouvert-pour-un-seul-compte-phase-5-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 5 · [⬜ Signal remis en service : la garde de session sur les lectures de clés (2026-09-14)](#-signal-remis-en-service--la-garde-de-session-sur-les-lectures-de-clés-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
 - 11 · [⬜ Cinq messages reçus, un seul lisible : la bannière ne s'empilait pas (2026-09-16)](#-cinq-messages-reçus-un-seul-lisible--la-bannière-ne-sempilait-pas-2026-09-16) · *Notifications et push*
 - 3 · [⬜ Aperçu MLS quand l'app est OUVERTE (le même message, l'autre isolate)](#-aperçu-mls-quand-lapp-est-ouverte-le-même-message-lautre-isolate) · *Notifications et push*
@@ -114,7 +114,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [⬜ Message chiffré supprimé pour tous : plus de clair en mémoire ni dans le cache (2026-09-21)](#-message-chiffré-supprimé-pour-tous--plus-de-clair-en-mémoire-ni-dans-le-cache-2026-09-21) · *Messagerie*
 - 9 · [⬜ Manquements de la passe du 2026-09-21 : cinq correctifs à voir sur appareil](#-manquements-de-la-passe-du-2026-09-21--cinq-correctifs-à-voir-sur-appareil) · *Messagerie*
 - 2 · [⬜ La pastille de non-lus retombe en quittant une discussion chiffrée (2026-09-21)](#-la-pastille-de-non-lus-retombe-en-quittant-une-discussion-chiffrée-2026-09-21) · *Messagerie*
-- 4 · [⬜ Les premiers messages reçus restent « Message chiffré » dans la liste (2026-09-21)](#-les-premiers-messages-reçus-restent--message-chiffré--dans-la-liste-2026-09-21) · *Messagerie*
+- 3 · [⬜ Les premiers messages reçus restent « Message chiffré » dans la liste (2026-09-21)](#-les-premiers-messages-reçus-restent--message-chiffré--dans-la-liste-2026-09-21) · *Messagerie*
 - 7 · [⬜ Ouvrir une discussion lit ce qui est à l'écran, tout de suite (2026-09-16)](#-ouvrir-une-discussion-lit-ce-qui-est-à-lécran-tout-de-suite-2026-09-16) · *Messagerie*
 - 6 · [⬜ Lecture par curseur dans les discussions en clair (2026-09-16)](#-lecture-par-curseur-dans-les-discussions-en-clair-2026-09-16) · *Messagerie*
 - 5 · [⬜ « Message chiffré » qui ne s'en va pas dans la liste (2026-09-16)](#--message-chiffré--qui-ne-sen-va-pas-dans-la-liste-2026-09-16) · *Messagerie*
@@ -141,7 +141,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [⬜ L'app lancée sans son écran n'inscrit plus d'appareil fantôme (2026-09-16)](#-lapp-lancée-sans-son-écran-ninscrit-plus-dappareil-fantôme-2026-09-16) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ « Chiffré de bout en bout » corrigé sur 8 surfaces, dont la politique de confidentialité (2026-09-16)](#--chiffré-de-bout-en-bout--corrigé-sur-8-surfaces-dont-la-politique-de-confidentialité-2026-09-16) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ La vidéo entre dans le chiffrement (2026-09-16)](#-la-vidéo-entre-dans-le-chiffrement-2026-09-16) · *Chiffrement de bout en bout et clés*
-- 8 · [⬜ Code de sécurité d'un appareil MLS (phase 7, 2026-09-15)](#-code-de-sécurité-dun-appareil-mls-phase-7-2026-09-15) · *Chiffrement de bout en bout et clés*
+- 7 · [⬜ Code de sécurité d'un appareil MLS (phase 7, 2026-09-15)](#-code-de-sécurité-dun-appareil-mls-phase-7-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ Recherche, favoris et galerie d'une conversation chiffrée (2026-09-15)](#-recherche-favoris-et-galerie-dune-conversation-chiffrée-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ Registre d'appareils MLS — inscription à la connexion, KeyPackages, écran (phase 2, 2026-09-15)](#-registre-dappareils-mls--inscription-à-la-connexion-keypackages-écran-phase-2-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ Distribution des Sender Keys : la même porte, une marche plus loin (2026-09-14)](#-distribution-des-sender-keys--la-même-porte-une-marche-plus-loin-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
@@ -184,7 +184,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [⬜ Groupe privé par lien : demander à rejoindre (2026-09-10)](#-groupe-privé-par-lien--demander-à-rejoindre-2026-09-10) · *Groupes* · bloqué
 - 8 · [⬜ Acceptation et départ d'un groupe : rien ne bougeait chez les autres (2026-09-09)](#-acceptation-et-départ-dun-groupe--rien-ne-bougeait-chez-les-autres-2026-09-09) · *Groupes* · bloqué
 - 15 · [Groupes — défauts trouvés en vérifiant les épingles (2026-08-05)](#groupes--défauts-trouvés-en-vérifiant-les-épingles-2026-08-05) · *Groupes*
-- 2 · [✅ Le bandeau « 1 message non lu » d'une conversation basculée (2026-09-15)](#-le-bandeau--1-message-non-lu--dune-conversation-basculée-2026-09-15) · *Chiffrement de bout en bout et clés*
+- 1 · [✅ Le bandeau « 1 message non lu » d'une conversation basculée (2026-09-15)](#-le-bandeau--1-message-non-lu--dune-conversation-basculée-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 8 · [⬜ Transfert des clés par QR, sans passphrase (2026-09-08)](#-transfert-des-clés-par-qr-sans-passphrase-2026-09-08) · *Chiffrement de bout en bout et clés* · bloqué
 - 5 · [⬜ Réglages de notification par type : local et serveur ne divergent plus (2026-09-18)](#-réglages-de-notification-par-type--local-et-serveur-ne-divergent-plus-2026-09-18) · *Notifications et push*
 - 7 · [⬜ La messagerie sort de l'écran Notifications (2026-09-13)](#-la-messagerie-sort-de-lécran-notifications-2026-09-13) · *Notifications et push*
@@ -368,9 +368,9 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 343 à faire, 171 faites
+- [2. Messagerie](#2-messagerie) — 342 à faire, 172 faites
 - [3. Groupes](#3-groupes) — 149 à faire, 64 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 134 à faire, 55 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 131 à faire, 58 faites
 - [5. Appels](#5-appels) — 26 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 144 à faire, 98 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
@@ -1025,8 +1025,12 @@ Tenu par `test/features/messages/apercu_rattrapage_rejoue_test.dart` (« un
 message reçu pendant le plancher… », rouge sur le code d'avant). Jamais vu
 sur appareil :
 
-- [ ] **Liste à l'écran, deux messages reçus à moins de 5 s** (depuis l'autre
+- [x] **Liste à l'écran, deux messages reçus à moins de 5 s** (depuis l'autre
       téléphone) : l'aperçu passe au texte du second en ≤ 5-6 s, sans toucher.
+      ✅ Passe du 2026-09-22 (~03:20–03:35), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : Pixel sur la liste (démarrage à froid), Sim envoie PX1
+      (03:22:45.2) puis PX2 (03:22:49.9, 4,7 s après) → la tuile « Sim A » dit
+      « PX2 · 2 » dès le premier relevé (≈ 1 s), jamais « Message chiffré », et
+      le reste 50 s (relevés toutes les ~3,5 s). `6646318` est bien dans f22aaff.
 - [ ] **Nouvelle discussion, premier échange** : les premiers messages ne
       restent pas sur « Message chiffré ».
 - [ ] **Hors ligne** : pas de boucle de rattrapage (une reprise au plus par
@@ -9011,12 +9015,20 @@ un `:`. Ce qui suit est ce qu'il ne peut pas voir.
   rendu anglais reste à voir.
 - [ ] **Deux téléphones, deux comptes** : le code affiché pour l'appareil de
   A, lu sur le téléphone de B, est le même que celui que A voit chez lui.
+  ⬜ Passe du 2026-09-22 (~03:20–03:35), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : **pas faisable sans caméra** — l'app ne montre le code que
+  de ses PROPRES appareils (`DevicesScreen`, sans paramètre de compte) ; B ne
+  peut le comparer qu'en scannant le QR de A. Et côté Salim, l'écran Appareils
+  n'affiche **aucun** code : voir « L'autre bout n'est pas listé » (phase 5).
 - [ ] **Après réinstallation** de l'application sur A : son code change, et
   le téléphone de B le signale (« la clé de cet appareil a changé »).
 - [ ] **Un appareil sans clé publiée** (ligne ancienne) affiche « code
   indisponible », jamais une suite de chiffres.
-- [ ] **Sélection et copie** du code fonctionnent (comparer par message écrit
+- [x] **Sélection et copie** du code fonctionnent (comparer par message écrit
   est le second canal le plus courant).
+  ✅ Passe du 2026-09-22 (~03:20–03:35), build Play 1.2.2+26 (f22aaff), SM A515F : appui long sur le code → menu système « Copier /
+  Partager / Tout sélectionner » ; « Tout sélectionner » + « Copier », collé
+  dans le champ de recherche de la messagerie : les 12 groupes, identiques à
+  l'écran (champ vidé ensuite).
 - [ ] **Thème sombre** : le code et l'avertissement restent lisibles.
 - [x] **Le QR s'affiche** et se met en page. ✅ SM A515F, 2026-09-15 — après
   correction : il s'ouvrait **entièrement vide**, sans titre ni bouton.
@@ -9059,9 +9071,12 @@ Fichiers : [conversation_screen.dart](lib/features/messages/presentation/screens
 - [x] **Bandeau disparu** : vérifié le 2026-09-15 sur SM A515F, build debug
       réinstallé, « Mes notes » rouverte. Le fil montre le séparateur puis les
       trois messages chiffrés, et plus aucun « non lu ».
-- [ ] **Un vrai non-lu s'affiche toujours** : à deux comptes, recevoir un
+- [x] **Un vrai non-lu s'affiche toujours** : à deux comptes, recevoir un
       message sans ouvrir la discussion, puis l'ouvrir — le bandeau doit
       apparaître au bon endroit, au-dessus du message reçu.
+      ✅ Passe du 2026-09-22 (~03:20–03:35), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : PS1–PS3 reçus app fermée puis discussion ouverte →
+      « 3 messages non lus » juste au-dessus de PS1 ; de même « 1 message non lu »
+      au-dessus de PU1 puis de PS5.
 - [ ] **La pastille de la liste** suit la même règle et retombe à zéro.
 
 ---
@@ -9102,8 +9117,18 @@ Couvert hors appareil par
       de bout en bout ». Aucune ligne dans `mls_diagnostics`. Et le serveur ne
       lit rien : chercher le texte des deux messages dans les ciphertexts rend
       zéro. **C'est la preuve de vie de la phase 5.**
-- [ ] **L'autre bout n'est pas listé** : c'est le cas qui décide. Vérifier ce
+- [x] **L'autre bout n'est pas listé** : c'est le cas qui décide. Vérifier ce
       que voit le destinataire, et que rien ne se perd en silence.
+      ✅ Passe du 2026-09-22 (~03:20–03:35), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : Salim n'est pas dans `mlsMessagesComptes`, Sim oui. Côté
+      Salim, **rien ne se perd** : sur toute la passe du 2026-09-22, messages,
+      réactions, modifications (« modifié »), sondages, séparateur et bannières
+      déchiffrées lui arrivent. Ce qu'il voit d'autre : Réglages › Sécurité ›
+      Appareils reste sur la **liste Signal** (« Inscrits : 2 sur 5 »,
+      empreintes), sans registre MLS ni **code de sécurité**, alors qu'il a 2
+      appareils MLS actifs (7 au total) dans `mls_devices` — l'écran choisit sur
+      le drapeau du compte (`mlsMessagesActifsProvider`), pas sur « a des
+      discussions chiffrées ». Il ne peut donc pas vérifier la clé de son
+      interlocuteur ni la sienne.
 - [ ] **Prise d'effet sans relancer l'app** : le drapeau est lu à chaque
       appel, pas au démarrage.
 - [ ] **Écran d'administration** : la liste n'y est pas éditable. Juger s'il
@@ -11947,6 +11972,11 @@ sont toutes `message`. Rien à déployer.
 - [ ] **Temps réel** : écran Notifications ouvert sur B, A envoie un message
   → rien ne bouge ; A envoie une demande d'ami ou commente un post de B → la
   ligne apparaît sans quitter l'écran.
+  ⬜ moitié, Passe du 2026-09-22 (~03:20–03:35), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : écran Notifications ouvert sur le Pixel (« 3 non
+  lues »), Sim envoie PX3 → relevé de l'écran **identique** avant/après,
+  alors qu'une notification `message` non lue est créée et que la bannière
+  système « PX3 » est posée. Demande d'ami / commentaire : pas testés
+  (publication interdite dans la passe).
 - [ ] **Cloche** : la pastille de l'accueil ne monte pas à la réception d'un
   message (l'onglet Messages, lui, monte), et monte sur une notification
   d'un autre type.
