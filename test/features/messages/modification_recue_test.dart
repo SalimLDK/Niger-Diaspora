@@ -51,7 +51,166 @@ void main() {
     });
   });
 
+  group('fusionnerLigneBrute', () {
+    // La ligne brute : contenu chiffré au repos, annexes réduites au blob.
+    MessageEntity brut({
+      bool supprime = false,
+      DateTime? editedAt,
+    }) => MessageEntity(
+      id: 'm1',
+      senderId: 'autre',
+      senderName: 'Sim A',
+      content: supprime ? '' : 'v1:Q0hJRkZSRQ==',
+      type: MessageType.text,
+      createdAt: _envoi,
+      readBy: const ['autre', 'moi'],
+      editedAt: editedAt,
+      deletedForEveryone: supprime,
+    );
+
+    final affiche = MessageEntity(
+      id: 'm1',
+      senderId: 'autre',
+      senderName: 'Sim A',
+      content: 'regarde ce post',
+      type: MessageType.text,
+      createdAt: _envoi,
+      fileUrl: 'https://exemple.test/photo.jpg',
+      postData: const {'postId': 'p1', 'content': 'extrait'},
+      linkPreviewData: const {'url': 'https://exemple.test'},
+    );
+
+    test('accusé de lecture : métadonnées de la ligne, contenu de l\'écran', () {
+      final resultat = fusionnerLigneBrute(affiche: affiche, brut: brut());
+      expect(resultat.readBy, ['autre', 'moi']);
+      expect(resultat.content, 'regarde ce post');
+      expect(resultat.fileUrl, affiche.fileUrl);
+      expect(resultat.postData, affiche.postData);
+      expect(resultat.linkPreviewData, affiche.linkPreviewData);
+    });
+
+    test('la date de modification n\'avance pas sans le texte', () {
+      final resultat = fusionnerLigneBrute(
+        affiche: affiche,
+        brut: brut(editedAt: _v1),
+      );
+      expect(resultat.editedAt, isNull);
+      expect(resultat.content, 'regarde ce post');
+    });
+
+    test('supprimé pour tout le monde : rien de l\'écran ne survit', () {
+      final resultat = fusionnerLigneBrute(
+        affiche: affiche,
+        brut: brut(supprime: true),
+      );
+      expect(resultat.deletedForEveryone, isTrue);
+      // Avant : la pierre tombale s'affichait, mais texte, carte et fichier
+      // restaient dans l'état de l'écran.
+      expect(resultat.content, isEmpty);
+      expect(resultat.fileUrl, isNull);
+      expect(resultat.postData, isNull);
+      expect(resultat.linkPreviewData, isNull);
+      expect(resultat.readBy, ['autre', 'moi']);
+    });
+  });
+
+  group('suppression MLS : sansContenuSupprime', () {
+    // Ce que rend `MlsGateway._avecMetadonnees` pour un message supprimé :
+    // le drapeau recollé sur l'entité DÉCHIFFRÉE, tout le reste intact.
+    final supprimeMls = MessageEntity(
+      id: 'mls-1',
+      senderId: 'autre',
+      senderName: 'Sim A',
+      content: 'PA6SECRET',
+      type: MessageType.image,
+      createdAt: _envoi,
+      localFilePath: '/data/user/0/cache/photo_dechiffree.jpg',
+      fileUrl: 'https://exemple.test/blob',
+      fileName: 'vacances.jpg',
+      thumbnailUrl: 'https://exemple.test/vignette',
+      replyToId: 'mls-0',
+      replyToMessageData: const {'content': 'cité'},
+      linkPreviewData: const {'url': 'https://exemple.test'},
+      editedAt: _v1,
+      readBy: const ['autre', 'moi'],
+      reactions: const {'moi': '👍'},
+      clientMessageId: 'cid-1',
+      deletedForEveryone: true,
+    );
+    final vivant = _message('toujours là');
+
+    test('le clair, le fichier, les cartes et la citation partent', () {
+      final [coquille] = sansContenuSupprime([supprimeMls]);
+      expect(coquille.content, isEmpty);
+      expect(coquille.localFilePath, isNull);
+      expect(coquille.fileUrl, isNull);
+      expect(coquille.fileName, isNull);
+      expect(coquille.thumbnailUrl, isNull);
+      expect(coquille.replyToId, isNull);
+      expect(coquille.replyToMessageData, isNull);
+      expect(coquille.linkPreviewData, isNull);
+      expect(coquille.editedAt, isNull);
+      expect(coquille.reactions, isEmpty);
+    });
+
+    test('ce qui fait la bulle et le dédoublonnage reste', () {
+      final [coquille] = sansContenuSupprime([supprimeMls]);
+      expect(coquille.id, 'mls-1');
+      expect(coquille.senderId, 'autre');
+      expect(coquille.createdAt, _envoi);
+      expect(coquille.type, MessageType.image);
+      expect(coquille.deletedForEveryone, isTrue);
+      expect(coquille.readBy, ['autre', 'moi']);
+      // L'écho d'une suppression est rapproché par `clientMessageId`.
+      expect(coquille.clientMessageId, 'cid-1');
+    });
+
+    test('les autres messages ne sont pas touchés', () {
+      final resultat = sansContenuSupprime([vivant, supprimeMls]);
+      expect(resultat.first, same(vivant));
+    });
+
+    test('aucune suppression : la liste elle-même, sans copie', () {
+      final liste = [vivant];
+      expect(sansContenuSupprime(liste), same(liste));
+    });
+
+    test('idempotent : vider une coquille ne change rien', () {
+      final une = sansContenuSupprime([supprimeMls]);
+      expect(sansContenuSupprime(une), une);
+    });
+  });
+
   group('appliquerModificationRelue', () {
+    test('une relecture revenue après la suppression ne ressuscite rien', () {
+      final tombe = MessageEntity(
+        id: 'm1',
+        senderId: 'autre',
+        senderName: 'Sim A',
+        content: '',
+        type: MessageType.text,
+        createdAt: _envoi,
+        deletedForEveryone: true,
+      );
+      expect(
+        appliquerModificationRelue(
+          affiche: tombe,
+          relu: _message('bonsoir', editedAt: _v1),
+          estAMoi: false,
+        ),
+        same(tombe),
+      );
+      final affiche = _message('bonjour');
+      expect(
+        appliquerModificationRelue(
+          affiche: affiche,
+          relu: tombe.copyWith(editedAt: _v1),
+          estAMoi: false,
+        ),
+        same(affiche),
+      );
+    });
+
     test('le nouveau texte et sa date remplacent l\'ancien', () {
       final resultat = appliquerModificationRelue(
         affiche: _message('bonjour'),

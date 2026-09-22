@@ -236,23 +236,33 @@ void main() {
     });
 
     test('le flux de mises à jour conserve la carte déjà déchiffrée', () {
-      final source = _source(
+      final fournisseur = _source(
         'lib/features/messages/presentation/providers/message_provider.dart',
       );
+      final ecoute = fournisseur.indexOf('void _listenForMessageUpdates()');
+      expect(ecoute, greaterThan(-1));
+      expect(
+        fournisseur.substring(ecoute, ecoute + 3000),
+        contains('fusionnerLigneBrute('),
+      );
 
-      final debut = source.indexOf('void _listenForMessageUpdates()');
+      // La fusion elle-même vit dans `modification_recue.dart`.
+      final source = _source(
+        'lib/features/messages/presentation/providers/modification_recue.dart',
+      );
+      final debut = source.indexOf('MessageEntity fusionnerLigneBrute(');
       expect(debut, greaterThan(-1));
-      final bloc = source.substring(debut, debut + 3000);
+      final bloc = source.substring(debut, debut + 1500);
 
       // La ligne brute de l'update ne porte que le blob chiffré, que ce chemin
       // ne déchiffre pas : sans ce report, le premier accusé de lecture faisait
       // disparaître la carte de la bulle, sans erreur nulle part.
       for (final champ in [
-        'postData: existing.postData',
-        'eventData: existing.eventData',
-        'productData: existing.productData',
-        'linkPreviewData: existing.linkPreviewData',
-        'replyToMessageData: existing.replyToMessageData',
+        'postData: affiche.postData',
+        'eventData: affiche.eventData',
+        'productData: affiche.productData',
+        'linkPreviewData: affiche.linkPreviewData',
+        'replyToMessageData: affiche.replyToMessageData',
       ]) {
         expect(
           bloc.contains(champ),
