@@ -647,7 +647,12 @@ avant le fil l'emporte (le drapeau n'est jamais dégradé). Côté dépôt,
 `jsonPourCacheMls` vide avant toute écriture et `mlsDuCache` à la lecture :
 les entrées déjà écrites en clair sont réécrites vidées au passage suivant.
 Tenu par `test/core/crypto/mls_metadonnees_test.dart` (groupe « Un message
-supprimé pour tous ne garde son clair nulle part »).
+supprimé pour tous ne garde son clair nulle part »). L'écriture faite au
+geste même (`_marquerSupprimeDansLeCache`) ne vidait que `content` : clé du
+média, fichier, cartes et citation restaient sur le disque jusqu'au passage
+suivant, jamais venu si l'app était tuée entre-temps. Elle écrit maintenant
+la coquille (`entreeCacheSupprimee`), tenue par
+`test/features/messages/apercu_apres_suppression_mls_test.dart`.
 
 - [ ] **Côté auteur** : discussion chiffrée, envoyer une photo avec légende,
   « Supprimer pour tout le monde » → pierre tombale ; tuer l'app, relancer

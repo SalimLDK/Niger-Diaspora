@@ -992,9 +992,11 @@ class MessageRepositoryImpl implements MessageRepository {
   /// suppression, et jusqu'à la relance de l'app — le seul moment où la liste
   /// relisait le cache.
   ///
-  /// Le texte est vidé, pas seulement marqué : c'est la copie qui fuyait.
+  /// L'entrée est vidée, pas seulement marquée : c'est la copie qui fuyait.
   /// La relecture du fil par la passerelle réécrira cette entrée de toute
-  /// façon, avec la même marque.
+  /// façon, avec la même marque — mais seulement au prochain passage, et
+  /// une app tuée entre les deux laissait sur le disque ce que cette
+  /// écriture n'avait pas retiré (voir [entreeCacheSupprimee]).
   Future<void> _marquerSupprimeDansLeCache(
     String conversationId,
     String messageId,
@@ -1003,10 +1005,10 @@ class MessageRepositoryImpl implements MessageRepository {
       final cached = cacheService.getCachedMessages(conversationId);
       final index = cached.indexWhere((m) => m['id'] == messageId);
       if (index != -1) {
-        final mis = Map<String, dynamic>.from(cached[index])
-          ..['deletedForEveryone'] = true
-          ..['content'] = '';
-        await cacheService.cacheMessages(conversationId, [mis]);
+        await cacheService.cacheMessages(
+          conversationId,
+          [entreeCacheSupprimee(cached[index])],
+        );
       }
     } catch (e) {
       // La suppression serveur a réussi : un cache récalcitrant ne doit pas
@@ -1255,6 +1257,21 @@ class MessageRepositoryImpl implements MessageRepository {
         m.deletedForEveryone ? m.videPourSuppression() : m,
       ).toJson(),
   ];
+
+  /// Une entrée du cache local, réduite à la coquille d'un message supprimé
+  /// pour tous (`MessageEntity.videPourSuppression`).
+  ///
+  /// Elle ne vidait que `content` : la clé du média, l'URL et le chemin local
+  /// du fichier, les cartes partagées et la citation restaient sur le disque
+  /// jusqu'au passage suivant du fil. Même aller-retour que toute écriture
+  /// du cache (`MessageModel.toJson`, relu par `fromJson`), donc même liste
+  /// d'inclusion que l'écran et la passerelle.
+  @visibleForTesting
+  static Map<String, dynamic> entreeCacheSupprimee(
+    Map<String, dynamic> entree,
+  ) => MessageModel.fromEntity(
+    MessageModel.fromJson(entree).toEntity().videPourSuppression(),
+  ).toJson();
 
   /// La règle seule, sans cache — pour pouvoir la tenir par un test.
   @visibleForTesting

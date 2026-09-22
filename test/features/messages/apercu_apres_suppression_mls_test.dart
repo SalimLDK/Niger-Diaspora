@@ -183,6 +183,56 @@ void main() {
         reason: 'la copie locale du texte est retirée, pas seulement marquée');
   });
 
+  test('supprimer pour tous : l\'entrée du cache perd aussi la clé du média, '
+      'le fichier, la carte et la citation', () async {
+    // Une photo chiffrée qui citait un message et portait un aperçu de lien.
+    // Seul `content` était vidé : le reste attendait sur le disque le
+    // passage suivant du fil — jamais venu si l'app était tuée entre-temps.
+    await cache.cacheMessages('c1', [
+      {
+        ..._dernier('PA6SECRET'),
+        'type': 'image',
+        'fileUrl': 'https://exemple.test/blob',
+        'fileName': 'vacances.jpg',
+        'mediaChiffre': {
+          'v': 1,
+          'storagePath': 'encrypted_media/c1/moi/x',
+          'encryptedUrl': 'https://exemple.test/blob',
+          'fileKey': 'Q0xFRlNFQ1JFVEU=',
+          'iv': 'SVY=',
+          'fileName': 'vacances.jpg',
+          'mimeType': 'image/jpeg',
+          'size': 42,
+        },
+        'replyToId': 'm0',
+        'replyToMessageData': {'content': 'citation'},
+        'linkPreviewData': {'url': 'https://exemple.test'},
+        'readBy': ['moi', 'autre'],
+      },
+    ]);
+
+    await depot.deleteMessageForEveryone(conversationId: 'c1', messageId: 'm1');
+
+    final entree = cache.getCachedMessages('c1').single;
+    expect(entree['deletedForEveryone'], isTrue);
+    expect(entree['content'], isEmpty);
+    for (final cle in [
+      'fileUrl',
+      'fileName',
+      'mediaChiffre',
+      'replyToId',
+      'replyToMessageData',
+      'linkPreviewData',
+    ]) {
+      expect(entree[cle], isNull, reason: '« $cle » resté sur le disque');
+    }
+    expect(entree.toString(), isNot(contains('Q0xFRlNFQ1JFVEU=')));
+    // Ce qui fait la bulle reste : identifiant, date, lecture.
+    expect(entree['id'], 'm1');
+    expect(DateTime.parse(entree['createdAt'] as String), _quand);
+    expect(entree['readBy'], ['moi', 'autre']);
+  });
+
   test('modifier son dernier message : la tuile prend le nouveau texte',
       () async {
     final r = await depot.editMessage(
