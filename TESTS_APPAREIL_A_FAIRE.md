@@ -3373,11 +3373,13 @@ voter ne réécrit jamais le message, c'est la carte qui se met à jour.
 
 **Priorité P2** · importance 3/5 — La mention n'est ni visible ni cliquable, ou insère un identifiant brut au lieu du pseudo.
 
-- [ ] Coloration de la mention dans la bulle — **bloqué**, pas par les
-      mentions : le message envoyé s'affiche « clé de groupe introuvable »
-      (voir « Le message de groupe illisible par son propre expéditeur »). Le contenu n'est pas rendu comme du
-      texte, donc rien à colorer.
-- [ ] Tap sur la mention → ouvre le profil — bloqué par la même chose.
+- [ ] Coloration de la mention dans la bulle, chez l'expéditeur et chez le
+      destinataire. Débloqué : « clé de groupe introuvable » ne s'affiche plus
+      (causes corrigées et vérifiées le 2026-08-23, voir « Le message de
+      groupe illisible par son propre expéditeur » dans l'archive), et les 61
+      messages de groupe des 30 derniers jours partent tous en `aes`, lisible
+      par tout le groupe (relu en base le 2026-09-22).
+- [ ] Tap sur la mention → ouvre le profil.
 - [ ] Compte **avec** poignée : vérifier que c'est `@diaspo_ne` qui est inséré
       et non l'identifiant. Le filtre `@sa` ne le proposait pas ; à retenter
       avec `@dia`.
