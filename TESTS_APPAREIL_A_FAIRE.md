@@ -1272,6 +1272,19 @@ Recette : `supabase db query --linked -f supabase/diagnostics/2026-09-15_recus_b
       À revoir sur un build qui le porte : même recette (Pixel fermé, 10+
       messages, ouverture par lien profond PUIS par tap sur la bannière) →
       séparateur, placement sur le premier non-lu, `read_at` nul sous le pli.
+      ⚠️ **Correctif INCOMPLET — vérifié le même soir sur le +26 (02:47)** : la
+      même recette, mais la discussion ouverte **depuis la liste** (tuile
+      « Sim A · 02:47 · PT10 · 10 », donc annonce présente et chemin que le
+      correctif ne touche pas), donne le même symptôme : fil du cache
+      (jusqu'à PS5), puis écran posé en bas sur PT3–PT10, aucun séparateur ;
+      PT1 lu **seul** à 02:47:41.189, puis PT2–PT10 ensemble à 02:47:42.808.
+      Il y a donc une **seconde cause, non établie**. Écarté : `repere_de_lecture`
+      compte bien les messages sans ligne d'accusé (LEFT JOIN, relu en base).
+      Pistes à vérifier sur un build debug (le build Play n'écrit aucun
+      journal Flutter dans logcat) : le saut de `_scrollToUnreadOrBottom` est
+      une ESTIMATION (`maxScrollExtent × rang / total`) qui peut tomber à 0 sur
+      une liste paresseuse ; et la première écriture isolée sur PT1 laisse
+      penser que la vue a été « posée » avant l'arrivée du fil réseau.
 - [ ] **Côté A** : « Lu » apparaît sur les bulles affichées chez B, « Envoyé »
       ou « Distribué » sur les autres.
       ⛔ Passe du 2026-09-22 (~02:00–02:30), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : chez Sim, relance à froid → « Lu » sur PR1–PR10, y compris
