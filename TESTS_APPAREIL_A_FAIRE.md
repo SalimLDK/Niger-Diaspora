@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1548 cases à cocher, 713 cochées** — 310 entrées sur 362 ont encore des cases ouvertes.
+**1539 cases à cocher, 722 cochées** — 310 entrées sur 362 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -222,7 +222,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [Bascule design_v2 → production, famille 4 : messagerie, groupes, recherche, profil (2026-08-03)](#bascule-design_v2--production-famille-4--messagerie-groupes-recherche-profil-2026-08-03) · *Design, thème, langue et mise en page*
 - 7 · [⬜ Site web entièrement refait sur cahier des charges (2026-09-08)](#-site-web-entièrement-refait-sur-cahier-des-charges-2026-09-08) · *Site web*
 - 3 · [⬜ « Supprimer pour tous » proposé sur le message de l'autre en 1:1 (2026-09-21)](#--supprimer-pour-tous--proposé-sur-le-message-de-lautre-en-11-2026-09-21) · *Messagerie*
-- 6 · [⬜ Le séparateur « N messages non lus » part quand tout est lu (2026-09-17)](#-le-séparateur--n-messages-non-lus--part-quand-tout-est-lu-2026-09-17) · *Messagerie*
+- 3 · [⬜ Le séparateur « N messages non lus » part quand tout est lu (2026-09-17)](#-le-séparateur--n-messages-non-lus--part-quand-tout-est-lu-2026-09-17) · *Messagerie*
 - 3 · [⬜ « Distribué » et « Lu » ne tombent plus à la même seconde (2026-09-16)](#--distribué--et--lu--ne-tombent-plus-à-la-même-seconde-2026-09-16) · *Messagerie*
 - 3 · [⬜ Forme de la bulle qui cite un message (2026-09-16)](#-forme-de-la-bulle-qui-cite-un-message-2026-09-16) · *Messagerie*
 - 5 · [⬜ « Modifier le message » : saisie en ligne, fenêtre de 48 h, motifs dits (2026-09-16)](#--modifier-le-message---saisie-en-ligne-fenêtre-de-48-h-motifs-dits-2026-09-16) · *Messagerie*
@@ -231,9 +231,9 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⬜ Sondage dans une discussion privée (2026-09-12)](#-sondage-dans-une-discussion-privée-2026-09-12) · *Messagerie*
 - 5 · [⬜ Cartes de post et d'événement lisibles dans une bulle envoyée (2026-09-12)](#-cartes-de-post-et-dévénement-lisibles-dans-une-bulle-envoyée-2026-09-12) · *Messagerie*
 - 4 · [⬜ Copier : légendes, positions, sondages, un passage, une sélection (2026-09-12)](#-copier--légendes-positions-sondages-un-passage-une-sélection-2026-09-12) · *Messagerie*
-- 7 · [Messagerie — un filtre sans résultat n'est pas une messagerie vide (2026-08-06)](#messagerie--un-filtre-sans-résultat-nest-pas-une-messagerie-vide-2026-08-06) · *Messagerie*
+- 6 · [Messagerie — un filtre sans résultat n'est pas une messagerie vide (2026-08-06)](#messagerie--un-filtre-sans-résultat-nest-pas-une-messagerie-vide-2026-08-06) · *Messagerie*
 - 4 · [Composeur — largeur de la pilule et « + » en clair (2026-08-05)](#composeur--largeur-de-la-pilule-et----en-clair-2026-08-05) · *Messagerie*
-- 6 · [Recherche messagerie — le clavier demandait deux taps (§9b, 2026-08-04)](#recherche-messagerie--le-clavier-demandait-deux-taps-9b-2026-08-04) · *Messagerie*
+- 2 · [Recherche messagerie — le clavier demandait deux taps (§9b, 2026-08-04)](#recherche-messagerie--le-clavier-demandait-deux-taps-9b-2026-08-04) · *Messagerie*
 - 4 · [Zone de saisie des messages — barre multi-ligne (2026-08-04)](#zone-de-saisie-des-messages--barre-multi-ligne-2026-08-04) · *Messagerie*
 - 5 · [⬜ Groupes : non-lus depuis l'arrivée, messages système, « Lu » par tous (2026-09-17)](#-groupes--non-lus-depuis-larrivée-messages-système--lu--par-tous-2026-09-17) · *Groupes*
 - 5 · [⬜ Groupe privé : un nouveau membre ne voit plus ce qui précède son arrivée (2026-09-16)](#-groupe-privé--un-nouveau-membre-ne-voit-plus-ce-qui-précède-son-arrivée-2026-09-16) · *Groupes*
@@ -323,7 +323,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [Bascule design_v2 → production, famille 5 : accueil et envoi d'argent (2026-08-03)](#bascule-design_v2--production-famille-5--accueil-et-envoi-dargent-2026-08-03) · *Design, thème, langue et mise en page*
 - 3 · [⬜ Les ~920 `debugPrint` restants neutralisés en release (2026-09-09)](#-les-920-debugprint-restants-neutralisés-en-release-2026-09-09) · *Backend, sécurité et observabilité* · bloqué
 - 5 · [⬜ Fiches de partage : libellés sur une ligne, vrais logos, bouton (2026-09-20)](#-fiches-de-partage--libellés-sur-une-ligne-vrais-logos-bouton-2026-09-20) · *Messagerie*
-- 7 · [⬜ Squelette de chargement de la messagerie (2026-09-15)](#-squelette-de-chargement-de-la-messagerie-2026-09-15) · *Messagerie*
+- 6 · [⬜ Squelette de chargement de la messagerie (2026-09-15)](#-squelette-de-chargement-de-la-messagerie-2026-09-15) · *Messagerie*
 - 7 · [⬜ Une couleur par pièce jointe dans le « + » (2026-09-14)](#-une-couleur-par-pièce-jointe-dans-le----2026-09-14) · *Messagerie*
 - 6 · [Discussion — ÉCO rejoint la ligne épinglée (fiche 6b, 2026-08-05)](#discussion--éco-rejoint-la-ligne-épinglée-fiche-6b-2026-08-05) · *Messagerie*
 - 1 · [✅ Rappel des clés : « Ne plus me le rappeler » — vérifié SM A515F (2026-09-08)](#-rappel-des-clés---ne-plus-me-le-rappeler---vérifié-sm-a515f-2026-09-08) · *Chiffrement de bout en bout et clés*
@@ -368,7 +368,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 353 à faire, 161 faites
+- [2. Messagerie](#2-messagerie) — 344 à faire, 170 faites
 - [3. Groupes](#3-groupes) — 149 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 134 à faire, 55 faites
 - [5. Appels](#5-appels) — 26 à faire, 8 faites
@@ -1163,16 +1163,23 @@ fois parti, il ne revient pas. Règle dans
 ne devrait pas décaler ce qu'on voit (le fil est ancré en bas). La case « le fil
 ne saute pas » est là pour le confirmer.
 
-- [ ] **Tout tient à l'écran** : 3 non-lus, ouvrir → séparateur visible, les 3
+- [x] **Tout tient à l'écran** : 3 non-lus, ouvrir → séparateur visible, les 3
       lus aussitôt (A2) → le séparateur **reste** tant qu'on ne bouge pas.
+      ✅ Passe du 2026-09-22 (~02:00–02:30), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : Pixel fermé, Sim envoie PS1–PS3, ouverture à froid →
+      « 3 messages non lus » au-dessus de PS1, les trois `read_at` posés
+      (02:19:44), séparateur **toujours là** 6 s plus tard sans rien toucher.
 - [ ] **Faire défiler** jusqu'à ce qu'il sorte par le haut, puis revenir → il a
       disparu, et **le fil ne saute pas** au moment où il part.
 - [ ] **Beaucoup de non-lus** (20+) : en descendant, le chiffre du badge
       descend ; arrivé en bas, le badge disparaît.
 - [ ] **Message reçu pendant la lecture** (l'autre écrit pendant qu'on
       descend) : le séparateur part quand même une fois les anciens lus.
-- [ ] **Message reçu après que tout est lu** : aucun séparateur ne revient.
-- [ ] **Rouvrir** la discussion lue : pas de séparateur.
+- [x] **Message reçu après que tout est lu** : aucun séparateur ne revient.
+      ✅ Passe du 2026-09-22 (~02:00–02:30), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : discussion restée ouverte, PS4 arrive en direct → aucun
+      séparateur ; livré en 1,4 s, lu en 3 s.
+- [x] **Rouvrir** la discussion lue : pas de séparateur.
+      ✅ Passe du 2026-09-22 (~02:00–02:30), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : relance à froid après lecture de PS1–PS3 → aucun
+      séparateur.
 
 ---
 
@@ -1234,14 +1241,39 @@ Recette : `supabase db query --linked -f supabase/diagnostics/2026-09-15_recus_b
 - [ ] **Ouverture, discussion chiffrée** : A envoie 12 messages à B ; B ouvre
       → `read_at` posé **en moins d'une seconde** sur les bulles affichées,
       nul sur celles sous le pli.
+      ⛔ Passe du 2026-09-22 (~02:00–02:30), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : Pixel fermé (HOME + `am kill`), Sim envoie PQ1–PQ12 puis un
+      sondage ; ouverture à froid par lien profond → **les 13 `read_at` tombent à la
+      même milliseconde** (02:08:10.179, 5,3 s après le lancement), alors que seuls
+      PQ9–PQ12 et le sondage étaient à l'écran. Rejoué avec PR1–PR10 et une rafale
+      de captures SUR le Pixel : le fil s'ouvre d'abord sur le cache, puis les
+      nouveaux arrivent et l'écran se pose **en bas** (PR3–PR10) ; PR1 et PR2,
+      jamais affichés, sont lus aussi (02:12:34.871, tous ensemble). Cause, par le
+      code : en MLS la lecture avance un **curseur** (`avancerCurseur` →
+      `marquerLusJusqua`) — lire le plus récent affiché marque tout ce qui précède ;
+      le défaut vient de l'ouverture en bas (case suivante).
 - [ ] **Ouverture avec saut au premier non-lu** : les derniers messages, vus
       une fraction de seconde avant le saut, ne sont PAS marqués (le cas que le
       relevé est fait pour éviter).
+      ⛔ Passe du 2026-09-22 (~02:00–02:30), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : **aucun saut** avec 10 ou 13 non-lus : pas de séparateur
+      « N messages non lus », écran posé sur les derniers. Avec 3 non-lus (qui
+      tiennent à l'écran), le séparateur s'affiche bien. Hypothèse, non établie
+      par le code : le premier non-lu est cherché avant que le rattrapage MLS
+      n'ait ajouté les nouveaux messages au fil (ils arrivent après le cache, cf.
+      rafale).
 - [ ] **Côté A** : « Lu » apparaît sur les bulles affichées chez B, « Envoyé »
       ou « Distribué » sur les autres.
+      ⛔ Passe du 2026-09-22 (~02:00–02:30), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : chez Sim, relance à froid → « Lu » sur PR1–PR10, y compris
+      PR1 et PR2 que Salim n'a jamais eus à l'écran (conséquence des deux cases
+      ci-dessus).
 - [ ] **Retour au premier plan** : B garde la discussion ouverte, passe l'app
       en arrière-plan, A écrit, B revient → le message visible passe à « Lu »
       sans que B touche l'écran.
+      ⬜ Passe du 2026-09-22 (~02:00–02:30), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : **invérifiable sur le +26**. Pixel discussion ouverte, HOME
+      20 s, Sim envoie PS5 (bannière posée), retour au premier plan → PS5 **absent**
+      du fil 30 s plus tard (livré 02:22:16, jamais lu), bannière restée. C'est le
+      défaut connu « Temps réel après l'arrière-plan » : à refaire sur le +28.
+      Relance à froid : PS5 affiché sous « 1 message non lu », lu, bannière
+      retirée.
 - [ ] **Une seule écriture à l'ouverture** : dans les journaux d'API Supabase,
       un seul appel d'avancée du curseur (et un seul `marquer_lus_jusqua` une
       fois la migration appliquée), pas un par bulle.
@@ -2070,9 +2102,12 @@ Fichiers : [messages_skeleton.dart](lib/features/messages/presentation/widgets/m
   cache froid (appareil où l'app vient d'être installée) ou un réseau lent.
   Ce qu'on regarde alors : le squelette sous les puces de filtre, puis la
   vraie liste **sans saut vertical** par rapport aux lignes annoncées.
-- [ ] **Le squelette ne revient pas** sur un « tirer pour rafraîchir » ni au
+- [x] **Le squelette ne revient pas** sur un « tirer pour rafraîchir » ni au
   retour sur l'onglet Messages (`skipLoadingOnRefresh` / `OnReload`) : la
   liste déjà affichée doit rester en place.
+  ✅ Passe du 2026-09-22 (~02:00–02:30), build Play 1.2.2+26 (f22aaff), SM A515F : rafale de 8 captures sur le téléphone pendant un
+  tirer-pour-rafraîchir, puis 6 pendant Accueil → Messages : la liste reste en
+  place à chaque image, aucun squelette.
 - [ ] **Fil d'une discussion** : ouvrir une discussion à tête-tête depuis la
   liste. Les bulles vides sont **collées en bas**, contre le composeur, comme
   la vraie liste inversée — pas en haut de l'écran.
@@ -3586,6 +3621,14 @@ Constaté sur le Pixel, discussion Salim → Sim A (captures de session).
   votre message ») ; bannière lue dans le volet du Pixel
   (`dumpsys notification --noredact`), app ouverte sur Réglages. Pas fait :
   app fermée, tap sur la bannière, discussion ouverte, sourdine.
+  ⬜ presque, Passe du 2026-09-22 (~02:00–02:30), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS (PK1 de Salim) :
+  - discussion **ouverte** sur le Pixel : 😂 → ligne `notifications` créée,
+    **aucune bannière** dans le volet ;
+  - app **fermée** (HOME + `am kill`) : 😂 → 🙏 → bannière « Sim A · A réagi 🙏
+    à votre message », et toujours **une seule** ligne `notifications` ;
+  - **tap** sur la bannière (volet ouvert par `cmd statusbar`) → ouvre la
+    discussion avec Sim A, bannière retirée.
+  Reste : la sourdine.
 - [ ] **Mise à jour croisée** : les deux téléphones sur la même discussion,
   réagir en rafale d'un côté puis de l'autre, quitter/rouvrir la discussion
   entre deux : chaque réaction apparaît chez l'autre sans relancer l'app, et
@@ -4479,11 +4522,13 @@ l10n, GoRouter, une session Supabase et une dizaine de providers, et
       groupe », même sortie.
 - [ ] **Messagerie réellement vide** (compte neuf) : la fiche 9e s'affiche
       toujours, elle — c'est elle qu'on ne voulait pas perdre.
-- [ ] **Archives vides** et **recherche sans résultat** : inchangés, ils ont
+- [x] **Archives vides** et **recherche sans résultat** : inchangés, ils ont
       leurs propres états vides depuis toujours.
       ⬜ moitié, Passe du 2026-09-22 (~01:55), build Play 1.2.2+26 (f22aaff), SM A515F (Sim, clair) : puce « Archives » → « Aucune conversation archivée ».
       Recherche sans résultat pas faite : la passe a été arrêtée (quelqu'un s'est
       servi du téléphone).
+      ✅ Passe du 2026-09-22 (~02:00–02:30), build Play 1.2.2+26 (f22aaff), SM A515F : recherche « zqxw » → « Tout · 0 / Personnes · 0 /
+      Conversations · 0 » et « Aucun nom ne correspond à « zqxw ». ».
 - [ ] **Thème sombre** sur les deux nouveaux états : l'icône est posée à
       `textTertiaryColor` à 50 %, le texte à `textSecondaryColor` — vérifier
       qu'ils restent lisibles.
@@ -5030,18 +5075,32 @@ démonté.
 restauré » ci-dessous, aucun test ne couvre ça — la remontée du clavier logiciel
 n'est pas observable en test widget. `flutter analyze` propre, c'est tout.
 
-- [ ] **Le cas décisif** : depuis la liste des messages, **un seul tap** sur le
+- [x] **Le cas décisif** : depuis la liste des messages, **un seul tap** sur le
       champ de recherche → le clavier doit monter immédiatement et **rester**.
-- [ ] Enchaîner : saisir un terme sans re-toucher le champ, vérifier que le
+      ✅ Passe du 2026-09-22 (~02:00–02:30), build Play 1.2.2+26 (f22aaff), SM A515F : un tap → `mInputShown=true` à 0,5 s, 1,5 s et 3 s ;
+      même chose sur le Pixel (sombre, police 1,3).
+- [x] Enchaîner : saisir un terme sans re-toucher le champ, vérifier que le
       filtrage et les sections **Personnes** / **Conversations** répondent.
-- [ ] Fermer par la flèche ←, puis rouvrir par un tap : le clavier doit remonter
+      ✅ Passe du 2026-09-22 (~02:00–02:30), build Play 1.2.2+26 (f22aaff), SM A515F : « Sal » tapé aussitôt → « Personnes · 4 » (Salim,
+      Saleh, issaleko, Abdou) et « Conversations · 1 » (Salim L.), nom surligné.
+- [x] Fermer par la flèche ←, puis rouvrir par un tap : le clavier doit remonter
       du premier coup **à chaque fois**, pas seulement la première.
-- [ ] Non-régression visuelle (fiche 9b) : bordure accent, loupe orange et halo
+      ✅ Passe du 2026-09-22 (~02:00–02:30), build Play 1.2.2+26 (f22aaff), SM A515F : deux cycles fermeture ← / tap → clavier monté et resté
+      les deux fois.
+- [x] Non-régression visuelle (fiche 9b) : bordure accent, loupe orange et halo
       3 px toujours présents en recherche — et **aucune ombre** quand le champ
       est au repos (le `DecoratedBox` est désormais permanent).
+      ✅ Passe du 2026-09-22 (~02:00–02:30), build Play 1.2.2+26 (f22aaff), SM A515F : en recherche, bordure et loupe orange, halo ; au repos,
+      aucune ombre (capture). ⚠️ L'indication au repos dit « Rechercher une
+      personne, un message » alors que l'écran précise ensuite que « la recherche
+      porte sur les noms » : le libellé promet ce qu'il ne fait pas.
 - [ ] Refaire la passe en **clair et en nocturne** : le correctif touche
       `design_kit.dart`, donc tous les autres `DesignSearchField` du projet
       (boutique, groupes, carte) — vérifier qu'aucun n'a gagné d'ombre parasite.
+      ⬜ moitié, Passe du 2026-09-22 (~02:00–02:30), build Play 1.2.2+26 (f22aaff) : champ de la messagerie vu en clair (A515F) et en sombre
+      (Pixel, bordure orange sur fond sombre, lisible ; à 1,3 la 3ᵉ puce
+      « Conversations » est coupée, la rangée défile). Les autres
+      `DesignSearchField` (boutique, groupes, carte) pas regardés.
 - [ ] Boîte de réception **vide** : le champ n'est pas affiché dans cet état, la
       recherche n'y est donc pas ouvrable — confirmer que c'est bien voulu.
 
@@ -11255,6 +11314,9 @@ Fichiers : [notification_pile_messages.dart](lib/core/services/notification_pile
 - [x] **App tuée, cinq messages de la même personne** : une seule bannière,
   qui les montre **tous**, avec le compteur à 5.
   ✅ Passe du 2026-09-21 (soir), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : HOME puis `am kill` ; PB1–PB5 → une bannière, `number=5`, cinq lignes dans l'ordre.
+  Passe du 2026-09-22 (~02:00–02:30), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : avec **12** messages (PQ1–PQ12), la bannière montre les 6
+  derniers (PQ7–PQ12, dans l'ordre, avec l'heure) — plafond voulu — mais
+  `number=6` : rien ne dit que 12 messages sont arrivés.
 - [ ] **Groupe qui s'anime, app tuée** : la bannière porte le nom du groupe en
   titre et **chaque message précédé de son expéditeur**.
 - [ ] **Ouvrir la conversation, puis recevoir un nouveau message** : la
@@ -11531,6 +11593,9 @@ Fichiers : [notification_service.dart](lib/core/services/notification_service.da
 - [ ] **Sondage et appel** reçus chiffrés : libellés « Sondage » et « Appel »
   (deux types que `resume` ignorait, d'où un repli générique alors que le
   message était déchiffré).
+  ⬜ moitié, Passe du 2026-09-22 (~02:00–02:30), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : **app fermée** (HOME + `am kill`), sondage « PQ
+  Sondage » reçu → la ligne de la bannière dit « Sondage · 02:07 ». Appel non
+  testé (appels en pause), app ouverte non testée.
 
 ---
 
