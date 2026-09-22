@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1528 cases à cocher, 742 cochées** — 311 entrées sur 363 ont encore des cases ouvertes.
+**1525 cases à cocher, 745 cochées** — 311 entrées sur 363 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -128,12 +128,12 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 14 · [⬜ Aperçu et compteurs d'une conversation chiffrée (décision J, 2026-09-15)](#-aperçu-et-compteurs-dune-conversation-chiffrée-décision-j-2026-09-15) · *Messagerie*
 - 12 · [⬜ Pièces jointes chiffrées — images, documents, audio (C4, 2026-09-14)](#-pièces-jointes-chiffrées--images-documents-audio-c4-2026-09-14) · *Messagerie*
 - 8 · [⬜ Désigner quelqu'un ouvre sa discussion, plus le sélecteur (2026-09-14)](#-désigner-quelquun-ouvre-sa-discussion-plus-le-sélecteur-2026-09-14) · *Messagerie*
-- 5 · [⬜ En sélection, la bulle ne fait plus que cocher (2026-09-14)](#-en-sélection-la-bulle-ne-fait-plus-que-cocher-2026-09-14) · *Messagerie*
+- 4 · [⬜ En sélection, la bulle ne fait plus que cocher (2026-09-14)](#-en-sélection-la-bulle-ne-fait-plus-que-cocher-2026-09-14) · *Messagerie*
 - 3 · [⬜ Sondage : voter se voit enfin, et les votants aussi (2026-09-14)](#-sondage--voter-se-voit-enfin-et-les-votants-aussi-2026-09-14) · *Messagerie*
 - 2 · [✅ Un échec de lecture en messagerie se voit, sans effacer l'écran — corrigé, vérifié SM A515F (2026-09-14)](#-un-échec-de-lecture-en-messagerie-se-voit-sans-effacer-lécran--corrigé-vérifié-sm-a515f-2026-09-14) · *Messagerie*
 - 4 · [✅ L'identité du correspondant revient seule après une coupure — corrigé, vérifié SM A515F (2026-09-14)](#-lidentité-du-correspondant-revient-seule-après-une-coupure--corrigé-vérifié-sm-a515f-2026-09-14) · *Messagerie*
 - 3 · [⬜ Nom et avatar du correspondant dans la liste des discussions (2026-09-13)](#-nom-et-avatar-du-correspondant-dans-la-liste-des-discussions-2026-09-13) · *Messagerie*
-- 3 · [⬜ Réactions : double tap, cœur rouge, notification, mise à jour (2026-09-12)](#-réactions--double-tap-cœur-rouge-notification-mise-à-jour-2026-09-12) · *Messagerie*
+- 2 · [⬜ Réactions : double tap, cœur rouge, notification, mise à jour (2026-09-12)](#-réactions--double-tap-cœur-rouge-notification-mise-à-jour-2026-09-12) · *Messagerie*
 - 14 · [⬜ Gérer les membres d'un groupe : notices dans le fil, et deux listes d'admins réconciliées (2026-09-17)](#-gérer-les-membres-dun-groupe--notices-dans-le-fil-et-deux-listes-dadmins-réconciliées-2026-09-17) · *Groupes*
 - 5 · [⬜ Exclure un membre d'un groupe échouait toujours (2026-09-17)](#-exclure-un-membre-dun-groupe-échouait-toujours-2026-09-17) · *Groupes*
 - 4 · [⬜ Noms des candidats à l'invitation et à l'ajout en appel (2026-09-14)](#-noms-des-candidats-à-linvitation-et-à-lajout-en-appel-2026-09-14) · *Groupes*
@@ -226,7 +226,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [⬜ Le séparateur « N messages non lus » part quand tout est lu (2026-09-17)](#-le-séparateur--n-messages-non-lus--part-quand-tout-est-lu-2026-09-17) · *Messagerie*
 - 3 · [⬜ « Distribué » et « Lu » ne tombent plus à la même seconde (2026-09-16)](#--distribué--et--lu--ne-tombent-plus-à-la-même-seconde-2026-09-16) · *Messagerie*
 - 1 · [⬜ Forme de la bulle qui cite un message (2026-09-16)](#-forme-de-la-bulle-qui-cite-un-message-2026-09-16) · *Messagerie*
-- 5 · [⬜ « Modifier le message » : saisie en ligne, fenêtre de 48 h, motifs dits (2026-09-16)](#--modifier-le-message---saisie-en-ligne-fenêtre-de-48-h-motifs-dits-2026-09-16) · *Messagerie*
+- 4 · [⬜ « Modifier le message » : saisie en ligne, fenêtre de 48 h, motifs dits (2026-09-16)](#--modifier-le-message---saisie-en-ligne-fenêtre-de-48-h-motifs-dits-2026-09-16) · *Messagerie*
 - 5 · [⬜ Le repère de bascule ne parle plus français à tout le monde (2026-09-15)](#-le-repère-de-bascule-ne-parle-plus-français-à-tout-le-monde-2026-09-15) · *Messagerie*
 - 2 · [⬜ « Sélectionner » sort de « Autres actions » (2026-09-14)](#--sélectionner--sort-de--autres-actions--2026-09-14) · *Messagerie*
 - 2 · [⬜ Sondage dans une discussion privée (2026-09-12)](#-sondage-dans-une-discussion-privée-2026-09-12) · *Messagerie*
@@ -369,7 +369,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 346 à faire, 176 faites
+- [2. Messagerie](#2-messagerie) — 343 à faire, 179 faites
 - [3. Groupes](#3-groupes) — 149 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 132 à faire, 58 faites
 - [5. Appels](#5-appels) — 26 à faire, 8 faites
@@ -1735,10 +1735,14 @@ modification est expiré (25 min) ».
   ⬜ en partie, Passe du 2026-09-22 (suite, ~01:20–01:40), build Play 1.2.2+26 (f22aaff), SM A515F (Sim) : coche bleue à la place du micro (le « + » du
   composeur disparaît aussi) ; champ vidé → coche **grisée**, non cliquable.
   Appui long sur la coche non essayé (risque d'enregistrer).
-- [ ] **Message d'hier.** Un message de la veille doit encore se modifier
+- [x] **Message d'hier.** Un message de la veille doit encore se modifier
   (c'était le cas le plus courant refusé par la fenêtre de 25 min). Un message
   de plus de 48 h doit montrer l'entrée **grisée**, avec « Passé 48 h, un
   message ne se modifie plus » en sous-titre.
+  ✅ Passe du 2026-09-22 (~05:15–05:30), build Play 1.2.2+26 (f22aaff), SM A515F (Sim), 1:1 MLS : appui long sur PF1 (21/09 19:31) → « Modifier » actif ;
+  sur « Hi » (Sim, avant le 13/09) → « Modifier » **grisé** (`enabled=false`)
+  avec « Passé 48 h, un message ne se modifie plus » en sous-titre. Rien
+  modifié.
 - [ ] **Les motifs, en vrai.** Couper le réseau et tenter une modification :
   le message affiché doit parler de connexion, pas de délai. Puis dans une
   conversation **basculée en MLS**, vérifier qu'une modification aboutit
@@ -3047,8 +3051,13 @@ tombent sans le correctif, vérifié).
 - [x] **Glissement horizontal en sélection** : ne passe pas en réponse.
   ✅ Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff), SM A515F (Sim, clair, police 1,0) : glissé 150→700 px sur PK1 → rien, toujours « 2
   sélectionnés », aucun bandeau de réponse.
-- [ ] **Défilement de la liste en sélection** : toujours fluide — l'absorption
+- [x] **Défilement de la liste en sélection** : toujours fluide — l'absorption
   ne doit pas gêner le `ListView`, qui est au-dessus et non dedans.
+  ✅ Passe du 2026-09-22 (~05:15–05:30), build Play 1.2.2+26 (f22aaff), SM A515F (Sim) : « 1 sélectionné », glissés dans la zone du fil vers le haut et
+  vers le bas → le fil défile dans les deux sens, la sélection reste. ⚠️ Un
+  premier essai partait du bas de l'écran alors que le clavier était ouvert :
+  les glissés ont tapé « 5⁵⁰ » dans le composeur (rien d'envoyé, champ
+  vidé) — ce n'était pas une mesure du défilement.
 - [x] **Appui long sur un deuxième message en sélection** : il s'ajoute à la
   sélection, sans rouvrir le menu d'actions.
   ✅ Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff), SM A515F (Sim, clair, police 1,0) : appui long sur PJ2 → « 2 sélectionnés », aucune
@@ -3662,6 +3671,9 @@ Constaté sur le Pixel, discussion Salim → Sim A (captures de session).
   ligne « 📌 Post de Salim L. » / « 📅 test » sous la carte.
   (`shared_card_palette.dart`, `post_message_card.dart`,
   `event_message_card.dart`)
+  ⬜ moitié, Passe du 2026-09-22 (~05:15–05:30), build Play 1.2.2+26 (f22aaff), SM A515F (Sim) : carte de **publication envoyée** (« Salim L. · In kwana ·
+  Voir la publication → », 13/09) : blanc lisible sur le voile vert sombre.
+  La carte d'événement vue (« Événement · test ») est une bulle **reçue**.
 - [ ] **Bulle reçue** (côté Sim), thème clair ET sombre : accents à la couleur
   du thème, lisibles sur bulle blanche et sur bulle `#252119`.
 - [ ] **Texte ajouté par l'utilisateur** sous une carte : toujours affiché.
@@ -3689,6 +3701,12 @@ Constaté sur le Pixel, discussion Salim → Sim A (captures de session).
   sélectionnable ; appui long dedans, choisir un numéro ou un lien, menu
   système Copier ; « Tout copier » ferme et copie tout. Message long : la
   feuille défile.
+  ⬜ presque, Passe du 2026-09-22 (~05:15–05:30), build Play 1.2.2+26 (f22aaff), SM A515F (Sim) : sur RATTRAPAGE-HORS-LIGNE-1 → feuille « Sélectionner
+  le texte » avec le texte et « Tout copier » ; appui long dans le texte →
+  menu système Copier / Partager / Tout sélectionner ; « Tout copier » ferme
+  la feuille et copie (collé dans le composeur puis vidé :
+  « RATTRAPAGE-HORS-LIGNE-1 »). Reste : un message long qui fait défiler la
+  feuille.
 - [ ] **Sélection multiple** : sélectionner 3 messages dont un vocal → icône
   Copier dans la barre verte ; le collage donne une ligne
   « [12/09/2026 21:04] Nom : texte » par message texte, dans l'ordre, sans le
@@ -3720,7 +3738,7 @@ Constaté sur le Pixel, discussion Salim → Sim A (captures de session).
   recouvrant l'en-tête (y 132–248) — elle ne passe pas dessous, mais ne sort
   pas. ❤️ choisi dans la barre : posé (`mls_message_reactions`). Photo et
   emoji seul non essayés (pas de photo à envoyer, cf. règles de la passe).
-- [ ] **« + »** (barre du double tap ET feuille d'appui long) : ouvre le
+- [x] **« + »** (barre du double tap ET feuille d'appui long) : ouvre le
   sélecteur complet, recherche comprise (le clavier remonte la feuille) ;
   l'emoji choisi est posé.
   ⬜ moitié, Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff), SM A515F (Sim, clair, police 1,0) : « + » de la barre du double tap → sélecteur
@@ -3729,6 +3747,9 @@ Constaté sur le Pixel, discussion Salim → Sim A (captures de session).
   long non essayé. L'onglet récents dit « No Recents » en anglais — déjà
   consigné, corrigé pour le +28 (« Manquements de la passe du 2026-09-21 »).
   La recherche du sélecteur est en mots-clés anglais (« fire »).
+  ✅ Passe du 2026-09-22 (~05:15–05:30), build Play 1.2.2+26 (f22aaff), SM A515F (Sim) : la moitié « feuille d'appui long » — « + » de la feuille sur
+  « Hi » → sélecteur complet (9 onglets), loupe → clavier et champ visibles,
+  « sun » → ☀️ posé sous la bulle ; retiré ensuite par le même chemin.
 - [ ] **Cœur rouge** : ❤️ rouge sous la bulle, dans la barre, dans le
   sélecteur, dans une bulle « emoji seul », dans le composeur en tapant, dans
   l'aperçu de la liste des discussions. Aussi ☀️. Et ⚠ reste un symbole de
@@ -3737,6 +3758,12 @@ Constaté sur le Pixel, discussion Salim → Sim A (captures de session).
   ⬜ en partie, Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff) : ❤️ rouge sous la bulle, dans la barre et dans la
   feuille d'appui long (SM A515F (Sim, clair, police 1,0)), et sous la bulle côté Pixel 10 Pro XL (Salim, sombre, police 1,3 + gras). Pas vus : bulle
   « emoji seul », composeur, aperçu de liste, ☀️, salons audio.
+  Passe du 2026-09-22 (~05:15–05:30), build Play 1.2.2+26 (f22aaff), SM A515F (Sim) : ☀️ **en couleur** dans le sélecteur et sous la bulle (réaction
+  sur un ancien message, stockée dans `messages.data.reactions`). Emoji seul,
+  composeur et aperçu de liste toujours pas vus : la recherche du sélecteur
+  du COMPOSEUR bascule sur le clavier système sans champ visible (défaut
+  connu, corrigé pour le +28), test abandonné pour ne pas taper dans le
+  composeur à l'aveugle.
 - [x] **Notification** : Sim réagit à un message de Salim → Salim reçoit
   « Sim · A réagi ❤️ à votre message », app fermée comme ouverte ; le tap
   ouvre la discussion. Changer d'emoji ne fait pas une 2e ligne en base
