@@ -230,6 +230,13 @@ class _FullReactionPickerSheet extends StatelessWidget {
                 height: hauteur,
                 checkPlatformCompatibility: true,
                 emojiViewConfig: emoji_picker.EmojiViewConfig(
+                  // Le défaut de la bibliothèque est « No Recents », en dur et en
+                  // `black26` : anglais, et invisible en thème sombre.
+                  noRecents: Text(
+                    AppLocalizations.of(context)!.noRecentEmojis,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 16, color: context.textTertiaryColor),
+                  ),
                   columns: 8,
                   emojiSizeMax: 28 * (Platform.isIOS ? 1.30 : 1.0),
                   backgroundColor: context.surfaceColor,

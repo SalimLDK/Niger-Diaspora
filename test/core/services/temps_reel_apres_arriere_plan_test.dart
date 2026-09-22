@@ -43,6 +43,10 @@ void main() {
     // Ouverte hors ligne, le premier `subscribed` est celui du retour du
     // réseau : il doit relire aussi (SM A515F, 2026-09-21).
     expect(corps, contains('lectureInitialeEnEchec: () => true'));
+    // « Lu » et réactions vivent dans leurs tables : sans les écouter,
+    // l'expéditeur ne les voyait qu'en rouvrant (deux téléphones, 2026-09-21).
+    expect(corps, contains("'mls_message_receipts'"));
+    expect(corps, contains("'mls_message_reactions'"));
   });
 
   test('le canal des mises à jour de messages relit au rejoint', () {

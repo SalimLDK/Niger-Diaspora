@@ -2004,6 +2004,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get nearbyMembersDisabled => 'Mode privé activé';
 
   @override
+  String get nearbyMembersHiddenWhileSharing => 'Membres masqués sur la carte';
+
+  @override
+  String get nearbyMembersHiddenWhileSharingBody =>
+      'Votre position reste partagée avec les membres. Pour la cacher, coupez « Ma localisation » dans les réglages de confidentialité.';
+
+  @override
   String get nearbyMembersDisabledHint =>
       'Activez pour voir les membres à proximité et apparaître sur leur carte';
 
@@ -14159,6 +14166,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get noRecentStickers => 'Aucun sticker récent';
+
+  @override
+  String get noRecentEmojis => 'Aucun émoji récent';
 
   @override
   String get errorLoadingRecentStickers =>

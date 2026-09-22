@@ -49,6 +49,10 @@ abstract class ProfileRemoteDataSource {
   Future<void> updateOnlineStatusVisibility(String userId, bool showStatus);
   Future<void> updateNotifyLocalEvents(String userId, bool enabled);
 
+  /// `show_message_preview`, lu par send-push : faux → « Nouveau message »
+  /// au lieu du texte, et l'appareil ne reconstruit pas l'aperçu MLS.
+  Future<void> updateShowMessagePreview(String userId, bool show);
+
   /// Miroir serveur des préférences par type, lu par l'Edge Function
   /// send-push. Sans lui, couper une bascule n'a d'effet qu'au premier plan.
   Future<void> updateNotificationPrefs(String userId, Map<String, bool> prefs);

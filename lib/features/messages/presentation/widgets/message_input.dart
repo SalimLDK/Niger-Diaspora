@@ -187,6 +187,16 @@ class _MessageInputState extends State<MessageInput>
   /// chargée (bandeau épinglé + chips + bandeau de clés).
   double _lastKeyboardHeight = 0;
 
+  /// Un champ de recherche du panneau emoji/GIF/sticker est ouvert : le
+  /// panneau reste alors AU-DESSUS du clavier au lieu de lui céder la place
+  /// (voir `EmojiStickerPicker.onRechercheOuverte`).
+  bool _rechercheDansLePanneau = false;
+
+  /// Hauteur du panneau pendant une recherche : le clavier occupe déjà le bas
+  /// de l'écran, il ne reste que de quoi montrer le champ et une ou deux
+  /// rangées de résultats. Le `panneau` rabote encore si la colonne manque.
+  static const double _hauteurPanneauEnRecherche = 240;
+
   // Morphing animation
   late AnimationController _morphController;
   late Animation<double> _morphAnimation;
@@ -529,6 +539,7 @@ class _MessageInputState extends State<MessageInput>
       _focusNode.unfocus();
       setState(() {
         _showPicker = true;
+        _rechercheDansLePanneau = false;
         _showAttachPanel = false;
         _pickerTab = tab;
       });
@@ -1204,7 +1215,13 @@ class _MessageInputState extends State<MessageInput>
                 onStickerSelected:
                     widget.onSendSticker != null ? _onStickerSelected : null,
                 onGifSelected: widget.onSendGif != null ? _onGifSelected : null,
+                onRechercheOuverte: (ouverte) {
+                  if (mounted && ouverte != _rechercheDansLePanneau) {
+                    setState(() => _rechercheDansLePanneau = ouverte);
+                  }
+                },
               ),
+              enRecherche: _rechercheDansLePanneau,
             ),
           ),
       ],
@@ -1219,7 +1236,11 @@ class _MessageInputState extends State<MessageInput>
   /// l'overflow au lieu de le rendre seulement moins probable.
   ///
   /// Le panneau est aussi borné à la hauteur du clavier : au-delà, il défile.
-  Widget _revealInKeyboardSlot(BuildContext context, Widget child) {
+  Widget _revealInKeyboardSlot(
+    BuildContext context,
+    Widget child, {
+    bool enRecherche = false,
+  }) {
     // ⚠ Pas `MediaQuery.of(context).viewInsets` : le `Scaffold` consomme
     // l'inset du clavier pour rétrécir son `body`, donc il vaut déjà 0 ici.
     // Seule la vue porte encore la vraie hauteur du clavier.
@@ -1231,14 +1252,22 @@ class _MessageInputState extends State<MessageInput>
     // Repli tant qu'aucun clavier n'a encore été vu (premier ouverture au « + »
     // sans avoir tapé) : hauteur usuelle d'un clavier Android.
     final slot = _lastKeyboardHeight > 0 ? _lastKeyboardHeight : 280.0;
-    final factor = ((slot - insets) / slot).clamp(0.0, 1.0);
+    // En recherche, le clavier est là POUR le panneau : on ne se replie pas
+    // devant lui. Même arbre (ClipRect → Align → ConstrainedBox) dans les deux
+    // cas, pour que le panneau garde son état — onglet, texte saisi.
+    final factor =
+        enRecherche ? 1.0 : ((slot - insets) / slot).clamp(0.0, 1.0);
+    final hauteurMax =
+        enRecherche && slot > _hauteurPanneauEnRecherche
+            ? _hauteurPanneauEnRecherche
+            : slot;
 
     return ClipRect(
       child: Align(
         alignment: Alignment.topCenter,
         heightFactor: factor,
         child: ConstrainedBox(
-          constraints: BoxConstraints(maxHeight: slot),
+          constraints: BoxConstraints(maxHeight: hauteurMax),
           child: child,
         ),
       ),

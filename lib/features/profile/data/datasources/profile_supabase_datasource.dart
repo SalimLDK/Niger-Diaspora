@@ -793,12 +793,15 @@ class ProfileSupabaseDataSource implements ProfileRemoteDataSource {
     if (touchees.isEmpty) _aucuneLigneTouchee();
   }
 
+  @override
   Future<void> updateShowMessagePreview(String userId, bool show) async {
     await _requireAuth();
-    await _supabase
+    final touchees = await _supabase
         .from('users')
         .update({'show_message_preview': show})
-        .eq('id', userId);
+        .eq('id', userId)
+        .select('id');
+    if (touchees.isEmpty) _aucuneLigneTouchee();
   }
 
   @override

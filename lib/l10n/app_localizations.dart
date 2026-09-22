@@ -3692,6 +3692,18 @@ abstract class AppLocalizations {
   /// **'Mode privé activé'**
   String get nearbyMembersDisabled;
 
+  /// No description provided for @nearbyMembersHiddenWhileSharing.
+  ///
+  /// In fr, this message translates to:
+  /// **'Membres masqués sur la carte'**
+  String get nearbyMembersHiddenWhileSharing;
+
+  /// No description provided for @nearbyMembersHiddenWhileSharingBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre position reste partagée avec les membres. Pour la cacher, coupez « Ma localisation » dans les réglages de confidentialité.'**
+  String get nearbyMembersHiddenWhileSharingBody;
+
   /// No description provided for @nearbyMembersDisabledHint.
   ///
   /// In fr, this message translates to:
@@ -25963,6 +25975,12 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Aucun sticker récent'**
   String get noRecentStickers;
+
+  /// No description provided for @noRecentEmojis.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun émoji récent'**
+  String get noRecentEmojis;
 
   /// No description provided for @errorLoadingRecentStickers.
   ///
