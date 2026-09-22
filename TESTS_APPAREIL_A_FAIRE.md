@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1297 cases à cocher, 10 cochées** — 278 entrées sur 290 ont encore des cases ouvertes.
+**1295 cases à cocher, 10 cochées** — 278 entrées sur 290 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -67,7 +67,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ Accepter une demande d'ami : « Erreur de chargement » (2026-09-14)](#-accepter-une-demande-dami---erreur-de-chargement--2026-09-14) · *Notifications et push* · bloqué
 - 21 · [⬜ Supprimer mon compte : demande, 30 jours, annulation, purge (2026-09-18)](#-supprimer-mon-compte--demande-30-jours-annulation-purge-2026-09-18) · *Comptes, session et onboarding*
 - 9 · [⬜ Expulsion admin et bannissement : ils n'éjectaient personne (2026-09-16)](#-expulsion-admin-et-bannissement--ils-néjectaient-personne-2026-09-16) · *Comptes, session et onboarding*
-- 7 · [⬜ Qui peut voir un événement : discussion, groupes, personnes, tout le monde (2026-09-12)](#-qui-peut-voir-un-événement--discussion-groupes-personnes-tout-le-monde-2026-09-12) · *Ambassades, démarches, carte, entreprises et événements*
+- 6 · [⬜ Qui peut voir un événement : discussion, groupes, personnes, tout le monde (2026-09-12)](#-qui-peut-voir-un-événement--discussion-groupes-personnes-tout-le-monde-2026-09-12) · *Ambassades, démarches, carte, entreprises et événements*
 - 2 · [Réglages/Carte — deux interrupteurs de partage de position désynchronisés (2026-08-13)](#réglagescarte--deux-interrupteurs-de-partage-de-position-désynchronisés-2026-08-13) · *Ambassades, démarches, carte, entreprises et événements*
 - 6 · [⬜ 🔴 Bloquer un utilisateur ne bloque rien — corrigé (2026-09-14)](#--bloquer-un-utilisateur-ne-bloque-rien--corrigé-2026-09-14) · *Accueil, profil et réglages* · bloqué
 - 8 · [⬜ `users` : un compte connecté lit e-mail, position et jetons d'autrui (2026-09-21)](#-users--un-compte-connecté-lit-e-mail-position-et-jetons-dautrui-2026-09-21) · *Backend, sécurité et observabilité*
@@ -220,7 +220,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [⬜ « Modifier le message » : saisie en ligne, fenêtre de 48 h, motifs dits (2026-09-16)](#--modifier-le-message---saisie-en-ligne-fenêtre-de-48-h-motifs-dits-2026-09-16) · *Messagerie*
 - 5 · [⬜ Le repère de bascule ne parle plus français à tout le monde (2026-09-15)](#-le-repère-de-bascule-ne-parle-plus-français-à-tout-le-monde-2026-09-15) · *Messagerie*
 - 2 · [⬜ « Sélectionner » sort de « Autres actions » (2026-09-14)](#--sélectionner--sort-de--autres-actions--2026-09-14) · *Messagerie*
-- 2 · [⬜ Sondage dans une discussion privée (2026-09-12)](#-sondage-dans-une-discussion-privée-2026-09-12) · *Messagerie*
+- 1 · [⬜ Sondage dans une discussion privée (2026-09-12)](#-sondage-dans-une-discussion-privée-2026-09-12) · *Messagerie*
 - 5 · [⬜ Cartes de post et d'événement lisibles dans une bulle envoyée (2026-09-12)](#-cartes-de-post-et-dévénement-lisibles-dans-une-bulle-envoyée-2026-09-12) · *Messagerie*
 - 4 · [⬜ Copier : légendes, positions, sondages, un passage, une sélection (2026-09-12)](#-copier--légendes-positions-sondages-un-passage-une-sélection-2026-09-12) · *Messagerie*
 - 6 · [Messagerie — un filtre sans résultat n'est pas une messagerie vide (2026-08-06)](#messagerie--un-filtre-sans-résultat-nest-pas-une-messagerie-vide-2026-08-06) · *Messagerie*
@@ -336,7 +336,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 0 faites
-- [2. Messagerie](#2-messagerie) — 318 à faire, 0 faites
+- [2. Messagerie](#2-messagerie) — 317 à faire, 0 faites
 - [3. Groupes](#3-groupes) — 129 à faire, 0 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 122 à faire, 2 faites
 - [5. Appels](#5-appels) — 24 à faire, 1 faites
@@ -344,7 +344,7 @@ Par domaine :
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 36 à faire, 0 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 63 à faire, 0 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 101 à faire, 0 faites
-- [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 0 faites
+- [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 62 à faire, 0 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 59 à faire, 1 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 108 à faire, 5 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 67 à faire, 0 faites
@@ -1645,7 +1645,7 @@ d'abord à 2,0:1, a reçu un or assombri pour le thème clair (3,85:1).
 
 **Priorité P1** · importance 4/5 — Après avoir voté dans une bulle de sondage, la carte restait en mode vote : pas de pourcentages, choix non marqué, seul le total bougeait. Et la liste des votants était vide pour tout le monde, l'auteur compris.
 
-*Bloqué : deux comptes, et la migration `20260914160000` à appliquer.*
+*Bloqué : deux comptes (migration `20260914160000` appliquée, relu en base le 2026-09-22).*
 
 Deux causes, l'une dans l'app, l'autre en base. Le flux du sondage
 (`.stream()`) ne sait ni joindre ni lire une autre table : il rendait donc un
@@ -1669,7 +1669,7 @@ Voir « Sondage dans une discussion privée » pour le parcours de création.
 
 **Priorité P0** · importance 5/5 — Un message écrit hors ligne partait dans Hive et **y restait pour toujours** : `processQueue()` n'était appelé de nulle part. Jamais envoyé, jamais purgé, jamais compté — et disparu de l'écran.
 
-*Bloqué : deux comptes, et de quoi couper le réseau.*
+*Bloqué : deux comptes (le réseau se coupe au mode avion).*
 
 `OfflineQueueService` était complet mais orphelin : `processQueue`,
 `cleanOldMessages`, `pendingMessagesCountProvider` et
@@ -1699,7 +1699,7 @@ Voir « Sondage dans une discussion privée » pour le parcours de création.
 
 **Priorité P0** · importance 5/5 — Trois chemins laissaient l'écran de discussion sur sa copie locale sans plus rien écouter, dont un qui **écrase le cache** avec du vide.
 
-*Bloqué : deux comptes, et de quoi couper le réseau.*
+*Bloqué : deux comptes (le réseau se coupe au mode avion).*
 
 Trouvé en essayant de tester le rattrapage en discussion ouverte, et c'est ce
 qui empêchait ce test d'aboutir : `_loadNetworkData()` sortait avant de poser
@@ -1736,7 +1736,7 @@ les abonnements temps réel, donc le rattrapage ne pouvait pas exister.
 
 **Priorité P1** · importance 4/5 — Les trois flux de `MessageRepositoryImpl` avalaient leurs erreurs : plus aucun événement, donc rond de chargement sans fin sur la liste, aucun bandeau, aucun réessai, et l'export d'une discussion qui attend pour toujours.
 
-*Bloqué : rien — se rejoue avec le mode avion.*
+Se rejoue avec le mode avion, sur un seul téléphone.
 
 **Corrigé le 2026-09-14**, cinq fichiers : `_echecEmis<T>()`
 (`StreamTransformer.fromHandlers`, l'idiome déjà utilisé par
@@ -1763,7 +1763,7 @@ ce qui est déjà à l'écran. Deux tests neufs :
 
 **Priorité P1** · importance 4/5 — Un profil dont la lecture échouait pendant une coupure restait en échec pour toute la vie de l'app : l'en-tête d'une discussion affichait « Conversation » et un avatar « C » à la place du nom, et ni le retour du réseau ni un aller-retour hors de l'écran ne le corrigeaient. Seul un redémarrage.
 
-*Bloqué : rien — se rejoue seul avec le mode avion.*
+Se rejoue seul avec le mode avion.
 
 - [ ] **Groupe et « Mes notes » par lien profond** : le semis lit aussi la
       nature du fil dans la conversation en cache (nom et image d'un groupe,
@@ -1791,7 +1791,7 @@ ce qui est déjà à l'écran. Deux tests neufs :
 
 **Priorité P1** · importance 5/5 — Messages, notifications et fil cessaient de s'actualiser seuls : les canaux se re-rejoignaient bien après une coupure, mais Postgres ne rejoue pas les événements manqués et rien n'allait les relire. Aucune erreur à l'écran — simplement plus rien n'arrivait.
 
-*Bloqué : deux comptes, et de quoi couper le réseau (mode avion).*
+*Bloqué : deux comptes (le réseau se coupe au mode avion).*
 
 Ne se teste **que** sur appareil : la coupure de socket, la mise en veille
 Android et la suspension des timers n'existent pas sous `flutter test`.
@@ -1848,11 +1848,10 @@ Android et la suspension des timers n'existent pas sous `flutter test`.
 
 **Priorité P2** · importance 3/5 — Le « + » du composeur n'offrait « Sondage » que dans les groupes.
 
-*Bloqué : migration `20260912233000` à appliquer ; deux comptes.*
+*Bloqué : deux comptes (migration `20260912233000` appliquée, relu en base le 2026-09-22).*
 
 - [ ] « Mes notes » garde son brouillon de sondage (note texte), et un groupe
   garde ses permissions « qui peut créer un sondage ».
-- [ ] Avant la migration : message d'erreur explicite, pas d'écran figé.
 
 - ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Sondage dans une discussion privée (2026-09-12) »).
 
@@ -1921,7 +1920,7 @@ Android et la suspension des timers n'existent pas sous `flutter test`.
 
 **Priorité P1** · importance 4/5 — Le double tap posait d'office un cœur (noir), une réaction n'envoyait aucune notification et disparaissait parfois chez l'autre.
 
-*Bloqué : la notification et la mise à jour croisée demandent la migration `20260912220000_reaction_atomique_et_notification.sql` appliquée, et deux comptes (Pixel + SM A515F).*
+*Bloqué : la notification et la mise à jour croisée demandent deux comptes (Pixel + SM A515F) ; la migration `20260912220000` est appliquée (relu en base le 2026-09-22).*
 
 - [ ] **Cœur rouge** : ❤️ rouge sous la bulle, dans la barre, dans le
   sélecteur, dans une bulle « emoji seul », dans le composeur en tapant, dans
@@ -2834,8 +2833,7 @@ qui contient le correctif.
 
 **Priorité P2** · importance 3/5 — quatre règles de lecture propres aux
 groupes (étape C du plan du séparateur).
-*Bloqué : la migration `20260917003700` n'est pas encore appliquée, et « Lu
-par tous » demande un groupe à trois comptes sur trois appareils — il n'y en a
+*Bloqué : « Lu par tous » demande un groupe à trois comptes sur trois appareils — il n'y en a
 que deux aujourd'hui.*
 
 3. **« Lu » attend tous les membres présents**, arrivés avant le message
@@ -5832,7 +5830,7 @@ Liens d'app, routes et gardes du routeur, flèche retour, scanner et QR.
 
 **Priorité P1** · importance 4/5 — Un lien du schéma maison ouvert alors que l'app n'est pas lancée tombait sur « Page Not Found ». Les QR codes du projet passent tous par ce schéma.
 
-*Bloqué : rien — `adb shell am start -a android.intent.action.VIEW -d …`.*
+Se rejoue seul : `adb shell am start -a android.intent.action.VIEW -d …`.
 
 **Corrigé** dans
 [MainActivity.java](android/app/src/main/java/com/diasponiger/diasponiger/MainActivity.java:332) :
@@ -5861,8 +5859,7 @@ depuis ce correctif) mais reste le point d'entrée qu'`audio_service` interroge 
 `lib/features/messages/presentation/widgets/message_bubble.dart`.
 
 Corrigé : un seul lecteur, celui du scanner (`QrCodeParser`), et
-`context.push` sur la discussion. Le parseur de `DeepLinkService`, que
-« Le QR d'un groupe est refusé par le scanner » signalait déjà comme doublon
+`context.push` sur la discussion. Le parseur de `DeepLinkService`, déjà repéré comme doublon
 à fusionner, est supprimé. Tenu par `test/core/services/liens_dans_l_app_test.dart`
 (chaque lien généré par l'app se relit en route ; garde textuel vérifié en
 retirant la branche : il tombe).
@@ -6856,7 +6853,7 @@ qui ne disent rien du rendu ni du geste.
 
 **Priorité P1** · importance 4/5 — Une story restreinte à une liste ou masquée à quelqu'un lui reste visible si la base n'est pas migrée ; sans le correctif, impossible de publier une deuxième story, d'en retirer une, et sa propre story ne disparaît jamais. *Bloqué : deux comptes pour l'audience (Pixel + SM A515F).*
 
-Prérequis : `supabase db push` (20260912200000, 20260912201000, 20260912230000) et `firebase deploy --only functions:mirrorFriendToSupabase`.
+Prérequis en place : migrations 20260912200000, 20260912201000 et 20260912230000 appliquées, `mirrorFriendToSupabase` déployée (relu le 2026-09-22).
 
 - [ ] **Deuxième story** : avec une story active, le « + » de mon avatar reste
   visible ; le toucher publie une autre story. Appui long sur l'avatar : idem.
@@ -6888,7 +6885,7 @@ Prérequis : `supabase db push` (20260912200000, 20260912201000, 20260912230000)
 
 **Priorité P1** · importance 4/5 — Une publication « Amis » ou « Moi uniquement » serait lue par qui ne devrait pas si la base n'est pas migrée, ou au contraire invisible pour les amis si le miroir des amitiés n'est pas déployé. *Bloqué : deux comptes (Pixel = Salim, SM A515F = Sim, amis dans Firestore).*
 
-Prérequis : `supabase db push` (20260912200000, 20260912201000, 20260912230000) et `firebase deploy --only functions:mirrorFriendToSupabase`.
+Prérequis en place : migrations 20260912200000, 20260912201000 et 20260912230000 appliquées, `mirrorFriendToSupabase` déployée (relu le 2026-09-22).
 
 - [ ] **Feuille d'audience** : Créer une publication → puce « Public » → 4
   choix avec explication ; la puce reprend l'icône et le libellé choisis.
@@ -7114,7 +7111,7 @@ encore être contactés directement).
 
 **Priorité P0** · importance 5/5 — Un événement « visible uniquement par les participants » d'une discussion était lisible par TOUT LE MONDE (policy `events_select` ouverte, aucun filtre `is_public`), et le seul choix était un interrupteur caché sous la catégorie.
 
-*Bloqué : migration `20260912233000_visibilite_evenements_et_sondages_discussion.sql` à appliquer ; deux comptes (Pixel Salim + SM A515F Sim) et un tiers pour « personnes choisies ».*
+*Bloqué : deux comptes (Pixel Salim + SM A515F Sim) et un tiers pour « personnes choisies ». La migration `20260912233000` est appliquée (relu en base le 2026-09-22).*
 
 - [ ] **Formulaire** (depuis une DM, depuis un groupe, depuis Événements) :
   « Qui peut voir cet événement ? » juste sous la description ; 4 choix en DM
@@ -7132,8 +7129,6 @@ encore être contactés directement).
   tap ouvre la fiche.
 - [ ] **Tout le monde** : visible dans « À venir » pour tous, et par un
   visiteur non connecté si le site/les liens le permettent.
-- [ ] **Avant la migration** (APK déjà installé ailleurs) : la création marche
-  toujours ; groupes/personnes → message « n'ont pas pu être enregistrés ».
 - [ ] S'inscrire à un événement qu'on ne voit pas est refusé (tiers).
 
 ---
@@ -7142,8 +7137,8 @@ encore être contactés directement).
 
 **Priorité P1** · importance 3/5 — Un événement annoncé « supprimé » reste affiché à l'accueil et dans les listes, ou n'est en réalité pas supprimé du tout (suppression depuis le back-office).
 
-Prérequis pour le cas admin : `supabase db push` (20260912200000, policies
-`events_admin_*`).
+Prérequis pour le cas admin en place : migration 20260912200000 et policies
+`events_admin_*` (relu en base le 2026-09-22).
 
 - [ ] **Organisateur** : créer un événement passé ou à venir, le voir à
   l'accueil, le supprimer depuis sa fiche : retour à la liste, il a disparu
@@ -7152,8 +7147,7 @@ Prérequis pour le cas admin : `supabase db push` (20260912200000, policies
 - [ ] **Relancer l'app** : il ne revient pas (cache purgé,
   `CacheService.removeCachedEvent`).
 - [ ] **Back-office** (Pixel, admin) : supprimer un événement dont on n'est
-  pas l'organisateur → il disparaît ; avant la migration → message d'erreur
-  au lieu d'un faux « supprimé ». Annuler un événement : fonctionne (le champ
+  pas l'organisateur → il disparaît. Annuler un événement : fonctionne (le champ
   `updated_at` inexistant faisait tout échouer).
 - [ ] **Fiche ouverte par lien profond** puis supprimée : on atterrit sur
   `/events`, pas sur une fiche vide.
@@ -7909,9 +7903,10 @@ correctif, donc rectangulaire, se montre entière plutôt que coupée. Couvert p
 
 **Priorité P2** · importance 3/5 — Le dialogue natif d'avis ne dit jamais s'il s'est affiché : aucun banc, aucun journal ne peut distinguer « montré » de « avalé par le quota ».
 
-*Bloqué pour le dialogue natif : demande une installation **venue de Play**
-(piste de test interne), un compte neuf, et huit ouvertures étalées sur plus
-de trois jours. Un APK latéral ne le montrera jamais, même en release.*
+*Bloqué pour le dialogue natif : un compte neuf, et huit ouvertures étalées
+sur plus de trois jours, sur une installation **venue de Play** — c'est le cas
+des deux téléphones depuis le build 1.2.2+26. Un APK latéral ne le montrera
+jamais, même en release.*
 
 Le paquet `in_app_review` entre dans le projet
 ([app_review_service.dart](lib/core/services/app_review_service.dart)), avec
@@ -9082,7 +9077,7 @@ tourner) :
 ## ⬜ Avis sur les entreprises : basculés de Firestore vers Supabase (2026-09-21)
 
 **Priorité P2** · importance 3/5 — L'annuaire affichait 0 avis et aucune note quelles que soient les évaluations : les avis allaient dans Firestore, les entreprises vivent dans Supabase. Le drapeau `businessDirectory` est fermé et la production porte 2 fiches, 0 avis.
-*Bloqué : une version cliente construite depuis `e2dca73` ou après, puis le drapeau à ouvrir sur un appareil.*
+*Bloqué : le drapeau `businessDirectory` à ouvrir sur un appareil. Le build Play 1.2.2+26 (`f22aaff`) contient déjà `e2dca73`.*
 
 **Côté app** — `ReviewSupabaseDataSource` remplace le datasource Firestore
 (supprimé). La réponse du gérant passait par `updateReview`, c'est-à-dire par
@@ -10191,12 +10186,9 @@ Supabase**, et promettait « toutes vos données effacées » : la personne part
 en croyant tout effacé, ses messages, son profil et son e-mail restaient.
 *Bloqué en partie : la page n'est pas publiée — `firebase deploy --only
 hosting` envoie TOUT `public/`, c'est une décision de Salim, à part. Le backend
-dont elle dépend (migration `20260918224100` et `finalizeAccountDeletions`) est
-en production depuis le 2026-09-19 d'après la mémoire du projet (autre session,
-sur accord de Salim) ; **cette session ne l'a pas revérifié**. Sans la
-migration la RPC répondrait 404 (la page dit « service indisponible ») ; sans
-la fonction les demandes s'empileraient en `pending` et rien ne serait supprimé
-à J+30.*
+dont elle dépend est en production : migration `20260918224100` relue dans
+`schema_migrations` et `finalizeAccountDeletions` (planifiée) relue dans
+`firebase functions:list`, le 2026-09-22.*
 
 La page suit maintenant le même chemin que l'application : connexion Firebase
 (en mémoire, rien n'est stocké dans le navigateur), puis
