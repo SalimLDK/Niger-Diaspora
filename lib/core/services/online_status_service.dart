@@ -79,6 +79,96 @@ class OnlineStatusService {
   bool _initialized = false;
   String? _currentUserId;
 
+  // ── Fraîcheur de la présence ────────────────────────────────────────────
+  //
+  // `isOnline` seul ne dit pas si c'est encore vrai. Vu le 2026-09-22 sur
+  // deux téléphones : un compte passé en mode avion, app fermée, restait
+  // « En ligne » chez l'autre plusieurs minutes — le `_setOffline` du passage
+  // en arrière-plan ne pouvait plus partir, et seul `onDisconnect` restait,
+  // quand le serveur finit par constater la coupure. Et le battement de
+  // 10 min n'écrivait que dans Supabase, que personne ne lit pour ça.
+  //
+  // Désormais, au premier plan, `lastSeen` est rafraîchi toutes les
+  // [battement] dans RTDB, et le nœud porte `battement` (en secondes). Un
+  // lecteur tient pour hors ligne un `isOnline` dont le `lastSeen` a dépassé
+  // [fraicheurPour]. Un nœud SANS `battement` vient d'un ancien client (il
+  // réécrit le nœud entier, donc efface le champ) : l'ancienne règle s'y
+  // applique, sinon on l'afficherait hors ligne alors qu'il est là.
+
+  /// Période du battement de présence, au premier plan.
+  static const battement = Duration(seconds: 60);
+
+  /// Au-delà, un `isOnline` à vrai est périmé : deux battements manqués, plus
+  /// une marge pour la latence et l'horloge.
+  @visibleForTesting
+  static Duration fraicheurPour(int battementSecondes) =>
+      Duration(seconds: battementSecondes * 2 + 30);
+
+  /// La règle d'affichage « En ligne », sur le nœud `presence/<uid>` brut.
+  ///
+  /// [maintenantServeurMs] : l'heure **du serveur**, car `lastSeen` est posé
+  /// par `ServerValue.timestamp` — l'horloge du téléphone qui lit peut
+  /// dériver.
+  @visibleForTesting
+  static bool estEnLigne(Object? noeud, {required int maintenantServeurMs}) {
+    if (noeud is! Map) return false;
+    if (noeud['isOnline'] != true) return false;
+    final periode = noeud['battement'];
+    if (periode is! num || periode <= 0) return true;
+    final vu = noeud['lastSeen'];
+    if (vu is! num) return false;
+    return maintenantServeurMs - vu.toInt() <=
+        fraicheurPour(periode.toInt()).inMilliseconds;
+  }
+
+  Map<String, Object> get _noeudEnLigne => {
+    'isOnline': true,
+    'lastSeen': ServerValue.timestamp,
+    'battement': battement.inSeconds,
+  };
+
+  /// Vrai quand l'app est affichée. Rien ne doit mettre « en ligne » un
+  /// compte dont l'app tourne sans écran : c'était possible par
+  /// `.info/connected`, qui se reconnecte aussi en arrière-plan.
+  /// Relevé dans [initialize], quand le binding existe à coup sûr.
+  bool _auPremierPlan = true;
+
+  static bool _estAuPremierPlan(AppLifecycleState? etat) =>
+      etat == null ||
+      etat == AppLifecycleState.resumed ||
+      etat == AppLifecycleState.inactive;
+
+  /// Les écritures de présence, une à la fois, dans l'ordre des événements.
+  ///
+  /// Au passage en arrière-plan, `inactive` → `hidden` → `paused` arrivent
+  /// d'affilée. `_setOnline` (pour `inactive`) attend une lecture Supabase
+  /// avant d'écrire : sans file, il pouvait écrire `true` APRÈS les
+  /// `_setOffline` des deux suivants, et laisser le compte « En ligne ».
+  Future<void> _file = Future<void>.value();
+
+  Future<void> _enFile(Future<void> Function() ecriture) {
+    return _file = _file.then((_) => ecriture()).catchError((Object e) {
+      debugPrint('OnlineStatusService: écriture de présence échouée ($e)');
+    });
+  }
+
+  /// Écart entre l'horloge du serveur RTDB et celle de ce téléphone.
+  int _decalageServeurMs = 0;
+  StreamSubscription<DatabaseEvent>? _decalageSubscription;
+
+  void _suivreDecalageServeur() {
+    _decalageSubscription ??= _database
+        .ref('.info/serverTimeOffset')
+        .onValue
+        .listen((event) {
+          final valeur = event.snapshot.value;
+          if (valeur is num) _decalageServeurMs = valeur.toInt();
+        });
+  }
+
+  int _maintenantServeurMs() =>
+      DateTime.now().millisecondsSinceEpoch + _decalageServeurMs;
+
   /// Check if user is currently authenticated and matches the expected userId
   bool _isUserAuthenticated([String? expectedUserId]) {
     final user = _auth.currentUser;
@@ -102,6 +192,7 @@ class OnlineStatusService {
     }
 
     // debugPrint('🟢 OnlineStatusService: Initializing...');
+    _auPremierPlan = _estAuPremierPlan(WidgetsBinding.instance.lifecycleState);
 
     // Listen to auth state changes
     _authStateSubscription = _auth.authStateChanges().listen((user) async {
@@ -180,7 +271,7 @@ class OnlineStatusService {
         //   '🔒 OnlineStatusService: User has disabled online status visibility',
         // );
         // Set as offline and don't track presence
-        await _setOffline(userId);
+        await _enFile(() => _setOffline(userId));
         return;
       }
 
@@ -190,7 +281,9 @@ class OnlineStatusService {
 
         if (connected) {
           // debugPrint('🌐 OnlineStatusService: Connected to Firebase');
-          await _setOnline(userId);
+          // Reconnexion en arrière-plan : on arme `onDisconnect`, mais on ne
+          // se déclare pas en ligne — personne ne regarde l'écran.
+          if (_auPremierPlan) await _enFile(() => _setOnline(userId));
 
           // When disconnected, mark as offline
           try {
@@ -241,18 +334,12 @@ class OnlineStatusService {
 
     // debugPrint('🔄 OnlineStatusService: Lifecycle state changed to $state');
 
-    switch (state) {
-      case AppLifecycleState.resumed:
-      case AppLifecycleState.inactive:
-        // App is in foreground or transitioning
-        await _setOnline(_currentUserId!);
-        break;
-      case AppLifecycleState.paused:
-      case AppLifecycleState.detached:
-      case AppLifecycleState.hidden:
-        // App is in background or closing
-        await _setOffline(_currentUserId!);
-        break;
+    final userId = _currentUserId!;
+    _auPremierPlan = _estAuPremierPlan(state);
+    if (_auPremierPlan) {
+      await _enFile(() => _setOnline(userId));
+    } else {
+      await _enFile(() => _setOffline(userId));
     }
   }
 
@@ -290,11 +377,11 @@ class OnlineStatusService {
 
       // debugPrint('✅ OnlineStatusService: Setting user $userId to ONLINE');
 
+      // Pendant la lecture de la préférence, l'app a pu passer en arrière-plan.
+      if (!_auPremierPlan) return;
+
       // Update Realtime Database
-      await _presenceRef!.set({
-        'isOnline': true,
-        'lastSeen': ServerValue.timestamp,
-      });
+      await _presenceRef!.set(_noeudEnLigne);
 
       // Also mirror into Supabase for persistence
       await _persistStatus(userId, isOnline: true);
@@ -303,6 +390,7 @@ class OnlineStatusService {
       // (This fix preventing "ghosts" who crash and stay online in Firestore forever)
       _startHeartbeat(userId);
     } catch (e) {
+      debugPrint('OnlineStatusService: passage en ligne échoué ($e)');
       if (e is FirebaseException && e.code == 'permission-denied') {
         // debugPrint(
         //   '❌ OnlineStatusService: Permission denied when setting user online. '
@@ -317,13 +405,31 @@ class OnlineStatusService {
     }
   }
 
+  /// Au premier plan : `lastSeen` rafraîchi dans RTDB toutes les [battement]
+  /// — c'est ce que les lecteurs jugent ([estEnLigne]) —, et le miroir
+  /// Supabase toutes les 10 min comme avant.
+  ///
+  /// Le battement **réaffirme** aussi `isOnline` : si une coupure passagère a
+  /// fait jouer `onDisconnect` sans que le retour ne se ré-écrive, l'app au
+  /// premier plan redevient « en ligne » au battement suivant, au lieu de
+  /// rester « Vu il y a 2 minutes » sous les yeux de l'autre.
   void _startHeartbeat(String userId) {
     _heartbeatTimer?.cancel();
-    // Update lastSeen every 10 minutes
-    _heartbeatTimer = Timer.periodic(const Duration(minutes: 10), (
-      timer,
-    ) async {
-      await _persistStatus(userId, isOnline: true);
+    final parMiroir = const Duration(minutes: 10).inSeconds ~/ battement.inSeconds;
+    _heartbeatTimer = Timer.periodic(battement, (timer) {
+      if (!_auPremierPlan) return;
+      unawaited(
+        _enFile(() async {
+          final ref = _presenceRef;
+          if (ref == null || !_auPremierPlan || !_isUserAuthenticated(userId)) {
+            return;
+          }
+          await ref.update(_noeudEnLigne);
+          if (timer.tick % parMiroir == 0) {
+            await _persistStatus(userId, isOnline: true);
+          }
+        }),
+      );
     });
   }
 
@@ -437,7 +543,7 @@ class OnlineStatusService {
         await _setupPresenceForUser(userId);
       } else {
         // Set to offline and stop tracking
-        await _setOffline(userId);
+        await _enFile(() => _setOffline(userId));
         await _connectedSubscription?.cancel();
         _connectedSubscription = null;
       }
@@ -449,11 +555,44 @@ class OnlineStatusService {
     }
   }
 
-  /// Get a stream of user's online status from Realtime Database
+  /// « En ligne » ou non, selon [estEnLigne] : le nœud entier est suivi, et la
+  /// règle est **réévaluée toutes les 30 s** même sans nouvel événement —
+  /// un compte qui disparaît sans prévenir n'émet justement plus rien, et
+  /// c'est le temps qui doit le faire passer hors ligne.
   Stream<bool> getUserOnlineStatus(String userId) {
-    return _database.ref('presence/$userId/isOnline').onValue.map((event) {
-      return event.snapshot.value as bool? ?? false;
-    });
+    late final StreamController<bool> sortie;
+    StreamSubscription<DatabaseEvent>? abonnement;
+    Timer? reevaluation;
+    Object? noeud;
+    var recu = false;
+
+    void emettre() {
+      if (!recu || sortie.isClosed) return;
+      sortie.add(estEnLigne(noeud, maintenantServeurMs: _maintenantServeurMs()));
+    }
+
+    sortie = StreamController<bool>(
+      onListen: () {
+        _suivreDecalageServeur();
+        abonnement = _database.ref('presence/$userId').onValue.listen(
+          (event) {
+            noeud = event.snapshot.value;
+            recu = true;
+            emettre();
+          },
+          onError: sortie.addError,
+        );
+        reevaluation = Timer.periodic(
+          const Duration(seconds: 30),
+          (_) => emettre(),
+        );
+      },
+      onCancel: () async {
+        reevaluation?.cancel();
+        await abonnement?.cancel();
+      },
+    );
+    return sortie.stream.distinct();
   }
 
   /// Get a stream of user's last seen timestamp from Realtime Database
@@ -470,8 +609,12 @@ class OnlineStatusService {
 
   /// Teardown presence tracking
   Future<void> _teardownPresence() async {
-    if (_currentUserId != null) {
-      await _setOffline(_currentUserId!);
+    _heartbeatTimer?.cancel();
+    final sortant = _currentUserId;
+    if (sortant != null) {
+      // Dans la file : un battement déjà parti ne doit pas réécrire « en
+      // ligne » après la déconnexion.
+      await _enFile(() => _setOffline(sortant));
     }
 
     await _connectedSubscription?.cancel();
@@ -489,6 +632,8 @@ class OnlineStatusService {
 
     await _teardownPresence();
     await _authStateSubscription?.cancel();
+    await _decalageSubscription?.cancel();
+    _decalageSubscription = null;
     _lifecycleListener?.dispose();
 
     _authStateSubscription = null;

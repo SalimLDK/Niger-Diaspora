@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1522 cases à cocher, 740 cochées** — 310 entrées sur 362 ont encore des cases ouvertes.
+**1529 cases à cocher, 740 cochées** — 311 entrées sur 363 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -97,7 +97,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (110)
+**P1 — fonction importante, jamais vérifiée** (111)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -109,6 +109,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [⬜ Verrou de version minimale et multi-appareil (2026-09-15)](#-verrou-de-version-minimale-et-multi-appareil-2026-09-15) · *Comptes, session et onboarding*
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
+- 7 · [⬜ Présence « En ligne » : elle suit enfin l'état réel (2026-09-22)](#-présence--en-ligne---elle-suit-enfin-létat-réel-2026-09-22) · *Messagerie*
 - 3 · [⬜ Le clair des messages exclu des sauvegardes Google et iCloud (2026-09-21)](#-le-clair-des-messages-exclu-des-sauvegardes-google-et-icloud-2026-09-21) · *Messagerie*
 - 5 · [⬜ Médias déchiffrés effacés du disque : suppression, déconnexion, compte supprimé (2026-09-21)](#-médias-déchiffrés-effacés-du-disque--suppression-déconnexion-compte-supprimé-2026-09-21) · *Messagerie*
 - 4 · [⬜ Message chiffré supprimé pour tous : plus de clair en mémoire ni dans le cache (2026-09-21)](#-message-chiffré-supprimé-pour-tous--plus-de-clair-en-mémoire-ni-dans-le-cache-2026-09-21) · *Messagerie*
@@ -368,7 +369,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 340 à faire, 174 faites
+- [2. Messagerie](#2-messagerie) — 347 à faire, 174 faites
 - [3. Groupes](#3-groupes) — 149 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 132 à faire, 58 faites
 - [5. Appels](#5-appels) — 26 à faire, 8 faites
@@ -627,6 +628,47 @@ Crashlytics.
 # 2. Messagerie
 
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
+
+---
+
+## ⬜ Présence « En ligne » : elle suit enfin l'état réel (2026-09-22)
+
+**Priorité P1** · importance 4/5 — l'en-tête d'une discussion mentait dans les deux sens : un compte en mode avion restait « En ligne » plusieurs minutes, et un compte qui utilisait l'app s'affichait « Vu il y a environ 2 minutes ».
+
+Vu sur deux téléphones le 2026-09-22 (build Play 1.2.2+26, Pixel de Salim
+et SM A515F de Sim, 1:1). Trois causes dans
+[online_status_service.dart](lib/core/services/online_status_service.dart) :
+`isOnline` était cru sans condition de fraîcheur ; le battement de 10 min
+n'écrivait que dans Supabase, que l'en-tête ne lit pas ; et les écritures du
+cycle de vie (`inactive` → `hidden` → `paused`) pouvaient se croiser, un
+`true` retardé par une lecture Supabase arrivant après les `false`.
+
+Corrigé (branche `claude/presence-2209`) : au premier plan, battement RTDB de
+60 s qui rafraîchit `lastSeen` et réaffirme `isOnline`, marqué
+`battement: 60` ; un lecteur tient pour hors ligne un `isOnline` dont le
+`lastSeen` a plus de 150 s (heure du serveur, `.info/serverTimeOffset`),
+réévalué toutes les 30 s. Écritures en file, et rien ne met « en ligne »
+une app qui n'est pas affichée. Un nœud sans `battement` (ancien client)
+garde l'ancienne règle. Règles RTDB inchangées (celles en service, relues le
+2026-09-22, acceptent le champ). Garde
+`test/core/services/presence_fraicheur_test.dart`. Coût : une écriture RTDB
+par minute et par utilisateur au premier plan.
+
+- [ ] **Mode avion, app fermée** chez A : B voit A « En ligne » **au plus
+      ~2 min 30**, puis « Vu il y a … » sans rien toucher.
+- [ ] **A utilise l'app** plusieurs minutes (écrit, lit, fait défiler) : B
+      le voit « En ligne » sans interruption, y compris après une coupure
+      réseau brève chez A.
+- [ ] **A passe en arrière-plan** (bouton accueil) : B voit « Vu à l'instant »
+      en quelques secondes, et plus « En ligne » ; A revient : « En ligne ».
+- [ ] **Un push réveille l'app de A en arrière-plan** : A ne passe PAS
+      « En ligne ».
+- [ ] **Ancien build** chez A (sans le correctif), nouveau chez B : A en
+      ligne reste affiché « En ligne » (ancienne règle, faute de battement).
+- [ ] **« Afficher mon statut en ligne » coupé** chez A : aucun battement,
+      A reste hors ligne pour tous.
+- [ ] `presence/<uid>` dans RTDB : `battement` = 60 et `lastSeen` avance
+      d'environ une minute tant que l'app est affichée.
 
 ---
 
