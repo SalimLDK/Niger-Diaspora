@@ -322,6 +322,7 @@ void main() {
         preferences: SharedPreferences.getInstance,
         effacerSignal: (_) async {},
         viderClesDerivees: () async {},
+        effacerMediasDechiffres: () async => 0,
       );
 
       final r = await materiel.effacer(uid);
@@ -350,6 +351,7 @@ void main() {
         preferences: SharedPreferences.getInstance,
         effacerSignal: (_) async {},
         viderClesDerivees: () async {},
+        effacerMediasDechiffres: () async => 0,
       );
 
       final r = await materiel.effacer('uidA');
@@ -373,12 +375,36 @@ void main() {
         preferences: SharedPreferences.getInstance,
         effacerSignal: (uid) async => signal.add(uid),
         viderClesDerivees: () async => derivees++,
+        effacerMediasDechiffres: () async => 0,
       );
 
       await materiel.effacer('uidA');
 
       expect(signal, ['uidA']);
       expect(derivees, 1);
+    });
+
+    test('les médias déchiffrés sont effacés ; un échec fait lever', () async {
+      // Écrits en clair dans un dossier commun aux comptes, ils n'étaient
+      // effacés par rien — pas même la suppression du compte.
+      SharedPreferences.setMockInitialValues({});
+      var medias = 0;
+      MaterielLocal avec(Future<int> Function() effacer) => MaterielLocal(
+            dossierMls: () async => dossier,
+            preferences: SharedPreferences.getInstance,
+            effacerSignal: (_) async {},
+            viderClesDerivees: () async {},
+            effacerMediasDechiffres: effacer,
+          );
+
+      await avec(() async => ++medias).effacer('uidA');
+      expect(medias, 1);
+
+      await expectLater(
+        avec(() async => throw const FileSystemException('occupé'))
+            .effacer('uidA'),
+        throwsStateError,
+      );
     });
 
     test('un uid VIDE est refusé : son préfixe effacerait les clés de TOUS les comptes', () async {
@@ -388,6 +414,7 @@ void main() {
         preferences: SharedPreferences.getInstance,
         effacerSignal: (_) async {},
         viderClesDerivees: () async {},
+        effacerMediasDechiffres: () async => 0,
       );
 
       await expectLater(materiel.effacer(''), throwsArgumentError);
@@ -402,6 +429,7 @@ void main() {
         preferences: SharedPreferences.getInstance,
         effacerSignal: (_) async => throw StateError('keystore verrouillé'),
         viderClesDerivees: () async => derivees++,
+        effacerMediasDechiffres: () async => 0,
       );
 
       await expectLater(materiel.effacer('uidA'), throwsStateError);
@@ -420,6 +448,7 @@ void main() {
         preferences: SharedPreferences.getInstance,
         effacerSignal: (_) async {},
         viderClesDerivees: () async {},
+        effacerMediasDechiffres: () async => 0,
       );
 
       final r = await materiel.effacer('uidJamaisVu');

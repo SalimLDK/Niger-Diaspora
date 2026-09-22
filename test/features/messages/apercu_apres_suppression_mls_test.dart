@@ -144,16 +144,19 @@ void main() {
   late MessageRepositoryImpl depot;
   late List<ConversationEntity> vues;
   late StreamSubscription<void> sub;
+  late List<String> oublies;
 
   setUp(() async {
     cache = _Cache();
     await cache.cacheMessages('c1', [_dernier('PA6SECRET')]);
     passerelle = _Passerelle();
+    oublies = [];
     depot = MessageRepositoryImpl(
       remoteDataSource: _Source(),
       networkInfo: _Reseau(),
       cacheService: cache,
       mlsGateway: passerelle,
+      oublierMedias: oublies.addAll,
     );
     vues = [];
     sub = depot.getConversations('moi').listen((e) {
@@ -181,6 +184,76 @@ void main() {
     expect(vues.last.apercuEfface, ApercuEfface.supprime);
     expect(cache.getCachedMessages('c1').single['content'], isEmpty,
         reason: 'la copie locale du texte est retirée, pas seulement marquée');
+  });
+
+  test('supprimer pour tous : l\'entrée du cache perd aussi la clé du média, '
+      'le fichier, la carte et la citation', () async {
+    // Une photo chiffrée qui citait un message et portait un aperçu de lien.
+    // Seul `content` était vidé : le reste attendait sur le disque le
+    // passage suivant du fil — jamais venu si l'app était tuée entre-temps.
+    await cache.cacheMessages('c1', [
+      {
+        ..._dernier('PA6SECRET'),
+        'type': 'image',
+        'fileUrl': 'https://exemple.test/blob',
+        'fileName': 'vacances.jpg',
+        'mediaChiffre': {
+          'v': 1,
+          'storagePath': 'encrypted_media/c1/moi/x',
+          'encryptedUrl': 'https://exemple.test/blob',
+          'fileKey': 'Q0xFRlNFQ1JFVEU=',
+          'iv': 'SVY=',
+          'fileName': 'vacances.jpg',
+          'mimeType': 'image/jpeg',
+          'size': 42,
+        },
+        'replyToId': 'm0',
+        'replyToMessageData': {'content': 'citation'},
+        'linkPreviewData': {'url': 'https://exemple.test'},
+        'readBy': ['moi', 'autre'],
+      },
+    ]);
+
+    await depot.deleteMessageForEveryone(conversationId: 'c1', messageId: 'm1');
+
+    final entree = cache.getCachedMessages('c1').single;
+    expect(entree['deletedForEveryone'], isTrue);
+    expect(entree['content'], isEmpty);
+    for (final cle in [
+      'fileUrl',
+      'fileName',
+      'mediaChiffre',
+      'replyToId',
+      'replyToMessageData',
+      'linkPreviewData',
+    ]) {
+      expect(entree[cle], isNull, reason: '« $cle » resté sur le disque');
+    }
+    expect(entree.toString(), isNot(contains('Q0xFRlNFQ1JFVEU=')));
+    // Ce qui fait la bulle reste : identifiant, date, lecture.
+    expect(entree['id'], 'm1');
+    expect(DateTime.parse(entree['createdAt'] as String), _quand);
+    expect(entree['readBy'], ['moi', 'autre']);
+  });
+
+  test('supprimer pour tous : le média déchiffré du message est oublié du '
+      'disque', () async {
+    await depot.deleteMessageForEveryone(conversationId: 'c1', messageId: 'm1');
+    expect(oublies, ['m1']);
+  });
+
+  test('un message déjà supprimé lu depuis le cache fait oublier son média',
+      () async {
+    // Supprimé pendant que la discussion était fermée : on l'apprend au
+    // chargement suivant.
+    await cache.cacheMessages('c1', [
+      {..._dernier(''), 'deletedForEveryone': true},
+      {..._dernier('vivant'), 'id': 'm2'},
+    ]);
+
+    depot.getCachedMessages(conversationId: 'c1');
+
+    expect(oublies, ['m1']);
   });
 
   test('modifier son dernier message : la tuile prend le nouveau texte',

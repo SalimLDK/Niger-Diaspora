@@ -34,11 +34,13 @@ class MlsGateway {
     required MlsDelivery delivery,
     MlsMetadonnees? metadonnees,
     Future<String?> Function(String userId)? nomDe,
+    void Function(Iterable<String> messageIds)? surSuppression,
   })  : _actif = actif,
         _service = service,
         _delivery = delivery,
         _meta = metadonnees ?? MlsMetadonnees(userId: userId),
-        _nomDe = nomDe;
+        _nomDe = nomDe,
+        _surSuppression = surSuppression;
 
   final String userId;
   final bool Function() _actif;
@@ -46,6 +48,12 @@ class MlsGateway {
   final MlsDelivery _delivery;
   final MlsMetadonnees _meta;
   final Future<String?> Function(String userId)? _nomDe;
+
+  /// Prévenu des messages supprimés pour tous que le fil vient de vider,
+  /// pour effacer leurs copies locales hors du fil — le média déchiffré sur
+  /// le disque (`OubliMediasLocaux`). Idempotent côté appelé : le même
+  /// identifiant revient à chaque passage.
+  final void Function(Iterable<String> messageIds)? _surSuppression;
 
   /// `mls_since` par conversation, pour ne pas le redemander à chaque
   /// pagination. Une conversation ne se débascule jamais : une valeur non
@@ -285,6 +293,10 @@ class MlsGateway {
     // que vidée : jusqu'ici, elle était mise en cache avec son clair, le
     // drapeau posé à côté.
     caches = [for (final m in caches) _videSiSupprime(m)];
+    _surSuppression?.call([
+      for (final m in caches)
+        if (m.deletedForEveryone) m.id,
+    ]);
     final vivant = _fil[conversationId];
     if (vivant == null || vivant.isEmpty) {
       final fil = [...caches]
@@ -376,12 +388,17 @@ class MlsGateway {
   /// de la passerelle et sur le disque, réinjectés dans l'écran à chaque
   /// passage.
   void _vider(List<MessageEntity> fil, [Set<String> supprimes = const {}]) {
+    final vides = <String>[];
     for (var i = 0; i < fil.length; i++) {
       final m = fil[i];
       if (m.deletedForEveryone || supprimes.contains(m.id)) {
         fil[i] = m.videPourSuppression();
+        vides.add(m.id);
       }
     }
+    // Le fil vient de perdre le contenu : les copies locales hors du fil
+    // (média déchiffré sur le disque) suivent.
+    if (vides.isNotEmpty) _surSuppression?.call(vides);
   }
 
   /// Recolle les métadonnées en ligne sur un fil déjà déchiffré.

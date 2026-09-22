@@ -6,6 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../features/messages/presentation/providers/media_dechiffre_provider.dart';
 import '../../providers/uid_firebase_provider.dart';
+import '../../services/oubli_medias_locaux.dart';
 import 'mls_conversation_service.dart';
 import 'mls_delivery.dart';
 import 'mls_device_registry.dart';
@@ -63,6 +64,9 @@ final mlsGatewayProvider = Provider<MlsGateway?>((ref) {
           .maybeSingle();
       return row?['display_name'] as String?;
     },
+    // `read` dans une fermeture, comme `actif` : la passerelle ne dépend que
+    // de l'uid, rien d'autre ne doit la reconstruire.
+    surSuppression: (ids) => ref.read(oubliMediasLocauxProvider).oublier(ids),
   );
 });
 

@@ -37,6 +37,31 @@ class FileDownloadService {
     }
   }
 
+  /// Efface la pièce jointe téléchargée d'un message **et** son index — à la
+  /// suppression pour tous, ou à l'expiration. Le fichier est en clair dans
+  /// le répertoire documents ; le message parti, rien ne le justifie plus.
+  ///
+  /// Par chemin enregistré, comme [clearDownloadedFiles]. Ne lève pas.
+  Future<void> oublier(String messageId) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final cle = '$_downloadKeyPrefix$messageId';
+      final chemin = prefs.getString(cle);
+      if (chemin == null) return;
+      if (chemin.isNotEmpty) {
+        try {
+          final fichier = File(chemin);
+          if (await fichier.exists()) await fichier.delete();
+        } catch (e) {
+          debugPrint('FileDownloadService: suppression de $chemin: $e');
+        }
+      }
+      await prefs.remove(cle);
+    } catch (e) {
+      debugPrint('FileDownloadService: oubli de $messageId: $e');
+    }
+  }
+
   /// Efface les pièces jointes téléchargées **et** leur index, à la
   /// déconnexion et à la suppression de compte.
   ///

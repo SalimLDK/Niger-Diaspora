@@ -22,7 +22,16 @@ final mediaDechiffreCacheProvider = Provider<MediaDechiffreCache>((ref) {
 /// Le fichier déchiffré est écrit **en clair** sur l'appareil, comme les
 /// pièces jointes téléchargées aujourd'hui (`FileDownloadService`) et comme
 /// le cache Hive des messages : c'est le compromis assumé par le plan MLS
-/// (§ 7.4). Il est effacé par [vider], à appeler à la déconnexion.
+/// (§ 7.4). Le compromis tient à une condition : que le fichier parte quand
+/// le message part. D'où [oublier], à la suppression pour tous (et à
+/// l'expiration, que le serveur rend de la même façon) ; [vider], à la
+/// déconnexion ; [effacerTout], à l'effacement local d'un compte supprimé.
+///
+/// ⚠️ Jusqu'au 2026-09-21, rien de tout ça n'était appelé : `vider` était
+/// documenté « à appeler à la déconnexion » sans l'être nulle part. Tout média
+/// chiffré affiché une fois restait en clair sur le téléphone jusqu'à la
+/// désinstallation — message supprimé, compte déconnecté ou supprimé, et
+/// dossier commun à tous les comptes du téléphone.
 class MediaDechiffreCache {
   MediaDechiffreCache(this._chiffrement, {Future<Directory> Function()? racine})
     : _racine = racine ?? _racineParDefaut;
@@ -45,10 +54,15 @@ class MediaDechiffreCache {
   /// type MIME. Pur, testable, et sans le nom d'origine (qui pourrait
   /// contenir n'importe quoi).
   @visibleForTesting
-  static String nomDeFichier(String messageId, String mimeType) {
-    final sur = messageId.replaceAll(RegExp(r'[^A-Za-z0-9_-]'), '_');
-    return '$sur${extensionPour(mimeType)}';
-  }
+  static String nomDeFichier(String messageId, String mimeType) =>
+      '${soucheDe(messageId)}${extensionPour(mimeType)}';
+
+  /// Le nom sans extension. Il ne contient jamais de point : c'est ce qui
+  /// permet à [oublier] de retrouver le fichier sans connaître le type MIME,
+  /// que la coquille d'un message supprimé ne porte plus.
+  @visibleForTesting
+  static String soucheDe(String messageId) =>
+      messageId.replaceAll(RegExp(r'[^A-Za-z0-9_-]'), '_');
 
   @visibleForTesting
   static String extensionPour(String mimeType) {
@@ -138,23 +152,63 @@ class MediaDechiffreCache {
     return MediaType.document;
   }
 
-  /// Supprime tout le cache déchiffré. À la déconnexion et à la suppression
-  /// de compte, pour la même raison que `FileDownloadService.clearDownloadedFiles`.
-  Future<int> vider() async {
+  /// Efface le média déchiffré d'un message : supprimé pour tous, ou expiré.
+  ///
+  /// Un déchiffrement encore en vol pour ce message est attendu d'abord :
+  /// sinon il écrirait son fichier juste après l'effacement. Un échec est
+  /// journalisé, pas levé — l'appelant est un chemin d'affichage, et le
+  /// fichier sera retenté au prochain passage du message.
+  Future<void> oublier(String messageId) async {
+    final enVol = _enVol[messageId];
+    if (enVol != null) {
+      try {
+        await enVol;
+      } catch (_) {
+        // Un déchiffrement raté n'a rien laissé : rien de plus à attendre.
+      }
+    }
     try {
       final dossier = await _racine();
-      if (!await dossier.exists()) return 0;
-      var n = 0;
+      if (!await dossier.exists()) return;
+      final souche = soucheDe(messageId);
       await for (final entree in dossier.list()) {
-        if (entree is File) {
+        if (entree is! File) continue;
+        final nom = entree.uri.pathSegments.last;
+        if (nom == souche || nom.startsWith('$souche.')) {
           await entree.delete();
-          n++;
         }
       }
-      return n;
+    } catch (e) {
+      debugPrint('MediaDechiffreCache: oubli de $messageId impossible ($e)');
+    }
+  }
+
+  /// Supprime tout le cache déchiffré, à la déconnexion. Ne lève pas : la
+  /// déconnexion doit aboutir, quoi qu'il arrive au disque.
+  Future<int> vider() async {
+    try {
+      return await effacerTout(racine: _racine);
     } catch (e) {
       debugPrint('MediaDechiffreCache: vidage impossible ($e)');
       return 0;
     }
+  }
+
+  /// Supprime tout le cache déchiffré, **et lève** si un fichier résiste.
+  ///
+  /// Pour l'effacement local d'un compte supprimé (`MaterielLocal`), dont la
+  /// règle est de retenter plutôt que de croire avoir effacé. Statique : ce
+  /// chemin n'a ni conteneur Riverpod ni service de chiffrement sous la main.
+  static Future<int> effacerTout({Future<Directory> Function()? racine}) async {
+    final dossier = await (racine ?? _racineParDefaut)();
+    if (!await dossier.exists()) return 0;
+    var n = 0;
+    await for (final entree in dossier.list()) {
+      if (entree is File) {
+        await entree.delete();
+        n++;
+      }
+    }
+    return n;
   }
 }

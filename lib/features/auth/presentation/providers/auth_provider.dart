@@ -4,6 +4,7 @@ import 'dart:async';
 import 'dart:developer' as dev;
 import 'package:dartz/dartz.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/services/e2ee/media_dechiffre_cache.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -453,6 +454,11 @@ class AuthNotifier extends _$AuthNotifier {
     // …et les pieces jointes telechargees, en clair sur le disque, avec leur
     // index `media_dl_<messageId>` (cles dynamiques, hors de clearUserData).
     await FileDownloadService().clearDownloadedFiles();
+    // …et les médias chiffrés déjà déchiffrés, en clair eux aussi, dans un
+    // dossier commun à tous les comptes du téléphone. `vider` était documenté
+    // « à appeler à la déconnexion » sans l'être nulle part : le compte
+    // suivant héritait des photos du précédent.
+    await ref.read(mediaDechiffreCacheProvider).vider();
 
     final result = await ref.read(signOutUseCaseProvider).call();
 

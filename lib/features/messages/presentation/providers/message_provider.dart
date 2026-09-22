@@ -38,6 +38,7 @@ import 'media_upload_provider.dart';
 import '../../../../core/services/e2ee/media_encryption_service.dart';
 import 'media_dechiffre_provider.dart';
 import '../../../../core/crypto/mls/mls_providers.dart';
+import '../../../../core/services/oubli_medias_locaux.dart';
 
 const int _pageSize = 30;
 
@@ -63,6 +64,9 @@ final messageRepositoryProvider = Provider<MessageRepository>((ref) {
     // connecté, et inerte tant que le drapeau est fermé ET qu'aucune
     // conversation n'a basculé.
     mlsGateway: ref.watch(mlsGatewayProvider),
+    // Copies locales en clair d'un message supprimé pour tous : média
+    // déchiffré, pièce jointe téléchargée. `read` à l'appel, comme ci-dessus.
+    oublierMedias: (ids) => ref.read(oubliMediasLocauxProvider).oublier(ids),
   );
 });
 
