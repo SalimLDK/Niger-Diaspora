@@ -114,6 +114,73 @@ void main() {
     });
   });
 
+  group('suppression MLS : sansContenuSupprime', () {
+    // Ce que rend `MlsGateway._avecMetadonnees` pour un message supprimé :
+    // le drapeau recollé sur l'entité DÉCHIFFRÉE, tout le reste intact.
+    final supprimeMls = MessageEntity(
+      id: 'mls-1',
+      senderId: 'autre',
+      senderName: 'Sim A',
+      content: 'PA6SECRET',
+      type: MessageType.image,
+      createdAt: _envoi,
+      localFilePath: '/data/user/0/cache/photo_dechiffree.jpg',
+      fileUrl: 'https://exemple.test/blob',
+      fileName: 'vacances.jpg',
+      thumbnailUrl: 'https://exemple.test/vignette',
+      replyToId: 'mls-0',
+      replyToMessageData: const {'content': 'cité'},
+      linkPreviewData: const {'url': 'https://exemple.test'},
+      editedAt: _v1,
+      readBy: const ['autre', 'moi'],
+      reactions: const {'moi': '👍'},
+      clientMessageId: 'cid-1',
+      deletedForEveryone: true,
+    );
+    final vivant = _message('toujours là');
+
+    test('le clair, le fichier, les cartes et la citation partent', () {
+      final [coquille] = sansContenuSupprime([supprimeMls]);
+      expect(coquille.content, isEmpty);
+      expect(coquille.localFilePath, isNull);
+      expect(coquille.fileUrl, isNull);
+      expect(coquille.fileName, isNull);
+      expect(coquille.thumbnailUrl, isNull);
+      expect(coquille.replyToId, isNull);
+      expect(coquille.replyToMessageData, isNull);
+      expect(coquille.linkPreviewData, isNull);
+      expect(coquille.editedAt, isNull);
+      expect(coquille.reactions, isEmpty);
+    });
+
+    test('ce qui fait la bulle et le dédoublonnage reste', () {
+      final [coquille] = sansContenuSupprime([supprimeMls]);
+      expect(coquille.id, 'mls-1');
+      expect(coquille.senderId, 'autre');
+      expect(coquille.createdAt, _envoi);
+      expect(coquille.type, MessageType.image);
+      expect(coquille.deletedForEveryone, isTrue);
+      expect(coquille.readBy, ['autre', 'moi']);
+      // L'écho d'une suppression est rapproché par `clientMessageId`.
+      expect(coquille.clientMessageId, 'cid-1');
+    });
+
+    test('les autres messages ne sont pas touchés', () {
+      final resultat = sansContenuSupprime([vivant, supprimeMls]);
+      expect(resultat.first, same(vivant));
+    });
+
+    test('aucune suppression : la liste elle-même, sans copie', () {
+      final liste = [vivant];
+      expect(sansContenuSupprime(liste), same(liste));
+    });
+
+    test('idempotent : vider une coquille ne change rien', () {
+      final une = sansContenuSupprime([supprimeMls]);
+      expect(sansContenuSupprime(une), une);
+    });
+  });
+
   group('appliquerModificationRelue', () {
     test('une relecture revenue après la suppression ne ressuscite rien', () {
       final tombe = MessageEntity(

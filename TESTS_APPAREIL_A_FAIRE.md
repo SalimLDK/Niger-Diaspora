@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1553 cases à cocher, 682 cochées** — 306 entrées sur 357 ont encore des cases ouvertes.
+**1554 cases à cocher, 682 cochées** — 306 entrées sur 357 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -174,7 +174,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⛔ « Diaspo Niger s'arrête systématiquement » sur Android 15+ (2026-09-09)](#--diaspo-niger-sarrête-systématiquement--sur-android-15-2026-09-09) · *Publication et plateformes*
 - 4 · [⚠️ Rapatriement iOS : deux dépendances **Android** changent de version majeure (2026-09-08)](#-rapatriement-ios--deux-dépendances-android-changent-de-version-majeure-2026-09-08) · *Publication et plateformes*
 - 9 · [⬜ La page de suppression de compte demande la suppression au lieu de l'exécuter (2026-09-19)](#-la-page-de-suppression-de-compte-demande-la-suppression-au-lieu-de-lexécuter-2026-09-19) · *Site web*
-- 8 · [⬜ Accusés, réactions, modifications et suppressions reçus en direct, discussion en clair (2026-09-21)](#-accusés-réactions-modifications-et-suppressions-reçus-en-direct-discussion-en-clair-2026-09-21) · *Messagerie*
+- 9 · [⬜ Accusés, réactions, modifications et suppressions reçus en direct, discussion en clair (2026-09-21)](#-accusés-réactions-modifications-et-suppressions-reçus-en-direct-discussion-en-clair-2026-09-21) · *Messagerie*
 - 9 · [⬜ Partager vers une discussion — groupe et 1:1 (2026-09-09)](#-partager-vers-une-discussion--groupe-et-11-2026-09-09) · *Messagerie*
 - 2 · [Accusés livré/lu séparés — sheet infos du message (2026-08-13)](#accusés-livrélu-séparés--sheet-infos-du-message-2026-08-13) · *Messagerie* · bloqué
 - 9 · [⬜ Pays en toutes lettres : groupes officiels et filtre par pays (2026-09-13)](#-pays-en-toutes-lettres--groupes-officiels-et-filtre-par-pays-2026-09-13) · *Groupes*
@@ -364,7 +364,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 345 à faire, 143 faites
+- [2. Messagerie](#2-messagerie) — 346 à faire, 143 faites
 - [3. Groupes](#3-groupes) — 149 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 144 à faire, 45 faites
 - [5. Appels](#5-appels) — 26 à faire, 8 faites
@@ -660,6 +660,18 @@ passe : la première modification d'un message jamais modifié reprenait la
 date de la ligne brute (`copyWith(editedAt: null)` ne vide rien) — drapeau
 `effacerDateDeModification` ajouté à `MessageEntity.copyWith`.
 
+**Suppressions MLS** : même fuite, par un autre chemin. La passerelle ne
+fait que recoller `deletedForEveryone` sur l'entité déchiffrée
+(`_avecMetadonnees`) ; le temps réel relit le fil entier et l'écran
+remplace par identifiant — texte, fichier local déchiffré, clé du média et
+citation restaient dans l'état. Tout message supprimé pour tous est
+désormais réduit à sa coquille à **chaque écriture de l'état de l'écran**
+(`sansContenuSupprime` dans le `set state` du notifier, liste d'inclusion
+`MessageEntity.videPourSuppression`) : temps réel, cache et pagination
+confondus. ⚠️ Non traité : le fil en mémoire de la passerelle et le cache
+disque gardent le clair du message MLS supprimé (le garde-fou d'aperçu
+l'empêche seulement de ressortir dans la liste).
+
 - [ ] **HOME court, accusé** : envoyer un message en clair, HOME ; l'autre
   téléphone ouvre la discussion ; revenir → la double coche « Lu » est là
   **sans rouvrir** la discussion (logcat : `realtime: rejoint « msg_updates »
@@ -684,6 +696,10 @@ date de la ligne brute (`copyWith(editedAt: null)` ne vide rien) — drapeau
   sans rouvrir ; appui long dessus → ni « Copier » ni « Transférer » ne
   rendent l'ancien contenu. Puis même chose avec HOME pendant la
   suppression.
+- [ ] **Suppression MLS en direct** : discussion chiffrée ouverte des deux
+  côtés ; l'autre supprime pour tout le monde un message texte, puis une
+  photo → pierre tombale sans rouvrir, appui long sans « Copier ». Puis
+  rouvrir la discussion (chemin du cache) → toujours la pierre tombale.
 - [ ] **Modifier puis supprimer vite** : l'autre modifie puis supprime dans
   la foulée → la pierre tombale reste, le texte modifié ne réapparaît pas.
 

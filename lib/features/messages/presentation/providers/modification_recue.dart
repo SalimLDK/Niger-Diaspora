@@ -42,7 +42,7 @@ MessageEntity fusionnerLigneBrute({
   required MessageEntity affiche,
   required MessageEntity brut,
 }) {
-  if (brut.deletedForEveryone) return brut;
+  if (brut.deletedForEveryone) return brut.videPourSuppression();
   return brut.copyWith(
     content: affiche.content,
     fileUrl: affiche.fileUrl,
@@ -59,6 +59,26 @@ MessageEntity fusionnerLigneBrute({
     // plus courant affichait « modifié » sur l'ancien texte.
     effacerDateDeModification: affiche.editedAt == null,
   );
+}
+
+/// [messages] où chaque message supprimé pour tout le monde est réduit à sa
+/// coquille (`MessageEntity.videPourSuppression`). Rend la liste elle-même,
+/// sans copie, quand aucun ne l'est.
+///
+/// Appliqué à chaque écriture de l'état de l'écran, pas dans un chemin
+/// particulier : un message MLS supprimé arrive **déchiffré**, drapeau posé
+/// mais texte intact (`MlsGateway._avecMetadonnees` ne fait que recoller
+/// `deletedForEveryone`), et il arrive par le temps réel — qui relit le fil
+/// entier et remplace par identifiant — comme par le cache ou la pagination.
+///
+/// Après `_reconcileEcho`, jamais avant : il garde le texte local quand
+/// l'entrant est vide, et rendrait donc le clair à une coquille.
+List<MessageEntity> sansContenuSupprime(List<MessageEntity> messages) {
+  if (!messages.any((m) => m.deletedForEveryone)) return messages;
+  return [
+    for (final m in messages)
+      m.deletedForEveryone ? m.videPourSuppression() : m,
+  ];
 }
 
 /// Vrai si [recue] annonce une version plus récente que [affichee].

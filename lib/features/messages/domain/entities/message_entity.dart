@@ -624,6 +624,42 @@ class MessageEntity extends Equatable {
     );
   }
 
+  /// Ce qui reste d'un message **supprimé pour tout le monde** : qui, quand,
+  /// et l'état de lecture — plus rien de ce qu'il disait.
+  ///
+  /// Liste d'**inclusion** : un champ ajouté plus tard à l'entité est retiré
+  /// par défaut. `copyWith` ne peut pas servir ici, `null` n'y efface rien.
+  ///
+  /// Le serveur vide la ligne d'un message en clair ; pour un message MLS il
+  /// n'a jamais eu le clair, et la passerelle se contente de poser le drapeau
+  /// sur l'entité déchiffrée. Sans cette coquille, la bulle montrait bien la
+  /// pierre tombale, mais le texte, le fichier, la clé du média et les cartes
+  /// restaient dans l'état de l'écran.
+  MessageEntity videPourSuppression() => MessageEntity(
+    id: id,
+    senderId: senderId,
+    senderName: senderName,
+    senderPhotoUrl: senderPhotoUrl,
+    senderIsVerified: senderIsVerified,
+    content: '',
+    type: type,
+    status: status,
+    readBy: readBy,
+    readAt: readAt,
+    deliveredTo: deliveredTo,
+    deliveredAt: deliveredAt,
+    createdAt: createdAt,
+    deletedFor: deletedFor,
+    deletedForEveryone: true,
+    deletedAt: deletedAt,
+    reportedBy: reportedBy,
+    sentWhileBlockedBy: sentWhileBlockedBy,
+    starredBy: starredBy,
+    expiresAt: expiresAt,
+    clientMessageId: clientMessageId,
+    encryptionLevel: encryptionLevel,
+  );
+
   @override
   List<Object?> get props => [
     localFilePath,

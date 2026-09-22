@@ -273,14 +273,20 @@ class PaginatedMessagesNotifier extends StateNotifier<MessagePaginationState> {
   /// ouverture, puis disparaître au retour du réseau. Une vingtaine
   /// d'écritures de `state` dans ce notifier : filtrer chacune, c'était en
   /// oublier une.
+  ///
+  /// **Et le seul où un message supprimé pour tout le monde est vidé**, pour
+  /// la même raison : un message MLS supprimé arrive déchiffré, drapeau posé
+  /// mais texte intact, par le temps réel comme par le cache ou la
+  /// pagination. Voir `sansContenuSupprime`.
   @override
   set state(MessagePaginationState valeur) {
     final borne = _filterAfterDate;
-    super.state = borne == null
+    final messages = sansContenuSupprime(
+      sansMessagesAvantArrivee(valeur.messages, borne),
+    );
+    super.state = identical(messages, valeur.messages)
         ? valeur
-        : valeur.copyWith(
-            messages: sansMessagesAvantArrivee(valeur.messages, borne),
-          );
+        : valeur.copyWith(messages: messages);
   }
   final Map<String, Timer> _optimisticTimeouts = {};
 
