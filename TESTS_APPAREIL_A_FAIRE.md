@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1525 cases à cocher, 737 cochées** — 310 entrées sur 362 ont encore des cases ouvertes.
+**1522 cases à cocher, 740 cochées** — 310 entrées sur 362 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -64,7 +64,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [⬜ Une conversation ne bascule plus sans ses participants (2026-09-15)](#-une-conversation-ne-bascule-plus-sans-ses-participants-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ MLS ouvert pour un seul compte (phase 5, 2026-09-15)](#-mls-ouvert-pour-un-seul-compte-phase-5-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 5 · [⬜ Signal remis en service : la garde de session sur les lectures de clés (2026-09-14)](#-signal-remis-en-service--la-garde-de-session-sur-les-lectures-de-clés-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
-- 11 · [⬜ Cinq messages reçus, un seul lisible : la bannière ne s'empilait pas (2026-09-16)](#-cinq-messages-reçus-un-seul-lisible--la-bannière-ne-sempilait-pas-2026-09-16) · *Notifications et push*
+- 10 · [⬜ Cinq messages reçus, un seul lisible : la bannière ne s'empilait pas (2026-09-16)](#-cinq-messages-reçus-un-seul-lisible--la-bannière-ne-sempilait-pas-2026-09-16) · *Notifications et push*
 - 3 · [⬜ Aperçu MLS quand l'app est OUVERTE (le même message, l'autre isolate)](#-aperçu-mls-quand-lapp-est-ouverte-le-même-message-lautre-isolate) · *Notifications et push*
 - 7 · [⬜ Aperçu des notifications MLS reconstruit sur l'appareil (phase 4, Android)](#-aperçu-des-notifications-mls-reconstruit-sur-lappareil-phase-4-android) · *Notifications et push*
 - 6 · [⬜ Accepter une demande d'ami : « Erreur de chargement » (2026-09-14)](#-accepter-une-demande-dami---erreur-de-chargement--2026-09-14) · *Notifications et push* · bloqué
@@ -123,7 +123,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [⬜ « Mes notes » s'ouvre sans aller-retour réseau — vérifié SM A515F (2026-09-15)](#--mes-notes--souvre-sans-aller-retour-réseau--vérifié-sm-a515f-2026-09-15) · *Messagerie*
 - 4 · [⬜ La liste n'annonce plus « Utilisateur » ni « Message chiffré » (2026-09-15)](#-la-liste-nannonce-plus--utilisateur--ni--message-chiffré--2026-09-15) · *Messagerie*
 - 1 · [⬜ Modifier un message chiffré part parfois dans la mauvaise table (2026-09-15)](#-modifier-un-message-chiffré-part-parfois-dans-la-mauvaise-table-2026-09-15) · *Messagerie*
-- 12 · [⬜ Messages éphémères — minuteur réparé, purge serveur (2026-09-15)](#-messages-éphémères--minuteur-réparé-purge-serveur-2026-09-15) · *Messagerie*
+- 10 · [⬜ Messages éphémères — minuteur réparé, purge serveur (2026-09-15)](#-messages-éphémères--minuteur-réparé-purge-serveur-2026-09-15) · *Messagerie*
 - 14 · [⬜ Aperçu et compteurs d'une conversation chiffrée (décision J, 2026-09-15)](#-aperçu-et-compteurs-dune-conversation-chiffrée-décision-j-2026-09-15) · *Messagerie*
 - 12 · [⬜ Pièces jointes chiffrées — images, documents, audio (C4, 2026-09-14)](#-pièces-jointes-chiffrées--images-documents-audio-c4-2026-09-14) · *Messagerie*
 - 8 · [⬜ Désigner quelqu'un ouvre sa discussion, plus le sélecteur (2026-09-14)](#-désigner-quelquun-ouvre-sa-discussion-plus-le-sélecteur-2026-09-14) · *Messagerie*
@@ -368,11 +368,11 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 342 à faire, 172 faites
+- [2. Messagerie](#2-messagerie) — 340 à faire, 174 faites
 - [3. Groupes](#3-groupes) — 149 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 132 à faire, 58 faites
 - [5. Appels](#5-appels) — 26 à faire, 8 faites
-- [6. Notifications et push](#6-notifications-et-push) — 144 à faire, 98 faites
+- [6. Notifications et push](#6-notifications-et-push) — 143 à faire, 99 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 69 à faire, 10 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 118 à faire, 16 faites
@@ -2479,11 +2479,18 @@ SELECT public.purger_messages_expires();
   porte pas — il décrit la conversation, pas son contenu.
 - [x] **Minuteur coupé** : remettre sur « Désactivé », le message suivant n'a
   plus de clé `expiresAt` du tout.
-- [ ] **Minuteur changé en cours de route** : passer de 24 h à 7 j, le message
+- [x] **Minuteur changé en cours de route** : passer de 24 h à 7 j, le message
   suivant prend la nouvelle durée sans redémarrer l'application (le réglage
   est relu à chaque envoi, jamais mémorisé).
-- [ ] **Messages déjà envoyés** : changer le minuteur ne touche pas les
+  ✅ Passe du 2026-09-22 (~03:55–04:02), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : minuteur « 24 heures » (`autoDeleteAfterSeconds` 86400) →
+  PZ1 part avec `expires_at` = +24,00 h ; puis « 7 jours » **sans relancer
+  l'app** (604800) → PZ2 part à +168,00 h. Chez Salim (discussion ouverte),
+  PZ1 et PZ2 arrivent en direct avec l'icône minuteur. Minuteur remis sur
+  « Désactivé » ensuite (champ revenu à nul, comme avant).
+- [x] **Messages déjà envoyés** : changer le minuteur ne touche pas les
   échéances des messages précédents.
+  ✅ Passe du 2026-09-22 (~03:55–04:02), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : après le passage à 7 jours, PZ1 garde son échéance à +24 h
+  (relue en base) ; les 53 messages des 3 h d'avant n'en ont pris aucune (relu en base).
 - [x] **Expiration côté expéditeur — CORRIGÉ et vu à l'écran le 2026-09-15.**
   La bulle affiche bien la pierre tombale (icône + libellé), au lieu de
   disparaître. Cause : `conversation_screen.dart` filtrait la liste sur
@@ -11452,8 +11459,13 @@ retour du réseau porte son heure d'envoi, pas « à l'instant ».
   celle de l'envoi, pas celle du retour de réseau.
 - [x] **Ordre** : cinq messages d'affilée, le plus ancien **en haut**.
   ✅ Passe du 2026-09-21, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : PA8, PA9, PA10 empilés dans une seule bannière, plus ancien en haut.
-- [ ] **Rattrapage hors ligne** : plusieurs messages d'un coup au retour du
+- [x] **Rattrapage hors ligne** : plusieurs messages d'un coup au retour du
   réseau, dans le bon ordre même s'ils n'arrivent pas dans cet ordre-là.
+  ✅ Passe du 2026-09-22 (~03:55–04:02), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : A515F app fermée (HOME + `am kill`) et en **mode avion** ;
+  Salim envoie PY1 (03:55:51), PY2 (03:56:10), PY3 (03:56:30) ; mode avion
+  coupé à 03:56:52 → au plus tard 03:57:13, **une** bannière « Salim L. » avec
+  PY1, PY2, PY3 **dans l'ordre**, déchiffrés, `number=3`. Côté Salim, le Pixel
+  affichait Sim « En ligne » pendant tout le mode avion (présence périmée).
 
 **Complété le 2026-09-16, signalé sur appareil** : la bannière ne portait
 **qu'une seule heure**, celle de l'en-tête. `MessagingStyle` reçoit bien un
