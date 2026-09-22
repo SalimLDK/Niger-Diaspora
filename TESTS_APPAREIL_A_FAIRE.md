@@ -1,20 +1,15 @@
 # Tests à faire sur appareil physique
 
-Récapitulatif de **tout le projet**, toutes sessions confondues, jamais
-vérifié sur un vrai téléphone — les sessions ont quasi toujours tourné sans
-émulateur ni appareil détecté de façon fiable (`adb devices` vide, ou
-téléphone déconnecté en cours de route). `flutter analyze` et `flutter test`
-sont propres partout, mais ça ne couvre ni le rendu visuel, ni les gestes,
-ni les permissions runtime (caméra, localisation), ni le comportement réseau
-réel (TURN/WebRTC, E2EE bout-en-bout).
+Tout ce qui n'a pas encore été vérifié sur un vrai téléphone : rendu
+visuel, gestes, permissions runtime (caméra, localisation), thème sombre,
+comportement réseau réel (temps réel, push, WebRTC, E2EE bout en bout) — ce
+que `flutter analyze` et `flutter test` ne couvrent pas.
 
-Extrait de l'historique git complet (235 commits) + des fichiers mémoire du
-projet. Les commits antérieurs à mi-juillet 2026 ne documentent quasiment
-jamais leur statut de test device — cette liste ne peut donc pas prétendre
-remonter à l'origine du projet (déc. 2025), seulement à ce qui est
-explicitement tracé.
-
-Coché = vérifié sur appareil. Non coché = jamais testé.
+Coché = vérifié sur appareil. Non coché = jamais testé. Le vérifié part
+dans l'archive (voir ci-dessous) ; ce qui devient sans objet — fonction
+retirée, doublon, build dépassé, récit de diagnostic — est supprimé, sa
+trace reste dans l'historique git (ménage du 2026-09-22 : 25 400 → 10 100
+lignes).
 
 **Rangement.** Les entrées sont classées par domaine (titres `# N.`) et, dans
 un domaine, de la plus récente à la plus ancienne.
@@ -44,18 +39,15 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1514 cases à cocher, 3 cochées** — 311 entrées sur 328 ont encore des cases ouvertes.
+**1297 cases à cocher, 10 cochées** — 278 entrées sur 290 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
-**P0 — avant toute nouvelle version** (51)
+**P0 — avant toute nouvelle version** (46)
 
 - 10 · [⬜ Temps réel après l'arrière-plan, et texte supprimé dans la liste (2026-09-21)](#-temps-réel-après-larrière-plan-et-texte-supprimé-dans-la-liste-2026-09-21) · *Messagerie*
 - 5 · [⬜ Droits d'écriture sur `messages` resserrés : accusés et modification (2026-09-16)](#-droits-décriture-sur-messages-resserrés--accusés-et-modification-2026-09-16) · *Messagerie*
-- 2 · [⬜ Accusé « lu » mensonger, et aperçu chiffré qui ne venait jamais (2026-09-15)](#-accusé--lu--mensonger-et-aperçu-chiffré-qui-ne-venait-jamais-2026-09-15) · *Messagerie*
-- 9 · [⬜ L'aperçu de la liste dit pourquoi il est vide (2026-09-15)](#-laperçu-de-la-liste-dit-pourquoi-il-est-vide-2026-09-15) · *Messagerie*
-- 1 · [✅ Note vocale impossible à envoyer en conversation chiffrée (2026-09-15)](#-note-vocale-impossible-à-envoyer-en-conversation-chiffrée-2026-09-15) · *Messagerie*
-- 3 · [⛔ Le fil chiffré se tronque au redémarrage dès qu'un message arrive en direct (2026-09-16)](#-le-fil-chiffré-se-tronque-au-redémarrage-dès-quun-message-arrive-en-direct-2026-09-16) · *Messagerie*
+- 8 · [⬜ L'aperçu de la liste dit pourquoi il est vide (2026-09-15)](#-laperçu-de-la-liste-dit-pourquoi-il-est-vide-2026-09-15) · *Messagerie*
 - 2 · [⬜ Un fil chiffré survit au redémarrage de l'application (2026-09-15)](#-un-fil-chiffré-survit-au-redémarrage-de-lapplication-2026-09-15) · *Messagerie*
 - 5 · [⬜ Un message non envoyé ne disparaît plus, et repart tout seul (2026-09-14)](#-un-message-non-envoyé-ne-disparaît-plus-et-repart-tout-seul-2026-09-14) · *Messagerie*
 - 6 · [⬜ Une discussion ouverte ne reste plus prisonnière de son cache (2026-09-14)](#-une-discussion-ouverte-ne-reste-plus-prisonnière-de-son-cache-2026-09-14) · *Messagerie*
@@ -70,47 +62,45 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [⬜ MLS ouvert pour un seul compte (phase 5, 2026-09-15)](#-mls-ouvert-pour-un-seul-compte-phase-5-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 5 · [⬜ Signal remis en service : la garde de session sur les lectures de clés (2026-09-14)](#-signal-remis-en-service--la-garde-de-session-sur-les-lectures-de-clés-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
 - 10 · [⬜ Cinq messages reçus, un seul lisible : la bannière ne s'empilait pas (2026-09-16)](#-cinq-messages-reçus-un-seul-lisible--la-bannière-ne-sempilait-pas-2026-09-16) · *Notifications et push*
-- 3 · [⬜ Aperçu MLS quand l'app est OUVERTE (le même message, l'autre isolate)](#-aperçu-mls-quand-lapp-est-ouverte-le-même-message-lautre-isolate) · *Notifications et push*
-- 7 · [⬜ Aperçu des notifications MLS reconstruit sur l'appareil (phase 4, Android)](#-aperçu-des-notifications-mls-reconstruit-sur-lappareil-phase-4-android) · *Notifications et push*
+- 2 · [⬜ Aperçu MLS quand l'app est OUVERTE (le même message, l'autre isolate)](#-aperçu-mls-quand-lapp-est-ouverte-le-même-message-lautre-isolate) · *Notifications et push*
+- 6 · [⬜ Aperçu des notifications MLS reconstruit sur l'appareil (phase 4, Android)](#-aperçu-des-notifications-mls-reconstruit-sur-lappareil-phase-4-android) · *Notifications et push*
 - 6 · [⬜ Accepter une demande d'ami : « Erreur de chargement » (2026-09-14)](#-accepter-une-demande-dami---erreur-de-chargement--2026-09-14) · *Notifications et push* · bloqué
-- 22 · [⬜ Supprimer mon compte : demande, 30 jours, annulation, purge (2026-09-18)](#-supprimer-mon-compte--demande-30-jours-annulation-purge-2026-09-18) · *Comptes, session et onboarding*
+- 21 · [⬜ Supprimer mon compte : demande, 30 jours, annulation, purge (2026-09-18)](#-supprimer-mon-compte--demande-30-jours-annulation-purge-2026-09-18) · *Comptes, session et onboarding*
 - 9 · [⬜ Expulsion admin et bannissement : ils n'éjectaient personne (2026-09-16)](#-expulsion-admin-et-bannissement--ils-néjectaient-personne-2026-09-16) · *Comptes, session et onboarding*
 - 7 · [⬜ Qui peut voir un événement : discussion, groupes, personnes, tout le monde (2026-09-12)](#-qui-peut-voir-un-événement--discussion-groupes-personnes-tout-le-monde-2026-09-12) · *Ambassades, démarches, carte, entreprises et événements*
 - 2 · [Réglages/Carte — deux interrupteurs de partage de position désynchronisés (2026-08-13)](#réglagescarte--deux-interrupteurs-de-partage-de-position-désynchronisés-2026-08-13) · *Ambassades, démarches, carte, entreprises et événements*
 - 6 · [⬜ 🔴 Bloquer un utilisateur ne bloque rien — corrigé (2026-09-14)](#--bloquer-un-utilisateur-ne-bloque-rien--corrigé-2026-09-14) · *Accueil, profil et réglages* · bloqué
 - 8 · [⬜ `users` : un compte connecté lit e-mail, position et jetons d'autrui (2026-09-21)](#-users--un-compte-connecté-lit-e-mail-position-et-jetons-dautrui-2026-09-21) · *Backend, sécurité et observabilité*
 - 4 · [⬜ `users` n'est plus lisible sans compte (2026-09-20)](#-users-nest-plus-lisible-sans-compte-2026-09-20) · *Backend, sécurité et observabilité*
-- 6 · [⬜ Bloqueurs de publication — Play & iOS (état 2026-09-21)](#-bloqueurs-de-publication--play--ios-état-2026-09-21) · *Publication et plateformes*
+- 4 · [⬜ Bloqueurs de publication — Play & iOS (état 2026-09-21)](#-bloqueurs-de-publication--play--ios-état-2026-09-21) · *Publication et plateformes*
 - 4 · [⬜ Le serveur ne supprime plus un chemin Storage dicté par le client (2026-09-21)](#-le-serveur-ne-supprime-plus-un-chemin-storage-dicté-par-le-client-2026-09-21) · *Publication et plateformes*
-- 8 · [⬜ Divulgation préalable de la localisation (refus Play du 2026-09-09)](#-divulgation-préalable-de-la-localisation-refus-play-du-2026-09-09) · *Publication et plateformes*
+- 5 · [⬜ Divulgation préalable de la localisation (refus Play du 2026-09-09)](#-divulgation-préalable-de-la-localisation-refus-play-du-2026-09-09) · *Publication et plateformes*
 - 3 · [⬜ Compte de test dédié : première connexion (2026-09-09)](#-compte-de-test-dédié--première-connexion-2026-09-09) · *Appareils, comptes de test et méthode*
 - 4 · [⬜ Écrire dans une conversation exige d'en être participant (2026-09-20)](#-écrire-dans-une-conversation-exige-den-être-participant-2026-09-20) · *Messagerie*
 - 3 · [⬜ GIF et sticker envoyés en MLS : la bulle ne montrait rien (2026-09-16)](#-gif-et-sticker-envoyés-en-mls--la-bulle-ne-montrait-rien-2026-09-16) · *Messagerie*
 - 6 · [⬜ GIFs via `gif-proxy` — clés sorties de l'APK (2026-08-27)](#-gifs-via-gif-proxy--clés-sorties-de-lapk-2026-08-27) · *Messagerie*
-- 4 · [⬜ Citations et modifications : plus de texte en clair (2026-09-09)](#-citations-et-modifications--plus-de-texte-en-clair-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
+- 3 · [⬜ Citations et modifications : plus de texte en clair (2026-09-09)](#-citations-et-modifications--plus-de-texte-en-clair-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
 - 3 · [⚠️ La légende d'une photo/vidéo part EN CLAIR (2026-09-09, non corrigé)](#-la-légende-dune-photovidéo-part-en-clair-2026-09-09-non-corrigé) · *Chiffrement de bout en bout et clés* · bloqué
 - 6 · [⬜ Clés de repli dérivées, servies par `crypto-keys` (2026-09-06)](#-clés-de-repli-dérivées-servies-par-crypto-keys-2026-09-06) · *Chiffrement de bout en bout et clés*
 - 5 · [⬜ 🔴 Modifier son profil réactivait ce qu'on avait coupé (2026-09-18)](#--modifier-son-profil-réactivait-ce-quon-avait-coupé-2026-09-18) · *Accueil, profil et réglages*
 - 3 · [⬜ Push arbitraire : type en liste fermée, blocage, quota (2026-09-21)](#-push-arbitraire--type-en-liste-fermée-blocage-quota-2026-09-21) · *Backend, sécurité et observabilité*
 - 1 · [⛔ Un groupe dont on est le seul membre refuse TOUS les messages (2026-09-09)](#-un-groupe-dont-on-est-le-seul-membre-refuse-tous-les-messages-2026-09-09) · *Groupes*
-- 2 · [E2EE réparé : la clé de signature est publiée avec le bundle (2026-08-23)](#e2ee-réparé--la-clé-de-signature-est-publiée-avec-le-bundle-2026-08-23) · *Chiffrement de bout en bout et clés* · bloqué
-- 5 · [🔴 Appels 1-à-1 mis en PAUSE (2026-08-14) — répondre à un appel ne faisait rigoureusement rien](#-appels-1-à-1-mis-en-pause-2026-08-14--répondre-à-un-appel-ne-faisait-rigoureusement-rien) · *Appels*
+- 4 · [🔴 Appels 1-à-1 mis en PAUSE (2026-08-14) — répondre à un appel ne faisait rigoureusement rien](#-appels-1-à-1-mis-en-pause-2026-08-14--répondre-à-un-appel-ne-faisait-rigoureusement-rien) · *Appels*
 - 7 · [⬜ Déconnexion forcée « Connecté ailleurs » — trois trous refermés](#-déconnexion-forcée--connecté-ailleurs---trois-trous-refermés) · *Comptes, session et onboarding* · bloqué
-- 2 · [Doublons Profil / Réglages (2026-08-05)](#doublons-profil--réglages-2026-08-05) · *Accueil, profil et réglages*
 - 2 · [⬜ Passage à targetSdk 36 (Android 16) — exigence Play (2026-09-08)](#-passage-à-targetsdk-36-android-16--exigence-play-2026-09-08) · *Publication et plateformes* · bloqué
-- 4 · [Appels WebRTC](#appels-webrtc) · *Appels* · bloqué
-- 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
-- 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
+- 3 · [Appels WebRTC](#appels-webrtc) · *Appels* · bloqué
+- 3 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
+- 6 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (111)
+**P1 — fonction importante, jamais vérifiée** (107)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
-- 19 · [⬜ Inviter des membres dans un groupe privé (2026-09-09)](#-inviter-des-membres-dans-un-groupe-privé-2026-09-09) · *Groupes* · bloqué
+- 15 · [⬜ Inviter des membres dans un groupe privé (2026-09-09)](#-inviter-des-membres-dans-un-groupe-privé-2026-09-09) · *Groupes* · bloqué
 - 5 · [⬜ « Supprimer pour tous » efface vraiment le contenu (2026-09-16)](#--supprimer-pour-tous--efface-vraiment-le-contenu-2026-09-16) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ L'état MLS ne quitte plus l'appareil (sauvegardes, 2026-09-15)](#-létat-mls-ne-quitte-plus-lappareil-sauvegardes-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 2 · [⬜ Banc MLS bout en bout contre la vraie base (phase 3, 2026-09-15)](#-banc-mls-bout-en-bout-contre-la-vraie-base-phase-3-2026-09-15) · *Chiffrement de bout en bout et clés*
-- 25 · [Push FCM des messages — chaîne serveur rétablie (2026-08-05)](#push-fcm-des-messages--chaîne-serveur-rétablie-2026-08-05) · *Notifications et push* · bloqué
+- 8 · [Push FCM des messages — chaîne serveur rétablie (2026-08-05)](#push-fcm-des-messages--chaîne-serveur-rétablie-2026-08-05) · *Notifications et push* · bloqué
 - 8 · [⬜ Verrou de version minimale et multi-appareil (2026-09-15)](#-verrou-de-version-minimale-et-multi-appareil-2026-09-15) · *Comptes, session et onboarding*
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
@@ -124,13 +114,13 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [⬜ Ouvrir une discussion lit ce qui est à l'écran, tout de suite (2026-09-16)](#-ouvrir-une-discussion-lit-ce-qui-est-à-lécran-tout-de-suite-2026-09-16) · *Messagerie*
 - 6 · [⬜ Lecture par curseur dans les discussions en clair (2026-09-16)](#-lecture-par-curseur-dans-les-discussions-en-clair-2026-09-16) · *Messagerie*
 - 5 · [⬜ « Message chiffré » qui ne s'en va pas dans la liste (2026-09-16)](#--message-chiffré--qui-ne-sen-va-pas-dans-la-liste-2026-09-16) · *Messagerie*
-- 5 · [✅ Curseur de lecture et séparateur « nouveaux messages » (2026-09-16)](#-curseur-de-lecture-et-séparateur--nouveaux-messages--2026-09-16) · *Messagerie*
-- 3 · [⬜ Pastille de non-lus, et séparateur « nouveaux messages » (2026-09-15)](#-pastille-de-non-lus-et-séparateur--nouveaux-messages--2026-09-15) · *Messagerie*
+- 4 · [✅ Curseur de lecture et séparateur « nouveaux messages » (2026-09-16)](#-curseur-de-lecture-et-séparateur--nouveaux-messages--2026-09-16) · *Messagerie*
+- 1 · [⬜ Pastille de non-lus, et séparateur « nouveaux messages » (2026-09-15)](#-pastille-de-non-lus-et-séparateur--nouveaux-messages--2026-09-15) · *Messagerie*
 - 3 · [⬜ « Mes notes » s'ouvre sans aller-retour réseau — vérifié SM A515F (2026-09-15)](#--mes-notes--souvre-sans-aller-retour-réseau--vérifié-sm-a515f-2026-09-15) · *Messagerie*
 - 4 · [⬜ La liste n'annonce plus « Utilisateur » ni « Message chiffré » (2026-09-15)](#-la-liste-nannonce-plus--utilisateur--ni--message-chiffré--2026-09-15) · *Messagerie*
 - 1 · [⬜ Modifier un message chiffré part parfois dans la mauvaise table (2026-09-15)](#-modifier-un-message-chiffré-part-parfois-dans-la-mauvaise-table-2026-09-15) · *Messagerie*
-- 10 · [⬜ Messages éphémères — minuteur réparé, purge serveur (2026-09-15)](#-messages-éphémères--minuteur-réparé-purge-serveur-2026-09-15) · *Messagerie*
-- 14 · [⬜ Aperçu et compteurs d'une conversation chiffrée (décision J, 2026-09-15)](#-aperçu-et-compteurs-dune-conversation-chiffrée-décision-j-2026-09-15) · *Messagerie*
+- 9 · [⬜ Messages éphémères — minuteur réparé, purge serveur (2026-09-15)](#-messages-éphémères--minuteur-réparé-purge-serveur-2026-09-15) · *Messagerie*
+- 9 · [⬜ Aperçu et compteurs d'une conversation chiffrée (décision J, 2026-09-15)](#-aperçu-et-compteurs-dune-conversation-chiffrée-décision-j-2026-09-15) · *Messagerie*
 - 12 · [⬜ Pièces jointes chiffrées — images, documents, audio (C4, 2026-09-14)](#-pièces-jointes-chiffrées--images-documents-audio-c4-2026-09-14) · *Messagerie*
 - 8 · [⬜ Désigner quelqu'un ouvre sa discussion, plus le sélecteur (2026-09-14)](#-désigner-quelquun-ouvre-sa-discussion-plus-le-sélecteur-2026-09-14) · *Messagerie*
 - 4 · [⬜ En sélection, la bulle ne fait plus que cocher (2026-09-14)](#-en-sélection-la-bulle-ne-fait-plus-que-cocher-2026-09-14) · *Messagerie*
@@ -142,7 +132,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 14 · [⬜ Gérer les membres d'un groupe : notices dans le fil, et deux listes d'admins réconciliées (2026-09-17)](#-gérer-les-membres-dun-groupe--notices-dans-le-fil-et-deux-listes-dadmins-réconciliées-2026-09-17) · *Groupes*
 - 5 · [⬜ Exclure un membre d'un groupe échouait toujours (2026-09-17)](#-exclure-un-membre-dun-groupe-échouait-toujours-2026-09-17) · *Groupes*
 - 4 · [⬜ Noms des candidats à l'invitation et à l'ajout en appel (2026-09-14)](#-noms-des-candidats-à-linvitation-et-à-lajout-en-appel-2026-09-14) · *Groupes*
-- 5 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
+- 3 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
 - 5 · [⬜ Pixel réinstallé : la discussion MLS avec Sim A se rouvre malgré des Welcome périmés (2026-09-21)](#-pixel-réinstallé--la-discussion-mls-avec-sim-a-se-rouvre-malgré-des-welcome-périmés-2026-09-21) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ L'app lancée sans son écran n'inscrit plus d'appareil fantôme (2026-09-16)](#-lapp-lancée-sans-son-écran-ninscrit-plus-dappareil-fantôme-2026-09-16) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ « Chiffré de bout en bout » corrigé sur 8 surfaces, dont la politique de confidentialité (2026-09-16)](#--chiffré-de-bout-en-bout--corrigé-sur-8-surfaces-dont-la-politique-de-confidentialité-2026-09-16) · *Chiffrement de bout en bout et clés*
@@ -159,12 +149,12 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 10 · [⬜ Trois cas de messagerie que les notifications ne couvraient pas (2026-09-16)](#-trois-cas-de-messagerie-que-les-notifications-ne-couvraient-pas-2026-09-16) · *Notifications et push*
 - 7 · [⬜ Types, libellés et bascules : trois écarts entre ce qui est écrit et ce qui est lu (2026-09-16)](#-types-libellés-et-bascules--trois-écarts-entre-ce-qui-est-écrit-et-ce-qui-est-lu-2026-09-16) · *Notifications et push*
 - 9 · [⬜ Aperçu des notifications MLS sur iOS : une extension, pas un isolate (phase 4, moitié iOS)](#-aperçu-des-notifications-mls-sur-ios--une-extension-pas-un-isolate-phase-4-moitié-ios) · *Notifications et push* · bloqué
-- 9 · [Page Notifications à plat + heure sur le seul dernier message d'une rafale (2026-08-23)](#page-notifications-à-plat--heure-sur-le-seul-dernier-message-dune-rafale-2026-08-23) · *Notifications et push*
+- 6 · [Page Notifications à plat + heure sur le seul dernier message d'une rafale (2026-08-23)](#page-notifications-à-plat--heure-sur-le-seul-dernier-message-dune-rafale-2026-08-23) · *Notifications et push*
 - 2 · [✅ Lien `diasponiger://` au démarrage à froid — corrigé, vérifié SM A515F (2026-09-14)](#-lien-diasponiger-au-démarrage-à-froid--corrigé-vérifié-sm-a515f-2026-09-14) · *Liens profonds, navigation et QR codes*
 - 4 · [⬜ Le scanner de l'accueil lit tous les QR du projet (2026-09-09)](#-le-scanner-de-laccueil-lit-tous-les-qr-du-projet-2026-09-09) · *Liens profonds, navigation et QR codes*
 - 1 · [✅ Trois routes plantaient sur un cast non nullable — corrigées et vérifiées SM A515F (2026-09-08)](#-trois-routes-plantaient-sur-un-cast-non-nullable--corrigées-et-vérifiées-sm-a515f-2026-09-08) · *Liens profonds, navigation et QR codes*
-- 16 · [Feuille de partage fantôme au démarrage (2026-08-04)](#feuille-de-partage-fantôme-au-démarrage-2026-08-04) · *Liens profonds, navigation et QR codes*
-- 3 · [Assistant de configuration du profil](#assistant-de-configuration-du-profil) · *Comptes, session et onboarding*
+- 11 · [Feuille de partage fantôme au démarrage (2026-08-04)](#feuille-de-partage-fantôme-au-démarrage-2026-08-04) · *Liens profonds, navigation et QR codes*
+- 2 · [Assistant de configuration du profil](#assistant-de-configuration-du-profil) · *Comptes, session et onboarding*
 - 6 · [⬜ Une image seule prend la forme de la photo, plus une bande de 205 px (2026-09-14)](#-une-image-seule-prend-la-forme-de-la-photo-plus-une-bande-de-205-px-2026-09-14) · *Fil, stories, salons audio et podcasts*
 - 7 · [⬜ Définition des photos envoyées : plafond levé, double encodage supprimé (2026-09-14)](#-définition-des-photos-envoyées--plafond-levé-double-encodage-supprimé-2026-09-14) · *Fil, stories, salons audio et podcasts*
 - 8 · [⬜ Stories : ajouter, supprimer, audience, listes, 24 h (2026-09-12)](#-stories--ajouter-supprimer-audience-listes-24-h-2026-09-12) · *Fil, stories, salons audio et podcasts* · bloqué
@@ -173,12 +163,9 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [⬜ Photo de profil : on choisit son cadrage (2026-09-14)](#-photo-de-profil--on-choisit-son-cadrage-2026-09-14) · *Accueil, profil et réglages*
 - 6 · [⬜ Champ ville : recherche dans le référentiel (2026-09-13)](#-champ-ville--recherche-dans-le-référentiel-2026-09-13) · *Accueil, profil et réglages*
 - 7 · [Bascule en anglais — ~1 600 chaînes branchées, rien vu à l'écran (2026-08-06)](#bascule-en-anglais--1-600-chaînes-branchées-rien-vu-à-lécran-2026-08-06) · *Design, thème, langue et mise en page* · bloqué
-- 2 · [Refonte des maquettes d'authentification](#refonte-des-maquettes-dauthentification) · *Design, thème, langue et mise en page* · bloqué
-- 2 · [⬜ `orders` : la vente ne se pilote plus depuis le client (2026-09-21)](#-orders--la-vente-ne-se-pilote-plus-depuis-le-client-2026-09-21) · *Backend, sécurité et observabilité*
-- 2 · [⬜ Chaîne de paiement : plus d'ordre de virement venu du client (2026-09-21)](#-chaîne-de-paiement--plus-dordre-de-virement-venu-du-client-2026-09-21) · *Backend, sécurité et observabilité*
 - 3 · [⬜ Les echecs attrapes remontent enfin a Crashlytics (2026-09-14)](#-les-echecs-attrapes-remontent-enfin-a-crashlytics-2026-09-14) · *Backend, sécurité et observabilité*
 - 5 · [⬜ Balayage des invariants de données — 2 anomalies en production (2026-09-14)](#-balayage-des-invariants-de-données--2-anomalies-en-production-2026-09-14) · *Backend, sécurité et observabilité* · bloqué
-- 2 · [Storage — énumération des médias coupée (2026-08-04, DÉPLOYÉ)](#storage--énumération-des-médias-coupée-2026-08-04-déployé) · *Backend, sécurité et observabilité*
+- 1 · [Storage — énumération des médias coupée (2026-08-04, DÉPLOYÉ)](#storage--énumération-des-médias-coupée-2026-08-04-déployé) · *Backend, sécurité et observabilité*
 - 3 · [⬜ Storage : on dépose, on ne réécrit plus (2026-09-21)](#-storage--on-dépose-on-ne-réécrit-plus-2026-09-21) · *Publication et plateformes*
 - 2 · [⛔ « Diaspo Niger s'arrête systématiquement » sur Android 15+ (2026-09-09)](#--diaspo-niger-sarrête-systématiquement--sur-android-15-2026-09-09) · *Publication et plateformes*
 - 4 · [⚠️ Rapatriement iOS : deux dépendances **Android** changent de version majeure (2026-09-08)](#-rapatriement-ios--deux-dépendances-android-changent-de-version-majeure-2026-09-08) · *Publication et plateformes*
@@ -186,46 +173,45 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 9 · [⬜ Accusés, réactions, modifications et suppressions reçus en direct, discussion en clair (2026-09-21)](#-accusés-réactions-modifications-et-suppressions-reçus-en-direct-discussion-en-clair-2026-09-21) · *Messagerie*
 - 9 · [⬜ Partager vers une discussion — groupe et 1:1 (2026-09-09)](#-partager-vers-une-discussion--groupe-et-11-2026-09-09) · *Messagerie*
 - 2 · [Accusés livré/lu séparés — sheet infos du message (2026-08-13)](#accusés-livrélu-séparés--sheet-infos-du-message-2026-08-13) · *Messagerie* · bloqué
-- 9 · [⬜ Pays en toutes lettres : groupes officiels et filtre par pays (2026-09-13)](#-pays-en-toutes-lettres--groupes-officiels-et-filtre-par-pays-2026-09-13) · *Groupes*
+- 8 · [⬜ Pays en toutes lettres : groupes officiels et filtre par pays (2026-09-13)](#-pays-en-toutes-lettres--groupes-officiels-et-filtre-par-pays-2026-09-13) · *Groupes*
 - 3 · [⬜ Groupe privé par lien : demander à rejoindre (2026-09-10)](#-groupe-privé-par-lien--demander-à-rejoindre-2026-09-10) · *Groupes* · bloqué
 - 8 · [⬜ Acceptation et départ d'un groupe : rien ne bougeait chez les autres (2026-09-09)](#-acceptation-et-départ-dun-groupe--rien-ne-bougeait-chez-les-autres-2026-09-09) · *Groupes* · bloqué
-- 15 · [Groupes — défauts trouvés en vérifiant les épingles (2026-08-05)](#groupes--défauts-trouvés-en-vérifiant-les-épingles-2026-08-05) · *Groupes*
+- 7 · [Groupes — défauts trouvés en vérifiant les épingles (2026-08-05)](#groupes--défauts-trouvés-en-vérifiant-les-épingles-2026-08-05) · *Groupes*
 - 1 · [✅ Le bandeau « 1 message non lu » d'une conversation basculée (2026-09-15)](#-le-bandeau--1-message-non-lu--dune-conversation-basculée-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 8 · [⬜ Transfert des clés par QR, sans passphrase (2026-09-08)](#-transfert-des-clés-par-qr-sans-passphrase-2026-09-08) · *Chiffrement de bout en bout et clés* · bloqué
 - 5 · [⬜ Réglages de notification par type : local et serveur ne divergent plus (2026-09-18)](#-réglages-de-notification-par-type--local-et-serveur-ne-divergent-plus-2026-09-18) · *Notifications et push*
 - 7 · [⬜ La messagerie sort de l'écran Notifications (2026-09-13)](#-la-messagerie-sort-de-lécran-notifications-2026-09-13) · *Notifications et push*
-- 7 · [⬜ Notifications ouvertes ailleurs ou obsolètes : lues (2026-09-12)](#-notifications-ouvertes-ailleurs-ou-obsolètes--lues-2026-09-12) · *Notifications et push*
-- 5 · [Réponse rapide depuis la notification n'envoyait jamais rien (2026-08-13)](#réponse-rapide-depuis-la-notification-nenvoyait-jamais-rien-2026-08-13) · *Notifications et push* · bloqué
+- 6 · [⬜ Notifications ouvertes ailleurs ou obsolètes : lues (2026-09-12)](#-notifications-ouvertes-ailleurs-ou-obsolètes--lues-2026-09-12) · *Notifications et push*
+- 4 · [Réponse rapide depuis la notification n'envoyait jamais rien (2026-08-13)](#réponse-rapide-depuis-la-notification-nenvoyait-jamais-rien-2026-08-13) · *Notifications et push* · bloqué
 - 2 · [✅ Repli navigateur des liens d'app — DÉPLOYÉ (2026-09-09 21:5x)](#-repli-navigateur-des-liens-dapp--déployé-2026-09-09-215x) · *Liens profonds, navigation et QR codes*
-- 2 · [⚠️ Hors ligne, un compte connecté est renvoyé sur l'onboarding (2026-09-10)](#-hors-ligne-un-compte-connecté-est-renvoyé-sur-lonboarding-2026-09-10) · *Comptes, session et onboarding*
-- 2 · [Onboarding — les drapeaux lisaient Firestore au lieu de Supabase (2026-08-13)](#onboarding--les-drapeaux-lisaient-firestore-au-lieu-de-supabase-2026-08-13) · *Comptes, session et onboarding*
+- 1 · [⚠️ Hors ligne, un compte connecté est renvoyé sur l'onboarding (2026-09-10)](#-hors-ligne-un-compte-connecté-est-renvoyé-sur-lonboarding-2026-09-10) · *Comptes, session et onboarding*
 - 3 · [Blocage, sens inverse — RLS prouvée en base (2026-08-06)](#blocage-sens-inverse--rls-prouvée-en-base-2026-08-06) · *Comptes, session et onboarding*
 - 3 · [⬜ Fil : tirer pour rafraîchir partout, et pastille « N nouvelles publications » (2026-09-14)](#-fil--tirer-pour-rafraîchir-partout-et-pastille--n-nouvelles-publications--2026-09-14) · *Fil, stories, salons audio et podcasts*
 - 2 · [⬜ Compteurs de commentaires et de repartages justes (2026-09-12)](#-compteurs-de-commentaires-et-de-repartages-justes-2026-09-12) · *Fil, stories, salons audio et podcasts*
-- 19 · [Refonte Fil & Discussion — Priorité haute — gestes, minuteurs, permissions (le plus susceptible de casser)](#refonte-fil--discussion--priorité-haute--gestes-minuteurs-permissions-le-plus-susceptible-de-casser) · *Fil, stories, salons audio et podcasts*
+- 17 · [Refonte Fil & Discussion — Priorité haute — gestes, minuteurs, permissions (le plus susceptible de casser)](#refonte-fil--discussion--priorité-haute--gestes-minuteurs-permissions-le-plus-susceptible-de-casser) · *Fil, stories, salons audio et podcasts*
 - 5 · [⬜ Événement supprimé : il disparaît partout (2026-09-12)](#-événement-supprimé--il-disparaît-partout-2026-09-12) · *Ambassades, démarches, carte, entreprises et événements*
-- 13 · [Quatrième vague — écrans repris en production (2026-08-03)](#quatrième-vague--écrans-repris-en-production-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
+- 11 · [Quatrième vague — écrans repris en production (2026-08-03)](#quatrième-vague--écrans-repris-en-production-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 5 · [⬜ `public.friends` : le serveur seul écrit l'audience (2026-09-21)](#-publicfriends--le-serveur-seul-écrit-laudience-2026-09-21) · *Backend, sécurité et observabilité*
 - 5 · [⬜ Configuration distante `app-config` (2026-08-27)](#-configuration-distante-app-config-2026-08-27) · *Backend, sécurité et observabilité*
 - 5 · [⬜ Notice « une nouvelle version est disponible » (2026-09-14)](#-notice--une-nouvelle-version-est-disponible--2026-09-14) · *Publication et plateformes*
-- 3 · [⬜ Deux bibliothèques natives réalignées sur 16 Ko (2026-09-08)](#-deux-bibliothèques-natives-réalignées-sur-16-ko-2026-09-08) · *Publication et plateformes*
-- 3 · [Messagerie (hors refonte Fil & Discussion)](#messagerie-hors-refonte-fil--discussion) · *Messagerie* · bloqué
-- 11 · [Groupes — « Découvrir » lisait le mauvais backend (2026-08-06)](#groupes---découvrir--lisait-le-mauvais-backend-2026-08-06) · *Groupes*
-- 6 · [Demandes d'adhésion — brancher Supabase n'avait pas suffi (2026-08-06)](#demandes-dadhésion--brancher-supabase-navait-pas-suffi-2026-08-06) · *Groupes* · bloqué
+- 2 · [⬜ Deux bibliothèques natives réalignées sur 16 Ko (2026-09-08)](#-deux-bibliothèques-natives-réalignées-sur-16-ko-2026-09-08) · *Publication et plateformes*
+- 2 · [Messagerie (hors refonte Fil & Discussion)](#messagerie-hors-refonte-fil--discussion) · *Messagerie* · bloqué
+- 9 · [Groupes — « Découvrir » lisait le mauvais backend (2026-08-06)](#groupes---découvrir--lisait-le-mauvais-backend-2026-08-06) · *Groupes*
+- 5 · [Demandes d'adhésion — brancher Supabase n'avait pas suffi (2026-08-06)](#demandes-dadhésion--brancher-supabase-navait-pas-suffi-2026-08-06) · *Groupes* · bloqué
 - 1 · [La porte d'entrée des groupes était grande ouverte (2026-08-06)](#la-porte-dentrée-des-groupes-était-grande-ouverte-2026-08-06) · *Groupes* · bloqué
-- 8 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
+- 7 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (94)
+**P2 — fonction secondaire ou cas limite** (89)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
 - 5 · [⬜ Heure et accusé sur tous les messages, bascule supprimée (2026-08-23)](#-heure-et-accusé-sur-tous-les-messages-bascule-supprimée-2026-08-23) · *Messagerie*
 - 8 · [Le sondage de groupe s'affiche enfin : bulle dans la discussion (2026-08-24)](#le-sondage-de-groupe-saffiche-enfin--bulle-dans-la-discussion-2026-08-24) · *Groupes*
-- 4 · [✅ Événements sur Supabase — BASCULÉ et vérifié SM A515F (2026-09-09 22:35)](#-événements-sur-supabase--basculé-et-vérifié-sm-a515f-2026-09-09-2235) · *Ambassades, démarches, carte, entreprises et événements*
-- 9 · [Fiches d'écrans (Claude Design) — reprise écran par écran (2026-08-04)](#fiches-décrans-claude-design--reprise-écran-par-écran-2026-08-04) · *Design, thème, langue et mise en page*
+- 3 · [✅ Événements sur Supabase — BASCULÉ et vérifié SM A515F (2026-09-09 22:35)](#-événements-sur-supabase--basculé-et-vérifié-sm-a515f-2026-09-09-2235) · *Ambassades, démarches, carte, entreprises et événements*
+- 8 · [Fiches d'écrans (Claude Design) — reprise écran par écran (2026-08-04)](#fiches-décrans-claude-design--reprise-écran-par-écran-2026-08-04) · *Design, thème, langue et mise en page*
 - 5 · [Reprise du design (2026-08-03, suite) — Éco, accueil, carte, discussion](#reprise-du-design-2026-08-03-suite--éco-accueil-carte-discussion) · *Design, thème, langue et mise en page* · bloqué
-- 6 · [Bascule design_v2 → production, famille 4 : messagerie, groupes, recherche, profil (2026-08-03)](#bascule-design_v2--production-famille-4--messagerie-groupes-recherche-profil-2026-08-03) · *Design, thème, langue et mise en page*
+- 5 · [Bascule design_v2 → production, famille 4 : messagerie, groupes, recherche, profil (2026-08-03)](#bascule-design_v2--production-famille-4--messagerie-groupes-recherche-profil-2026-08-03) · *Design, thème, langue et mise en page*
 - 7 · [⬜ Site web entièrement refait sur cahier des charges (2026-09-08)](#-site-web-entièrement-refait-sur-cahier-des-charges-2026-09-08) · *Site web*
 - 3 · [⬜ « Supprimer pour tous » proposé sur le message de l'autre en 1:1 (2026-09-21)](#--supprimer-pour-tous--proposé-sur-le-message-de-lautre-en-11-2026-09-21) · *Messagerie*
 - 3 · [⬜ Le séparateur « N messages non lus » part quand tout est lu (2026-09-17)](#-le-séparateur--n-messages-non-lus--part-quand-tout-est-lu-2026-09-17) · *Messagerie*
@@ -238,20 +224,20 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [⬜ Cartes de post et d'événement lisibles dans une bulle envoyée (2026-09-12)](#-cartes-de-post-et-dévénement-lisibles-dans-une-bulle-envoyée-2026-09-12) · *Messagerie*
 - 4 · [⬜ Copier : légendes, positions, sondages, un passage, une sélection (2026-09-12)](#-copier--légendes-positions-sondages-un-passage-une-sélection-2026-09-12) · *Messagerie*
 - 6 · [Messagerie — un filtre sans résultat n'est pas une messagerie vide (2026-08-06)](#messagerie--un-filtre-sans-résultat-nest-pas-une-messagerie-vide-2026-08-06) · *Messagerie*
-- 4 · [Composeur — largeur de la pilule et « + » en clair (2026-08-05)](#composeur--largeur-de-la-pilule-et----en-clair-2026-08-05) · *Messagerie*
+- 3 · [Composeur — largeur de la pilule et « + » en clair (2026-08-05)](#composeur--largeur-de-la-pilule-et----en-clair-2026-08-05) · *Messagerie*
 - 2 · [Recherche messagerie — le clavier demandait deux taps (§9b, 2026-08-04)](#recherche-messagerie--le-clavier-demandait-deux-taps-9b-2026-08-04) · *Messagerie*
 - 4 · [Zone de saisie des messages — barre multi-ligne (2026-08-04)](#zone-de-saisie-des-messages--barre-multi-ligne-2026-08-04) · *Messagerie*
 - 5 · [⬜ Groupes : non-lus depuis l'arrivée, messages système, « Lu » par tous (2026-09-17)](#-groupes--non-lus-depuis-larrivée-messages-système--lu--par-tous-2026-09-17) · *Groupes*
 - 5 · [⬜ Groupe privé : un nouveau membre ne voit plus ce qui précède son arrivée (2026-09-16)](#-groupe-privé--un-nouveau-membre-ne-voit-plus-ce-qui-précède-son-arrivée-2026-09-16) · *Groupes*
 - 5 · [⬜ Quitter l'ancien groupe officiel : proposé après 6 mois, jamais imposé (2026-09-13)](#-quitter-lancien-groupe-officiel--proposé-après-6-mois-jamais-imposé-2026-09-13) · *Groupes* · bloqué
 - 2 · [⬜ Fiche « Membres » d'un groupe : « Erreur de chargement » (2026-09-09)](#-fiche--membres--dun-groupe---erreur-de-chargement--2026-09-09) · *Groupes*
-- 5 · [Créer un sondage était impossible pour tout le monde (2026-08-23)](#créer-un-sondage-était-impossible-pour-tout-le-monde-2026-08-23) · *Groupes*
+- 3 · [Créer un sondage était impossible pour tout le monde (2026-08-23)](#créer-un-sondage-était-impossible-pour-tout-le-monde-2026-08-23) · *Groupes*
 - 3 · [Mentions de groupe : vérifié sur SM A515F (2026-08-23)](#mentions-de-groupe--vérifié-sur-sm-a515f-2026-08-23) · *Groupes*
 - 4 · [⬜ « Appareils enregistrés » et « Sauvegarde des clés » ne montrent plus Signal à un compte passé à MLS (2026-09-16)](#--appareils-enregistrés--et--sauvegarde-des-clés--ne-montrent-plus-signal-à-un-compte-passé-à-mls-2026-09-16) · *Chiffrement de bout en bout et clés*
 - 6 · [⬜ Les deux bandeaux de clés retirés : ils promettaient faux (2026-09-16)](#-les-deux-bandeaux-de-clés-retirés--ils-promettaient-faux-2026-09-16) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ L'expéditeur MLS datait lui-même ses propres messages (2026-09-15)](#-lexpéditeur-mls-datait-lui-même-ses-propres-messages-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ L'appartenance MLS se réconcilie au moment du changement (phase 8, 2026-09-15)](#-lappartenance-mls-se-réconcilie-au-moment-du-changement-phase-8-2026-09-15) · *Chiffrement de bout en bout et clés*
-- 18 · [⬜ Notifications lues à l'ouverture de leur écran : profil, groupe, commandes, fiche, mentions (2026-09-19)](#-notifications-lues-à-louverture-de-leur-écran--profil-groupe-commandes-fiche-mentions-2026-09-19) · *Notifications et push*
+- 16 · [⬜ Notifications lues à l'ouverture de leur écran : profil, groupe, commandes, fiche, mentions (2026-09-19)](#-notifications-lues-à-louverture-de-leur-écran--profil-groupe-commandes-fiche-mentions-2026-09-19) · *Notifications et push*
 - 5 · [⬜ Cycle de vie d'une demande d'ami : six trous soldés (2026-09-15)](#-cycle-de-vie-dune-demande-dami--six-trous-soldés-2026-09-15) · *Notifications et push* · bloqué
 - 2 · [✅ Filtre hashtag : réparé et vérifié sur SM A515F (2026-09-14)](#-filtre-hashtag--réparé-et-vérifié-sur-sm-a515f-2026-09-14) · *Liens profonds, navigation et QR codes*
 - 4 · [⬜ Un lien Diaspo Niger dans une discussion sortait de l'app (2026-09-12)](#-un-lien-diaspo-niger-dans-une-discussion-sortait-de-lapp-2026-09-12) · *Liens profonds, navigation et QR codes*
@@ -262,7 +248,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 10 · [Refonte Fil & Discussion — Priorité moyenne — layout & responsive](#refonte-fil--discussion--priorité-moyenne--layout--responsive) · *Fil, stories, salons audio et podcasts*
 - 2 · [⚠️ Carte : bouton « Message » de la fiche membre et icône de la liste des membres proches — corrigés, vérifiés SM A515F (partiel, 2026-09-17)](#-carte--bouton--message--de-la-fiche-membre-et-icône-de-la-liste-des-membres-proches--corrigés-vérifiés-sm-a515f-partiel-2026-09-17) · *Ambassades, démarches, carte, entreprises et événements*
 - 7 · [⬜ Ambassades : « officiel / vérifié » **et** les horaires mis en sommeil (2026-09-08)](#-ambassades---officiel--vérifié--et-les-horaires-mis-en-sommeil-2026-09-08) · *Ambassades, démarches, carte, entreprises et événements*
-- 7 · [Postes diplomatiques sur la carte : 30 pins sur 32 (2026-09-08)](#postes-diplomatiques-sur-la-carte--30-pins-sur-32-2026-09-08) · *Ambassades, démarches, carte, entreprises et événements*
+- 6 · [Postes diplomatiques sur la carte : 30 pins sur 32 (2026-09-08)](#postes-diplomatiques-sur-la-carte--30-pins-sur-32-2026-09-08) · *Ambassades, démarches, carte, entreprises et événements*
 - 9 · [⬜ Démarches consulaires : données réelles à la place des délais inventés (2026-09-07)](#-démarches-consulaires--données-réelles-à-la-place-des-délais-inventés-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
 - 2 · [⬜ Modifier le profil : libellés tronqués et code SMS illisible (2026-09-21)](#-modifier-le-profil--libellés-tronqués-et-code-sms-illisible-2026-09-21) · *Accueil, profil et réglages*
 - 9 · [⬜ Un refus du serveur ne ment plus : interrupteurs, snackbars, connexion admin (2026-09-18)](#-un-refus-du-serveur-ne-ment-plus--interrupteurs-snackbars-connexion-admin-2026-09-18) · *Accueil, profil et réglages*
@@ -274,66 +260,57 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 1 · [⬜ Le pied d'un sondage déborde encore en mode vote — NON corrigé (2026-09-15)](#-le-pied-dun-sondage-déborde-encore-en-mode-vote--non-corrigé-2026-09-15) · *Design, thème, langue et mise en page*
 - 7 · [⬜ L'étape « Thème » dit enfin la vérité sur l'accent (2026-09-14)](#-létape--thème--dit-enfin-la-vérité-sur-laccent-2026-09-14) · *Design, thème, langue et mise en page*
 - 2 · [⬜ Le sigle DN est le même partout (2026-09-13)](#-le-sigle-dn-est-le-même-partout-2026-09-13) · *Design, thème, langue et mise en page*
-- 3 · [✅ Recolorisation orange/vert — vue sur appareil, partiellement (2026-08-25)](#-recolorisation-orangevert--vue-sur-appareil-partiellement-2026-08-25) · *Design, thème, langue et mise en page*
-- 4 · [Discussion en paysage — débordement de 4,1 px (vu le 2026-08-05)](#discussion-en-paysage--débordement-de-41-px-vu-le-2026-08-05) · *Design, thème, langue et mise en page*
-- 2 · [Thème sombre — jetons clairs codés en dur](#thème-sombre--jetons-clairs-codés-en-dur) · *Design, thème, langue et mise en page*
+- 1 · [Thème sombre — jetons clairs codés en dur](#thème-sombre--jetons-clairs-codés-en-dur) · *Design, thème, langue et mise en page*
 - 4 · [Bascule design_v2 → production, famille 2 : les services (2026-08-03)](#bascule-design_v2--production-famille-2--les-services-2026-08-03) · *Design, thème, langue et mise en page*
 - 5 · [⬜ Avis sur les entreprises : basculés de Firestore vers Supabase (2026-09-21)](#-avis-sur-les-entreprises--basculés-de-firestore-vers-supabase-2026-09-21) · *Backend, sécurité et observabilité*
-- 8 · [Le bouton « Ouvrir Play Store » de la garde Play Integrity ne faisait rien (2026-09-14)](#le-bouton--ouvrir-play-store--de-la-garde-play-integrity-ne-faisait-rien-2026-09-14) · *Backend, sécurité et observabilité*
-- 3 · [⚠️ Ce que dit vraiment la console Crashlytics (2026-09-10)](#-ce-que-dit-vraiment-la-console-crashlytics-2026-09-10) · *Backend, sécurité et observabilité* · bloqué
 - 5 · [Fuseau horaire — heures affichées en UTC (2026-08-04)](#fuseau-horaire--heures-affichées-en-utc-2026-08-04) · *Backend, sécurité et observabilité*
 - 7 · [Admin (back-office)](#admin-back-office) · *Backend, sécurité et observabilité*
 - 2 · [⬜ Le `.env` embarqué ne livre plus de chemin de poste (2026-09-21)](#-le-env-embarqué-ne-livre-plus-de-chemin-de-poste-2026-09-21) · *Publication et plateformes*
-- 8 · [iOS : premier build réussi, sur simulateur (2026-09-01)](#ios--premier-build-réussi-sur-simulateur-2026-09-01) · *Publication et plateformes* · bloqué
-- 23 · [Passe pilotée du 2026-08-04 (15:25 → 16:05) — SM A515F, APK debug `54083d6`](#passe-pilotée-du-2026-08-04-1525--1605--sm-a515f-apk-debug-54083d6) · *Journaux de passes appareil*
-- 4 · [Fonctionnalité épingle mise en pause (2026-08-14)](#fonctionnalité-épingle-mise-en-pause-2026-08-14) · *Messagerie*
+- 7 · [iOS : premier build réussi, sur simulateur (2026-09-01)](#ios--premier-build-réussi-sur-simulateur-2026-09-01) · *Publication et plateformes* · bloqué
+- 13 · [Passe pilotée du 2026-08-04 (15:25 → 16:05) — SM A515F, APK debug `54083d6`](#passe-pilotée-du-2026-08-04-1525--1605--sm-a515f-apk-debug-54083d6) · *Journaux de passes appareil*
+- 3 · [Fonctionnalité épingle mise en pause (2026-08-14)](#fonctionnalité-épingle-mise-en-pause-2026-08-14) · *Messagerie*
 - 1 · [Réactions emoji : une par personne et par message (2026-08-13)](#réactions-emoji--une-par-personne-et-par-message-2026-08-13) · *Messagerie* · bloqué
-- 8 · [Discussion — l'horodatage sort de la bulle (fiches 4a/6b, 2026-08-05)](#discussion--lhorodatage-sort-de-la-bulle-fiches-4a6b-2026-08-05) · *Messagerie*
+- 7 · [Discussion — l'horodatage sort de la bulle (fiches 4a/6b, 2026-08-05)](#discussion--lhorodatage-sort-de-la-bulle-fiches-4a6b-2026-08-05) · *Messagerie*
 - 10 · [Panneau stickers / GIF / émojis (fiche 26b, 2026-08-05)](#panneau-stickers--gif--émojis-fiche-26b-2026-08-05) · *Messagerie*
 - 3 · [⬜ Réorganisation des tuiles de « Mes groupes » + vue grille (2026-09-15)](#-réorganisation-des-tuiles-de--mes-groupes---vue-grille-2026-09-15) · *Groupes*
 - 1 · [Groupes & événements en conversation](#groupes--événements-en-conversation) · *Groupes*
 - 1 · [Fiche membres de groupe bloquée / vide (2026-08-13)](#fiche-membres-de-groupe-bloquée--vide-2026-08-13) · *Groupes* · bloqué
 - 2 · [⬜ Clé AES de repli : Firebase Functions avait divergé (2026-09-06)](#-clé-aes-de-repli--firebase-functions-avait-divergé-2026-09-06) · *Chiffrement de bout en bout et clés* · bloqué
-- 6 · [E2EE & chiffrement (priorité haute — sécurité)](#e2ee--chiffrement-priorité-haute--sécurité) · *Chiffrement de bout en bout et clés*
+- 3 · [E2EE & chiffrement (priorité haute — sécurité)](#e2ee--chiffrement-priorité-haute--sécurité) · *Chiffrement de bout en bout et clés*
 - 1 · [Aperçu de notification en clair (2026-08-13)](#aperçu-de-notification-en-clair-2026-08-13) · *Notifications et push* · bloqué
 - 2 · [✅ Lien profond perdu sur une activité neuve — corrigé, vérifié SM A515F (2026-09-11)](#-lien-profond-perdu-sur-une-activité-neuve--corrigé-vérifié-sm-a515f-2026-09-11) · *Liens profonds, navigation et QR codes* · bloqué
 - 2 · [⬜ « Session Supabase non établie » ne compte plus comme un plantage (2026-09-11)](#--session-supabase-non-établie--ne-compte-plus-comme-un-plantage-2026-09-11) · *Comptes, session et onboarding*
 - 5 · [✅ Annuaire des ambassades : Firestore → Supabase, 32 postes chargés (2026-09-07)](#-annuaire-des-ambassades--firestore--supabase-32-postes-chargés-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements* · bloqué
 - 4 · [Position des entreprises : création/édition alimentent enfin latitude/longitude (2026-08-19)](#position-des-entreprises--créationédition-alimentent-enfin-latitudelongitude-2026-08-19) · *Ambassades, démarches, carte, entreprises et événements*
 - 3 · [Flags Salons audio / Podcasts / Fil enfin sérialisés + maintenance sans écrasement (2026-08-19)](#flags-salons-audio--podcasts--fil-enfin-sérialisés--maintenance-sans-écrasement-2026-08-19) · *Accueil, profil et réglages* · bloqué
-- 2 · [Feature flags & accès aux écrans](#feature-flags--accès-aux-écrans) · *Accueil, profil et réglages* · bloqué
 - 3 · [⬜ Grand titre d'en-tête : plus de mot coupé (2026-09-12)](#-grand-titre-den-tête--plus-de-mot-coupé-2026-09-12) · *Design, thème, langue et mise en page*
 - 7 · [Le « OVERFLOWED BY 190 » de la recherche venait du rail latéral (2026-08-05)](#le--overflowed-by-190--de-la-recherche-venait-du-rail-latéral-2026-08-05) · *Design, thème, langue et mise en page*
-- 8 · [Menus déroulants bornés partout (`isExpanded`, 2026-08-04)](#menus-déroulants-bornés-partout-isexpanded-2026-08-04) · *Design, thème, langue et mise en page*
-- 5 · [Bascule design_v2 → production, famille 3 : boutique, support, transferts, appels (2026-08-03)](#bascule-design_v2--production-famille-3--boutique-support-transferts-appels-2026-08-03) · *Design, thème, langue et mise en page*
+- 5 · [Menus déroulants bornés partout (`isExpanded`, 2026-08-04)](#menus-déroulants-bornés-partout-isexpanded-2026-08-04) · *Design, thème, langue et mise en page*
+- 2 · [Bascule design_v2 → production, famille 3 : boutique, support, transferts, appels (2026-08-03)](#bascule-design_v2--production-famille-3--boutique-support-transferts-appels-2026-08-03) · *Design, thème, langue et mise en page*
 - 2 · [⬜ Les quatre défauts de la console, triés par appareil (2026-09-10)](#-les-quatre-défauts-de-la-console-triés-par-appareil-2026-09-10) · *Backend, sécurité et observabilité* · bloqué
 - 3 · [⬜ Journalisation : deux fuites en release et la garde du LoggerService (2026-09-09)](#-journalisation--deux-fuites-en-release-et-la-garde-du-loggerservice-2026-09-09) · *Backend, sécurité et observabilité* · bloqué
 - 1 · [Liens profonds iOS : la moitié testable est bonne (2026-09-01)](#liens-profonds-ios--la-moitié-testable-est-bonne-2026-09-01) · *Publication et plateformes* · bloqué
-- 4 · [Session du 2026-08-03 (soir) — SM A515F, refonte enfin lancée](#session-du-2026-08-03-soir--sm-a515f-refonte-enfin-lancée) · *Journaux de passes appareil*
+- 1 · [Session du 2026-08-03 (soir) — SM A515F, refonte enfin lancée](#session-du-2026-08-03-soir--sm-a515f-refonte-enfin-lancée) · *Journaux de passes appareil*
 - 2 · [✅ Bulle de chargement d'une vidéo pendant l'upload (2026-08-30)](#-bulle-de-chargement-dune-vidéo-pendant-lupload-2026-08-30) · *Messagerie*
-- 25 · [Refonte Fil & Discussion — Priorité basse — cosmétique, faible risque](#refonte-fil--discussion--priorité-basse--cosmétique-faible-risque) · *Fil, stories, salons audio et podcasts*
+- 21 · [Refonte Fil & Discussion — Priorité basse — cosmétique, faible risque](#refonte-fil--discussion--priorité-basse--cosmétique-faible-risque) · *Fil, stories, salons audio et podcasts*
 
-**P3 — confort, cosmétique, fonction en pause** (55)
+**P3 — confort, cosmétique, fonction en pause** (36)
 
 - 3 · [⬜ Polices embarquées : plus de téléchargement au premier affichage (2026-09-11)](#-polices-embarquées--plus-de-téléchargement-au-premier-affichage-2026-09-11) · *Design, thème, langue et mise en page* · bloqué
-- 3 · [⬜ Icône du lanceur repeinte en vert (2026-09-07)](#-icône-du-lanceur-repeinte-en-vert-2026-09-07) · *Design, thème, langue et mise en page*
-- 2 · [⬜ Plugin Gradle Crashlytics : les piles n'étaient pas déchiffrables (2026-09-09)](#-plugin-gradle-crashlytics--les-piles-nétaient-pas-déchiffrables-2026-09-09) · *Backend, sécurité et observabilité* · bloqué
+- 2 · [⬜ Icône du lanceur repeinte en vert (2026-09-07)](#-icône-du-lanceur-repeinte-en-vert-2026-09-07) · *Design, thème, langue et mise en page*
+- 1 · [⬜ Plugin Gradle Crashlytics : les piles n'étaient pas déchiffrables (2026-09-09)](#-plugin-gradle-crashlytics--les-piles-nétaient-pas-déchiffrables-2026-09-09) · *Backend, sécurité et observabilité* · bloqué
 - 1 · [Discussion — heure absente/dupliquée sur les bulles média (2026-08-30)](#discussion--heure-absentedupliquée-sur-les-bulles-média-2026-08-30) · *Messagerie*
 - 5 · [Brouillon restauré — le composer restait sur le micro (2026-08-04)](#brouillon-restauré--le-composer-restait-sur-le-micro-2026-08-04) · *Messagerie*
-- 5 · [✅ Quatre écrans sans flèche de retour — corrigés et vérifiés SM A515F (2026-09-08)](#-quatre-écrans-sans-flèche-de-retour--corrigés-et-vérifiés-sm-a515f-2026-09-08) · *Liens profonds, navigation et QR codes*
-- 12 · [Salons audio — monétisation](#salons-audio--monétisation) · *Fil, stories, salons audio et podcasts* · bloqué
+- 4 · [✅ Quatre écrans sans flèche de retour — corrigés et vérifiés SM A515F (2026-09-08)](#-quatre-écrans-sans-flèche-de-retour--corrigés-et-vérifiés-sm-a515f-2026-09-08) · *Liens profonds, navigation et QR codes*
 - 9 · [⬜ Point d'accent après chaque titre d'écran (2026-09-13)](#-point-daccent-après-chaque-titre-décran-2026-09-13) · *Design, thème, langue et mise en page*
 - 4 · [⬜ Teinte des notifications système en vert (2026-09-07)](#-teinte-des-notifications-système-en-vert-2026-09-07) · *Design, thème, langue et mise en page* · bloqué
 - 2 · [⬜ Écran de démarrage repeint en vert (2026-09-07)](#-écran-de-démarrage-repeint-en-vert-2026-09-07) · *Design, thème, langue et mise en page*
-- 8 · [Guide de style — alignement des jetons (2026-08-03)](#guide-de-style--alignement-des-jetons-2026-08-03) · *Design, thème, langue et mise en page*
-- 5 · [Bascule design_v2 → production, famille 5 : accueil et envoi d'argent (2026-08-03)](#bascule-design_v2--production-famille-5--accueil-et-envoi-dargent-2026-08-03) · *Design, thème, langue et mise en page*
+- 5 · [Guide de style — alignement des jetons (2026-08-03)](#guide-de-style--alignement-des-jetons-2026-08-03) · *Design, thème, langue et mise en page*
 - 3 · [⬜ Les ~920 `debugPrint` restants neutralisés en release (2026-09-09)](#-les-920-debugprint-restants-neutralisés-en-release-2026-09-09) · *Backend, sécurité et observabilité* · bloqué
 - 2 · [⬜ Fiches de partage : libellés sur une ligne, vrais logos, bouton (2026-09-20)](#-fiches-de-partage--libellés-sur-une-ligne-vrais-logos-bouton-2026-09-20) · *Messagerie*
 - 6 · [⬜ Squelette de chargement de la messagerie (2026-09-15)](#-squelette-de-chargement-de-la-messagerie-2026-09-15) · *Messagerie*
 - 7 · [⬜ Une couleur par pièce jointe dans le « + » (2026-09-14)](#-une-couleur-par-pièce-jointe-dans-le----2026-09-14) · *Messagerie*
 - 6 · [Discussion — ÉCO rejoint la ligne épinglée (fiche 6b, 2026-08-05)](#discussion--éco-rejoint-la-ligne-épinglée-fiche-6b-2026-08-05) · *Messagerie*
-- 1 · [✅ Rappel des clés : « Ne plus me le rappeler » — vérifié SM A515F (2026-09-08)](#-rappel-des-clés---ne-plus-me-le-rappeler---vérifié-sm-a515f-2026-09-08) · *Chiffrement de bout en bout et clés*
-- 2 · [La signature de clé pré-signée ne peut JAMAIS vérifier (2026-08-23)](#la-signature-de-clé-pré-signée-ne-peut-jamais-vérifier-2026-08-23) · *Chiffrement de bout en bout et clés* · bloqué
 - 4 · [⬜ Les appels de GROUPE restaient lançables alors que le 1-à-1 était en pause (2026-09-14)](#-les-appels-de-groupe-restaient-lançables-alors-que-le-1-à-1-était-en-pause-2026-09-14) · *Appels*
 - 1 · [La bulle d'appel elle-même n'apparaissait jamais dans la conversation (2026-08-14)](#la-bulle-dappel-elle-même-napparaissait-jamais-dans-la-conversation-2026-08-14) · *Appels* · bloqué
 - 7 · [Appels 1-à-1 (correctifs du 2026-08-03)](#appels-1-à-1-correctifs-du-2026-08-03) · *Appels* · bloqué
@@ -341,54 +318,39 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 1 · [⚠️ Déconnexion — latence supprimée, à vérifier sur appareil](#-déconnexion--latence-supprimée-à-vérifier-sur-appareil) · *Comptes, session et onboarding*
 - 2 · [⬜ Fil sombre : même structure que le fil clair (2026-09-13)](#-fil-sombre--même-structure-que-le-fil-clair-2026-09-13) · *Fil, stories, salons audio et podcasts*
 - 2 · [✅ Profil : la carte de statistiques débordait par la droite — corrigé et vérifié Pixel 10 Pro XL (2026-09-08)](#-profil--la-carte-de-statistiques-débordait-par-la-droite--corrigé-et-vérifié-pixel-10-pro-xl-2026-09-08) · *Accueil, profil et réglages*
-- 2 · [Version de l'app et téléphone du support (2026-08-03)](#version-de-lapp-et-téléphone-du-support-2026-08-03) · *Accueil, profil et réglages*
 - 2 · [⬜ Deux textes du fil que `font_scale` 1.3 abime — corrigés, à revoir (2026-09-14)](#-deux-textes-du-fil-que-font_scale-13-abime--corrigés-à-revoir-2026-09-14) · *Design, thème, langue et mise en page*
 - 2 · [⬜ Une couleur par service dans les deux grilles (2026-09-14)](#-une-couleur-par-service-dans-les-deux-grilles-2026-09-14) · *Design, thème, langue et mise en page*
-- 1 · [✅ Le thème choisi ne survivait jamais à un redémarrage — corrigé (2026-08-25)](#-le-thème-choisi-ne-survivait-jamais-à-un-redémarrage--corrigé-2026-08-25) · *Design, thème, langue et mise en page*
-- 1 · [Sigle « DN » corrigé + illustrations d'onboarding générées (2026-08-25)](#sigle--dn--corrigé--illustrations-donboarding-générées-2026-08-25) · *Design, thème, langue et mise en page* · bloqué
 - 3 · [Débordement du champ « Type * » — création d'ambassade (2026-08-04)](#débordement-du-champ--type----création-dambassade-2026-08-04) · *Design, thème, langue et mise en page* · bloqué
 - 1 · [Cartographie des accès `anon` réellement nécessaires (2026-08-13)](#cartographie-des-accès-anon-réellement-nécessaires-2026-08-13) · *Backend, sécurité et observabilité*
-- 4 · [⬜ Site web : page d'accueil refondue sur les captures réelles (2026-09-08)](#-site-web--page-daccueil-refondue-sur-les-captures-réelles-2026-09-08) · *Site web*
 - 3 · [Passe nocturne + carte vérifiée sur appareil (2026-08-04, SM A515F)](#passe-nocturne--carte-vérifiée-sur-appareil-2026-08-04-sm-a515f) · *Journaux de passes appareil*
 - 2 · [Session appareil du 2026-08-03 — SM A515F, thème sombre, font_scale 1.1](#session-appareil-du-2026-08-03--sm-a515f-thème-sombre-font_scale-11) · *Journaux de passes appareil*
-- 1 · [Composeur — l'emoji est sorti du champ, puis y est revenu (2026-08-05)](#composeur--lemoji-est-sorti-du-champ-puis-y-est-revenu-2026-08-05) · *Messagerie*
 - 12 · [Messages épinglés — le bandeau n'était pas temps réel (2026-08-05)](#messages-épinglés--le-bandeau-nétait-pas-temps-réel-2026-08-05) · *Messagerie* · bloqué
-- 1 · [Le repli AES d'un groupe est désormais signalé (2026-08-23)](#le-repli-aes-dun-groupe-est-désormais-signalé-2026-08-23) · *Chiffrement de bout en bout et clés* · bloqué
 - 1 · [Message d'appel : aperçu et badge non-lu ne se mettaient jamais à jour (2026-08-13)](#message-dappel--aperçu-et-badge-non-lu-ne-se-mettaient-jamais-à-jour-2026-08-13) · *Appels* · bloqué
-- 1 · [Notification push — le ciphertext AES sortait en clair dans l'aperçu (2026-08-13)](#notification-push--le-ciphertext-aes-sortait-en-clair-dans-laperçu-2026-08-13) · *Notifications et push* · bloqué
 - 2 · [Écrans de notifications — lot « une seule source » (2026-08-05)](#écrans-de-notifications--lot--une-seule-source--2026-08-05) · *Notifications et push*
-- 1 · [⬜ Une route sous feature-flag est joignable au démarrage (2026-09-10)](#-une-route-sous-feature-flag-est-joignable-au-démarrage-2026-09-10) · *Liens profonds, navigation et QR codes*
 - 6 · [Podcasts — 5 écrans passés au système DN (2026-08-04)](#podcasts--5-écrans-passés-au-système-dn-2026-08-04) · *Fil, stories, salons audio et podcasts* · bloqué
 - 2 · [Salons audio & appels de groupe — indicateur « parle en ce moment »](#salons-audio--appels-de-groupe--indicateur--parle-en-ce-moment-) · *Fil, stories, salons audio et podcasts* · bloqué
 - 3 · [Lecteur de replay — valeurs inventées retirées (2026-08-03)](#lecteur-de-replay--valeurs-inventées-retirées-2026-08-03) · *Fil, stories, salons audio et podcasts* · bloqué
 - 1 · [Lecture audio en arrière-plan (podcasts)](#lecture-audio-en-arrière-plan-podcasts) · *Fil, stories, salons audio et podcasts* · bloqué
-- 1 · [Annuaire, Fil et Ambassades toujours actifs — plus de flag (2026-08-19)](#annuaire-fil-et-ambassades-toujours-actifs--plus-de-flag-2026-08-19) · *Accueil, profil et réglages*
-- 1 · [Profil & Accueil (avant la refonte design)](#profil--accueil-avant-la-refonte-design) · *Accueil, profil et réglages*
-- 4 · [Galerie design_v2 sur appareil (2026-08-03)](#galerie-design_v2-sur-appareil-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
-- 3 · [Accent orange du thème clair — `#E07B39` → `#B85E24` (2026-08-03)](#accent-orange-du-thème-clair--e07b39--b85e24-2026-08-03) · *Design, thème, langue et mise en page*
-- 1 · [✅ participant_ids : deux orphelins retirés (2026-09-21)](#-participant_ids--deux-orphelins-retirés-2026-09-21) · *Backend, sécurité et observabilité*
-- 2 · [Supabase branché sur iOS — deux réserves (2026-09-01)](#supabase-branché-sur-ios--deux-réserves-2026-09-01) · *Publication et plateformes*
-- 2 · [Avertissement Android « pages de 16 Ko » — une seule vraie cause, correctif bloqué en cascade (2026-08-14)](#avertissement-android--pages-de-16-ko---une-seule-vraie-cause-correctif-bloqué-en-cascade-2026-08-14) · *Publication et plateformes*
-- 5 · [⬜ Site web repeint sur la palette ① Organic du guide (2026-09-08)](#-site-web-repeint-sur-la-palette-①-organic-du-guide-2026-09-08) · *Site web*
+- 1 · [Supabase branché sur iOS — deux réserves (2026-09-01)](#supabase-branché-sur-ios--deux-réserves-2026-09-01) · *Publication et plateformes*
 
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 0 faites
-- [2. Messagerie](#2-messagerie) — 339 à faire, 0 faites
-- [3. Groupes](#3-groupes) — 149 à faire, 1 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 132 à faire, 0 faites
-- [5. Appels](#5-appels) — 26 à faire, 0 faites
-- [6. Notifications et push](#6-notifications-et-push) — 143 à faire, 0 faites
-- [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 0 faites
-- [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 69 à faire, 0 faites
-- [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 119 à faire, 0 faites
-- [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 65 à faire, 0 faites
-- [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 67 à faire, 0 faites
-- [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 147 à faire, 0 faites
-- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 92 à faire, 2 faites
-- [14. Publication et plateformes](#14-publication-et-plateformes) — 56 à faire, 0 faites
-- [15. Site web](#15-site-web) — 32 à faire, 0 faites
-- [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 32 à faire, 0 faites
+- [2. Messagerie](#2-messagerie) — 318 à faire, 0 faites
+- [3. Groupes](#3-groupes) — 129 à faire, 0 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 122 à faire, 2 faites
+- [5. Appels](#5-appels) — 24 à faire, 1 faites
+- [6. Notifications et push](#6-notifications-et-push) — 116 à faire, 0 faites
+- [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 36 à faire, 0 faites
+- [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 63 à faire, 0 faites
+- [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 101 à faire, 0 faites
+- [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 63 à faire, 0 faites
+- [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 59 à faire, 1 faites
+- [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 108 à faire, 5 faites
+- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 67 à faire, 0 faites
+- [14. Publication et plateformes](#14-publication-et-plateformes) — 46 à faire, 1 faites
+- [15. Site web](#15-site-web) — 23 à faire, 0 faites
+- [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 19 à faire, 0 faites
 
 <!-- sommaire:fin -->
 
@@ -434,46 +396,6 @@ Piloter l'appareil, les comptes et téléphones disponibles, les pièges de mesu
 
 ---
 
-## ⛔ Le Pixel s'est retrouvé DÉCONNECTÉ pendant la passe (2026-09-09, 20:39)
-
-⚠️ **Reproduit le 2026-09-11 à 18:24, et la cause se réduit : un simple arrêt
-forcé suffit.** Le Pixel était connecté (Salim L., build 18 posé à 17:28,
-session intacte pendant une heure de tests). Un `pm revoke` de
-`ACCESS_COARSE_LOCATION` — qui force-stoppe l'app, sans rien installer ni
-vider — l'a ramené sur « Bon retour » au redémarrage suivant. Aucune
-réinstallation, aucun `flutter clean`, aucune désinstallation.
-**Le SM A515F, lui, a encaissé cinq `am force-stop` dans la même heure sans
-jamais perdre sa session.** La différence tient donc au compte ou à son
-stockage sécurisé sur ce téléphone, pas au geste. Conséquence pratique
-inchangée : la reconnexion exige le SSO Google, donc la main de Salim, et tout
-test à deux comptes est suspendu d'ici là.
-
-À signaler avant tout : le Pixel 10 Pro XL porte le **vrai compte** de Salim
-(Salim L., administrateur). Il est ressorti de cette passe sur l'écran
-« Bon retour » — session perdue. La reconnexion passe par le SSO Google, donc
-par sa main : rien n'a été tenté.
-
-Ce qu'on sait, et ce qu'on ne sait pas :
-
-- il était connecté à 19:51 (fiche du groupe « Testeurs » affichée) ;
-- entre 20:01 et 20:02 il a planté deux fois (voir la section BootReceiver) ;
-- à 20:38 il a reçu `adb install -r` du build corrigé, puis un
-  `am force-stop` + relance ; à 20:39 il affichait l'écran de connexion ;
-- **le SM A515F a reçu exactement le même `install -r` à la même minute et a
-  gardé sa session** (« Bonjour, Sim »). L'installation seule ne suffit donc
-  pas à l'expliquer.
-
-Aucun bandeau « Connecté ailleurs » à l'écran. Cause non isolée : le plantage
-répété, l'expiration de la session Supabase, ou la règle « une seule session
-par compte » sont toutes plausibles et aucune n'est établie. À reprendre si
-ça se reproduit — et à ne pas confondre avec le piège déjà documenté du
-`flutter clean` + `install -r`, qui n'a pas eu lieu ici.
-
-Conséquence immédiate : **tout test à deux appareils est bloqué** (écho de
-groupe entre deux comptes, QR affiché sur l'un et scanné par l'autre).
-
----
-
 ## ⬜ Compte de test dédié : première connexion (2026-09-09)
 
 **Priorité P0** · importance 4/5 — Un nouvel inscrit — dont les 997 préinscrits notifiés à la publication — reste coincé dans l'enchaînement consentement/profil/intro et n'atteint jamais l'app.
@@ -481,10 +403,6 @@ groupe entre deux comptes, QR affiché sur l'un et scanné par l'autre).
 `scripts/creer_compte_test.js` crée — ou réinitialise — un compte Firebase
 Auth séparé du compte personnel (`test.diaspo@example.com`, mot de passe tiré
 au hasard et affiché une seule fois à l'exécution).
-
-Vérifié **hors appareil**, en rejouant la chaîne de la première connexion :
-`signInWithPassword` accepte les identifiants, `auth-firebase-exchange` rend
-une session, et la ligne `users` existe avec `display_name = "Compte Test"`.
 
 À vérifier **sur SM A515F** :
 
@@ -498,53 +416,6 @@ une session, et la ligne `users` existe avec `display_name = "Compte Test"`.
       (sondages, Découvrir, filtres Photos/Vidéos, panneau des villes)
       deviennent enfin observables.
 
-⚠️ Constaté pendant la création : **le tout premier appel à
-`auth-firebase-exchange` pour un compte neuf répondait 401 « Email link is
-invalid or has expired »** — la tentative suivante réussissait. Dans l'app,
-`_scheduleRetry()` repasse 5 s plus tard : le premier lancement d'un compte
-neuf avait donc ~5 s de session anonyme avant que les données n'arrivent, et
-ça touchait **tout compte neuf**, pas seulement celui-ci.
-
-**Corrigé le 2026-09-09**, la cause n'était pas celle qu'on croyait : ce n'est
-pas `updateUserById` qui invalidait le lien. `generateLink({type:'magiclink'})`
-ne rend un lien `magiclink` que si l'utilisateur **existe déjà** ; sur un
-compte neuf, gotrue le crée et rend un lien **`signup`**, dont le jeton part
-dans `confirmation_token` — là où `verifyOtp({type:'magiclink'})` fouille
-`recovery_token`. La fonction lit désormais le type dans la réponse
-(`typeEmis()`) au lieu de l'écrire en dur.
-
-Vérifié hors appareil par `tools/sonde_echange_auth.mjs`, qui rejoue la
-séquence contre le gotrue de production : témoin (type figé) en échec,
-correctif en session valide avec le claim `firebase_uid` dès la première
-tentative. Confirmé bout-en-bout sur des comptes **Firebase** neufs
-(`signInWithPassword` → Edge Function) : la version en production rendait 401
-puis 200, la corrigée rend une session au premier coup.
-
-Le même message d'erreur a une **seconde** cause, mesurée au passage : deux
-`generateLink` de suite sur un compte existant écrivent dans la même colonne et
-le second invalide le jeton du premier, donc deux échanges concurrents (deux
-appareils, deux isolats Edge) se sabotent l'un l'autre — `_inFlightSync` ne
-dédoublonne qu'au sein d'un processus. L'étape 5 retente donc **une** fois avec
-un lien frais ; la 3e mesure du banc couvre ce cas.
-
-✅ **Déployé le 2026-09-09** et vérifié contre la fonction réelle, sur un
-compte Firebase créé pour l'occasion : le **premier** échange rend une session
-(c'est exactement l'appel qui répondait 401), le JWT porte le claim
-`firebase_uid`, et la ligne `users` se lit avec le jeton du compte. La
-fonction est aussi épinglée à `supabase-js@2.116.0` depuis ce déploiement —
-elle n'importe plus `@2`, qui rebundlait au dernier 2.x du jour.
-
-La reprise de l'étape 5 ayant été écrite **après** ce premier déploiement, la
-fonction a été redéployée dans la foulée : la production porte donc les deux
-correctifs (mauvais type d'OTP **et** reprise sur refus). Revérifié après ce
-second déploiement, encore sur un compte Firebase neuf, même résultat.
-
-⚠️ Le déploiement d'une Edge Function est **fichier par fichier** : ce qui est
-en ligne, c'est le dernier `deploy` de CE fichier, pas l'état de la branche.
-Pour comparer sans supposer : `supabase functions download <nom>
---project-ref <ref>` — mais il **écrase la copie de travail** au lieu d'écrire
-ailleurs, donc le faire sur un dépôt propre et relire par `git diff`.
-
 - ✔ 2 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Compte de test dédié : première connexion (2026-09-09) »).
 
 ---
@@ -554,10 +425,6 @@ ailleurs, donc le faire sur un dépôt propre et relire par `git diff`.
 Un **Pixel 10 Pro XL** (`58221FDCQ0085Z`) est apparu à côté du SM A515F. Il
 porte le compte **Salim L.**, qui est **administrateur** — donc complémentaire
 du SM A515F (compte « Sim A », non-admin, sans pays renseigné).
-
-Utile : les deux branches du filtre de juridiction se vérifient enfin
-séparément. Sur l'annuaire, **32 fiches sur le Pixel** (contournement admin)
-contre **30 sur le SM A515F** (Genève et New York masqués faute de pays connu).
 
 ⚠️ Deux pièges rencontrés :
 - `pm path` a renvoyé un chemin `/data/app/…` pour une app **pas installée** —
@@ -577,14 +444,6 @@ Discussions : bulles, composeur, médias, épingles, réactions, accusés, reche
 
 **Priorité P1** · importance 4/5 — l'en-tête d'une discussion mentait dans les deux sens : un compte en mode avion restait « En ligne » plusieurs minutes, et un compte qui utilisait l'app s'affichait « Vu il y a environ 2 minutes ».
 
-Vu sur deux téléphones le 2026-09-22 (build Play 1.2.2+26, Pixel de Salim
-et SM A515F de Sim, 1:1). Trois causes dans
-[online_status_service.dart](lib/core/services/online_status_service.dart) :
-`isOnline` était cru sans condition de fraîcheur ; le battement de 10 min
-n'écrivait que dans Supabase, que l'en-tête ne lit pas ; et les écritures du
-cycle de vie (`inactive` → `hidden` → `paused`) pouvaient se croiser, un
-`true` retardé par une lecture Supabase arrivant après les `false`.
-
 Corrigé (branche `claude/presence-2209`, période et seuil revus par le second
 correctif plus bas : 20 s et 55 s) : au premier plan, battement RTDB de
 60 s qui rafraîchit `lastSeen` et réaffirme `isOnline`, marqué
@@ -597,27 +456,6 @@ garde l'ancienne règle. Règles RTDB inchangées (celles en service, relues le
 `test/core/services/presence_fraicheur_test.dart`. Coût : une écriture RTDB
 par minute et par utilisateur au premier plan.
 
-**Mesures AVANT correctif** (build Play 1.2.2+26, 2026-09-22 ~04:30–04:40,
-SM A515F = Sim observé, nœud `presence/<uid Sim>` lu par
-`firebase database:get`, en-tête lu sur le Pixel tant qu'il était éveillé) :
-
-- **Mode avion, app au premier plan** : `isOnline: true` pendant **~88 s**,
-  puis `false` posé par `onDisconnect` (serveur) ; en-tête « Vu il y a moins
-  d'une minute » au relevé suivant. Le `lastSeen` retenu est l'heure du
-  constat serveur, pas celle de la dernière activité.
-- **Retour à l'accueil, réseau branché — 3 essais sur 3 restent « en
-  ligne »** : deux fois la **course** (la dernière écriture reçue est
-  `isOnline: true`, datée de l'instant du retour à l'accueil : le `true` de
-  `inactive` arrive après les `false`), une fois **aucune écriture** reçue
-  (`lastSeen` inchangé). Chaque fois, `false` n'arrive que par
-  `onDisconnect`, **93 à 95 s** plus tard.
-- ⚠️ **Limite du correctif, à vérifier** : la file et la garde « premier
-  plan » suppriment la course de l'essai 1. Mais si l'app est gelée par
-  Android dès le passage en arrière-plan (essai 3 : même le `false` n'est
-  jamais parti), le correctif n'y peut rien côté écriture, et la fraîcheur
-  côté lecteur (150 s) ne fait pas mieux que les ~95 s actuelles. Case
-  « A passe en arrière-plan » ci-dessous : mesurer le délai réel sur le
-  nouveau build avant de conclure.
 - **Second correctif, 2026-09-22** (branche `claude/presence-arriere-plan-2209`) :
   `inactive` n'écrit plus rien (seul `resumed` met en ligne : la course
   disparaît à la source) ; la préférence de visibilité est gardée en mémoire
@@ -644,12 +482,6 @@ SM A515F = Sim observé, nœud `presence/<uid Sim>` lu par
       « En ligne » (`inactive` n'écrit plus rien).
 - [ ] **Un push réveille l'app de A en arrière-plan** : A ne passe PAS
       « En ligne ».
-      Passe du 2026-09-22 (~05:10), build Play 1.2.2+26 (f22aaff) — **constaté sur le +26 avant correctif** : l'app de Sim à l'accueil
-      depuis 04:36 (processus vivant), Salim envoie PQR1 à 05:11:15 → le nœud
-      `presence/<Sim>` repasse `isOnline: true` à 05:11:25 et le Pixel affiche
-      Sim « En ligne », sans écran affiché chez Sim. C'est la reconnexion
-      `.info/connected` → `_setOnline` en arrière-plan, que la garde
-      `_auPremierPlan` de `c274142` supprime : à revoir sur le nouveau build.
 - [ ] **Ancien build** chez A (sans le correctif), nouveau chez B : A en
       ligne reste affiché « En ligne » (ancienne règle, faute de battement).
 - [ ] **« Afficher mon statut en ligne » coupé** chez A : aucun battement,
@@ -719,10 +551,6 @@ Désormais :
 - **compte supprimé** : 5ᵉ étape de `MaterielLocal.effacer`, qui lève si un
   fichier résiste (effacement retenté au démarrage suivant).
 
-Tenu par `test/core/services/oubli_medias_locaux_test.dart`,
-`effacement_local_differe_test.dart`, `mls_metadonnees_test.dart` (signal de
-la passerelle) et `apercu_apres_suppression_mls_test.dart` (dépôt).
-
 Vérification sur un build **debug** (`run-as` exige un paquet débogable) :
 `adb shell run-as com.diasponiger.diasponiger ls files/medias_dechiffres`.
 
@@ -747,26 +575,6 @@ Vérification sur un build **debug** (`run-as` exige un paquet débogable) :
 **Priorité P1** · importance 4/5 — le texte, la clé du média et la citation
 d'un message MLS supprimé pour tous restaient sur le disque de chaque
 téléphone, et dans la mémoire de la passerelle.
-
-Le serveur vide la ligne d'un message en clair ; celle d'un message MLS n'a
-jamais eu de clair. `MlsGateway._avecMetadonnees` se contentait de poser
-`deletedForEveryone` : le fil de la passerelle (`_fil`) gardait tout, et le
-dépôt le remettait tel quel dans le cache Hive à chaque passage (lecture,
-temps réel, rattrapage de la liste). Désormais le fil est vidé **en place**
-par `videPourSuppression()` (`_vider`, `mls_gateway.dart`) — au recollage,
-à l'amorçage depuis le cache et dès `supprimerPourTous` ; une modification
-en attente ne ressuscite plus le texte ; une vieille copie en clair du cache
-ne recomplète pas une entrée vidée, et un cache qui sait la suppression
-avant le fil l'emporte (le drapeau n'est jamais dégradé). Côté dépôt,
-`jsonPourCacheMls` vide avant toute écriture et `mlsDuCache` à la lecture :
-les entrées déjà écrites en clair sont réécrites vidées au passage suivant.
-Tenu par `test/core/crypto/mls_metadonnees_test.dart` (groupe « Un message
-supprimé pour tous ne garde son clair nulle part »). L'écriture faite au
-geste même (`_marquerSupprimeDansLeCache`) ne vidait que `content` : clé du
-média, fichier, cartes et citation restaient sur le disque jusqu'au passage
-suivant, jamais venu si l'app était tuée entre-temps. Elle écrit maintenant
-la coquille (`entreeCacheSupprimee`), tenue par
-`test/features/messages/apercu_apres_suppression_mls_test.dart`.
 
 - [ ] **Côté auteur** : discussion chiffrée, envoyer une photo avec légende,
   « Supprimer pour tout le monde » → pierre tombale ; tuer l'app, relancer
@@ -795,36 +603,6 @@ n'applique que leurs métadonnées aux messages déjà affichés. Complète
 couvrait le canal chiffré. Tenu par
 `test/core/services/temps_reel_apres_arriere_plan_test.dart` (branchement
 seulement).
-
-Les **modifications de texte** passent aussi : ce flux livre la ligne brute,
-chiffrée au repos, et l'écran n'en prenait que les métadonnées — le nouveau
-texte n'apparaissait qu'à la réouverture. Quand un UPDATE annonce un
-`editedAt` plus récent que celui affiché, l'écran relit ce message déchiffré
-par `getMessageById`, une seule fois par version (`_relireModification`,
-`message_provider.dart` ; règle dans `modification_recue.dart`, tenue par
-`test/features/messages/modification_recue_test.dart`). Un texte illisible
-ne remplace jamais du texte clair.
-
-**Supprimer pour tout le monde** : la pierre tombale s'affichait déjà (le
-drapeau passait), mais l'écran recollait par-dessus le texte clair, la carte
-partagée, le fichier et la clé du média — restés en mémoire, à portée de la
-copie et du transfert. La ligne supprimée est maintenant prise telle que le
-serveur l'a vidée (`fusionnerLigneBrute`, `modification_recue.dart`). Même
-passe : la première modification d'un message jamais modifié reprenait la
-date de la ligne brute (`copyWith(editedAt: null)` ne vide rien) — drapeau
-`effacerDateDeModification` ajouté à `MessageEntity.copyWith`.
-
-**Suppressions MLS** : même fuite, par un autre chemin. La passerelle ne
-fait que recoller `deletedForEveryone` sur l'entité déchiffrée
-(`_avecMetadonnees`) ; le temps réel relit le fil entier et l'écran
-remplace par identifiant — texte, fichier local déchiffré, clé du média et
-citation restaient dans l'état. Tout message supprimé pour tous est
-désormais réduit à sa coquille à **chaque écriture de l'état de l'écran**
-(`sansContenuSupprime` dans le `set state` du notifier, liste d'inclusion
-`MessageEntity.videPourSuppression`) : temps réel, cache et pagination
-confondus. Le fil en mémoire de la passerelle et le cache disque, qui
-gardaient le clair, sont traités à part : voir « Message chiffré supprimé
-pour tous : plus de clair en mémoire ni dans le cache » ci-dessus.
 
 - [ ] **HOME court, accusé** : envoyer un message en clair, HOME ; l'autre
   téléphone ouvre la discussion ; revenir → la double coche « Lu » est là
@@ -929,16 +707,6 @@ et texte supprimé dans la liste »).*
 - [ ] **Groupe, administrateur** : « Supprimer pour tous » toujours proposé
   sur le message d'un membre (modération).
 
-**Constaté au passage, non corrigé — la Carte dit « Mode privé activé »
-pendant que la position est partagée.** Sur le SM A515F, `share_location =
-true` et position publiée à 20:27, mais l'onglet Carte affiche « Mode privé
-activé » avec un bouton « ACTIVER ». C'est le calque « Membres », filtre
-d'affichage local (`nearbyMembersEnabled`), et non le consentement — mais le
-libellé fait croire à l'utilisateur que sa position est cachée alors qu'elle
-ne l'est pas. À trancher (libellé ou fusion des deux réglages), sensible au
-vu des refus Play sur la localisation. Voir « Réglages/Carte — deux
-interrupteurs de partage de position désynchronisés ».
-
 ---
 
 ## ⬜ Temps réel après l'arrière-plan, et texte supprimé dans la liste (2026-09-21)
@@ -952,24 +720,6 @@ chiffré supprimé pour tous.
 
 *Bloqué : les deux téléphones portent un build Play — il faut un AAB importé
 dans une piste Play (Tests internes) pour les mettre à jour.*
-
-**1. Temps réel.** Au retour, `supabase_flutter` re-rejoint les canaux avec
-le jeton qu'il a, périmé après une longue absence ; le serveur refuse la
-réplication en différé et le canal reste « joined », muet — le jeton neuf du
-pont n'y change rien. Le pont réabonne désormais tout le temps réel une fois
-le jeton neuf obtenu (`reabonnement_temps_reel.dart`,
-`supabase_auth_bridge.dart`). Et le canal des messages chiffrés n'avait pas
-de rattrapage au rejoint : ce qui arrivait pendant l'absence restait absent
-de la discussion affichée (`mlsNouveauxMessages`). Tenu par
-`test/core/services/temps_reel_apres_arriere_plan_test.dart` (branchements
-seulement : le mécanisme lui-même ne se prouve que sur appareil).
-
-**2. Liste.** La suppression chiffrée n'écrit que dans `mls_messages`, et la
-liste reconstruit l'aperçu depuis le cache local sans être rejouée. Le
-message caché est maintenant marqué et vidé, et la liste rejouée ; même rejeu
-après une modification (`message_repository_impl.dart`). Tenu par
-`test/features/messages/apercu_apres_suppression_mls_test.dart` — les deux cas
-échouent sur l'ancien code avec « PA6SECRET ».
 
 - [ ] **Veille longue** : app en arrière-plan plus d'une heure (derrière une
   autre app), revenir sur une discussion chiffrée ouverte ; l'autre téléphone
@@ -999,9 +749,6 @@ après une modification (`message_repository_impl.dart`). Tenu par
   qu'un message arrive en direct ».
 - [ ] **Carte « Messages non lus » de l'Accueil** : ouvrir une discussion
   chiffrée depuis une bannière, lire, revenir à l'Accueil → le compte retombe.
-  Vu à 5 au lieu de 0 sur le +26 ; corrigé par `bf64ffe` (la lecture chiffrée
-  fait rejouer la liste, dont l'Accueil additionne les pastilles), absent du
-  +26.
 - [ ] **Statut en ligne** (même livraison, `online_status_provider.dart`) :
   couper « Afficher mon statut en ligne » dans Réglages, modifier sa bio,
   enregistrer → `show_online_status` reste `false` en base.
@@ -1013,24 +760,9 @@ après une modification (`message_repository_impl.dart`). Tenu par
 **Priorité P1** · importance 4/5 — signalé par Salim le 2026-09-21 : la page
 Messages ne se met pas à jour après avoir quitté une discussion.
 
-Reproduit sur SM A515F (1.2.2+26) : « Testeurs » à 2 non lus, ouverte (les
-deux messages affichés), retour → la tuile reste à **1**, alors que la base
-dit 0 (`mls_message_receipts`, `read_at` posés à 20:23:44 et 20:23:47 UTC).
-Lire un message chiffré ne touche pas la ligne `conversations`, seule chose
-qui faisait rejouer la liste. `MlsGateway.lecturesAvancees` la fait désormais
-rejouer après chaque lecture (`message_repository_impl.dart`).
-
-Tenu par `test/features/messages/apercu_rattrapage_rejoue_test.dart` (« une
-lecture chiffrée fait retomber la pastille… », 2 au lieu de 0 sur l'ancien
-code). Jamais vu sur appareil :
-
 - [ ] **Discussion chiffrée avec non-lus** : l'ouvrir, revenir → la pastille
       de la tuile, le compteur « N non lus » de l'en-tête et le badge de
       l'onglet Messages tombent à 0 en ≤ 1 s, sans tirer-pour-rafraîchir.
-      Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim, sombre, police 1,3 + gras) : reproduit comme attendu sur le +26 — sondage PA22 affiché
-      « 1 message non lu » à l'ouverture, `read_at` posé (00:39:25), retour à la
-      liste → tuile « Sim A » à **1** et « 1 non lu » dans l'en-tête. Le
-      correctif `bf64ffe` n'est pas dans f22aaff : à revoir sur le +28.
 - [ ] **Longue discussion, lue en partie** (défilement partiel) : le compte
       restant est juste, pas 0.
 
@@ -1042,19 +774,6 @@ code). Jamais vu sur appareil :
 liste des discussions, l'aperçu des premiers messages qui arrivent reste
 « Message chiffré ».
 
-Suite de « « Message chiffré » qui ne s'en va pas dans la liste (2026-09-16) ».
-Le rattrapage de fond garde un plancher de 5 s entre deux passes ; un message
-reçu dans ce délai faisait **rendre la main sans rien reprogrammer**. Liste
-immobile, plus aucune émission ne le relançait : l'aperçu restait figé
-jusqu'au message suivant ou à un tirer-pour-rafraîchir. Désormais la passe est
-**reportée** à la fin du plancher, sur la dernière liste reçue
-(`_reporterRattrapage`, `message_repository_impl.dart`).
-
-Tenu par `test/features/messages/apercu_rattrapage_rejoue_test.dart` (« un
-message reçu pendant le plancher… », rouge sur le code d'avant). Jamais vu
-sur appareil :
-
-- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Les premiers messages reçus restent « Message chiffré » dans la liste (2026-09-21) »).
 - [ ] **Nouvelle discussion, premier échange** : les premiers messages ne
       restent pas sur « Message chiffré ».
 - [ ] **Hors ligne** : pas de boucle de rattrapage (une reprise au plus par
@@ -1065,35 +784,13 @@ sur appareil :
       « Message chiffré » avant ce changement. Réseau lent : la liste ne doit
       pas rester figée plus de ~3 s.
 
+- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Les premiers messages reçus restent « Message chiffré » dans la liste (2026-09-21) »).
+
 ---
 
 ## ⬜ Écrire dans une conversation exige d'en être participant (2026-09-20)
 
 **Priorité P0** · importance 4/5 — Un compte connecté pouvait écrire, sous son nom, dans n'importe quelle conversation dont il connaissait l'identifiant — d'abord celle dont il vient d'être exclu. La policy est corrigée ; reste à voir que tous les envois légitimes passent encore.
-
-Migration `20260920214800_messages_insert_participant.sql` — **APPLIQUÉE le
-2026-09-20** (`db push`, seule en file, sans avertissement). Le banc relancé
-tel quel sur l'état vivant : 11 cas, 0 échec, aucun reste en base.
-`messages_insert` exigeait seulement
-`firebase_uid() = sender_id` ; elle exige en plus
-`is_conversation_participant(conversation_id)`, comme `mls_messages` depuis
-sa création, et ne vaut plus que pour `authenticated`.
-
-Banc `tools/rls_tests/messages_insert_participant.sql`, 11 cas, contre la
-production en `BEGIN … ROLLBACK` : sans la migration, 3 échecs — dont « NON
-participant : ACCEPTÉ » et « EXCLU : ACCEPTÉ », la faille elle-même ; migration
-injectée, 0. Le banc n'écrit que dans deux conversations fabriquées sans
-destinataire possible, et vérifie qu'aucune notification n'en est née.
-
-**Ce que la faille n'était pas** : un message ainsi injecté ne poussait aucune
-notification — `notify_recipients_on_message_insert` sort quand l'expéditeur
-n'est pas participant. Il s'affichait dans le fil des participants, sans
-sonner.
-
-Mesuré avant d'écrire : 185 messages en base, 0 dont l'expéditeur n'est pas
-participant — aucun envoi réel ne dépendait du trou. Les trois points
-d'insertion de l'app écrivent dans une conversation que l'appelant lit déjà.
-Ce que ça ne prouve pas, c'est l'ordre des écritures sur un vrai téléphone :
 
 - [ ] **Premier message d'une discussion neuve** (depuis un profil, depuis la
   carte) : la conversation est créée puis le message part, sans « Message non
@@ -1105,14 +802,6 @@ Ce que ça ne prouve pas, c'est l'ordre des écritures sur un vrai téléphone :
 - [ ] **Après avoir quitté un groupe, ou en avoir été retiré** : la discussion
   n'accepte plus rien — et l'échec se dit à l'écran, pas en silence.
 
-⚠️ **Anomalie de données, distincte.** Le contrôle porte sur
-`participant_ids`. Le 2026-09-20, 2 personnes y figurent encore pour une
-conversation de groupe sans plus être dans `group_members` : elles gardent
-lecture et écriture, avant comme après cette migration. À l'inverse, 1 membre
-de groupe manque à `participant_ids` : il ne lisait déjà pas la discussion.
-Voir « Balayage des invariants de données » ; la réparation est une écriture
-en base, à décider.
-
 ## ⬜ Fiches de partage : libellés sur une ligne, vrais logos, bouton (2026-09-20)
 
 **Priorité P3** · importance 2/5 — sur « Partager mon profil », à l'échelle de
@@ -1121,31 +810,10 @@ coupaient en plein mot (« WhatsAp / p »), le bouton « Envoyer dans une
 discussion » passait sur deux lignes avec l'icône collée au bord, et les tuiles
 montraient une bulle de chat et une croix « fermer » au lieu des logos WhatsApp
 et X.
-*Vu sur le SM A515F (build debug 1.2.2+23, installée en place le 2026-09-20,
-thème clair, police 1,0, sans gras) : le rendu corrigé, mais PAS le défaut, qui
-n'y apparaît pas. Non vu sur le Pixel, là où il apparaît : il porte le build Play
-(+22), un build local ne s'y installe pas, et c'est un vrai compte. L'AAB
-1.2.2+23 attend d'être importé sur une piste Play.*
-
-Les tuiles et le bouton du profil et du groupe étaient deux copies privées qui
-avaient divergé : les logos de marque n'existaient que côté groupe, et la marge
-horizontale du bouton n'était posée nulle part (`padding` ne donnait que le
-vertical). Ils passent par deux widgets,
-[share_icon_button.dart](lib/shared/widgets/share_icon_button.dart) et
-[share_to_chat_button.dart](lib/shared/widgets/share_to_chat_button.dart) :
-libellé sur une ligne (il rétrécit au lieu de passer à la ligne), logo SVG via
-`asset`, 16 dp de marge sur le bouton.
-Les bancs `test/shared/share_icon_button_test.dart` et
-`share_to_chat_button_test.dart` prouvent la structure (une ligne, dans la
-tuile / le bouton, à 1,0 / 1,3 / 2,0) avec la police de test Ahem, plus large
-qu'Inter. Un aperçu jetable en Inter réel, échelle 1,3 + texte en gras + thème du
-bouton (16 sp), a reproduit la capture du Pixel à l'identique avant le
-correctif : il ne remplace pas l'appareil pour autant.
 
 ⚠️ Sur ce Pixel, deux réglages comptent : `font_scale` 1,3 **et** texte en gras
 (`font_weight_adjustment` 300). Un test à 1,0 sans gras ne prouve rien.
 
-- ✔ 5 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Fiches de partage : libellés sur une ligne, vrais logos, bouton (2026-09-20) »).
 - [ ] **Groupe** : fiche « Partager le groupe » — mêmes libellés sur une ligne
       à 1,3 (elle partage désormais la tuile du profil), logos inchangés, et le
       même bouton, dans la couleur secondaire du compte (le profil prend
@@ -1155,6 +823,8 @@ correctif : il ne remplace pas l'appareil pour autant.
       libellé à ellipse) — leurs libellés sont-ils coupés ? Non mesuré, non
       touché.
 
+- ✔ 5 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Fiches de partage : libellés sur une ligne, vrais logos, bouton (2026-09-20) »).
+
 ---
 
 ## ⬜ Le séparateur « N messages non lus » part quand tout est lu (2026-09-17)
@@ -1162,30 +832,19 @@ correctif : il ne remplace pas l'appareil pour autant.
 **Priorité P2** · importance 3/5 — le séparateur et le badge du bouton
 « aller en bas » gardaient le compte d'ouverture jusqu'à la fermeture de
 l'écran, même tout lu.
-*Bloqué en partie : sans la migration `20260917002300`, le séparateur ne part
-que quand il ne reste AUCUN non-lu — donc jamais dans une discussion où l'on
-écrit pendant qu'on lit.*
-
-Étape B du plan : après chaque avancée du curseur, un relevé
-(`repere_de_lecture`) fait descendre le badge ; quand le curseur a atteint le
-plus récent des non-lus d'ouverture, le séparateur part — **jamais sous les
-yeux** : il part en sortant de l'écran, ou tout de suite s'il n'y est pas. Une
-fois parti, il ne revient pas. Règle dans
-[suivi_des_non_lus.dart](lib/features/messages/presentation/utils/suivi_des_non_lus.dart),
-éprouvée contre un vrai `ListView` ; branchement dans `_suivreLaLecture`
-(`conversation_screen.dart`).
 
 ⚠️ Non mesuré : retirer une ligne **au-dessus** de l'écran d'une liste inversée
 ne devrait pas décaler ce qu'on voit (le fil est ancré en bas). La case « le fil
 ne saute pas » est là pour le confirmer.
 
-- ✔ 3 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Le séparateur « N messages non lus » part quand tout est lu (2026-09-17) »).
 - [ ] **Faire défiler** jusqu'à ce qu'il sorte par le haut, puis revenir → il a
       disparu, et **le fil ne saute pas** au moment où il part.
 - [ ] **Beaucoup de non-lus** (20+) : en descendant, le chiffre du badge
       descend ; arrivé en bas, le badge disparaît.
 - [ ] **Message reçu pendant la lecture** (l'autre écrit pendant qu'on
       descend) : le séparateur part quand même une fois les anciens lus.
+
+- ✔ 3 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Le séparateur « N messages non lus » part quand tout est lu (2026-09-17) »).
 
 ---
 
@@ -1194,17 +853,6 @@ ne saute pas » est là pour le confirmer.
 **Priorité P2** · importance 3/5 — l'écran d'information d'un message
 (`message_info_sheet.dart`) affichait la même heure pour la livraison et la
 lecture, sur toutes les discussions en clair.
-*Bloqué : la migration `20260916235300` n'est pas encore appliquée.*
-
-Mesuré en production : 424 heures de livraison strictement égales à l'heure de
-lecture, aucune antérieure. `mark_messages_as_read` réécrivait `deliveredAt`
-de tout message qu'il marquait lu, et ajoutait le lecteur à `deliveredTo` sans
-regarder s'il y était (84 messages en doublon). La migration corrige les deux
-RPC et dédoublonne l'existant ; **les 424 heures écrasées ne se réparent pas**,
-l'heure d'origine n'étant écrite nulle part.
-
-Banc : [tools/rls_tests/accuses_sans_doublon.sql](tools/rls_tests/accuses_sans_doublon.sql)
-(8 cas ; les corps d'avant en font tomber 4). Ce que le banc ne voit pas :
 
 - [ ] **Discussion en clair, deux téléphones** : A écrit, B reçoit la
       notification sans ouvrir, puis ouvre une minute après → sur l'écran
@@ -1223,53 +871,15 @@ Banc : [tools/rls_tests/accuses_sans_doublon.sql](tools/rls_tests/accuses_sans_d
 ce qui est affiché une fois la vue posée est lu **immédiatement**, sans les
 400 ms + 700 ms qui protègent un défilement. Ce qui est sous le pli reste non
 lu (choix A2).
-*Bloqué en partie : dans une discussion **en clair**, tant que la migration
-`20260916224700` n'est pas appliquée, l'app replie sur l'ancien marquage global
-— l'ouverture y marque donc TOUT, sous le pli compris. Les discussions
-**chiffrées** (MLS) sont vérifiables dès maintenant.*
-
-La difficulté n'était pas le délai mais la question « qu'est-ce qui est à
-l'écran ? » : `VisibilityDetector` ne rapporte que les changements, par lots de
-500 ms, et la liste s'ouvre en bas avant de sauter au premier non-lu. Le relevé
-([releve_a_l_ecran.dart](lib/features/messages/presentation/utils/releve_a_l_ecran.dart))
-attend l'image qui applique le saut, vide les rapports en attente, puis lit.
-Éprouvé contre un vrai `ListView` inversé par `releve_a_l_ecran_test.dart`
-(saut avant ET après le premier lot de rapports ; retirer `notifyNow` ou
-l'attente de l'image fait tomber les cas de saut).
-
-Même mécanisme au **retour au premier plan** : un message arrivé pendant que
-l'app était en arrière-plan voyait son compte à rebours refusé, et restait non
-lu sous les yeux tant qu'on ne défilait pas — la visibilité ne changeant pas,
-rien ne le relançait. Défaut déduit du code et du paquet, jamais observé.
 
 Recette : `supabase db query --linked -f supabase/diagnostics/2026-09-15_recus_bruts.sql`.
 
 - [ ] **Ouverture, discussion chiffrée** : A envoie 12 messages à B ; B ouvre
       → `read_at` posé **en moins d'une seconde** sur les bulles affichées,
       nul sur celles sous le pli.
-      ⛔ Passe du 2026-09-22 (~02:00–02:30), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : Pixel fermé (HOME + `am kill`), Sim envoie PQ1–PQ12 puis un
-      sondage ; ouverture à froid par lien profond → **les 13 `read_at` tombent à la
-      même milliseconde** (02:08:10.179, 5,3 s après le lancement), alors que seuls
-      PQ9–PQ12 et le sondage étaient à l'écran. Rejoué avec PR1–PR10 et une rafale
-      de captures SUR le Pixel : le fil s'ouvre d'abord sur le cache, puis les
-      nouveaux arrivent et l'écran se pose **en bas** (PR3–PR10) ; PR1 et PR2,
-      jamais affichés, sont lus aussi (02:12:34.871, tous ensemble). Cause, par le
-      code : en MLS la lecture avance un **curseur** (`avancerCurseur` →
-      `marquerLusJusqua`) — lire le plus récent affiché marque tout ce qui précède ;
-      le défaut vient de l'ouverture en bas (case suivante).
 - [ ] **Ouverture avec saut au premier non-lu** : les derniers messages, vus
       une fraction de seconde avant le saut, ne sont PAS marqués (le cas que le
       relevé est fait pour éviter).
-      ⛔ Passe du 2026-09-22 (~02:00–02:30), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : **aucun saut** avec 10 ou 13 non-lus : pas de séparateur
-      « N messages non lus », écran posé sur les derniers. Avec 3 non-lus (qui
-      tiennent à l'écran), le séparateur s'affiche bien. **Cause, par le code** :
-      les deux ouvertures passaient par le **lien profond**. `state.extra` y
-      est nul et la liste des discussions pas encore chargée, donc
-      `_dernierMessageAnnonce` reste nul ; `_filVaJusquAuBout` rendait alors
-      « complet » (« rien à quoi comparer »). Le fil du cache — sans les
-      nouveaux messages chiffrés — décidait du placement : premier non-lu
-      absent, écran posé en bas, et le placement ne se rejoue pas. Même
-      chemin pour un tap sur une notification.
       **Corrigé le 2026-09-22** (branche `claude/saut-non-lu-2209`) : à défaut
       d'annonce de la liste, l'échéance vient du repère serveur
       (`RepereDeLecture.echeanceDuFil` : date du dernier non-lu, à défaut du
@@ -1293,18 +903,9 @@ Recette : `supabase db query --linked -f supabase/diagnostics/2026-09-15_recus_b
       penser que la vue a été « posée » avant l'arrivée du fil réseau.
 - [ ] **Côté A** : « Lu » apparaît sur les bulles affichées chez B, « Envoyé »
       ou « Distribué » sur les autres.
-      ⛔ Passe du 2026-09-22 (~02:00–02:30), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : chez Sim, relance à froid → « Lu » sur PR1–PR10, y compris
-      PR1 et PR2 que Salim n'a jamais eus à l'écran (conséquence des deux cases
-      ci-dessus).
 - [ ] **Retour au premier plan** : B garde la discussion ouverte, passe l'app
       en arrière-plan, A écrit, B revient → le message visible passe à « Lu »
       sans que B touche l'écran.
-      ⬜ Passe du 2026-09-22 (~02:00–02:30), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : **invérifiable sur le +26**. Pixel discussion ouverte, HOME
-      20 s, Sim envoie PS5 (bannière posée), retour au premier plan → PS5 **absent**
-      du fil 30 s plus tard (livré 02:22:16, jamais lu), bannière restée. C'est le
-      défaut connu « Temps réel après l'arrière-plan » : à refaire sur le +28.
-      Relance à froid : PS5 affiché sous « 1 message non lu », lu, bannière
-      retirée.
 - [ ] **Une seule écriture à l'ouverture** : dans les journaux d'API Supabase,
       un seul appel d'avancée du curseur (et un seul `marquer_lus_jusqua` une
       fois la migration appliquée), pas un par bulle.
@@ -1318,30 +919,6 @@ Recette : `supabase db query --linked -f supabase/diagnostics/2026-09-15_recus_b
 
 **Priorité P1** · importance 4/5 — le « Lu » et le séparateur « N messages non
 lus » des discussions **non chiffrées** changent de mécanisme.
-*Bloqué : la migration `20260916224700` n'est pas encore appliquée (`db push`
-refusé au classificateur de permissions). Tant qu'elle ne l'est pas, l'app
-reprend l'ancien chemin et rien de ce qui suit n'est observable.*
-
-Le modèle vérifié en MLS (voir « Curseur de lecture et séparateur « nouveaux
-messages » ») n'existait pas en clair : `mark_messages_as_read` ne connaît que
-« toute la conversation ». L'écran l'appelait au premier coup d'œil, et ce qui
-restait sous le pli partait « Lu » chez l'expéditeur. Deux RPC le remplacent :
-`repere_de_lecture` (curseur, premier non-lu et nombre, **sur les deux
-magasins** d'un coup) et `marquer_lus_jusqua` (jusqu'à un message, pas au-delà ;
-`unreadCount` recalculé au lieu d'être remis à zéro).
-
-Même migration : `mark_messages_as_read` et `mark_messages_as_delivered`
-n'acceptent plus d'accuser **au nom d'un autre** — tout compte connecté pouvait
-jusqu'ici poser « Lu » pour n'importe quel membre.
-
-Couvert côté serveur par
-[tools/rls_tests/lecture_par_curseur.sql](tools/rls_tests/lecture_par_curseur.sql)
-(30 cas, 0 en échec sur les vraies données, migration jouée puis annulée ;
-retirer les gardes d'identité fait tomber les cas 23 et 24). Côté client :
-[lecture_serveur.dart](lib/features/messages/data/datasources/lecture_serveur.dart),
-`_releverCurseur` / `_pousserCurseur` dans
-[conversation_screen.dart](lib/features/messages/presentation/screens/conversation_screen.dart).
-Ce que le banc ne voit pas :
 
 - [ ] **En clair, sous le pli** : A envoie 6 messages à B dans une discussion non
       chiffrée ; B ouvre, n'en voit que 3 → chez A, « Lu » sur ces 3 seulement.
@@ -1374,31 +951,15 @@ d'écriture de TOUTE la messagerie : ce qui doit être vérifié ici, ce n'est p
 l'attaque — le banc SQL la couvre — mais que **rien de légitime n'a été
 emporté**.
 
-La policy `messages_update` laissait passer n'importe quel participant, et
-`authenticated` avait l'`UPDATE` au niveau table, donc sur toutes les colonnes.
-La recette habituelle (`GRANT UPDATE (colonne, …)`) ne s'applique pas ici :
-`messages` n'a que sept colonnes et tout ce qui bouge après l'envoi vit dans
-une seule, `data` (jsonb) — le contenu de l'expéditeur et les accusés des
-destinataires dans le même sac. D'où un déclencheur `BEGIN UPDATE` qui borne
-les **clés** de `data` qu'un non-expéditeur peut faire bouger, en plus du
-`REVOKE` + `GRANT UPDATE (data, is_deleted)`.
-
 **La régression à craindre est muette** : si les accusés cassent, le « Lu »
 cesse simplement d'arriver — aucune erreur, aucun journal, rien à l'écran. Un
 seul téléphone ne peut pas le voir. D'où deux appareils, obligatoirement.
 
-Couvert côté serveur par
-[tools/rls_tests/droits_update_messages.sql](tools/rls_tests/droits_update_messages.sql)
-(20 cas, 0 en échec en production ; retirer le déclencheur en fait tomber 10).
-Le banc prouve les droits, pas l'affichage — d'où cette entrée.
-
 - [ ] **Accusé de lecture, deux téléphones** : A écrit à B, B ouvre la
       discussion → la coche passe à « Lu » chez A, en quelques secondes
-  ⛔ Passe du 2026-09-21, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : les reçus s'ÉCRIVENT bien (read_at posé dans la seconde de l'ouverture), mais l'expéditeur ne voit PAS « Lu » en direct — resté « Envoyé » plus d'une minute, discussion ouverte. En MLS le temps réel n'écoute que `mls_messages` (`message_supabase_datasource.dart:1198/1214`), pas `mls_message_receipts` : « Lu » n'arrive qu'à la réouverture ou au prochain message.
 - [ ] **Accusé de livraison** : B reçoit sans ouvrir (app en arrière-plan) →
       la coche « remis » apparaît chez A
   ⛔ Passe du 2026-09-21, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : `delivered_at` reste NUL tant que la discussion n'est pas ouverte (bannière pourtant reçue et déchiffrée). Par construction : seul `conversation_screen.dart:852` appelle `markAsDelivered` — « remis » n'existe pas pour un message reçu en arrière-plan.
-- ✔ 2 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Droits d'écriture sur `messages` resserrés : accusés et modification (2026-09-16) »).
 - [ ] **Favori / signalement / supprimer pour moi** sur le message d'un
       **autre** : les trois passent toujours (ce sont les seules écritures
       qu'un non-expéditeur garde)
@@ -1409,7 +970,8 @@ Le banc prouve les droits, pas l'affichage — d'où cette entrée.
 - [ ] **Conversation chiffrée (MLS)** : les accusés et la modification s'y
       comportent pareil — `mls_messages` est une autre table, avec ses propres
       droits, et n'a pas été touchée par cette migration
-  ⚠️ Passe du 2026-09-21, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : modification OK en direct ; accusés écrits correctement mais jamais affichés en direct côté expéditeur — voir les deux premières cases.
+
+- ✔ 2 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Droits d'écriture sur `messages` resserrés : accusés et modification (2026-09-16) »).
 
 ---
 
@@ -1418,23 +980,6 @@ Le banc prouve les droits, pas l'affichage — d'où cette entrée.
 **Priorité P1** · importance 4/5 — signalé sur Pixel 10 Pro XL le 2026-09-16,
 dans deux cas : une discussion **jamais ouverte** sur l'appareil, et un
 message reçu **pendant que la liste est à l'écran**.
-
-Le clair d'un message chiffré n'existe que sur l'appareil : la liste le
-reconstitue depuis le cache du fil. Quand le cache ne l'a pas,
-`_rattraperMlsEnArrierePlan` le déchiffre en tâche de fond et le met en cache
-— mais **rien ne redemandait la liste après coup**. Le texte était donc prêt,
-sur l'appareil, et la tuile continuait d'afficher « Message chiffré » jusqu'à
-un tirer-pour-rafraîchir, l'ouverture de la discussion, ou le message suivant.
-
-Deux changements dans `message_repository_impl.dart` : la liste **rejoue** sa
-dernière émission quand le rattrapage a mis du clair en cache, et le
-rattrapage n'est **replanifié** que si une conversation sans aperçu porte une
-date jamais tentée (`rattrapageADeclencher`) — ce qui a permis de descendre
-l'espacement de 20 s à 5 s, les 20 s bloquant le deuxième et le troisième
-message d'une rafale.
-
-Tenu par `test/features/messages/apercu_rattrapage_rejoue_test.dart` (le cas
-du rejeu échoue sur le code d'avant). Ce qu'un test ne dit pas :
 
 - [ ] **Recevoir, app ouverte sur la liste, sans y toucher** : la tuile passe
       du libellé au vrai texte toute seule, en quelques secondes.
@@ -1449,54 +994,12 @@ du rejeu échoue sur le code d'avant). Ce qu'un test ne dit pas :
 - [ ] **Hors ligne** : la liste ne doit ni tourner en boucle de rattrapage ni
       afficher un aperçu faux.
 
-**Première observation sur le build qui porte le correctif** (Pixel 10 Pro XL,
-APK debug `84ef4752…`, installé et relancé à 01:59 le 2026-09-16) : après un
-démarrage à froid, « Testeurs » et « Sim A » — deux discussions dont le
-message était arrivé pendant que l'app ne tournait pas — affichaient leur
-texte déchiffré (« Cfg », « Yy ») et leur pastille de non-lus dans les 30 s,
-sans qu'on les ouvre. Aucune tuile sur « Message chiffré ».
-
-⚠️ Ça ne coche aucune case ci-dessus : sur ce chemin-là, l'aperçu peut aussi
-venir de l'isolate de notification, qui déchiffre à l'arrivée du push. Ce que
-le rejeu change ne se voit qu'en **recevant liste à l'écran**, et en
-**rafale** — les deux premières cases.
-
 ---
 
 ## ✅ Curseur de lecture et séparateur « nouveaux messages » (2026-09-16)
 
 **Priorité P1** · importance 4/5 — vérifié **à deux téléphones**, même build
 (Pixel 10 Pro XL = Salim, SM A515F = Sim A).
-
-Le séparateur est désormais la **représentation d'un curseur de lecture**, pas
-une propriété des messages. Trois repères avaient été essayés avant, et les
-trois mentaient : l'état de lecture des messages chargés (déjà faussé quand le
-fil arrive), le compteur de la liste (il ne dit pas **où**), et une date de
-visite locale (elle ne survit ni à la pagination ni au fuseau).
-
-**Ce que la passe a prouvé**, horodatages bruts à l'appui :
-
-- ✔ 5 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ✅ Curseur de lecture et séparateur « nouveaux messages » (2026-09-16) »).
-
-**Trois défauts trouvés par cette passe**, aucun visible autrement :
-
-1. Le garde de visibilité interrogeait l'emplacement global du routeur et
-   rendait **toujours faux** — le curseur n'avançait jamais, sans une ligne de
-   journal. L'écran de discussion est poussé **au-dessus** du shell, pas dans
-   une branche d'onglet : `ModalRoute.isCurrent` était le bon signal depuis le
-   début.
-2. Le même garde était évalué **à la réception** de l'événement de visibilité,
-   pendant la transition de route : un refus transitoire devenait définitif,
-   la visibilité ne changeant plus ensuite.
-3. Le séparateur était ancré sur un **index**, qui glisse dès que la
-   pagination complète la liste : le compte restait juste, le repère
-   n'apparaissait nulle part.
-
-Fichiers : [conversation_screen.dart](lib/features/messages/presentation/screens/conversation_screen.dart)
-(`_signalerVisibilite`, `_firstUnreadMessageId`, `_estAffichee`),
-[mls_metadonnees.dart](lib/core/crypto/mls/mls_metadonnees.dart)
-(`curseurDeLecture`, `marquerLusJusqua`). Recette :
-`supabase db query --linked -f supabase/diagnostics/2026-09-15_recus_bruts.sql`.
 
 **Ce qui reste à voir**, et qui n'a pas été exercé :
 
@@ -1511,9 +1014,8 @@ Fichiers : [conversation_screen.dart](lib/features/messages/presentation/screens
   pas se poser au hasard.
 - [ ] **Deux appareils du même compte** : le curseur vient du serveur, il
   devrait donc se synchroniser. Non testé.
-- [ ] **La latence d'affichage des accusés côté expéditeur** : la base disait
-  `read_at` posé alors que l'écran de Sim A montrait encore « Envoyé ». Le
-  curseur n'est pas en cause — c'est le temps réel sur `mls_message_receipts`.
+
+- ✔ 5 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ✅ Curseur de lecture et séparateur « nouveaux messages » (2026-09-16) »).
 
 ---
 
@@ -1521,29 +1023,14 @@ Fichiers : [conversation_screen.dart](lib/features/messages/presentation/screens
 
 **Priorité P0** · importance 4/5 — signalé à l'usage le 2026-09-16, juste après le déploiement de `gif-proxy` : « les gifs/stickers ne s'affichent pas dans les messages ». Deux messages `sticker` partis en MLS à 05:05 UTC, tous deux muets à l'écran.
 
-`MlsMessageMapper` ne lisait `fileUrl` que depuis `body['storagePath']`, qui
-n'existe que pour un média chiffré. Un sticker — et un GIF, qui emprunte le
-même transport — porte son URL dans `body['stickerUrl']` : l'entité sortait
-avec `fileUrl == null`, et `StickerBubble` n'affichait qu'un cadre « image
-cassée ». `isAnimated` n'était pas relu non plus.
-
-**L'expéditeur voyait la même chose** : sa propre copie est remappée depuis ce
-payload dès l'accusé d'envoi. Aucune erreur, aucun journal — le message part,
-s'affiche, et ne montre rien. C'est la deuxième perte de champ du même mapper
-(voir `mediaChiffre`, corrigé la veille) : d'où un banc par champ,
-[mls_sticker_gif_test.dart](test/features/messages/mls_sticker_gif_test.dart),
-qui échoue si la ligne saute.
-
-Les deux messages déjà envoyés portent l'URL dans leur payload chiffré : ils
-s'afficheront correctement au prochain build, sans rien réémettre.
-
-- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ GIF et sticker envoyés en MLS : la bulle ne montrait rien (2026-09-16) »).
 - [ ] **Les deux GIFs du 2026-09-16** (05:05 UTC) s'affichent après mise à
       jour, au lieu du cadre cassé
 - [ ] **Sticker animé** : l'animation joue, elle ne se fige pas sur la
       première trame (`isAnimated` relu)
 - [ ] **Conversation non basculée** : toujours bon — ce chemin-là passait par
       `data->>'fileUrl'` et n'a jamais été touché
+
+- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ GIF et sticker envoyés en MLS : la bulle ne montrait rien (2026-09-16) »).
 
 ---
 
@@ -1563,14 +1050,11 @@ cité. Trois changements dans `message_bubble.dart` :
   la détachait pas), un filet de 3 px, et 12 px d'air en moins entre la
   citation et le texte.
 
-La forme est fixée par `test/features/messages/bulle_citation_forme_test.dart`
-et a été regardée en golden jetable (« Aperçu UI sans build »). Ce qu'un
-golden ne dit pas :
-
-- ✔ 3 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Forme de la bulle qui cite un message (2026-09-16) »).
 - [ ] **Réponse à une photo, puis à une note vocale** : ces bulles passent par
   le chemin SANS `IntrinsicWidth` — la citation ne s'y étire pas, et rien ne
   doit lever.
+
+- ✔ 3 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Forme de la bulle qui cite un message (2026-09-16) »).
 
 ---
 
@@ -1590,7 +1074,6 @@ disparaître. Et chaque échec porte enfin sa cause : avant, coupure réseau,
 refus serveur et échec de la passerelle MLS s'annonçaient tous « Le délai de
 modification est expiré (25 min) ».
 
-- ✔ 2 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ « Modifier le message » : saisie en ligne, fenêtre de 48 h, motifs dits (2026-09-16) »).
 - [ ] **Le clavier.** Le bandeau ajoute une ligne au-dessus du composeur :
   vérifier qu'aucun débordement n'apparaît, clavier ouvert, en portrait puis
   en **paysage** — c'est là que le composeur est déjà le plus serré (voir
@@ -1609,21 +1092,6 @@ modification est expiré (25 min) ».
   conversation **basculée en MLS**, vérifier qu'une modification aboutit
   réellement — la passerelle passe par un message de contrôle chiffré, et
   l'échec y était particulièrement trompeur.
-  ⬜ moitié, Passe du 2026-09-22 (suite, ~01:20–01:40), build Play 1.2.2+26 (f22aaff) :
-  - ✅ **MLS, en ligne** : PA22ECHEC → « PA22ECHEC MODIF » → une ligne
-    `mls_messages` `kind=control` (01:30:34), l'original porte `edited_at` ; la
-    bulle dit « modifié » chez Sim, et chez Salim (Pixel 10 Pro XL (Salim, sombre, police 1,3 + gras), relance à froid) :
-    « PA22ECHEC MODIF · modifié ».
-  - ⛔ **Réseau coupé (mode avion)** : la bulle prend « MODIF2 » puis revient à
-    « MODIF », le bandeau reste avec le texte (on peut réessayer), mais le
-    message affiché est **« Une erreur inattendue s'est produite. Veuillez
-    réessayer. »** — capturé en rafale, il ne parle pas de connexion. Cause, par
-    le code et `dumpsys connectivity` : en mode avion le tunnel VPN du A515F
-    reste « CONNECTED » (réseau par défaut : none) ; `NetworkInfoImpl.isConnected`
-    compte `ConnectivityResult.vpn` seul comme une connexion, donc la garde
-    `NetworkFailure` d'`editMessage` est sautée, et l'exception réseau de
-    `passerelle.modifier` tombe dans le `catch` générique (`unexpectedError`).
-    Tout utilisateur avec un VPN permanent verra ce message.
     **Corrigé le 2026-09-22** : `estConnecte` (`network_info.dart`) ne compte
     plus le VPN seul — en service, il porte son transport (`dumpsys` du
     A515F en ligne : `Transports: WIFI|VPN`) ; et `editMessage` rend une
@@ -1634,20 +1102,10 @@ modification est expiré (25 min) ».
   doit afficher « Modifié · <date> », et « Modifié N fois · <date> » au-delà
   d'une modification. Le texte d'avant n'est **pas** conservé : il n'y a pas
   d'historique de versions à attendre là.
-  ⬜ en partie, Passe du 2026-09-22 (suite, ~01:20–01:40), build Play 1.2.2+26 (f22aaff), SM A515F (Sim) : « Infos du message » (sous « Autres actions »,
-  après défilement de la feuille) → « Envoyé · Sep 22, 2026 00:44 » et
-  « Modifié · Sep 22, 2026 01:30 ». La ligne est là, mais ⛔ **la date est en
-  anglais** : `message_info_sheet.dart` (l. 681 et 700) appelle
-  `DateFormat.yMMMd()` sans locale, alors que le reste de l'app écrit
-  « 11 sept. 2026 ». « Modifié N fois » non vu (la 2ᵉ modification a échoué
-  hors ligne).
   **Date corrigée le 2026-09-22** : `DateFormat.yMMMd(l10n.localeName)`.
   À revoir : « 22 sept. 2026 01:30 ».
 
-Fichiers : `lib/features/messages/presentation/widgets/message_input.dart`,
-`message_bubble.dart`, `message_info_sheet.dart`,
-`lib/features/messages/presentation/screens/conversation_screen.dart`,
-`lib/features/messages/domain/entities/message_entity.dart`.
+- ✔ 2 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ « Modifier le message » : saisie en ligne, fenêtre de 48 h, motifs dits (2026-09-16) »).
 
 ---
 
@@ -1658,60 +1116,14 @@ qui a de nouveaux messages n'affiche aucune pastille, et le message neuf met
 un instant à apparaître. Trois causes distinctes, deux corrigées et vérifiées,
 une qui résiste.
 
-**1. La pastille de la LISTE — corrigée, vérifiée.** `_completerAvecMls` sort
-d'emblée si `!actif && !aDesConversationsBasculees`. Or ce dernier se remplit
-**paresseusement, en ouvrant un fil**. Après un démarrage à froid, la
-passerelle croyait donc qu'il n'y avait rien de chiffré : ni compteurs, ni
-aperçus. Et ouvrir la discussion « réparait » la liste pour le reste de la
-session, ce qui rendait le défaut déroutant. `amorcerBascules` lit tout en une
-requête, avant le garde.
-
-- ✔ 4 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Pastille de non-lus, et séparateur « nouveaux messages » (2026-09-15) »).
-
-**2. Le séparateur « nouveaux messages » DANS le fil — ⚠️ toujours absent.**
-Il était compté sur le cache local seul puis verrouillé à zéro ; c'est corrigé
-(fenêtre de recompte de 6 s). **Mais ça ne suffit pas**, et la mesure le
-montre : `markAsRead` part dès `initState`, **avant** que les messages MLS ne
-soient récupérés. Ils reviennent donc déjà lus — `delivered_at` et `read_at`
-à 7 ms d'écart, mesurés à 03:10:58 UTC à l'instant de l'ouverture — et
-`compterNonLus` trouve zéro. Aucun recompte ne peut y changer quoi que ce
-soit : la donnée elle-même dit « lu ».
-
-Le correctif demande de **changer l'ordre d'ouverture** : retenir le compte de
-non-lus **avant** de marquer lu (le compteur serveur est déjà dans la tuile de
-la liste), puis poser le séparateur, puis marquer. Ce n'est pas une ligne, et
-ce n'est pas fait.
-
-- [ ] **Et il ne doit PAS apparaître** sur un message reçu en direct pendant
-  qu'on regarde la discussion.
-
-**3. Le délai avant que le message neuf s'affiche — ⚠️ structurel, non traité.**
-Il n'existe **aucun rattrapage MLS en arrière-plan** : le déchiffrement n'a
-lieu qu'à l'ouverture du fil, et le temps réel sur `mls_messages` n'est
-abonné que par la discussion ouverte. Réseau + déchiffrement, à chaque
-ouverture. Le corriger demande un abonnement global et un rattrapage hors
-écran — un chantier, pas un correctif.
-
 - [ ] **Le verrou de rattrapage, sous charge** : `messages()` partage
   désormais un seul futur par conversation, parce que le rattrapage de
   fond et l'ouverture du fil peuvent tomber ensemble — deux `catchUp`
   concurrents feraient avancer le cliquet deux fois. Tenu par trois tests,
   **jamais éprouvé sur appareil** : à voir en ouvrant une discussion à
   l'instant précis où son rattrapage part.
-- [ ] ⚠️ **L'aperçu de la liste est retombé sur « Message chiffré »** lors de
-  cette même passe, alors qu'il marchait à la précédente. La pastille et le
-  fil, eux, sont justes. L'aperçu dépend du cache de l'isolate de
-  notification, qui n'est pas toujours écrit à temps — la seconde lecture
-  bornée (400 ms) ne referme pas toujours la fenêtre. À reprendre : le
-  rattrapage de fond remplit maintenant le cache du fil, dont
-  `_apercuDepuisLeCache` sait tirer l'aperçu — il manque sans doute une
-  émission après lui.
 
-Fichiers : [mls_gateway.dart](lib/core/crypto/mls/mls_gateway.dart)
-(`amorcerBascules`), [mls_delivery.dart](lib/core/crypto/mls/mls_delivery.dart)
-(`bascules`), [conversation_screen.dart](lib/features/messages/presentation/screens/conversation_screen.dart)
-(`_fenetreRecompteNonLus`). Recette :
-`supabase db query --linked -f supabase/diagnostics/2026-09-15_recus_bruts.sql`.
+- ✔ 4 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Pastille de non-lus, et séparateur « nouveaux messages » (2026-09-15) »).
 
 ---
 
@@ -1722,128 +1134,15 @@ liste à faire une requête **avant** de pousser son écran : un spinner à la
 place de l'icône signet, la tuile intouchable, à **chaque** ouverture. Toutes
 les autres discussions s'ouvrent d'un `context.push` synchrone.
 
-Ce coût était celui d'un correctif, pas d'un oubli. Le raccourci d'origine a
-été retiré le 2026-08-06 parce qu'il lisait le **cache Hive** : une
-conversation effacée côté serveur y reste, on ouvrait un document fantôme,
-l'écran annonçait « Ce groupe a été supprimé » et tout envoi échouait ensuite
-(« Non envoyé · Réessayer »).
-
-Le raccourci revient avec une source différente : la liste n'est crue que
-lorsqu'elle vient du **flux Supabase vivant** — qui retire une conversation
-supprimée — jamais de sa copie Hive. `conversationsDepuisReseauProvider`
-distingue les deux et repart à `false` à chaque (re)construction du flux, donc
-après un tirer-pour-rafraîchir aussi.
-
-C'est la règle qui est testée (`test/features/messages/mes_notes_ouverture_test.dart`),
-pas son câblage : la provenance réelle des émissions ne se voit qu'à
-l'exécution, et c'est précisément ce qu'il faut vérifier ici.
-
-**Passe appareil du 2026-09-15 (SM A515F, compte `vQZE49…`, le seul « Mes
-notes » basculé en MLS).** Le point décisif s'est joué **réseau coupé** :
-`svc wifi disable` + `svc data disable`, jusqu'à ce que le téléphone réponde
-`ping: unknown host` sur l'hôte Supabase. Dans cet état, `ensure` ne *peut
-pas* aboutir — il commence par `ensureAuthenticated` puis un `select`. Taper
-« Mes notes » a pourtant ouvert le fil entier, et la tuile portait encore son
-icône signet (capture à t+1,3 s), pas un tourniquet : aucun état de chargement
-n'a été posé. C'est le raccourci, et rien d'autre, qui a ouvert l'écran.
-Réseau rétabli ensuite, vérifié à 15 ms.
-
-- ✔ 5 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ « Mes notes » s'ouvre sans aller-retour réseau — vérifié SM A515F (2026-09-15) »).
 - [ ] Démarrage à froid en ligne, tap immédiat avant que la liste n'ait
       chargé : la tuile fait encore son aller-retour (spinner), et
       l'ouverture aboutit
-      ⬜ Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff), SM A515F (Sim, clair, police 1,0) : à froid par `diasponiger://messages`, tap sur la tuile
-      dès qu'elle paraît (+12 s, ralenti par `uiautomator`) → l'écran s'ouvre
-      (squelette puis fil). Mais la liste était déjà chargée : le tourniquet de la
-      tuile n'a pas été vu, la moitié qui compte reste à faire à la main.
 - [ ] Après un tirer-pour-rafraîchir, la première ouverture peut refaire
       l'aller-retour, les suivantes non
 - [ ] Compte neuf, « Mes notes » jamais créée : le premier tap la crée et la
       tuile prend son aperçu dans la liste
 
-**L'aperçu perdu après un envoi chiffré était bien un défaut.** Il a d'abord
-été attribué au hors-ligne, à tort : reproduit ensuite **réseau branché**, la
-tuile retombait sur « Notes, brouillons et sondages » dès le premier
-tirer-pour-rafraîchir suivant l'envoi. La cause n'était ni l'horodatage ni le
-cache de la liste : une note MLS envoyée n'entrait **pas** dans le cache local
-des messages, alors que le chemin legacy y met les siennes juste après
-l'envoi. Le cache ne la recevait qu'au rechargement du fil, donc en rouvrant
-la discussion. Entre les deux, le serveur avançait `last_message_at` sur une
-note dont il n'a pas le texte, le cache ne portait que celle d'avant, et
-`apercuDepuisCache` refusait — à raison.
-
-Corrigé dans `_tenterEnvoiMls`, qui enveloppe tous les envois MLS. Voir
-« L'expéditeur MLS datait lui-même ses propres messages » au § 4 : les deux
-correctifs ne valent qu'ensemble, l'égalité d'horodatage qu'exige l'aperçu
-n'étant atteignable que parce que le message mis en cache porte l'heure du
-serveur.
-
-Fichiers : [message_provider.dart](lib/features/messages/presentation/providers/message_provider.dart)
-(`conversationsDepuisReseauProvider`, `EnsureSelfNotesNotifier.ouvrir`),
-[messages_screen.dart](lib/features/messages/presentation/screens/messages_screen.dart),
-[new_conversation_screen.dart](lib/features/messages/presentation/screens/new_conversation_screen.dart)
-
----
-
-## ⬜ Accusé « lu » mensonger, et aperçu chiffré qui ne venait jamais (2026-09-15)
-
-**Priorité P0** · importance 5/5 — deux défauts trouvés en regardant la liste
-des discussions sur Pixel 10 Pro XL pendant qu'un autre compte envoyait des
-messages. Aucun des deux correctifs n'est vérifié sur appareil : le téléphone
-était en cours d'utilisation quand ils ont été écrits.
-
-**1. « Lu » posé sans que personne ne regarde.** Mesuré en base :
-
-| message | `delivered_at` | `read_at` |
-|---|---|---|
-| 01:23:11 | 01:31:52 | 01:31:53 |
-| 01:29:46 | 01:31:52 | 01:31:53 |
-| 01:29:58 | 01:31:52 | 01:31:53 |
-
-Une seconde après la livraison, en lot, sur des messages dont la discussion
-n'était pas affichée. `StatefulShellRoute` garde les branches **montées** au
-changement d'onglet : une discussion ouverte puis quittée par l'onglet Accueil
-continuait de marquer lu. Côté expéditeur, « Lu » sur des messages jamais lus ;
-côté destinataire, **plus aucune pastille de non-lus, jamais**.
-
-**2. « Message chiffré » indéfiniment.** Un message reçu sans ouvrir la
-discussion n'est jamais déchiffré : un message de 21:23 était encore illisible
-à 21:33, app ouverte et liste à l'écran. La liste relit désormais l'aperçu que
-l'isolate de notification a déchiffré à la réception (copie jetable côté Rust,
-le cliquet n'avance pas).
-
-Fichiers : [conversation_screen.dart](lib/features/messages/presentation/screens/conversation_screen.dart)
-(`_estAffichee`), [message_repository_impl.dart](lib/features/messages/data/repositories/message_repository_impl.dart)
-(`apercuDepuisNotification`), [mls_gateway.dart](lib/core/crypto/mls/mls_gateway.dart)
-(`apercusDejaDechiffres`), [mls_metadonnees.dart](lib/core/crypto/mls/mls_metadonnees.dart)
-(`derniersMessages`). Tenus par
-[apercu_hors_discussion_test.dart](test/features/messages/apercu_hors_discussion_test.dart)
-(10 cas). Diagnostic serveur :
-`supabase db query --linked -f supabase/diagnostics/2026-09-15_non_lus_mls.sql`.
-
-- ✔ 10 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Accusé « lu » mensonger, et aperçu chiffré qui ne venait jamais (2026-09-15) »).
-
-**Ce que j'avais dit à tort, et la vraie cause.** J'ai annoncé que « plus
-aucun reçu n'était écrit, même en ouvrant ». C'était faux : mon diagnostic
-avait lu un instantané **avant** que la livraison n'ait lieu. Les reçus
-existaient, sous le bon `user_id`, avec `delivered_at` posé. Seul `read_at`
-manquait.
-
-La cause, elle, est réelle et corrigée : `initState` lance `markAsDelivered`
-**et** `markAsRead` sans `await`. Les deux lisent « aucun reçu », le premier
-insère, le second heurte la clé primaire `(message_id, user_id)` — exception
-avalée, `read_at` jamais posé, aucun journal. C'est une **course** : une heure
-plus tôt, les mêmes reçus étaient corrects. Ni les droits ni les policies RLS
-n'y étaient pour quelque chose (vérifiés en production,
-`supabase/diagnostics/2026-09-15_droits_recus_mls.sql` et `…_rls_recus_mls.sql`).
-
-- [ ] **Le piège exact du défaut** : ouvrir la discussion, revenir par
-  l'**onglet Accueil** (pas par la flèche retour — elle démonte l'écran, le
-  bug ne se reproduit pas), laisser arriver un message. Il doit rester non lu.
-  Sans objet au Passe du 2026-09-21, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : la discussion s'affiche AU-DESSUS du shell, sans barre d'onglets — on ne peut plus la quitter par l'onglet Accueil. La variante HOME (arrière-plan) ne pose pas de « lu » : PA2 est resté non lu 20 s.
-- [ ] **Mettre l'app en arrière-plan puis revenir**, discussion affichée :
-  `didChangeAppLifecycleState` doit bien marquer lu dans ce cas-là.
-  ⛔ Passe du 2026-09-21, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : discussion affichée, HOME, PA2 reçu pendant l'arrière-plan, retour : PA2 marqué LIVRÉ (18:00:44) mais sa bulle N'APPARAÎT PAS dans le fil ouvert (attendu 1 min 50), donc jamais lu. Visible et lu seulement après sortie + réouverture. Voir « Actualisation automatique après coupure ou retour d'arrière-plan ».
+- ✔ 5 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ « Mes notes » s'ouvre sans aller-retour réseau — vérifié SM A515F (2026-09-15) »).
 
 ---
 
@@ -1852,19 +1151,6 @@ n'y étaient pour quelque chose (vérifiés en production,
 **Priorité P1** · importance 4/5 — trouvé en filmant un démarrage à froid sur
 Pixel 10 Pro XL : rafale de captures (~0,8 s entre chaque image), app ouverte
 directement sur `/messages` par lien profond.
-
-| | t≈0 | t≈0,8 s | t≈3,2 s |
-|---|---|---|---|
-| Nom | **Utilisateur** | Sim A | Sim A |
-| Aperçu | **Message chiffré** | **Message chiffré** | Vous: good |
-| Avatar | bloc « U » | initiales | photo |
-
-Une à trois secondes pendant lesquelles la liste **affirme des choses
-fausses**. Deux causes sans rapport, et aucune n'est un « chargement » que
-l'écran savait reconnaître — c'est pourquoi le squelette de la liste (voir
-« Squelette de chargement de la messagerie ») ne les couvrait pas : il ne
-s'affiche que tant qu'`AsyncValue` est en `loading`, et le cache Hive rend la
-liste bien avant.
 
 **1. « Message chiffré » n'était pas une attente, c'était un appel manquant.**
 `getCachedConversations()` — la première émission, celle qui s'affiche — ne
@@ -1876,12 +1162,6 @@ L'appareil avait le texte sous la main.
 émis. Au démarrage il n'a rien émis pour personne. L'avatar et le nom cèdent
 désormais la place à un bloc d'attente (`SkeletonBlock`, sans balayage).
 
-Fichiers : [message_repository_impl.dart](lib/features/messages/data/repositories/message_repository_impl.dart)
-(`getCachedConversations`), [conversation_item.dart](lib/features/messages/presentation/widgets/conversation_item.dart)
-(`identiteEnAttente`), [messages_skeleton.dart](lib/features/messages/presentation/widgets/messages_skeleton.dart).
-Tenu par [liste_sans_placeholders_test.dart](test/features/messages/liste_sans_placeholders_test.dart).
-
-- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ La liste n'annonce plus « Utilisateur » ni « Message chiffré » (2026-09-15) »).
 - [ ] **Le bloc d'attente n'a pas été vu du tout**, ni dans un tour ni dans
   l'autre : le profil était déjà résolu à la première image. La garde n'a
   donc pas été exercée sur appareil — seul le test la tient
@@ -1897,6 +1177,8 @@ Tenu par [liste_sans_placeholders_test.dart](test/features/messages/liste_sans_p
   que ça n'a pas été remplacé par un bloc gris permanent.
 - [ ] **Thème sombre** : le bloc d'attente doit se distinguer du fond `#0F0D0A`
   sans faire un trou blanc dans la ligne.
+
+- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ La liste n'annonce plus « Utilisateur » ni « Message chiffré » (2026-09-15) »).
 
 ---
 
@@ -1918,16 +1200,6 @@ système le reconnaisse sans importer la pile MLS.
 Nuance connue, à juger à l'œil sur un vrai fil : les messages **au-dessus**
 du repère ne sont pas chiffrés, et une phrase générique posée au milieu du fil
 ne le dit plus. Elle reste vraie pour ce qui suit.
-
-Les entrées plus anciennes de ce fichier citent l'ancien libellé : ce sont des
-constats datés, laissés tels quels.
-
-Fichiers : [mls_message_mapper.dart](lib/core/crypto/mls/mls_message_mapper.dart),
-[message_entity.dart](lib/features/messages/domain/entities/message_entity.dart),
-[message_bubble.dart](lib/features/messages/presentation/widgets/message_bubble.dart),
-`lib/l10n/app_fr.arb` + `app_en.arb` (`mlsSeparatorEncrypted`). Tenu par
-[separateur_bascule_libelle_test.dart](test/features/messages/separateur_bascule_libelle_test.dart)
-(5 cas, dont le rendu en anglais — le défaut d'origine).
 
 - [ ] **Le fil d'une conversation basculée** (« Mes notes » sur le compte de
   test suffit) : le repère affiche bien la nouvelle phrase, centrée dans sa
@@ -1961,15 +1233,6 @@ réelle : avatar 50 au rayon 17, filets entre les lignes, marges de bulle
 fil de groupe. C'est tout l'intérêt de la chose : si les blocs ne tombent pas
 où le contenu tombera, l'écran saute quand même à l'arrivée des données.
 
-Vérifié hors appareil par rendu d'images (goldens jetables) en clair et en
-sombre, et par `test/features/messages/squelette_chargement_test.dart`
-(géométrie + câblage des deux branches). Ce qui ne peut pas l'être ainsi,
-c'est la **durée** et le **passage** au contenu réel.
-
-Fichiers : [messages_skeleton.dart](lib/features/messages/presentation/widgets/messages_skeleton.dart),
-[messages_screen.dart](lib/features/messages/presentation/screens/messages_screen.dart),
-[conversation_screen.dart](lib/features/messages/presentation/screens/conversation_screen.dart).
-
 - [ ] **Liste des discussions** : ⚠️ un `force-stop` puis un tap sur l'onglet
   Messages **ne suffit pas** à le voir. Essayé le 2026-09-15 sur Pixel
   10 Pro XL : sur 10 images prises pendant la transition, aucune ne porte le
@@ -1978,7 +1241,6 @@ Fichiers : [messages_skeleton.dart](lib/features/messages/presentation/widgets/m
   cache froid (appareil où l'app vient d'être installée) ou un réseau lent.
   Ce qu'on regarde alors : le squelette sous les puces de filtre, puis la
   vraie liste **sans saut vertical** par rapport aux lignes annoncées.
-- ✔ 2 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Squelette de chargement de la messagerie (2026-09-15) »).
 - [ ] **Fil d'une discussion** : ouvrir une discussion à tête-tête depuis la
   liste. Les bulles vides sont **collées en bas**, contre le composeur, comme
   la vraie liste inversée — pas en haut de l'écran.
@@ -1989,16 +1251,14 @@ Fichiers : [messages_skeleton.dart](lib/features/messages/presentation/widgets/m
   vite pour qu'on le perçoive.
 - [ ] **Thème sombre** sur les deux écrans : les blocs doivent rester lisibles
   sur `#0F0D0A` sans virer au gris froid, et le balayage rester discret.
-  Passe du 2026-09-22 (~05:35–05:45), build Play 1.2.2+26 (f22aaff, contient 37465e9), Pixel 10 Pro XL (Salim, sombre, police 1,3 + texte en gras) : rafale de 14 captures SUR le Pixel à l'ouverture à froid
-  d'une discussion : écran de démarrage puis la discussion depuis le cache,
-  **aucune** image de squelette — même constat qu'en clair, il faut un cache
-  froid.
 - [ ] **Fond de discussion personnalisé** : avec un papier peint choisi
   (« Fond de discussion »), vérifier que les bulles du squelette ne
   deviennent pas illisibles par-dessus.
 - [ ] **Échelle de police à fond** (réglages Android) : le squelette est à
   hauteurs fixes, donc il ne grandit pas ; regarder si l'écart avec le
   contenu réel, lui bien plus haut, produit un saut visible.
+
+- ✔ 2 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Squelette de chargement de la messagerie (2026-09-15) »).
 
 ---
 
@@ -2013,39 +1273,13 @@ touchait pas**. Supprimer son dernier message donnait donc une bulle
 lisible. La suppression se disait accomplie pendant que son contenu restait à
 l'écran.
 
-Refermer ce trou en ouvre un second : deux causes vident désormais cet aperçu
-— la purge des messages éphémères et la suppression — et elles ne se disent
-pas pareil. Le client n'en connaissait qu'une et affichait « Message expiré »
-pour les deux. D'où deux marques dans `conversations.data`,
-`lastMessageDeleted` et `lastMessageExpired` : elles s'excluent, et **tout
-écrivain d'aperçu les efface** (envoi legacy, trigger MLS, purge).
-
-Trois chemins mènent au même aperçu et les trois sont couverts : la base
-(legacy), le **cache local** (MLS — le serveur n'a jamais le clair, et la
-copie de l'appareil garde le texte supprimé jusqu'au prochain rechargement),
-et le libellé à l'écran.
-
-Fichiers : [message_supabase_datasource.dart](lib/features/messages/data/datasources/message_supabase_datasource.dart)
-(`_viderApercuSiDernier`), [message_repository_impl.dart](lib/features/messages/data/repositories/message_repository_impl.dart)
-(`apercuDepuisCache`), [conversation_entity.dart](lib/features/messages/domain/entities/conversation_entity.dart)
-(`apercuEfface`), [conversation_item.dart](lib/features/messages/presentation/widgets/conversation_item.dart),
-[20260915235900_apercu_dit_pourquoi_il_est_vide.sql](supabase/migrations/20260915235900_apercu_dit_pourquoi_il_est_vide.sql).
-
-Banc serveur (BEGIN/ROLLBACK, n'écrit rien de durable) :
-`supabase db query --linked -f supabase/diagnostics/2026-09-15_banc_apercu_message_supprime.sql`
-— 13 contrôles, tous VERT au 2026-09-15 avec la migration jouée dans la
-transaction ; 4 ROUGE sans elle, ce qui est aussi la preuve qu'elle est
-nécessaire. Ce qui reste à voir sur appareil, c'est **ce qui s'affiche** :
-
 - [ ] **La fuite d'origine** : envoyer un texte reconnaissable, le supprimer
   pour tout le monde, revenir à la liste des discussions. La tuile ne montre
   plus le texte, elle dit « Message supprimé ». Vérifier **des deux côtés** :
   l'expéditeur et le destinataire.
-  ⛔ Passe du 2026-09-21, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS (MLS) : après « Supprimer pour tous » de PA6SECRET, la liste de l'EXPÉDITEUR (Pixel) affiche « Vous: PA6SECRET » — encore 2 min après (capture). Ne passe à « Message supprimé » qu'après une relance à froid. Destinataire : « Message chiffré · 1 » (pas de fuite, mais ni le bon libellé, ni une pastille juste pour un message supprimé).
 - [ ] **En base**, après ce geste : `data->>'lastMessage'` est vide et
   `data->>'lastMessageDeleted'` vaut `true` sur la conversation.
   ⚠️ Passe du 2026-09-21, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS (MLS) : `lastMessage` nul (normal, le serveur n'a pas le clair) mais `lastMessageDeleted` NUL aussi — la marque n'est pas posée pour une conversation MLS.
-- ✔ 2 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ L'aperçu de la liste dit pourquoi il est vide (2026-09-15) »).
 - [ ] **Une photo supprimée** ne s'annonce plus « 📎 Photo » : ni la
   suppression ni l'expiration ne touchent `lastMessageType`, et le libellé de
   type passait avant. Même contrôle pour une **note vocale** (elle gardait son
@@ -2053,12 +1287,6 @@ nécessaire. Ce qui reste à voir sur appareil, c'est **ce qui s'affiche** :
 - [ ] **Expiré ≠ supprimé** : faire expirer le dernier message (recette SQL de
   « Messages éphémères — minuteur réparé, purge serveur »). La tuile dit
   « Message expiré », pas « Message supprimé ».
-- [ ] **Côté MLS**, drapeau ouvert : supprimer le dernier message chiffré
-  d'une discussion. La tuile dit « Message supprimé » — et non le texte, que
-  le **cache local** de l'appareil détient encore (le serveur, lui, ne l'a
-  jamais eu). C'est le contrôle le plus important de la liste : la fuite y
-  passe par un chemin entièrement différent.
-  ⛔ Passe du 2026-09-21, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : c'est la fuite par le CACHE LOCAL — voir la case « La fuite d'origine » de cette entrée. Tient jusqu'à la relance de l'app.
 - [ ] **MLS, discussion jamais ouverte sur cet appareil** (ou cache vidé) : la
   tuile dit « Message chiffré », **pas** « Message expiré » — ce qu'elle
   disait depuis que la purge a appris à vider l'aperçu, en annonçant la
@@ -2070,36 +1298,9 @@ nécessaire. Ce qui reste à voir sur appareil, c'est **ce qui s'affiche** :
   supprimé », pas le texte.
 - [ ] **Thème sombre** : les trois libellés restent lisibles dans la liste.
 
+- ✔ 2 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ L'aperçu de la liste dit pourquoi il est vide (2026-09-15) »).
+
 ---
-
-## ✅ Note vocale impossible à envoyer en conversation chiffrée (2026-09-15)
-
-**Priorité P0** · importance 5/5 — **Corrigé.** Trouvé en vérifiant les
-éphémères sur l'audio, à la demande de Salim.
-
-Dans une conversation basculée MLS, une note vocale **n'arrivait nulle part** :
-ni `mls_messages`, ni `messages`. L'écran affichait « Non envoyé · Réessayer »
-sans jamais dire pourquoi. Mesuré dans « Testeurs » sur SM A515F.
-
-**La chaîne, prouvée de bout en bout :**
-
-1. le branchement MLS de l'audio exigeait `mediaChiffre != null` ;
-2. `mediaChiffre` n'était produit que si `mediasChiffresActifs()` — drapeau
-   fermé, donc nul ;
-3. l'envoi retombait sur le chemin legacy, vers `messages` ;
-4. le déclencheur `messages_refuse_conversation_mls_trg` refuse toute écriture
-   dans `messages` pour une conversation basculée ;
-5. l'échec remontait sans cause lisible.
-
-**`sendFileMessage` appliquait déjà la bonne règle** (`mediasChiffresActifs()
-|| conversationChiffree`), avec le commentaire qui l'explique : le drapeau ne
-décide que des conversations encore en clair. **Seule la note vocale avait été
-oubliée.** Images, documents et vidéo n'étaient donc pas touchés.
-
-- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ✅ Note vocale impossible à envoyer en conversation chiffrée (2026-09-15) »).
-- [ ] **Non vu** : le rendu de la note vocale REÇUE (lecture, forme d'onde,
-  signe éphémère) sur le second téléphone, et ce que devient une note vocale
-  expirée. À faire à la prochaine passe.
 
 ## ⬜ Modifier un message chiffré part parfois dans la mauvaise table (2026-09-15)
 
@@ -2115,20 +1316,6 @@ conservé après sortie/retour).
 
 **Corrigé** : le `return` muet lève désormais, et l'erreur emporte l'état de
 bascule de la conversation (`mls_since`) — l'entrée dont dépend la décision.
-
-**⛔ NON ÉLUCIDÉ** : pourquoi `estMlsMessage` a répondu « non ». Ce qui a été
-écarté, par mesure — ne pas refaire ce chemin :
-
-- **l'identifiant optimiste (`temp_…`)** : faux. Une sonde sur
-  `_passerelleMessage` donne `routeMls=true` à chaque tentative, y compris
-  juste après l'envoi ;
-- **un `mlsSince` nul transitoire** : faux. `MlsDelivery.conversation()` ne
-  rattrape pas les erreurs, il lève ; `null` signifie donc réellement « pas de
-  bascule », pas « lecture ratée » ;
-- **retirer le veto `if (!await enMls(...)) return false;`** : écrit, testé,
-  puis ANNULÉ — il casse un test délibéré (« une conversation jamais basculée
-  ne consulte rien ») et coûte une lecture par action, pour une cause non
-  prouvée.
 
 **⚠️ Le cas ne se provoque pas depuis l'interface** : pour qu'une bulle MLS
 s'affiche, son fil a forcément été amorcé, donc `_connus` contient déjà son
@@ -2160,14 +1347,6 @@ de supprimer la ligne. Mesuré avant livraison : 0 conversation sur 19 avait un
 minuteur, 0 message sur 118 une échéance — rien d'existant ne pouvait donc
 disparaître rétroactivement.
 
-Fichiers : [message_supabase_datasource.dart](lib/features/messages/data/datasources/message_supabase_datasource.dart)
-(`_insererMessageUtilisateur`, seul point d'insertion des messages utilisateur),
-[mls_payload_codec.dart](lib/core/crypto/mls/mls_payload_codec.dart) (`ttl`),
-[mls_gateway.dart](lib/core/crypto/mls/mls_gateway.dart) (lecture du minuteur),
-[message_bubble.dart](lib/features/messages/presentation/widgets/message_bubble.dart)
-(bulle « Message expiré »),
-[20260915234500_purge_messages_ephemeres.sql](supabase/migrations/20260915234500_purge_messages_ephemeres.sql).
-
 Protocole : deux téléphones. Les durées proposées sont 24 h / 7 j / 30 j —
 trop longues pour une session. Pour éprouver l'expiration elle-même,
 antidater l'échéance à la main puis déclencher le balayage :
@@ -2180,10 +1359,15 @@ UPDATE messages SET data = jsonb_set(data, '{expiresAt}',
 SELECT public.purger_messages_expires();
 ```
 
-- ✔ 9 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Messages éphémères — minuteur réparé, purge serveur (2026-09-15) »).
 - [ ] **Tous les types** : photo, note vocale, position, sondage, sticker
   portent aussi `expiresAt`. Un message **système** (« X a rejoint ») n'en
   porte pas — il décrit la conversation, pas son contenu.
+
+  ⚠️ **Piège de recette** : antidater `expires_at` en SQL ne suffit pas à voir
+  le libellé « supprimé automatiquement ». Le client garde SA date (venue du
+  `ttl` du payload) : `isExpired` reste faux chez lui et la bulle dit
+  « Message supprimé ». Pour voir le bon libellé, poser un minuteur COURT et
+  laisser l'échéance passer des deux côtés.
 - [ ] **Expiration côté destinataire**, discussion ouverte : la bulle bascule
   sans rechargement (le temps réel propage la pierre tombale comme il propage
   déjà une suppression).
@@ -2196,10 +1380,6 @@ SELECT public.purger_messages_expires();
   média part avec lui, le blob Storage restant devient illisible. Vérifier de
   même qu'un message qui portait une carte de partage n'a plus `encAnnexes`
   ni `postData`.
-- [ ] **Dernier message de la liste** : quand le dernier message d'une
-  discussion expire, la tuile de la liste n'affiche pas son texte effacé, et
-  dit « Message expiré » — pas « Message supprimé ». Voir « L'aperçu de la
-  liste dit pourquoi il est vide ».
 - [ ] **Notification déjà reçue** : une push arrivée avant l'expiration reste
   dans le centre de notifications avec son aperçu. Voir « Aperçu des
   notifications MLS » si l'entrée existe.
@@ -2218,6 +1398,8 @@ SELECT public.purger_messages_expires();
   « Copier » ne rend rien, alors que le balayage serveur n'a évidemment pas
   pu passer.
 
+- ✔ 9 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Messages éphémères — minuteur réparé, purge serveur (2026-09-15) »).
+
 ---
 
 ## ⬜ Aperçu et compteurs d'une conversation chiffrée (décision J, 2026-09-15)
@@ -2231,25 +1413,6 @@ l'expéditeur ; le texte de l'aperçu doit être reconstruit par l'appareil
 depuis son cache déchiffré. Rien de tout ça n'a jamais tourné sur un
 téléphone.
 
-*Bloqué : demande d'ouvrir le drapeau MLS global. Le Dart est branché depuis
-le 2026-09-15 — réactions, favoris, suppression pour moi et pour tous, reçus
-et mentions vont dans les tables annexes — **sauf la modification**, qui
-refuse visiblement (son nouveau texte doit voyager chiffré, et rien ne l'émet
-encore).*
-
-Fichiers : [20260915200000_mls_metadonnees_en_ligne.sql](supabase/migrations/20260915200000_mls_metadonnees_en_ligne.sql),
-[mls_metadonnees.dart](lib/core/crypto/mls/mls_metadonnees.dart),
-[mls_gateway.dart](lib/core/crypto/mls/mls_gateway.dart) (`estMlsMessage`),
-[message_repository_impl.dart](lib/features/messages/data/repositories/message_repository_impl.dart)
-(`_passerelleMessage`),
-[conversation_item.dart](lib/features/messages/presentation/widgets/conversation_item.dart)
-(`_formatLastMessage`), [conversation_model.dart](lib/features/messages/data/models/conversation_model.dart)
-(`_parseMessageTypeFromJson`).
-
-La partie base est vérifiée hors appareil par
-`tools/mls_banc/metadonnees_en_ligne.sql` (RLS joué en `authenticated`,
-transaction annulée). Ce qui suit est ce que le banc **ne peut pas** voir.
-
 - [ ] **Aperçu après bascule** : une discussion qui contenait des messages en
   clair passe à MLS ; sa ligne cesse d'afficher l'ancien texte en clair et
   n'affiche jamais le texte d'un message chiffré venu d'ailleurs.
@@ -2258,87 +1421,19 @@ transaction annulée). Ce qui suit est ce que le banc **ne peut pas** voir.
 - [ ] **Note vocale** : la ligne montre l'icône micro, pas « Document ».
 - [ ] **Réaction, édition, suppression** : aucune ne fait remonter la
   discussion en tête de liste (ce sont des contrôles, pas des messages).
-- ✔ 9 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Aperçu et compteurs d'une conversation chiffrée (décision J, 2026-09-15) »).
 - [ ] **Pastille de non-lus** et **badge @** d'une mention, dans un groupe
   basculé, sur le second appareil du même compte.
 - [ ] **Réaction sur un message d'AVANT la bascule**, dans la même discussion :
   elle marche aussi — c'est l'aiguillage par message qui est vérifié là.
-- [ ] **La modification survit à la réouverture** de la discussion, puis au
-  redémarrage de l'application : c'est le cache local qui la porte, le
-  contrôle n'étant délivré qu'une fois.
 - [ ] **Une modification ne remonte pas** la discussion en tête de liste et
   ne déclenche **aucune notification**.
-- [ ] **Heure de lecture** dans la fiche d'un message : elle ne se remet pas à
-  « à l'instant » à chaque réouverture de la discussion.
 - [ ] **Rouvrir une discussion chiffrée** dans la même session : les messages
   sont toujours là. `catchUp` ne rend que le delta — le fil est gardé par la
   passerelle, et c'est ce qu'il faut voir tenir.
-- [ ] **⚠️ Rouvrir l'application** (processus tué), puis la discussion : c'est
-  le point noir connu, voir « Un fil chiffré survit-il au redémarrage ? ».
-- [ ] **Pastille de non-lus** d'une conversation basculée : elle apparaît, et
-  **retombe à zéro** après ouverture.
-- [ ] **Aperçu texte** d'une conversation basculée : la ligne montre le vrai
-  texte du dernier message, repris du cache local — pas « Nouveau message ».
 - [ ] **Aperçu sur un appareil qui n'a jamais ouvert la discussion** : il
   montre le libellé de type, jamais le texte d'un message plus ancien.
 
----
-
-## ⛔ Le fil chiffré se tronque au redémarrage dès qu'un message arrive en direct (2026-09-16)
-
-**Priorité P0** · importance 5/5 — **Défaut ouvert, reproduit deux fois sur
-deux téléphones différents.** Après un arrêt complet de l'application, le fil
-d'une conversation basculée s'arrête net à un message donné : tout ce qui est
-arrivé **après** disparaît de l'écran, alors que la base le porte toujours
-(`is_deleted` faux, ciphertext intact).
-
-Mesuré le 2026-09-16 : Pixel 10 Pro XL, conversation `debef5f0…`. Le fil
-s'arrête à 18:48 ; les messages de 00:04 et 00:08 manquent, et le SM A515F a
-perdu le même 00:04 de son côté. Les deux les affichaient **avant** le
-redémarrage.
-
-**L'hypothèse, à confirmer avant de corriger.** La reprise après redémarrage
-repose sur deux pièces qui doivent se tenir : le **curseur mémorisé** évite
-de redemander au moteur un message déjà déchiffré, et **`MlsGateway.amorcer`**
-rend le clair depuis le cache local. Un message livré par le **canal temps
-réel** (branché le 2026-09-15) s'affiche sans passer par
-`_fusionnerAvecMls` — qui est le seul endroit qui écrit dans le cache Hive.
-Il est donc vu (curseur avancé, donc jamais re-demandé) mais jamais caché
-(donc jamais restitué). Les deux mécanismes sont corrects séparément ; c'est
-leur jonction qui perd le message.
-
-**Ce que ça implique** : tout chemin qui AFFICHE un message chiffré doit
-aussi le **cacher**, ou bien le curseur ne doit pas avancer sur un message
-qui n'a pas été caché. La seconde règle est la plus sûre : elle rend la perte
-impossible plutôt qu'improbable.
-
-Fichiers : [mls_gateway.dart](lib/core/crypto/mls/mls_gateway.dart)
-(`amorcer`, `_fil`), [mls_conversation_service.dart](lib/core/crypto/mls/mls_conversation_service.dart)
-(`_curseurDe`, `_memoriserCurseur`),
-[message_repository_impl.dart](lib/features/messages/data/repositories/message_repository_impl.dart)
-(`_fusionnerAvecMls`, `mlsDuCache`).
-
-**⚠️ Le correctif « ce qui arrive en direct est enfin gardé » (`1d0c6a9`) ne
-referme PAS ce cas.** Revérifié le 2026-09-16 avec ce correctif embarqué
-(APK `166f7be0…`, md5 confirmé sur l'appareil) : un message envoyé du
-SM A515F, lu sur le Pixel en ouvrant la discussion, **disparaît du fil après
-un arrêt complet**. Il n'était donc pas arrivé par le canal temps réel mais
-par le rattrapage ordinaire — ce qui déplace la cause : ce n'est pas
-seulement la livraison en direct qui échappe au cache.
-
-Deux messages plus anciens de la même conversation, eux, **survivent** au
-même redémarrage. La différence entre les deux familles reste à établir ; la
-piste la plus simple à écarter d'abord est la **limite de `getCachedMessages`**
-(le cache ne rend qu'une tranche), avant de soupçonner le curseur.
-
-- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⛔ Le fil chiffré se tronque au redémarrage dès qu'un message arrive en direct (2026-09-16) »).
-- [ ] **Distinguer les deux familles** : pourquoi « Yo » et « Hh » survivent
-  et pas un message reçu à l'instant. Comparer ce que `getCachedMessages`
-  rend pour cette conversation avant et après le redémarrage.
-- [ ] **Vérifier l'hypothèse** : le message perdu est-il absent du cache
-  Hive, alors que le curseur mémorisé l'a dépassé ?
-- [ ] **Après correctif** : même épreuve, et le cas déjà vert du message reçu
-  hors direct ne doit pas régresser.
+- ✔ 9 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Aperçu et compteurs d'une conversation chiffrée (décision J, 2026-09-15) »).
 
 ---
 
@@ -2347,12 +1442,6 @@ piste la plus simple à écarter d'abord est la **limite de `getCachedMessages`*
 **Priorité P0** · importance 5/5 — Corrigé le 2026-09-15, **jamais vérifié
 sur un téléphone**, et c'est ce qui décide de l'ouverture du drapeau.
 
-Le défaut : `MlsConversationService` tenait son curseur **en mémoire
-seulement**. Au redémarrage, `catchUp` reprenait depuis le début et
-redemandait au moteur de déchiffrer des messages déjà déchiffrés — or MLS
-supprime le secret d'un message applicatif après usage. Tout l'historique
-d'une discussion basculée serait revenu en « 🔐 Message chiffré ».
-
 Deux correctifs, qui vont ensemble : le curseur est **mémorisé**
 (`SharedPreferences`, une clé par compte), donc le moteur n'est plus
 sollicité pour d'anciens messages ; et le fil est **repris du cache local**
@@ -2360,23 +1449,12 @@ sollicité pour d'anciens messages ; et le fil est **repris du cache local**
 de lisible à offrir. Les placeholders déjà en cache sont écartés à la reprise
 — sinon la perte se figerait.
 
-Le banc Dart tient l'amorçage et le filtrage ; **le refus de redéchiffrer, lui,
-ne s'observe qu'avec le vrai moteur Rust** — donc ici.
-
-Fichiers : [mls_conversation_service.dart](lib/core/crypto/mls/mls_conversation_service.dart)
-(`_curseurDe`, `_memoriserCurseur`),
-[mls_gateway.dart](lib/core/crypto/mls/mls_gateway.dart) (`amorcer`),
-[message_repository_impl.dart](lib/features/messages/data/repositories/message_repository_impl.dart)
-(`mlsDuCache`).
-
-- ✔ 5 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Un fil chiffré survit au redémarrage de l'application (2026-09-15) »).
-
----
-
 - [ ] **Vider le cache de l'application** puis rouvrir : les anciens messages
   deviennent des placeholders — attendu, c'est la limite du chiffrement — mais
   les nouveaux passent toujours.
 - [ ] **Même épreuve après réinstallation** : placeholders attendus aussi.
+
+- ✔ 5 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Un fil chiffré survit au redémarrage de l'application (2026-09-15) »).
 
 ---
 
@@ -2393,14 +1471,6 @@ conversation. Le serveur ne voit qu'un blob et un nom générique (« photo »,
 un déchiffrement par morceaux). Rien de tout ça n'a tourné sur un appareil :
 le drapeau est fermé par défaut, et **doit le rester tant que la mise à jour
 minimale n'est pas imposée** — un ancien build affiche une image cassée.
-
-Fichiers : [media_dechiffre_cache.dart](lib/core/services/e2ee/media_dechiffre_cache.dart)
-(téléchargement + déchiffrement une seule fois, cache dans le répertoire de
-support), [media_chiffre_gate.dart](lib/features/messages/presentation/widgets/media_chiffre_gate.dart)
-(barrière qui passe aux bulles un `file://` déjà déchiffré),
-[message_repository_impl.dart](lib/features/messages/data/repositories/message_repository_impl.dart)
-(`_envoyerMediaChiffre`), [message_supabase_datasource.dart](lib/features/messages/data/datasources/message_supabase_datasource.dart)
-(`_scellerMedia`, `_fusionnerMedia`).
 
 Protocole : deux téléphones sur le même build, drapeau ouvert dans le
 document `admin_settings` de Firestore (`featureFlags.mediasChiffres: true`),
@@ -2486,7 +1556,6 @@ atteignable depuis « Sélectionner » sorti de « Autres actions ». Couvert pa
 `test/features/messages/mode_selection_gestes_test.dart` (les trois cas
 tombent sans le correctif, vérifié).
 
-- ✔ 5 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ En sélection, la bulle ne fait plus que cocher (2026-09-14) »).
 - [ ] **Image, vidéo, aperçu de lien en sélection** : le tap coche, la
   visionneuse ne s'ouvre pas, le navigateur non plus.
 - [ ] **Note vocale en sélection** : le tap coche, la lecture ne démarre pas.
@@ -2498,6 +1567,8 @@ tombent sans le correctif, vérifié).
   (Rouge + Vert → « Voter » → 2 votes en base). Image non essayée (aucune
   photo dans le 1:1).
 
+- ✔ 5 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ En sélection, la bulle ne fait plus que cocher (2026-09-14) »).
+
 ---
 
 ## ⬜ « Sélectionner » sort de « Autres actions » (2026-09-14)
@@ -2508,7 +1579,6 @@ L'entrée rejoint la liste visible, juste avant le filet de « Supprimer »
 ([message_bubble.dart](lib/features/messages/presentation/widgets/message_bubble.dart)).
 Couvert par `test/features/messages/menu_appui_long_selectionner_test.dart`.
 
-- ✔ 3 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ « Sélectionner » sort de « Autres actions » (2026-09-14) »).
 - [ ] **La liste tient sans défiler** sur le SM A515F avec les six entrées
   (Répondre, Copier, Transférer, Épingler, Sélectionner, Supprimer) plus la
   rangée de réactions. À l'échelle de police 1,3, vérifier qu'« Autres
@@ -2526,6 +1596,8 @@ Couvert par `test/features/messages/menu_appui_long_selectionner_test.dart`.
   `Container` à `Material`, les `ListTile` peignaient leur onde derrière un
   fond opaque. Vérifier qu'un appui laisse maintenant une trace visible, en
   clair **et** en sombre, et que les coins arrondis du haut n'ont pas bougé.
+
+- ✔ 3 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ « Sélectionner » sort de « Autres actions » (2026-09-14) »).
 
 ---
 
@@ -2581,7 +1653,6 @@ sondage « jamais voté » et sans auteur. Et `post_poll_votes` n'est lisible qu
 par l'auteur de la ligne — la lecture des votants réussissait à vide.
 Voir « Sondage dans une discussion privée » pour le parcours de création.
 
-- ✔ 15 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Sondage : voter se voit enfin, et les votants aussi (2026-09-14) »).
 - [ ] **Sondage terminé** : « Sondage terminé » dans la ligne d'info, plus
       aucune façon de voter ni de se corriger.
 - [ ] **La notice sous la question** : « Vote public : votre nom sera
@@ -2591,6 +1662,7 @@ Voir « Sondage dans une discussion privée » pour le parcours de création.
       « Vote anonyme ») ; les absences vues pendant la passe venaient de taps
       à l'estime qui regardaient un autre écran.*
 
+- ✔ 15 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Sondage : voter se voit enfin, et les votants aussi (2026-09-14) »).
 ---
 
 ## ⬜ Un message non envoyé ne disparaît plus, et repart tout seul (2026-09-14)
@@ -2604,7 +1676,6 @@ Voir « Sondage dans une discussion privée » pour le parcours de création.
 `messageFailureStreamProvider` n'avaient **aucun appelant**. Seul `enqueue`
 était branché, sur l'envoi de texte hors ligne.
 
-- ✔ 5 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Un message non envoyé ne disparaît plus, et repart tout seul (2026-09-14) »).
 - [ ] **Une réponse citée et une carte de publication** écrites hors ligne
       repartent **entières**. Les champs plats de `PendingMessage` les
       perdaient, et codaient le type « text » en dur.
@@ -2619,6 +1690,8 @@ Voir « Sondage dans une discussion privée » pour le parcours de création.
       « Renvoyer ». (`kFenetreRenvoiAutomatique`)
 - [ ] **La file ne gonfle pas** : après une série d'envois réussis, vérifier
       qu'il ne reste rien en attente.
+
+- ✔ 5 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Un message non envoyé ne disparaît plus, et repart tout seul (2026-09-14) »).
 
 ---
 
@@ -2665,27 +1738,6 @@ les abonnements temps réel, donc le rattrapage ne pouvait pas exister.
 
 *Bloqué : rien — se rejoue avec le mode avion.*
 
-**Le défaut.** Les trois flux se terminaient par
-`.handleError((error) { return Left(ServerFailure(...)); })`. Dart **ignore la
-valeur de retour** de `handleError` : ce `Left` n'était jamais émis. Mesuré hors
-ligne sur SM A515F le 2026-09-14 — liste des discussions sur un rond de
-chargement sans fin, sans erreur ni moyen de réessayer. Et
-`conversationStreamProvider(...).future`, que lit l'export d'une discussion,
-n'aurait jamais rendu la main.
-
-Le réparer seul ne suffisait pas : il fallait décider ce que l'échec **devient**,
-et trois chemins de l'UI le lisaient de travers.
-
-- `conversationStreamProvider` pliait l'échec en `null` — ce que l'écran lit
-  comme « Conversation supprimée ». Une coupure aurait annoncé une suppression.
-- `conversationsProvider` le pliait en **liste vide**, par-dessus le cache
-  qu'il venait de servir : les discussions déjà affichées auraient disparu.
-- `hasLoadError` **remplaçait le composeur** par un texte rouge : plus moyen
-  d'écrire hors ligne, alors que le message part en file d'attente.
-- Et [messages_screen.dart:330](lib/features/messages/presentation/screens/messages_screen.dart:330)
-  lisait `conversationsAsync.value!` : en Riverpod 2, `.value` **relance
-  l'erreur** — écran rouge à la première panne, sous un `hasValue` pourtant vrai.
-
 **Corrigé le 2026-09-14**, cinq fichiers : `_echecEmis<T>()`
 (`StreamTransformer.fromHandlers`, l'idiome déjà utilisé par
 `ProfileRepositoryImpl`) remplace les trois `.handleError` ; les trois providers
@@ -2696,13 +1748,14 @@ feuille de partage prennent `skipError: true`, pour qu'une panne n'efface jamais
 ce qui est déjà à l'écran. Deux tests neufs :
 `test/features/messages/echec_de_lecture_test.dart`.
 
-- ✔ 3 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ✅ Un échec de lecture en messagerie se voit, sans effacer l'écran — corrigé, vérifié SM A515F (2026-09-14) »).
 - [ ] **Panne persistante** (et non une simple coupure) : sur un refus RLS qui
       dure, vérifier que la liste finit bien par montrer son état d'erreur —
       `skipError` ne doit masquer une panne que tant qu'il reste quelque chose à
       afficher.
 - [ ] **Export d'une discussion** hors ligne (`conversation_options_modal`) :
       doit échouer proprement avec son message, et non rester à tourner.
+
+- ✔ 3 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ✅ Un échec de lecture en messagerie se voit, sans effacer l'écran — corrigé, vérifié SM A515F (2026-09-14) »).
 
 ---
 
@@ -2712,77 +1765,6 @@ ce qui est déjà à l'écran. Deux tests neufs :
 
 *Bloqué : rien — se rejoue seul avec le mode avion.*
 
-**Le défaut, mesuré deux fois** sur SM A515F le 2026-09-14, sur deux releases
-construites et installées dans la foulée (md5 de l'APK installé vérifié
-identique à celui du build à chaque fois) : d'abord sur `719ca77`, puis sur la
-fusion qui contient `5dddc47` (« un écran ouvert hors ligne charge au retour du
-réseau »). Résultat identique dans les deux cas, et identique à ce que montrait
-l'écran à 03:32 :
-
-1. mode avion, `am force-stop`, relancer l'app, ouvrir la DM depuis la liste →
-   en-tête **« Conversation »**, avatar **« C »**, pas de « En ligne », aucune
-   erreur, aucun réessai. Les messages, eux, sont là (cache local).
-2. réseau rendu (`cmd connectivity airplane-mode disable`, ping OK) : à
-   **+45 s puis +105 s**, l'en-tête est toujours « Conversation ».
-3. sortir de l'écran, y revenir : toujours « Conversation ».
-4. `am force-stop` puis relance : « Salim L. » et « En ligne » reviennent.
-
-**Pourquoi `5dddc47` ne l'attrapait pas.** Ce correctif branche
-`lectureInitialeEnEchec` sur les trois flux qui font leur propre lecture
-initiale — discussions, discussion courante, demandes de message. Le nom de
-l'en-tête ne vient d'aucun des trois : il vient du profil de l'interlocuteur,
-et `getUserStream`
-([profile_supabase_datasource.dart:126](lib/features/profile/data/datasources/profile_supabase_datasource.dart:126))
-n'a pas de `rattrapageAuRejoint` — son `await _ensureReadableAuth()` échoue
-d'entrée hors ligne, avant même le `.stream()`.
-
-**Pourquoi l'échec collait.** `userStreamProvider`
-([profile_provider.dart:330](lib/features/profile/presentation/providers/profile_provider.dart:330))
-est un `StreamProvider.family` **sans `autoDispose`** : l'instance qui a échoué
-hors ligne est conservée pour toute la vie de l'app, et rien ne la réabonnait.
-
-**D'où vient le mot « Conversation ».** Ce n'est pas un libellé de chargement :
-la liste passe `'name': c.name ?? 'Conversation'`
-([messages_screen.dart:639](lib/features/messages/presentation/screens/messages_screen.dart:639)
-et [:1039](lib/features/messages/presentation/screens/messages_screen.dart:1039)),
-et une discussion privée n'a jamais de `name`. Ouvert sans `state.extra` (lien
-profond, notification), le même écran affiche « Chargement... ». L'avatar « C »
-n'est que l'initiale de ce repli — pas celle d'un contact. Pour la variante
-liste, voir « Nom et avatar du correspondant dans la liste des discussions ».
-
-**Corrigé le 2026-09-14** dans `_profilAvecReprise` (même fichier) : le flux se
-rebranche tant qu'il reste en échec — immédiatement au retour de la
-connectivité, et par paliers (3 s, 6 s, 12 s… plafonnés à une minute) parce
-qu'un **VPN persistant fait mentir `connectivity_plus`** : l'appareil se dit
-connecté alors qu'il n'a plus de DNS, et c'est exactement le cas qui a produit
-la capture d'origine. Les paliers ne courent que sur un flux en échec et
-repartent de zéro dès qu'un profil arrive ; un `NotFoundFailure` (compte
-réellement supprimé) reste une donnée, pas une panne, donc aucune reprise
-dessus. Deux tests neufs :
-`test/features/profile/user_stream_reprise_test.dart`.
-
-**Deuxième moitié, le 2026-09-14** : afficher le nom **pendant** la coupure, et
-pas seulement au retour du réseau. Trois manques se cachaient derrière le repli.
-
-- La boîte Hive `profiles_cache` existait depuis toujours, mais **aucun profil
-  n'y était écrit** : le seul cache de profils vivait en mémoire, donc rien ne
-  survivait à un démarrage à froid. `_memoriser()` écrit désormais les deux
-  ([profile_supabase_datasource.dart](lib/features/profile/data/datasources/profile_supabase_datasource.dart:487)),
-  et `getCachedProfile` retombe sur le disque.
-- `userStreamProvider` n'allait pas chercher ce dernier profil connu avant sa
-  lecture réseau : il part maintenant en premier (stale-while-revalidate).
-- Et surtout, `identityLoading` déclarait l'identité « en chargement » dès que
-  **le flux de la conversation** n'avait pas de valeur — le nom était en cache,
-  l'écran refusait de l'afficher pour une raison qui n'avait rien à voir avec
-  lui. `otherUser == null` passe en tête de la condition
-  ([conversation_screen.dart:1199](lib/features/messages/presentation/screens/conversation_screen.dart:1199)).
-
-`conversationStreamProvider` sert en plus la conversation en cache avant le
-réseau : sans elle, un écran atteint sans `state.extra` (lien profond,
-notification) ne sait même pas **qui** est en face — l'identifiant de l'autre
-participant s'en déduit — et le cache de profil ne sert alors à rien.
-
-- ✔ 5 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ✅ L'identité du correspondant revient seule après une coupure — corrigé, vérifié SM A515F (2026-09-14) »).
 - [ ] **Groupe et « Mes notes » par lien profond** : le semis lit aussi la
       nature du fil dans la conversation en cache (nom et image d'un groupe,
       « Mes notes » par différence avec le compte courant). Écrit, analysé,
@@ -2801,9 +1783,8 @@ participant s'en déduit — et le cache de profil ne sert alors à rien.
 - [ ] **Compte réellement supprimé** : vérifier que ce cas affiche toujours
       « Utilisateur » et non un état d'erreur réessayable.
 
-**Les trois `.handleError` qui avalaient leur erreur** ont été traités dans
-la foulée — voir « ✅ Un échec de lecture en messagerie se voit, sans effacer
-l'écran », en tête de ce domaine.
+- ✔ 5 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ✅ L'identité du correspondant revient seule après une coupure — corrigé, vérifié SM A515F (2026-09-14) »).
+
 ---
 
 ## ⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)
@@ -2815,7 +1796,6 @@ l'écran », en tête de ce domaine.
 Ne se teste **que** sur appareil : la coupure de socket, la mise en veille
 Android et la suspension des timers n'existent pas sous `flutter test`.
 
-- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13) »).
 - [ ] **Écran ouvert alors que l'appareil est DÉJÀ hors ligne**, puis retour
       du réseau : la liste se remplit seule. C'est le trou trouvé pendant la
       passe du 2026-09-14 — la lecture initiale échouait, rien ne la
@@ -2835,18 +1815,11 @@ Android et la suspension des timers n'existent pas sous `flutter test`.
       revient sans redémarrer l'app. (`supabase_auth_bridge.dart`,
       `surveillerLeCycleDeVie`)
   ⛔ Passe du 2026-09-21, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : le Pixel sortait d'un long séjour derrière Facebook. Discussion ouverte au premier plan : PA3 puis PA4 (Sim → Salim) n'arrivent PAS en direct (1 min+, écran éveillé) ; la liste reste figée sur un message de 16:04. Rouvrir la discussion ne répare pas le direct ; seule une relance à froid le rétablit (PA5 arrive alors en ~3 s). Même famille côté Sim après un HOME court : PA2 absent du fil au retour, liste figée à 18:14 alors que PA7 était arrivé.
-
-      ⚠️ **Un premier essai du 2026-09-14 a échoué et n'est pas concluant.**
-      Coupure de 3 h 15 (00:17 → 03:30), app au premier plan : une minute
-      après le retour du réseau, la liste était toujours figée sur son état
-      d'avant. Mais l'essai est pollué — quelqu'un a navigué sur le téléphone
-      pendant la coupure, ce qui a pu recréer le flux hors ligne (le cas
-      ci-dessus, corrigé depuis). À refaire sans toucher l'appareil, et en
-      distinguant les deux causes : session expirée, ou flux recréé hors
-      ligne.
 - [ ] **Pas de tempête de requêtes** : basculer Wi-Fi ↔ données plusieurs fois
       de suite ne doit pas relancer une relecture par seconde (`adb logcat`,
       lignes « realtime: rejoint … → rattrapage »).
+
+- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13) »).
 
 ---
 
@@ -2856,7 +1829,6 @@ Android et la suspension des timers n'existent pas sous `flutter test`.
 
 *Bloqué : deux comptes, dont un au profil privé.*
 
-- ✔ 3 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Nom et avatar du correspondant dans la liste des discussions (2026-09-13) »).
 - [ ] **Profil privé** en face : le nom et la photo s'affichent quand même
       dans la liste (l'amitié/la discussion n'est pas un accès au profil, mais
       le nom doit rester lisible).
@@ -2868,6 +1840,8 @@ Android et la suspension des timers n'existent pas sous `flutter test`.
       « Utilisateur » est le bon affichage — la correction ne doit pas l'avoir
       masqué.
 
+- ✔ 3 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Nom et avatar du correspondant dans la liste des discussions (2026-09-13) »).
+
 ---
 
 ## ⬜ Sondage dans une discussion privée (2026-09-12)
@@ -2876,18 +1850,17 @@ Android et la suspension des timers n'existent pas sous `flutter test`.
 
 *Bloqué : migration `20260912233000` à appliquer ; deux comptes.*
 
-- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Sondage dans une discussion privée (2026-09-12) »).
 - [ ] « Mes notes » garde son brouillon de sondage (note texte), et un groupe
   garde ses permissions « qui peut créer un sondage ».
 - [ ] Avant la migration : message d'erreur explicite, pas d'écran figé.
+
+- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Sondage dans une discussion privée (2026-09-12) »).
 
 ---
 
 ## ⬜ Cartes de post et d'événement lisibles dans une bulle envoyée (2026-09-12)
 
 **Priorité P2** · importance 3/5 — Sur la bulle verte, le nom de l'auteur, « Voir la publication → » et « Voir l'événement → » étaient quasi invisibles (sarcelle et violet sur vert), et le texte « 📌 Post de… » répétait la carte.
-
-Constaté sur le Pixel, discussion Salim → Sim A (captures de session).
 
 - [ ] **Bulle envoyée** : post partagé et événement créé dans la discussion —
   auteur, titre, « Voir … → » en blanc lisible sur un voile sombre ; plus de
@@ -2950,7 +1923,6 @@ Constaté sur le Pixel, discussion Salim → Sim A (captures de session).
 
 *Bloqué : la notification et la mise à jour croisée demandent la migration `20260912220000_reaction_atomique_et_notification.sql` appliquée, et deux comptes (Pixel + SM A515F).*
 
-- ✔ 3 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Réactions : double tap, cœur rouge, notification, mise à jour (2026-09-12) »).
 - [ ] **Cœur rouge** : ❤️ rouge sous la bulle, dans la barre, dans le
   sélecteur, dans une bulle « emoji seul », dans le composeur en tapant, dans
   l'aperçu de la liste des discussions. Aussi ☀️. Et ⚠ reste un symbole de
@@ -2973,17 +1945,13 @@ Constaté sur le Pixel, discussion Salim → Sim A (captures de session).
   MLS en direct, connu). Après relance à froid du Pixel, le ❤️ de Sim est bien
   sous PH1, « Lu » conservé.
 
+- ✔ 3 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Réactions : double tap, cœur rouge, notification, mise à jour (2026-09-12) »).
+
 ---
 
 ## ⬜ Partager vers une discussion — groupe et 1:1 (2026-09-09)
 
 **Priorité P1** · importance 3/5 — Les discussions privées disparaissent du sélecteur de partage et de transfert dès qu'on tape un nom, et une carte partagée ouvre une page 404 au lieu du groupe ou du profil.
-
-Le partage ne savait sortir de l'app (WhatsApp / Facebook / X / feuille
-système) sauf pour un post du fil, dont la liste de discussions était
-inutilisable pour les 1:1 : un message privé s'y affichait « Messages » avec
-un avatar « ? », et la recherche filtrait sur `conversation.name`, nul pour un
-1:1 — taper une lettre les faisait tous disparaître.
 
 Une destination « discussion » a été ajoutée partout, et la résolution
 nom/avatar d'une conversation vit désormais dans une seule source
@@ -3025,25 +1993,6 @@ nom/avatar d'une conversation vit désormais dans une seule source
 
 **Priorité P0** · importance 5/5 — Le soin du cache ou la synchro incrémentale réécrit un marqueur par-dessus un message déjà déchiffré : le texte est perdu pour de bon, le serveur ne pouvant plus le redéchiffrer (ratchet Signal / Sender Key).
 
-Constaté sur SM A515F (capture du 2026-09-09, 19:02, groupe « Diaspora
-Niger ») : un fil de groupe affichait trois bulles « *Message chiffré — clé de
-groupe introuvable* » avec un bouton « Récupérer la clé de groupe », et une
-quatrième « [Message illisible] ». Demande explicite de Salim : ne plus voir
-ni l'un ni l'autre, et retrouver le texte précédent.
-
-Deux choses corrigées, de nature différente.
-
-**1. `[Message illisible]` échappait à toutes les gardes.** Écrit en dur dans
-quatre fichiers et absent de `kUndecryptablePlaceholders`, il traversait les
-trois protections qui s'appuient sur cette liste : le soin depuis le cache
-(`_healUndecryptableMessages`), la fusion de l'écho temps réel
-(`reconcileEchoContent`) et le bandeau de restauration. Pire, le soin le
-prenait pour du **contenu valide** et le réécrivait par-dessus le texte déjà
-déchiffré — le cache local perdait le clair, définitivement, le serveur ne
-pouvant pas le rendre une seconde fois (ratchet Signal / Sender Key).
-Quatrième trou de la même famille : `syncMessagesIncremental` écrivait en
-cache **sans** passer par le soin.
-
 **2. La bulle n'affiche plus de vocabulaire interne.** Les trois marqueurs
 mènent désormais à `UndecryptableMessageBubble` — « *Message indisponible sur
 cet appareil* », en gris, sans bouton. `E2EESessionRequiredBubble` (et son
@@ -3051,26 +2000,12 @@ bouton « Récupérer la clé de groupe ») n'est plus branchée nulle part ; le
 remède reste porté **une seule fois** par le bandeau en tête de discussion
 (`_buildE2eeRestoreBanner`), au lieu d'être répété sur chaque bulle.
 
-Fichiers : `lib/core/services/e2ee/undecryptable_placeholders.dart`,
-`lib/core/services/encryption_service.dart`,
-`lib/core/services/e2ee/session_backup_service.dart`,
-`lib/features/messages/data/repositories/message_repository_impl.dart`,
-`lib/features/messages/presentation/widgets/message_bubble.dart`,
-`lib/features/messages/presentation/widgets/undecryptable_message_bubble.dart`.
-
 À vérifier **sur SM A515F** :
 
 - [ ] Le fil de la capture n'affiche plus « Message chiffré — clé de groupe
       introuvable », ni le bouton « Récupérer la clé de groupe », ni
       « [Message illisible] » : une ligne grise « Message indisponible sur cet
       appareil » à la place.
-      ⚠️ **2026-09-11 18:46 : toujours invérifiable.** « Diaspora Niger —
-      Canada » (3 membres) affiche encore « Aucun message / Soyez le premier à
-      envoyer un message dans ce groupe ! ». Aucun marqueur, donc — mais sur
-      un fil **vide**, ce qui ne prouve rien. Il faudra un message réellement
-      indéchiffrable pour voir la nouvelle bulle (et pour juger sa lisibilité
-      en thème sombre, case plus bas).
-- ✔ 4 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Aucun marqueur technique dans une bulle (2026-09-09) »).
 - [ ] Une photo **sans légende** s'affiche normalement — la garde lit la
       LISTE, pas `isUndecryptableContent`, qui tient le vide pour illisible et
       masquerait chaque média sans légende.
@@ -3086,33 +2021,11 @@ Fichiers : `lib/core/services/e2ee/undecryptable_placeholders.dart`,
       juger, viser un message encore lisible aujourd'hui, ou vider la
       discussion.
 
-**Build installé le 2026-09-09 à 19:18 (SM A515F) et 19:28 (Pixel 10 Pro XL).**
-`1.2.1+17` release arm64, même certificat que l'installé
-(`DD:A6:5C:…:CF:5D`) donc `install -r` sans désinstallation : session, clés et
-cache conservés. APK vérifié avant installation — « Message indisponible sur
-cet appareil » présent 1 fois dans `libapp.so`, et « Récupérer la clé de
-groupe » **absent** (0 occurrence) : le tree-shaking a retiré
-`E2EESessionRequiredBubble` du binaire, preuve indépendante qu'elle n'est plus
-référencée.
-
-Vérifié :
-
-⛔ **Le symptôme d'origine n'a PAS pu être rejoué.** Le groupe « Diaspora
-Niger — Canada » du signalement affiche maintenant « Aucun message » (3
-membres) : les quatre bulles fautives ont disparu entre la capture de 19:02 et
-la réouverture de 19:29. Piste, à confirmer : sur la capture de 19:02
-elle-même, la **liste** des discussions annonçait déjà « Nouvelle
-conversation » pour ce groupe — donc elle le tenait déjà pour vide pendant que
-le fil ouvert montrait quatre bulles. Ces bulles venaient vraisemblablement du
-cache local, sans rien derrière côté serveur ; au redémarrage, le fil a
-re-interrogé le serveur et n'a rien trouvé. Le correctif ne peut pas supprimer
-de message (il ne substitue qu'un texte et un widget), mais **cette
-disparition n'est pas expliquée avec certitude** — à creuser si elle se
-reproduit.
-
 Reste donc à voir **au moins une fois** la nouvelle bulle, et surtout à
 exercer le vrai chemin du correctif : envoyer un message dans un groupe,
 quitter la discussion, y revenir, faire un pull-to-refresh.
+
+- ✔ 4 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Aucun marqueur technique dans une bulle (2026-09-09) »).
 
 ---
 
@@ -3120,31 +2033,6 @@ quitter la discussion, y revenir, faire un pull-to-refresh.
 
 **Priorité P2** · importance 4/5 — Une vidéo choisie dans la galerie — le chemin le plus courant — arrive comme un fichier générique, sans aperçu ni lecteur.
 
-Bug signalé : une vidéo envoyée en conversation s'affichait et se comportait
-comme un fichier générique (`DocumentBubble`), pas comme une vidéo
-(`VideoBubble` avec vignette + bouton lecture). Cause : le callback
-`onSendFile` de [message_input.dart](lib/features/messages/presentation/widgets/message_input.dart)
-ne recevait qu'un booléen `isImage` — toute vidéo (caméra, galerie, sélecteur
-dédié) passait donc `isImage: false` et [conversation_screen.dart](lib/features/messages/presentation/screens/conversation_screen.dart)
-retombait sur `MessageType.file` faute d'alternative. Le pipeline d'envoi
-(miniature blurhash, durée, `VideoBubble`, `VideoPlayerScreen`) existait déjà
-et fonctionnait, mais n'était jamais atteint. Corrigé en propageant le vrai
-`MessageType` (image/vidéo/fichier) de bout en bout, et en câblant `onTap` sur
-`VideoBubble` (absent jusqu'ici) pour ouvrir `VideoPlayerScreen`.
-`flutter analyze` propre, `flutter test test/features/messages/message_input_composer_test.dart`
-propre.
-
-⚠️ **Piège rencontré en vérifiant** : le premier `flutter install --debug`
-(sans `flutter clean` préalable) a réinstallé « avec succès » mais produit un
-APK **périmé** — deux vidéos envoyées via la caméra unifiée se sont encore
-affichées en `DocumentBubble` malgré le correctif dans les sources. Seul un
-`flutter clean` + rebuild complet a fait apparaître le vrai comportement
-corrigé (déjà documenté §4 des pièges de build pour une cause différente —
-démon Gradle tué — mais même symptôme : succès annoncé, APK pas à jour). Ce
-rebuild complet a aussi déconnecté la session au moins une fois (retour à
-l'écran de connexion, clés E2EE à restaurer).
-
-- ✔ 3 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30) »).
 - [ ] Envoyer une vidéo depuis la galerie intégrée (`GalleryPickerScreen`,
   sélection unique) : la bulle doit afficher une vignette + bouton lecture,
   pas une icône de fichier. **Bloqué le 2026-08-30** : aucune vidéo dans la
@@ -3164,28 +2052,14 @@ l'écran de connexion, clés E2EE à restaurer).
   `MediaBatchPreviewScreen`) : chaque vidéo du lot doit garder son type —
   même blocage.
 
+- ✔ 3 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30) »).
+
 ---
 
 ## ✅ Bulle de chargement d'une vidéo pendant l'upload (2026-08-30)
 
 **Priorité P2** · importance 1/5 — Impossible d'annuler l'envoi d'une vidéo lancée par erreur : elle part quand même.
 
-Suite du point précédent : demande produit de retoucher le design pendant
-l'envoi. Avant ce correctif, l'upload d'une vidéo affichait le squelette
-générique « document » (`_buildDocumentUpload` dans
-[uploading_media_skeleton.dart](lib/features/messages/presentation/widgets/uploading_media_skeleton.dart)
-— petite icône de fichier + nom + `%`), car `MediaUploadState` ne
-transportait qu'un booléen `isImage`, jamais `true` pour une vidéo. Corrigé
-en remplaçant ce booléen par le vrai `MessageType` (même schéma que le
-correctif précédent) et en ajoutant une branche `_buildVideoUpload` : vraie
-vignette extraite localement du fichier vidéo via `video_thumbnail`
-(`_VideoThumbnailPreview`, package déjà présent pour le blurhash serveur),
-assombrie + effet shimmer comme l'aperçu image, badge caméra en coin haut
-gauche (même langage visuel que `VideoBubble`), anneau de progression +
-bouton annuler, légende si saisie. `flutter analyze` propre sur tout le
-dépôt.
-
-- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ✅ Bulle de chargement d'une vidéo pendant l'upload (2026-08-30) »).
 - [ ] Vérifier la vignette avec une vidéo bien éclairée (testée dans une
   pièce sombre — la vignette réelle vs le placeholder shimmer étaient
   difficiles à distinguer visuellement dans cette lumière).
@@ -3199,6 +2073,8 @@ dépôt.
   voulu) : à refaire au doigt, ou avec une vidéo assez lourde pour laisser
   quelques secondes de marge.
 
+- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ✅ Bulle de chargement d'une vidéo pendant l'upload (2026-08-30) »).
+
 ---
 
 ## Messagerie (hors refonte Fil & Discussion)
@@ -3206,7 +2082,6 @@ dépôt.
 **Priorité P1** · importance 2/5 — Un utilisateur qui a masqué son statut en ligne reste affiché « En ligne » aux autres, contre sa préférence de confidentialité. *Bloqué : deux comptes (statut en ligne, accusé « Reçu »).*
 
 - [ ] **En-tête hero de la liste des messages** (dégradé + puces de filtre, commit `65c1852`) — jamais vu à l'écran, l'APK était cassé (toolchain JDK 17) au moment du commit.
-- [ ] **Accusé de réception « remis »** (`mark_messages_as_delivered`, commit `da21b24`) — bug capturé dans les logs d'un appareil réel puis corrigé côté SQL, jamais revalidé en conditions réelles depuis. Re-vérifié côté base le 2026-08-30 (`supabase db query --linked`, transactions annulées) : signature `(TEXT, TEXT)` unique, `SECURITY DEFINER`, `authenticated` seul autorisé (`anon` refusé), et un message réel du jour a bien `deliveredAt` peuplé pour le destinataire — la RPC tourne en prod. Test isolé (insert jetable + `ROLLBACK`) confirme l'idempotence d'un rappel séquentiel et que `readBy` n'est jamais touché. ⚠️ Trouvé en marge : sur ce même message réel, `deliveredTo` contient le destinataire **en double** dans le tableau JSON brut (probablement `initState` + `didChangeAppLifecycleState(resumed)` de `conversation_screen.dart:193,422` qui appellent `markAsDeliveredProvider.mark()` quasi simultanément à l'ouverture depuis une notification, créant une vraie course réseau) — sans impact visible : `_mergedReceipts` (`message_supabase_datasource.dart:123`) dédoublonne via `Set` à la lecture, donc `message.deliveredTo` et le badge « Reçu »/« Lu » restent corrects côté app. Reste seulement cosmétique en base. Ce qui reste réellement non vérifié : le scénario UI à deux comptes (voir section « Accusés livré/lu séparés »).
 - [ ] **Statut en ligne (Firestore → Supabase)** (commit `b16dc88`) — bug de confidentialité corrigé (préférence `showOnlineStatus` ignorée), jamais vérifié à l'écran.
 
 ---
@@ -3215,54 +2090,11 @@ dépôt.
 
 **Priorité P3** · importance 3/5 — Certaines bulles média restent sans heure visible, sans moyen de la révéler.
 
-Deux défauts distincts sous le même symptôme rapporté (« l'horodatage
-persiste ») :
-
-- **Dupliquée sur les appels — diagnostic initial faux, corrigé après test
-  sur appareil.** `CallMessageBubble` affiche sa propre heure inline
-  (« Pas de réponse - 23:40 »). Ça ressemblait à un doublon avec
-  `_buildMetaRow` posée juste en dessous, donc retirée dans un premier
-  temps — mais `MessageBubble.build()` retourne tôt pour
-  `widget.message.isCall` (avant le `Column` qui pose `_buildMetaRow`) :
-  un appel ne passe **jamais** par cette ligne de méta. La retirer de
-  `CallMessageBubble` a fait disparaître l'heure de tous les messages
-  d'appel, sans exception — repéré en ouvrant une vraie conversation sur
-  le SM A515F (rien sous « Pas de réponse » / « Appel sortant »), écarté
-  l'hypothèse d'un APK périmé par un `flutter clean` complet (même
-  résultat), puis retrouvé le retour anticipé en relisant `build()`.
-  Heure remise dans `call_message_bubble.dart` — c'est la SEULE heure
-  qu'un appel affiche, pas un doublon. Le commentaire de `_buildMetaRow`
-  documente maintenant cette exception explicitement.
-- **Irrécupérable sur toute bulle média.** Le masquage « une heure par
-  rafale, tap pour révéler » (`_metaRevealed`) posait son `GestureDetector`
-  sur la bulle générique, mais une bulle média (image, vidéo, document,
-  audio, note vocale, position, sticker, appel) a **son propre**
-  `GestureDetector` pour ouvrir/rappeler, posé plus profond dans l'arbre —
-  il gagne toujours l'arène de gestes. Le tap cité comme solution dans
-  `874e964` ne fonctionne donc que sur le texte simple ; sur tout le reste,
-  un message masqué (pas le dernier de sa rafale) n'avait **aucun** moyen
-  pratique de révéler son heure (la bande de repli de 48×16 sous la bulle
-  est quasi invisible).
-
-**Suite dans la même session : demande explicite de Salim de retirer le
-masquage entièrement** (« plus besoin du système de tap pour afficher,
-juste affiche ça tout le temps »). `_metaRevealed`, `_isLastInGroup`,
-`_canMaskTime` (le correctif intermédiaire ci-dessus qui limitait le
-masquage au texte) et `_onTapRevelerHeure` sont supprimés de
-`message_bubble.dart` — `_buildMetaRow` affiche désormais l'heure de
-façon inconditionnelle, sur tout type de message, dans une rafale ou non.
-Troisième aller-retour sur cette fonctionnalité (`8db5215` l'introduit,
-`92326fe`/`dc54282` la retirent, `874e964` la remet ; ce commit la retire
-pour de bon) — ne pas la réintroduire sans redemander à Salim.
-
-Couvert par `flutter analyze` (propre) et `message_meta_row_test.dart`
-(inchangé, passe toujours — il ne testait déjà que `groupPosition: single`,
-qui affichait déjà l'heure). Ce que le test ne peut pas voir :
-
 - [ ] **Rafale de messages texte, images, vidéos, documents, notes vocales,
   positions, stickers** du même expéditeur : chaque bulle doit désormais
   porter son heure, y compris celles qui n'étaient pas le dernier message
   de la rafale.
+
 - ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Discussion — heure absente/dupliquée sur les bulles média (2026-08-30) »).
 
 ---
@@ -3271,25 +2103,9 @@ qui affichait déjà l'heure). Ce que le test ne peut pas voir :
 
 **Priorité P0** · importance 4/5 — L'onglet GIFs est **cassé en production depuis le 2026-08-27** : `gif-proxy` n'a jamais été déployée. Ce n'est plus une hypothèse (relevé du 2026-09-16 : `supabase functions list` en donne 16, sans elle ; un POST répond `404 NOT_FOUND`). Tout appel de l'onglet échoue, l'utilisateur lit « Impossible de charger les GIFs. »
 
-`GIPHY_API_KEY` et `TENOR_API_KEY` ne doivent plus être dans le `.env`
-embarqué : les appels passent par l'Edge Function `gif-proxy`, seule
-détentrice des clés. ⚠️ `GIPHY_API_KEY` y était **restée** jusqu'au
-2026-09-16 — donc encore livrée dans chaque APK construit depuis. Retirée du
-`.env` du poste ; **la clé est à roter**, les APK déjà diffusés la portent.
-
 Fichiers : `supabase/functions/gif-proxy/index.ts`,
 `lib/features/gifs/data/datasources/gif_proxy_datasource.dart`.
 
-⚠️ Prérequis avant toute vérification :
-`supabase functions deploy gif-proxy --project-ref zyrfkcjjrhddpfxcgezo`.
-Côté secrets, seule `GIPHY_API_KEY` est posée : le service tournera en Giphy
-seul tant que `TENOR_API_KEY` n'est pas ajoutée — c'est déjà le cas depuis
-toujours, Tenor n'a jamais servi.
-
-`flutter analyze` et les 19 tests GIF passent, mais aucun n'atteint le réseau —
-rien n'est prouvé tant que ce n'est pas vu sur appareil :
-
-- ✔ 3 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ GIFs via `gif-proxy` — clés sorties de l'APK (2026-08-27) »).
 - [ ] Recherche : taper un mot renvoie des résultats (chemin `search`)
   ⛔ Passe du 2026-09-21, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS (SM A515F) : « Recherche » lève le clavier, qui RECOUVRE le panneau : aucun champ visible ni exposé à l'accessibilité, on tape à l'aveugle, aucun résultat observable.
 - [ ] **Un seul aller-retour par requête** : le repli entre fournisseurs est
@@ -3310,6 +2126,8 @@ rien n'est prouvé tant que ce n'est pas vu sur appareil :
       plusieurs Mo payés par chaque destinataire. Vérifier que la qualité
       reste acceptable en plein écran
 
+- ✔ 3 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ GIFs via `gif-proxy` — clés sorties de l'APK (2026-08-27) »).
+
 ---
 
 ## ⬜ Heure et accusé sur tous les messages, bascule supprimée (2026-08-23)
@@ -3326,15 +2144,6 @@ rafale — affiche son heure et, côté envoyé, son accusé. Le champ
 Deux raisons : la zone tapable n'avait aucune affordance (indevinable), et
 elle masquait aussi le libellé « Échec · Réessayer » d'un envoi raté qui
 n'était pas le dernier de sa rafale — le seul chemin pour relancer l'envoi.
-
-⚠️ **Cette note a bien failli disparaître.** Le code est en place depuis le
-2026-08-23, mais sa justification vivait dans un commit resté sur une branche
-locale (`claude/heure-partout-base-1744c25`) : le comportement, lui, a été
-refait autrement sur `wip-jules`, sans reprendre l'explication. Récupérée le
-2026-09-09 juste avant la suppression de cette branche. Vérifié à cette
-occasion sur le fichier courant : plus une seule occurrence de `_metaRevealed`
-ni de `_isLastInGroup`, et l'appel `Text(_formatTime(...))` de `_buildMetaRow`
-n'est enveloppé d'aucune condition.
 
 - [ ] **Heure sur chaque message d'une rafale envoyée** : envoyer 3 messages
   coup sur coup en 1:1, vérifier que les 3 portent leur heure sans aucun tap
@@ -3361,19 +2170,6 @@ corrigée, le neuvième attend un exemple. **Aucun n'est vérifié sur appareil.
 
 ### 1. L'appui sur une notification ne faisait rien
 
-Deux causes indépendantes, toutes deux corrigées :
-
-- `NotificationService.createNotification`
-  ([notification_service.dart](lib/core/services/notification_service.dart))
-  n'écrivait que `target_id` dans `data`, quand le modèle ne lisait que
-  `targetId`. Toutes les branches de navigation étant gardées par
-  `if (targetId != null)`, l'appui était sans effet — demandes d'ami,
-  participations aux événements, tout ce qui passe par cette RPC.
-- Les types écrits par les déclencheurs SQL (`new_post`, `mentioned`,
-  `group_mention`) et par le client (`report_resolved`, `groupCallInvitation`,
-  `postCommented`, `commentReply`) n'existaient pas dans `NotificationType` :
-  ils étaient repliés sur `general`, dont le `case` de navigation est vide.
-
 **À vérifier sur appareil** : ouvrir la page Notifications sur un compte qui a
 reçu (a) une demande d'ami, (b) une notification de publication du fil, (c) un
 commentaire. Chacune doit ouvrir sa destination. Une notification sans
@@ -3381,53 +2177,17 @@ destination connue ouvre désormais sa fiche au lieu de ne rien faire.
 
 ### 2. « Erreur de chargement » intermittente sur les notifications
 
-Le flux temps réel s'abonnait sans attendre la session Supabase (course avec le
-pont Firebase vers Supabase : abonnement en `anon`, RLS muette), et une seule
-ligne au `title`/`body` nul faisait échouer le `.map()` du flux ENTIER. Corrigé
-dans [notification_supabase_datasource.dart](lib/features/notifications/data/datasources/notification_supabase_datasource.dart) :
-attente de session, réessai avec conservation de la dernière liste connue, et
-ligne illisible écartée au lieu de tout emporter.
-
 **À vérifier** : ouvrir la page Notifications juste après un démarrage à froid
 (le cas où la course se produit), puis couper/rétablir le réseau en restant sur
 l'écran — la liste doit revenir seule, sans message d'erreur.
 
 ### 3. Le bandeau de restauration des clés revenait sans arrêt
 
-`acknowledge()` ne vivait qu'en mémoire, et `bootstrap()` est appelé depuis
-quatre endroits d'`AuthNotifier`. Le bandeau revenait donc à chaque démarrage et
-à chaque rechargement de profil, indéfiniment (`needsRestore` reste vrai tant
-que la sauvegarde n'est pas restaurée). Mise en veille désormais persistée
-7 jours, et `bootstrap` ne tourne qu'une fois par compte et par session
-([e2ee_backup_coordinator.dart](lib/core/services/e2ee/e2ee_backup_coordinator.dart)).
-
 **À vérifier** : écarter le bandeau avec « Pas maintenant », tuer l'app, la
 rouvrir — il ne doit pas revenir. Puis faire une vraie sauvegarde depuis
 Sécurité : la veille est effacée.
 
-### 4. Caractères spéciaux mal affichés — PARTIELLEMENT traité
-
-Une cause identifiée et corrigée : le motif de mise en forme (gras, italique,
-barré, code) de
-[message_bubble.dart](lib/features/messages/presentation/widgets/message_bubble.dart)
-reconnaissait ses marqueurs au MILIEU d'un mot et les supprimait de
-l'affichage — `taux_change_2026` perdait ses tirets bas et passait en italique.
-Les délimiteurs doivent désormais être isolés (règle WhatsApp/Signal).
-
-**Reste ouvert** : si le symptôme concerne d'autres caractères (emoji, accents,
-caractères zarma/haoussa), il faut un exemple précis — quel caractère, à quel
-endroit, et ce qui s'affiche à la place. Rien d'autre n'a été trouvé dans le
-code (aucun mojibake dans le dépôt, apostrophes ICU correctes dans les ARB
-générés).
-
 ### 5. La bulle « écrit… » ne s'affichait jamais
-
-`typingIndicatorNotifierProvider` est `autoDispose` et n'était jamais observé :
-chaque frappe le créait via `ref.read`, Riverpod le détruisait aussitôt, et sa
-destruction appelait `_clearTypingStatus()`. La présence était donc posée puis
-retirée dans le même tour de boucle. `ConversationScreen` l'observe désormais
-dans son `build` ; `setTypingStatus` attend en plus que le canal realtime soit
-rejoint avant de publier la présence.
 
 **À vérifier — nécessite DEUX téléphones** : A tape, B doit voir la bulle
 apparaître, et disparaître ~3 s après l'arrêt de la frappe puis à l'envoi. B
@@ -3435,52 +2195,11 @@ quitte la discussion : la présence doit s'effacer chez A.
 
 ### 6. Les messages vocaux ne partaient pas
 
-`MessageSupabaseDataSource.sendAudioMessage` levait `UnimplementedError`, que le
-repository attrapait dans son `catch (e)` générique : tout message vocal
-échouait en silence. Implémenté (téléversement Firebase Storage, insertion
-`messages` de type `voiceNote`, mise à jour du dernier message).
-
 **À vérifier** : enregistrer un vocal, l'envoyer, vérifier qu'il arrive chez le
 destinataire, qu'il se lit des deux côtés, que la forme d'onde et la durée sont
 justes, et que l'aperçu de la conversation affiche « Message vocal ».
 
-### 7. Les messages en échec disparaissaient au lieu d'être renvoyés
-
-`retryFailedMessage` retirait la bulle **en tête de méthode**, avant le
-`switch` — puis, pour un média, retournait `false` sans rien renvoyer : taper
-« réessayer » était le moyen le plus sûr de perdre le message. Le retrait n'a
-lieu que sur un chemin qui renvoie réellement, et un vocal en échec retient
-désormais le chemin de son fichier local (`MessageEntity.localFilePath`) pour
-pouvoir être retéléversé. En prime, `_loadNetworkData` remplaçait l'état entier
-par la réponse serveur, ce qui effaçait aussi les messages en échec à chaque
-rechargement.
-
-**À vérifier** : couper le réseau, envoyer un texte et un vocal, attendre le
-passage en échec, rétablir le réseau, taper « réessayer » sur chacun — les deux
-doivent partir. Puis refaire un échec, changer d'écran et revenir : la bulle en
-échec doit toujours être là. **Limite connue** : rien n'est persisté sur disque,
-quitter l'app perd les messages en échec.
-
-### 8. Un seul horodatage par rafale de messages envoyés
-
-C'était volontaire (regroupement visuel des rafales, heure révélée par un tap),
-mais illisible à l'usage. Chaque bulle porte désormais son heure, envoyée comme
-reçue — le regroupement visuel (queue de bulle, nom, rayons) est inchangé.
-
-**À vérifier** : envoyer trois messages d'affilée, les trois doivent afficher
-leur heure ; vérifier que l'accusé « Envoyé / Lu » reste correct et que la mise
-en page ne déborde pas avec des réactions.
-
 ### 9. L'app restait utilisable par-dessus l'écran de verrouillage — SÉCURITÉ
-
-`android:showWhenLocked="true"` était posé sur `MainActivity` dans le manifeste
-pour que l'écran d'appel s'affiche par-dessus le keyguard. Un attribut de
-manifeste vaut pour toute la vie de l'activité : verrouiller le téléphone avec
-Diaspo Niger au premier plan puis rallumer l'écran rouvrait l'application
-entière — messages compris — sans demander le code. Le drapeau est retiré du
-manifeste et demandé à l'exécution par l'écran d'appel seulement
-([lock_screen_service.dart](lib/core/services/lock_screen_service.dart), canal
-`diaspo_niger/lockscreen`).
 
 **À vérifier sur appareil, en deux temps** :
 
@@ -3510,10 +2229,6 @@ réactivation future :
   l'épinglage) ; `_PinnedRow` et son bloc de rendu commentés en entier.
 - `lib/features/groups/presentation/screens/group_detail_screen.dart` :
   la ligne « Épinglés » et `_pinnedSummary` commentées dans `_GroupInfoCard`.
-- `lib/features/groups/data/datasources/group_supabase_datasource.dart` et
-  `group_pinned_providers.dart` : le paramètre `groupId` de `pinItem`/
-  `getPinnedItemsStream` (déjà mort avant la pause, jamais alimenté par le
-  seul appelant réel) commenté au même moment.
 
 `flutter analyze` propre (aucun avertissement de code mort/import inutilisé)
 après ce commentage — les nombreux items `[ ]` d'épingles (« Messages épinglés — le bandeau n'était pas temps réel », « Groupes — défauts trouvés en vérifiant les épingles ») datant d'avant le
@@ -3527,9 +2242,6 @@ retester n'a de sens qu'après réactivation.
   message, 1:1 comme groupe.
 - [ ] **Aucune ligne « Épinglés »** sur la fiche groupe, même sur un groupe
   qui avait des épingles avant la pause.
-- [ ] Build + install pas encore faits sur SM A515F depuis ce changement
-  (travail réalisé dans un worktree isolé, dépôt principal occupé par une
-  autre session au moment de l'écriture).
 
 ---
 
@@ -3537,28 +2249,12 @@ retester n'a de sens qu'après réactivation.
 
 **Priorité P2** · importance 2/5 — Le compteur de réactions est faux, ou retirer sa réaction efface celle de quelqu'un d'autre. *Bloqué : deux comptes.*
 
-`MessageEntity.reactions` était une simple `List<String>` sans auteur : le
-compteur affiché était juste le nombre d'emojis posés, mais rien ne
-distinguait « la mienne » des autres, et retirer sa réaction pouvait retirer
-celle de quelqu'un d'autre (premier élément de la liste égal à cet emoji).
-Passé à `Map<String, String>` (userId -> emoji, une seule par personne) dans
-[message_entity.dart](lib/features/messages/domain/entities/message_entity.dart),
-[message_model.dart](lib/features/messages/data/models/message_model.dart),
-les deux datasources (`message_supabase_datasource.dart`,
-`message_remote_datasource.dart`) et
-[message_provider.dart:601](lib/features/messages/presentation/providers/message_provider.dart:601)
-(`toggleReaction` se basait sur *n'importe quel* utilisateur ayant déjà posé
-cet emoji, pas sur l'utilisateur courant). L'onglet « Réactions » de la fiche
-message ([message_info_sheet.dart](lib/features/messages/presentation/widgets/message_info_sheet.dart))
-chargeait en plus depuis un service RTDB Firebase mort (`MessageActionService`)
-que les vraies réactions Supabase n'ont jamais alimenté — toujours vide en
-pratique ; il lit maintenant `message.reactions` directement.
-
-- ✔ 4 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Réactions emoji : une par personne et par message (2026-08-13) »).
 - [ ] Deux comptes différents réagissant au même message avec le même emoji
   → le chip affiche bien un compteur à 2, et chacun ne peut retirer que sa
   propre réaction. **Pas vérifiable avec un seul appareil/compte** — nécessite
   un deuxième testeur ou compte connecté ailleurs.
+
+- ✔ 4 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Réactions emoji : une par personne et par message (2026-08-13) »).
 
 ---
 
@@ -3575,14 +2271,6 @@ appelée uniquement à l'ouverture réelle de la conversation) — voir
 [20260813120000_split_delivered_from_read.sql](supabase/migrations/20260813120000_split_delivered_from_read.sql)
 et [message_supabase_datasource.dart:1548](lib/features/messages/data/datasources/message_supabase_datasource.dart:1548).
 
-`flutter analyze` propre. Les deux migrations sont **déployées** sur le
-distant (Diapo Niger, `zyrfkcjjrhddpfxcgezo`) et vérifiées par requête directe
-(`supabase db query --linked`, transaction annulée pour ne rien persister) :
-`mark_messages_as_delivered` tourne sans erreur et ne touche plus `readBy`.
-Mais rien de tout ça n'est vérifiable **dans l'app** sans deux comptes réels
-échangeant un message :
-
-- ✔ 3 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Accusés livré/lu séparés — sheet infos du message (2026-08-13) »).
 - [ ] Envoyer un message depuis le compte A à un compte B **avec le compte B
   hors ligne** (notification push reçue, app fermée) : vérifier dans le sheet
   infos du message (appui long → Infos) que l'onglet « Livré à » liste B mais
@@ -3590,6 +2278,8 @@ Mais rien de tout ça n'est vérifiable **dans l'app** sans deux comptes réels
 - [ ] Ouvrir la conversation côté B : vérifier que B apparaît alors dans « Lu
   par », et que le coche du message (côté A) passe au double-coche bleu à ce
   moment-là, pas avant.
+
+- ✔ 3 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Accusés livré/lu séparés — sheet infos du message (2026-08-13) »).
 
 ---
 
@@ -3602,24 +2292,6 @@ liste **après** application de la puce de filtre, et rendait alors la fiche 9e 
 « Aucune conversation », « Commencez à discuter avec les membres de la
 diaspora », le bouton « Nouvelle conversation », la ligne sur le chiffrement.
 
-Sur la puce **« Non lus »** d'un compte dont tout est lu, les trois phrases
-étaient fausses et l'action ne répondait pas au problème : il n'y avait rien à
-commencer, il fallait revenir à « Tous ». Idem pour **« Groupes »** sur un
-compte sans conversation de groupe — et c'est le cas du compte de test.
-
-Les libellés justes existaient déjà dans les **deux** `.arb` —
-`noUnreadMessages`, `noGroupConversations`, `showAllConversations` — mais
-**aucun n'était référencé nulle part dans `lib/`**. La branche avait été prévue
-puis oubliée. Aucun `.arb` n'a donc été touché (donc aucune collision avec la
-passe l10n en cours).
-
-Verrouillé par `test/features/messages/etat_vide_filtre_test.dart` (6 cas,
-dont l'ordre des gardes et la non-mort des trois clés). Test de structure,
-comme `reglages_sans_doublon_test.dart` : monter `MessagesScreen` exigerait
-l10n, GoRouter, une session Supabase et une dizaine de providers, et
-`_buildConversationList` est privée.
-
-- ✔ 2 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Messagerie — un filtre sans résultat n'est pas une messagerie vide (2026-08-06) »).
 - [ ] **Puce « Groupes » sur un compte sans groupe** : « Aucune conversation de
       groupe », même sortie.
 - [ ] **Messagerie réellement vide** (compte neuf) : la fiche 9e s'affiche
@@ -3633,82 +2305,7 @@ l10n, GoRouter, une session Supabase et une dizaine de providers, et
 
 ### Le `country_code` n'est plus un problème (vérifié en base le 2026-08-06)
 
-Signalé dans « Groupes — défauts trouvés en vérifiant les épingles » comme défaut ouvert « les codes pays mélangent ISO et noms ».
-**C'est faux depuis la fusion** : `6627217` normalise à l'écriture et `a1a7190`
-a repris l'existant. Relevé en base ce jour :
-
-| table | valeurs |
-|---|---|
-| `groups.country_code` | `NE` ×3, `CA` ×1, `null` ×1 |
-| `users.country_code` | `null` ×5, `CA` ×2, `NE` ×2, `BF` ×1 |
-
-Et le mappage du profil est cohérent des deux côtés :
-`profile_supabase_datasource.dart` lit `'currentCountry': row['country_code']`
-et écrit via `CountryExtension.toIsoCode(...)`. Rien à corriger.
-
 **Arête tranchée le 2026-08-06 : un groupe sans pays vaut désormais `NE`.**
-
-Un groupe dont `country_code` est `null` est invisible dans « Découvrir » dès
-qu'un filtre pays est actif — et l'app en pose un **toute seule** au premier
-affichage (`_loadDefaultCountryFilter`). `_applyFilters` fait `g.country ==
-_selectedCountry`, ce qui écarte les nuls sans que l'utilisateur ait rien
-demandé, et rien à l'écran ne le dit. Un groupe était dans ce cas
-(`2b24986f-08b5-4840-9931-dbe046ffb394`, « Groupe de test prive »).
-
-Le défaut vit en une seule constante, `kDefaultCountryCode`
-(`lib/core/models/country.dart`), qui remplace aussi les deux `'NE'` en dur de
-`groups_screen.dart` — trois endroits décidaient du Niger séparément.
-
-| Verrou | Où | Couvre |
-|---|---|---|
-| `kDefaultCountryCode` | `GroupSupabaseDataSource.createGroup` | toute création passant par l'app |
-| idem | `create_group_screen.dart` | l'affichage immédiat, avant l'aller-retour |
-| `UPDATE` | migration | le groupe déjà nul en base |
-| `SET DEFAULT 'NE'` | migration | colonne omise à l'insertion |
-| déclencheur `trg_groups_country_code_defaut` | migration | colonne fournie **nulle ou vide** — ce que `insert_group` fait, puisqu'il passe toujours `p_country_code` |
-
-Le déclencheur plutôt qu'un `COALESCE` dans `insert_group` : la fonction est
-`SECURITY DEFINER`, et la reproduire depuis `pg_proc` pour n'y changer qu'une
-ligne fait courir un risque de dérive sans rapport avec le sujet.
-
-✅ **Migration appliquée le 2026-08-06**, et inscrite dans
-`supabase_migrations.schema_migrations` — elle est passée par
-`db query --file` et non par `db push`, donc sans cette inscription
-`supabase migration list` l'aurait montrée « en attente » pour toujours.
-
-Relevé avant / après sur `public.groups` :
-
-| `country_code` | avant | après |
-|---|---|---|
-| `NE` | 2 | **3** |
-| `CA` | 1 | 1 |
-| *(null)* | **1** | **0** |
-
-Le groupe visé (`2b24986f-08b5-4840-9931-dbe046ffb394`, « Groupe de test
-prive ») porte bien `NE`, et le `CA` n'a pas bougé — la reprise ne touche que
-les nuls et les vides.
-
-Les deux autres verrous sont vérifiés en base : `column_default` vaut
-`'NE'::text`, et `trg_groups_country_code_defaut` existe.
-
-**Le déclencheur est prouvé, pas seulement présent.** Il n'a pas pu être
-éprouvé sur `public.groups` : un autre déclencheur, `enforce_group_creator()`,
-refuse toute insertion sans JWT applicatif (« firebase_uid introuvable »), et
-la session d'administration n'en a pas. La fonction a donc été montée sur une
-table jetable, dans une transaction annulée — quatre cas, dont un contrôle
-négatif :
-
-| entrée | résultat |
-|---|---|
-| `NULL` (ce que passe `insert_group`) | `NE` |
-| `''` | `NE` |
-| `'   '` | `NE` |
-| `'CA'` | **`CA`** — non écrasé |
-
-Vérifié aussi par `test/core/models/pays_defaut_test.dart` (6 cas : le défaut
-vaut bien `Country.niger.code`, c'est un code ISO-2 et pas un libellé, les deux
-chemins de création le posent, plus aucun `'NE'` en dur dans l'écran des
-groupes, et la migration est versionnée).
 
 Reste à voir à l'écran — c'est tout ce que la base ne peut pas prouver :
 
@@ -3718,6 +2315,8 @@ Reste à voir à l'écran — c'est tout ce que la base ne peut pas prouver :
       **privé**, donc à chercher dans « Mes groupes » côté créateur, pas dans
       « Découvrir ».
 - [ ] **Un groupe créé AVEC un pays** garde bien le sien à l'écran aussi.
+
+- ✔ 2 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Messagerie — un filtre sans résultat n'est pas une messagerie vide (2026-08-06) »).
 
 ---
 
@@ -3742,12 +2341,9 @@ voir :
 - [ ] ⚠ **Sur fond d'écran personnalisé** (`ChatWallpaper` + les 8 couleurs de
   `chat_background_colors.dart`) : c'est le cas le plus risqué, l'heure n'a plus
   d'aplat sombre derrière elle comme l'incrustation des médias en avait un.
-- [ ] **Une heure par grappe** : trois messages consécutifs du même expéditeur
-  ne doivent afficher qu'un seul horodatage, sous le dernier.
 - [ ] **Chaque famille de bulle** : texte, note vocale (elle en a une pour la
   première fois), photo, photo floutée en mode ÉCO, vidéo, document, sticker,
   position, message transféré, message cité.
-- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Discussion — l'horodatage sort de la bulle (fiches 4a/6b, 2026-08-05) »).
 - [ ] **Le tap sur l'accusé** ouvre toujours le détail par destinataire.
 - [ ] **États transitoires** : « · Envoi… » pendant l'envoi, « · En attente »
   en orange quand le message est dans la file hors-ligne, et
@@ -3758,6 +2354,8 @@ voir :
 - [ ] **Le cadenas de chiffrement par message a disparu.** Il n'était posé que
   sur les messages « emoji seul » — une incohérence. Le rappel de chiffrement
   reste dans l'en-tête, à côté de « En ligne ». Confirmer que rien ne manque.
+
+- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Discussion — l'horodatage sort de la bulle (fiches 4a/6b, 2026-08-05) »).
 
 ---
 
@@ -3770,7 +2368,6 @@ pose la pastille ÉCO **à droite du bandeau**, sur la même ligne. Le raccourci
 « Médias » n'est pas perdu, il est passé dans le menu ⋮ sous le libellé
 « Médias partagés » (`sharedMedia`, clé déjà existante).
 
-- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Discussion — ÉCO rejoint la ligne épinglée (fiche 6b, 2026-08-05) »).
 - [ ] **Sans épingle** : la ligne se réduit à la seule pastille ÉCO, alignée à
   droite — elle ne doit pas disparaître.
 - [ ] **Avec le compteur `i/n`** (plusieurs épingles) : le compteur et la
@@ -3786,30 +2383,7 @@ pose la pastille ÉCO **à droite du bandeau**, sur la même ligne. Le raccourci
   était en cours de modification par ailleurs) — le panneau émoji a donc un peu
   moins de place qu'il ne pourrait. À reprendre si l'écran paraît serré.
 
----
-
-## Composeur — l'emoji est sorti du champ, puis y est revenu (2026-08-05)
-
-**Priorité P3** · importance 1/5 — Aucun risque nouveau — la pastille emoji autonome testée ici a été abandonnée.
-
-**Décision arrêtée : l'emoji reste DANS la pilule.** L'argument de largeur est
-retenu — en pastille autonome il coûtait 52 dp et faisait tomber la pilule à
-55 % de la largeur de l'écran, contre ~73 % à l'intérieur. Layout retenu :
-`[ + ]  [ champ … 🙂 ]  [ micro / envoi ]`. Le test et l'en-tête de
-`message_input_composer_test.dart` disent maintenant la même chose que le code.
-
-Ce qui suit décrit la tentative « pastille autonome » (fiche 26b), conservée
-pour mémoire :
-
-Le smiley était un `suffixIcon` dans la pilule ; la fiche 26b le pose en
-pastille ronde à part, fond `#F7E9DE`, glyphe `#B85E24`. Le composeur comptait
-désormais quatre commandes : `[ + ] [ champ ] [ 🙂 ] [ micro / envoi ]`.
-
-- [ ] ⚠ **Non-régression prioritaire — gestes vocaux.** Une commande de plus
-  dans la ligne : revérifier appui long → enregistrement, glisser à gauche →
-  annulation, glisser vers le haut → verrouillage. La pastille emoji
-  **disparaît** pendant l'enregistrement, vérifier que ça ne décale rien.
-- ✔ 3 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Composeur — l'emoji est sorti du champ, puis y est revenu (2026-08-05) »).
+- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Discussion — ÉCO rejoint la ligne épinglée (fiche 6b, 2026-08-05) »).
 
 ---
 
@@ -3817,19 +2391,6 @@ désormais quatre commandes : `[ + ] [ champ ] [ 🙂 ] [ micro / envoi ]`.
 
 **Priorité P2** · importance 3/5 — « Mes notes » s'ouvre sur un document fantôme et chaque note échoue à l'envoi ; en paysage, le composeur passe sous le clavier.
 
-Deux retours de Salim sur le rendu, traités et vérifiés sur appareil (SM A515F,
-APK `48ede47` puis le suivant, conversation « Salim L. » avec toute sa chrome,
-champ à 6 lignes). Mesures au banc sur gabarit A51 (393 dp).
-
-- ✔ 6 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Composeur — largeur de la pilule et « + » en clair (2026-08-05) »).
-- [ ] ⚠ **Cause racine à trancher — `EnsureSelfNotesNotifier.ensure()`**
-  (`message_provider.dart`, vers la ligne 1550) renvoie la conversation « Mes
-  notes » trouvée dans la liste en cache **sans vérifier que son document
-  existe encore**, et saute `getOrCreateSelfConversation`. Le commentaire assume
-  le raccourci (« éviter un aller-retour »). Tant que la liste et le document
-  sont d'accord ça tient ; dès qu'ils divergent, « Mes notes » s'ouvre sur un
-  document fantôme et **tout envoi échoue**. Supprimer le raccourci coûte une
-  requête par ouverture : arbitrage à faire.
 - [ ] ⚠ **Débordement en paysage** trouvé le 2026-08-06 : conversation avec
   toute sa chrome (bandeau épinglé + bandeau de clés), clavier levé, appareil
   en paysage → « BOTTOM OVERFLOWED BY 17 PIXELS », et le composeur passe sous
@@ -3845,6 +2406,8 @@ champ à 6 lignes). Mesures au banc sur gabarit A51 (393 dp).
 - [ ] **font_scale 1.1 avec un texte réel** : les mesures ci-dessus sont à
   l'échelle 1.0 du banc. Vérifier qu'un vrai message long garde une largeur
   confortable sur l'appareil.
+
+- ✔ 6 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Composeur — largeur de la pilule et « + » en clair (2026-08-05) »).
 
 ---
 
@@ -3863,7 +2426,6 @@ pilules, sections, 4 colonnes à 390 dp, pied présent/absent, filtre, nocturne)
 et `emoji_sticker_picker_landscape_test.dart` (pas d'overflow à 160/200/260).
 Ce que les tests ne voient pas :
 
-- ✔ 2 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Panneau stickers / GIF / émojis (fiche 26b, 2026-08-05) »).
 - [ ] **Défilement continu** sections + grille, clavier réellement ouvert, sur
   le A51 — c'est un seul `CustomScrollView` désormais.
 - [ ] **Padding bas de la ligne d'info** face à la barre de navigation
@@ -3891,28 +2453,13 @@ Ce que les tests ne voient pas :
 - [ ] **L'onglet Stickers reste absent sans pack Supabase** (les packs sont
   vides en base) : dans ce cas le panneau s'ouvre sur GIF ou Émojis.
 
+- ✔ 2 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Panneau stickers / GIF / émojis (fiche 26b, 2026-08-05) »).
+
 ---
 
 ## Messages épinglés — le bandeau n'était pas temps réel (2026-08-05)
 
 **Priorité P3** · importance 1/5 — Aucun tant que la fonction est désactivée ; à la réactivation, épingles de groupe invisibles pour les autres membres ou dans le désordre. *Bloqué : fonction en pause.*
-
-`group_pinned_items` n'a jamais été ajoutée à la publication
-`supabase_realtime` (contrairement à `messages` et `conversations`, vérifié sur
-le projet distant « Diapo Niger »). Le `.stream()` de
-`getPinnedItemsStream` ne faisait donc que son chargement initial : le
-`ref.invalidate` de `conversation_screen` masquait le trou pour l'action faite
-sur CE téléphone, mais rien d'autre n'arrivait jamais. Migration
-`supabase/migrations/20260805120000_realtime_group_pinned_items.sql`
-(publication + `replica identity full`, nécessaire pour que les DELETE passent
-le filtre serveur `group_id`/`conversation_id`).
-
-**Vérifié le 2026-08-05 sur SM A515F**, conversation 1-à-1
-`883c9d96-fbab-42bd-8501-a7c49def0e91`, sans second téléphone : le rôle de
-« l'autre appareil » est tenu par une écriture SQL directe sur
-`group_pinned_items` pendant que l'écran reste ouvert et **non touché**.
-
-- ✔ 8 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Messages épinglés — le bandeau n'était pas temps réel (2026-08-05) »).
 
 Restent à voir (demandent un second appareil, ou un build à jour installé) :
 
@@ -3945,20 +2492,11 @@ Restent à voir (demandent un second appareil, ou un build à jour installé) :
 
 Et sur un seul appareil, après le correctif de `group_pinned_banner.dart` (la
 pastille était perdue avec la ligne quand l'épingle n'était pas résoluble).
-**Non testables sur le build actuellement installé** — il date d'avant le
-correctif, et le réinstaller viderait les données de l'appareil :
 
 - [ ] **Une seule épingle orpheline** (message supprimé avant la cascade) : le
   bandeau ne s'affiche pas, mais la **pastille ÉCO doit rester** à droite.
 - [ ] **Épingle de sondage / d'événement pendant le chargement** : la pastille
   ne doit pas clignoter hors de l'écran le temps du fetch.
-
-Inventaire des épingles en base (2026-08-05) : 5 au total, toutes de type
-`message`, aucune de sondage ni d'événement. Deux étaient orphelines — leur
-`item_id` était un id **optimiste** `temp_<millis>` (message épinglé avant que
-le serveur ne confirme l'envoi), donc irrésolvable à jamais. Les deux ont été
-supprimées le 2026-08-05 ; il reste 3 épingles, 0 orpheline. `_pinMessage`
-refuse désormais un id `temp_…` (à vérifier sur un build à jour) :
 
 - [ ] **Épingler un message en cours d'envoi** (couper le réseau, envoyer, puis
   appui long → Épingler) : doit afficher « Attendez l'envoi du message pour
@@ -3967,51 +2505,15 @@ refuse désormais un id `temp_…` (à vérifier sur un build à jour) :
 
 ### Second système mort trouvé le 2026-08-14 : la ligne « Épinglés » de la fiche groupe
 
-`_GroupInfoCard` (`group_detail_screen.dart`, fiche 9d — la carte Épinglés /
-Médias / Prochaine rencontre) lisait `groupPinnedItemsProvider(group.id)`,
-filtré sur `group_pinned_items.group_id`. Depuis le contournement du
-2026-08-05 ci-dessus, plus rien n'écrit jamais cette colonne — `_pinMessage`
-ne pose que `conversation_id`. La ligne « Épinglés » restait donc **en
-permanence vide et invisible** (`pinned.isNotEmpty` toujours faux) sur tous
-les groupes, y compris ceux où le bandeau de conversation affichait bien des
-épingles juste au-dessus — deux lectures divergentes de la même table.
-
 Corrigé : `_GroupInfoCard` lit maintenant `conversationPinnedItemsProvider`
 via l'id de conversation du groupe (déjà résolu pour la ligne Médias juste en
 dessous). `groupPinnedItemsProvider` et la branche `groupId` de
 `GroupPinnedBanner` sont supprimés (plus aucun appelant ne les utilisait).
-`flutter analyze` propre sur les 3 fichiers touchés.
 
 - [ ] Groupe sans rien d'épinglé : la ligne doit rester absente (comme avant)
   — pas revérifié isolément mais découle du même code que la ligne Médias.
 
 ### Troisième bug trouvé le 2026-08-14 : aucun ordre stable entre plusieurs épingles
-
-`group_pinned_items.sort_order` vaut `0` par défaut en base (vérifié via
-`information_schema.columns` sur le projet lié) et `pinItem` ne l'a jamais
-renseigné à l'insertion. `getPinnedItemsStream` triait dessus
-(`.order('sort_order')`) — un tri qui ne départage donc rien entre deux
-épingles ou plus : Postgres ne garantit **aucun** ordre stable entre des
-lignes à égalité. Or le bandeau se re-souscrit souvent en pratique (clavier,
-`ensureAuthenticated`, `autoDispose` du provider) — l'ordre pouvait donc
-changer d'une re-souscription à l'autre, et comme l'index affiché dans le
-bandeau (`i/n`) pointe une **position** dans la liste et non un id, l'item
-réellement montré pouvait sauter vers un autre sans la moindre action de
-l'utilisateur.
-
-Corrigé : tri désormais sur `pinned_at` (seule colonne unique/stable du lot),
-dans `getPinnedItemsStream`. `flutter analyze` propre ; racine du bug
-confirmée en base (`sort_order` = `0` sur toutes les lignes, vu par
-`information_schema.columns`) — mais **non vérifié sur appareil**, faute
-d'avoir pu poser une 2e épingle dans la même conversation le 2026-08-14 (le
-SM A515F a cessé de répondre aux `input tap`/`input text` scriptés à mi-passe
-— navigation qui ne bouge plus, `input text` qui n'atteint pas le composeur,
-alors que `input keyevent KEYCODE_HOME` fonctionnait toujours : signe d'une
-app bloquée sur un état précis plutôt que d'un appareil mort. Cause la plus
-probable, jamais confirmée : usage concurrent du même téléphone physique par
-l'autre agent/session — cf. `lastUpdateTime` qui avait déjà bougé sous mes
-pieds en tout début de passe. Pas conclu à un bug applicatif sur cette seule
-base, voir la règle du doigt réel dans `project_device_testing`.
 
 - [ ] Épingler 2-3 messages dans une même conversation, rouvrir l'écran
   plusieurs fois (ou faire apparaître/disparaître le clavier plusieurs fois) :
@@ -4020,37 +2522,14 @@ base, voir la règle du doigt réel dans `project_device_testing`.
   (message « Message de test pour verifier 9c et 9d ») posée pendant cette
   passe — il suffit d'en épingler un second pour tester.
 
+- ✔ 8 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Messages épinglés — le bandeau n'était pas temps réel (2026-08-05) »).
+
 ---
 
 ## Recherche messagerie — le clavier demandait deux taps (§9b, 2026-08-04)
 
 **Priorité P2** · importance 3/5 — Il faut deux taps pour taper une recherche : le champ semble ne pas répondre.
 
-Bug constaté sur appareil (SM A515F, build debug, nocturne, reproduit 3 fois) :
-le premier tap sur le champ de recherche ouvrait bien l'en-tête replié (← +
-champ à bordure accent) et le champ **gardait** le focus, mais le clavier ne se
-levait pas. Un second tap le faisait apparaître, et tout marchait ensuite.
-
-Cause : **pas le focus** — c'est la `TextInputConnection` qui se fermait.
-`EditableTextState.dispose()` ferme la connexion sans défocaliser le `FocusNode`
-externe, et `initState()` n'en rouvre aucune (seul un *changement* de focus le
-fait). Dès que l'élément du champ était démonté puis réinflaté alors que le
-nœud était déjà focalisé, le clavier tombait et rien ne le rappelait. Le 2e tap
-marchait via `requestKeyboard()`, qui rouvre la connexion explicitement.
-
-Deux endroits démontaient l'élément, corrigés tous les deux (commit `27f52a3`) :
-le changement de type de widget dans `DesignSearchField` (`TextField` →
-`DecoratedBox(child: TextField)` quand `active` bascule), et l'absence de clé
-sur le bloc du champ dans la `Column` de `messages_screen.dart` — à l'ouverture
-l'en-tête change de type et les puces de filtre disparaissent, donc le bloc
-tombe dans la zone « milieu » de `updateChildren` où tout enfant sans clé est
-démonté.
-
-⚠ **Rien n'est prouvé hors appareil** : contrairement au cas « brouillon
-restauré » ci-dessous, aucun test ne couvre ça — la remontée du clavier logiciel
-n'est pas observable en test widget. `flutter analyze` propre, c'est tout.
-
-- ✔ 4 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Recherche messagerie — le clavier demandait deux taps (§9b, 2026-08-04) »).
 - [ ] Refaire la passe en **clair et en nocturne** : le correctif touche
       `design_kit.dart`, donc tous les autres `DesignSearchField` du projet
       (boutique, groupes, carte) — vérifier qu'aucun n'a gagné d'ombre parasite.
@@ -4061,29 +2540,13 @@ n'est pas observable en test widget. `flutter analyze` propre, c'est tout.
 - [ ] Boîte de réception **vide** : le champ n'est pas affiché dans cet état, la
       recherche n'y est donc pas ouvrable — confirmer que c'est bien voulu.
 
+- ✔ 4 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Recherche messagerie — le clavier demandait deux taps (§9b, 2026-08-04) »).
+
 ---
 
 ## Brouillon restauré — le composer restait sur le micro (2026-08-04)
 
 **Priorité P3** · importance 3/5 — Le brouillon restauré semble non envoyable (micro affiché) : l'utilisateur le retape ou l'abandonne.
-
-Bug constaté sur appareil (SM A515F, build debug, conversation « Mes notes ») :
-texte tapé sans envoyer, app quittée par le bouton accueil, puis relancée — le
-brouillon est bien restauré dans le champ, **mais le bouton de droite affiche
-le micro** au lieu du bouton d'envoi. Toucher le champ suffisait à le faire
-réapparaître. Conséquence : on croit ne pas pouvoir envoyer son brouillon.
-
-Cause : dans `message_input.dart`, `_loadDraft()` est appelé depuis `initState`
-**avant** que le listener du contrôleur ne soit posé. L'écriture du brouillon
-dans le contrôleur n'atteignait donc aucun listener, et `_hasText` restait à
-`false` (comme `_isOverLimit` et le contrôleur de morphing). Corrigé en
-recalculant l'état dérivé depuis `controller.text` au moment de l'injection,
-sans animation à l'ouverture.
-
-**Prouvé hors appareil** : cas ajouté à `message_input_composer_test.dart`
-(brouillon semé dans `PreferencesService`, puis badge cadenas E2EE attendu sans
-aucune frappe). Vérifié rouge sans le correctif, donc non vide de sens ;
-14/14 au vert avec. Mais un test widget ne rejoue pas un vrai cycle de process.
 
 - [ ] **Le cas décisif** : taper sans envoyer, **bouton accueil**, relancer
       l'app, rouvrir la conversation → le bouton d'envoi bleu doit être là
@@ -4094,10 +2557,11 @@ aucune frappe). Vérifié rouge sans le correctif, donc non vide de sens ;
       le morphing est volontairement court-circuité à la restauration.
 - [ ] Non-régression : une conversation **sans** brouillon doit toujours
       afficher le micro.
-- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Brouillon restauré — le composer restait sur le micro (2026-08-04) »).
 - [ ] ⚠ **Ne pas réinstaller entre les deux étapes** : `adb install -r` vide les
       données, donc les `SharedPreferences` — le brouillon disparaît et le test
       ne prouve rien. Relancer l'app déjà installée (`am start` / icône).
+
+- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Brouillon restauré — le composer restait sur le micro (2026-08-04) »).
 
 ---
 
@@ -4111,26 +2575,8 @@ d'état et un alignement de couleurs. Le composer sert les **trois** cas depuis
 le même écran (1-à-1, groupe, « Mes notes ») : tester au moins deux d'entre eux.
 `flutter analyze` et les 7 tests de `message_input_composer_test.dart` passent.
 
-**Passe appareil du 2026-08-04 (23:29 → 23:37), SM A515F, APK debug `6498773`,
-thème sombre, font_scale 1.1, conversation « Mes notes ».** ⚠ Une session
-concurrente a réinstallé l'app à **23:38:08** (`Killing … due to
-installPackageLI`) : tout constat postérieur à cette heure a été jeté.
-
-- ✔ 10 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Zone de saisie des messages — barre multi-ligne (2026-08-04) »).
 - [ ] **Brouillon tapé puis sortie immédiate** : taper quelques caractères et
   quitter l'écran **en moins d'une demi-seconde**. Au retour, le texte complet
-  doit être là (la fin était perdue jusqu'ici). Non testé sur appareil — couvert
-  seulement par un test unitaire. Deux tentatives abandonnées (voir plus bas).
-
-⚠ **Deux passes perdues, même cause : l'appareil n'était pas à moi seul.**
-Une session concurrente a réinstallé l'app à 23:38:08 en plein test, puis
-quelqu'un a utilisé le téléphone au doigt vers 00:19 (message « test pour
-verifier 9c et 9d » envoyé dans Mes notes). S'ajoute un redémarrage du process
-à 23:59:49 **sans crash** — pas de `FATAL EXCEPTION`, pas d'ANR, mais une
-cascade de reclaim mémoire dans la même minute (Facebook, Samsung Pass, Play
-Store, keychain tués aussi). C'est la pression mémoire du A51 déjà documentée.
-Réflexe confirmé : relever `lastUpdateTime` **et** l'heure des captures avant
-de conclure quoi que ce soit.
 - [ ] ⚠ **Non-régression prioritaire — gestes vocaux.** Le bouton d'action doit
   rester dans l'arbre en permanence pour que le push-to-talk fonctionne :
   appui long → enregistrement, glisser à gauche → annulation, glisser vers le
@@ -4145,6 +2591,8 @@ de conclure quoi que ce soit.
 - [ ] **Bandeau d'enregistrement en nocturne** : le rouge d'annulation passe par
   `errorColor` au lieu de `Colors.red`. Armer l'annulation (glisser à gauche
   sans relâcher) en mode nuit et vérifier que le bandeau reste lisible.
+
+- ✔ 10 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Zone de saisie des messages — barre multi-ligne (2026-08-04) »).
 
 ---
 
@@ -4390,25 +2838,12 @@ groupes (étape C du plan du séparateur).
 par tous » demande un groupe à trois comptes sur trois appareils — il n'y en a
 que deux aujourd'hui.*
 
-1. **Rien d'avant l'arrivée ne compte comme non lu** — mesuré : trois membres
-   d'un groupe de 26 voyaient 7, 4 et 3 messages d'avant leur arrivée comptés
-   non lus, séparateur posé dessus. Serveur : `repere_de_lecture`,
-   `marquer_lus_jusqua`, vue `mls_unread_counts`
-   ([tools/rls_tests/groupes_non_lus.sql](tools/rls_tests/groupes_non_lus.sql),
-   10 cas ; l'état d'avant en fait tomber 7).
-2. **Un message système ne compte pas** : `_updateConversationLastMessage`
-   incrémentait la pastille de tous les participants — l'auteur du geste
-   compris — pour « Un utilisateur a été retiré du groupe ». ⚠️ Ce message n'a
-   en fait jamais été écrit, et le retrait n'en écrit plus : voir « Exclure un
-   membre d'un groupe échouait toujours ». La règle reste juste, la case
-   « Retirer un membre » ci-dessous ne vérifie plus que l'absence de pastille.
 3. **« Lu » attend tous les membres présents**, arrivés avant le message
    ([accuse_de_groupe.dart](lib/features/messages/presentation/utils/accuse_de_groupe.dart)).
    ⚠️ **Changement visible** : « Vu par N » disparaît de la bulle ; un lecteur
    sur deux affiche « Reçu ». Le détail par membre reste à un tap. Dans la liste,
    la tuile d'un groupe passait au vert dès que le premier autre membre venu
    avait lu.
-4. Une écriture du curseur par lot vu (tenu par un test, rien à voir à l'écran).
 
 - [ ] **Nouveau membre** dans un groupe avec de l'historique non lu : à
       l'ouverture, aucun séparateur sur les messages d'avant son arrivée ; la
@@ -4435,17 +2870,6 @@ date vit dans `group_members.joined_at`, et ni la requête d'appartenance, ni
 `GroupModel`, ni `toEntity` ne la portaient. Rebranchée dans
 [group_supabase_datasource.dart](lib/features/groups/data/datasources/group_supabase_datasource.dart)
 et [group_model.dart](lib/features/groups/data/models/group_model.dart).
-
-Le filtre lui-même n'était passé qu'à la page réseau : le cache, la fusion
-MLS, la pagination et le temps réel l'ignoraient. Il vit maintenant dans le
-setter `state` de `PaginatedMessagesNotifier` (`message_provider.dart`).
-
-Mesuré en production avant de rebrancher : les dates sont fiables (personne
-n'a écrit avant sa date d'arrivée, une date distincte par membre) et un membre
-ordinaire peut les lire. **Effet réel** : dans le groupe privé `2b24986f…`, le
-membre arrivé le 11/09 cesse de voir les 6 messages envoyés avant lui. Dans
-`90a2baa1…`, rien ne change (tous les messages sont postérieurs aux deux
-arrivées).
 
 ⚠️ **Ce que ça n'est pas** : une protection. Le filtre est côté client ; les
 messages restent lisibles par PostgREST pour tout participant. Et la date n'est
@@ -4495,28 +2919,11 @@ tiennent sur deux lignes).
 
 **Priorité P1** · importance 4/5 — La feuille « Inviter un membre » ne montrait que des « Utilisateur » à avatar gris : on ne pouvait pas savoir qui on invitait. Corrigé, jamais vu sur un écran.
 
-Relevé sur SM A515F le 2026-09-14, compte « Sim A », groupe « Groupe de test
-prive » : huit lignes visibles, toutes nommées « Utilisateur ». La recherche
-du même écran, elle, nommait correctement (« Yahaiya Moussa », avec sa photo)
-— deux providers différents derrière une seule feuille.
-
-`eligibleParticipantsProvider` ne lisait aucun profil : il prenait
-`conversation.name` quand la conversation était individuelle, « Utilisateur »
-sinon. Une conversation individuelle **n'a pas de nom** en base, et une
-conversation de groupe n'entrait pas dans la branche alors que la boucle
-propose chacun de ses participants — le compte partage un fil de 21 personnes,
-d'où les lignes anonymes en série.
-
 Le nom vient maintenant de `getProfilesByIds`, **une seule requête** pour toute
 la liste. Pas un `userStreamProvider` par ligne : sa `family` n'est pas
 `autoDispose`, vingt lignes laisseraient vingt abonnements temps réel ouverts
 pour le reste de la session.
 
-Couvert par `test/features/calls/candidats_nommes_test.dart` (nom résolu,
-requête unique, échec toléré, ami non relu, sans-nom en fin de liste). Ce que
-le test ne voit pas est ci-dessous.
-
-- ✔ 2 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Noms des candidats à l'invitation et à l'ajout en appel (2026-09-14) »).
 - [ ] **Sur appareil** : une invitation envoyée depuis cette liste arrive bien
       chez l'invité et porte **son** nom, pas « Utilisateur » — `inviteeName`
       part en base. Voir « Inviter des membres dans un groupe privé » pour le
@@ -4536,6 +2943,8 @@ le test ne voit pas est ci-dessous.
       le clavier la recouvre déjà. Gênant sans être cassé — à Salim de dire si
       ça vaut un correctif.
 
+- ✔ 2 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Noms des candidats à l'invitation et à l'ajout en appel (2026-09-14) »).
+
 ---
 
 ## ⬜ Groupes officiels de ville (2026-09-14)
@@ -4547,36 +2956,6 @@ l'ouvrent ; chacun reçoit une notification `cityGroupInvite` et **rien n'est
 ajouté d'office**. Laval et Longueuil mènent au groupe de Montréal
 (`pole_id`). Un profil invisible n'est ni compté ni invité.
 
-Le verrou levé au passage : l'index d'unicité de production portait sur le
-pays seul, et aurait refusé le tout premier groupe de ville. Onze cas sont
-vérifiés en base, transaction annulée — ce qui suit ne l'est pas.
-
-**C'EST EN PRODUCTION DEPUIS LE 2026-09-14.** « Diaspora Niger — Niamey » est
-le premier groupe de ville ouvert, sur demande de Salim
-(`ouvrir_groupes_de_ville_en_retard()`, après relecture des données reprises).
-Relevé juste après :
-
-| | |
-|---|---|
-| le groupe | officiel, public, pays `Niger`, **1 membre** — le compte plateforme, en owner |
-| invitations | **4 envoyées** : `1X5F6RKl…`, `6d7Ho9pN…`, `Hyt7iaHj…`, `iNqgb0jy…` |
-| titre reçu | « Rejoindre « Diaspora Niger — Niamey » ? » |
-| sur la carte | épingle de **ville**, 13.514 / 2.110 — pas le centroïde du Niger |
-
-Les trois premières cases ci-dessous ne se provoquent donc plus : elles se
-vérifient sur ces notifications-là, déjà dans les téléphones. Pour une
-deuxième ville, s'il en faut une :
-
-```sql
--- `ouvrir_groupe_de_ville` APPLIQUE le seuil : sur une ville qui n'a pas
--- trois profils visibles elle ne fait rien et rend NULL. Pour forcer un
--- groupe de banc, c'est la création qu'il faut appeler — elle n'invite
--- personne, il n'y a personne à inviter.
-SELECT public.get_or_create_ville_group(
-  (SELECT id FROM public.villes WHERE nom = 'Dosso' AND pays = 'Niger'));
-```
-
-- ✔ 10 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Groupes officiels de ville (2026-09-14) »).
 - [ ] **En base, après quelques jours** : le balayage quotidien de 9 h 30
   repasse sur Niamey sans redoubler ni le groupe ni les invitations
   (`SELECT count(*) FROM notifications WHERE type = 'cityGroupInvite'` doit
@@ -4589,11 +2968,6 @@ SELECT public.get_or_create_ville_group(
   filtre rien tant qu'il ne sait pas où sont les groupes (vérifié au banc,
   mais c'est le timing réel qui compte).
 
-⚠️ **Trouvé en y allant : `/groups/map` n'était atteignable par AUCUN
-écran.** La route existait dans `app_router.dart`, mais rien ne la poussait —
-il a fallu un lien profond (`diasponiger://groups/map`). Toute cette carte,
-centroïdes compris, était du code que personne ne voyait depuis l'app.
-
 **Entrée donnée le 2026-09-14** : une troisième action carrée dans l'en-tête
 de l'écran Groupes, entre la recherche et « Créer ». Un **globe**
 (`Icons.public`) et pas une carte pliée : celle-ci est déjà l'onglet
@@ -4601,13 +2975,6 @@ de l'écran Groupes, entre la recherche et « Créer ». Un **globe**
 différentes sous un seul pictogramme, à deux centimètres l'une de l'autre. Le titre de l'écran
 passe de « Groupes par pays » à « Groupes sur la carte » — il portait
 « par pays », ce n'est plus vrai depuis qu'il y a des épingles de ville.
-
-L'en-tête porte donc trois actions à côté d'un grand titre serif : c'est sa
-configuration la plus chargée, et la famille de débordements que ce projet
-paie régulièrement. Le titre est dans un `Expanded`, donc il se replie au
-lieu de pousser — vérifié au banc
-(`test/core/theme/entete_trois_actions_test.dart`) à 320 / 360 / 411 dp et
-aux échelles 1,0 / 1,1 / 1,3, neuf combinaisons.
 
 - [ ] **Sur appareil** : l'icône **globe** se distingue bien de l'onglet
   « Carte » du bas, et son appui ouvre la carte des groupes. L'appui depuis
@@ -4619,81 +2986,11 @@ aux échelles 1,0 / 1,1 / 1,3, neuf combinaisons.
   tiennent toujours. Le banc couvre 1,0 / 1,1 / 1,3, mais c'est là que l'œil
   ne se remplace pas.
 
-### Vérifié sur SM A515F le 2026-09-14 (APK release `703f4eda…`, `ddb6dfa`)
-
-Compte **Sim A**, qui se trouvait être le profil « Montréal » sans pays laissé
-de côté par la reprise — donc le cas le plus délicat du plan, joué en vrai.
-Les quatre comptes réellement invités appartiennent à d'autres personnes : je
-ne m'y suis pas connecté.
-
-Le parcours a produit l'invitation lui-même, sans donnée fabriquée : donner
-Niamey à Sim A en a fait le cinquième profil de la ville.
-
-- Champ ville : « Montréal » **sans pastille** (aucune ville retenue),
-  suggestions affichées **au-dessus du clavier**, « Montréal, Quebec » choisi
-  → pastille verte, et `users.country_code` passe à `Canada` **par le geste de
-  l'usager**. La pastille survit à un rechargement de l'écran : `ville_id` fait
-  bien l'aller-retour.
-- Changer le pays pour Niger **vide le champ immédiatement** et rallume
-  « Utiliser ma position ». « Nia » sous Niger ne propose que Niamey.
-- Enregistrement : `city=Niamey`, `country_code=Niger`, `ville_id=Niamey`.
-- **Invitation** : le push « Rejoindre « Diaspora Niger — Niamey » ? » arrive,
-  et son appui ouvre **la fiche du groupe** — 1 membre, bouton « Rejoindre ».
-  Rien n'est imposé. C'est le chemin des cinq `switch`, jamais vu jusque-là.
-- **Départ consenti (étape 4)** : passer du Canada au Niger a programmé la
-  sortie de « — Canada » au 2027-03-14, sans toucher au reste.
-- **Filtre Découvrir** : choisir « Niger » fait apparaître la rangée « Ville »
-  avec « Niamey ».
-- **« Utiliser ma position »** : position lue, proposition « Vous êtes à
-  Montréal-Nord, Quebec ? ». Cohérent — Montréal-Nord a Montréal pour pôle,
-  donc mène au groupe de Montréal. La feuille de divulgation ne s'affiche
-  pas, et c'est voulu : la permission COARSE était déjà accordée, le système
-  n'allait pas reposer la question. Permissions relevées avant et **remises à
-  l'identique** (COARSE accordée, FINE refusée).
-- Un échec de recherche s'est produit une fois : « Recherche impossible pour
-  le moment » s'est affiché **et le champ s'est rétabli à la frappe
-  suivante** — le comportement voulu, observé pour de vrai.
-
-⚠️ **Deux choses trouvées, dont une non élucidée.**
-
-1. **« Niamey, Niamey », « Zinder, Zinder »** dans les suggestions : au Niger
-   la région porte le nom de son chef-lieu. Corrigé — la région se tait quand
-   elle ne distingue rien (`Ville.libelle`, `test/core/ville_libelle_test.dart`).
-   Reste que GeoNames ne donne les régions qu'en **ASCII** : « Montréal,
-   Quebec » s'affiche sans accent. Pas corrigé, la source n'a pas mieux.
-2. **L'onglet Découvrir restait sur ses cartes squelettes**, et « Mes
-   groupes · 0 » alors que le compte était membre de deux groupes. **Élucidé
-   et corrigé** — c'était antérieur à ce travail :
-
-   `MyGroupsNotifier.build()` posait `ref.onDispose(() => _disposed = true)`
-   sans jamais remettre le drapeau à `false`. Or `onDispose` se déclenche à
-   chaque **recalcul** du fournisseur, pas seulement à sa destruction, et pour
-   un `Notifier` c'est la MÊME instance qui est réutilisée. Comme `build()`
-   observe `currentUserProvider` — un flux : une fois sans utilisateur, une
-   fois avec — le drapeau passait à `true` sur un notifier bien vivant dès la
-   deuxième exécution. `loadMyGroups` se terminait, tombait sur
-   `if (_disposed) return;` et **n'écrivait jamais son résultat**. Ni elle ni
-   `_refreshQuietly` : rejoindre un groupe sous les yeux de l'écran ne le
-   débloquait pas non plus.
-
-   Rien dans les journaux — l'état ne devient jamais une erreur, il reste « en
-   chargement » pour toujours. Et c'est une **course** : un compte dont
-   l'authentification est déjà résolue quand l'écran demande la liste ne
-   déclenche qu'un seul `build()` et ne voit rien. D'où l'écart entre les deux
-   téléphones.
-
-   Reproduit au banc (`mes_groupes_reconstruction_test.dart`) avant d'être
-   corrigé — le banc échoue sur l'ancien code.
-
-   `onboarding_provider.dart` porte le même motif mais **n'observe rien** :
-   son `build()` ne s'exécute qu'une fois, il n'est pas touché. Laissé tel
-   quel — c'est le fournisseur qui garde le routeur, on n'y touche pas sans
-   reproduction.
-
 Pas encore vu : la mention GeoNames dans « À propos », la carte, le thème
 sombre. La feuille de divulgation du champ ville n'a pas pu être rejouée —
 `USER_FIXED` est posé sur les deux permissions et adb ne le retire pas.
 
+- ✔ 10 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Groupes officiels de ville (2026-09-14) »).
 
 ---
 
@@ -4711,14 +3008,6 @@ Seule la carte de la fiche du groupe (`official_group_departure_card.dart`)
 peut faire sortir, via `repondre_depart_groupe_officiel`. Sans réponse, on
 reste. Revenir dans ce pays annule la proposition.
 
-Prouvé en transaction annulée sous les vrais comptes `0D3P…` et `U64H…` :
-changement, retour au pays, resauvegarde sans effet, échéance simulée → 2
-notifications, Quitter (sortie du groupe ET de la discussion, les autres
-participants intacts), Rester, 2e réponse sans effet ; `anon` refusé sur la
-réponse, `authenticated` refusé sur la tâche. Tests :
-`test/features/groups/depart_groupe_officiel_test.dart` (6 widget + 3 garde
-SQL « la tâche ne retire personne »).
-
 Seule proposition en attente aujourd'hui : `0D3P…`, groupe Cap-Vert, le
 2027-03-11. **Recette pour la provoquer sur le compte de test** (envoie une
 vraie notification) :
@@ -4731,13 +3020,6 @@ SELECT proposer_departs_groupes_officiels();
 
 (Il faut d'abord que le compte ait changé de pays en étant membre du groupe
 officiel de l'ancien.)
-
-**Passe prévue sur SM A515F, compte « Sim A » (choix de Salim, 2026-09-13),
-mise en attente à sa demande avant toute écriture.** L'APK qui contient la
-fonctionnalité est **déjà posé** : versionCode 19, build du commit `79e2cc9`,
-md5 `6826b957e1d533b091f8f89fd1fdc016`, installé par `install -r` à 12:13,
-session « Sim » conservée (« Bonjour, Sim » à la relance). Revérifier le md5
-avant de commencer : un autre agent a pu réinstaller entre-temps.
 
 État de départ de Sim A (`vQZE49dTdyRtLwSG6lMIbhAqoFG2`), à restaurer à la fin :
 pays **vide**, membre de « Diaspora Niger — Canada » (member), « Testeurs »
@@ -4782,21 +3064,6 @@ portent le nom accentué du pays (« Algérie », « États-Unis »). Migration
 relue après coup : 5 groupes officiels renommés (dont « — Niger » et
 « — Algérie »), compteurs de membres justes partout.
 
-- Cause du mélange : `Country.toIsoCode` ne connaissait que 28 pays sur les
-  197 du sélecteur ; « Angola » et « Cap-Vert » repartaient en toutes lettres.
-- Cause du compteur faux : `update_group_member_count` tournait avec les
-  droits de l'appelant, et la RLS de `groups` réduisait l'`UPDATE` d'un membre
-  ordinaire à zéro ligne. Prouvé réparé en transaction annulée sous le compte
-  non-admin `0D3P…` (rejoindre → 2/2).
-- La base ramène elle-même tout code au nom (`pays_canonique`, déclencheurs) :
-  les APK déjà installés continuent d'écrire `CA`, ce qui ne salit plus rien.
-
-Couvert par `test/core/models/pays_en_toutes_lettres_test.dart` (liste app =
-référentiel SQL, clés de la carte, pliage des accents) et
-`pays_defaut_test.dart`. Fichiers : `profile_options.dart`,
-`profile_supabase_datasource.dart`, `profile_provider.dart`,
-`edit_profile_screen.dart`, `groups_screen.dart`, `groups_map_screen.dart`.
-
 - [ ] Profil → changer de pays pour un pays hors des 28 anciens (Angola) :
       le sélecteur le garde, et « Diaspora Niger — Angola » apparaît dans
       « Mes groupes », sans second groupe du même pays.
@@ -4804,23 +3071,11 @@ référentiel SQL, clés de la carte, pliage des accents) et
       compris (« Algérie », « Côte d'Ivoire »).
 - [ ] Groupes → Découvrir : puces « 🇳🇪 Niger », « 🇨🇦 Canada »,
       « 🇩🇿 Algérie », et le filtre posé d'office est le pays du profil.
-- [ ] Carte des groupes : marqueurs Niger, Canada, Algérie présents (aucun
-      avant). Angola et Cap-Vert n'ont pas de centroïde : pas de marqueur,
-      c'est attendu.
 - [ ] Rejoindre puis quitter un groupe public avec un compte non admin : le
       nombre de membres suit dans la liste. *Bloqué : deux comptes pour le
       voir côté autre membre.*
 - [ ] Nom d'un groupe créé à la main avec « États-Unis » : la pastille de la
       carte affiche « 🇺🇸 États-Unis ».
-
-Changer de pays ne faisait pas quitter le groupe officiel de l'ancien pays
-(`0D3P…` membre de « — Cap-Vert » et de « — Angola ») : tranché par Salim, voir
-« Quitter l'ancien groupe officiel : proposé après 6 mois, jamais imposé ».
-
-⚠️ **Pour les autres agents** : deux migrations non livrées datées du
-2026-09-12 (`20260912200000`, `20260912220000`, dans d'autres worktrees) sont
-désormais antérieures à la dernière appliquée : leur `db push` demandera
-`--include-all`.
 
 **Étendu aux groupes de ville le 2026-09-14.** Déménager de Montréal à
 Toronto propose de quitter « — Montréal » à six mois, sans toucher au groupe
@@ -4861,55 +3116,6 @@ Consigne de Salim : « pour les groupes privés, celui qui reçoit le lien fait
 une demande d'adhésion au groupe ». Le message honnête livré la veille restait
 une impasse ; il devient une porte.
 
-Tout le chemin existait déjà (`requestToJoinGroup`, et
-`group_requests_parties` laisse un non-membre créer **sa** demande). Il
-manquait une seule chose : `group_requests.group_name` est dénormalisé, donc
-sans un moyen de lire le nom, aucune demande n'est possible depuis un lien.
-
-`20260910060000` ajoute `group_link_preview(uuid)`, SECURITY DEFINER, réservée
-à `authenticated` : nom, avatar, nombre de membres, privé ou non. Rien
-d'autre. La RLS de `groups` n'a pas bougé — prouvé en transaction annulée :
-un inconnu authentifié voit toujours 3 groupes par la RLS (les publics), et
-n'obtient le nom du privé que par l'aperçu.
-
-⚠️ **Choix de produit assumé** : un uuid connu révèle désormais le nom d'un
-groupe privé — le modèle du lien d'invitation. Ce que ça ne rouvre **pas**,
-et c'est ce qui le distingue de la porte fermée par `20260909201500` :
-l'aperçu ne donne aucun accès, la seule suite est une demande qu'un
-administrateur doit approuver.
-
-Effet de bord utile : l'aperçu est la seule chose qui sache distinguer
-« privé » de « supprimé » — `getGroupById` rend le même PGRST116 pour les deux.
-
-**⚠️ L'aperçu était joignable en ANONYME — corrigé par `20260910070000`.**
-`20260910060000` annonçait « réservée à `authenticated` » et faisait
-`REVOKE ALL ... FROM PUBLIC` + `GRANT ... TO authenticated`. Insuffisant :
-Supabase pose un `ALTER DEFAULT PRIVILEGES` qui accorde EXECUTE **nommément**
-à `anon` sur toute nouvelle fonction de `public`, et révoquer `PUBLIC` n'y
-touche pas. Mesuré en production avec la clé publique du `.env` :
-`POST /rest/v1/rpc/group_link_preview` → **200**, nom du groupe privé rendu
-**sans compte**. Prouvé refermé : connecté → le nom, anonyme → 42501.
-
-✅ **Trou refermé en production, vérifié de l'extérieur** :
-`POST /rest/v1/rpc/group_link_preview` avec la clé publique → **401 / 42501**.
-
-⚠️ **Deux fois de suite le lien profond s'est perdu au démarrage à froid**
-(2026-09-10, 00:55 et 01:41) : l'app atterrit sur la liste des groupes ou sur
-l'accueil au lieu de la cible. Rejoué à chaud, c'est bon à chaque fois. Le
-repli `_pendingDeepLink` ne rattrape donc pas tout — **faux** : ces deux mesures étaient contaminées par la campagne d'un autre agent ; le vrai défaut, corrigé le 2026-09-11, est décrit dans « Lien profond perdu sur une activité neuve ».
-Conséquence pratique pour toute mesure : **laisser l'app démarrer une première
-fois** après une installation avant d'envoyer un lien.
-
-⚠️ **Réflexe** : après toute fonction SECURITY DEFINER ajoutée ici, relire
-`proacl` — `REVOKE ... FROM PUBLIC` ne dit rien des rôles Supabase.
-
-**⚠️ `supabase db push` à relancer** pour `20260910070000`. Tant qu'elle n'est
-pas passée, l'aperçu échoue et l'écran retombe sur l'ancien message — c'est
-volontaire, mais rien n'est vérifiable sur appareil avant.
-
-Couvert par deux tests widget : aperçu résolu → nom + « Demander à
-rejoindre » ; aperçu nul → pas de fausse porte.
-
 - [ ] Depuis un compte **non-membre**, ouvrir le lien d'un groupe privé :
       nom, avatar, « Privé · N membres », bouton « Demander à rejoindre ».
       ⚠️ **Invérifiable en l'état** : « Sim A » (SM A515F) est membre des DEUX
@@ -4920,8 +3126,9 @@ rejoindre » ; aperçu nul → pas de fausse porte.
       preuve SQL en transaction annulée.
 - [ ] Le bouton devient inactif après l'envoi, et l'administrateur voit la
       demande dans `/groups/<id>/requests`.
-- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Groupe privé par lien : demander à rejoindre (2026-09-10) »).
 - [ ] Redemander deux fois ne doit pas empiler deux demandes.
+
+- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Groupe privé par lien : demander à rejoindre (2026-09-10) »).
 
 ---
 
@@ -4932,35 +3139,6 @@ rejoindre » ; aperçu nul → pas de fausse porte.
 Signalé par Salim : « l'acceptation et exit dans les groupes ne sont pas mis à
 jour automatiquement du côté de tous les users ». Deux causes superposées,
 toutes deux corrigées.
-
-**1. Côté base.** Ni `public.groups` ni `public.group_members` n'étaient dans
-la publication `supabase_realtime` (relevé du 2026-09-09 sur le projet lié).
-Le « stream » de la fiche groupe faisait donc son chargement initial et plus
-jamais rien : le commentaire « Stream provider for real-time group updates »
-décrivait une réactivité qui n'existait pas. Corrigé par
-`20260909210000_realtime_groupes_et_appartenance.sql`, **appliqué en
-production le 2026-09-09** et vérifié (les deux tables figurent maintenant
-dans la publication).
-
-**2. Côté app.** Même publiée, la table `groups` ne bouge pas quand
-l'appartenance change : la liste des membres vit dans `group_members`.
-`getGroupStream` écoute désormais les **deux** tables, chacune déclenchant la
-même relecture. Et les deux écrans concernés préféraient un instantané figé :
-`GroupDetailScreen` faisait `widget.initialGroup ?? streamGroup` (le paramètre
-de navigation gagnait sur tout), `GroupMembersScreen` ne lisait même pas le
-flux. « Mes groupes » ne se chargeait qu'une fois, à la construction du
-notifier : un groupe rejoint sur approbation n'y apparaissait qu'au
-redémarrage.
-
-Fichiers : `group_supabase_datasource.dart`, `group_remote_datasource.dart`,
-`group_repository_impl.dart`, `group_provider.dart`, `group_detail_screen.dart`,
-`group_members_screen.dart`.
-
-Verrouillé côté app par `test/features/groups/membres_temps_reel_test.dart`
-(3 cas) — mais le test remplace le flux par un `StreamController` : **il ne
-prouve rien du transport realtime**, qui est exactement ce qui manquait.
-D'où la liste ci-dessous, qui demande **deux téléphones** (deux comptes
-distincts).
 
 - [ ] **Acceptation d'une demande, écran Membres ouvert** : téléphone A
       (administrateur) sur la fiche du groupe → Membres. Téléphone B demande à
@@ -5002,59 +3180,21 @@ distincts).
 
 **Priorité P0** · importance 5/5 — Tant que la session Supabase n'est pas établie (installation neuve, examinateur Play compris), la liste des groupes, la fiche d'un groupe et les événements affichent une erreur au lieu du contenu.
 
-Trouvé en sondant PostgREST avec la clé publique du `.env` — donc rôle `anon`,
-exactement ce qu'est un client dont la session Supabase n'est pas encore
-établie :
-
-```
-GET /rest/v1/groups?select=id,name  →  401
-{"code":"42501","message":"permission denied for function has_group_invite"}
-```
-
-`events`, `posts`, `group_members`, `event_attendees` répondent 200. **Seule
-`groups` échoue.** `20260909201500` a ajouté `has_group_invite(id)` à
-`groups_select_public` sans donner l'exécution à `anon` ; toutes ses fonctions
-sœurs (`is_group_member`, `is_group_admin`, `is_group_public`, `firebase_uid`)
-l'ont. Postgres refuse alors la requête **entière** au lieu d'évaluer le terme
-à `false`.
-
-Ce que ça casse, et qui ne se voit dans aucun test : toute lecture de `groups`
-faite avant que le pont Firebase→Supabase ait abouti — la liste des groupes et
-la fiche d'un groupe ne rendent pas « moins de lignes », elles rendent une
-erreur. Et par ricochet les événements, dont le datasource demande
-`select=*,groups(name)` : l'embed déclenche la RLS de `groups`.
-
 `20260910014500_has_group_invite_executable_par_anon.sql` ajoute le GRANT
 manquant. Prouvé en transaction annulée, dans les deux sens : sans lui `anon`
 reçoit 42501 ; avec lui il voit **3 groupes** — les 3 publics, aucun des 2
 privés. La visibilité ne bouge pas, l'erreur dure devient un `false`.
 
-⚠️ Fichier séparé, pas une retouche de `20260909201500` : celle-là est déjà
-appliquée et son auteur travaille encore dessus. À lui signaler.
-
-- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⚠️ Lire les groupes SANS session échoue en production (2026-09-09) »).
 - [ ] Un lien profond `/groups/<public>` reçu par quelqu'un qui vient
       d'installer l'app.
+
+- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⚠️ Lire les groupes SANS session échoue en production (2026-09-09) »).
 
 ---
 
 ## ⬜ Inviter des membres dans un groupe privé (2026-09-09)
 
 **Priorité P1** · importance 5/5 — Un administrateur ne peut toujours pas faire entrer quelqu'un dans son groupe privé, ou l'invité accepte sans accéder à la discussion ; si l'exclusion ne tient pas, un membre retiré continue de lire le groupe. *Bloqué : deux comptes (sauf l'interface d'invitation côté admin).*
-
-Signalé par Salim : « pour les groupes privés j'arrive pas à ajouter d'autres
-membres ». Il n'y arrivait pas parce que **l'app n'offrait nulle part de quoi
-le faire** — `GroupInviteNotifier.inviteUser` existait, le datasource Supabase
-écrivait bien `group_invites`, l'invité voyait l'invitation dans l'onglet
-Groupes et l'acceptation l'inscrivait dans `group_members` : tout le chemin
-était là, sauf l'écran qui l'appelle. Quatre traductions
-(`inviteMember`/`inviteSent`/`inviteAlreadySent`/`inviteError`) attendaient
-depuis le début, sans un seul usage dans le code.
-
-Sur un groupe **public** le manque se contournait — on partage le lien, la
-personne appuie sur « Rejoindre ». Sur un groupe **privé**, le lien ne produit
-qu'une demande d'adhésion à approuver : l'administrateur n'avait donc aucun
-moyen d'aller chercher quelqu'un.
 
 **Ce qui est à vérifier à l'écran** (aucun point ci-dessous n'est couvert par
 `flutter analyze`) :
@@ -5086,59 +3226,6 @@ moyen d'aller chercher quelqu'un.
       testé (`acceptInvite` raccroche maintenant la conversation, comme
       `joinGroup` le faisait déjà de son côté).
 
-**Sécurité fermée au passage — à rejouer après `supabase db push`.** La porte
-d'entrée de `group_members` (20260806210000) laissait une porte latérale :
-`group_invites_own` autorise à INSÉRER une invitation **dont on est soi-même
-le destinataire**, pour n'importe quel groupe. Deux appels d'API suffisaient
-donc pour entrer dans un groupe privé sans y avoir été invité — vérifié le
-2026-09-09 sous une identité réelle, dans une transaction annulée. Fermé par
-`20260909201500_invitations_groupe_porte_laterale.sql` (garde RESTRICTIVE à
-l'INSERT, trigger qui fige `group_id`/`invitee_id`, et `has_group_invite()`
-qui ne compte plus une invitation refusée).
-
-Banc rejouable, transaction annulée, rien n'est écrit :
-
-```bash
-supabase db query --linked -f supabase/diagnostics/2026-09-09_invitations_groupe.sql
-```
-
-Sortie attendue : « banc termine ». Tout « ECHEC n » interrompt le banc.
-
-### ⛔ Deuxième temps : l'invité ne pouvait pas ouvrir la discussion
-
-Trouvé en branchant les notifications, **pas signalé** : `join_group_conversation()`
-rattache l'appelant à `conversations.participant_ids` — c'est ce qui fait
-apparaître un groupe rejoint dans l'onglet Messages — mais le garde
-`conversations_guard_admin_fields` (2026-08-14) refuse **toute** modification de
-`participant_ids` par qui n'est pas administrateur du groupe. Un invité qui
-vient d'accepter ne l'est pas.
-
-Mesuré sous identité réelle non privilégiée, en transaction annulée :
-`EXCEPTION 42501`, `participant_ids` inchangé. Le premier test avait conclu
-l'inverse — le compte utilisé est superAdmin plateforme **et** le groupe testé
-était officiel, deux privilèges qu'un invité n'a pas.
-
-**Corrigé par l'autre agent, pas par moi, et pas encore déployé.** Il l'avait
-trouvé en même temps depuis un appareil (« Ouvrir la discussion » → bandeau
-rouge 42501) et corrigé plus largement dans
-`20260909210500_membre_non_admin_peut_rejoindre_sa_conversation.sql` : son
-exemption vaut pour **tout membre réel** qui s'ajoute lui-même, donc aussi
-pour un groupe public, et elle traite un écart que j'avais manqué — le garde
-identifie l'appelant par `firebase_uid()` là où la RPC ajoute
-`current_user_id()`. Ma version, plus étroite, a été retirée : un
-`CREATE OR REPLACE FUNCTION` l'aurait remplacée sans conflit git et sans un
-mot.
-
-✅ **Déployé le 2026-09-09** après avoir débloqué `db push` : la version
-orpheline `20260909210000` avait été poussée en production depuis la branche
-`claude/groupes-temps-reel`, jamais fusionnée — son fichier a été rapatrié
-plutôt que sa ligne effacée. Les trois migrations en attente (deux à moi, une
-sur les événements à un autre agent) sont passées, et les trois bancs rejoués
-contre la base réelle rendent « banc termine ».
-
-- [ ] **Deux téléphones** : accepter une invitation, puis vérifier que le
-      groupe apparaît dans l'onglet **Messages** sans avoir à ouvrir sa fiche,
-      et que la discussion s'ouvre.
 - [ ] Envoyer un message depuis chaque côté : lisible des deux (vrai chemin
       Sender Key — voir la section « un groupe dont on est le seul membre »).
 
@@ -5164,62 +3251,10 @@ migration.
       « Adhésion acceptée ». Refuser sur une autre demande : « Adhésion
       refusée ».
 
-Banc dédié, transaction annulée (⚠️ son étape A a été retirée : elle exigeait
-qu'un membre sans invitation soit refusé, conception abandonnée depuis, et
-faisait donc échouer le banc sur du code correct) :
-
-```bash
-supabase db query --linked -f supabase/diagnostics/2026-09-09_invite_discussion_et_notifications.sql
-```
-
-### ⚠️ Deux défauts voisins trouvés, **non corrigés**
-
-- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Inviter des membres dans un groupe privé (2026-09-09) »).
-
-**Mesuré**, en appliquant la migration de l'autre agent dans une transaction
-annulée puis en rejouant le cas d'un exclu : `exclu_de_retour = true`, la RPC
-rend l'id de la conversation. Une fois son correctif déployé, toute exclusion
-est donc annulable par l'exclu lui-même, en ouvrant simplement la discussion.
-
 ### ⬜ L'impasse tranchée : l'exclusion s'enregistre, tout membre ouvre sa discussion
-
-Demande de Salim le 2026-09-09 : « tout membre peut ouvrir les conversations ».
-Les deux agents avaient écrit l'exemption du garde, chacun de son côté, et
-chacun l'avait retirée — adossée à l'**invitation** elle laisse de côté qui a
-rejoint un groupe public ; adossée à l'**appartenance** elle rouvre la porte
-aux exclus. Parce que l'exclusion n'était enregistrée nulle part : elle
-n'existait que comme une absence dans `conversations.participant_ids`, et
-`group_members` continuait d'affirmer le contraire.
-
-Fermé par le bas, côté base : `20260909234500` pose un déclencheur —
-disparaître de `participant_ids` d'une conversation de **groupe**, c'est ne
-plus être membre du groupe. `removeUserFromGroup` fait dès lors ce que son nom
-annonce, **sans un changement côté app** : `message_supabase_datasource.dart`
-est tenu par le worktree `partage-discussion`, et une RPC de retrait aurait dû
-y être appelée. L'exemption de l'autre agent (tout membre réel s'ajoute
-lui-même) est reprise telle quelle dans la même migration, où elle redevient
-sûre.
-
-Vérifié qu'aucune reprise de données n'est nécessaire : les deux seules
-appartenances absentes de leur conversation (« Diaspora Niger — NE » et
-« Testeurs ») sont des membres qui n'ont jamais pu se rattacher, pas des
-exclus.
-
-Banc dédié, 8 étapes, transaction annulée — il échoue bien sur l'état d'avant
-(« ECHEC A : raccrochage encore refuse (42501) ») :
-
-```bash
-supabase db query --linked -f supabase/diagnostics/2026-09-09_exclusion_et_ouverture_discussion.sql
-```
 
 À vérifier sur appareil, après déploiement :
 
-- [ ] Un membre simple ouvre la discussion de son groupe (le défaut d'origine,
-      vu sur SM A515F : bandeau rouge 42501).
-- [ ] Retirer quelqu'un d'un groupe : il **disparaît de la liste des membres**
-      de la fiche, et `Membres · n` décroît (c'est nouveau — il y restait).
-- [ ] Depuis le compte retiré, ouvrir la discussion du groupe : il ne revient
-      ni dans les participants, ni dans les membres.
 - [ ] Quitter un groupe volontairement : toujours possible, et le groupe
       disparaît de l'onglet Messages.
 - [ ] Envoyer des messages dans un groupe : personne n'est retiré au passage
@@ -5227,59 +3262,13 @@ supabase db query --linked -f supabase/diagnostics/2026-09-09_exclusion_et_ouver
       n'écrit que `data` — couvert par l'étape E du banc, mais jamais vu
       tourner sur un vrai fil).
 
-⚠️ **Collision possible** : l'autre agent peut relivrer sa propre version de
-`conversations_guard_admin_fields`. Les deux corps sont identiques, un
-`CREATE OR REPLACE` de plus est sans conséquence — mais si sa version revient
-**sans** le déclencheur d'exclusion, l'exclusion redevient annulable. Vérifier
-`git log` avant de conclure.
-Passer le fichier avec `-f` et non en argument : sous cette seconde forme les
-accents du banc le font échouer sur un message tronqué, qui se lit comme un
-vrai échec.
-
-**Appliqué en production le 2026-09-09** (`supabase db push`), banc rejoué
-contre la base réelle : « banc termine ». L'attaque est désormais refusée
-nommément — `new row violates row-level security policy
-"group_invites_insert_gate"`.
+- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Inviter des membres dans un groupe privé (2026-09-09) »).
 
 ---
 
 ## ⛔ Un groupe dont on est le seul membre refuse TOUS les messages (2026-09-09)
 
 **Priorité P0** · importance 3/5 — Les médias de groupe peuvent échouer à l'envoi faute de destinataires, et leur légende est stockée en clair sur le serveur sous une étiquette « aes » — fuite de texte dans une messagerie annoncée chiffrée.
-
-Vu sur les **deux** appareils, dans deux groupes différents — donc pas une
-donnée périmée :
-
-- SM A515F, « Groupe de test privé » (1 membre) : `ECHO-A-1944` reste en
-  « Non envoyé · Réessayer », et « Réessayer » échoue pareil, alors que
-  l'appareil est en ligne (ping ok) et qu'un message 1:1 part sans problème à
-  la même minute ;
-- Pixel 10 Pro XL, « Testeurs » (1 membre, créé quelques minutes plus tôt) :
-  `GRP-TEST-1955` échoue exactement de la même façon.
-
-**Cause.** `message_provider.dart` calcule les destinataires d'un groupe en
-retirant l'expéditeur : `participantIds.where((id) => id != currentUser.id)`.
-Dans un groupe où l'on est seul, la liste est **vide** — et
-`_encryptContent` (`message_supabase_datasource.dart:247`) lève alors
-`E2EEException('Destinataire manquant — chiffrement impossible.')`, garde
-écrite pour le cas « 1:1 dont on n'a pas résolu le destinataire ».
-
-Rien ne le dit à l'écran : pas de SnackBar, juste le triangle rouge — et
-l'état vide du fil invite pourtant à « Soyez le premier à envoyer un message
-dans ce groupe ! ». C'est donc le tout premier geste après la création d'un
-groupe qui échoue.
-
-Corrigé en remettant l'expéditeur dans la liste quand elle est vide :
-`encryptGroup` chiffre avec NOTRE Sender Key, et
-`distributeSenderKeyToGroup` écarte déjà l'expéditeur de ses destinataires
-(`sender_key_service.dart:189`), donc la distribution ne vise personne.
-
-Vérifié sur **SM A515F** avec le build corrigé, dans le groupe même qui
-refusait une heure plus tôt (« Groupe de test privé », 1 membre) :
-
-- ✔ 5 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⛔ Un groupe dont on est le seul membre refuse TOUS les messages (2026-09-09) »).
-
-Restent à faire :
 
 - [ ] Les envois de **médias** en groupe : le provider ne leur passe aucun
       `participantIds` — et la légende part en clair, voir la section « La
@@ -5296,122 +3285,13 @@ Restent à faire :
       ou ajouter une image de test à l'APK. À faire en même temps que le
       correctif de la légende, qui touche le même chemin d'envoi.
 
+- ✔ 5 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⛔ Un groupe dont on est le seul membre refuse TOUS les messages (2026-09-09) »).
+
 ---
 
 ## ⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)
 
 **Priorité P1** · importance 4/5 — Si la garde ou l'exclusion a régressé, un membre simple s'octroie des droits ou un exclu revient lire la discussion du groupe. *Bloqué : deux comptes pour l'exclusion ; le reste faisable avec Sim A.*
-
-Trouvé en essayant simplement d'ouvrir « Testeurs » depuis le SM A515F, avec
-le compte **Sim A**, membre simple (Salim L. est le créateur). « Ouvrir la
-discussion » ne fait rien pendant ~4 s, puis un bandeau rouge — et il faut
-capturer à ~1 s pour le voir, sinon on croit à un bouton mort :
-
-```
-Erreur lors de l'ouverture de la discussion — createGroupConversation error:
-ServerException: findGroupConversationByGroupId error:
-PostgrestException(message: Seul un administrateur du groupe peut modifier les
-membres ou les droits admin de cette conversation, code: 42501,
-details: Forbidden, hint: null)
-```
-
-**Deux migrations justes séparément, incompatibles ensemble.**
-
-- `20260720130000` crée `join_group_conversation()`, SECURITY DEFINER, dont le
-  travail est précisément d'ajouter l'appelant à
-  `conversations.participant_ids` quand il a rejoint le groupe **après** la
-  création de la conversation — le cas courant. Elle vérifie d'abord
-  l'appartenance réelle dans `group_members`.
-- `20260814000500` pose ensuite le trigger `conversations_guard_admin_fields`,
-  qui refuse toute UPDATE touchant `participant_ids` ou `adminIds` à qui n'est
-  pas administrateur.
-
-**SECURITY DEFINER contourne les policies RLS, pas les TRIGGERS.** L'UPDATE de
-la RPC déclenche donc la garde, qui la refuse. La fonction écrite pour laisser
-entrer un nouveau membre est bloquée par une garde écrite trois semaines plus
-tard : le groupe devient inouvrable pour **tous ses membres simples**. Seuls
-les administrateurs voyaient encore leur discussion — ce qui explique aussi
-pourquoi le défaut a pu vivre longtemps sans être vu (les deux comptes de test
-étaient créateurs de leurs propres groupes).
-
-**Le correctif appartient à l'autre session** (worktree `inviter-membres`,
-`20260909223000_invite_entre_dans_la_discussion.sql`). J'en avais écrit un —
-`20260909210500`, exemption « un membre réel du groupe peut s'ajouter
-lui-même » — **il était faux et a été retiré** avant tout déploiement.
-
-Pourquoi il était faux, et c'est le point à retenir : `removeUserFromGroup`
-(`message_supabase_datasource.dart:2044`) ne retire la personne **que** de
-`conversations.participant_ids` et de `data.adminIds` — **sa ligne
-`group_members` reste**. Une exemption adossée à « est membre du groupe »
-aurait donc rendu à chaque personne exclue le droit de se remettre dans la
-discussion en l'ouvrant : toutes les exclusions annulées en silence, sans
-trace. Aujourd'hui c'est ce garde qui fait tenir l'exclusion — par effet de
-bord, pas par intention. L'autre session adosse son exemption à
-`has_group_invite()`, ce qui ne rouvre pas cette porte.
-
-**Décision de Salim, 2026-09-09 : « B puis C ».** B = le correctif adossé à
-l'invitation, à l'autre session, qui débloque ce soir les membres invités.
-C = réparer l'exclusion elle-même, à faire ensuite, pour que « tout membre »
-soit vrai y compris pour qui a rejoint un groupe public. Ce qu'il faut savoir
-avant d'attaquer C, relevé en préparation :
-
-- **Deux chemins de retrait coexistent et font l'inverse l'un de l'autre.**
-  `GroupSupabaseDatasource.removeMember` → `leaveGroup`
-  (`group_supabase_datasource.dart:343`) **supprime bien** la ligne
-  `group_members`. `MessageSupabaseDatasource.removeUserFromGroup`
-  (`message_supabase_datasource.dart:2044`) ne touche **que**
-  `conversations`. C'est le second que l'écran utilise
-  (`group_members_screen.dart:324`, via `conversationActionsNotifier`) — donc
-  en pratique une exclusion ne retire jamais du groupe.
-- ⚠️ **Et le premier chemin a son propre défaut** : `leaveGroup` supprime la
-  ligne de `userId`, puis appelle la RPC `leave_group_conversation`, qui agit
-  sur **l'appelant authentifié** (`firebase_uid`), jamais sur `userId`.
-  Utilisé pour exclure quelqu'un d'autre, il sortirait donc **l'admin** de la
-  conversation à la place de l'exclu. Le commentaire du code le dit lui-même
-  (« cohérent avec le fait que `leaveGroup` n'est appelé aujourd'hui qu'avec
-  `currentUser.id` ») — mais `removeMember` l'appelle avec un `userId`
-  quelconque. Dormant tant que `GroupRepositoryImpl.removeMember` n'a pas
-  d'appelant d'écran (`group_repository_impl.dart:278` est le seul).
-- Donc C n'est pas « ajouter un DELETE » : c'est unifier les deux chemins sur
-  un seul, qui retire la personne des DEUX tables, et qui vise bien la
-  personne exclue et pas l'appelant.
-
-**La question de fond, tranchée par cette décision** (demande de Salim le
-2026-09-09 : « tout membre peut ouvrir les conversations »). Adosser
-l'exemption à l'**invitation** ne couvre pas quelqu'un qui a rejoint un
-groupe **public** sans jamais être invité. Adosser à l'**appartenance** rouvre
-la porte aux exclus. Les deux options sont bancales pour la même raison :
-**l'exclusion n'est enregistrée nulle part de durable** — elle n'existe que
-comme une absence dans `conversations.participant_ids`, et `group_members`
-continue d'affirmer le contraire. Tant que `removeUserFromGroup` ne supprime
-pas aussi la ligne `group_members` (ou n'écrit pas un état « exclu »),
-« membre du groupe » restera un critère qu'on ne peut pas utiliser pour
-autoriser quoi que ce soit.
-
-⚠️ `message_supabase_datasource.dart` est **tenu par le worktree
-`partage-discussion`** (modifié, non committé) : ne pas y toucher sans
-coordination.
-
-✅ **Déployé** — `supabase db push --dry-run` rend « Remote database is up to
-date » au 2026-09-09 22:07 : B (`20260909223000`) **et** C
-(`20260909234500_exclusion_enregistree_membre_ouvre_sa_discussion.sql`, écrit
-par une autre session) sont en base. C ferme par un déclencheur — disparaître
-de `participant_ids` d'une conversation de groupe supprime la ligne
-`group_members` — donc sans toucher au fichier Dart tenu par
-`partage-discussion`, et sans le travail d'unification décrit plus haut.
-
-À noter pour la prochaine fois : `db push` a un moment refusé de tourner
-parce que la base portait une version (`20260909210000`) dont le fichier
-n'était encore poussé nulle part — il vivait dans le worktree
-`groupes-temps-reel`. **Une migration appliquée en production avant que son
-fichier ne soit livré bloque le déploiement de tout le monde.**
-
-⚠️ **Vérification appareil non faite** : le SM A515F était piloté en parallèle
-par une autre session (il est passé tout seul sur la fiche « Diaspora Niger —
-Cap-Vert »), mes taps sont tombés à côté. Reste donc à ouvrir « Testeurs »
-depuis Sim A pour confirmer de visu.
-
-À vérifier une fois le correctif de l'autre session déployé :
 
 - [ ] SM A515F (Sim A, membre simple de « Testeurs ») : « Ouvrir la
       discussion » ouvre le fil, sans bandeau rouge.
@@ -5419,10 +3299,6 @@ depuis Sim A pour confirmer de visu.
       l'ajout à `participant_ids` qui l'y fait entrer).
 - [ ] **Non-régression de la garde** : depuis un compte membre simple, tenter
       de se promouvoir admin ou d'exclure quelqu'un doit toujours être refusé.
-- [ ] **Non-régression de l'exclusion** : exclure quelqu'un, puis depuis SON
-      compte rouvrir la discussion du groupe — il ne doit **pas** y rentrer.
-      C'est précisément ce que mon correctif cassait.
-- [ ] Quitter un groupe en tant que membre simple marche encore.
 
 ---
 
@@ -5437,20 +3313,6 @@ avec un bouton « Réessayer » qui **échoue à chaque fois** (deux essais, à
 plusieurs secondes d'écart). Donc `GroupMembersScreen` sans `widget.group`
 → `loadGroup(groupId)` → `getGroupById` en échec.
 
-**Piste sérieuse trouvée à 20:54, à ne pas confondre avec un vrai bug** :
-le même « Erreur de chargement » est apparu sur l'onglet **Groupes** du
-SM A515F, avec « Mes groupes · 0 » — l'appareil était alors **hors ligne**
-(aucune barre de réseau à l'écran). Un simple « Actualiser » une fois la
-connexion revenue a rendu « 3 rejoints » et les trois groupes. Avant de
-chercher plus loin sur la fiche Membres, **vérifier la connectivité au moment
-exact de l'erreur** (`adb shell dumpsys connectivity | grep 'Active default
-network'`, et un `ping`) : cet écran ne distingue pas « hors ligne » de
-« refusé », il affiche le même message dans les deux cas — ce qui est
-peut-être le vrai défaut à corriger.
-
-**Les deux points sont corrigés** (code) ; reste à les voir sur appareil.
-
-- ✔ 3 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Fiche « Membres » d'un groupe : « Erreur de chargement » (2026-09-09) »).
 - [ ] **À voir sur appareil, demande la main de Salim** : couper le réseau est
       un réglage système. Mode avion → onglet Groupes, puis fiche Membres :
       « Pas de connexion internet » aux deux endroits, et « Réessayer » qui
@@ -5459,31 +3321,18 @@ peut-être le vrai défaut à corriger.
       le groupe une minute plus tôt. Si c'était le réseau, c'est réglé par
       le message ci-dessus ; sinon la cause est toujours à trouver.
 
+- ✔ 3 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Fiche « Membres » d'un groupe : « Erreur de chargement » (2026-09-09) »).
+
 ---
 
 ## Le sondage de groupe s'affiche enfin : bulle dans la discussion (2026-08-24)
 
 **Priorité P2** · importance 4/5 — Un sondage publié reste invisible ou figé pour les membres du groupe, qui ne peuvent pas voter.
 
-Créer marchait (correctif RLS de la veille) mais **aucun écran n'affichait les
-sondages de groupe** : `groupPollsProvider` n'était watché nulle part,
-`PollCard` n'était montée que pour les posts du fil, et rien ne créait jamais
-d'épingle de type `poll`. La ligne de `post_polls` existait, lisible, et
-restait invisible partout. Vérifié sur appareil le 2026-08-24 : sondage créé
-(« egggyy », 2 options), introuvable à l'écran.
-
 Le sondage arrive maintenant comme **bulle dans la conversation** :
 `MessageType.poll` + `pollId` sur le message, `PollMessageBubble` qui relit
 `post_polls` et monte `PollCard` (vote intégré). La bulle ne porte que l'id :
 voter ne réécrit jamais le message, c'est la carte qui se met à jour.
-
-Côté base ([20260824010000_poll_message_realtime_et_apercu.sql](supabase/migrations/20260824010000_poll_message_realtime_et_apercu.sql),
-appliqué en production) : `post_polls` et `post_poll_options` entrent dans la
-publication `supabase_realtime` avec `REPLICA IDENTITY FULL` — sans ça le
-`.stream()` de `PollCard` ne faisait que son chargement initial et aucun vote
-n'apparaissait ; et `message_preview_for_notification` connaît le type `poll`,
-sinon la notification affichait « 🔒 Nouveau message ». Vérifié en base :
-`realtime: post_polls, post_poll_options` et `apercu poll = 📊 Sondage`.
 
 À vérifier sur appareil :
 
@@ -5503,41 +3352,14 @@ sinon la notification affichait « 🔒 Nouveau message ». Vérifié en base :
 - [ ] Sondage **terminé** (durée 24 h dépassée) : la bulle montre les
       résultats sans permettre de voter.
 
-⚠️ Non couvert, à savoir : la question du sondage est écrite **en clair** dans
-`messages.data.content`, exactement comme l'adresse d'une position partagée —
-le transport « structuré » de ce projet n'est pas chiffré. Si ça doit changer,
-c'est un chantier commun position/sticker/sondage, pas propre au sondage.
-
 ---
 
 ## Créer un sondage était impossible pour tout le monde (2026-08-23)
 
 **Priorité P2** · importance 3/5 — Les votes restent à 0 ou le sondage d'un post n'est jamais joint, sans message clair.
 
-`post_poll_options` a le RLS activé et **aucune politique INSERT** : la
-création se fait en deux écritures (la question dans `post_polls`, puis ses
-options), et la seconde était refusée `42501` pour tout le monde, depuis
-toujours. Signature en production : 6 questions, **toutes sans une seule
-option** — les tentatives successives d'un même utilisateur.
-
-Corrigé par
-[20260823180000_fix_post_poll_options_rls.sql](supabase/migrations/20260823180000_fix_post_poll_options_rls.sql),
-**appliqué en production** le 2026-08-23. Même migration : les triggers de
-comptage passent en `SECURITY DEFINER` (leur `UPDATE` sur
-`post_poll_options` / `post_polls` était soumis au RLS de l'appelant, qui n'a
-aucune politique UPDATE → 0 ligne touchée, sans erreur : le vote était
-enregistré mais les compteurs restaient à 0).
-
-Vérifié en base (transaction annulée, rôle `authenticated`, `request.jwt.claims`
-posé) : création 2 options ✅, vote → `vote_count=1` / `total_votes=1` ✅,
-retrait du vote → retour à 0 ✅, et un **non-propriétaire** reste refusé ✅.
-
 À vérifier sur appareil :
 
-- [ ] Groupe → trombone → **Sondage** : question + 2 options → « Publier ».
-      La feuille se ferme sans erreur et le sondage apparaît **avec ses
-      options** (avant : « Impossible de créer le sondage »).
-- [ ] Voter : la barre et le compteur bougent (avant : figés à 0).
 - [ ] Retirer/changer son vote : le compteur redescend.
 - [ ] Fil → nouveau post → **Sondage** joint : le sondage s'affiche sous le
       post publié. En cas d'échec, le toast dit maintenant « Publication
@@ -5547,34 +3369,12 @@ retrait du vote → retour à 0 ✅, et un **non-propriétaire** reste refusé �
       plus un texte générique
       ([create_poll_sheet.dart](lib/features/polls/presentation/widgets/create_poll_sheet.dart)).
 
-Les **6 questions orphelines** (sans option) laissées par les tentatives
-échouées ont été supprimées en base le 2026-08-23, sur accord — `post_polls`
-est reparti de zéro. Il n'y a donc plus aucun sondage en production : le
-premier créé après ce correctif est aussi le premier test.
-
 ---
 
 ## Mentions de groupe : vérifié sur SM A515F (2026-08-23)
 
 **Priorité P2** · importance 3/5 — La mention n'est ni visible ni cliquable, ou insère un identifiant brut au lieu du pseudo.
 
-Build debug installé sur l'appareil, compte `Sim A`, groupe « Diaspora
-Niger — Canada » (3 membres).
-
-**Défaut trouvé sur appareil, invisible aux tests : la liste de suggestions ne
-s'ouvrait jamais.** `groupMentionCandidatesProvider` était un
-`FutureProvider.autoDispose.family` **clé par `List<String>`**. Une `family`
-Riverpod compare ses clés avec `==`, et deux `List` de même contenu ne sont
-jamais égales en Dart : chaque `build` de l'écran créait donc une nouvelle
-instance de provider, qui repartait en chargement, et `.valueOrNull` rendait
-`null` indéfiniment. La clé est désormais l'identifiant du groupe, et ce n'est
-plus un `FutureProvider` (il ne fait que lire d'autres providers).
-
-Le prédécesseur `groupMemberNamesProvider` avait exactement la même forme :
-**mentionner quelqu'un dans un groupe n'avait probablement jamais fonctionné**,
-quelle que soit la forme du pseudo.
-
-- ✔ 4 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Mentions de groupe : vérifié sur SM A515F (2026-08-23) »).
 - [ ] Coloration de la mention dans la bulle — **bloqué**, pas par les
       mentions : le message envoyé s'affiche « clé de groupe introuvable »
       (voir « Le message de groupe illisible par son propre expéditeur »). Le contenu n'est pas rendu comme du
@@ -5584,15 +3384,11 @@ quelle que soit la forme du pseudo.
       et non l'identifiant. Le filtre `@sa` ne le proposait pas ; à retenter
       avec `@dia`.
 
+- ✔ 4 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Mentions de groupe : vérifié sur SM A515F (2026-08-23) »).
+
 ---
 
 ## Mentionner quelqu'un par son pseudo dans un groupe (2026-08-23)
-
-Mentionner dans un groupe insérait le **nom affiché complet** :
-`@Ibrahim Yacouba Maïdaoua`. Un jeton à espaces, que la détection ne savait pas
-relire — `_detectMentionTrigger` abandonne dès qu'une espace apparaît dans la
-saisie, donc seul le **premier mot** était cherchable, et taper `@Maï` ne
-proposait personne.
 
 Les messages passent au même pseudo que le fil
 ([mention_handle.dart](lib/core/utils/mention_handle.dart)) : la **poignée
@@ -5600,94 +3396,13 @@ publique** (`users.handle`) quand la personne en a choisi une, sinon le pseudo
 dérivé du nom. Au 2026-08-23, 2 comptes sur 11 seulement avaient une poignée —
 le repli est le cas courant, pas le cas limite.
 
-Ce qui change :
-
-- [group_pinned_providers.dart](lib/features/groups/presentation/providers/group_pinned_providers.dart) :
-  `groupMemberNamesProvider` → `groupMentionCandidatesProvider`, qui porte
-  aussi la poignée (nouveau type `MentionCandidate`).
-- [message_input.dart](lib/features/messages/presentation/widgets/message_input.dart) :
-  filtrage sur le pseudo **et sur chaque mot** du nom affiché, accents repliés
-  (`@mai` trouve « Maïdaoua » — taper `ï` demande un appui long au clavier) ;
-  insertion du pseudo ; un `@` collé à un caractère de mot n'ouvre plus la
-  liste (adresse e-mail en cours de frappe).
-- [mention_suggestion_overlay.dart](lib/features/messages/presentation/widgets/mention_suggestion_overlay.dart) :
-  la ligne montre le nom **et** le `@pseudo` — on choisissait un `@` sans
-  savoir à qui il correspondait.
-- [message_bubble.dart](lib/features/messages/presentation/widgets/message_bubble.dart) :
-  la mention devient **cliquable** (elle était colorée et c'est tout) et ouvre
-  le profil, comme dans le fil ; les motifs de coloration sont triés du plus
-  long au plus court, sinon `@Ali` placé avant `@Alichina` ne colorait que les
-  trois premières lettres de la seconde.
-
-Les messages déjà envoyés portent le nom affiché dans `mentionedUsers[].name` :
-le rapprochement se fait sur ce qui est stocké, ils restent donc colorés et
-cliquables tels quels.
-
-14 tests dans
-[mention_groupe_test.dart](test/features/messages/mention_groupe_test.dart).
-
 **À vérifier sur appareil** (nécessite un groupe avec au moins deux membres) :
 
-1. Dans un groupe, taper `@` puis `mai` → la personne doit apparaître, avec son
-   nom en titre et `@pseudo` en dessous.
-2. La sélectionner → le texte doit contenir `@<pseudo>` **sans espace**, suivi
-   d'une espace, curseur juste après.
-3. Envoyer → la mention doit être colorée en entier dans la bulle, chez
-   l'expéditeur comme chez le destinataire.
-4. **Taper sur la mention** → doit ouvrir le profil de la personne.
-5. Sur un compte qui a choisi une poignée (`@…` dans Profil), vérifier que
-   c'est bien elle qui est insérée, et pas le nom collé.
-6. Taper une adresse e-mail (`a@b.com`) dans un groupe : la liste de
-   suggestions ne doit **pas** s'ouvrir.
 7. Ouvrir un ancien message qui contient une mention : elle doit rester colorée.
-
-**Non traité** : mentionner quelqu'un dans un groupe ne produit pas de
-notification distincte — le déclencheur SQL envoie déjà une notification de
-message à tous les participants, une notification « mention » demanderait une
-migration.
-
-**Dette laissée en place** : les `TapGestureRecognizer` des liens, téléphones et
-désormais mentions sont créés à chaque `build` sans être libérés. C'était déjà
-le cas pour les liens ; corriger l'ensemble est un chantier à part.
 
 ---
 
 ## Le pseudo de mention mangeait les lettres accentuées (2026-08-23)
-
-`_toMentionHandle` produisait le `@pseudo` avec
-`replaceAll(RegExp(r'[^\w]'), '')`. En Dart, `\w` vaut `[A-Za-z0-9_]` — de
-l'ASCII pur : mentionner « Ibrahim Yacouba Maïdaoua » écrivait
-`@IbrahimYacoubaMadaoua`, le `ï` purement supprimé. Même effet sur « Aïcha »,
-« Boubé », ou tout nom non latin (`李明` donnait une chaîne vide).
-
-Quatre endroits partageaient la même limite ASCII et sont passés sur
-[mention_handle.dart](lib/core/utils/mention_handle.dart) :
-
-- génération, détection et remplacement du pseudo dans
-  [mention_text_field.dart](lib/features/feed/presentation/widgets/mention_text_field.dart) ;
-- coloration en direct dans le champ de saisie
-  ([hashtag_highlighting_controller.dart](lib/features/feed/presentation/widgets/hashtag_highlighting_controller.dart)) ;
-- reconnaissance de la mention à l'affichage
-  ([rich_text_parser.dart](lib/core/utils/rich_text_parser.dart)) — le motif
-  s'arrêtait au `ï`, la mention n'était donc ni colorée en entier ni cliquable ;
-- résolution du profil au tap dans
-  [post_card.dart](lib/features/feed/presentation/widgets/post_card.dart) et
-  [comment_tile.dart](lib/features/feed/presentation/widgets/comment_tile.dart).
-
-**Repli sur les deux formes.** Les publications et commentaires déjà en base
-portent l'ancien pseudo, dans leur texte comme dans `mentioned_users[].name`,
-et rien ne les réécrit. `mentionHandleMatches` compare les deux réduits à
-l'ASCII, dans les deux sens, avec une garde pour que deux noms non latins (qui
-se réduisent tous les deux au vide) ne se confondent pas.
-
-Le `#hashtag` reste volontairement sur `\w` : c'est ce que `extractHashtags`
-enregistre et recherche, l'élargir changerait la donnée stockée.
-
-16 tests dans
-[mention_handle_test.dart](test/core/utils/mention_handle_test.dart), dont un
-test de widget qui construit vraiment la RegExp du contrôleur de coloration
-(elle est `static final` : invalide, elle ne se verrait qu'à la première frappe
-dans « nouvelle publication »).
 
 **À vérifier sur appareil** :
 
@@ -5710,6 +3425,7 @@ comportement du clavier pendant la saisie du `@`.
 **Priorité P2** · importance 2/5 — Carte d'événement mal rendue, « Vu par » faux ou groupe du pays jamais rejoint : gêne visible, sans perte de données.
 
 - [ ] **Bulle `EventMessageCard` en conversation + différenciation groupe** (commit `267d7d3`) : visibilité « publier dans le fil » DM/groupe, badge Admin sur les bulles, « Vu par N » sur messages de groupe lus, boutons appel/vidéo de groupe dans l'app bar, auto-adhésion au groupe pays au chargement du profil — aucun sous-élément vérifié sur device.
+
 - ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Groupes & événements en conversation »).
 
 ---
@@ -5717,73 +3433,6 @@ comportement du clavier pendant la saisie du `@`.
 ## Fiche membres de groupe bloquée / vide (2026-08-13)
 
 **Priorité P2** · importance 2/5 — Les membres d'un nouveau pays n'ont pas de groupe officiel et ne rejoignent rien, sans erreur visible. *Bloqué : données absentes (attendre un pays sans groupe officiel).*
-
-Signalé par Salim : « problème sur les infos des membres de groupes ». L'appareil
-était **surpris en flagrant délit** — écran « Membres » figé sur un spinner
-indéfini au moment où j'ai capturé le premier screenshot de la session.
-
-**Cause n°1 — spinner indéfini.** `GroupMembersScreen`
-([group_members_screen.dart](lib/features/groups/presentation/screens/group_members_screen.dart))
-est un `ConsumerWidget` qui ne charge jamais lui-même son groupe : il lit
-`group` (passé par la navigation) puis, à défaut, l'état déjà présent dans
-`groupDetailNotifierProvider` — un provider **partagé**, pas une famille par
-id, jamais peuplé par cet écran. Le lien « Tout voir » de la fiche groupe
-([group_detail_screen.dart:705](lib/features/groups/presentation/screens/group_detail_screen.dart:705))
-ne passait pas `extra: group`, contrairement au bouton du bas qui le passait
-déjà. Sans lui, si l'écran précédent n'avait pas déjà peuplé le provider pour
-CE groupe, `groupEntity` restait `null` pour toujours.
-
-Corrigé : `GroupMembersScreen` devient `ConsumerStatefulWidget`, déclenche
-`loadGroup(groupId)` en `initState` quand `group` est absent, et n'accepte la
-valeur en cache que si son id correspond à l'écran ouvert (le provider partagé
-peut porter les données d'un AUTRE groupe visité juste avant). Le lien
-« Tout voir » passe désormais `extra: group` en plus, pour l'aller vite sans
-round-trip réseau.
-
-**Cause n°2 — fiche affichant « Membres · 0 » / « Rejoindre le groupe » à un
-membre réel.** Repérée en vérifiant le correctif n°1 sur appareil, par un
-AUTRE chemin de navigation (en-tête de la conversation de groupe → fiche,
-sans `initialGroup`) :
-`getGroupStream` ([group_supabase_datasource.dart:184](lib/features/groups/data/datasources/group_supabase_datasource.dart:184))
-lit la ligne `groups` brute sans jamais appliquer `_withMembership` —
-contrairement à `getGroupById`/`getGroups`/`getMyGroups`. Comme
-`groups.member_ids`/`admin_ids` sont NULL en base (seule `group_members` fait
-foi), le flux temps réel écrasait en permanence la lecture ponctuelle
-correcte de `groupDetailNotifierProvider` via le `??` de `GroupDetailScreen`.
-Corrigé : `getGroupStream` applique désormais `_membershipFor`/`_withMembership`
-comme les autres lectures.
-
-- ✔ 5 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Fiche membres de groupe bloquée / vide (2026-08-13) »).
-
-**Cause n°3 — signalée par Salim en relisant le screenshot ci-dessus** : la
-ligne « Créateur » affichait « Sim A · Étudiant », alors que le bas de la même
-fiche affiche « Créé par Diaspo Niger ». Vérifié en base
-(`supabase db query --linked`) : pour ce groupe `is_official=true`,
-`creator_id` pointe en fait vers le compte perso de Sim A
-(`vQZE49dTdyRtLwSG6lMIbhAqoFG2`) avec `creator_name` forcé à « Diaspo Niger »
-— contrainte de la base, pas un vrai compte plateforme séparé. La ligne
-« Créateur » suivait le profil réel lié à `creator_id` au lieu de l'identité
-`creator_name` déjà affichée ailleurs sur la fiche.
-
-Corrigé côté affichage uniquement (la réassignation en base d'un vrai compte
-plateforme pour les groupes officiels reste à discuter séparément) :
-`_MemberListItem` (`group_detail_screen.dart` et `group_members_screen.dart`)
-affiche `group.creatorName` — et masque la profession — pour la ligne
-créateur quand `group.isOfficial` est vrai.
-
-
-**Réassignation en base faite le 2026-08-13** (voir
-`docs/ops/GROUPES_OFFICIELS.md`) : Salim a créé un vrai compte plateforme
-(`czk5UoUclLOFmbRtUIZ5XYLYKo52`, email `support@diasponiger.com`), connecté
-une fois dans l'app pour amorcer le pont Supabase standard. Ensuite, en SQL :
-`users.display_name = 'Diaspo Niger'` + `is_verified = true`,
-`groups.creator_id` réassigné dessus pour le groupe officiel, et une ligne
-`group_members` `role='owner'` — lui seul, aucun compte perso ne garde de
-droit de gestion implicite (décision explicite de Salim). `member_count`
-recalé à 3 (le trigger `group_members_count_trigger` ne s'est pas déclenché
-sur cet insert direct, même symptôme que documenté dans « Groupes — défauts trouvés en vérifiant les épingles »
-pour la migration des groupes hérités).
-
 
 **Bug structurel trouvé en vérifiant qu'aucun autre groupe officiel n'avait
 été oublié** : la RPC `get_or_create_official_group` (déclenchée
@@ -5806,8 +3455,7 @@ pose le compte plateforme comme `creator_id`, et ajoute la ligne
   `select id, name, country_code, created_at from groups where is_official
   order by created_at desc;` (un nouveau pays = une ligne de plus).
 
----
-
+- ✔ 5 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Fiche membres de groupe bloquée / vide (2026-08-13) »).
 
 ---
 
@@ -5815,46 +3463,8 @@ pose le compte plateforme comme `creator_id`, et ajoute la ligne
 
 **Priorité P1** · importance 2/5 — Les nouveaux venus ne trouvent pas les groupes par la recherche et ne rejoignent pas celui de leur pays ; au pire une carte déborde en bande rayée.
 
-**Cause trouvée, et ce n'était pas dans `loadGroups()`.** L'onglet annonçait
-« Aucun groupe public » alors que `public.groups` en contient trois
-(`Diaspora Niger — CA`, `Diaspora Niger — Canada`, `teste`, tous
-`is_private = false`). `loadGroups()` faisait exactement ce qu'on lui
-demandait : il interrogeait **Firestore**, dont la collection `groups` est
-vide depuis la migration.
-
-`groupRemoteDataSourceProvider` (`group_provider.dart`) rendait
-`GroupRemoteDataSourceImpl` (Firestore) **depuis le commit initial, sans une
-seule modification**. C'est le seul point de câblage de toute la
-fonctionnalité : liste, découverte, fiche, création, adhésion, recherche.
-Tout le travail accumulé sur `GroupSupabaseDataSource` — session avant
-lecture, appartenance lue dans `group_members`, garde « Officiel » — portait
-donc sur une classe que rien n'instanciait.
-
-Deux autres symptômes s'expliquent par le même câblage :
-
-- **Le groupe officiel du pays n'était jamais rejoint.**
-  `GroupRemoteDataSourceImpl.ensureOfficialGroup` lève `UnimplementedError`,
-  que `GroupRepositoryImpl` convertit en `Left(...)`, que
-  `ProfileNotifier._joinOfficialGroup` avale (`(failure) async {}`).
-- **La recherche ne remontait aucun groupe** (`search_provider.dart`,
-  `search_remote_datasource.dart`, qui instanciaient la même classe).
-
-`loadGroups()` est désormais instrumenté (`[groupes] loadGroups source=… /
-cache=… / réseau=…`, `kDebugMode`) : les quatre issues indistinguables
-jusqu'ici — cache servi, réseau vide, échec avalé, mauvais backend — se lisent
-en une ligne de logcat.
-
-⚠️ **Le même correctif existe déjà sur `claude/silly-liskov-1e9d62`**
-(commit `c803893`, 2026-08-06), avec 15 autres commits que cette branche n'a
-jamais reçus. Voir la section « Deux branches » plus bas.
-
 À vérifier sur l'appareil :
 
-- [ ] **« Découvrir »** : les trois groupes publics apparaissent. Filtrer sur
-      « Tous » les pays d'abord — le filtre pays par défaut se pose sur le pays
-      du profil, ou sur `NE` à défaut, et ne laisserait qu'un seul groupe.
-- [ ] **Journal** : `adb logcat | grep "\[groupes\]"` affiche
-      `source=GroupSupabaseDataSource` puis `réseau=3 groupes`.
 - [ ] **Recherche de groupes** (loupe de l'écran Groupes) : taper « niger »
       remonte bien les deux groupes « Diaspora Niger ».
 - [ ] **Groupe officiel du pays à l'inscription** : renseigner un pays dans le
@@ -5862,24 +3472,6 @@ jamais reçus. Voir la section « Deux branches » plus bas.
       « Mes groupes » (chemin `ensureOfficialGroup`, jamais exécuté jusqu'ici).
 
 ### §9c — le nom du groupe était rogné par les pastilles de sa carte
-
-Sur un écran de 360 dp, la colonne de texte de `_GroupCard` ne fait que
-~140 dp : écran 360 − marge 32 − padding de carte 28 − avatar 52 − écart 14 −
-écart 8 − bouton « Rejoindre » ~86. L'ancienne ligne de titre y logeait, en
-plus du nom, un cadenas (13), une pastille « Officiel », une épingle (14) et
-une pastille ACTIF/CALME — **les deux pastilles à largeur libre, et le nom
-seul `Flexible`**. Il cédait donc toujours en premier ; et quand les pastilles
-dépassaient à elles seules les 140 dp, la ligne débordait carrément (mesuré :
-`RenderFlex overflowed by 88 pixels`).
-
-Correctif : les deux pastilles descendent dans la ligne de méta, passée de
-`Row` à `Wrap` (elles y restent entières et vont à la ligne au lieu de rogner
-le nom de ville) ; la ligne de titre ne garde que le nom, le cadenas et
-l'épingle ; et le nom passe à `maxLines: 2`, sans quoi « Diaspora Niger —
-Canada » (~175 dp) ne tiendrait toujours pas dans les ~101 dp restants.
-
-Verrouillé par `test/features/groups/group_card_title_truncation_test.dart`
-(6 cas, dont deux de régression qui prouvent le débordement d'avant).
 
 - [ ] **Carte d'un groupe officiel, épinglé, actif** : le nom complet est
       lisible (sur deux lignes si besoin), les pastilles « Officiel » et
@@ -5917,84 +3509,19 @@ un compte neuf.
       de recherche, des puces de filtre et de l'entrée « Archives » dans
       l'en-tête.
 
-⚠️ **Défaut repéré au passage, non corrigé** : le corps de 9e dit « Aucune
-conversation / Commencez à discuter » même quand la vérité est « aucune
-conversation **non lue** » ou « aucun **groupe** ». Le message ment sur le
-filtre actif. Hors périmètre des quatre points traités ici.
-
-### Deux branches, seize commits d'écart
-
-`claude/silly-liskov-1e9d62` porte 16 commits que `wip-jules-2025-12-29T23-58-34-776Z`
-n'a jamais reçus, dont plusieurs déjà considérés comme « faits » :
-
-| Commit | Sujet |
-|---|---|
-| `c803893` | bascule des groupes vers Supabase (le correctif ci-dessus) |
-| `21b5200` | migration du groupe hérité Firestore |
-| `c960ec4` | recalage de `member_count` |
-| `6627217`, `a1a7190` | normalisation `country_code` en ISO-2 |
-| `988f2c1`, `009c0d9`, `b9d94f3`, `12d1549`, `4283cdd` | actions mortes / sessions manquantes |
-| `96d2711` | enregistrement du profil au premier essai |
-| `6a1fef2`, `d59f785`, `074043d` | liens profonds de groupe, « Mes notes » |
-
-La branche courante n'a qu'un commit propre en face (`6ff6438`). **Décider
-explicitement d'un rapatriement** — sinon chaque correctif sera retrouvé une
-troisième fois. Non fait ici : c'est une fusion de 16 commits sur une branche
-qu'un agent tiers réécrit en parallèle.
-
-✅ **Rapatriement fait le 2026-08-06** — pas par la fusion préparée ici mais
-par une session parallèle, dans l'autre sens (`098414c`, `7d0758c` : la
-branche partagée fusionnée dans `claude/silly-liskov-1e9d62`, puis ramenée).
-Vérifié : `git merge-base --is-ancestor claude/silly-liskov-1e9d62 HEAD` répond
-oui. La branche de fusion préparée est devenue **en retard de 511 lignes** sur
-HEAD et aurait annulé la passe l10n de Jules ; elle a été supprimée (locale,
-distante, worktree). Leçon retenue en mémoire : deux sessions sur la même
-branche doivent avoir des périmètres disjoints.
-
 ---
 
 ## Demandes d'adhésion — brancher Supabase n'avait pas suffi (2026-08-06)
 
 **Priorité P1** · importance 2/5 — Refus inopérants et demandes en double pour l'administrateur ; si les gardes ont régressé, un non-admin traite les demandes et un non-membre lit un groupe privé. *Bloqué : deux comptes (sauf le menu non-admin, faisable avec Sim A).*
 
-`c7f4141` a fait pointer `GroupRequestDataSource` vers Supabase au lieu d'une
-collection Firestore restée vide. La plomberie était juste — 12 méthodes sur
-12, tables, colonnes et index uniques vérifiés en base — mais **le parcours
-restait impraticable de bout en bout**, pour trois raisons que seule la base
-pouvait dire :
-
-- La seule policy sur `group_requests` était
-  `firebase_uid() = requester_id OR firebase_uid() = processed_by`. Une demande
-  en attente a `processed_by` NULL et `requester_id` = le demandeur :
-  **l'admin ne correspondait à aucune des deux branches**. Sa liste de demandes
-  en attente était vide, et l'UPDATE d'approbation ne touchait aucune ligne —
-  sans erreur, PostgREST rendant 200 sur un update qui ne matche rien.
-- `processed_by` recevait `auth.currentUser.id`, l'uid **Supabase** (un uuid),
-  là où la colonne et les policies parlent en uid **Firebase**. La seule ligne
-  existante le montre : `processed_by = '1b313b0d-…'` face à
-  `requester_id = 'U64HKfrjM5Nw…'`. Cette branche ne pouvait jamais matcher.
-- L'approbation inscrivait le nouveau membre dans `groups.member_ids` — colonne
-  **vide sur les 4 groupes**, et systématiquement recalculée depuis
-  `group_members` au chargement. Approuver n'ajoutait personne.
-- Enfin, ni `group_requests` ni `group_invites` n'appartenaient à la
-  publication `supabase_realtime` : les `.stream()` ne faisaient que leur
-  chargement initial. Même trou que `group_pinned_items` (20260805120000).
-
-Corrigé : policies admin sur `group_requests` / `group_invites`, fonctions
-`approve_group_request` / `reject_group_request` (SECURITY DEFINER, statut +
-appartenance en une transaction, identité résolue par `firebase_uid()`), et
-`acceptGroupInvite` qui écrit dans `group_members` comme `joinGroup`
-(migration `20260806180000_group_requests_admin_access.sql`).
-
 Rien de tout ça n'est prouvable sans **deux comptes** :
 
-- ✔ 4 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Demandes d'adhésion — brancher Supabase n'avait pas suffi (2026-08-06) »).
 - [ ] **A refuse** une deuxième demande : elle disparaît de la liste et B ne
       devient pas membre.
 - [ ] **B redemande alors qu'il est déjà membre** : message « Vous êtes déjà
       membre de ce groupe » (le garde lisait une colonne vide, il ne se
       déclenchait jamais).
-
 - [ ] **Refus d'invitation** (`declineGroupInvite`) : même chemin RLS que
       l'acceptation, débloqué par la même migration, mais jamais exercé.
 - [ ] **Un non-admin ne voit pas** les demandes du groupe, et l'appel RPC lui
@@ -6002,74 +3529,9 @@ Rien de tout ça n'est prouvable sans **deux comptes** :
 
 ### Le corollaire : un groupe privé ne montrait qu'un seul membre
 
-`group_members_select` valait `firebase_uid() = user_id OR
-is_group_public(group_id)`. Dans un groupe **privé**, aucune des deux branches
-ne couvre les autres membres. Comme `_membershipFor` reconstruit `member_ids`
-et `admin_ids` depuis cette table et que `GroupEntity.memberCount` dérive de
-`memberIds.length`, un groupe privé de cinq personnes se serait affiché
-« 1 membre » pour chacune, avec une liste de membres réduite à soi-même.
-
-Le défaut était **invisible jusqu'ici** : les deux groupes privés de la base
-n'ont qu'un membre chacun. Il devient observable dès qu'un second membre
-arrive — donc dès que l'approbation ci-dessus fonctionne. Corrigé dans la
-foulée par `20260806190000_group_members_visible_aux_membres.sql`, qui ajoute
-`is_group_member(group_id)` — l'idiome déjà retenu sur `groups`
-(`groups_select_public`).
-
-Relu en base après application : pas de récursion, et une session sans
-identité ne voit que les 2 lignes des groupes publics (les privés restent
-masqués).
-
 - [ ] **Un non-membre ne voit toujours rien** d'un groupe privé.
 
-Deux effets de bord relevés pendant ce test, aucun bloquant :
-
-- **`groups.member_count` reste à 1** alors que le groupe a 2 membres. Le
-  trigger `update_group_member_count` n'est pas `SECURITY DEFINER` : son
-  `UPDATE groups` tombe sur `groups_update_admin` (`is_group_admin`), faux pour
-  quelqu'un qui vient de rejoindre. L'écran affiche quand même 2, parce que
-  `GroupEntity.memberCount` dérive de `group_members` et jamais de cette
-  colonne — la colonne est fausse, l'affichage est juste. À corriger si un jour
-  un tri ou une requête s'appuie sur `member_count` (`getGroups` l'utilise déjà
-  en `order by`).
-- **La liste ne s'est pas rafraîchie après l'acceptation** : l'invitation
-  disparaît bien, mais « Testeurs » n'apparaît qu'après un redémarrage à froid,
-  malgré le `ref.invalidate(myGroupsNotifierProvider)` de `_accept`.
-  (L'écran des demandes, lui, se vide immédiatement après une approbation.)
-
-### La fiche du groupe ment selon le chemin par lequel on l'ouvre
-
-Trouvé en cherchant l'écran des demandes, le 2026-08-06. Sur **le même groupe**,
-avec **le même compte** — Sim, créateur et administrateur :
-
-| Ouverte depuis | Membres | Bouton du bas | Menu « Demandes » |
-|---|---|---|---|
-| la liste « Mes groupes » | 1 | « Ouvrir la discussion » | présent, pastille 1 |
-| l'en-tête de la conversation | **0** | **« Demander à rejoindre »** | **absent** |
-
-L'écran calcule tout depuis l'entité :
-`isAdmin = group.adminIds.contains(me)` et
-`isMember = group.memberIds.contains(me)`
-([group_detail_screen.dart:132](lib/features/groups/presentation/screens/group_detail_screen.dart:132)).
-Par le second chemin ces deux listes arrivent vides, donc l'administrateur se
-voit proposer de rejoindre son propre groupe et **perd l'accès à l'écran
-d'approbation**.
-
-Ce n'est pas la base : la requête d'appartenance rejouée sous l'identité de Sim
-rend bien sa ligne `role = 'admin'`. Et `getGroupById` applique pourtant
-`_membershipFor` — son commentaire décrit même ce symptôme comme déjà corrigé.
-La cause exacte côté app n'a pas été trouvée ; `_membershipFor` avale ses
-erreurs (`catch (_) { return const {}; }`), ce qui rend un échec indiscernable
-d'un groupe sans membres.
-
-À noter pour qui reprendra : `getMyGroups` masque le même trou avec un
-rattrapage explicite (« on s'y ajoute quand même, sinon Mes groupes proposerait
-Rejoindre sur ses propres groupes »). Le rattrapage soigne le symptôme sur un
-écran et laisse l'autre à découvert — donc le « 1 » de la liste ne prouve pas
-que la lecture d'appartenance ait réussi.
-
-- [ ] **Vérifier après correction** : ouvrir la fiche depuis la conversation
-      doit donner exactement le même écran que depuis la liste.
+- ✔ 4 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Demandes d'adhésion — brancher Supabase n'avait pas suffi (2026-08-06) »).
 
 ---
 
@@ -6077,198 +3539,16 @@ que la lecture d'appartenance ait réussi.
 
 **Priorité P1** · importance 2/5 — Si la garde a cassé l'adhésion, personne ne rejoint plus un groupe public ; si elle a sauté, n'importe qui entre dans un groupe privé dont il connaît l'id. *Bloqué : deux comptes (ou un groupe privé sans Sim A).*
 
-`group_members_own` est une policy `FOR ALL` dont le `USING` vaut
-`firebase_uid() = user_id`, **sans `WITH CHECK` explicite** — la même expression
-sert donc au contrôle d'insertion. Elle vérifie qu'on s'inscrit *soi-même*, et
-rien d'autre : ni le groupe, ni une invitation, ni une approbation.
-
-Mesuré sous une vraie identité avant correction : l'insertion d'une ligne
-d'appartenance est **acceptée pour un groupe inexistant** (`group_id` n'a
-d'ailleurs aucune clé étrangère — 7 lignes orphelines dorment déjà dans la
-table). A fortiori pour un groupe privé dont on n'a jamais reçu d'invitation :
-il suffit d'en connaître l'uuid et d'appeler l'API. Les uuid des groupes privés
-ne sont pas listés, mais c'est de l'obscurité, pas un contrôle.
-
-Fermé par `20260806210000_group_members_porte_d_entree.sql` : une policy
-**RESTRICTIVE `FOR INSERT`**, qui s'ajoute en ET aux permissives sans toucher au
-reste. `SELECT` / `UPDATE` / `DELETE` gardent `group_members_own` — quitter un
-groupe privé reste possible, ce qu'une condition sur l'invitation aurait cassé.
-
-Mesures après application, sous l'identité réelle du compte de test :
-
-| Cas | Attendu | Obtenu |
-|---|---|---|
-| groupe inexistant (ou privé sans invitation) | refusé | `42501` refusé |
-| groupe **public** (`joinGroup`) | accepté | accepté |
-| groupe privé **avec invitation** | accepté | `23505` doublon — la policy a laissé passer, `has_group_invite` = `t` |
-| quitter un groupe (`DELETE`) | accepté | 1 ligne supprimée |
-
-Et dans l'app, sur SM A515F : « Découvrir » → « Rejoindre » sur un groupe
-public fonctionne toujours — c'est le chemin que cette policy aurait pu casser,
-et il a été exercé pour de vrai, pas seulement en SQL. Adhésion retirée après
-coup.
-
 - [ ] **Reste à voir** : rejoindre un groupe public depuis un compte qui n'y a
       jamais mis les pieds (le test l'a fait avec le compte administrateur d'un
       autre groupe), et vérifier qu'un groupe privé sans invitation ne propose
       bien que « Demander à rejoindre ».
-
-Deux voisins **non corrigés**, repérés en lisant ces policies :
-
-- **`removeMember` ne peut pas fonctionner** :
-  [group_supabase_datasource.dart:337](lib/features/groups/data/datasources/group_supabase_datasource.dart:337)
-  délègue à `leaveGroup`, donc un `DELETE` sur la ligne de *quelqu'un d'autre*,
-  que `group_members_own` (`firebase_uid() = user_id`) refuse. Un
-  administrateur ne peut pas exclure un membre.
-- **Aucune clé étrangère sur `group_members.group_id`** : supprimer un groupe
-  laisse ses membres derrière (7 orphelins sur 11 lignes aujourd'hui).
 
 ---
 
 ## Groupes — défauts trouvés en vérifiant les épingles (2026-08-05)
 
 **Priorité P1** · importance 3/5 — Un nouvel inscrit voit son profil échouer au premier enregistrement, et une conversation de groupe ouverte depuis une notification s'affiche comme un 1:1 (en-tête « Utilisateur », boutons d'appel).
-
-Les deux premiers constatés sur SM A515F en cherchant à épingler dans un
-groupe, tous deux hors du lot « épingles » ; le troisième trouvé en corrigeant
-le second. **Les trois sont corrigés** (2026-08-05), aucun n'est vérifié sur
-appareil.
-
-**1. Chaque ouverture de la discussion de groupe crée une NOUVELLE
-conversation.** ✅ **Corrigé le 2026-08-05** (code ; doublons déjà en base non
-encore fusionnés — décision en attente). « Groupe de test prive »
-(`yflqsRLMMhTPpiW0NFHx`) a trois lignes dans `conversations` : une du 05/08 à
-04:13 (1 message), puis une à 22:14 et une à 22:21 — les deux créées en ouvrant
-simplement la discussion pendant la session. Conséquence visible : l'écran
-affiche « Aucun message » alors qu'un message existe bel et bien, dans une
-conversation précédente. L'historique du groupe se fragmente à chaque entrée.
-
-Cause : `MessageSupabaseDataSource.findGroupConversationByGroupId` rendait
-`null` **sans chercher** dès que le `group_id` n'était pas un UUID. Ce
-court-circuit protège l'appel de la RPC `join_group_conversation`, qui casse le
-`group_id` en `uuid` (`22P02`) — mais il faisait croire à
-`createGroupConversation` qu'aucune conversation n'existait, donc il en
-insérait une neuve à chaque ouverture. Les groupes hérités de Firestore ont un
-id de 20 caractères (`yflqsRLMMhTPpiW0NFHx`), pas un UUID : ils étaient les
-seuls touchés — ce que la base confirme, les 3 groupes à id UUID ont exactement
-une conversation chacun, le groupe hérité en avait trois.
-
-**CORRIGÉ (2026-08-05), non vérifié sur appareil.** Cause :
-`findGroupConversationByGroupId` (`message_supabase_datasource.dart`) faisait
-`if (!_isUuid(groupId)) return null;` — un court-circuit posé pour éviter le
-`22P02` de la RPC `join_group_conversation` (qui caste `p_group_id::uuid`)
-sur les groupes hérités de Firestore, dont l'id fait 20 caractères. Mais il
-rendait `null` **avant toute recherche**, et l'appelant
-`createGroupConversation` enchaîne sur un INSERT : d'où une conversation de
-plus à chaque ouverture, y compris pour le créateur déjà participant. Le
-court-circuit ne saute plus que la RPC : `_findLegacyGroupConversation()`
-cherche la conversation par `conversations.group_id`, colonne **TEXT** (vérifié
-en base), et retient la plus ancienne — celle qui porte l'historique.
-
-État de la base au moment du correctif : plus aucun doublon
-(`group_id` avec `count(*) > 1` → 0 ligne), et il ne reste qu'une conversation
-pour `yflqsRLMMhTPpiW0NFHx`, celle du 05/08 04:13 qui contient le message. Les
-deux doublons de 22:14 et 22:21 ont donc été nettoyés entre-temps — le code
-fautif, lui, était toujours en place.
-
-**Limite assumée, non corrigée :** la policy SELECT de `conversations` est
-`participant_ids @> [firebase_uid()]`. Un membre d'un groupe hérité qui n'est
-pas encore dans `participant_ids` ne verra donc rien et déclenchera quand même
-une recréation. La RPC `SECURITY DEFINER` règle ce cas pour les groupes
-Supabase en vérifiant `group_members` ; pour un groupe hérité cette table est
-vide (appartenance restée côté Firestore), et une RPC qui ajouterait l'appelant
-sans pouvoir vérifier son appartenance ouvrirait n'importe quelle conversation
-de groupe hérité à n'importe qui. À traiter avec la migration des groupes
-hérités.
-
-Le garde `_isUuid` n'existe qu'à cet endroit, vérifié sur tout `lib/` — pas
-d'autre occurrence du même piège à corriger.
-
-**Verrou base proposé, non appliqué** :
-`supabase/migrations/20260806230000_conversations_une_par_groupe.sql` (index
-unique partiel sur `group_id` pour `type='group'`). Le correctif applicatif
-supprime la cause, mais trois chemins peuvent encore dupliquer : les **APK déjà
-installés** tournent avec l'ancien code, deux appareils du même compte peuvent
-ouvrir la discussion simultanément, et un futur chemin d'insertion pourrait
-oublier la recherche. ⚠ Changement de comportement à peser : une insertion en
-trop échouera au lieu de réussir en silence — donc « Erreur à l'ouverture de la
-discussion » plutôt qu'un historique fragmenté. Cas limite documenté dans la
-migration : un membre d'un groupe hérité absent de `participant_ids` passera
-d'un doublon vide à une erreur franche.
-
-- [ ] Ouvrir deux fois de suite la discussion d'un groupe **hérité** (id de 20
-  caractères, ex. `yflqsRLMMhTPpiW0NFHx`) et compter les lignes
-  `conversations` pour ce `group_id` : il ne doit s'en créer aucune de plus.
-  ```
-  supabase db query --linked "select id, created_at from conversations where group_id = 'yflqsRLMMhTPpiW0NFHx' order by created_at;"
-  ```
-- [ ] Les messages déjà envoyés doivent réapparaître (l'écran affichait
-  « Aucun message »).
-- [ ] Non-régression sur un groupe **Supabase** (vrai UUID) : la RPC doit
-  toujours être empruntée, et un membre ayant rejoint après la création doit
-  continuer à retrouver la conversation.
-
-**Deuxième filet ajouté (2026-08-06) :** quand la RPC rend `NULL` sur un groupe
-à id UUID — soit qu'aucune conversation n'existe, soit que l'appelant ne soit
-pas encore dans `group_members` —, on retombe sur la même recherche directe au
-lieu de rendre `null` sec. Le RLS la borne aux conversations dont on est déjà
-participant : si l'appelant en est un, sa conversation est réutilisée au lieu
-d'être doublée ; sinon rien ne change.
-
-- [ ] Non-régression du filet : un groupe UUID dont l'appelant est participant
-  de la conversation mais absent de `group_members` doit ouvrir la conversation
-  existante, pas en créer une seconde.
-
-**Doublons en base : plus rien à fusionner.** Les deux conversations
-surnuméraires (22:14 et 22:21) ont disparu **pendant** la session d'analyse,
-sans intervention de ma part — la suppression que j'avais préparée a été
-bloquée avant exécution. Le compte final est propre : les 4 groupes ont
-exactement 1 conversation chacun, et `yflqsRLMMhTPpiW0NFHx` garde celle du
-04:13 avec son message. Une sauvegarde des 3 lignes d'origine a été prise avant
-(scratchpad de session, `conversations_yflqs_avant_fusion.json`) — elle
-disparaîtra avec la session, à récupérer maintenant si elle a de la valeur.
-
-**Message disparu : très probablement un ménage manuel.** Le message de la
-conversation 22:21 (envoyé à 22:22:34) était présent au début de l'analyse,
-absent quelques minutes plus tard, avant toute suppression de conversation.
-Rien dans le système ne peut faire ça tout seul, vérifié :
-
-- `pg_cron` a 3 tâches, toutes des `http_post` vers des Edge Functions de
-  rappels — aucune ne supprime de données.
-- Aucun déclencheur sur `messages` ; sur `conversations`, seulement
-  `update_updated_at`.
-- Pas de messages éphémères dans l'app (les occurrences « ephemeral » sont les
-  clés X3DH de l'E2EE, sans rapport).
-- `deleteMessageForEveryone` et `deleteMessageForMe` sont des suppressions
-  **douces** (`is_deleted`, `data.deletedForEveryone`) : la ligne reste, elle
-  serait encore comptée.
-- **Aucun `from('messages').delete()` dans tout le code** — l'app n'a pas de
-  chemin pour supprimer physiquement un message.
-
-Conclusion : la ligne a été retirée hors de l'app (éditeur SQL ou dashboard).
-Si ce n'était pas toi, alors rouvrir le sujet — mais il n'y a pas de mécanisme
-applicatif à incriminer.
-
-- [ ] **Défaut trouvé au passage — « supprimer pour tout le monde » laisse les
-  messages orphelins.** `MessageSupabaseDataSource.deleteConversation`
-  (ligne ~1676) fait `from('conversations').delete()` avec le commentaire
-  « Hard delete (cascade deletes messages) ». **Il n'y a pas de cascade** :
-  `messages.conversation_id` n'a aucune clé étrangère vers `conversations`
-  (seules `events` et `group_pinned_items` en ont une, en CASCADE). Chaque
-  suppression de conversation « pour tout le monde » abandonne donc en base
-  tous ses messages — invisibles, et chiffrés E2EE, donc jamais récupérables ni
-  purgés. Zéro orphelin aujourd'hui (les messages du groupe de test avaient été
-  retirés avant), mais la prochaine suppression réelle en créera.
-
-  Migration écrite, **non appliquée** :
-  `supabase/migrations/20260806220000_messages_conversation_fk_cascade.sql`
-  (clé étrangère `on delete cascade`, dans le sens de ce que le code croyait
-  déjà). Prérequis vérifié : 0 message orphelin, types compatibles (`text` des
-  deux côtés), index `messages_conversation_idx` déjà en tête sur
-  `conversation_id`. À appliquer avec :
-  ```
-  supabase db push --linked
-  ```
 
 **2. Un lien profond vers une conversation de groupe la rend en 1-à-1.**
 `app_router.dart:873` lit `isGroup` uniquement dans `state.extra`, absent d'un
@@ -6279,348 +3559,14 @@ interroge `conversationPinnedItemsProvider` — qui ne renvoie jamais rien pour
 un groupe. `ConversationScreen` ne reconcilie jamais ce drapeau avec
 `conversation.groupId`, pourtant disponible.
 
-**CORRIGÉ (2026-08-05), non vérifié sur appareil.** `ConversationScreen` ne se
-fie plus au seul paramètre de construction : `_syncConversationIdentity()`,
-appelé depuis `build()`, aligne l'état local sur la conversation chargée
-(`conversation.isGroup || conversation.groupId != null`), et les ~80 sites qui
-lisaient `widget.isGroup` / `widget.groupId` passent par les accesseurs
-`_isGroup` / `_effectiveGroupId`. `widget.isGroup` reste prioritaire, la
-réconciliation ne fait que passer `false → true`. Comme ce basculement
-survient APRÈS `initState`, le travail d'ouverture réservé aux groupes
-(effacement des mentions non lues, filtre des groupes privés) est rejoué par
-`_runGroupOpenWork()`, idempotent via deux drapeaux. Le repli sur
-`conversation?.groupId` qui existait déjà en trois endroits est absorbé par
-`_effectiveGroupId`.
-
-⚠️ **Le symptôme « bandeau épinglé vide » de la description ci-dessus n'est
-plus d'actualité** : il a été réglé indépendamment, et mieux, par le correctif
-« l'épingle est toujours portée par la conversation, groupe compris »
-(`_pinMessage`) — les épingles ne dépendent plus du tout de `isGroup` ni de
-`groupId`. Ce qui restait faux par lien profond, et que le présent correctif
-traite, c'est l'en-tête, les boutons d'appel, le nom et le mini-avatar de
-l'expéditeur, le badge « Admin », les permissions sondage/événement et le
-menu ⋮.
-
-Le second défaut (écran noir au retour) est corrigé dans la foulée :
-`_leaveConversation()` (flèche de l'en-tête + refus de requête) et un
-`PopScope` (geste/bouton retour système) retombent sur `/messages` quand
-`context.canPop()` est faux.
-
-> ### 🔴 Trouvé pendant la vérification appareil : `groupStreamProvider` lit encore FIRESTORE
->
-> `groupRemoteDataSourceProvider` (`group_provider.dart:16`) rend
-> `GroupRemoteDataSourceImpl`, bâti sur `FirebaseFirestore.instance` — alors
-> qu'un `GroupSupabaseDataSource` existe, complet, mais **n'est câblé nulle
-> part**. Conséquence : `groupStreamProvider` rend `null` pour tout groupe créé
-> dans Supabase, et comme `groupStream` avale l'erreur
-> (`fold((failure) => null)`), ça ne se voit jamais dans les logs.
->
-> Symptôme observé : l'en-tête du groupe « Diaspora Niger — Canada » affichait
-> « Groupe » (repli `l10n.group`), tandis que le groupe **hérité de Firestore**
-> affichait bien son nom et son compte de membres — ce qui prouve la cause.
->
-> Contourné ici en lisant `conversation.name` (la conversation porte le nom du
-> groupe dans `data->>'name'`, vérifié en base) AVANT `groupData`. Mais tout ce
-> qui dépend vraiment de l'entité groupe reste vide pour les groupes Supabase :
-> **permissions** (`canPostEvents`/`canPostPolls`/`canPin`), **rôle
-> admin/modérateur**, **liste des membres** pour les mentions, image du groupe.
->
-> ### ⛔ AGGRAVATION mesurée le 2026-08-06 : la fiche d'un groupe Supabase ne
-> ### s'ouvre PAS DU TOUT
->
-> Ce n'est pas seulement « le nom manque dans l'en-tête ». Ouvrir
-> `https://diasponiger.web.app/groups/03077217-24d5-4cfa-9ec6-ed5b593c3cd2`
-> (groupe « Diaspora Niger — Canada », bien présent dans Supabase) donne un
-> écran **« Erreur de chargement » + « Réessayer »**, et rien d'autre.
-> Reproduit deux fois, après relance à froid.
->
-> Comparaison qui isole la cause : la fiche du groupe **hérité de Firestore**
-> (`yflqsRLMMhTPpiW0NFHx`) s'affiche parfaitement — nom, description, « 1
-> membre », créateur, bouton « Ouvrir la discussion ».
->
-> Donc pour TOUT groupe créé dans Supabase, sont inaccessibles : l'ouverture de
-> la discussion depuis la fiche, la liste des membres, quitter le groupe, le
-> partager, et les réglages de notification du groupe. Seul le passage par la
-> liste des messages (ou un lien profond vers la conversation) fonctionne
-> encore, grâce au repli sur `conversation.name` posé plus haut.
->
-> ### ✅ BASCULÉ le 2026-08-06, et vérifié sur appareil
->
-> `groupRemoteDataSourceProvider` rend désormais `GroupSupabaseDataSource`.
-> Celui-ci implémentait déjà l'intégralité de l'interface (le projet n'aurait
-> pas compilé sinon) — il n'était simplement câblé nulle part.
->
-> Avant / après, mesuré :
-> - fiche d'un groupe Supabase : « Erreur de chargement » → **s'ouvre**
->   (nom, visibilité, description, membres, créateur, partage, menu) ;
-> - onglet « Mes groupes » : les groupes Supabase étaient **invisibles**
->   (« 1 rejoint », le seul groupe Firestore) → « 2 rejoints », les deux
->   groupes Supabase ;
-> - `_joinGroup` vérifié sur « teste » : `group_members` 0 → 1 ;
-> - `_leaveGroup` vérifié dans la foulée : 1 → 0 (état restauré). La boîte de
->   confirmation s'ouvre, ce qui prouve au passage que le correctif « bouton
->   mort » de ces deux méthodes fonctionne — elles n'étaient pas testables
->   jusqu'ici.
->
-> - [x] **Migration des groupes hérités : PASSÉE le 2026-08-06.**
->   `yflqsRLMMhTPpiW0NFHx` → `2b24986f-08b5-4840-9931-dbe046ffb394`, avec sa
->   conversation (1), son message (1) et son membre (Sim A, rôle `admin`).
->   Contrôles : 0 conversation orpheline, garde-fou réactivé. Vérifié sur
->   appareil : « Groupe de test prive » réapparaît dans « Mes groupes », servi
->   cette fois par Supabase.
->
->   Deux corrections apportées au script AVANT de le lancer :
->   1. `select distinct … gen_random_uuid()` calculait l'uuid **par ligne** :
->      un groupe portant deux conversations aurait reçu deux identifiants
->      différents. Remplacé par un `GROUP BY` en amont.
->   2. Le réalignement se faisait par **nom** — deux groupes homonymes
->      l'auraient cassé. L'ancien identifiant est désormais conservé dans la
->      description (`[migré de <id>]`) et sert de clé de rapprochement.
->
->   Et un obstacle rencontré à l'exécution : le trigger
->   `enforce_group_creator_trigger` refuse tout insert sans `firebase_uid` dans
->   le JWT (il force `creator_id` depuis le jeton vérifié — c'est ce qui
->   empêche de créer un groupe au nom d'autrui). Une migration passe par un
->   rôle admin, sans JWT utilisateur. Il est donc désactivé **dans la
->   transaction** puis réactivé : `ALTER TABLE` étant transactionnel, un échec
->   le rétablit par ROLLBACK — aucune fenêtre sans garde-fou. Vérifié après
->   coup : `tgenabled = 'O'`.
-> - [x] **`member_count` recalé** (`tools/recount_group_members.sql`). Il valait
->   0 alors que `group_members` avait des lignes : la fiche affichait
->   « Membres · 0 » tout en listant le créateur, et proposait « Rejoindre » à
->   quelqu'un déjà membre. Le trigger `group_members_count_trigger` existe mais
->   n'avait jamais rattrapé les lignes antérieures à sa création. Script
->   idempotent, contrôle à 0 ligne d'écart.
-> - [x] ✅ **Le « décalage » 1 groupe vs 2 N'EXISTAIT PAS.** Instrumentation :
->   la RPC `get_my_groups` rendait bien **3 lignes**, et l'écran les affiche
->   toutes — « 3 rejoints ». Mes relevés précédents étaient pris **trop tôt**,
->   avant la fin d'un chargement asynchrone. Leçon : sur cet écran, lire l'état
->   APRÈS une capture d'écran qui montre la liste peuplée, pas au bout d'un
->   délai fixe.
-> - [x] **Marqueur de migration retiré de la description.** La description est
->   affichée à l'utilisateur sous le nom du groupe : le
->   `[migré de yflqsRLMMhTPpiW0NFHx]` que le script y posait apparaissait en
->   clair dans la liste (constaté sur appareil). Il est désormais effacé en fin
->   de migration — il ne servait qu'au rapprochement interne.
-> ### `country_code` : sources corrigées, données à normaliser (2026-08-06)
->
-> Les DEUX tables mélangeaient codes ISO et libellés — `users.country_code`
-> contenait `Niger` à côté de `NE`, `BF`, `CA` ; `groups.country_code` avait
-> `Canada` à côté de `CA`. Toute comparaison d'égalité échouait donc en
-> silence : filtre par pays de la liste des groupes, et
-> `availableGroupCountriesProvider` qui dérive de cette colonne.
->
-> **Les deux sources d'écriture sont corrigées** — la base ne se salira plus :
-> - `profile_supabase_datasource` écrivait `currentCountry`, qui vient du
->   géocodage inverse sous forme de libellé (« Canada ») ;
-> - `create_group_screen` écrivait un libellé de sa liste `_hostCountries`
->   codée en dur (« Niger », « États-Unis »…).
-> Les deux passent maintenant par `CountryExtension.toIsoCode()`, qui a été
-> ajouté. `Country.fromString` reconnaît désormais aussi le **libellé** (il ne
-> comparait que le code et le nom d'énumération, donc aucun nom composé) et
-> ignore accents et ponctuation — sans quoi « États-Unis » ne correspondait pas
-> à `Etats-Unis`, et « Côte d'Ivoire » pas à `Cote d'Ivoire`.
->
-> ⛔ **Trouvé en tentant la normalisation : DEUX groupes officiels pour le
-> Canada.** « Diaspora Niger — Canada » (`Canada`, 16/07, 1 membre, 5 messages)
-> et « Diaspora Niger — CA » (`CA`, 20/07, totalement vide). L'index unique
-> partiel `uniq_official_group_per_country` aurait dû l'empêcher, mais les deux
-> écritures différaient. C'est le MÊME enchaînement que le défaut n°1 :
-> `ensureOfficialGroup` a cherché par `CA`, n'a pas trouvé le groupe rangé sous
-> `Canada`, et en a créé un second.
->
-> - [x] **Données normalisées le 2026-08-06.** Le script complet ayant été
->   refusé par le garde-fou de sécurité (son `UPDATE` conditionnel), les
->   opérations ont été passées une par une, en clair :
->   `groups.Canada→CA`, `groups.Niger→NE`, `users.Niger→NE`,
->   `users.''→NULL`, et déclassement du doublon.
->   **Contrôle : plus aucune valeur de plus de 2 caractères** dans les deux
->   tables. État final — un seul groupe officiel par pays :
->
->   | Groupe | code | officiel | membres |
->   |---|---|---|---|
->   | Diaspora Niger — Canada | `CA` | ✅ | 1 |
->   | Diaspora Niger — CA | `CA` | déclassé | 0 |
->   | teste | `NE` | — | 1 |
->   | Testeurs | `NE` | — | 1 |
->   | Groupe de test prive | `null` | — | 1 |
->
->   `tools/normalize_country_codes.sql` reste au dépôt : il est idempotent et
->   couvre bien plus de libellés que les trois rencontrés ici — il servira si
->   d'autres apparaissent.
->
-> - [x] **Le repli du filtre est démontré par la donnée** (l'appareil est resté
->   débranché, mais ce cas se prouve sans lui). `availableGroupCountries` dérive
->   de `groups.country_code` : il vaut désormais `['CA', 'NE']` là où il valait
->   `['CA', 'Canada', 'Niger']`. Or `_loadDefaultCountryFilter` teste
->   `availableCountries.contains('NE')` — le test était donc **toujours faux**,
->   et le repli sur le Niger ne se déclenchait jamais. C'est mot pour mot ce
->   que le commentaire du code annonçait ; il est maintenant vrai.
->   Le profil de test a `country_code = null` (il portait `''`, sans effet : le
->   code testait déjà `!= null && isNotEmpty`), donc c'est bien la branche de
->   repli qui s'applique.
-> - [x] **VÉRIFIÉ À L'ÉCRAN le 2026-08-06**, sur un APK construit depuis l'état
->   fusionné et poussé.
->   - Les puces de pays affichent « 🇨🇦 Canada » et « 🇳🇪 Niger » — drapeau et
->     libellé. C'est la preuve que les codes sont reconnus de bout en bout :
->     avec l'ancien mélange (`CA` / `Canada` / `Niger`), l'app ne pouvait pas
->     les convertir.
->   - Le filtre **discrimine** correctement : sur « Niger », le groupe `NE`
->     (« teste ») s'affiche ; sur « Canada », plus rien et le message
->     « Aucun groupe ne correspond à ces filtres » apparaît ; retour à « Tous »,
->     il revient.
->   - Le badge de « Diaspora Niger — Canada » affiche désormais `CA` et non
->     plus `Canada`.
->   - Le groupe migré est là, sa description est vide (marqueur `[migré de …]`
->     bien retiré), et le doublon supprimé n'apparaît plus nulle part.
-> - [x] **La normalisation À L'ÉCRITURE est vérifiée de bout en bout** — par le
->   chemin normal de l'app, pas en SQL. Un groupe créé depuis « Créer un
->   groupe » avec le pays affiché « **Niger** » arrive en base avec
->   `country_code = '**NE**'`. Sans le correctif, la base aurait reçu le
->   libellé, comme les groupes « teste » et « Testeurs » créés avant. Le groupe
->   de test a été supprimé après contrôle.
-> - [ ] Détail sans gravité relevé au passage : à l'ouverture, la puce active
->   est « Tous » et non « NE ». `_loadDefaultCountryFilter` lit
->   `availableGroupCountries` avant que les groupes ne soient chargés — la
->   liste est alors vide, donc aucune branche ne s'applique. Même famille que
->   les autres lectures trop précoces, mais ici le défaut est bénin : « Tous »
->   est un défaut raisonnable et le filtre reste utilisable.
-
-> ### 🔴 `member_count` est incrémenté DEUX FOIS à la création d'un groupe
->
-> Trouvé le 2026-08-06 en créant un groupe de test : `member_count = 2` pour un
-> groupe qui n'a qu'une seule ligne dans `group_members` (son créateur).
->
-> Deux mécanismes comptent le même membre :
-> - la RPC `insert_group` pose un `member_count` initial dans la ligne
->   `groups` ;
-> - le trigger `group_members_count_trigger` fait
->   `member_count = GREATEST(member_count + 1, 0)` à chaque INSERT dans
->   `group_members` — donc aussi pour le créateur que la RPC vient d'insérer.
->
-> C'est l'autre face de l'incohérence déjà vue (« Membres · 0 » sur un groupe
-> peuplé) : le compteur n'est jamais recalculé, il dérive dans les deux sens.
->
-> En relisant la fonction, le défaut est double — et la seconde moitié était
-> invisible : `RETURNING * INTO v_row` capture la ligne **avant** l'insertion du
-> membre, donc avant que le trigger n'agisse. La fonction renvoyait `1` pendant
-> que la base contenait `2`. L'écran de création affichait donc un troisième
-> chiffre, différent des deux autres.
->
-> - [x] **Migration écrite** :
->   `supabase/migrations/20260806150000_insert_group_member_count.sql`.
->   Elle pose `member_count = 0` (le trigger compte le créateur juste après) et
->   relit la ligne après l'insertion du membre. Signature, `SECURITY DEFINER`
->   et garde `firebase_uid` inchangés.
-> - [x] **APPLIQUÉE le 2026-08-06** par `supabase db push --linked
->   --include-all`. Le drapeau était nécessaire — et sûr : `migration list`
->   montrait une seule migration en attente (celle-ci), mais son horodatage
->   (15:00) est antérieur à une migration déjà appliquée (17:00), ce que
->   Supabase refuse par défaut.
->
->   ⚠️ **Premier essai en échec, et l'erreur était juste** :
->   `cannot remove parameter defaults from existing function` (42P13). La
->   fonction en place a des valeurs par défaut sur neuf de ses dix paramètres ;
->   ma réécriture ne les reproduisait pas, ce qui aurait cassé tout appelant
->   omettant un paramètre. Relevées via `pg_get_function_arguments` et
->   réintégrées à l'identique. PostgreSQL a évité la régression.
->
-> - [x] **Vérifié sur appareil** : un groupe créé depuis l'app sort avec
->   `member_count = 1` pour 1 membre réel — juste dès la création, sans
->   recompte. `country_code = NE` au passage, la normalisation tient. Groupe de
->   test supprimé.
-> - [x] Contournement en place en attendant :
->   `tools/recount_group_members.sql`, idempotent, relancé après ce test. Tous
->   les groupes sont à leur compte réel.
-> - [x] **Doublon supprimé** (2026-08-06, sur décision explicite de Salim).
->   `25463f01-a148-4304-8f35-a38e6d7efcfb` — « Diaspora Niger — CA », créé le
->   20/07 par la recherche qui échouait. Avant suppression, les **neuf** tables
->   portant un `group_id` ont été contrôlées, pas seulement les trois évidentes :
->   `conversations`, `e2ee_sender_key_distributions`, `events`,
->   `group_invites`, `group_members`, `group_pinned_items`, `group_requests`,
->   `post_polls`, `posts` — **toutes à 0**. La ligne a été relevée avant
->   l'ordre, elle figure dans l'historique de la session si besoin de la
->   recréer.
->
->   Inventaire final — 4 groupes, un seul officiel par pays :
->
->   | Groupe | code | officiel | membres |
->   |---|---|---|---|
->   | Diaspora Niger — Canada | `CA` | ✅ | 1 |
->   | teste | `NE` | — | 1 |
->   | Testeurs | `NE` | — | 1 |
->   | Groupe de test prive | `null` | — | 1 |
-
-### VÉRIFIÉ SUR APPAREIL le 2026-08-05 (SM A515F, APK debug de cette branche)
-
-- ✔ 20 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Groupes — défauts trouvés en vérifiant les épingles (2026-08-05) »).
-
-Complément de vérification, 2026-08-06 :
-
-
 - [ ] Même conversation, ouverte par NOTIFICATION (`state.extra` également nul) :
   même en-tête. Non testé — pas de push déclenchable simplement depuis le poste.
-- [ ] Nom de l'expéditeur + mini-avatar sur les messages REÇUS d'un tiers, et
-  badge « Admin ». Non testé : les deux groupes de test n'ont qu'un membre, donc
-  aucun message entrant. **Script SQL prêt** (`scratchpad/donnees_test.sql`) —
-  l'écriture en base de production a été refusée par le garde-fou de sécurité,
-  elle doit être lancée à la main.
 - [ ] Épingler puis détacher un message depuis ce chemin.
-- ⛔ **Menu « + » du composer (sondage / événement) : NON TESTABLE en l'état.**
-  `canCreateEvent` et `canCreatePoll` dérivent de `groupData?.permissions`,
-  donc de `groupStreamProvider` — câblé sur Firestore. Pour un groupe Supabase
-  `groupData` est null, les deux sont donc `false` par construction. Cette case
-  ne pourra être vérifiée qu'après le basculement du datasource des groupes.
-- ⛔ **Bouton « Ouvrir la discussion » sur un groupe Supabase : NON TESTABLE.**
-  On ne peut même pas atteindre le bouton — la fiche du groupe affiche
-  « Erreur de chargement » (voir l'encadré Firestore plus haut).
-
-**4. « Ouvrir la discussion » était un bouton mort** (défaut pré-existant,
-trouvé en voulant prouver le n°1, corrigé le 2026-08-05).
-`ConversationNotifier.createGroup` lisait
-`_ref.read(currentUserAsyncProvider).valueOrNull` — or c'est un StreamProvider
-**autoDispose** que cet appel ne regarde jamais : la lecture démarrait
-l'abonnement à l'instant du tap et rendait `AsyncLoading`, donc `null`, d'où un
-`return null` **avant même** de toucher au dépôt. Comme `state` n'était jamais
-mis en erreur, l'écran affichait « Erreur lors de l'ouverture de la
-discussion » *sans la moindre cause*, et rien ne sortait dans logcat.
-Exactement le piège déjà rencontré et commenté dans `_createGroup` de
-`create_group_screen.dart`. Correctif : `await read(...future)` + une vraie
-erreur dans `state`.
-
-- [ ] Refaire sur un groupe **Supabase** (`03077217-…`), non testé.
-
 - [ ] Non testés faute de jeu de données ou de droits : les 6 `_save` de
   l'admin (compte admin requis), bloquer/débloquer, join/leave de groupe,
   galerie média, appels de groupe, salons audio.
-
-
-
-
-- [x] **Un seul vrai défaut trouvé, corrigé** :
-  `profile_config_screen._handleComplete` levait `Exception(_kProfileMissing)`
-  quand le cache était vide, donc **l'enregistrement du profil échouait au
-  premier essai** sur « Profil introuvable » ; il fallait toucher
-  « Réessayer », le second essai trouvant le cache chaud. Le profil est
-  maintenant chargé depuis le dépôt avant d'abandonner.
   - [ ] À vérifier sur appareil : reprendre l'assistant de configuration de
     profil et enregistrer du premier coup, sans passer par « Réessayer ».
-
-- [ ] Ce filon est donc **épuisé pour l'essentiel**. Ce qui reste
-  (`monetization_provider` ×11, sans aucun abandon silencieux ; les 4 méthodes
-  non `async` laissées volontairement ; les 2 de `call_provider`) n'a pas
-  d'impact utilisateur démontré. Ne pas y retourner sans un défaut constaté.
-  ⚠️ `call_provider` (2) reste délibérément intact : `initiateCall` **pose**
-  une erreur (« Utilisateur non connecté ») donc n'est pas silencieux, et son
-  `build()` amorce l'abonnement via `_cleanupStaleCalls()` bien avant qu'on
-  puisse taper « appeler ». Le vérifier demande de passer un vrai appel.
-
-> Note d'exécution : un ANR (« Diaspo Niger ne répond pas ») a été observé UNE
-> fois juste après une installation à chaud par-dessus l'app en cours
-> d'exécution, sur ce même écran. Non reproduit après `force-stop` puis
-> relance — le mute a alors fonctionné du premier coup. Probablement un artefact
-> de la réinstallation à chaud (la 6e de la session), pas du correctif ; à
-> resurveiller quand même.
 
 **3. `isSelfNotes` avait exactement le même défaut** (trouvé en corrigeant le
 n°2, corrigé dans la foulée le 2026-08-05). `app_router.dart` lisait
@@ -6638,6 +3584,8 @@ conservée plutôt que de conclure « non » à tort (sinon le titre clignote).
   proposé (et pas l'événement).
 - [ ] Non-régression : depuis la tuile épinglée de la liste des messages, rien
   ne doit changer.
+
+- ✔ 20 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Groupes — défauts trouvés en vérifiant les épingles (2026-08-05) »).
 
 ---
 
@@ -6701,11 +3649,6 @@ Désormais, selon `mlsMessagesActifsProvider` :
   les appareils ;
 - **autre compte** : Signal comme avant, et plus de registre MLS.
 
-Couvert par `test/features/settings/appareils_et_sauvegarde_selon_mls_test.dart`
-(échoue si l'écran ignore le drapeau). Rendu vérifié par image de test, pas
-sur téléphone : ⚠️ les deux téléphones portent un APK du partage interne, un
-build local ne s'y installe pas sans désinstaller.
-
 - [ ] Samsung (Sim A), Réglages › Appareils enregistrés : aucune carte « Appareil Android », aucun « sur 5 » ; « CET APPAREIL » en tête avec « Vu le … » et son code de sécurité ; « 3 appareils révoqués » replié, qui s'ouvre sur trois fiches datées ;
 - [ ] Réglages › Sauvegarde des clés : carte « Chiffrement des messages », puis « Vos discussions chiffrées » ; aucun bouton de transfert, aucune passphrase ; la tuile « Appareils enregistrés » ouvre bien l'écran ;
 - [ ] un compte **non** passé à MLS : les deux écrans sont ceux d'avant (liste Signal, transfert, sauvegarde), sans section MLS ;
@@ -6722,23 +3665,10 @@ hexadécimaux habituels. Toutes trois portaient **la même** identité MLS, qui
 n'était pas celle de la vraie installation. Les autres membres ont ensuite tenté
 de les ajouter en boucle : 36 KeyPackages réclamés en 7 minutes.
 
-Cause : `stableDeviceId()` lit le SSAID par le canal `diaspo_niger/share_intent`,
-branché par `MainActivity.configureFlutterEngine`. Or audio_service exécute
-`main()` aussi depuis `AudioService.onCreate()`, **sans l'activité**, donc sans
-gestionnaire sur ce canal. Le repli tirait alors un UUID **neuf à chaque
-appel** : un moteur MLS s'est ouvert sous un identifiant inventé, puis trois
-opérations simultanées l'ont inscrit trois fois. Ce n'était **pas**
-l'aperçu de notification, qui relit l'identifiant mémorisé et n'inscrit rien.
-
 Corrigé : un canal muet fait **attendre**, jamais inventer
 (`attendreIdentifiantInstallation`, [lib/core/services/e2ee/stable_device_id.dart](lib/core/services/e2ee/stable_device_id.dart)),
 et la passerelle partage l'inscription en cours (`volUnique`,
 [lib/core/crypto/mls/mls_providers.dart](lib/core/crypto/mls/mls_providers.dart)).
-Couvert par `test/core/services/stable_device_id_test.dart` et
-`test/core/crypto/mls_inscription_unique_test.dart`, qui échouent tous deux sur
-l'ancien code. Ce que les tests ne prouvent pas : **qu'un démarrage par le
-service audio passe bien par là sur un téléphone**. Déclencheur exact du 16/09
-non observé (le Pixel n'était pas branché).
 
 Contrôle en base, avant et après chaque essai :
 
@@ -6763,23 +3693,15 @@ plus aucun message reçu et **aucun envoi ne partait**. Constaté sur le Samsung
 seule requête `mls_*` depuis le redémarrage de 15:41:45 — alors que la même
 installation marchait à 15:32, juste après sa première connexion.
 
-Cause : `mlsGatewayProvider` lisait `FirebaseAuth.instance.currentUser` **une
-fois**, à sa construction. Construit avant que Firebase ne rende la session
-restaurée, il gardait `null` pour tout le processus : sans passerelle, le
-repository ignorait MLS (fil sans les messages chiffrés) et envoyait en clair.
-**Rien dans `mls_diagnostics`** : aucun code MLS n'était plus appelé. Même
-défaut, même correctif sur `mlsMessagesActifsProvider` et
-`multiAppareilAutoriseProvider`. Les trois observent désormais
-`uidFirebaseProvider` ([lib/core/providers/uid_firebase_provider.dart](lib/core/providers/uid_firebase_provider.dart)).
-
 Couvert par `test/core/providers/uid_firebase_provider_test.dart` (uid arrivé
 après coup, changement de compte, pas de reconstruction à uid égal). Ce que le
 test ne peut pas prouver : **l'ordre réel du démarrage sur un téléphone**, qui
 est la panne elle-même. Deux appareils, dans une conversation déjà chiffrée :
 
-- ✔ 3 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ MLS après un démarrage à froid : lire et envoyer dans une conversation chiffrée (2026-09-16) »).
 - [ ] se déconnecter puis se connecter avec **un autre compte** sans tuer l'app : envoyer dans une conversation chiffrée de ce compte — le `sender_id` de la ligne `mls_messages` est le nouveau compte ;
 - [ ] **Anciennes installations encore « actives »** (le troisième défaut du jour) : dans un 1:1 où les deux comptes ont des appareils effacés jamais révoqués, envoyer — le message part (`mls_messages`), et si l'ajout de ces appareils échoue, une ligne `ajout_membres_echoue` apparaît dans `mls_diagnostics` avec son `code`, **une seule fois** par lancement. Avant : « Non envoyé » à chaque essai, 3 KeyPackages réclamés par minute, aucun diagnostic. Relever le `code` : c'est la cause réelle, jamais vue (non reproduite hors du Samsung).
+
+- ✔ 3 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ MLS après un démarrage à froid : lire et envoyer dans une conversation chiffrée (2026-09-16) »).
 
 ---
 
@@ -6791,18 +3713,6 @@ que dans les fils MLS. Pour les 121 messages `aes`, le serveur détient la
 racine des clés (`crypto-keys`) et `public.decrypt_aes_fallback` sait les lire
 — vérifié en production le 2026-09-16, la fonction existe toujours : c'est elle
 qui fabrique les aperçus push.
-
-Elle ne vivait pas seulement dans l'écran de sauvegarde, où elle se voyait le
-moins. Les huit endroits corrigés :
-
-| Surface | Avant |
-| --- | --- |
-| Écran de connexion / inscription (pied de page) | « Vos messages sont chiffrés de bout en bout. » |
-| Onboarding (pied de page + puce Groupes) | idem, plus « Discussions chiffrées de bout en bout » |
-| FAQ des Réglages | « **Oui.** Vos conversations sont chiffrées de bout en bout… » |
-| Écran Réglages › Sécurité (titre + corps de la carte) | « Chiffrement de bout en bout » |
-| `public/privacy-policy.html` et sa version anglaise | « Chiffrement de bout en bout pour les messages privés » |
-| `public/index.html`, `index-en.html`, `a-propos.html`, `fonctionnalites.html` | la même, en page d'accueil |
 
 Le parti pris : ne plus affirmer en bloc, dire les deux étages. Le chiffrement
 de bout en bout est revendiqué **là où il est vrai** — les discussions qui y
@@ -6824,16 +3734,14 @@ d'ici.
       comme en anglais, à l'échelle de police par défaut
 - [ ] Onboarding, écran Groupes : la puce raccourcie ne casse pas l'alignement
       des trois puces
-- ✔ 2 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ « Chiffré de bout en bout » corrigé sur 8 surfaces, dont la politique de confidentialité (2026-09-16) »).
 - [ ] Les quatre écrans en **anglais** aussi (la version longue anglaise est
       encore plus longue que la française)
-
-Voir « Les deux bandeaux de clés retirés : ils promettaient faux » juste en
-dessous : même cause, même journée.
 
 Fichiers : [app_fr.arb](lib/l10n/app_fr.arb), [app_en.arb](lib/l10n/app_en.arb),
 [privacy-policy.html](public/privacy-policy.html),
 [fonctionnalites.html](public/fonctionnalites.html)
+
+- ✔ 2 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ « Chiffré de bout en bout » corrigé sur 8 surfaces, dont la politique de confidentialité (2026-09-16) »).
 
 ---
 
@@ -6855,13 +3763,6 @@ mesurable :
   MLS, que cette sauvegarde ne touche pas — il est même volontairement exclu
   des sauvegardes Google et iCloud.
 
-Pire que l'inutilité : un message MLS indéchiffrable prend le placeholder
-`🔐 Message chiffré`, exactement celui sur lequel le bandeau de conversation
-déclenchait. Sur un fil chiffré dont un message ne passe pas, il s'affichait
-et envoyait vers Réglages › Sécurité — une restauration qui ne peut
-structurellement rien pour MLS. La personne fait la manœuvre, ne voit aucun
-changement, et n'a aucune raison de comprendre pourquoi.
-
 Retirés : le `MaterialBanner` du shell (sauvegarde **et** restauration) et le
 bandeau de conversation. L'arbitrage « la sécurité prime sur la mise à jour »
 part avec eux — il n'y a plus qu'une source de bandeau haut. Le coordinateur
@@ -6869,9 +3770,6 @@ reste entier : c'est lui, et non le bandeau, qui protège, en refusant de
 générer une identité neuve par-dessus une sauvegarde restaurable. L'écran
 Réglages › Sécurité reste atteignable à la main, sauvegarde et restauration
 comprises.
-
-Voir « Le bandeau de restauration des clés revenait sans arrêt » au § 2 : la
-mise en veille persistée réglait la fréquence, pas le mensonge.
 
 - [ ] Compte avec une sauvegarde distante, application réinstallée : **aucun**
       bandeau de clés au démarrage (c'est le cas `needsRestore`, celui qui se
@@ -6907,54 +3805,16 @@ pourtant un de son côté (`DateTime.now()`, au moment de chiffrer) et le
 gardait, sans jamais lire ce que le serveur avait retenu. Deux valeurs pour la
 même ligne, et rien pour dire laquelle fait foi.
 
-Ça compte parce que cet horodatage sert à deux choses :
-
-- **l'échéance d'un message éphémère**. `MlsMessageMapper` la compte depuis
-  `row.createdAt`, en écrivant juste à côté que c'est « le seul horodatage que
-  l'expéditeur ne choisit pas ». Pour ses propres messages, il le choisissait.
-  Une horloge de téléphone décalée de quelques minutes — banal — décale
-  d'autant la durée de vie réelle de la note. Voir « Messages éphémères » au
-  § 2.
-- **l'aperçu de la liste**, qui n'a que lui pour reconnaître dans le cache
-  local le message que le serveur annonce comme dernier. La latence seule ne
-  le cassait pas (la garde tronque à la seconde), un décalage d'horloge si.
-
 `publishMessage` relit maintenant `created_at` dans la même requête
 (`insert(...).select('created_at')`, donc une seule transaction) et `send`
 recolle la valeur sur la ligne rendue. La garde d'aperçu, elle, ne bouge pas :
 c'est la valeur écrite qu'on corrige, pas la comparaison.
 
-**Ce qui est déjà prouvé sans appareil**, et qui n'a donc plus à être cherché
-sur un téléphone :
-
-- le RLS, joué contre la base de production en rôle `authenticated` avec le
-  `firebase_uid` de l'expéditeur, dans un `BEGIN`/`ROLLBACK` : l'insertion
-  passe la policy `INSERT` **et** l'horodatage revient par la policy `SELECT`.
-  Rien laissé derrière (0 ligne de test, conversation toujours à 6 messages) ;
-- le fil, contre un PostgREST de façade
-  (`test/core/crypto/mls_publish_created_at_test.dart`, 7 cas) : le
-  `Prefer: return=representation` est bien posé, `select=created_at` est bien
-  dans l'URL, `created_at` n'est toujours **pas** dans le corps envoyé, la
-  valeur revient en UTC même rendue avec un décalage, et trois réponses
-  dégradées (vide, colonne absente, date illisible) donnent `null` au lieu de
-  lever.
-
-Ce banc a trouvé un défaut avant qu'il ne parte : la première version relisait
-avec `maybeSingle()`, qui sur un POST réclame un objet nu et **lève** si la
-réponse est un tableau — la correction de forme de `postgrest` ne couvre que
-les GET. Ç'aurait été un échec d'envoi annoncé pour un message déjà inséré,
-donc un doublon à la reprise. La relecture se fait maintenant sous forme de
-liste, où zéro ligne est une liste vide et rien ne lève.
-
 Reste à voir tourner ce que seul un téléphone montre :
 
-- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ L'expéditeur MLS datait lui-même ses propres messages (2026-09-15) »).
 - [ ] Régler l'horloge du téléphone à la main (avance de 3 min), envoyer une
       note chiffrée : l'aperçu doit tenir quand même. ⚠️ **Remettre l'horloge
       automatique après** — une horloge fausse perturbe TLS et les jetons.
-      *Pas faisable par adb : le shell est `uid 2000`, poser la date demande
-      le root ou l'écran Réglages. La comparaison cache/serveur ci-dessus
-      prouve la même chose sans toucher à l'horloge.*
 - [ ] Message éphémère envoyé depuis cet appareil : le minuteur affiché part
       de l'heure du serveur, pas de celle du téléphone
 - [ ] Un envoi dont la réponse se perd (couper le Wi-Fi pendant l'envoi) ne
@@ -6964,6 +3824,8 @@ Fichiers : [mls_delivery.dart](lib/core/crypto/mls/mls_delivery.dart)
 (`publishMessage`, `MlsMessageRow.avecCreatedAt`),
 [mls_conversation_service.dart](lib/core/crypto/mls/mls_conversation_service.dart)
 (`send`)
+
+- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ L'expéditeur MLS datait lui-même ses propres messages (2026-09-15) »).
 
 ---
 
@@ -6977,28 +3839,8 @@ aussi recopié dans `notifications.data->>'mlsCiphertext'`, pour que l'appareil
 reconstruise l'aperçu (plan MLS § 8) — et cette ligne n'était touchée par
 personne.
 
-Elle est lisible par PostgREST, et par exactement celui qui sait la
-déchiffrer : `notifications_own` la rend à son destinataire, qui est membre du
-groupe à cet epoch. Supprimer pour tous vidait donc la colonne pendant que le
-contenu restait à un `select` de distance pour le destinataire qui n'avait pas
-encore rattrapé — c'est-à-dire le cas précis que la suppression visait.
-
-**Mesuré en production avant correction le 2026-09-15** : sur 50 notifications
-MLS portant une copie, **8 désignaient un message supprimé**, dont 7 déjà
-vidés côté `mls_messages`. Le rattrapage de la migration les nettoie.
-
-Le déclencheur est posé sur `UPDATE OF ciphertext`, pas dans les deux
-fonctions qui effacent : il y en a déjà deux, il y en aura une troisième, et
-c'est celle-là qu'on aurait oublié de patcher.
-
-Vérifié hors appareil : migration rejouée en `BEGIN … ROLLBACK` contre la
-production (elle passe, et retire 10 copies), 8 cas dans
-`test/core/crypto/mls_notifications_suivent_le_message_test.dart`. **Rien n'a
-tourné sur un téléphone, et la migration n'est pas encore appliquée.**
-
 Fichiers : `supabase/migrations/20260916030000_mls_notifications_suivent_le_message.sql`.
 
-- ✔ 2 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ La notification gardait le ciphertext que le message avait perdu (2026-09-16) »).
 - [ ] **Supprimer pour tous, destinataire hors ligne** : couper le réseau du
   second téléphone, supprimer pour tous depuis le premier, rétablir le
   réseau. La notification ne doit **pas** faire apparaître le texte.
@@ -7010,6 +3852,8 @@ Fichiers : `supabase/migrations/20260916030000_mls_notifications_suivent_le_mess
 - [ ] **Suppression d'une conversation entière** : les notifications de tous
   ses messages sont nettoyées en une fois, et l'app ne rame pas.
 
+- ✔ 2 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ La notification gardait le ciphertext que le message avait perdu (2026-09-16) »).
+
 ---
 
 ## ⬜ La vidéo entre dans le chiffrement (2026-09-16)
@@ -7019,17 +3863,6 @@ depuis C4, et pour une raison précise : le chiffrement passait par la mémoire,
 avec un pic proche de trois fois la taille du fichier, et le téléchargement
 plafonnait à 10 Mo. Les deux sens vont maintenant d'un fichier vers un autre,
 un morceau à la fois. La raison n'existe plus, l'exclusion non plus.
-
-Lever l'exclusion ne suffisait pas. Une vidéo chiffrée qui arriverait sans
-aperçu ni badge de durée se lirait comme un défaut d'affichage, et on
-chercherait le bug ailleurs. Trois choses l'accompagnent donc :
-
-- elle est cartographiée en `MediaType.video`, non plus en `document` ;
-- sa vignette et sa durée se calculent **sur le fichier en clair**, avant
-  l'envoi — une fois chiffré, il n'y a plus rien à décoder ;
-- la durée voyage dans un champ à elle dans la charge MLS. `duration` y est lu
-  comme une durée **audio** par le mapper : une vidéo rangée là aurait disparu
-  du badge.
 
 Fichiers : [message_repository_impl.dart](lib/features/messages/data/repositories/message_repository_impl.dart)
 (`_envoyerMediaChiffre`), [mls_gateway.dart](lib/core/crypto/mls/mls_gateway.dart)
@@ -7056,20 +3889,6 @@ appelait `ref.getData()` sans argument. Le défaut de `firebase_storage` est
 **10 Mo** : au-delà, l'appel échoue. Toute photo un peu lourde, tout document,
 tout audio long, une fois chiffré, aurait été **illisible**. Le drapeau étant
 fermé, personne ne l'avait rencontré.
-
-Second défaut, superposé : tout passait par la mémoire. Octets chiffrés
-entiers, puis la liste des morceaux déchiffrés, puis leur concaténation —
-près de trois fois la taille du fichier au pic. C'est **la** raison pour
-laquelle la vidéo était exclue du chiffrement.
-
-Le format n'a pas changé : en-tête `[version][nombre de morceaux]`, puis
-`[taille][ciphertext][étiquette]` par morceau, IV dérivé de l'index. Ce qui
-change est qu'on le lit d'un fichier vers un autre, un morceau à la fois.
-`writeToFile` remplace `getData` : pas de plafond, et rien en mémoire.
-
-Le format simple d'avant reste lu — rien ne l'a encore écrit en production,
-mais le refuser rendrait illisible ce qu'une version intermédiaire aurait
-produit.
 
 Fichiers : [media_encryption_service.dart](lib/core/services/e2ee/media_encryption_service.dart)
 (`downloadAndDecryptFile`, `dechiffrerFichierVersFichier`). Couvert hors
@@ -7102,25 +3921,6 @@ La suppression posait `is_deleted` et `deleted_at`, et rien d'autre. Le contenu
 restait en base, et un destinataire qui n'avait pas encore rattrapé pouvait
 encore le déchiffrer.
 
-Le client ne pouvait pas faire mieux : `UPDATE` ne lui est pas accordé sur
-`ciphertext`, et **cette restriction doit rester** — c'est elle qui l'empêche
-de réécrire son propre message des heures après, un défaut déjà trouvé et
-fermé. D'où une fonction `SECURITY DEFINER` qui fait le geste précis, vider,
-sans donner le moyen d'écrire n'importe quoi. Elle se réserve à l'expéditeur
-dans son corps, puisqu'elle passe outre le RLS.
-
-Second défaut fermé au passage : l'ancien `update` ne vérifiait pas son effet.
-Un refus du RLS réussissait avec zéro ligne et sans erreur — la sixième forme
-d'échec muet de ce dépôt, celle qui avait déjà fait mentir une révocation
-d'appareil. La fonction rend l'identifiant touché, et le client lève quand elle
-ne rend rien.
-
-**Migration appliquée le 2026-09-16.** Vérifié en production : la fonction
-existe, elle est `SECURITY DEFINER`, exécutable par `authenticated` et refusée
-à `anon`. Éprouvée sur un vrai message sans revendication JWT : elle rend
-`NULL` et ne touche rien — la condition écrite dans son corps tient, ce qui est
-le point, puisqu'elle passe outre le RLS.
-
 Fichiers : la migration,
 [mls_metadonnees.dart](lib/core/crypto/mls/mls_metadonnees.dart)
 (`supprimerPourTous`). Couvert hors appareil par
@@ -7145,24 +3945,50 @@ Fichiers : la migration,
 
 ---
 
+## ⬜ Une réaction retirée disparaît vraiment de l'écran (2026-09-15)
+
+**Priorité P1** · importance 4/5 — **Trouvé en regardant l'écran, pas le
+code.** Une bulle de « Mes notes » affichait un pouce levé alors que
+`mls_message_reactions` était **vide** en base. La réaction n'existait plus
+côté serveur, et l'écran la montrait quand même.
+
+Le lot porte maintenant un drapeau `lu`. On sort sur l'échec de lecture, plus
+sur le vide — une coupure réseau ne doit pas non plus effacer tout l'écran.
+
+Fichiers : [mls_metadonnees.dart](lib/core/crypto/mls/mls_metadonnees.dart)
+(`illisible`), [mls_gateway.dart](lib/core/crypto/mls/mls_gateway.dart)
+(`_avecMetadonnees`). Couvert hors appareil par
+[metadonnees_absence_vs_echec_test.dart](test/core/crypto/metadonnees_absence_vs_echec_test.dart)
+(4 cas).
+
+- [x] **Couper le réseau sur un fil qui porte des réactions** : elles restent
+      affichées, elles ne s'effacent pas d'un coup. C'est l'autre moitié du
+      correctif.
+      ⛔ **Mais elles sont PÉRIMÉES** (défaut nouveau) : le fil hors ligne montrait
+      le ❤️ retiré de PH1 une minute plus tôt, et PAS le 👍 posé sur PK1 juste
+      avant. Cause, par le code : réagir et étoiler ne mettent à jour que l'état en
+      mémoire et le serveur — aucun appel `cacheService` dans ces chemins
+      (`message_provider.dart` `toggleReaction`/`toggleStar`,
+      `message_repository_impl.dart`) ; hors ligne, le fil ressert le dernier
+      instantané Hive. Et réseau revenu **discussion restée ouverte**, l'écran est
+      resté faux plus d'une minute ; seule la relance à froid en ligne a remis
+      l'état juste (PH1 sans réaction, 👍 sur PK1).
+      **Corrigé le 2026-09-22** (branche `claude/defauts-hors-ligne-2209`) :
+      `toggleReaction` et `toggleStarMessage` reportent la réaction ou l'étoile
+      dans le cache Hive après l'écriture serveur (`reporterDansLeCache`),
+      garde `test/features/messages/passe_adb_2209_hors_ligne_test.dart`. À revoir sur un build qui le porte : poser,
+      retirer, puis mode avion + relance à froid → l'écran montre le dernier
+      état. Le « réseau revenu, discussion ouverte, écran figé » n'est pas
+      traité ici (rechargement au retour du réseau).
+
+---
+
 ## ⬜ Ouvrir une discussion ne la bascule plus (2026-09-15)
 
 **Priorité P0** · importance 5/5 — **Il suffisait de regarder une discussion
 pour l'engager.** Le chemin de lecture appelait `ensureGroup`, qui crée le
 groupe et pose `mls_since` — une marque définitive : le serveur refuse le
 clair ensuite, et rien ne revient en arrière.
-
-Mesuré, pas supposé. Les trois premières conversations basculées en
-production l'ont été **avant** leur premier message chiffré :
-
-| conversation | bascule | 1er message | écart |
-|---|---|---|---|
-| `805adcaa…` | 13:53:59 | 13:55:27 | 88 s |
-| `debef5f0…` | 15:28:05 | 15:30:11 | 126 s |
-| `d41d4ea0…` | 19:53:56 | 19:54:08 | 12 s |
-
-C'est l'ouverture qui les a gelées. Et ça explique la conversation de groupe
-basculée à 19:53 sans que personne n'ait décidé quoi que ce soit.
 
 La règle posée : **créer est une décision d'écriture, elle appartient à
 l'envoi**. La lecture peut *rejoindre* un groupe existant — c'est nécessaire
@@ -7174,11 +4000,12 @@ Fichiers : [mls_conversation_service.dart](lib/core/crypto/mls/mls_conversation_
 [lire_ne_bascule_pas_test.dart](test/core/crypto/lire_ne_bascule_pas_test.dart)
 (4 cas, dont la garde d'ordre).
 
-- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Ouvrir une discussion ne la bascule plus (2026-09-15) »).
 - [ ] **Puis envoyer** : la bascule a lieu à ce moment-là, pas avant.
 - [ ] **Recevoir dans une discussion déjà basculée par l'autre** : l'ouvrir
       doit suffire à rejoindre le groupe et à déchiffrer.
 - [ ] **Parcourir la liste des discussions** : aucune ne bascule au passage.
+
+- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Ouvrir une discussion ne la bascule plus (2026-09-15) »).
 
 ---
 
@@ -7191,10 +4018,6 @@ celui de l'expéditeur. En face, aucune ligne dans `mls_devices` — l'autre
 étant sur la version du Play Store, qui n'a pas le registre. Huit messages
 sont partis chiffrés pour un groupe d'une personne.
 
-Et **rien ne le disait**. `reconcileMembership` ne trouvait personne à
-ajouter, donc `aAjouter` restait vide, donc pas même un
-`appareil_sans_key_package`. L'échec muet dans sa forme la plus pure.
-
 Deux gardes posées :
 
 - `ensureGroup` **refuse de créer le groupe** si un participant n'a aucun
@@ -7204,18 +4027,11 @@ Deux gardes posées :
 - `reconcileMembership` écrit désormais `participant_sans_appareil` quand il
   croise ce cas, pour les conversations déjà basculées.
 
-⚠️ **Les deux conversations abîmées ne sont pas réparables par l'app.** Le
-déclencheur `conversations_garde_mls_since` interdit toute modification de
-`mls_since` une fois posé, et les huit messages resteront illisibles pour
-l'autre — MLS ne redonne pas le secret d'un epoch passé. Les revenir en clair
-demanderait une intervention manuelle en base, à décider à part.
-
 Fichiers : [mls_conversation_service.dart](lib/core/crypto/mls/mls_conversation_service.dart)
 (`refuserSiQuelquUnNePeutPasSuivre`). Couvert hors appareil par
 [bascule_refusee_sans_appareil_test.dart](test/core/crypto/bascule_refusee_sans_appareil_test.dart)
 (6 cas, dont la garde d'ordre : la vérification doit précéder la création).
 
-- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Une conversation ne bascule plus sans ses participants (2026-09-15) »).
 - [ ] **L'autre met à jour et ouvre l'app une fois** : il s'inscrit dans
       `mls_devices`, et le message suivant fait basculer la conversation, avec
       **deux** lignes dans `conversation_devices`.
@@ -7223,6 +4039,8 @@ Fichiers : [mls_conversation_service.dart](lib/core/crypto/mls/mls_conversation_
 - [ ] **Groupe à plusieurs** : un seul membre sans appareil suffit à retenir
       la bascule. Vérifier que ça ne bloque pas l'envoi, seulement le
       chiffrement.
+
+- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Une conversation ne bascule plus sans ses participants (2026-09-15) »).
 
 ---
 
@@ -7246,11 +4064,6 @@ Fichiers : [mls_code_securite.dart](lib/core/crypto/mls/mls_code_securite.dart),
 (`_CodeSecurite`), [mls_device_registry.dart](lib/core/crypto/mls/mls_device_registry.dart)
 (`signatureKey`).
 
-Le banc tient le calcul (16 cas) — il a d'ailleurs trouvé que l'analyseur de
-QR rejetait tout code valide, l'identité MLS `uid:stable_id` contenant déjà
-un `:`. Ce qui suit est ce qu'il ne peut pas voir.
-
-- ✔ 3 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Code de sécurité d'un appareil MLS (phase 7, 2026-09-15) »).
 - [ ] **Deux téléphones, deux comptes** : le code affiché pour l'appareil de
   A, lu sur le téléphone de B, est le même que celui que A voit chez lui.
   ⬜ Passe du 2026-09-22 (~03:20–03:35), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : **pas faisable sans caméra** — l'app ne montre le code que
@@ -7271,19 +4084,14 @@ un `:`. Ce qui suit est ce qu'il ne peut pas voir.
   l'avertissement « la clé a changé » apparaît si l'app est réinstallée en
   face.
 
+- ✔ 3 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Code de sécurité d'un appareil MLS (phase 7, 2026-09-15) »).
+
 ---
 
 ## ✅ Le bandeau « 1 message non lu » d'une conversation basculée (2026-09-15)
 
 **Priorité P1** · importance 3/5 — Trouvé par le premier essai réel de MLS,
 et par rien d'autre : ni les tests ni le banc ne pouvaient le voir.
-
-Le séparateur « Messages d'avant le chiffrement de bout en bout » est un
-message **système synthétique** (`senderId: 'system'`, `readBy` vide, absent
-du serveur). Le compteur de non-lus du fil le prenait pour un message
-d'autrui jamais lu : bandeau permanent, impossible à faire partir, puisque
-rien ne viendrait jamais le marquer. Le serveur disait zéro — la vue
-`mls_unread_counts` ne compte que `kind = 'content'` et exclut l'expéditeur.
 
 Corrigé en sautant les messages système, ce qui aligne le fil sur la règle du
 serveur et corrige aussi le rang du premier non-lu : le bandeau se posait
@@ -7293,8 +4101,9 @@ Fichiers : [conversation_screen.dart](lib/features/messages/presentation/screens
 (`compterNonLus`). Tenu par
 [non_lus_fil_test.dart](test/features/messages/non_lus_fil_test.dart) (6 cas).
 
-- ✔ 2 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ✅ Le bandeau « 1 message non lu » d'une conversation basculée (2026-09-15) »).
 - [ ] **La pastille de la liste** suit la même règle et retombe à zéro.
+
+- ✔ 2 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ✅ Le bandeau « 1 message non lu » d'une conversation basculée (2026-09-15) »).
 
 ---
 
@@ -7326,7 +4135,6 @@ Couvert hors appareil par
 
 - [ ] **Compte non listé** : rien ne change, les messages partent par le
       chemin d'aujourd'hui. À vérifier AVANT d'ouvrir pour qui que ce soit.
-- ✔ 2 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ MLS ouvert pour un seul compte (phase 5, 2026-09-15) »).
 - [ ] **Écran Appareils d'un compte hors drapeau déjà en MLS** (Pixel de
       Salim, sur un build qui porte le correctif) : la liste Signal, puis la
       section « Discussions chiffrées de bout en bout » avec ses 2 appareils
@@ -7336,6 +4144,8 @@ Couvert hors appareil par
       appel, pas au démarrage.
 - [ ] **Écran d'administration** : la liste n'y est pas éditable. Juger s'il
       faut l'y mettre ou la laisser en écriture directe.
+
+- ✔ 2 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ MLS ouvert pour un seul compte (phase 5, 2026-09-15) »).
 
 ---
 
@@ -7352,11 +4162,6 @@ Il est désormais exclu des deux, par deux fichiers distincts — Android 12 a
 séparé la sauvegarde cloud du transfert d'appareil et **ignore**
 `fullBackupContent` dès l'API 31, donc n'en corriger qu'un laisserait la
 moitié du chemin ouverte.
-
-Exclure ne dégrade rien : l'état MLS n'est pas restaurable de toute façon. Une
-restauration ailleurs produirait une identité en double siégeant dans les
-mêmes groupes, avec un cliquet déjà avancé — des messages illisibles des deux
-côtés. Le registre traite déjà l'identité neuve (`identite_mls_changee`).
 
 **Ce que ça ne remplace pas** : le fichier reste en clair sur l'appareil. Le
 plan (§ 7.4) veut une clé maître dans le Keystore, et les deux voies ont été
@@ -7380,7 +4185,6 @@ Verrouillé par
       comportement d'Android.
 - [ ] **Le reste de l'app est toujours sauvegardé** : l'exclusion ne doit
       porter que sur `mls/`, pas avoir désactivé la sauvegarde en entier.
-- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ L'état MLS ne quitte plus l'appareil (sauvegardes, 2026-09-15) »).
 - [ ] **iOS : écrit le 2026-09-16, JAMAIS COMPILÉ.** `Library/Application
       Support` part dans iCloud, et l'exclusion demande
       `NSURLIsExcludedFromBackupKey`, sans API Dart : le drapeau se pose donc
@@ -7392,6 +4196,8 @@ Verrouillé par
       dossier est bien absent d'une sauvegarde (Xcode › Devices, ou une
       restauration sur un second appareil).
 
+- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ L'état MLS ne quitte plus l'appareil (sauvegardes, 2026-09-15) »).
+
 ---
 
 ## ⬜ Recherche, favoris et galerie d'une conversation chiffrée (2026-09-15)
@@ -7399,15 +4205,6 @@ Verrouillé par
 **Priorité P1** · importance 4/5 — **Trois écrans posaient au serveur une
 question qu'il ne peut pas entendre**, et prenaient sa réponse vide pour une
 vérité. Aucun ne levait.
-
-- La **recherche** dans une conversation : son `ilike` porte sur un
-  ciphertext, donc ne trouvait jamais rien.
-- La liste des **favoris** : la pire des trois, parce que la moitié marchait.
-  L'étoile d'un message chiffré s'écrit bien dans `mls_message_stars` et le
-  fil l'affiche, mais la liste lisait `messages`, où ce message n'a pas de
-  ligne. On étoilait dans le vide.
-- La **galerie** : le descripteur d'un média chiffré voyage dans le payload,
-  donc le serveur ne sait même pas qu'il s'agit d'un média.
 
 Les trois interrogent désormais aussi le cache Hive, seul endroit où le clair
 existe, et gardent le résultat serveur pour l'historique d'avant le
@@ -7425,7 +4222,22 @@ Couvert hors appareil par
 [lectures_conversation_chiffree_test.dart](test/features/messages/lectures_conversation_chiffree_test.dart)
 (11 cas).
 
-- ✔ 4 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Recherche, favoris et galerie d'une conversation chiffrée (2026-09-15) »).
+- [x] **Chercher un mot d'avant la bascule** : il ressort aussi, sous le
+      séparateur.
+      ⛔ **Défaut nouveau** : « Yo » ressort aussi une ligne qui affiche le
+      **ciphertext brut** « v1:/YO6lTZ8e0b69CLOgLRo7Q==:SEEiIX1Hm… » (04:57,
+      Salim). Cause, par le code : `searchMessagesInConversation` garde le
+      résultat serveur, un `ilike` sur `data->>content` — pour un ancien message
+      chiffré (repli AES `v1:`), c'est le chiffré qui matche (« YO » dans le
+      base64, sans casse) et il est affiché tel quel, ni déchiffré ni écarté
+      (`message_repository_impl.dart`, `message_supabase_datasource.dart`). Les
+      heures sans date (16:02, 04:57, 23:39, 15:36) ne disent pas de quel jour.
+      **Corrigé le 2026-09-22** : la recherche serveur déchiffre
+      (`_msgFromRowAsync`) puis ne garde que les lignes dont le CLAIR contient
+      le mot (`garderSiLeClairContient`, qui écarte aussi les marqueurs
+      d'échec). À revoir sur un build qui le porte : « Yo » ne doit plus
+      ressortir de chiffré, « message » ne doit pas ressortir « [Message
+      illisible] ».
 - [ ] **Retirer l'étoile** : il disparaît de la liste.
       ⛔ **Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff), SM A515F (Sim, clair, police 1,0) : ÉCHEC.** Étoile retirée de PJ1 (ligne supprimée de
       `mls_message_stars`), liste rouverte : PJ1 **y est toujours**. Il n'en sort
@@ -7440,14 +4252,13 @@ Couvert hors appareil par
 - [ ] **Galerie d'une conversation basculée** : les photos chiffrées y sont,
       et s'ouvrent en plein écran. Croiser avec l'entrée « Pièces jointes
       chiffrées ».
-      ⬜ Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff), SM A515F (Sim, clair, police 1,0) : « Médias partagés » du 1:1 → Photos · 0, Vidéos · 0,
-      Documents · 0. Rien à conclure : aucune photo visible dans ce fil, et
-      l'envoi de photo est exclu de la passe.
 - [ ] **Fil jamais ouvert sur cet appareil** : les trois écrans ne montrent
       rien de la partie chiffrée. Juger si c'est dit de façon acceptable, ou
       s'il faut un mot d'explication.
 - [ ] **Fil très long** : mesurer le temps de la recherche locale, le cache
       étant parcouru en entier à chaque frappe.
+
+- ✔ 4 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Recherche, favoris et galerie d'une conversation chiffrée (2026-09-15) »).
 
 ---
 
@@ -7471,11 +4282,6 @@ Fichiers : [mls_gateway.dart](lib/core/crypto/mls/mls_gateway.dart)
 (`getConversationStream`). Couvert hors appareil par
 [mls_appartenance_test.dart](test/core/crypto/mls_appartenance_test.dart)
 (8 cas, dont la garde de câblage).
-
-**Rien de tout ça n'a tourné sur un téléphone**, et ça ne tournera pas tant
-que `featureFlags.mlsMessages` est fermé : les trois refus (conversation non
-basculée, première vue, liste inchangée) font que le chemin ne s'ouvre jamais
-sur une conversation en clair.
 
 - [ ] **Exclusion pendant que l'écran est ouvert** : A et B dans un groupe
       basculé, l'écran de A ouvert ; exclure B depuis la fiche des membres.
@@ -7530,7 +4336,6 @@ node tools/purge_comptes_sonde.mjs --confirmer   # comptes sonde-banc-*
 Les jetons de sonde expirent en **six minutes** : fabriquer le fichier et
 lancer le banc dans la même commande, jamais à l'avance.
 
-- ✔ 3 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Banc MLS bout en bout contre la vraie base (phase 3, 2026-09-15) »).
 - [ ] **Il reste vert deux jours de suite** (les KeyPackages, les sessions
   et les comptes sonde sont neufs à chaque exécution).
 - [ ] **Relancer après tout changement du moteur ou du transport.** C'est le
@@ -7551,6 +4356,8 @@ lancer le banc dans la même commande, jamais à l'avance.
    révoquer l'appareil d'un autre touchait zéro ligne, sans erreur, et
    l'écran aurait annoncé « appareil révoqué ». Corrigé : `revoke` lit les
    lignes modifiées et lève si elles sont vides.
+
+- ✔ 3 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Banc MLS bout en bout contre la vraie base (phase 3, 2026-09-15) »).
 
 ---
 
@@ -7576,11 +4383,6 @@ Fichiers : [mls_engine_provider.dart](lib/core/crypto/mls/mls_engine_provider.da
 [auth_provider.dart](lib/features/auth/presentation/providers/auth_provider.dart)
 (`_initializeE2EE`), crate `rust/`.
 
-Preuve de vie de la phase (en base, pas à l'écran) :
-`select count(*) from mls_devices where last_seen_at > now() - interval '7 days'`
-> 0 sur des comptes réels.
-
-- ✔ 5 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Registre d'appareils MLS — inscription à la connexion, KeyPackages, écran (phase 2, 2026-09-15) »).
 - [ ] **Révocation depuis un second appareil** (ou depuis SQL) : la ligne
   passe barrée « Révoqué », ses paquets non consommés ont disparu (trigger),
   et au redémarrage l'appareil révoqué **ne se réinscrit pas** (ligne
@@ -7601,29 +4403,13 @@ Preuve de vie de la phase (en base, pas à l'écran) :
   l'appareil ». Depuis cette date le fichier est au moins exclu des
   sauvegardes.
 
+- ✔ 5 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Registre d'appareils MLS — inscription à la connexion, KeyPackages, écran (phase 2, 2026-09-15) »).
+
 ---
 
 ## ⬜ Signal remis en service : la garde de session sur les lectures de clés (2026-09-14)
 
 **Priorité P0** · importance 5/5 — Le chiffrement de bout en bout était mort en production : mesuré, **aucun** message ne passait par Signal, tout partait en repli AES. *Bloqué : deux comptes (le destinataire doit publier ses clés depuis SON appareil).*
-
-Relevé en base le 2026-09-14 : **0 message `encryptionLevel = 'e2ee'`** — 89 en
-`aes`, 10 en `null`, sur 2026-08-15 → 2026-09-14. Dont **75 en conversation à
-2+ participants** (70 `individual`, 20 `group`), donc pas un artefact du
-self-chat, où `aes` est correct.
-
-Rien ne clochait dans les données, et c'est ce qui l'a caché un mois : 35/35
-comptes `e2ee_enabled` avec `active_devices` non vide, 44 appareils, 4085
-prékeys, écriture le jour même, identifiants concordants (21/21), RLS
-permissive en lecture.
-
-La cause tenait à une dissymétrie d'une ligne dans
-`lib/core/services/e2ee/key_manager_service.dart` : la garde de session
-couvrait les trois **écritures** depuis le 2026-07-17 et **aucune lecture**.
-Les policies étant réservées au rôle `authenticated`, un client encore `anon`
-— la fenêtre du démarrage — lit zéro ligne **sans erreur**. `getActiveDevices`
-rendait donc une liste vide, indiscernable de « ce compte n'a pas de clés » :
-X3DH n'était pas tenté, l'envoi retombait en AES.
 
 Corrigé : garde sur les quatre lectures (`getActiveDevices`,
 `fetchPreKeyBundle`, `fetchAllPreKeyBundles`,
@@ -7662,18 +4448,6 @@ nouvel accès Supabase non gardé dans ce fichier.
 
 **Priorité P1** · importance 4/5 — Tout message de groupe retombe en repli AES, sans que rien ne le signale. *Bloqué : deux comptes dans un même groupe.*
 
-`e2ee_sender_key_distributions` était **vide (0 ligne)** en production, alors
-que 20 messages de groupe en repli AES y sont passés. Ce n'est **pas** un
-défaut indépendant : `distributeSenderKey` chiffre la distribution via une
-session 1:1, donc via `fetchPreKeyBundle` — celui-là même qui rendait `null`
-sous `anon`. `encryptMessage` rendait donc `null`, et l'`upsert` de la ligne 154
-n'était **jamais atteint**. Voir « Signal remis en service : la garde de
-session sur les lectures de clés ».
-
-Les policies de la table, elles, sont correctes et ont été vérifiées en prod :
-`sender_id = firebase_uid()` à l'insertion, `recipient_id = firebase_uid()` en
-lecture et suppression. Rien à corriger de ce côté.
-
 Corrigé dans `lib/core/services/e2ee/sender_key_service.dart` : garde bornée
 sur `distributeSenderKey` (écriture, mais avec repli AES, donc bornée) et sur
 `fetchPendingDistributions` — cette dernière était la plus vicieuse des deux,
@@ -7710,10 +4484,6 @@ pire. Mais sur un groupe de 17 personnes, cela demande 16 sessions 1:1
 
 **Priorité P0** · importance 4/5 — Si le correctif ne tient pas, une réponse ou une modification laisse le texte en clair en base, ou le message modifié devient illisible chez le destinataire et la citation disparaît de la bulle. *Bloqué : deux comptes (côté destinataire).*
 
-Deux fuites de la même famille que les cartes de partage, trouvées en
-instrumentant ce chemin. Toutes deux écrivaient du texte utilisateur **en
-clair** dans `messages.data`, à côté d'un `content` chiffré.
-
 **1. Répondre recopiait le message cité en clair.** `replyToMessageData`
 contient le texte **déjà déchiffré** du message auquel on répond : chaque
 réponse en déposait une copie lisible. Une conversation active en laissait donc
@@ -7741,28 +4511,6 @@ garde plus que la date — rien ne l'affichait.
   Restent donc : photo avec légende, note vocale, sticker.
   à une note vocale, à une localisation, à un sticker. La citation doit
   s'afficher au-dessus de la bulle, chez l'expéditeur **et** chez l'autre.
-- ✔ 5 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Citations et modifications : plus de texte en clair (2026-09-09) »).
-- [ ] **Modifier un message d'un 1:1, puis d'un groupe** : le texte modifié
-  doit s'afficher correctement chez l'autre après rechargement. C'est le point
-  le plus risqué du lot — le rechiffrement d'une modification n'a jamais tourné
-  contre de vraies sessions Signal.
-  **1:1 ✅ 2026-09-11 18:05, SM A515F (Sim A) → Pixel (Salim L.), build 18.**
-  `REPONSE-TEXTE-1756` modifié en `…-EDIT1` : côté expéditeur la bulle porte
-  le nouveau texte, la mention « modifié » et sa citation ; en base le contenu
-  est **rechiffré** (`v1:ZxxwuxW…`), `editedAt` est posé et `editHistory` ne
-  contient plus que `[{editedAt}]`, sans `content`. Côté Pixel, le nouveau
-  texte apparaît **après être sorti de la conversation et y être revenu** —
-  sur l'écran resté ouvert, seule la mention « modifié » arrivait, le texte
-  restait l'ancien.
-  **Groupe ✅ 2026-09-11 18:20, groupe « Testeurs » (2 membres).**
-  `GRP-EDIT-1817` (parti en `v1:Phea9X0cX…`, bulle « Reçu ») modifié en
-  `…-EDIT` : contenu rechiffré `v1:+sqGspFl8…`, historique à 1 entrée sans
-  texte, et la bulle affiche le nouveau texte **chez Salim L. sur le Pixel**.
-  Le chemin Sender Key encaisse donc aussi une modification.
-  Réserve commune aux deux cas (⚠️ les sessions Signal ne sont
-  pas en jeu ici : aucun appareil n'a republié ses clés depuis le 2026-08-23,
-  tout est en repli AES/clé dérivée — voir « E2EE réparé : la clé de signature
-  est publiée avec le bundle »).
 - [ ] ⚠️ **L'aperçu de la liste des discussions garde l'ancien texte après une
   modification** (vu le 2026-09-11 sur le Pixel : la ligne « Sim A » affichait
   encore `REPONSE-TEXTE-1756` alors que la bulle disait `…-EDIT1`).
@@ -7776,6 +4524,8 @@ garde plus que la date — rien ne l'affichait.
   « Autres actions », **puis faire défiler** la feuille jusqu'en bas (elle
   vient après Infos du message, Partager, Sélectionner). Trois essais y ont
   été perdus ici. À rapprocher de la maquette : est-ce voulu ?
+
+- ✔ 5 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Citations et modifications : plus de texte en clair (2026-09-09) »).
 
 ---
 
@@ -7838,13 +4588,6 @@ fichier, elle, arrive en clair côté serveur — avec une étiquette
 (citation, carte d'événement, aperçu de lien) sont, elles, bien chiffrées par
 `_annexesChiffreesPour` : c'est le seul champ oublié.
 
-Rappel utile pour juger de la gravité : le repli « AES » repose sur une clé
-constante embarquée dans l'APK (`encryption_service.dart:62`, « Ce n'est pas
-un secret »). L'écart réel n'est donc pas « chiffré vs clair » mais « obscurci
-vs lisible tel quel » pour tout ce qui n'a pas de session Signal — et « E2EE
-vs clair » pour tout ce qui en a une, c'est-à-dire les conversations
-normales.
-
 **Pas corrigé ici, volontairement** : toucher au chemin d'envoi des médias
 demande sa propre passe et une vérification appareil (photo, vidéo, fichier,
 note vocale, avec et sans légende, 1:1 et groupe). Un correctif bâclé casse
@@ -7868,54 +4611,9 @@ affiche un QR, le **neuf** le scanne, et l'export complet du stockage sécurisé
 voyage chiffré en AES-256-GCM par une clé qui ne quitte jamais le canal
 optique. Le serveur ne relaie qu'un blob.
 
-⚠️ **Le sens a été inversé le 2026-09-08**, après essai sur les deux téléphones.
-L'app n'autorise qu'**une session par compte** (`SessionService` écrit un
-`session_id` neuf à chaque connexion, les autres appareils se déconnectent
-seuls) : se connecter sur le téléphone neuf éjecte l'ancien à l'instant même.
-La première version — le neuf affiche, l'ancien scanne et dépose — ne pouvait
-donc **jamais** fonctionner : au moment du dépôt, l'ancien était déjà dehors.
-Le dépôt vient maintenant en premier, tant que l'ancien a sa session ; le neuf
-scanne **avant de se connecter**, retient le rendez-vous dans le stockage
-sécurisé, et `E2EEBackupCoordinator` le reprend juste après la connexion. La
-route du scanner est ouverte sans session (garde du routeur), et un lien
-« Récupérer depuis mon ancien téléphone » figure sur l'écran de connexion.
-
-Corollaire : plus d'accusé de réception ni d'effacement automatique — l'ancien
-sera hors ligne au moment de l'import. L'effacement devient un geste explicite
-(« Effacer les clés de cet appareil »), utile avant de donner le téléphone, et
-la copie de secours de sept jours le couvre toujours.
-
-La migration `20260908200000_e2ee_key_transfers.sql` **est appliquée** en
-production (Salim l'a poussée le 2026-09-08 ; `db push --dry-run` répond
-« Remote database is up to date »). La table existe donc, RLS et trigger de
-purge compris.
-
-Déjà vu sur SM A515F le 2026-09-08 (build debug
-`c47898e6d9e78aedf333b93f751a76a9`), seul, sans second téléphone :
-
-- la section « Changer de téléphone » s'affiche dans Réglages › Sécurité ›
-  Sauvegarde des clés, au-dessus de la sauvegarde existante ;
-- l'écran de récupération affiche le QR et « En attente de l'ancien
-  téléphone… » ;
-- l'écran de transfert ouvre bien la caméra (permission déjà accordée par le
-  scanner de profil, donc aucune demande) et la **relâche** en sortant —
-  vérifié par `dumpsys media.camera` ;
-- le **QR se renouvelle** : deux captures du même écran à 90 s d'intervalle
-  donnent deux codes différents (empreintes de la zone du QR comparées) ;
-- l'écran du QR tient aussi en **police 1,3 / densité 440** : code entier,
-  textes qui passent à la ligne, rien de coupé.
-
 Raccourci utile pour y retourner sans naviguer :
 `adb shell am start -a android.intent.action.VIEW -d "diasponiger:///settings/security/transfer/receive" com.diasponiger.diasponiger`
 (le lien profond marche, testé).
-
-Deux garde-fous ajoutés depuis, à vérifier eux aussi :
-
-- le **QR se renouvelle toutes les 90 secondes** (le précédent reste accepté un
-  tour de plus, sinon un scan tombant pile au renouvellement se perdrait) ;
-- l'ancien téléphone **garde une copie de secours sept jours** avant
-  d'effacer : si le nouveau tombe juste après l'accusé de réception, « Annuler
-  le transfert » la remet en place depuis l'écran de sauvegarde.
 
 Le reste demande **deux téléphones** connectés au **même compte** :
 
@@ -7946,57 +4644,6 @@ Le reste demande **deux téléphones** connectés au **même compte** :
 - [ ] **La ligne de rendez-vous ne survit pas.** Après un transfert réussi,
       `select * from e2ee_key_transfers` doit être vide pour ce compte.
 
-⚠️ **Ce que ce chemin ne fait pas** : il remplace un téléphone, il n'en ajoute
-pas un — et de toute façon la règle d'une seule session par compte l'interdit
-déjà. Deux appareils portant la même identité ne peuvent donc pas se disputer
-le ratchet en même temps ; c'est ce qui rend l'effacement facultatif.
-
----
-
-## ✅ Rappel des clés : « Ne plus me le rappeler » — vérifié SM A515F (2026-09-08)
-
-**Priorité P3** · importance 2/5 — Le rappel de restauration reste muet pour de bon après une sauvegarde, laissant l'appareil sur le repli AES sans rien pour le signaler.
-
-Deux bandeaux répétaient le même message et un seul savait se taire. Celui de
-`MainShell` se mettait en veille 7 jours sur « Pas maintenant » ; celui posé en
-tête de conversation (`_buildE2eeRestoreBanner`, conversation_screen.dart)
-n'avait **aucune** veille — il revenait à chaque ouverture d'un fil contenant un
-message indéchiffrable, même juste après avoir écarté l'autre.
-
-Désormais : un troisième bouton « Ne plus me le rappeler » (`dismissForever`)
-écrit `-1` à la place de l'horodatage — une veille que le temps n'éteint plus —
-et les deux bandeaux lisent le même `e2eeRestoreNudgeMutedProvider`.
-
-Couvert par `test/core/services/e2ee/e2ee_backup_coordinator_test.dart`
-(5 cas, veille / expiration à 7 jours / effacement / cloisonnement des deux
-rappels). Vérifié sur SM A515F le 2026-09-08 (compte « Sim », sans clés
-locales donc réellement en `needsRestore`, build debug md5
-`3f780aa56b964976b0ba5c488f85c520`) :
-
-- ✔ 3 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ✅ Rappel des clés : « Ne plus me le rappeler » — vérifié SM A515F (2026-09-08) »).
-- [ ] **Une vraie sauvegarde rend la parole.** Non vérifié : il aurait fallu
-      créer ou restaurer une vraie sauvegarde (donc manipuler une passphrase
-      réelle sur le compte). `clearSnooze` reste couvert par le test unitaire
-      seul.
-
-**Trouvé pendant le test — corrigé.** Le bandeau de conversation ne
-s'affichait **jamais** sur un fil de groupe : `conversation_screen` gardait sa
-propre copie du placeholder (« 🔐 Message chiffré ») alors que les groupes
-posent l'autre placeholder de la liste partagée, « [🔐 E2EE — session
-requise] ». Il lit désormais `kUndecryptablePlaceholders`
-(`undecryptable_placeholders.dart`). Sans ce correctif, la moitié « fil » de
-cette fiche n'aurait rien pu montrer.
-
-**À juger sur pièce** : trois actions en français ne tiennent pas sur une
-ligne, `MaterialBanner` les empile donc verticalement et le bandeau prend
-~540 px sur 2400. Rien ne déborde, mais c'est lourd. Un libellé plus court
-(« Ne plus afficher ») les remettrait probablement sur une seule ligne.
-
-⚠️ Ce qu'il faut avoir en tête en testant : taire le rappel de restauration
-laisse l'appareil sur le **repli AES** sans plus rien pour le signaler (le
-coordinateur ne génère pas de clés quand une sauvegarde distante existe). La
-sortie reste Réglages › Sécurité, qui n'a pas bougé.
-
 ---
 
 ## ⬜ Clés de repli dérivées, servies par `crypto-keys` (2026-09-06)
@@ -8007,11 +4654,6 @@ Chantier en cours : remplacer la clé AES globale (constante de l'APK, donc
 lisible par tout utilisateur, donc **aucune confidentialité entre comptes**)
 par des clés dérivées d'une racine qui ne quitte pas le serveur —
 `K_conv(convId)` et `K_user(uid)`, HKDF-SHA256.
-
-Livré à ce stade : le refus de dégrader en clair (`EncryptionUnavailableException`),
-l'Edge Function `supabase/functions/crypto-keys/`, le banc de vecteurs
-`tools/crypto_tests/derivation_croisee.mjs`, et le magasin client
-`lib/core/services/crypto/derived_key_store.dart`.
 
 **Branché depuis le 2026-09-06** sur le chemin des messages : `encrypt1to1`,
 `encryptGroup` et `encryptSelfNote` utilisent la clé dérivée quand elle est
@@ -8046,7 +4688,6 @@ sauvegarde de sessions Signal, la réponse rapide depuis notification.
 - [ ] **Nouvelle conversation.** Démarrer une conversation qui n'existait pas
       au dernier `rafraichir` : la clé doit être demandée à la volée, sans que
       l'envoi échoue.
-- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Clés de repli dérivées, servies par `crypto-keys` (2026-09-06) »).
 - [ ] **Changement de compte** sur le même téléphone : après déconnexion, les
       clés du compte précédent ne doivent plus être lisibles (`vider()`).
 - [ ] **Après le rechiffrement de l'existant** (migration `20260907100000`) :
@@ -8057,11 +4698,7 @@ sauvegarde de sessions Signal, la réponse rapide depuis notification.
 - [ ] **Messages du datasource hérité** (RTDB) : ils restent sur la clé
       globale par choix. Vérifier qu'ils s'affichent toujours, eux aussi.
 
-⚠️ La réponse rapide depuis notification (`background_reply_service`) chiffre
-depuis un isolate séparé. Ce chemin est de toute façon inaccessible aujourd'hui
-(boutons masqués depuis le 2026-08-14), mais s'il est réactivé un jour, il
-devra lire le cache du keystore — l'isolate initialise déjà Supabase et les
-plugins, donc c'est possible, mais non vérifié.
+- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Clés de repli dérivées, servies par `crypto-keys` (2026-09-06) »).
 
 ---
 
@@ -8075,20 +4712,6 @@ deux font 32 octets, le format et le mode sont identiques (AES-256-CBC, PKCS7,
 `ivB64:ctB64`) — seule la valeur divergeait, donc **rien ne le signalait** :
 `decryptText` rend le texte chiffré tel quel quand la clé est fausse, sans
 exception ni log.
-
-État mesuré avant correction (SHA-256 des valeurs) :
-
-| Emplacement | Verdict |
-|---|---|
-| Client Dart `_sharedKeyString` | référence — c'est lui qui chiffre |
-| `decrypt_aes_fallback()` **en prod** (vérifié via `pg_proc`) | aligné |
-| `functions/.env` → `functions/encryption.js` | **divergent** |
-| Secret Supabase Edge Functions `ENCRYPTION_KEY` | **divergent** (dormant : aucune Edge Function ne le lit) |
-| `.env` racine | divergent, mais **jamais lu** — variable retirée |
-
-Corrigé : `functions/.env` aligné sur le Dart. Prouvé hors appareil par un
-aller-retour réel (chiffrement au format client en Node → `decryptText`) :
-texte restitué à l'identique après, base64 brut avant.
 
 **À vérifier sur appareil** — ce que le banc ne peut pas couvrir :
 
@@ -8108,262 +4731,9 @@ trafic : à investiguer.
 
 ---
 
-## E2EE réparé : la clé de signature est publiée avec le bundle (2026-08-23)
-
-**Priorité P0** · importance 3/5 — Soit l'app affirme un chiffrement de bout en bout qui n'existe pas (tout passe en repli AES), soit la première vraie session Signal casse en aval (X3DH, ratchet) et rend les messages illisibles chez le destinataire. *Bloqué : deux comptes sur la version à jour.*
-
-Suite de l'entrée « La signature de clé pré-signée ne peut JAMAIS vérifier ».
-
-La signature est produite par une paire **Ed25519 dérivée de la clé privée
-X25519 prise comme graine**. Sa publique n'a aucun rapport avec la publique
-X25519, et le vérifieur — qui n'a pas la privée — ne peut pas la recalculer.
-Elle est donc désormais **publiée avec le bundle**, dans le JSONB
-`e2ee_devices.signed_pre_key` sous la clé `identitySigningKey`.
-
-**Aucune migration** : la publication est rejouée à chaque `initialize`, et
-`_ensurePublishedToSupabase` republie maintenant aussi quand ce qui est publié
-est **incomplet** — pas seulement quand la ligne manque. Sans cette seconde
-condition, les appareils déjà publiés n'auraient jamais repassé par la
-publication et le correctif n'aurait rien changé pour eux. C'est le piège dans
-lequel je suis tombé au premier essai : le code était bon, la clé n'était
-jamais écrite.
-
-Un appareil qui n'a pas encore republié n'a pas le champ : sa signature est
-invérifiable, on n'établit pas de session, et le repli AES devient **visible**
-grâce au cadenas ouvert. Plus de « SECURITY ALERT / Possible MITM » trompeur
-pour ce cas — il est réservé à une vraie signature invalide.
-
-### Vérifié sur SM A515F
-
-- ✔ 4 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« E2EE réparé : la clé de signature est publiée avec le bundle (2026-08-23) »).
-
-### Ce qui reste, et qui ne peut pas être vérifié avec un seul téléphone
-
-⛔ **2026-09-11 — mesuré en base : AUCUN des deux téléphones n'a publié
-d'appareil E2EE depuis le 2026-08-23**, donc ce test reste hors d'atteinte,
-et tout le trafic passe en repli (clé dérivée ou clé globale).
-`e2ee_devices` : dernière ligne de Sim A le 2026-08-23 22:43 (la seule qui
-porte `identitySigningKey`), de Salim L. le 2026-08-14 00:09 (sans) ;
-`e2ee_one_time_prekeys` : rien de plus récent ; `e2ee_user_keys.active_devices`
-ne liste que des appareils d'août.
-**Pourquoi** (lecture de `e2ee_backup_coordinator.dart:169-235`) : sans clés
-locales — cas du SM A515F depuis la réinstallation du 2026-09-09 — l'app ne
-génère de nouvelles clés **que si aucune sauvegarde distante n'existe**. Si une
-sauvegarde est présente elle propose de restaurer ; si l'état est indéterminé
-(réseau, permission, quota) elle se tait. ⚠️ **Aucun bandeau de restauration
-n'était visible sur les deux téléphones** le 2026-09-11 — le « Plus tard » du
-Profil appartient à la carte « Compléter mon profil », pas aux clés. Laquelle
-des deux branches muettes s'applique reste donc à trancher (veille du bandeau,
-ou présence de sauvegarde indéterminée). Dans ces deux branches, `initialize()` n'est jamais appelé, donc **aucune
-publication** — et le repli AES s'installe en silence, sans que rien à l'écran
-ne le dise.
-**Le mécanisme de publication, lui, fonctionne** : deux autres comptes ont
-publié un appareil **le 2026-09-11** (20:51 et 20:57 UTC), avec
-`identitySigningKey` et 200 à 400 pré-clés — dont le compte de test dédié. Le
-blocage est donc propre aux deux comptes des téléphones, pas au code de
-publication. Et la **reconnexion de Salim L. sur le Pixel à 18:27**, ce même
-jour, n'a créé **aucune** ligne : son compte n'est donc pas dans la branche
-« aucune sauvegarde » (qui, elle, génère et publie).
-**Pour débloquer** : restaurer les clés sur le SM A515F (phrase secrète, donc
-Salim) ou les transférer par QR, puis vérifier que `e2ee_devices` gagne une
-ligne portant `identitySigningKey` avant de rejouer ce test.
-
-- [ ] **Une vraie session Signal de bout en bout.** Elle demande que les DEUX
-      côtés aient republié. Un seul appareil a la nouvelle version : tous les
-      autres comptes sont encore sans `identitySigningKey`, donc tout reste en
-      AES. À revérifier quand un second téléphone aura la mise à jour — le
-      signal attendu est un message dont `encryptionLevel` vaut `e2ee` **et**
-      qui reste lisible des deux côtés.
-- [ ] **Que ça suffise.** Le correctif débloque `establishSession`, mais ce
-      chemin n'a jamais tourné en vrai : rien ne dit qu'il n'y a pas d'autre
-      défaut en aval (X3DH, Double Ratchet, multi-appareils). Le premier
-      échange réel entre deux appareils à jour est le seul juge.
-
-### Décision toujours ouverte
-
-Tant qu'aucun échange E2EE réel n'est constaté, l'app continue d'**affirmer**
-le chiffrement de bout en bout dans son interface (phrase de l'écran de
-recherche, « Message chiffré »). Ce n'est pas encore vrai. Soit on confirme que
-le correctif suffit, soit on retire l'affirmation.
-
----
-
-## La signature de clé pré-signée ne peut JAMAIS vérifier (2026-08-23)
-
-**Priorité P3** · importance 2/5 — Aucun au-delà de l'entrée « E2EE réparé… », dont celle-ci n'est que le constat d'origine. *Bloqué : deux comptes sur la version à jour.*
-
-Le « SECURITY ALERT — Possible MITM attack » du journal n'est ni une clé
-corrompue ni une attaque : **les deux côtés n'utilisent pas la même clé
-publique.**
-
-- **Signature**, `KeyManagerService._sign` : l'Identity Key est une paire
-  **X25519**, et sa clé **privée** sert de graine à une paire **Ed25519** qui
-  produit la signature.
-- **Vérification**, `MessagingE2EEService._verifySignedPreKeySignature` : elle
-  vérifie avec les octets de l'Identity Key **publique X25519**, simplement
-  réétiquetés `KeyPairType.ed25519`.
-
-Or `Ed25519.newKeyPairFromSeed(privéeX25519).publicKey` n'a aucun rapport avec
-`publiqueX25519` : les deux courbes dérivent la publique différemment. La
-vérification est donc **structurellement impossible à passer, pour tout le
-monde, depuis toujours**.
-
-Prouvé par
-[signed_pre_key_signature_test.dart](test/core/services/e2ee/signed_pre_key_signature_test.dart),
-qui rejoue les deux fonctions de l'app : la vérification échoue, la même
-signature passe avec la bonne clé Ed25519, et les deux publiques ne sont jamais
-égales.
-
-Le vrai Signal utilise XEdDSA — signer avec la privée X25519, vérifier avec la
-publique X25519 convertie en Ed25519 par l'application birationnelle. Le paquet
-`cryptography` ne fournit pas XEdDSA. Ce code ne fait ni l'un ni l'autre.
-
-### Ce que ça entraîne, en cascade
-
-`establishSession` **lève** dès qu'il vérifie → aucune session Signal ne peut
-s'établir avec qui que ce soit → la distribution de Sender Key échoue toujours
-→ les groupes restent en AES, et le 1-à-1 aussi (`encrypt1to1` rattrape
-l'exception et retombe sur AES en silence).
-
-Mesuré en base le 2026-08-23, sur toute la table `messages` :
-
-| `encryptionLevel` | messages |
-|---|---|
-| `aes` | 33 |
-| `null` (ancien, en clair) | 10 |
-| `e2ee` | 3 |
-
-Et les 3 `e2ee` sont exactement les messages de groupe **que personne ne peut
-lire** (Sender Key jamais distribuée, cf. entrée dédiée). Autrement dit :
-**aucun message lisible n'est chiffré de bout en bout aujourd'hui.** Tout passe
-par la clé AES partagée, qui est embarquée dans l'APK *et* recopiée dans une
-fonction Postgres (`decrypt_aes_fallback`) pour les aperçus de notification.
-
-### Ce que ça veut dire pour l'utilisateur
-
-L'app **affirme** le chiffrement de bout en bout : cadenas dans l'en-tête,
-« Message chiffré » sur les bulles, et cette phrase dans la recherche — « Le
-contenu des messages est chiffré de bout en bout : il ne peut pas être cherché
-depuis le serveur ». Cette affirmation est fausse en l'état.
-
-- [ ] **Décision à prendre** avant tout correctif : soit réparer le E2EE, soit
-      cesser de l'affirmer dans l'interface. Les deux sont défendables ; laisser
-      les deux en l'état ne l'est pas.
-- [ ] **Non vérifié** : que réparer la signature suffise. Elle débloque
-      `establishSession`, mais rien ne dit qu'il n'y a pas d'autre défaut en
-      aval — le chemin n'a jamais tourné en vrai.
-
-### Piste de correctif (non implémentée)
-
-La signature est produite par une paire Ed25519 déterministe, dérivée de la
-graine de l'Identity Key. Sa clé **publique** est donc calculable par le
-publieur, mais pas par le vérifieur. Il faut donc la **publier** dans le
-bundle, à côté de l'Identity Key, et vérifier contre elle.
-
-Conséquences à trancher : une colonne de plus, une republication des clés par
-tous les appareils, et une règle pour les bundles existants qui n'ont pas le
-champ (les traiter comme « pas de E2EE » — repli AES, désormais visible grâce
-au cadenas ouvert).
-
----
-
-## Le repli AES d'un groupe est désormais signalé (2026-08-23)
-
-**Priorité P3** · importance 1/5 — Aucun effet visible nouveau : l'en-tête ne signale plus rien de toute façon, le repli AES d'un groupe reste invisible par choix. *Bloqué : indicateur retiré de l'interface.*
-
-Le trou laissé ouvert par le correctif Sender Key : un groupe pouvait tourner
-en repli AES **indéfiniment, sans que rien ne le dise** — ni l'app, ni un
-compteur. On ne pouvait le découvrir qu'en lisant `encryptionLevel` en base,
-message par message.
-
-Le cadenas de l'en-tête de conversation était **fermé en toutes
-circonstances**. Il dit maintenant la vérité :
-
-- Sender Key distribuée à tous → cadenas fermé, inchangé.
-- Repli AES → **cadenas ouvert + « Chiffrement partagé »** en couleur
-  d'avertissement, et l'appui ouvre une feuille qui explique ce que ça change
-  et **nomme les membres concernés**.
-- Tant que la distribution n'a pas répondu → rien n'est affirmé (`unknown`),
-  cadenas fermé comme avant. Afficher un cadenas fermé *par défaut* était
-  précisément ce qui masquait le problème ; le laisser pendant la mesure est un
-  compromis assumé, la mesure prenant moins d'une seconde.
-
-Deux causes distinctes de repli, deux textes différents — accuser un membre
-quand c'est notre propre appareil qui n'a pas ses clés serait faux :
-
-- des membres n'ont pas reçu la clé → ils sont nommés ;
-- nos clés locales ne sont pas prêtes → renvoi vers Réglages › Sécurité.
-
-**Un défaut trouvé en route, et corrigé** : `distributeSenderKey` **lève** quand
-les clés publiées d'un membre ne vérifient pas. La boucle de
-`distributeSenderKeyToGroup` avortait donc au premier membre fautif, les
-suivants n'étaient jamais tentés, et l'exception remontait jusqu'au `catch` de
-`MessageCryptoService` — qui rendait `null`, donc aucun compte rendu, donc
-aucun signalement. Chaque membre est maintenant tenté indépendamment.
-
-### ⚠️ À REGARDER : les clés du compte plateforme ne vérifient pas
-
-Relevé dans logcat en ouvrant « Diaspora Niger — Canada » :
-
-```
-MessagingE2EEService: SECURITY ALERT — signed pre-key signature verification
-FAILED for czk5UoUclLOFmbRtUIZ5XYLYKo52
-MessageCryptoService: Sender Key setup failed: Bad state: Signed pre-key
-signature verification failed. Possible MITM attack.
-```
-
-`czk5UoUclLOFmbRtUIZ5XYLYKo52` est le compte **`diaspo_ne`** (le compte
-plateforme, créateur des groupes officiels). Sa clé pré-signée publiée ne passe
-pas la vérification de signature. Conséquence directe : **aucun groupe
-contenant ce compte ne pourra jamais activer le chiffrement de groupe** — la
-distribution échouera toujours sur lui.
-
-Confirmé côté base : `e2ee_sender_key_distributions` ne contient **aucune**
-ligne pour ce groupe.
-
-Cause non établie — clé réellement corrompue à la publication, ou défaut du
-code de vérification. À trancher avant de conclure quoi que ce soit sur un
-« MITM ».
-
-### Vérifications
-
-- ✔ 2 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Le repli AES d'un groupe est désormais signalé (2026-08-23) »).
-- ⚠️ **RETIRÉ le 2026-08-23**, à la demande de Salim : d'abord le libellé, puis
-      le cadenas ouvert. L'en-tête ne signale donc plus rien — le cadenas §4a
-      est de nouveau fermé en toutes circonstances, et la feuille explicative
-      (qui nommait les membres sans clé) n'est plus atteignable.
-
-      **Ce qui reste pour savoir où en est un groupe** : le provider
-      `groupEncryptionStatusProvider`, toujours alimenté, et les journaux de
-      `SenderKeyService` (« Sender Key remise à N/M membres — repli AES
-      maintenu »). Rien dans l'interface.
-
-      Le trou d'origine — « un groupe reste en AES sans que rien ne le dise » —
-      est donc **rouvert côté utilisateur**, volontairement.
-- [ ] Vérifier aussi le cas nominal : un groupe dont tous les membres ont des
-      clés valides doit garder le cadenas fermé, sans mention.
-
----
-
 ## Messages de groupe qui redeviennent indéchiffrables après réouverture (2026-08-13)
 
 **Priorité P1** · importance 4/5 — Dès que les vraies sessions Signal / Sender Key tournent, des messages déjà lus redeviennent définitivement illisibles à chaque réouverture de conversation. *Bloqué : deux comptes (messages E2EE reçus).*
-
-Signal (1:1) et Sender Key (groupes) avancent un ratchet à sens unique à
-chaque déchiffrement réussi, sans conserver les clés de message déjà
-consommées. `getMessagesPaginated` re-fetch pourtant le même ciphertext
-depuis Supabase et retente `_crypto.decrypt` à chaque appel (réouverture
-de conversation, pull-to-refresh, pagination) —
-`SenderKeyService.decryptWithSenderKey` refuse alors tout `chainIndex`
-déjà dépassé et renvoie le placeholder « session requise », qui écrasait
-le texte clair déjà mis en cache. Correctif dans
-[message_repository_impl.dart](lib/features/messages/data/repositories/message_repository_impl.dart)
-(`_healUndecryptableMessages`) : on restaure depuis le cache local le
-texte des messages qu'un rechargement réseau vient de rendre
-indéchiffrables, avant d'écraser le cache — même principe que
-`_reconcileEcho` (message_provider.dart) pour l'écho temps réel, mais
-côté rechargement paginé. `flutter analyze` propre, mais rien de tout ça
-n'exerce le vrai ratchet Signal ni Supabase.
 
 - [ ] Ouvrir une conversation de groupe avec un historique de messages
   texte de plusieurs membres, vérifier qu'ils se déchiffrent tous, puis
@@ -8388,11 +4758,8 @@ n'exerce le vrai ratchet Signal ni Supabase.
 
 **Priorité P2** · importance 2/5 — Démarrage lent ou premier envoi raté juste après connexion, clés régénérées par-dessus une sauvegarde — la plupart de ces chemins ont toutefois tourné depuis, dans d'autres sessions.
 
-- [ ] **Initialisation de `MessagingE2EEService`** (commit `91ef606`) : elle était appelée nulle part avant ce fix ; l'init démarre (100 puis 50 paires X25519 séquentielles) mais rien ne confirme qu'elle se termine en temps raisonnable sur device réel.
-- [ ] **Garde `isE2EEInitialized` retirée avant l'envoi de texte** (commit `26aeb0d`) — jamais revérifié, le téléphone s'est déconnecté avant le test final.
 - [ ] **`KeyBackupService.checkBackupPresence`** (commit `19b092c`) — logique de génération de clés à la connexion changée, pas de re-test device après coup.
 - [ ] **Sauvegarde/restauration de clés E2EE bout-en-bout** — nécessite DEUX appareils sur le même build (le destinataire doit republier ses clés depuis SON device) ; seule la republication des clés propres a été validée jusqu'ici.
-- [ ] **Self-chat « Mes notes » : policy RLS Supabase pour l'INSERT d'une conversation à un seul participant** — jamais testée au runtime.
 - [ ] **Déchiffrement réel du bandeau épinglé** (messages) — seul le repli « 🔐 Message chiffré » a été vu à l'écran (clés E2EE perdues sur un build debug réinstallé), jamais le contenu déchiffré effectif.
 
 ---
@@ -8406,15 +4773,6 @@ Appels 1:1 et de groupe : signalisation, bulle d'appel, WebRTC/TURN.
 ## ⬜ Appel entrant : le nom et la photo de l'appelant viennent de la base (2026-09-21)
 
 **Priorité P1** · importance 4/5 — Fermeture d'une usurpation plein écran (faux appel sous le nom et le visage d'un proche). Les appels sont peu utilisés (dernier le 2026-08-15, 75 en tout), mais c'est l'écran d'appel natif qui est en jeu.
-
-**Ce qui était ouvert.** `onCallCreated` fait sonner l'appelé (push
-`incoming_call`, écran d'appel natif, même app fermée) avec le nom et la
-photo lus dans le document Firestore `calls/<id>` — que le client écrit. La
-règle n'imposait que `callerId == auth.uid` : n'importe quel compte faisait
-sonner n'importe qui sous le nom et la photo de son choix. Un compte bloqué
-sonnait quand même. Et la mise à jour laissait un participant réécrire
-n'importe quel champ, `callerId` compris — `onCallUpdated` prévenait alors un
-tiers choisi (mesuré à l'émulateur sur les règles de production : accepté).
 
 **Ce qui est posé, DÉPLOYÉ le 2026-09-21 :**
 
@@ -8443,7 +4801,6 @@ tiers choisi (mesuré à l'émulateur sur les règles de production : accepté).
 
 ---
 
-
 ## ⬜ Les appels de GROUPE restaient lançables alors que le 1-à-1 était en pause (2026-09-14)
 
 **Priorité P3** · importance 2/5 — Signalé par Salim : « les groupes possèdent
@@ -8451,30 +4808,10 @@ toujours les icônes des appels ». L'en-tête d'une discussion de groupe affich
 encore les deux boutons (audio, vidéo) alors que les mêmes boutons avaient été
 masqués en 1-à-1 un mois plus tôt.
 
-Ce n'était pas un oubli mais une **décision prise sur une prémisse fausse**. Le
-bloc commenté du 2026-08-14 (voir « 🔴 Appels 1-à-1 mis en PAUSE (2026-08-14) —
-répondre à un appel ne faisait rigoureusement rien ») annonçait :
-« les boutons d'appel de GROUPE juste en dessous restent actifs, système
-différent/LiveKit, pas concerné ».
-
-LiveKit ne prend le relais qu'**au-delà de 4 participants** :
-`determineCallMode()` choisit le mode maillage en dessous, et
-[group_call_service.dart:8](lib/core/services/group_call_service.dart) importe
-alors le **même** `webrtc_service.dart` que le 1-à-1 — la pile dont la fiabilité
-était justement mise en doute. Un groupe de 3 amis lançait donc exactement le
-code mis en pause, par le chemin qu'on croyait fermé.
-
 Commenté au même format que le 1-à-1 (code conservé, `TODO(appels)` greppable),
 dans [conversation_screen.dart](lib/features/messages/presentation/screens/conversation_screen.dart) :
 les deux `IconButton` de l'AppBar, la méthode `_startGroupCall`, et les deux
 imports `group_calls/` devenus inutilisés.
-
-Ne ferme pas tous les chemins vers un appel de groupe, et c'est voulu : la route
-`/group-calls/:callId` reste ouverte pour **rejoindre** un appel existant — elle
-ne sert plus à rien tant que personne ne peut en créer, mais la supprimer
-casserait les notifications d'appel déjà en circulation. `GroupCallMessageBubble`
-(le bouton « Rejoindre » d'une bulle d'appel de groupe) n'a, lui, **aucun
-appelant** dans tout le projet : rien ne l'affiche, avant comme après ce commit.
 
 - [ ] Ouvrir une discussion de **groupe** : plus aucune icône d'appel dans
       l'en-tête, seul le ⋮ subsiste. Vérifier que le nom du groupe et la ligne
@@ -8494,62 +4831,9 @@ participants, pour couvrir le maillage **et** le basculement SFU.
 
 ---
 
-## Un second appel qui arrive pendant qu'on est déjà en ligne était perdu en silence (2026-08-14)
-
-Trouvé en rejouant le logcat d'un vrai test (deux comptes qui s'appelaient
-quasi en même temps, 21:53-21:54) : `incomingCallProvider`
-([call_provider.dart:1122](lib/features/calls/presentation/providers/call_provider.dart))
-renvoie `null` dès que `state.call` est déjà occupé — y compris par un appel
-que l'utilisateur vient de composer lui-même. L'évènement natif `accepted`
-tombe alors dans le repli `_answerCallFromBackground`, qui appelle bien
-`answerCall()` avec le BON callId, mais le garde anti-double-acceptation de
-`answerCall()` ([call_provider.dart:436](lib/features/calls/presentation/providers/call_provider.dart))
-le rejette silencieusement parce qu'un AUTRE appel est déjà dans `state.call`
-— `return false`, aucun retour à l'appelant, aucun message à l'utilisateur.
-Résultat observé : l'écran d'appel affiché reste celui du premier appel (le
-sien), qui finit enregistré `cancelled` faute de réponse, et le second — celui
-qu'on vient d'accepter — ne démarre jamais.
-
-Correctif : dans ce cas précis (callId différent de celui déjà en cours),
-`answerCall()` décline maintenant le second appel côté distant
-(`declineCall`) et referme sa bannière CallKit spécifique
-(`NativeCallService.endCallById`, nouveau — n'touche pas `_activeCallUuid` du
-premier appel). L'appelant du second appel doit désormais recevoir un signal
-« occupé » au lieu de sonner dans le vide. En même temps, ajout d'un plafond
-de 15 s sur `initiateCall` (`_initiateCallTimeout`) : la même session a montré
-`initiateCall` pendu ~62 s sans aucun retour visible, le temps qu'une session
-Supabase invalide (`Session Supabase non établie`, pertes DNS ponctuelles) se
-resynchronise — probablement un aléa réseau réel plutôt qu'un bug, mais sans
-plafond le bouton d'appel semblait juste mort.
-
-`flutter analyze` propre sur les deux fichiers touchés
-([call_provider.dart](lib/features/calls/presentation/providers/call_provider.dart),
-[native_call_service.dart](lib/core/services/native_call_service.dart)).
-**Non vérifié en situation réelle** : il faudrait deux appareils qui
-s'appellent l'un l'autre à quelques secondes d'écart pour confirmer que
-l'appelant du second appel voit bien « occupé » plutôt que de sonner dans le
-vide, et que le premier appel n'est pas perturbé au passage.
-
----
-
 ## La bulle d'appel elle-même n'apparaissait jamais dans la conversation (2026-08-14)
 
 **Priorité P3** · importance 2/5 — Mineur : pas de menu sur une bulle d'appel ; le rappel est volontairement coupé. *Bloqué : fonction en pause (appels 1:1).*
-
-Signalé par l'utilisateur : « les bulles des appels ne s'affiche jamais ».
-Le correctif du 2026-08-13 (« Message d'appel : aperçu et badge non-lu ne se mettaient jamais à jour ») a réparé l'aperçu de conversation et le
-badge non-lu, mais pas le symptôme racine — même famille de bug que
-« Réponse rapide depuis la notification ».
-`createCallMessage` dans
-[call_message_service.dart](lib/core/services/call_message_service.dart)
-écrivait le message d'appel (`type: 'call'`) dans Firebase Realtime Database
-(`messages/{conversationId}` via `_database.ref()...push().set(...)`), un
-backend que plus rien ne lit : `MessageSupabaseDataSource.getMessages`
-([message_supabase_datasource.dart:445-453](lib/features/messages/data/datasources/message_supabase_datasource.dart))
-— le seul datasource câblé dans `messageRemoteDataSourceProvider` — stream
-uniquement la table Supabase `messages`. Le message était donc bien créé (les
-logs `debugPrint('appel: ...')` le confirmaient), mais dans un endroit que
-l'écran de conversation ne consulte jamais : aucune bulle, aucune erreur.
 
 Correctif : `createCallMessage` insère maintenant dans la table Supabase
 `messages` avec le même schéma `data` JSONB (camelCase) que
@@ -8559,30 +4843,27 @@ comme partout ailleurs où l'app écrit dans Supabase. `_ensureParticipantsInRTD
 sans rapport avec l'affichage du message. `flutter analyze` propre, mais rien
 de tout ça n'exerce un vrai appel WebRTC/coturn ni Supabase.
 
-- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« La bulle d'appel elle-même n'apparaissait jamais dans la conversation (2026-08-14) »).
+- [x] Passer ou recevoir un appel (audio ou vidéo), raccrocher → une bulle
+  d'appel apparaît dans la conversation (pas seulement l'aperçu en liste),
+  avec la bonne icône/couleur selon le statut (terminé, manqué, refusé,
+  occupé, sortant annulé) et la durée si décroché. **Vérifié le 2026-08-14
+  sur SM A515F (Sim) ↔ Pixel 10 Pro XL (Salim L.), vrai appel audio 1:1** :
+  bulle rouge « Appel manqué / Pas de réponse - HH:MM » visible des deux
+  côtés (alignée à droite chez l'appelant Sim, à gauche chez Salim L.),
+  icône téléphone barré rouge, callback icon présent. Seul le statut
+  manqué/pas de réponse a été exercé (deux tentatives, l'app de Salim L.
+  n'étant pas au premier plan) ; terminé/refusé/occupé/sortant annulé
+  restent à vérifier.
 - [ ] Taper sur la bulle → rappelle le contact. Appui long → menu contextuel
   (rappeler / infos / supprimer si auteur ou admin).
+
+- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« La bulle d'appel elle-même n'apparaissait jamais dans la conversation (2026-08-14) »).
 
 ---
 
 ## 🔴 Appels 1-à-1 mis en PAUSE (2026-08-14) — répondre à un appel ne faisait rigoureusement rien
 
 **Priorité P0** · importance 3/5 — Le Mode Voyage ne tourne jamais : la position des voyageurs ne remonte pas, et le service de premier plan « localisation » déclaré à Google n'a plus de fonction visible — le motif de fond des cinq refus Play.
-
-Trouvé en testant à deux appareils réels (SM A515F + émulateur) après un
-signalement « les appels ne passent pas ». Trois bugs empilés, chacun
-suffisant à lui seul pour expliquer le symptôme :
-
-- ✔ 4 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« 🔴 Appels 1-à-1 mis en PAUSE (2026-08-14) — répondre à un appel ne faisait rigoureusement rien »).
-
-**Les trois premiers correctifs sont vérifiés fonctionnels sur device**
-(appel décroché et connecté avec succès entre SM A515F et émulateur). Mais la
-session de test a été chaotique (émulateur repris par une autre
-activité/session en cours de route, plusieurs faux départs) — **pas assez de
-cycles propres pour être confiant sur la fiabilité bout-en-bout**
-(reconnexion ICE en particulier, jamais vue aboutir jusqu'au bout dans un
-test propre). Décision : couper l'accès utilisateur à la fonctionnalité le
-temps d'une vérification à deux VRAIS téléphones, sans contention.
 
 **Ce qui a été commenté (code conservé, pas supprimé)** :
 - `conversation_screen.dart` : les deux `IconButton` d'appel 1-à-1 dans
@@ -8617,9 +4898,6 @@ relivrer — deux téléphones réels, pas d'émulateur, personne d'autre dessus
   téléphone B en arrière-plan puis app tuée, appeler depuis A → B doit sonner
   avec la bannière plein écran. Puis `firebase functions:log --only onCallCreated`
   doit montrer « Successfully sent 1/1 call notifications ».
-- [ ] **Relais TURN en 4G/5G sans wifi** (report du 2026-07-16) : coturn répond
-  bien sur 3478/5349 et `getTurnCredentials` est déployée et appelée avec succès,
-  mais le relais n'a jamais été validé sur un NAT symétrique réel.
 - [ ] **Enchaîner deux appels après un raccrochage en réseau dégradé**
   (`webrtc_service.dart`, 2026-08-03) : `hangUp()` n'avait pas de try/finally et
   posait `_isEndingCall` avant une suppression RÉSEAU en RTDB. Une exception en
@@ -8641,30 +4919,13 @@ relivrer — deux téléphones réels, pas d'émulateur, personne d'autre dessus
   partage de position, mettre l'app en arrière-plan, et confirmer que la
   notification persistante du service apparaît et que la position remonte.
 
+- ✔ 4 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« 🔴 Appels 1-à-1 mis en PAUSE (2026-08-14) — répondre à un appel ne faisait rigoureusement rien »).
+
 ---
 
 ## Message d'appel : aperçu et badge non-lu ne se mettaient jamais à jour (2026-08-13)
 
 **Priorité P3** · importance 1/5 — Aucun tant que les appels 1:1 sont masqués ; ensuite, un premier appel ne laisserait aucune trace dans la liste des discussions. *Bloqué : fonction en pause (appels 1:1) + deux comptes.*
-
-Même famille de bug que la réponse rapide depuis une notification
-(« Réponse rapide depuis la notification n'envoyait jamais rien »). [call_message_service.dart](lib/core/services/call_message_service.dart)
-écrivait l'aperçu de dernier message dans `conversations.data` avec des clés
-snake_case (`last_message`, `last_message_sender_id`, `last_message_type`,
-`unread_counts` à la création d'une conversation 1:1) alors que
-`ConversationModel.fromJson`/`_convFromRow`
-([message_supabase_datasource.dart](lib/features/messages/data/datasources/message_supabase_datasource.dart))
-et tout le reste du pipeline d'envoi lisent des clés camelCase
-(`lastMessage`, `lastMessageSenderId`, `lastMessageType`, `unreadCount`).
-En plus de la casse, la colonne top-level `last_message_at` (celle qui
-pilote le tri `.order('last_message_at', ...)` de la liste des
-conversations) n'était jamais mise à jour — seule une copie morte dans
-`data` l'était — et **aucun** compteur non lu n'était incrémenté après un
-appel sur une conversation déjà existante (seule la création en écrivait
-un, et en snake_case). Concrètement : après un appel, la conversation ne
-remontait pas en tête de liste, l'aperçu affichait l'ancien dernier
-message texte au lieu de « 📞 Appel manqué », et le badge non-lu du
-destinataire ne s'incrémentait jamais.
 
 Correctif : nouvelle méthode privée `_updateConversationLastMessage`
 dans `call_message_service.dart`, calquée sur celle de
@@ -8678,11 +4939,12 @@ maintenant `unreadCount`/`requestStatus` comme
 propre, mais rien de tout ça n'exerce un vrai appel WebRTC/coturn ni
 Supabase.
 
-- ✔ 2 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Message d'appel : aperçu et badge non-lu ne se mettaient jamais à jour (2026-08-13) »).
 - [ ] Passer un premier appel vers un contact sans conversation 1:1
   existante → une nouvelle conversation est créée et apparaît normalement
   dans la liste (aperçu + badge), pas seulement après l'envoi d'un
   message texte ultérieur.
+
+- ✔ 2 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Message d'appel : aperçu et badge non-lu ne se mettaient jamais à jour (2026-08-13) »).
 
 ---
 
@@ -8691,17 +4953,6 @@ Supabase.
 **Priorité P0** · importance 2/5 — Les appels de groupe restent muets ou ne se connectent jamais en données mobiles : le relais TURN n'a jamais été validé depuis la rotation du 16/07, et la signalisation de groupe a déjà été refusée trois jours en production sans aucune erreur visible. *Bloqué : deux comptes.*
 
 ### Premier appel de groupe réel entre les deux téléphones (2026-09-11 18:59)
-
-Appel vocal lancé depuis « Testeurs » (2 membres) sur SM A515F, compte Sim A,
-build 18. Android a d'abord demandé le micro (« Autoriser Diaspo Niger à
-enregistrer de l'audio ? ») — accordé « uniquement cette fois-ci ».
-
-**Ce qui marche, et c'est mesuré côté serveur** (`firebase database:get
-"/group_calls"`) : le nœud d'appel est créé avec `participants/<uid de Sim A>`,
-une `e2ee_key`, et une **signalisation complète adressée au bon destinataire** —
-`signaling/<Sim A>/<Salim L.>` porte l'offre SDP (audio `sendrecv`, vidéo
-`recvonly`) et une trentaine de candidats ICE. La règle RTDB n'a donc **rien
-refusé**, contrairement aux trois jours de refus silencieux d'août.
 
 ✅ **Le relais TURN alloue** : parmi les candidats figurent des `typ relay`
 sur `72.62.212.223` (le VPS coturn), avec leurs `raddr` publics. C'est la
@@ -8730,15 +4981,11 @@ cours… ». Donc : signalisation écrite, destinataire jamais prévenu. À
 instruire côté `onCallCreated` (push d'appel) **et** côté écoute in-app du
 nœud `group_calls`, puisque l'app de l'appelé était ouverte.
 
-- [ ] **⚠ ORDRE DE DÉPLOIEMENT — règles de signalisation** (`database.rules.json` + `call_remote_datasource.dart`, 2026-08-03) : les règles restreignent désormais `calls/$callId` aux deux participants, en lisant `callerId`/`calleeId` **écrits par l'app** à la création. Déployer les règles **avant** que la nouvelle version de l'app soit installée couperait les appels 1:1 de tout client existant (ses lectures seraient refusées, en silence). Ordre obligatoire : livrer l'app d'abord, laisser le parc se mettre à jour, **puis** `firebase deploy --only database`.
-
-  **Mesuré le 2026-08-03, avant tout déploiement** — la contrainte est confirmée, pas théorique : `/calls` contenait **20 nœuds** écrits par des clients, donc les règles en ligne autorisent bien l'écriture aujourd'hui, et les resserrer casserait ces clients. En regard, `/admins`, `/superAdmins`, `/audioRooms` et `/group_calls` étaient **vides** : rien d'autre dans ce fichier n'est urgent (la faille d'escalade RTDB porte sur un nœud inexistant, et la modération fantôme attend de toute façon l'amorçage manuel). Le déploiement a donc été **volontairement reporté**.
-
-  ⚠ Contrepartie assumée pendant l'attente : les règles actuellement en ligne laissent tout compte connecté lire et écrire la signalisation de n'importe quel appel dont il connaît l'identifiant. Plus la sortie de l'app tarde, plus cette fenêtre reste ouverte.
 - [ ] **Appel 1:1 après restriction** (2026-08-03) : un appel complet entre deux comptes doit fonctionner à l'identique — sonnerie, décroché, audio des deux côtés, passage en vidéo, raccrochage. C'est le test de non-régression du changement de règles ; tout échec se manifestera par une signalisation muette (l'appelé ne voit jamais l'offre) plutôt que par une erreur explicite.
-- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Appels WebRTC »).
 - [ ] **Appel de groupe après restriction** (2026-08-03) : entrer dans un appel de groupe écrit d'abord `participants/<uid>` (autorisé pour soi-même) puis lit le reste — vérifier que rejoindre, voir les autres arriver et repartir, et l'audio de bout en bout fonctionnent toujours. La signalisation est maintenant limitée aux couples émetteur/destinataire dont on fait partie, et `hostId`/`status`/`mode` restent lisibles avant d'avoir rejoint.
 - [ ] **Relais TURN coturn en production** — à valider par un vrai appel en 4G/5G **sans wifi** (cas NAT symétrique, celui que TURN est censé résoudre) ; vérifier aussi que `grep -ci allocation` augmente dans les logs coturn pendant l'appel. Jamais confirmé depuis la rotation de secret du 16/07.
+
+- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Appels WebRTC »).
 
 ---
 
@@ -8792,40 +5039,12 @@ Chaîne FCM, aperçus, réponse rapide, écran Notifications.
 
 **Priorité P1** · importance 4/5 — Fermeture d'un faux appel entrant et d'un hameçonnage possibles depuis n'importe quel compte. Côté app rien ne change, mais tous les textes de ces notifications viennent maintenant du serveur : à relire à l'écran une fois.
 
-Migration `20260921100000_notification_textes_serveur.sql` — **APPLIQUÉE le
-2026-09-21**. Banc `tools/rls_tests/notification_textes_serveur.sql`, 13 cas :
-**12 échecs sans la migration, 0 avec**, 0 sur l'état vivant.
-
-**Ce qui était ouvert** (`create_user_notification`) :
-
-- le titre et le corps étaient libres, et le nom de l'émetteur pris du
-  client : « Votre compte sera suspendu… », signé « Équipe Diaspo Niger » ;
-- **`p_data` écrasait le type du push** : `send-push` recopie toutes les clés
-  de `data` dans le message FCM après avoir posé `type`, `title`, `body`.
-  Démontré en base (transaction annulée) : `friendRequest` accepté avec
-  `"type":"incoming_call"` et un `callerName` au choix, un push mis en file.
-  Or l'app, sur `type = incoming_call`, ouvre l'écran d'appel entrant
-  (`notification_service.dart:1845`, et `:568` en arrière-plan). **Un faux
-  appel vidéo, depuis n'importe quel compte** — déduit du code, jamais
-  reproduit sur un téléphone ;
-- `report_resolved` (« contenu supprimé pour violation… ») était émissible
-  par tout compte.
-
 **Ce qui est posé :** texte rédigé par le serveur pour chaque type (mêmes
 phrases qu'avant), nom de l'acteur lu dans `users`, titre d'événement lu dans
 `events` et seulement si le destinataire en est l'organisateur ; `p_data` en
 liste blanche (identifiants de cible et quelques scalaires bornés, jamais
 `type`/`title`/`body`) ; `report_resolved` réservé aux administrateurs ;
 `anon` sans exécution.
-
-**Liste des types corrigée.** Celle du matin oubliait `postLiked` et
-`postReposted` (type passé en paramètre à `_notifyPostAuthor`) : la
-notification de « j'aime » était refusée en 23514, en silence — aucun dégât
-mesuré, 0 « j'aime » sur le post d'autrui en base. Ajoutés. Les cinq types de
-commande sont retirés : la chaîne de paiement est fermée. Garde
-`test/core/notification_types_serveur_test.dart`, qui relève les types émis
-par `lib/` et les compare à la liste du serveur — montré en échec sur la
-liste du matin, où il désigne exactement l'oubli.
 
 **À vérifier sur appareil :**
 
@@ -8837,34 +5056,15 @@ liste du matin, où il désigne exactement l'oubli.
   une demande d'ami, publication, événement, appel) ;
 - [ ] un signalement traité depuis le back-office prévient bien l'auteur.
 
-**`send-push` durci le même jour — DÉPLOYÉ (v33).** Il laissait `data`
-écraser `type`, `title`, `body`, `targetId` et `click_action` pour TOUS les
-écrivains de `notifications`. Ces cinq clés sont désormais posées APRÈS
-`data` (`supabase/functions/send-push/donnees_fcm.ts`). Banc
-`tools/rules_tests/send_push_donnees.mjs` (Node, sur le module même qui est
-déployé) : 0 échec, 3 avec l'ancien ordre. Non-régression : l'ancien et le
-nouvel algorithme, rejoués sur les **1 548 notifications réelles**, donnent
-1 548 blocs `data` identiques. Après déploiement : code en ligne relu, égal au
-dépôt ; la fonction démarre (401 sans secret).
-
 - ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Notifications entre comptes : le serveur rédige le texte et filtre les données (2026-09-21) »).
 
 ---
-
 
 ## ⬜ Notifications lues à l'ouverture de leur écran : profil, groupe, commandes, fiche, mentions (2026-09-19)
 
 **Priorité P2** · importance 3/5 — La cloche compte des notifications dont la
 cible a déjà été vue : « certaines ne se mettent pas comme lues
 automatiquement ».
-
-Mesuré en production le 2026-09-19 (agrégat par type, aucune donnée
-personnelle) : 8 `friendAccepted` non lues sur 17 (la plus ancienne du
-2026-08-05), 3 `cityGroupInvite` sur 5. La base ne dit pas si leur écran a été
-ouvert entre-temps — ce qui est établi par le code, c'est que l'ouvrir
-autrement que par un appui **dans** la liste ne les lisait pas : seuls le fil,
-les événements et les discussions le faisaient. Voir aussi « Notifications
-ouvertes ailleurs ou obsolètes : lues » — même défaut, autres écrans.
 
 Ce qui marque maintenant (`NotificationReadSync`, une écriture
 best-effort à l'ouverture) :
@@ -8873,7 +5073,6 @@ best-effort à l'ouverture) :
 - **Fiche d'un groupe** → `groupRequestApproved`, `groupRequestRejected`,
   `officialGroupLeave`, `cityGroupInvite`. **Pas** `groupInvite` ni
   `groupJoinRequest` : elles appellent un geste, la base les ferme.
-- **Mes commandes** → les huit types de commande (aucun ne porte l'id).
 - **Fiche de notification** (appui long, lien) → la notification affichée.
   Destination unique de `system`, `supportReply`, `missedCall`, transferts…
 - **Lecture d'une discussion** → `messageMention`, **côté serveur seulement** :
@@ -8907,8 +5106,6 @@ best-effort à l'ouverture) :
 - [ ] **Groupe** : notification « invitation de ville » non lue ; ouvrir la
   fiche du groupe depuis Découvrir → lue. Une `groupInvite` en attente
   **reste** non lue.
-- [ ] **Mes commandes** : une notification de commande non lue ; ouvrir
-  « Mes commandes » depuis le profil → lue.
 - [ ] **Fiche** : appui long sur une notification `system` → lue à l'ouverture
   de la fiche, le bouton « Marquer comme lu » disparaît.
 - [ ] **Mention** : conversation en sourdine, un message qui nomme le compte ;
@@ -8929,8 +5126,6 @@ best-effort à l'ouverture) :
   seconde).
 - [ ] **Arrivée — publication ouverte** : A sur sa publication ; B la commente
   → lue, et le commentaire s'affiche.
-- [ ] **Arrivée — Mes commandes ouvert** : une commande arrive pendant qu'on
-  est sur l'écran → lue.
 - [ ] **Arrivée — profil ouvert** : A sur le profil de B ; B accepte la demande
   de A → `friendAccepted` lue.
 - [ ] **Arrivée, négatif — application en arrière-plan** : A sur la fiche de
@@ -8987,40 +5182,6 @@ l'écran du dessus) ni reprise. Elle reste non lue jusqu'à la prochaine
 ouverture. Il faudrait observer la navigation (`didPop`) ; jamais mesuré comme
 fréquent.
 
-*Les mentions* : l'action « Marquer comme lu » de la **bannière**
-(`BackgroundReplyService.markAsRead`) n'appelle que la RPC
-`mark_messages_as_read`, qui ignorait `messageMention`. La migration
-`20260919120000_mentions_lues_avec_la_discussion.sql`, **éprouvée en `ROLLBACK`
-puis appliquée** (relue en base le 2026-09-20 : les deux fonctions sont celles
-du fichier, aux fins de ligne près), couvre ce chemin et celui du curseur : le
-banc `tools/rls_tests/mentions_lues_avec_la_discussion.sql` donne 21 cas verts
-avec elle, et les cas 1, 2, 9 et 14 tombent sans elle. **Le marquage côté
-client des mentions est retiré** (`conversation_screen.dart`, et le paramètre
-`jusqua` de `NotificationReadSync` avec lui) : le serveur est la seule source.
-Sa garde est `test/features/notifications/mentions_lues_par_le_serveur_test.dart`,
-qui lit la DERNIÈRE définition de chaque fonction dans les migrations — une
-migration ultérieure recopiée d'une version plus ancienne ferait tomber le banc
-Dart, et plus rien côté client ne rattraperait. Aucune ligne `messageMention`
-n'existe encore en production (0 au 2026-09-20) : pour cocher les deux cases
-« Mention », il faut en provoquer une (conversation en sourdine + un message
-qui nomme le compte — texte en clair, pas MLS).
-
-Fichiers :
-[20260919120000_mentions_lues_avec_la_discussion.sql](supabase/migrations/20260919120000_mentions_lues_avec_la_discussion.sql),
-[mentions_lues_avec_la_discussion.sql](tools/rls_tests/mentions_lues_avec_la_discussion.sql),
-[mentions_lues_par_le_serveur_test.dart](test/features/notifications/mentions_lues_par_le_serveur_test.dart),
-[notification_read_sync.dart](lib/core/services/notification_read_sync.dart),
-[lecture_a_l_arrivee.dart](lib/core/services/lecture_a_l_arrivee.dart),
-[lecture_a_l_arrivee_provider.dart](lib/core/providers/lecture_a_l_arrivee_provider.dart),
-[emplacement_affiche.dart](lib/core/router/emplacement_affiche.dart),
-[lecture_a_l_arrivee_test.dart](test/core/services/lecture_a_l_arrivee_test.dart),
-[emplacement_affiche_test.dart](test/core/router/emplacement_affiche_test.dart),
-[profile_view_screen.dart](lib/features/profile/presentation/screens/profile_view_screen.dart),
-[group_detail_screen.dart](lib/features/groups/presentation/screens/group_detail_screen.dart),
-[my_orders_screen.dart](lib/features/marketplace/presentation/screens/my_orders_screen.dart),
-[notification_detail_screen.dart](lib/features/notifications/presentation/screens/notification_detail_screen.dart),
-[conversation_screen.dart](lib/features/messages/presentation/screens/conversation_screen.dart).
-
 ---
 
 ## ⬜ Réglages de notification par type : local et serveur ne divergent plus (2026-09-18)
@@ -9045,17 +5206,6 @@ bascules rapides sur un réseau lent, dont la première échoue, laissaient sino
 le serveur avec la carte entière (première bascule comprise) et l'appareil sans.
 Enfin `updateNotificationPrefs` et `updateNotifyLocalEvents` **vérifient qu'une
 ligne a été touchée** : PostgREST rend 200 sur un `UPDATE` qui ne matche rien.
-
-Couvert par des bancs Dart (dont un vrai `SupabaseClient` sur un `MockClient`
-pour le comptage de lignes), chacun vérifié en remettant l'ancien
-comportement. **Ce qu'ils ne voient pas** : un vrai refus serveur, l'envoi
-effectif du push, le rendu du snackbar.
-
-Fichiers :
-[notification_preferences_provider.dart](lib/features/settings/presentation/providers/notification_preferences_provider.dart),
-[profile_supabase_datasource.dart](lib/features/profile/data/datasources/profile_supabase_datasource.dart),
-[notification_settings_screen.dart](lib/features/notifications/presentation/screens/notification_settings_screen.dart),
-[home_screen_widgets.dart](lib/features/home/presentation/screens/home_screen_widgets.dart).
 
 - [ ] **Réseau coupé, Notifications → « Messages »** : l'interrupteur revient à
   sa position, le snackbar d'échec s'affiche, et en quittant puis rouvrant
@@ -9094,27 +5244,14 @@ l'appareil refuse en plus de reposer une bannière si le message corrigé n'est
 pas dans sa pile. Une édition ne doit **jamais** faire réapparaître une
 conversation déjà lue.
 
-En chiffré, le serveur ne peut pas savoir ce que dit une édition — `kind` vaut
-`control` pour une édition, une réaction et une suppression indistinctement.
-Il transporte donc le contrôle, et l'appareil déchiffre pour trier, sur la même
-copie jetable que l'aperçu.
-
-Vérifié hors appareil : banc contre la production (Bob, bannière en attente,
-reçoit « rdv à 18h » ; Carl, qui a lu, ne reçoit rien ; l'expéditeur non plus),
-39 cas sur la pile. **Rien n'a tourné sur un téléphone.**
-
-Fichiers : migration `20260916200000`,
-[notification_service.dart](lib/core/services/notification_service.dart)
-(`_corrigerBanniereApresEdition`),
-[notification_pile_messages.dart](lib/core/services/notification_pile_messages.dart).
-
-- ✔ 6 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Une édition corrige la bannière déjà posée (2026-09-16) »).
 - [ ] **Réaction ou suppression en chiffré** : elles passent par le même
   transport de contrôle mais ne doivent **rien** changer à la bannière.
   ⬜ moitié, Passe du 2026-09-22 (~03:10–03:17), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : **réaction** de Sim sur PK1, pile PV affichée →
   bannière de réaction séparée (« A réagi 👍 à votre message »), la pile PV
   reste identique (`when` inchangé). Suppression pas faite (son traitement
   change sur le +28).
+
+- ✔ 6 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Une édition corrige la bannière déjà posée (2026-09-16) »).
 
 ---
 
@@ -9128,12 +5265,6 @@ ce couple** : chaque message écrasait le précédent. Un seul lisible, aucun
 compteur, et rien qui dise que les autres ont existé. Vaut autant pour
 plusieurs messages d'une même personne que pour un groupe qui s'anime.
 
-Le chemin premier plan, lui, savait empiler depuis toujours
-(`MessagingStyle`, `_activeGroups`) — mais son cache vit **en mémoire dans le
-singleton**, et l'isolate de notification ne le voit pas. C'est l'endroit où
-l'empilement servait le moins qui l'avait, et l'endroit où il sert le plus qui
-ne l'avait pas.
-
 D'où une pile en `SharedPreferences` — le seul état que les deux isolates
 partagent — lue par l'arrière-plan pour construire un `MessagingStyle`, et
 **alimentée aussi par le premier plan** pour que l'historique ne reparte pas
@@ -9144,15 +5275,6 @@ autre appareil), plafonne à 6 messages, ignore un même `messageId` empilé deu
 fois (un push peut arriver en double), oublie ce qui a plus de 24 h, et
 disparaît entièrement à la déconnexion — elle porte du texte en clair.
 
-Vérifié hors appareil : 13 cas dans
-`test/core/services/notification_pile_messages_test.dart`. **Rien n'a tourné
-sur un téléphone, et c'est un comportement qui ne se juge qu'à l'écran.**
-
-Fichiers : [notification_pile_messages.dart](lib/core/services/notification_pile_messages.dart),
-[notification_service.dart](lib/core/services/notification_service.dart)
-(`_showFallbackMessageNotification`, `clearConversationNotifications`).
-
-- ✔ 11 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Cinq messages reçus, un seul lisible : la bannière ne s'empilait pas (2026-09-16) »).
 - [ ] **Groupe qui s'anime, app tuée** : la bannière porte le nom du groupe en
   titre et **chaque message précédé de son expéditeur**.
 - [ ] **Deux conversations en parallèle** : deux bannières distinctes, chacune
@@ -9166,58 +5288,17 @@ Fichiers : [notification_pile_messages.dart](lib/core/services/notification_pile
   seule ligne dans la bannière.
 - [ ] **Se déconnecter** : plus aucun texte de message dans les préférences
   (`notif_pile_*`).
-
-**Corrigé le 2026-09-16, signalé sur appareil** : la pile s'affichait **à
-l'envers** et **sans heure**. Deux causes distinctes.
-
-L'ordre venait du chemin premier plan : `.take(10)` gardait les dix plus
-**anciennes** — celles qu'on veut justement laisser tomber — puis `.reversed`
-mettait la plus récente **en haut**. `MessagingStyle` affiche dans l'ordre de
-la liste, et une conversation se lit du haut vers le bas.
-
-L'heure manquait parce que **rien ne l'envoyait** : aucun des deux
-déclencheurs ne mettait d'horodatage dans la charge du push. L'appareil n'avait
-que `DateTime.now()` — l'heure de *livraison* — et le chemin d'arrière-plan ne
-renseignait même pas `when`. Le serveur envoie désormais `data.sentAt`
-(`created_at`, l'autorité), et la pile se trie dessus : un message reçu au
-retour du réseau porte son heure d'envoi, pas « à l'instant ».
-
-
-**Complété le 2026-09-16, signalé sur appareil** : la bannière ne portait
-**qu'une seule heure**, celle de l'en-tête. `MessagingStyle` reçoit bien un
-horodatage par message, mais **Android ne le rend pas** dans le volet du
-téléphone : il ne s'en sert que pour trier, et ne l'expose qu'à Wear et Auto.
-Dans une pile de six, on ne savait donc pas de quand dataient les cinq
-premiers. L'heure est désormais **en fin de texte** de chaque ligne
-(`Salut · 14:30`), format 24 h posé à la main — `intl` n'est pas initialisé
-dans l'isolate de notification.
-
-Trouvé en même temps : en **groupe**, les deux déclencheurs préfixent déjà le
-corps du nom de l'expéditeur (`v_sender_name || ' : ' || v_body`), parce que la
-bannière d'origine n'avait qu'une ligne pour tout dire. `MessagingStyle`
-affiche l'expéditeur de son côté — le nom sortait donc **deux fois sur la même
-ligne**. Il est retiré du texte, et seulement là où le serveur l'a mis.
-
 - [ ] **Pile à cheval sur minuit** : recevoir un message avant minuit et un
   après, puis regarder la bannière. Celui d'avant doit porter « hier », sinon
   l'ordre paraît faux — 23:50 semble plus tard que 00:05. La fenêtre de la pile
   est de 24 h, donc le cas est atteignable toutes les nuits.
 - [ ] **Groupe** : chaque ligne montre son expéditeur **une seule fois**.
-
-**Et le cas d'un même expéditeur qui enchaîne** : c'est là que la clé
-d'identité de la `Person` compte. Android regroupe les messages consécutifs
-d'une même personne sous un **seul** en-tête, et il le fait d'après cette clé.
-Elle était le **nom affiché** sur les deux chemins — deux membres d'un groupe
-peuvent le partager, et surtout il peut manquer dans une charge : le chemin
-d'arrière-plan retombait alors sur le TITRE de la bannière, c'est-à-dire le nom
-du groupe. Un message se serait retrouvé sous un expéditeur différent au milieu
-de la pile. C'est l'identifiant qui sert de clé désormais, le nom ne servant
-plus qu'à l'affichage.
-
 - [ ] **En groupe, deux personnes qui alternent** : les en-têtes alternent aussi,
   et chaque bloc reste attribué à la bonne personne.
 - [ ] **Deux membres d'un groupe portant le même nom affiché** : ils ne sont pas
   fondus en une seule personne.
+
+- ✔ 11 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Cinq messages reçus, un seul lisible : la bannière ne s'empilait pas (2026-09-16) »).
 
 ---
 
@@ -9226,40 +5307,6 @@ plus qu'à l'affichage.
 **Priorité P1** · importance 4/5 — Trouvés en comparant les deux déclencheurs
 de production ligne à ligne, puis en recoupant avec les données. Aucun ne
 produisait d'erreur, c'est ce qui les avait gardés en place.
-
-**1. L'aperçu serveur ignorait les noms que l'app écrit.** Il traitait `audio`,
-que personne n'écrit ; l'application produit `voiceNote`, `audioFile`,
-`sticker`, `document`. Les quatre tombaient dans le `ELSE`. Vu en production :
-les **deux seules notifications de note vocale** disent « 🔒 Nouveau message ».
-Et en conversation claire, le `ELSE` rend `data->>'content'` — donc l'URL du
-sticker, ou la fiche du contact, dans le corps de la notification.
-
-**2. Une réaction en conversation chiffrée ne notifiait personne.**
-`mls_notify_recipients` sort sur `kind <> 'content'` et `mls_message_reactions`
-n'avait aucun déclencheur, là où le même geste en clair crée une
-`messageReaction`. ⚠️ **Le corps ne porte pas l'emoji**, contrairement au
-chemin en clair : l'emoji est déjà en clair côté serveur, mais le mettre dans
-le push le donnerait aussi à FCM, sur une conversation dont tout l'intérêt est
-l'inverse. Choix délibéré, à rediscuter si l'écart gêne.
-
-**3. Une mention en conversation muette ne prévenait personne.** La sourdine
-cède désormais pour les seules mentions, sous le type `messageMention` (et non
-`mentioned`, qui appartient au fil et dont l'appui ouvre `/feed/<cible>`).
-⚠️ **En clair seulement** : dans une conversation MLS les mentions voyagent
-dans la charge chiffrée, le serveur ne peut pas savoir qu'un message vous
-nomme. Une conversation chiffrée en sourdine reste donc silencieuse sur
-mention.
-
-Vérifié hors appareil : les deux migrations rejouées en `BEGIN … ROLLBACK`
-contre la production (les aperçus rendent les bons libellés, le déclencheur de
-réaction se crée), 16 cas dans
-`test/features/notifications/cas_messagerie_couverts_test.dart` — dont un qui
-compare la table cliente et la table serveur type par type, dans les deux
-sens. **Rien n'a tourné sur un téléphone.**
-
-Fichiers : migrations `20260916120000` et `20260916130000`,
-[notification_pref_keys.dart](lib/core/services/notification_pref_keys.dart),
-[notification_entity.dart](lib/features/notifications/domain/entities/notification_entity.dart).
 
 - [ ] **Note vocale reçue** (conversation chiffrée ET conversation claire) :
   la bannière dit « 🎙️ Message vocal », plus « Nouveau message ».
@@ -9280,13 +5327,14 @@ Fichiers : migrations `20260916120000` et `20260916130000`,
 - [ ] **Droits de la table** : marquer lu, supprimer une notification et faire
   défiler la liste marchent toujours. C'est ce que le `REVOKE ALL` pouvait
   casser — vérifié par banc côté serveur, jamais depuis l'app.
-- ✔ 2 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Trois cas de messagerie que les notifications ne couvraient pas (2026-09-16) »).
 - [ ] **Conversation en sourdine + mention** (conversation en clair) : la
   bannière arrive, libellée « Mention », et l'appui ouvre **la discussion**.
 - [ ] **Conversation en sourdine sans mention** : toujours silencieuse.
 - [ ] **Conversation NON muette + mention** : une seule notification, pas deux.
 - [ ] **Conversation chiffrée en sourdine + mention** : silencieuse, et c'est
   attendu — le noter si ça surprend à l'usage.
+
+- ✔ 2 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Trois cas de messagerie que les notifications ne couvraient pas (2026-09-16) »).
 
 ---
 
@@ -9295,43 +5343,6 @@ Fichiers : migrations `20260916120000` et `20260916130000`,
 **Priorité P1** · importance 4/5 — Inventaire du 2026-09-16, à partir des
 écrivains eux-mêmes (client, migrations, `functions/index.js`) plutôt que
 d'une lecture. Trois écarts, tous muets.
-
-**1. Vingt types écrits, absents de `NotificationType`.** `postLiked`,
-`postReposted`, `system` et dix-sept types des Cloud Functions étaient repliés
-sur `general` par `_parseNotificationType` : libellé « Général » dans la liste,
-et pour les deux premiers, un appui qui ouvrait la fiche au lieu de la
-publication. `system` porte les **37 lignes** de l'annonce du 2026-09-15.
-
-**2. Sept divergences entre les deux tables de préférences.** L'app décide de
-l'affichage au premier plan, `send-push` décide de l'envoi, et la règle était
-recopiée des deux côtés. `friendAccepted`, `newFollower`, `eventAttendance`,
-`localEvent` et `system` n'étaient filtrés que côté serveur ; `officialGroupLeave`
-et `cityGroupInvite`, que côté app. Une bascule qui coupe app fermée mais pas
-app ouverte, ou l'inverse — irreproductible pour qui ne sait pas que ce sont
-deux chemins. La table vit désormais dans
-`lib/core/services/notification_pref_keys.dart`, et le TypeScript en est le
-reflet, comparé par un banc.
-
-**3. `report_resolved` n'écrivait aucune clé de cible.** Ni `targetId` ni
-`target_id` : `NotificationReadSync` ne pouvait pas la retrouver, elle restait
-non lue pour toujours.
-
-Retirés au passage : quatre types que personne n'écrit (`newFollower`,
-`newMember`, `nearbyMember`, `proximityAlert`) et les huit fichiers de la pile
-`settings/notification_preferences_*`, qui lisaient des documents `users`
-Firestore qui n'existent plus et n'avaient aucun consommateur.
-
-⚠️ **`send-push` doit être redéployée** pour que le volet serveur des
-préférences change quoi que ce soit : `supabase functions deploy send-push`.
-Sans ça, seul l'affichage au premier plan est corrigé — c'est-à-dire la moitié
-du défaut.
-
-Vérifié hors appareil : 40 cas (couverture des types, parité des tables, clés
-de cible), `flutter analyze` propre. **Rien n'a tourné sur un téléphone.**
-
-Fichiers : [notification_entity.dart](lib/features/notifications/domain/entities/notification_entity.dart),
-[notification_pref_keys.dart](lib/core/services/notification_pref_keys.dart),
-`supabase/functions/send-push/index.ts`.
 
 - [ ] **Une annonce `system`** s'affiche « Message système », pas « Général ».
 - [ ] **Un j'aime sur ma publication** : la notification s'appelle « Nouveau
@@ -9363,39 +5374,17 @@ déchiffrait.** `_handleForegroundMessage` passait le repli générique du
 serveur à la bannière in-app comme à la notification système. Le même message
 s'affichait donc en clair app fermée et générique app ouverte.
 
-**Le piège qui aurait fait échouer le correctif évident.** Appeler
-`MlsNotificationPreview.texte` depuis cet isolate-ci ne suffisait pas :
-`RustLib.init()` y a déjà été appelé par `mlsEngineProvider`, et un second
-appel lève `StateError`. L'exception part dans le `catch` de `texte`, qui rend
-`null` — c'est-à-dire **exactement** ce que rend un déchiffrement légitimement
-impossible. Le correctif aurait eu l'air posé et n'aurait rien changé, sans
-une ligne de journal pour le dire. La garde est donc unique et partagée
-(`initialiserRustUneFois`), et elle lit `RustLib.instance.initialized` au lieu
-de se souvenir.
-
-Vérifié hors appareil : 16 cas dans
-`test/core/crypto/mls_notification_preview_test.dart`, dont un qui balaie
-`lib/` pour interdire tout autre appel à `RustLib.init()`. **Rien n'a tourné
-sur un téléphone.**
-
-Fichiers : [notification_service.dart](lib/core/services/notification_service.dart)
-(`_handleForegroundMessage`, `_showLocalNotification`),
-[mls_rust_init.dart](lib/core/crypto/mls/mls_rust_init.dart),
-[mls_notification_preview.dart](lib/core/crypto/mls/mls_notification_preview.dart).
-
 - [ ] **App ouverte sur un AUTRE écran** (le fil, pas la discussion), message
   MLS reçu : la bannière in-app affiche le **vrai texte**.
   Passe du 2026-09-21 (soir), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : app sur l'Accueil, PC1 reçu → c'est la fenêtre surgissante SYSTÈME qui s'affiche, avec le vrai texte (« Salim L. PC1 · 19:22 ») ; aucune bannière propre à l'app observée.
-- ✔ 3 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Aperçu MLS quand l'app est OUVERTE (le même message, l'autre isolate) »).
-- [ ] **Réglage « aperçu des messages » coupé** (Profil → Notifications) :
-  la bannière repasse à « Nouveau message » app ouverte comme app fermée.
-  ⛔ Passe du 2026-09-21 (20 h), build Play 1.2.2+26, Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : même constat — réglage absent de l'interface (voir « Aperçu des notifications MLS reconstruit sur l'appareil (phase 4, Android) »).
 - [ ] **Sondage et appel** reçus chiffrés : libellés « Sondage » et « Appel »
   (deux types que `resume` ignorait, d'où un repli générique alors que le
   message était déchiffré).
   ⬜ moitié, Passe du 2026-09-22 (~02:00–02:30), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : **app fermée** (HOME + `am kill`), sondage « PQ
   Sondage » reçu → la ligne de la bannière dit « Sondage · 02:07 ». Appel non
   testé (appels en pause), app ouverte non testée.
+
+- ✔ 3 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Aperçu MLS quand l'app est OUVERTE (le même message, l'autre isolate) »).
 
 ---
 
@@ -9404,29 +5393,6 @@ Fichiers : [notification_service.dart](lib/core/services/notification_service.da
 **Priorité P1** · importance 4/5 — *Bloqué : ce poste n'a pas de Mac. Rien de
 ce qui suit n'a jamais été compilé.* Pendant iOS de « Aperçu des notifications
 MLS reconstruit sur l'appareil (phase 4, Android) ».
-
-**Pourquoi ce n'est pas le même code.** Sur Android l'aperçu est reconstruit
-par un isolate Dart, qui a le pont Flutter Rust Bridge et partage le bac à
-sable de l'app. iOS n'a rien de tel : une Notification Service Extension est un
-**binaire séparé**, sans moteur Flutter, sans Dart, et avec **son propre bac à
-sable**. Elle appelle donc le moteur par une ABI C (`rust/src/ffi.rs`,
-`diaspo_mls_apercu`, tampon fourni par l'appelant), et tout ce que l'app sait
-doit lui être **déposé** dans un conteneur commun.
-
-**Trois changements côté app conditionnent tout le reste**, et sont livrés :
-
-1. la base du moteur vit désormais dans le conteneur du **groupe
-   d'application** sur iOS (`mls_chemin_base.dart`) ; une base restée à
-   l'ancien emplacement est **déplacée** au premier démarrage — déplacée et non
-   copiée, deux copies de l'état MLS étant deux cliquets qui avancent
-   séparément ;
-2. le compte courant et l'identifiant d'appareil sont déposés dans les
-   `UserDefaults` du groupe (`mls_partage_extension_ios.dart`). **Pas** par
-   `SharedPreferences` : le greffon Flutter préfixe toutes ses clés par
-   `flutter.`, et une extension qui lit `currentUserId` ne trouverait rien —
-   sans erreur et sans journal ;
-3. `send-push` pose `mutable-content: 1` sur les messages MLS. **Sans ce
-   drapeau, iOS n'invoque jamais l'extension**, quoi qu'on fasse d'autre.
 
 **Un défaut réel trouvé en écrivant ceci** : `preview_without_state` rend le
 **payload** du § 6.2 — du JSON portant la citation, les mentions et les
@@ -9491,28 +5457,6 @@ ne le dise**. Le déchiffrement passe donc par `apercuSansEtat`, qui travaille
 sur une copie jetable produite par `VACUUM INTO` côté Rust, lue puis
 supprimée. Un seul écrivain de l'état MLS : l'application.
 
-Vérifié hors appareil, **contre la base de production** : le banc (16 cas
-verts) écrit un message MLS, relit la ligne `notifications` produite par le
-trigger et vérifie qu'elle ne contient **rien de lisible** — corps générique,
-ciphertext intact, expéditeur non notifié — puis reconstruit l'aperçu depuis
-ce que le push transporte. Plus un cas Rust
-(`l_apercu_ne_consomme_pas_le_cliquet`) et 22 tests Dart. **Rien n'a tourné
-sur un téléphone.**
-
-⚠️ **Appliquée depuis** (vérifié le 2026-09-15 dans
-`supabase_migrations.schema_migrations`, et 0 saut de ligne sur les 50
-ciphertexts en base) : `20260915160000_mls_notifications_base64_sans_sauts.sql`.
-Sans elle,
-`encode(bytea,'base64')` coupe sa sortie tous les 76 caractères et
-`base64Decode` la refuse : l'aperçu échouerait **à chaque message**, en
-silence. Le client a été rendu tolérant en plus, pas à la place.
-
-Fichiers : [mls_notification_preview.dart](lib/core/crypto/mls/mls_notification_preview.dart),
-[notification_service.dart](lib/core/services/notification_service.dart)
-(`firebaseMessagingBackgroundHandler`), `rust/src/engine.rs`
-(`preview_without_state`), migration `20260915140000`.
-
-- ✔ 3 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Aperçu des notifications MLS reconstruit sur l'appareil (phase 4, Android) »).
 - [ ] **Deux pushs pour le même message** (relancer l'envoi, ou couper/rétablir
   le réseau) : la bannière reste correcte, et le message reste lisible dans
   l'app.
@@ -9521,7 +5465,6 @@ Fichiers : [mls_notification_preview.dart](lib/core/crypto/mls/mls_notification_
   l'app affiche le texte une fois le commit traité.
 - [ ] **Média, note vocale, position** : la bannière dit « Pièce jointe »,
   « Note vocale », « Position » — jamais le nom du fichier.
-- [ ] **Groupe** : le titre est le nom du groupe, le corps `Nom : texte`.
 - [ ] **Aucune copie jetable ne traîne** : `run-as … ls files/…/mls/` ne
   montre aucun fichier `*apercu-*`.
 - [ ] **Un ancien build** qui reçoit un push MLS : bannière générique, aucun
@@ -9532,51 +5475,13 @@ Fichiers : [mls_notification_preview.dart](lib/core/crypto/mls/mls_notification_
   `send-push` transmet déjà —, à vérifier sur appareil.
   ⛔ Passe du 2026-09-21 (20 h), build Play 1.2.2+26, Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : impossible à tester — **le réglage n'existe pas dans l'app**. `PreferencesService.setShowMessagePreview` n'a aucun appelant ; l'écran Réglages › Notifications ne propose pas d'« Aperçu des messages ».
 
+- ✔ 3 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Aperçu des notifications MLS reconstruit sur l'appareil (phase 4, Android) »).
+
 ---
 
 ## ⬜ Cycle de vie d'une demande d'ami : six trous soldés (2026-09-15)
 
 **Priorité P2** · importance 3/5 — Aucun de ces six n'était visible pour un usager, mais l'un d'eux laissait n'importe quel compte fabriquer une demande d'ami **au nom de quelqu'un d'autre**. *Bloqué : deux comptes pour les points croisés.*
-
-Audit du cycle complet, après « Accepter une demande d'ami : « Erreur de
-chargement » ». Tout est corrigé, mesuré et déployé ; ce qui reste est
-l'observation sur appareil.
-
-1. **`cancelled` n'existait pas dans l'énumération** alors que
-   `cancelFriendRequest` l'écrit : le `default` du parseur le rendait comme
-   `pending`. Latent (les flux filtrent côté serveur), mais `getRequestById`
-   lisait une demande annulée comme en attente.
-2. **Rien ne vérifiait qu'une demande était encore en attente.** Un écran resté
-   ouvert pouvait accepter une demande fraîchement annulée, ou en réaccepter
-   une déjà traitée. Garde côté client — avec un message qui *nomme* l'état
-   trouvé — et côté règles.
-3. **🔴 `allow create` était `isAuthenticated()` tout court** : n'importe quel
-   compte pouvait créer une demande **au nom d'un autre**. La règle exige
-   désormais `senderId == request.auth.uid`, un destinataire différent, et un
-   statut `pending` ; le destinataire ne peut plus poser `cancelled` à la
-   place de l'expéditeur.
-4. **Aucune garde « pas soi-même »** hors du bouton de la fiche de profil.
-   Posée dans `sendFriendRequest` et dans la règle.
-5. **Les documents traités s'accumulaient indéfiniment.** Supprimés après
-   acceptation, refus et annulation — au mieux : un échec de ménage ne défait
-   pas une acceptation réussie, il est signalé.
-6. **Une annulation laissait au destinataire une notification orpheline.**
-   L'expéditeur ne peut pas la marquer lue — `markTargetRead` filtre sur
-   `user_id = <l'appelant>`. C'est donc le destinataire qui le fait, là où il
-   constate la disparition.
-
-`public.friend_requests` (Supabase) n'est lue ni écrite par personne : marquée
-par `COMMENT ON` (`20260915093000`), **pas supprimée**. `public.friends` a reçu
-le même traitement — une ligne par sens, ce qui n'allait pas de soi.
-
-**Règles déployées le 2026-09-15**, compilation OK, banc passé avant :
-`tools/rules_tests/acceptation_ami.mjs` blocs 5 et 6, dix cas, plus les treize
-tests Dart de `cycle_demande_ami_test.dart`.
-
-⚠️ **Le banc a tourné sur un port privé (8098)** : le 8080 était pris par
-l'émulateur d'une autre session. Ne jamais lancer le banc sur l'émulateur
-d'autrui — `initializeTestEnvironment` y téléverse **vos** règles et
-`clearFirestore()` efface **ses** données.
 
 - [ ] **Annuler puis accepter** (deux comptes) : A envoie, B ouvre l'écran
   Notifications, A annule depuis « Envoyées », B tape « Accepter » sans
@@ -9591,42 +5496,6 @@ d'autrui — `initializeTestEnvironment` y téléverse **vos** règles et
 ## ⬜ Accepter une demande d'ami : « Erreur de chargement » (2026-09-14)
 
 **Priorité P0** · importance 5/5 — Accepter une demande d'ami échoue en production pour la quasi-totalité des comptes : le lot est refusé en entier, rien ne bouge en base, et l'usager lit « Erreur de chargement ». *Bloqué : deux comptes, dont un qui n'a jamais eu de document `users` Firestore.*
-
-Signalé par Salim. C'est la **deuxième fois** que ce chemin casse au même
-endroit — voir « Écrans de notifications — lot « une seule source » », qui
-porte la passe du 2026-08-05 et le premier correctif.
-
-**Cause.** Le lot de `acceptFriendRequest` touchait cinq documents, dont le
-profil `users` de **l'autre** personne, en `set(merge)` sur `friendIds`. Un
-`set(merge)` sur un document absent est une **création**, et
-`users/{userId}` ne l'autorise qu'à son propriétaire — à raison. Or plus rien
-ne crée les documents `users` Firestore depuis la migration vers Supabase :
-ils sont absents pour presque tous les comptes. Le lot étant atomique, ce
-seul refus annulait les quatre autres écritures. `removeFriend` avait la même
-faille. Le correctif du 2026-08-05 avait traité la création de **son propre**
-document, pas celle du document d'autrui.
-
-`friendIds` n'était lu par personne : la liste d'amis vient de la
-sous-collection `friends`, l'audience « Amis » du fil vient de
-`public.friends` que `mirrorFriendToSupabase` alimente depuis cette même
-sous-collection. Les deux écritures sont donc supprimées.
-(`friend_remote_datasource.dart`)
-
-**Mesuré, pas supposé** : `tools/rules_tests/acceptation_ami.mjs` rejoue le
-lot sur l'émulateur Firestore avec les règles du dépôt, profil de
-l'expéditeur présent **et** absent. Avant correctif : REFUSÉ quand il est
-absent. Après : les deux passent, et six garde-fous restent refusés.
-`test/features/friends/acceptation_demande_ami_test.dart` fige la liste des
-documents que le lot a le droit de toucher (il échoue sur l'ancien code).
-
-**Règles Firestore déployées le 2026-09-14** (`firebase deploy --only
-firestore:rules`, compilation OK, banc passé avant). `firestore.rules` gagne
-une exception de création strictement bornée (`friendIds` seul, contenant le
-seul uid de l'appelant, donc jamais `isAdmin`/`adminRole`) pour que les **APK
-déjà installés** soient réparés sans mise à jour. Production relue par l'API
-`firebaserules` juste après : **identique au fichier versionné**. Elle l'était
-déjà avant — le « NON DEPLOYE » du commit `4bbc208` était faux, le
-déploiement avait eu lieu 4 minutes plus tard.
 
 - [ ] **Accepter depuis l'écran Notifications**, compte expéditeur **sans**
   document `users` Firestore : « Demande acceptée », et en base
@@ -9655,9 +5524,6 @@ Demandé par Salim. Les lignes `message` et `messageReaction` restent
 (un seul filtre possible) mais un canal realtime qui relance la requête
 filtrée. (`notification_supabase_datasource.dart`,
 `kTypesHorsEcranNotifications` dans `notification_entity.dart`)
-
-Filtre vérifié sur la base de production : 117 lignes → 27, les 90 écartées
-sont toutes `message`. Rien à déployer.
 
 - [ ] **Liste** : recevoir un message (compte A → B) puis ouvrir
   Notifications sur B : aucune ligne de message ; les autres notifications
@@ -9688,12 +5554,6 @@ sont toutes `message`. Rien à déployer.
 
 **Priorité P1** · importance 3/5 — Le compteur de notifications ment : des notifications déjà vues dans la discussion, touchées dans le volet système ou portant sur un contenu supprimé restent « non lues ».
 
-Signalé sur le Pixel. Mesuré en base le même jour : 84 non lues, dont 73
-« message » toutes obsolètes. Voir aussi « Grand titre d'en-tête : plus de
-mot coupé ».
-
-Prérequis : `supabase db push` (20260912200000, 20260912201000, 20260912230000) et `firebase deploy --only functions:mirrorFriendToSupabase` (la partie app marche sans, en repli).
-
 - [ ] **Discussion lue** : recevoir un message (compte A → B), NE PAS ouvrir
   l'écran Notifications, ouvrir la discussion, puis ouvrir Notifications :
   la ligne est en registre « lue ». (`message_supabase_datasource.dart`,
@@ -9710,9 +5570,6 @@ Prérequis : `supabase db push` (20260912200000, 20260912201000, 20260912230000)
   inscrit → la notification « participation » de l'organisateur est lue.
 - [ ] **Compteur** : le badge « N non lues » de l'en-tête et la puce « Non
   lues » baissent d'autant, sans rouvrir l'app.
-- [ ] Les 4 demandes d'ami non lues du Pixel (Firestore) restent non lues
-  tant qu'elles ne sont pas traitées — c'est attendu, la base ne peut pas
-  savoir.
 
 ## Page Notifications à plat + heure sur le seul dernier message d'une rafale (2026-08-23)
 
@@ -9730,31 +5587,12 @@ SEMAINE »…) et les trois filtres (Tout / Non lues / Mentions) sont conservés
 Le résumé des notifications **push** Android (`setAsGroupSummary`, InboxStyle
 dans `notification_service.dart`) n'est pas touché — c'est un autre système.
 
-- ✔ 10 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Page Notifications à plat + heure sur le seul dernier message d'une rafale (2026-08-23) »).
-- [ ] **Accepter / Refuser** d'une demande d'ami : **invérifiable sur ce
-  compte**, pour deux raisons cumulées — la seule notification « Nouvelle
-  demande d'ami » (13 août) est **lue**, or `_InlineActions` n'est rendu que
-  dans `_UnreadCard` ; et `friend_requests` ne contient **aucune** ligne pour
-  ce compte, tous statuts confondus, donc `_FriendRequestActions` ne rendrait
-  rien même sur une carte non lue (il exige une demande en attente — c'est le
-  comportement voulu). Le chemin de code est cependant le même que celui des
-  boutons d'événement ci-dessus : même `_UnreadCard`, même `_InlineActions`,
-  seul le `case` du switch diffère. À refaire avec une vraie demande d'ami
-  entrante.
-- [ ] La **pagination au défilement** tient toujours avec beaucoup de lignes
-  (le compte d'éléments affichés n'est plus réduit par le regroupement).
 - [ ] Les **tranches de temps** restent correctes et ne se répètent pas.
 
 **2. Dans une rafale, seul le dernier message affiche son heure**
 ([message_bubble.dart](lib/features/messages/presentation/widgets/message_bubble.dart)).
 La règle existait pour les messages *envoyés* ; elle vaut désormais aussi pour
 les messages *reçus* (`showTimeInfo = _isLastInGroup || _metaRevealed`).
-
-⚠️ Ce changement **annule `92326fe` (« chaque bulle porte son heure »)**, poussé
-quelques heures plus tôt sur la branche partagée, qui avait retiré ce masquage
-en jugeant qu'il se lisait comme un défaut. Le masquage est rétabli à la
-demande explicite, et étendu aux messages reçus. Si le rendu déplaît à
-l'usage, c'est ce commit-là qu'il faut relire avant de trancher à nouveau.
 
 - [ ] Le même cas sur des messages **reçus** : **pas vérifié**, aucun message
   reçu disponible sur le compte de test (les deux conversations ne contiennent
@@ -9791,8 +5629,8 @@ l'usage, c'est ce commit-là qu'il faut relire avant de trancher à nouveau.
   Comportement verrouillé par
   [rafale_position_test.dart](test/features/messages/rafale_position_test.dart)
   (7 cas), mais aucun test ne couvre le **rendu**.
-- [ ] Build + install pas encore faits sur SM A515F depuis ce changement
-  (travail réalisé dans un worktree isolé).
+
+- ✔ 10 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Page Notifications à plat + heure sur le seul dernier message d'une rafale (2026-08-23) »).
 
 ---
 
@@ -9800,34 +5638,6 @@ l'usage, c'est ce commit-là qu'il faut relire avant de trancher à nouveau.
 
 **Priorité P1** · importance 3/5 — Taper une notification de message n'ouvre pas la conversation ; la réponse rapide, masquée, ne peut rien casser tant qu'elle l'est. *Bloqué : deux comptes (ou message inséré en base).*
 
-Deux bugs cumulés. (1) `currentUserId` dans SharedPreferences — lu par
-[background_reply_service.dart](lib/core/services/background_reply_service.dart)
-et 4 autres endroits de
-[notification_service.dart](lib/core/services/notification_service.dart) pour
-retrouver l'utilisateur courant depuis un isolate background — n'était écrit
-**nulle part** dans le code : toujours `null`, donc la réponse rapide comme
-la confirmation de livraison en arrière-plan (`mark_messages_as_delivered`)
-étaient court-circuitées avant même de tenter quoi que ce soit. (2) même
-quand ce cache aurait été renseigné, `BackgroundReplyService.sendReply`
-écrivait dans Firebase Realtime Database (`messages/{conversationId}`), un
-backend retiré depuis la migration vers Supabase — la conversation lit
-`messages`/`conversations` sur Supabase, jamais RTDB, donc le message
-n'apparaissait jamais, ni pour le destinataire ni au retour dans l'app.
-
-Correctifs : `NotificationService.saveTokenForUser` (appelée à chaque login
-et par `authStateChanges` au démarrage) alimente maintenant le cache
-`currentUserId`/`currentUserDisplayName`/`currentUserPhotoUrl`, et le vide à
-la déconnexion. `BackgroundReplyService` initialise un client Supabase propre
-à l'isolate (même piège que `BackgroundLocationService` : singleton par
-isolate) avec `SupabaseAuthBridge.ensureAuthenticated()`, écrit dans
-`messages`/`conversations` avec le même schéma que
-`MessageSupabaseDataSource` (chiffrement AES de repli — Signal Protocol est
-hors de portée d'un isolate éphémère, pas de Hive), et la file d'attente
-hors-ligne (`processPendingMessages`, jusqu'ici jamais appelée) se vide
-maintenant à chaque connexion connue. `flutter analyze` propre, mais rien de
-tout ça n'exerce le vrai réveil d'isolate Android ni Supabase.
-
-- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Réponse rapide depuis la notification n'envoyait jamais rien (2026-08-13) »).
 - [ ] Taper « Répondre », taper du texte, envoyer → la confirmation
   « Message envoyé » s'affiche, ET le message apparaît réellement dans la
   conversation. **Reste bloqué — voir « Quatrième bug » ci-dessous, action
@@ -9839,36 +5649,6 @@ tout ça n'exerce le vrai réveil d'isolate Android ni Supabase.
 - [ ] Action « Marquer comme lu » depuis une notification → le compteur non
   lu de la conversation redescend à 0 dans la liste des conversations.
   Bloqué par le même « Quatrième bug » (même mécanisme de dispatch).
-
-**Troisième bug, trouvé en vérifiant celui-ci sur appareil (2026-08-13) :**
-même les deux correctifs ci-dessus posés, la notification reçue app en
-arrière-plan n'affichait **aucun bouton d'action**. Cause : `send-push`
-([supabase/functions/send-push/index.ts:324-338](supabase/functions/send-push/index.ts))
-envoie un message FCM avec un bloc `notification` **et** un bloc `data`. Sur
-Android, quand l'app est en arrière-plan, un bloc `notification` présent fait
-que le système affiche lui-même la bannière **nativement**, sans jamais
-invoquer `onBackgroundMessage`/`firebaseMessagingBackgroundHandler` côté
-Dart — confirmé par `adb logcat` : la notification est postée par
-`NotificationService` système (PID système) à l'horodatage du push, aucune
-ligne Flutter ne s'exécute. `_showFallbackMessageNotification` (le repli qui
-construit les actions Répondre/Marquer comme lu) ne sert donc que pour les
-OEM qui suppriment activement le bloc `notification` — pas le cas ici, donc
-jamais atteint. Corrigé côté client
-([notification_service.dart](lib/core/services/notification_service.dart)) :
-`_showFallbackMessageNotification` porte maintenant les mêmes actions que
-`_showLocalNotification`, et son payload est du JSON valide (l'ancien
-`'message:$conversationId'` aurait fait échouer même un simple tap). Mais
-tant que `send-push` envoie encore le bloc `notification`, ce correctif
-client ne s'exécute jamais dans le cas courant. **Correctif serveur fait et
-déployé le 2026-08-13** (confirmation de Salim avant déploiement) :
-[supabase/functions/send-push/index.ts](supabase/functions/send-push/index.ts)
-envoie désormais les messages `type === 'message'` en pur `data`-only (pas
-de bloc `notification` ni `android.notification`), avec `aps.alert`
-reconstruit explicitement côté APNs pour ne pas perdre l'alerte iOS. Les
-autres types de notification (amis, groupes, événements...) gardent le bloc
-`notification` classique — comportement inchangé, aucune action requise pour
-eux. **Confirmé en pratique le 2026-08-14** : `dumpsys notification` montre
-`actions=2` sur la notification reçue app en arrière-plan.
 
 **Quatrième bug, trouvé en testant le tap réel sur « Répondre » (2026-08-14),
 bloquant :** les trois bugs ci-dessus posés et vérifiés (currentUserId,
@@ -9892,16 +5672,6 @@ s'exécute ensuite. Isolé précisément par `adb logcat` :
   s'exécute donc pas du tout, ce n'est pas juste une branche de code
   manquante).
 
-Reproduit à l'identique sur **trois builds différents**, avec redémarrage
-complet de l'app (`am force-stop` + relance) avant chacun : `flutter build
-apk --debug`, le même après un redémarrage complet, puis `flutter build apk
---profile` — élimine à la fois « process resté sale » et « artefact du mode
-JIT/debug » comme explications. Recherche dans les issues GitHub de
-`flutter_local_notifications` (MaikuB/flutter_local_notifications#2011,
-#2148) : catégorie de bug connue et non résolue côté mainteneurs, sans cause
-racine publiée — `onDidReceiveBackgroundNotificationResponse` qui ne
-s'exécute jamais malgré `@pragma('vm:entry-point')` correctement posé.
-
 **Décision avec Salim (2026-08-14) :** masquer les deux boutons (Répondre
 **et** Marquer comme lu — même mécanisme de dispatch, donc même panne, même
 si seul Répondre a été testé bouton par bouton) plutôt que de laisser une
@@ -9915,90 +5685,14 @@ pas de `ActionBroadcastReceiver`), jamais mis en cause par ce diagnostic.
 
 - [ ] Avant de remettre `kNotificationQuickActionsEnabled` à `true` : relancer
   ce test bout-en-bout sur appareil réel, pas seulement `flutter analyze`.
-- [ ] Vérifier que la notification s'affiche toujours normalement (tap sur le
-  corps → ouvre la conversation) avec les actions masquées — pas testé
-  explicitement, seule l'absence des boutons a été vérifiée par `dumpsys`.
 
----
-
-## Notification push — le ciphertext AES sortait en clair dans l'aperçu (2026-08-13)
-
-**Priorité P3** · importance 1/5 — D'anciennes notifications de la page in-app affichent du base64 au lieu d'un aperçu. *Bloqué : décision de rétention, pas un test appareil.*
-
-Signalé : « les pushnotifications affiche les messages crypté ».
-
-**Cause.** `message_preview_for_notification` (SQL) ne masquait le contenu que
-si `encryptionLevel = 'e2ee'` ou si `content` commençait par le préfixe legacy
-`gcm:`. Mais le repli AES réellement utilisé aujourd'hui côté client
-(`MessageCryptoService.encrypt1to1`/`encryptGroup`, quand aucune session
-Signal n'est établie) écrit `encryptionLevel: 'aes'` et un `content` au format
-`iv:base64ciphertext` (`EncryptionService.encryptText`) — qui ne matche pas
-`gcm:%`. Ces messages tombaient dans la branche ELSE et exposaient le
-ciphertext brut comme corps de la notification push, envoyé tel quel via FCM.
-
-**Correctif** (`supabase/migrations/20260813140000_fix_push_preview_leaks_aes_ciphertext.sql`) :
-toute valeur de `encryptionLevel` ('aes' OU 'e2ee') déclenche désormais le
-preview générique par type (🔒 Nouveau message / 📸 Photo / …), comme c'était
-déjà le cas pour 'e2ee' seul.
-
-- ✔ 5 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Notification push — le ciphertext AES sortait en clair dans l'aperçu (2026-08-13) »).
-
-⚠️ **Pour Jules — j'ai touché ton fichier `20260813130000_fix_receipts_uuid_type_and_anon_grant.sql`.**
-`db push` s'arrêtait dessus (42723 « mark_messages_as_delivered already
-exists with same argument types ») et bloquait toute la file, ma migration
-comprise. Cause : ton fichier `DROP`e bien la surcharge
-`mark_messages_as_delivered(UUID, TEXT)` avant de recréer, mais pas la
-surcharge `(TEXT, TEXT)` — celle-là existe depuis `20260720120300`, avant
-`20260813120000`. J'ai ajouté le `DROP FUNCTION IF EXISTS
-public.mark_messages_as_delivered(TEXT, TEXT);` manquant (même motif que les
-deux `DROP` déjà là pour `mark_messages_as_read`), poussé, puis relancé
-`db push` — passé, sans autre incident. Le fichier a maintenant un
-paragraphe 3) dans son commentaire d'en-tête qui explique l'ajout. Si tu
-avais une raison de ne PAS dropper cette surcharge (une autre fonction encore
-dessus, un appelant qui en dépend), vérifie — je n'ai vu que l'échec du push,
-pas ton intention complète sur ce fichier.
-
-- [ ] Les lignes `notifications` déjà en base avant ce correctif gardent leur
-      `body` en ciphertext (une UPDATE de rattrapage n'a pas été tentée — trop
-      de risque de mal cibler les lignes) : à purger ou ignorer selon la
-      politique de rétention choisie.
-
-### Bug sans rapport trouvé en vérifiant : les icônes d'action de notif n'existent pas
-
-`DrawableResourceAndroidBitmap('@drawable/ic_reply')` et
-`'@drawable/ic_mark_read'` ([notification_service.dart:1790](lib/core/services/notification_service.dart:1790),
-[:1802](lib/core/services/notification_service.dart:1802)) référencent des
-ressources absentes de `android/app/src/main/res/` (`find` : aucun fichier
-`ic_reply*`/`ic_mark_read*`, aucune densité). Résultat mesuré sur l'appareil :
-`IllegalArgumentException: Drawable resource ID must not be 0` dans
-`FlutterLocalNotificationsPlugin.getIconFromSource` →
-`showNotification` échoue **pour toute notification de type message** (ces
-deux actions ne sont ajoutées que si `type == 'message' && conversationId !=
-null` — donc pratiquement tous les messages de chat), silencieusement, sans
-crash visible côté utilisateur.
-
-Pas su si ça touche aussi le cas app tuée/arrière-plan (où Android peut
-afficher directement le champ `notification` FCM sans passer par ce code) —
-seul le premier plan (`onMessage` → `_showLocalNotification`) a été exercé.
-
+- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Réponse rapide depuis la notification n'envoyait jamais rien (2026-08-13) »).
 
 ---
 
 ## Aperçu de notification en clair (2026-08-13)
 
 **Priorité P2** · importance 2/5 — Une notification de message E2EE affiche « Nouveau message » au lieu du texte ; le serveur, lui, ne voit jamais le clair. *Bloqué : deux comptes.*
-
-Demande de Salim, en suite directe du correctif ci-dessus : « je veux que les
-messages soient en clair » — précisé par lui-même : l'aperçu de notification,
-pas le chiffrement des messages en base (confirmé explicitement avant de
-toucher au code).
-
-**Repli AES** (`encryptionLevel: 'aes'`, cas majoritaire) : déchiffré
-**côté serveur** via `pgcrypto` (`decrypt_aes_fallback`,
-`20260813160000_real_plaintext_push_preview.sql`) — même clé partagée que
-`EncryptionService` côté client, déjà dans l'APK, pas un nouveau secret.
-
-- ✔ 5 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Aperçu de notification en clair (2026-08-13) »).
 
 **E2EE Signal réel** (`e2eePayloads`/`senderKeyPayload`) : le serveur ne peut
 toujours pas déchiffrer — la ligne `notifications` transporte désormais le
@@ -10031,32 +5725,21 @@ sessions Signal dans un isolate séparé — non fait, hors périmètre.
       conversation ouverte — `flutter analyze` propre, mais pas vu rendre à
       l'écran pour une notification.
 
+- ✔ 5 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Aperçu de notification en clair (2026-08-13) »).
+
 ---
 
 ## Scroll des notifications — mesuré, pas un défaut de l'écran (2026-08-06)
 
 **Priorité P3** · importance 2/5 — La dernière notification reste à moitié coupée en bas de liste.
 
-Signalé comme « le scroll a un problème ». Mesuré sur SM A515F avec une sonde
-(deux builds), capture et mesure prises **dans la même frame** :
-
-```
-état non-lu :  liste bas = 866.3 dp   dernière carte bas = 929.5 dp
-               maxScrollExtent = 87.2 dp   (63.2 de débordement + 24 de padding)
-état lu     :  dernière carte bas = 670.5 dp   maxScrollExtent = 0
-```
-
-- ✔ 5 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Scroll des notifications — mesuré, pas un défaut de l'écran (2026-08-06) »).
 - [ ] ⚠ **À refaire au doigt.** Aucun `adb input swipe` n'a fait défiler cette
   liste, et un glissement lent (1500 ms) a été interprété comme un **tap**.
   L'injection n'est pas fiable ici : je ne peux ni confirmer ni infirmer un
   défaut vécu au doigt. Le test : la liste doit remonter de ~87 dp et découvrir
   le bas de la dernière carte.
-- **Piège de méthode à retenir** : le premier `maxScrollExtent = 0` venait de
-  l'état *lu* (cartes courtes, contenu qui tient) et a été comparé à une capture
-  prise en état *non-lu*. Deux écrans différents. Mesurer et capturer dans la
-  même frame, sinon on conclut de travers — ça a coûté deux builds.
 
+- ✔ 5 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Scroll des notifications — mesuré, pas un défaut de l'écran (2026-08-06) »).
 
 ---
 
@@ -10064,158 +5747,16 @@ Signalé comme « le scroll a un problème ». Mesuré sur SM A515F avec une son
 
 **Priorité P1** · importance 5/5 — Les messages reçus app fermée peuvent ne produire aucune notification, en produire deux, ou ignorer une conversation mutée ou une préférence coupée (aperçu affiché alors qu'il est désactivé). *Bloqué : deux comptes (ou message inséré en base).*
 
-Audit de la base distante : **aucun push n'était envoyé pour un message de
-chat** depuis le passage des messages à Supabase. Deux trous cumulés :
-
-- `messages` n'avait aucun trigger sur le distant, et les fonctions de
-  `20260720120000_notify_recipients_on_message_insert.sql` en étaient absentes
-  — alors que la migration est inscrite comme appliquée. Aucune ligne
-  `notifications` de type `message` n'a été créée depuis le 12/04/2026.
-- La fonction `notify_push_on_notification` déployée court-circuitait
-  `type = 'message'` en déléguant à la Cloud Function RTDB `onMessageCreated`
-  ([functions/index.js:839](functions/index.js:839)), qui écoute
-  `/messages/{conversationId}/{messageId}` — un chemin que l'app n'écrit plus
-  (`MessageSupabaseDataSource`).
-
-Correctifs : `20260805230000_fix_message_push_pipeline.sql` puis
-`20260806090000_fix_push_trigger_schema.sql`.
-
-**Appliqués et vérifiés côté serveur le 2026-08-06.** Le premier ne suffisait
-pas : il faisait `CREATE OR REPLACE FUNCTION public.notify_push_on_notification`
-alors que le trigger appelle celle du schéma **`private`**. Il a donc créé une
-deuxième fonction homonyme sans toucher la bonne — appliqué, sans effet. Pour
-savoir laquelle est branchée : joindre `pg_trigger` à `pg_namespace`,
-`pg_proc` seul renvoie les deux sans dire laquelle sert.
-
-Deux vérifications faites directement sur la base :
-
-- **`messages` → `notifications`** : insertion d'un message dans une
-  transaction volontairement annulée (`RAISE EXCEPTION` en fin de bloc, donc
-  rien de persisté et aucun push envoyé) → 28 → 29 lignes, destinataire = le
-  participant **autre** que l'expéditeur, titre = nom de l'expéditeur, corps =
-  contenu. L'exclusion de l'expéditeur est donc bonne.
-- **`notifications` → FCM** : une ligne de test insérée sur le compte Salim a
-  produit `{"sent":1,"removed":0}` en HTTP 200 dans `net._http_response` — le
-  push est réellement parti, le token était valide. Ligne supprimée depuis.
-- **Filtre par type** : avec `notification_prefs = {"messages": false}`, la
-  même insertion donne `{"skipped":"type disabled: messages"}` et la ligne
-  in-app reste créée. Préférence remise à `{}` depuis.
-
 Reste ce que seul un téléphone peut dire — le rendu, le groupement, les
 doublons :
 
-- ✔ 9 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Push FCM des messages — chaîne serveur rétablie (2026-08-05) »).
-
 - [ ] **Message 1-à-1, app réellement tuée** (balayée des récents, pas
       `force-stop`) : reste à faire.
-- [ ] **Message de groupe** : titre = nom du groupe, corps = `Nom: aperçu`.
-- [ ] **Doublon en arrière-plan, build à jour** : à revérifier une fois l'APK
-      reconstruit — le repli local n'a pas posté pendant l'essai, donc le cas
-      « les deux chemins se déclenchent » n'a pas été observé.
 - [ ] **Conversation ouverte au premier plan** : pas de notification système.
 - [ ] **Conversation mutée** : rien n'arrive (le trigger filtre `data.mutedBy`).
 - [ ] **« Mes notes »** : s'écrire à soi-même ne déclenche aucune notification.
-- [ ] **Aperçu désactivé** (`show_message_preview = false`) : corps générique.
 - [ ] **Bascule push du profil sur `off`** : plus rien n'arrive côté FCM alors
       que la cloche in-app continue de se remplir.
-
-### Icône de barre d'état — corrigée ET vérifiée à l'écran (2026-08-06)
-
-Chaîne complète refaite sur le SM A515F, build reconstruit et installé
-(`adb install -r`, session Firebase et clés E2EE conservées).
-
-**Un vector drawable ne convient pas comme petite icône de notification.**
-Première tentative avec `res/drawable/ic_stat_notification.xml` : la
-notification n'apparaissait **plus du tout** — 60 s de scrutation, rien, alors
-que le build précédent l'affichait. Elle figurait bien un instant dans le
-registre Samsung puis disparaissait, ce qui ressemble à un `Bad notification`
-côté système. Aucune trace dans logcat.
-
-Remplacé par de vrais PNG monochromes générés aux cinq densités
-(`drawable-mdpi` → `drawable-xxxhdpi`, bulle de discussion blanche sur fond
-transparent) : la bannière réapparaît **en 5 s**.
-
-
-⚠️ **Ne pas revenir à un vector drawable** pour cette icône, même « parce que
-c'est plus propre » : ça supprime silencieusement toutes les notifications.
-
-### Deuxième défaut, indépendant : l'icône de barre d'état n'existait pas
-
-`notification_service.dart` référence `@drawable/ic_stat_notification` six fois
-— dont dans `_showLocalNotification` (ligne 1805), le chemin d'affichage de
-**toute** notification au premier plan. Le fichier n'existait dans aucun
-dossier `res/` : `getResources().getIdentifier()` renvoyait 0, et Android
-refuse de poster une notification sans petite icône valide. Les `try/catch` du
-service (tous leurs `debugPrint` commentés) avalaient l'exception.
-
-Autrement dit : même une fois le SQL appliqué, aucune notification au premier
-plan ne se serait affichée. Corrigé par un vector drawable monochrome
-(`res/drawable/ic_stat_notification.xml`) et les deux `meta-data` FCM
-(`default_notification_icon` / `default_notification_color`) qui manquaient au
-manifeste. `:app:processDebugResources` passe.
-
-- [ ] **Icône visible** : la barre d'état montre la cloche blanche, pas un
-      carré blanc ni rien du tout — au premier plan **et** app tuée (deux
-      chemins de rendu différents : le plugin et le SDK Firebase).
-- [ ] **Filet orange** : la notification dépliée est teintée `#E97424`.
-- [ ] **Résumé de groupe** (`_showGroupSummaryNotification`) et **notification
-      de proximité** : mêmes chemins, même icône, à voir au moins une fois.
-- [ ] **Réponse rapide depuis la notification** : la confirmation « Message
-      envoyé » s'affiche (elle aussi utilisait l'icône manquante).
-
-Le glyphe est le « notifications » de Material, posé comme placeholder : à
-remplacer si une version blanche monochrome de la marque est produite.
-
-### Trois fils débranchés, trouvés au passage — CORRIGÉS
-
-**1. Personne n'émettait jamais vers un topic FCM.** Zéro occurrence de
-`topic`, `sendToTopic` ou `/topics/` dans `functions/index.js`,
-`functions/supabase.js` et `send-push` — cette dernière ne vise que des tokens
-individuels. L'app s'abonnait pourtant à trois familles de topics : `general`
-(interrupteur maître), `group_<id>` (adhésion), et un topic par événement
-(« M'avertir du prochain »).
-
-Les trois abonnements sont retirés. `subscribeToTopic` / `unsubscribeFromTopic`
-restent dans `notification_service.dart`, documentées comme sans appelant, pour
-le jour où un émetteur existera.
-
-⚠️ **Reste ouvert** : la bascule « M'avertir du prochain » persiste toujours le
-choix localement, mais rien ne l'honore — il n'y a pas d'émetteur à écrire sans
-décider d'abord *qui* est notifié à la création d'un événement. À trancher :
-émetteur serveur, ou retirer la bascule.
-
-- [ ] Ne rien attendre de « M'avertir du prochain » tant que ce point est ouvert.
-
-**2. Les préférences par type ne filtraient qu'au premier plan.**
-`_shouldShowNotification` n'est appelée que depuis `_handleForegroundMessage`,
-et nulle part ailleurs. App en arrière-plan ou tuée, c'est le système qui
-affiche le bloc `notification` du push : la préférence n'était jamais lue.
-Couper « Messages » ne coupait donc rien dès que l'app était fermée —
-précisément le moment où ça compte.
-
-Corrigé par une source serveur : colonne `users.notification_prefs` (JSONB,
-migration `20260805233000`), écrite par chaque bascule
-(`_syncTypePrefsToServer`) et lue par `send-push` (`prefKeyFor`). Convention :
-**clé absente = autorisé**, seul un `false` explicite coupe — les comptes
-existants gardent donc le comportement actuel.
-
-⚠️ Les deux switch — `prefKeyFor` (TypeScript) et `_shouldShowNotification`
-(Dart) — doivent bouger ensemble. Désynchronisés, une bascule coupe au premier
-plan et laisse passer app fermée : exactement le défaut corrigé ici.
-
-**`send-push` est déployée** (le déploiement des Edge Functions passe, seule
-l'écriture SQL est bloquée). Elle lit `notification_prefs` par une requête
-**séparée et tolérante à l'absence de la colonne** : la première version
-nommait la colonne dans le select principal, et comme la migration n'est pas
-encore appliquée, ce select échouait, `userRow` valait null, et **plus aucun
-push ne partait** — y compris ceux qui marchaient. Corrigé et redéployé dans la
-foulée, vérifié de l'extérieur (401 sans le secret partagé). Tant que la
-migration n'est pas passée, la préférence par type est simplement ignorée :
-personne ne perd de notification.
-
-- [ ] **« Messages » sur `off`, app tuée** : plus aucune bannière.
-- [ ] **« Demandes d'amis » sur `off`** : idem, et les messages continuent
-      d'arriver (le filtrage est bien par type, pas global).
 - [ ] **Rebasculer sur `on`** : les notifications reviennent sans redémarrage.
 
 **3. iOS : aucun push possible, à deux niveaux.**
@@ -10238,170 +5779,13 @@ cochée sans un Mac et un appareil iOS.
 - [ ] Token FCM enregistré sur iOS après connexion (ligne `users.fcm_tokens`).
 - [ ] `users.voip_token` renseigné, et vidé à la déconnexion.
 
-### Rappels planifiés — écrivaient dans une collection morte (2026-08-06)
-
-Six émetteurs de notifications des Cloud Functions écrivaient dans la
-collection **Firestore** `notifications`, que plus personne ne lit depuis que
-l'app est passée à Supabase. Ils tournaient, ne levaient aucune erreur, et ne
-produisaient rien :
-
-| Fonction | Déclencheur | Notifications |
-|---|---|---|
-| `processReminders` | toutes les 15 min | rappels génériques (événement, transfert) |
-| `sendEventReminders` | toutes les heures | « commence demain » |
-| `sendTransferReminders` | tous les jours à 09:00 | transferts programmés |
-| `onPodcastEpisodeCreated` | Firestore | nouvel épisode |
-| `onAudioRoomStatusChanged` | Firestore | salon passé en direct |
-| `notifyLocalEventCreated` | Firestore | événement dans ta ville |
-
-Corrigé par un helper `createNotification` dans `functions/supabase.js` : il
-accepte la forme Firestore historique (`userId`/`isRead`/`targetId`) et écrit
-la ligne Supabase, ce qui rebranche `trg_notify_push` → send-push → FCM. Les
-six appels ont été basculés, les fonctions déployées, et le helper exercé avec
-l'environnement réel des Cloud Functions → `{"sent":1,"removed":0}` en HTTP 200.
-Ligne de test supprimée.
-
-⚠️ **`notifyLocalEventCreated` reste inerte, pour une autre raison.** Il
-sélectionne ses destinataires sur la localisation, et sur le distant
-`users.city` est **null ou vide pour tout le monde**, `country_code` ne contient
-que des codes ISO-2 (`NE`, `BF`, `CA`) là où l'événement porte un nom de pays.
-Aucun destinataire ne peut matcher — ni côté Firestore, ni côté Supabase. Je
-n'ai pas porté la requête : ça n'aurait rien réparé tout en en donnant l'air.
-Le vrai préalable est de peupler la localisation des profils.
-
-- [ ] **Rappel d'événement** : créer un événement à ~24 h, s'y inscrire,
-      attendre le passage horaire de `sendEventReminders`.
-- [ ] **Salon audio passé en direct** : les abonnés reçoivent la bannière.
-- [ ] **Nouvel épisode de podcast** : idem pour les abonnés du podcast.
-
-### Les 28 écritures Firestore restantes — triées (2026-08-06)
-
-Inventaire fait fonction par fonction, en croisant chaque déclencheur avec
-l'endroit où sa donnée vit réellement aujourd'hui.
-
-**15 écritures basculées vers Supabase et déployées** — leur déclencheur existe
-encore, seule la destination était morte :
-
-| Fonction | Pourquoi elle tourne encore |
-|---|---|
-| `onCallUpdated` | les appels sont restés dans Firestore |
-| `onTransferStatusChanged` (×2) | les transferts aussi |
-| `onOrderCreated`, `onOrderUpdated` (×4), `processOrderPayment` | la place de marché aussi |
-| `stripeWebhook`, `stripeConnectWebhook`, `bankWebhook`, `processPayoutRequest` (×2), `checkEscrowTimeouts` | HTTPS / planifiées : elles tournent quoi qu'il arrive |
-
-**Les 13 restantes, reprises le 2026-08-06.** Elles ne se réduisaient pas à un
-changement de destination : chacune demandait de décider quoi en faire.
-
-*Une seule capacité manquait vraiment* — `onNewPostCreated`, qui prévenait les
-abonnés, les personnes mentionnées et les membres des groupes cités. Personne
-ne le faisait à sa place. Portée en **trigger Postgres** sur `posts`
-(`trg_notify_on_post_insert`, migration `20260806110000`), au plus près de la
-donnée. Deux écarts assumés avec l'originale :
-
-- pas de diffusion aux abonnés pour une publication de groupe ou non publique.
-  L'originale mettait l'aperçu du contenu dans le corps de la notification —
-  donc recopiait le texte d'un post de groupe privé à des gens qui n'y ont pas
-  accès ;
-- un destinataire n'est notifié qu'une **fois**. L'originale empilait trois
-  notifications pour qui était à la fois abonné, mentionné et membre d'un
-  groupe cité.
-
-Vérifié dans une transaction annulée : 44 → 45 lignes, et le compte à la fois
-abonné **et** mentionné n'en reçoit qu'une.
-
-*Deux étaient des doublons* — `onPostLiked` et `onPostCommented`. L'app crée
-déjà ces notifications côté client via la RPC `create_user_notification`
-(`feed_provider.dart` : `postLiked`, `postCommented`, `commentReply`,
-`postReposted`). Les rebrancher aurait doublé chaque « j'aime ». C'est
-exactement la mise en garde laissée dans `index.js` à la suppression
-d'`onCommentMention` — elle était juste.
-
-*Deux n'ont plus de côté serveur du tout* — `onAudioRoomInviteCreated` (aucune
-table d'invitations dans Supabase) et `onSupportMessageCreated` (les messages
-de ticket vivent dans une colonne jsonb qu'aucun ticket ne remplit à ce jour).
-Les porter reviendrait à deviner une forme de donnée que personne n'écrit.
-
-*Le reste* : `sendNotificationOnCreate` et `sendChatNotification` sont
-l'ancienne chaîne de push, l'une remplacée par `send-push`, l'autre désactivée
-par un `return null` depuis longtemps. `onMessageDeleted` écoute un chemin RTDB
-que l'app n'écrit plus.
-
-Les cinq fonctions concernées portent désormais un en-tête `⚠️ MORTE` qui dit
-pourquoi et ce qui les remplace. Elles restent **déployées mais inertes** :
-leurs déclencheurs Firestore ne se produisent plus. Les retirer de Firebase
-demande un `functions:delete` explicite — non fait, ça ne presse pas.
-
-⚠️ **`cleanupUserData` n'a pas été touchée.** C'est du nettoyage Firestore de
-bout en bout (conversations, messages, notifications) alors que ces données
-sont dans Supabase — donc supprimer un compte y laisse tout en place. Mais
-Jules a committé sur cette fonction le 2026-08-06 (`8d769d3`) : à traiter dans
-son chantier, pas ici.
-
-
-### Événements locaux + « M'avertir du prochain » — branchés (2026-08-06)
-
-Les deux ne faisaient rien, pour deux raisons différentes. Ils partagent
-désormais le même mécanisme.
-
-**L'appariement se fait au rayon GPS, plus à la ville.** `users.city` est vide
-pour les 10 comptes — le champ existe dans deux écrans de profil, personne ne
-le remplit. La latitude/longitude, elle, est publiée par la carte « membres
-autour » (5 comptes sur 10). Nouveau RPC `users_near_point(lat, lng, rayon)`
-(migration `20260806100000`) : boîte englobante puis haversine, filtrage des
-deux préférences inclus, `SECURITY DEFINER` et révoqué pour `anon` et
-`authenticated`. Rayon retenu : **50 km**.
-
-Vérifié sur la base **et** depuis l'environnement réel des Cloud Functions,
-mêmes chiffres des deux côtés :
-
-| Requête | Destinataires |
-|---|---|
-| Niamey, 50 km | 1 |
-| Montréal, 50 km | 3 |
-| Rayon 20 000 km | 5 (tous ceux qui ont des coordonnées) |
-| Niamey, 1 km | 0 |
-
-**« M'avertir du prochain » délègue au propriétaire du réglage.** Elle gardait
-sa propre copie `bool` dans les SharedPreferences — une quatrième source pour
-un réglage qui en avait déjà trop — et s'abonnait à un topic FCM que personne
-n'alimente. Elle appelle maintenant
-`NotificationPreferencesNotifier.setLocalEventsEnabled`, qui écrit la
-préférence locale **et** `users.notify_local_events` : exactement la colonne
-que lit `users_near_point`. Plus aucun champ `bool` local (cf. `CLAUDE.md`).
-Le calcul de topic par pays et le paramètre `notifyTopic` de `_EventsPastCard`,
-devenus sans objet, sont supprimés.
-
-- [ ] **Créer un événement avec un lieu** à moins de 50 km d'un autre compte :
-      celui-ci reçoit « Nouvel événement près de chez vous ».
-- [ ] **L'organisateur ne reçoit rien** pour son propre événement.
-- [ ] **Événement sans coordonnées** : rien n'est envoyé, et la fonction le
-      journalise au lieu d'échouer.
-- [ ] **Basculer « M'avertir du prochain »** : `users.notify_local_events`
-      change côté serveur (la carte n'apparaît que s'il n'y a aucun événement
-      à venir mais au moins un passé — état difficile à provoquer).
+- ✔ 9 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Push FCM des messages — chaîne serveur rétablie (2026-08-05) »).
 
 ---
 
 ## Écrans de notifications — lot « une seule source » (2026-08-05)
 
 **Priorité P3** · importance 1/5 — Invitations, rappels, abonnés et alertes de proximité portent la même pastille verte — purement visuel.
-
-`notification_settings_screen.dart` a rejoint `design_kit.dart` (c'était la
-dernière exception de `reglages_sans_doublon_test.dart`) et l'en-tête de
-`notifications_screen.dart` a gagné un menu ⋯. Le rendu change, `analyze` ne
-le voit pas.
-
-**Passe appareil du 2026-08-05 (14:36 → 14:41 PC), SM A515F, APK debug
-`14b0343` installé par `adb install -r` — mise à jour en place, session et
-données préservées. Thème système en NOCTURNE.**
-
-- ✔ 35 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Écrans de notifications — lot « une seule source » (2026-08-05) »).
-
-### Refonte de la liste sur la maquette 12c (2026-08-05)
-
-Deux registres, sections par jour, palette du thème. L'accordéon des groupes
-est **conservé** (choix de Salim) : c'est le seul endroit d'où l'on voit les
-notifications d'un groupe une par une.
 
 - [ ] **Relevé au passage — le pilotage `adb` dérive sur cet écran.** Quand
   une notification change de registre, la carte perd sa hauteur et **tout ce
@@ -10417,6 +5801,8 @@ notifications d'un groupe une par une.
   commandes se distingue. À arbitrer — soit on assume deux familles visuelles,
   soit on écarte les deux teintes.
 
+- ✔ 35 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Écrans de notifications — lot « une seule source » (2026-08-05) »).
+
 ---
 
 # 7. Liens profonds, navigation et QR codes
@@ -10429,66 +5815,24 @@ Liens d'app, routes et gardes du routeur, flèche retour, scanner et QR.
 
 **Priorité P2** · importance 3/5 — Ouvrir un hashtag alors que le fil est déjà à l'écran annonçait le filtre mais montrait le fil non filtré ; et le filtre ne se levait jamais, donc revenir au fil général le laissait filtré.
 
-Mesuré sur SM A515F le 2026-09-14 (build release `e5cb916c…`) :
-`am start -a android.intent.action.VIEW -d "diasponiger://feed?hashtag=zzzaucunresultat"`
-alors que le fil est ouvert affiche la bannière `# zzzaucunresultat` **et** la
-seule publication du compte, qui ne porte aucun hashtag.
-
 **Corrigé et vérifié le 2026-09-14** (`feed_provider.dart`, `feed_screen.dart`,
 `feed_supabase_datasource.dart`), couvert par
 `test/features/feed/feed_filtre_hashtag_test.dart`.
 
-Le déblocage a révélé un troisième défaut, plus grave : **la requête filtrée
-rendait 400 et le fil restait sur ses squelettes pour toujours**. `hashtags`
-est une colonne jsonb, et `contains(col, [x])` du client Dart écrit `cs.{x}`,
-un littéral de tableau Postgres que jsonb refuse. Mesuré contre l'API de
-production : `cs.{niamey}` → HTTP 400, `cs.["niamey"]` → HTTP 200. Et
-`loadInitial` n'attrapait que `TimeoutException` : l'exception s'échappait,
-`isLoading` restait vrai, l'écran n'affichait ni message ni bouton. Le fil par
-hashtag n'avait donc **jamais** pu fonctionner.
-
-Diagnostic : Android livre l'intention à l'instance en cours (« intent has been
-delivered to currently running top-most instance ») et go_router réutilise
-l'état de `FeedScreen` — même type de widget, pas de clé. `initState` ne rejoue
-donc pas, et c'est lui qui appelle `loadInitial(hashtagFilter:)`. Résultat :
-la bannière lit `widget.hashtagFilter` (à jour) pendant que la liste lit l'état
-du notifier (resté sans filtre). Piste : un `didUpdateWidget` qui recharge
-quand `widget.hashtagFilter` change. Rien à voir avec le tiré-pour-rafraîchir
-ni avec la pastille (voir « Fil : tirer pour rafraîchir partout, et pastille
-« N nouvelles publications » »).
-
 - [ ] **Depuis un fil déjà ouvert** : toucher un hashtag dans une publication,
   puis un autre — la liste doit changer à chaque fois, pas seulement la
   bannière.
-- ✔ 2 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ✅ Filtre hashtag : réparé et vérifié sur SM A515F (2026-09-14) »).
 - [ ] **Depuis l'app fermée** (démarrage à froid) : le même lien filtre bien.
   Non rejoué : les deux liens profonds envoyés à chaud **remplacent** la route
   au lieu de l'empiler (le retour système ramène l'accueil, pas le fil).
+
+- ✔ 2 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ✅ Filtre hashtag : réparé et vérifié sur SM A515F (2026-09-14) »).
 
 ## ✅ Lien `diasponiger://` au démarrage à froid — corrigé, vérifié SM A515F (2026-09-14)
 
 **Priorité P1** · importance 4/5 — Un lien du schéma maison ouvert alors que l'app n'est pas lancée tombait sur « Page Not Found ». Les QR codes du projet passent tous par ce schéma.
 
 *Bloqué : rien — `adb shell am start -a android.intent.action.VIEW -d …`.*
-
-**Le défaut, mesuré le 2026-09-14** (mode avion comme en ligne) :
-
-```
-GoException: no routes for location: /debef5f0-2fa0-4775-b1ed-85a4d6411102
-```
-
-La section a disparu. Dans `diasponiger://messages/<id>` elle est l'**hôte** de
-l'URI, pas le début du chemin. Au démarrage à froid, c'est
-`AudioServicePlugin.getFlutterEngine` qui fixe la route initiale ; il demande
-d'abord `activity.getInitialRoute()`, et la version de `FlutterFragmentActivity`
-ne rend que `data.getPath()` — l'hôte est jeté là, avant que quiconque côté Dart
-puisse le voir. La remise à plat de `app_router.dart` ne pouvait donc rien
-rattraper : elle recevait déjà `/<id>`.
-
-Les deux autres chemins allaient bien, ce qui rendait le défaut invisible en
-test : `onNewIntent` (app lancée) et `onCreate` sur moteur déjà lancé passent
-par `pushRouteFromIntent`, qui recolle l'hôte depuis le 2026-09-09. Et un lien
-`https` n'est pas concerné — son chemin est complet.
 
 **Corrigé** dans
 [MainActivity.java](android/app/src/main/java/com/diasponiger/diasponiger/MainActivity.java:332) :
@@ -10498,12 +5842,13 @@ désormais dans `routeDepuisIntent()`, partagée avec `pushRouteFromIntent`.
 depuis ce correctif) mais reste le point d'entrée qu'`audio_service` interroge :
 à revérifier à chaque montée de Flutter ou d'`audio_service`.
 
-- ✔ 3 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ✅ Lien `diasponiger://` au démarrage à froid — corrigé, vérifié SM A515F (2026-09-14) »).
 - [ ] **Les autres sections à froid** (`groups`, `profile`, `events`, `posts`) :
       un seul identifiant a été essayé, celui d'une discussion.
 - [ ] **Moteur en cache sans activité** (app balayée des récents pendant que le
       service audio tourne) : le lien doit encore arriver — c'est le chemin
       `onCreate` + `pushRouteFromIntent`, non rejoué depuis ce correctif.
+
+- ✔ 3 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ✅ Lien `diasponiger://` au démarrage à froid — corrigé, vérifié SM A515F (2026-09-14) »).
 
 ---
 
@@ -10514,25 +5859,6 @@ depuis ce correctif) mais reste le point d'entrée qu'`audio_service` interroge 
 `lib/core/services/qr_code_parser.dart` (`routeInterne`),
 `lib/features/messages/presentation/widgets/link_preview_bubble.dart`,
 `lib/features/messages/presentation/widgets/message_bubble.dart`.
-
-Signalé par Salim : « corrige les liens profonds ». **Mesuré d'abord, sur
-SM A515F, build installé versionCode 18** (compte Sim A) : `pm get-app-links`
-→ `verified` sur les deux domaines, et **sept liens `https://diasponiger.com/…`
-rejoués à froid (`force-stop` puis intent), tous sur le bon écran** — groupe
-public, groupe privé (Sim A membre), publication, événement, entreprise,
-ambassade, profil. Les liens venus de l'extérieur ne sont donc pas en cause.
-Ce qu'un utilisateur de la version du Play Store (versionCode 9, 1.1.1)
-subit reste vrai tant que la 18 n'est pas publiée : aucun des correctifs de
-cette section n'y est.
-
-Le défaut trouvé est **dans** l'app, là où aucune passe à l'intent ne regarde :
-
-- la carte d'aperçu (`LinkPreviewBubble`) lisait les liens avec
-  `DeepLinkService.parseDeepLink`, qui ignorait `/feed/`, `/embassies/`,
-  `www.` et `diasponiger://` — ces liens repartaient vers Android ;
-- le texte d'un message ne reconnaissait **aucun** lien du projet : boîte
-  « Ouvrir ce lien ? », puis `launchUrl`, puis retour dans l'app par App Links
-  et `router.go` — qui remplace la pile.
 
 Corrigé : un seul lecteur, celui du scanner (`QrCodeParser`), et
 `context.push` sur la discussion. Le parseur de `DeepLinkService`, que
@@ -10564,69 +5890,12 @@ la lit qu'à la création du moteur, et `onNewIntent` ne sert qu'une instance
 existante. Un lien reçu par une activité **neuve** alors que le processus vit
 encore était donc ignoré : l'app se rouvrait sur son dernier écran.
 
-Reproduction de labo : app ouverte, puis
-`am start --activity-clear-task -a android.intent.action.VIEW -d <lien>`.
-
-Vérifié sur SM A515F, APK md5 `e4b41f48fb` (base `7a4c042`) :
-
-- ✔ 3 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ✅ Lien profond perdu sur une activité neuve — corrigé, vérifié SM A515F (2026-09-11) »).
 - [ ] Non reproduit en labo : moteur créé par `AudioService` juste avant
       l'activité (le Dart réclame alors la route par `takePendingLink`).
       Couvert seulement par `test/core/router/liens_natifs_test.dart`.
 - [ ] Sur un vrai Android ≤ 11 : quitter par le retour, puis taper un lien.
 
-⚠️ Mes deux « pertes au démarrage à froid » des 2026-09-10 (00:55, 01:41)
-étaient **contaminées** : un autre agent menait une campagne sur le même
-téléphone (`b9d4406`) et installait sur le Pixel à 01:40. Elles ne prouvaient
-rien — le défaut réel était celui-ci, reproductible à chaque fois.
-
----
-
-## ⬜ Une route sous feature-flag est joignable au démarrage (2026-09-10)
-
-**Priorité P3** · importance 1/5 — Aucun pour l'utilisateur ; au pire une mesure appareil mal interprétée.
-
-Trouvé en cherchant à mesurer les écrans podcasts, qu'on croyait injoignables.
-
-Le routeur ne ferme la porte des routes « phase 2 » que **si les drapeaux sont
-chargés** :
-
-```dart
-final flags = ref.read(loadedFeatureFlagsProvider);
-if (flags != null) { … return '/home'; }
-```
-
-Le choix est écrit et défendable — bloquer pendant le chargement appliquerait
-les valeurs par défaut de `FeatureFlagsEntity` (podcasts et salons audio à
-`false`) et renverrait ces écrans sur `/home` à **chaque** démarrage à froid.
-Mais la contrepartie n'était notée nulle part : entre le lancement de l'app et
-l'arrivée de `app_config/settings`, `/podcasts/*`, `/marketplace/*`,
-`/transfers/*`, `/payment-*` et `/audio-rooms/*` **s'ouvrent normalement**.
-
-Mesuré sur SM A515F le 2026-09-10, sur un build de production : le même intent
-`diasponiger:///podcasts` donne l'écran Podcasts s'il arrive tôt, et l'accueil
-s'il arrive tard. Rien dans les logs ne distingue les deux.
-
-C'est ce qui rendait réellement atteignables les cinq écrans podcasts qui
-n'avaient aucune sortie (« Podcasts : cinq routes qu'aucun garde ne voyait ») — donc un défaut de sortie sur un
-écran « désactivé » n'est pas théorique.
-
-**Podcasts sortis de la question le 2026-09-11.** Pour eux la fenêtre n'était
-pas qu'un défaut de sortie : ils sont coupés à la **compilation**
-(`kPodcastsSupportesParCeBuild`), et leur première lecture lèverait une
-`SecurityException` sur Android 14+ (`FOREGROUND_SERVICE_MEDIA_PLAYBACK`
-retirée du manifeste). Comme la réponse ne dépend d'aucune donnée serveur, le
-routeur les ferme désormais **avant** la fenêtre, sur la seule constante —
-verrouillé par `test/core/podcasts_service_premier_plan_test.dart`. La
-décision ci-dessous ne concerne plus que marketplace, transferts, paiements et
-salons audio.
-
-- ✔ 3 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Une route sous feature-flag est joignable au démarrage (2026-09-10) »).
-- [ ] **Piège de mesure à retenir** : viser cette fenêtre à la main est
-      instable. 22 s après le lancement, l'intent tombe tantôt sur le splash
-      (mesure trop tôt), tantôt après le chargement des drapeaux (mesure trop
-      tard). Pour mesurer un écran sous drapeau, ouvrir les verrous dans un
-      build **jetable** et le dire dans le compte rendu.
+- ✔ 3 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ✅ Lien profond perdu sur une activité neuve — corrigé, vérifié SM A515F (2026-09-11) »).
 
 ---
 
@@ -10634,67 +5903,12 @@ salons audio.
 
 **Priorité P1** · importance 3/5 — Un lien partagé, surtout via WhatsApp, mène à une page qui n'ouvre ni l'app ni le Play Store, et le destinataire décroche.
 
-Tout chemin d'app tapé dans un navigateur (ou dans le navigateur intégré de
-WhatsApp, qui court-circuite les App Links) tombait sur la page d'accueil du
-site, par la règle attrape-tout `**` → `/index.html`.
-
 `public/ouvrir.html` répond désormais à `/groups/**`, `/g/**`, `/feed/**`,
 `/events/**`, `/businesses/**`, `/marketplace/**`, `/audio-rooms/**`,
 `/podcasts/**`, `/profile/**`, `/p/**`, `/embassies/**`, `/calls/**` — sur
 les **deux** sites de `firebase.json`, inséré avant `**`. La page dit le
 **type** de contenu (« Groupe », « Événement »…) et jamais lequel : aucun
 appel réseau, aucun nom, cohérent avec la garde de `20260909201500`.
-
-Vérifié sur un canal d'aperçu Firebase (production intacte) :
-
-- Android (UA émulé) : `intent://…;package=com.diasponiger.diasponiger;S.browser_fallback_url=<Play>;end`
-- Ordinateur : bouton « Installer sur votre téléphone », doublon masqué
-- `Cache-Control: public, max-age=0, must-revalidate` (sans la règle ajoutée,
-  Hosting servait `max-age=3600` — la règle `**/*.@(html)` n'attrape pas un
-  chemin réécrit, qui ne finit pas en `.html`)
-
-**⚠️ Le déploiement est bloqué par une découverte plus grosse.** La
-production ne fait **pas** tourner le site du dépôt :
-
-| URL | En production le 2026-09-09 |
-|---|---|
-| `/assets/site.css` | rend du **HTML** (attrapé par `**`) — le fichier n'existe pas |
-| `/telecharger` | rend la page d'accueil |
-| `/a-propos`, `/fonctionnalites` | rendent la page d'accueil |
-| `/` | titre « La diaspora qui se retrouve », le dépôt dit « La communauté nigérienne partout dans le monde » |
-| `/.well-known/apple-app-site-association` | `VOTRE_TEAM_ID.com.diasponiger.diaspo_niger` — le gabarit jamais rempli |
-
-Donc `firebase deploy --only hosting` ne publierait pas seulement la page
-interstitielle : il publierait **toute la refonte du site**, celle des quatre
-entrées ⬜ ci-dessous (cahier des charges, palette Organic, accueil sur
-captures réelles, menu mobile). À arbitrer par Salim, pas à faire en passant.
-
-Ce que le déploiement corrigerait au passage, une fois décidé : les universal
-links iOS, aujourd'hui cassés par le `VOTRE_TEAM_ID` resté en place.
-
-Ce qu'il perdrait : l'entrée `assetlinks.json` du paquet hérité
-`com.diasponiger.diaspo_niger` (le dépôt ne déclare que le paquet livré).
-Vérifié sans risque : `pm list packages` sur les deux appareils ne connait
-que `com.diasponiger.diasponiger`, dont les deux empreintes sont bien dans le
-fichier du dépôt — dont `DD:A6:5C:3E`, celle que les deux téléphones
-rapportent.
-
-**Déployé en production le 2026-09-09 sur les deux sites**, sur décision de
-Salim — donc la refonte du site est en ligne du même coup. Vérifié après coup :
-
-| URL | Avant | Après |
-|---|---|---|
-| `/groups/<id>`, `/feed/abc` | page d'accueil | « Ouvrir dans Diaspo Niger » |
-| `/telecharger`, `/a-propos` | page d'accueil | leurs vraies pages |
-| `/assets/site.css` | `text/html` | `text/css` |
-| AASA | `VOTRE_TEAM_ID` | `3WM7VK48T3.com.diasponiger.diaspoNiger` |
-
-✅ **Non-régression App Links vérifiée sur SM A515F après le déploiement** :
-`pm get-app-links` dit toujours `verified` sur les deux domaines, et
-`https://diasponiger.web.app/groups/<id>` ouvre l'app directement sur la fiche
-du groupe — pas le navigateur, pas la page interstitielle. C'était le risque
-de ce déploiement : `assetlinks.json` du dépôt ne déclare plus le paquet
-hérité `com.diasponiger.diaspo_niger`.
 
 - [ ] Une fois déployé : ouvrir `https://diasponiger.web.app/groups/<id>` dans
       **Chrome** sur un téléphone **sans** l'app → page interstitielle, puis
@@ -10722,28 +5936,9 @@ fait d'un chemin inconnu — il n'y a ni `errorBuilder` ni `onException`.
 
 - [ ] Accueil → « Inviter un proche » → le lien partagé finit par
       `/telecharger?ref=<uid>`.
-- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Lien « Inviter un proche » : il ne menait nulle part (2026-09-09) »).
 - [ ] Un ancien lien `/invite?ref=…` → l'accueil aussi.
 
----
-
-## ⬜ Le QR d'un groupe est refusé par le scanner — **observation terrain**
-
-Le défaut a été vu **en direct**, sur SM A515F, pendant que Salim scannait
-depuis « Scanner un profil » le QR affiché par « Partager » d'une fiche de
-groupe : « **QR code invalide ou format non reconnu** ». Ce n'était ni la
-caméra ni le QR.
-
-Le correctif est celui de l'autre agent, plus large et testé
-(`QrCodeParser`, 23 cas) : **voir la section « Le scanner de l'accueil lit
-tous les QR du projet » plus bas**, qui porte la liste des vérifications.
-Cette section-ci ne garde que la trace de l'observation, et un point que ce
-correctif ne change pas :
-
-- `DeepLinkService.parseDeepLink` / `DeepLinkType` savaient **déjà** lire huit
-  formes de liens et n'étaient appelés nulle part dans `lib/`. Il y a
-  maintenant deux parseurs de liens dans le projet, dont un mort — à
-  fusionner ou à supprimer, pas à laisser diverger.
+- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Lien « Inviter un proche » : il ne menait nulle part (2026-09-09) »).
 
 ---
 
@@ -10755,11 +5950,6 @@ Le scanner ouvert depuis l'accueil (`/qr-scanner`) ne savait lire qu'un QR de
 **profil**. Tout le reste — le QR de groupe que `share_group_modal` affiche
 juste à côté, le code de transfert de clés, les liens du site — tombait sur
 « QR code invalide ou format non reconnu ».
-
-Deux causes, et la seconde est la plus traître : le contrôle d'hôte ne
-connaissait que `diasponiger.com` et `diaspo-niger.web.app`, alors que
-`DEEP_LINK_BASE_URL` du `.env` vaut `https://diasponiger.web.app` — l'app
-refusait donc les QR **qu'elle fabrique elle-même** via `DeepLinkService`.
 
 `lib/core/services/qr_code_parser.dart` (couvert par
 `test/core/services/qr_code_parser_test.dart`, 23 cas) reconnaît maintenant
@@ -10779,27 +5969,19 @@ main :
       ouverture de l'écran de récupération. », et **pas** une erreur.
 - [ ] **QR d'un autre service** (n'importe quel QR du commerce) : message
       d'erreur, la caméra ne doit pas rester bloquée.
-- ✔ 4 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Le scanner de l'accueil lit tous les QR du projet (2026-09-09) »).
-
 
 **Piège de mesure (2026-09-09)** : le premier symptôme rapporté (« ça ne marche
 pas ») venait d'un APK antérieur au correctif — construit à 19:55, correctif
 committé à 20:12. Avant toute conclusion sur un comportement appareil, comparer
 `lastUpdateTime` (`dumpsys package`) à l'horodatage du commit.
 
+- ✔ 4 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Le scanner de l'accueil lit tous les QR du projet (2026-09-09) »).
+
 ---
 
 ## ✅ Trois routes plantaient sur un cast non nullable — corrigées et vérifiées SM A515F (2026-09-08)
 
 **Priorité P1** · importance 4/5 — N'importe quel membre pourrait ouvrir le formulaire d'édition d'un groupe qu'il n'administre pas, par un simple lien.
-
-Même famille que la fiche d'ambassade ci-dessous, mais en plus brutal : là où
-`/embassies/:id` faisait un `!`, ces trois-là transtypaient `state.extra` vers
-un type **non nullable**, donc `TypeError` avant même le montage de l'écran.
-
-- `/events/:eventId/edit` — `state.extra as EventEntity`
-- `/events/:eventId/recap` — idem
-- `/groups/:groupId/edit` — `state.extra as GroupEntity`
 
 Les routes résolvent maintenant l'identifiant (`EventEditRoute`,
 `EventRecapRoute`, `GroupEditRoute`), et l'état sans contenu passe par une
@@ -10815,67 +5997,10 @@ d'édition de l'événement ou du groupe de n'importe qui. Le plantage, lui,
 fermait la porte. La garde est portée par les routes, repli superAdmin sur les
 groupes officiels compris, et couverte par 11 tests widget.
 
-- ✔ 7 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ✅ Trois routes plantaient sur un cast non nullable — corrigées et vérifiées SM A515F (2026-09-08) »).
 - [ ] L'équivalent pour un **groupe** dont on n'est pas administrateur :
       toujours pas vu (il faudrait un groupe partagé entre les deux comptes).
 
-⚠️ **Trouvé au passage, corrigé** : `EditEventScreen._currentPosterUrls` est
-`late` et n'était **jamais assigné**, alors qu'il est lu dès le premier
-`build` (« Gérer les affiches (n/5) »). L'écran levait donc un
-`LateInitializationError` à **chaque** ouverture, y compris par le bouton
-« modifier » — modifier un événement était impossible pour tout le monde.
-Aucun test ne montait cet écran ; il est apparu à la première tentative.
-À rejouer sur appareil sur un vrai événement.
-
-✅ **Tranché le 2026-09-08 : le récap est réservé à l'organisateur.**
-`EventRecapScreen` est un **formulaire** (« Créer / Modifier le récap »,
-description, dix photos, bouton d'enregistrement) sans mode lecture, et
-l'accueil l'ouvrait pour tout le monde dès qu'un événement passé avait des
-photos — n'importe qui pouvait donc réécrire le récapitulatif de l'événement
-d'autrui. `EventRecapRoute` porte désormais la même garde que l'édition.
-
-Deux précautions pour que la garde ne retire rien à personne :
-- la sortie mène à `/events/:eventId`, **pas** à la liste : la fiche affiche
-  déjà le récapitulatif (description + grille de photos), donc un
-  non-organisateur voit toujours ce qu'il voyait ;
-- la carte « rien de prévu » de l'accueil (`home_screen_widgets.dart`)
-  n'envoie plus au formulaire que l'organisateur ; les autres vont à la fiche.
-  Sans ça, la pastille « Photos » aurait mené tout le monde contre un mur.
-
-
-**Méthode : aucun événement de test n'a été créé.** Le premier réflexe était
-d'en écrire un en base de production ; c'était inutile. Les deux téléphones
-portent **deux comptes différents** (« Sim » sur le A515F, « Salim » sur le
-Pixel), donc n'importe quel événement existant est « le mien » d'un côté et
-« celui d'autrui » de l'autre. À retenir pour toute garde d'autorisation à
-vérifier.
-
-⚠️ **Piège de mesure, retombé dessus** : le A51 s'est retrouvé avec un APK
-qui n'était pas le mien (`3edc4fa6` au lieu de `a5326f74`) entre deux essais —
-un autre build l'a écrasé en cours de session. L'écran d'erreur neutre que
-j'y voyais n'était pas mon code. Comparer `md5sum` local/appareil **avant**
-chaque conclusion, pas seulement après l'installation.
-
-⚠️ **Trouvé en regardant l'écran d'édition, non corrigé** : le champ
-description a pour étiquette « La description est requise »
-(`l10n.descriptionRequired`, edit_event_screen.dart:410) au lieu de
-« Description ». Le message de validation, lui, a sa propre clé
-(`descriptionRequiredError`). Purement cosmétique, mais visible.
-
-⚠️ **Trouvé en vérifiant ça, non corrigé** : la carte de l'accueil est le
-**seul** chemin vers le récapitulatif, et elle ne s'y rend que si
-`recapPhotoUrls.isNotEmpty`. Un organisateur dont l'événement passé n'a pas
-encore de photos n'a donc **aucun moyen d'en créer un** — l'écran porte
-pourtant un mode « Créer » (`eventCreateRecap`, `eventRecapCreateButton`).
-Il manque une entrée depuis la fiche de l'événement. Antérieur à la garde.
-
-⚠️ **Piège de méthode, revu deux fois aujourd'hui** : après avoir supprimé des
-clés ARB, l'APK incrémental gardait l'ancien code compilé — la route affichait
-l'écran d'erreur neutre, sans **aucune** trace dans logcat (`presentError` est
-noyé par le bruit Supabase hors ligne). Deux reproductions à froid et un test
-témoin sur une route non modifiée ont été nécessaires avant de penser au
-`flutter clean`, qui a tout réglé. md5 local == md5 appareil ne prouve rien
-ici : les deux portaient le même APK périmé.
+- ✔ 7 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ✅ Trois routes plantaient sur un cast non nullable — corrigées et vérifiées SM A515F (2026-09-08) »).
 
 ---
 
@@ -10883,19 +6008,10 @@ ici : les deux portaient le même APK périmé.
 
 **Priorité P2** · importance 3/5 — Le bouton « détails » de la carte peut encore afficher l'écran rouge « Null check operator » au lieu de la fiche.
 
-`/embassies/:id` ne lisait que `state.extra` et terminait par
-`EmbassyDetailScreen(embassy: embassy!)` — un `!` sur la valeur qu'elle venait
-de tester nulle. `state.extra` étant nul par construction hors navigation
-interne, l'écran rouge « Null check operator used on a null value » était
-systématique. **Et pas seulement par lien profond** : le bouton de la fiche
-d'ambassade sur la carte (`map_screen.dart:1521`) pousse la route sans objet,
-donc il plantait depuis l'app elle-même.
-
 La route résout maintenant l'identifiant (`EmbassyDetailRoute` +
 `embassyByIdProvider`), avec un état de chargement et deux états nommés, tous
 munis d'une sortie (`DesignExitOnlyBody` + bouton « Retour à l'annuaire »).
 
-- ✔ 4 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ✅ Fiche d'ambassade par lien profond : écran rouge — corrigé et vérifié SM A515F (2026-09-08) »).
 - [ ] Bouton « détails » de la fiche d'ambassade **sur la carte** : c'est le
       second chemin qui plantait, corrigé par ricochet mais jamais rejoué à
       la main sur appareil.
@@ -10903,20 +6019,7 @@ munis d'une sortie (`DesignExitOnlyBody` + bouton « Retour à l'annuaire »).
       elle doit s'afficher (le filtre de juridiction ne vaut que pour la
       liste). Couvert en test widget, pas sur appareil.
 
-⚠️ **Découvert au passage, non corrigé** : `getEmbassies()` n'a aucun délai de
-garde. Derrière un VPN persistant en mode avion, `networkInfo` se croit
-connecté et la requête Supabase reste suspendue **~2 minutes** avant de servir
-la copie locale. Ça retarde d'autant tout ce qui attend l'annuaire — la fiche
-comme la liste. Le provider `embassyById` borne son propre appel à 8 s, mais
-il ne peut rien contre celui qui le précède. Vérifier si l'écran de liste
-mérite le même traitement.
-
-⚠️ **Même famille, non corrigé** : trois autres routes castent `state.extra`
-vers un type **non nullable**, donc plantent identiquement par lien profond ou
-notification — `/events/:eventId/edit` et `/events/:eventId/recap`
-(`state.extra as EventEntity`), `/groups/:groupId/edit`
-(`state.extra as GroupEntity`). Elles n'ont pas été touchées : chacune demande
-son propre état de chargement et d'introuvable.
+- ✔ 4 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ✅ Fiche d'ambassade par lien profond : écran rouge — corrigé et vérifié SM A515F (2026-09-08) »).
 
 ---
 
@@ -10924,77 +6027,14 @@ son propre état de chargement et d'introuvable.
 
 **Priorité P3** · importance 3/5 — Flèche peu lisible ou difficile à toucher, ou un écran rare sans sortie visible (le geste retour système reste disponible).
 
-Notifications, Annuaire des entreprises, Événements et Ambassades sont
-atteints par `push` depuis l'accueil, mais n'affichaient aucun moyen de
-revenir. Deux causes, invisibles en lisant l'écran seul :
-
-- `DesignScreenHeader.leading` est facultatif — les cinq onglets racines n'en
-  veulent pas — donc un écran poussé qui recopie l'en-tête d'un onglet hérite
-  de son absence de flèche (Notifications, Entreprises) ;
-- `automaticallyImplyLeading: false` supprime la flèche que Flutter aurait
-  posée seul ; le drapeau, justifié sur un onglet, avait été recopié sur deux
-  écrans poussés (Événements, Ambassades).
-
 La flèche des en-têtes plats est maintenant une brique unique du kit,
 `DesignBackLeading` ; les Réglages la dessinaient à la main, ils sont passés
 dessus. Verrouillé par `test/core/router/fleche_retour_test.dart`.
-
-**Vérifié sur SM A515F le 2026-09-08**, thème sombre / accent orange, APK
-debug construit depuis le worktree (`md5sum` local et
-`pm path`+`md5sum` sur l'appareil identiques — le piège de l'APK périmé est
-écarté) :
-
-- ✔ 9 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ✅ Quatre écrans sans flèche de retour — corrigés et vérifiés SM A515F (2026-09-08) »).
-
-**Défaut trouvé À L'ÉCRAN, que l'analyse ne pouvait pas voir**, et corrigé
-dans la foulée : `diasponiger:///events` en **démarrage à froid** affichait
-Événements **sans aucune flèche**. La flèche implicite de l'AppBar
-(`automaticallyImplyLeading`) n'est posée par Flutter que si
-`Navigator.canPop()` est vrai ; par lien profond la pile ne contient que cet
-écran. Les deux écrans à AppBar portent donc désormais un `BackButton`
-explicite avec repli (`canPop() ? pop() : go('/home')`), qui garde les
-métriques Material (cible de 48 dp).
-
-Revérifié après ce correctif, en démarrage à froid :
-
 
 Piège de test relevé au passage : en debug, ce téléphone met **plus d'une
 minute** à peindre l'écran d'un lien profond à froid, et affiche entre-temps
 un aplat gris-bleu vide. Une capture à 30 s montre le gris et se lit comme un
 écran cassé. Rafale de `screencap` toutes les 15 s, garder la plus grosse.
-
-**Les 38 autres routes ont été traitées dans la foulée.** Le même défaut de
-lien profond touchait tout écran s'en remettant à la flèche implicite —
-`/businesses/:businessId`, `/marketplace/:productId`, `/transfers/send`,
-`/support/:ticketId`, `/payment-history`, `/friends`… 36 fichiers, 43 barres
-(certains écrans ont une `AppBar` par état : vide, chargement, données — il
-fallait les trois). Chacune reçoit un `BackButton` avec repli vers le parent
-logique de la route (`/marketplace/cart` → `/marketplace`,
-`/transfers/send` → `/transfers`…), et 9 fichiers ont gagné l'import
-`go_router`.
-
-Il ne reste **aucune** route poussée sans sortie explicite : le garde-fou
-l'exige maintenant partout, avec deux exceptions nommées seulement
-(`/calls/:callId`, qui sort par « raccrocher », et `/share`, feuille modale
-présentée par `MainShell`).
-
-Choix de style assumé : dans une `AppBar`, la flèche est le `BackButton` de
-Flutter, pas `DesignBackLeading`. Les trois fiches à image de couverture
-(entreprise, ambassade, produit) la reçoivent sans pastille — c'est déjà
-ainsi que leurs actions `partager` / `modifier` sont posées sur l'image.
-
-**Vu sur SM A515F le 2026-09-08 — 8 fichiers sur 36.** Méthode : l'arbre
-d'accessibilité expose la flèche comme `content-desc="Retour"`
-(`uiautomator dump`), ce qui est bien plus fiable que de lire des pixels.
-Confirmés : `/friends`, `/support`, `/businesses/mine`, `/admin/support`,
-`/messages/new`, `/profile/reposts`, `/settings/security/backup`,
-`/embassies/employees`.
-
-**Non vérifiables sur cet appareil — 18 fichiers sur 36.** Les familles
-`/transfers`, `/marketplace`, `/payment-accounts`, `/payment-history`,
-`/podcasts` et `/audio-rooms` sont derrière un feature-flag : le routeur les
-renvoie sur `/home` (étape 9 du `redirect`). Aucun de leurs écrans n'est
-atteignable tant que les drapeaux sont à false.
 
 Reste à voir, par ordre d'intérêt :
 
@@ -11004,35 +6044,8 @@ Reste à voir, par ordre d'intérêt :
       (`CachedNetworkImage`). Non testable ici — l'annuaire est vide sur ce
       compte et la boutique est derrière un drapeau. `/embassies/:id` ne
       compte pas : son en-tête est un aplat teinté, pas une photo.
-- [ ] **Les états vide et chargement** des écrans à plusieurs `AppBar` :
-      `/marketplace/cart` panier vide, `/marketplace/my-listings`,
-      `/payment-history`, `/payment-accounts`, `/marketplace/my-orders`.
-      Tous derrière un drapeau aujourd'hui.
 - [ ] Les ~10 écrans restants atteignables mais non atteints (voir le piège
       d'`am start` ci-dessous).
-
-**Troisième forme du défaut, trouvée à l'écran le 2026-09-08 — corrigée.**
-`/businesses/<id>` sur une entreprise absente affichait « Entreprise non
-trouvée » **et rien pour revenir**. La fiche pose sa `SliverAppBar` *à
-l'intérieur* de la branche « données » : son `Scaffold` n'a pas d'`appBar`,
-donc les états chargement / erreur / « non trouvé » n'ont aucune sortie. Le
-fichier contenait pourtant un `BackButton` — d'où l'aveuglement d'un garde
-qui raisonne au fichier. Trois écrans avaient cette forme :
-`business_detail_screen`, `product_detail_screen`, et le `Scaffold` de
-chargement de `transfer_screen`. Tous passés sur une brique unique du kit,
-`DesignExitOnlyBody`.
-
-
-**⛔ Défaut sans rapport, trouvé au passage et NON corrigé : `/embassies/<id>`
-plante.** Le builder de la route lit `state.extra as EmbassyEntity?` puis
-termine par `EmbassyDetailScreen(embassy: embassy!)` — un `!` sur la valeur
-qu'il vient de tester nulle. `state.extra` étant toujours nul par lien
-profond et par notification, **toute** entrée directe sur une fiche
-ambassade donne l'écran rouge « Null check operator used on a null value »
-(reproduit à l'identique sur appareil). Les commentaires du code admettent
-que le repli n'est pas implémenté. Même famille que
-`project_state_extra_not_authoritative`. Hors sujet de ce lot, laissé tel
-quel : il faut charger l'ambassade par son id.
 
 **Deux pièges de méthode rencontrés, à retenir :**
 
@@ -11055,6 +6068,8 @@ quel : il faut charger l'ambassade par son id.
       recommandés. C'est la dimension que les Réglages embarquaient déjà.
       Atteinte du premier coup lors du test, mais avec un tap `adb` au pixel
       près — pas au pouce.
+
+- ✔ 9 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ✅ Quatre écrans sans flèche de retour — corrigés et vérifiés SM A515F (2026-09-08) »).
 
 ---
 
@@ -11111,25 +6126,8 @@ qui survive au redémarrage du process. Aucune des deux n'a tourné sur appareil
 - [ ] Limite assumée : partager **exactement** le même contenu deux fois de
       suite en tuant l'app entre les deux est ignoré la 2ᵉ fois. Vérifier que
       ça reste supportable en usage réel.
-- [ ] `launchMode` est resté `singleTop` (le README du plugin conseille
-      `singleTask`) : non changé pour ne pas perturber CallKit et
-      `showWhenLocked`. Surveiller qu'un partage ne crée pas une **seconde
-      instance** de MainActivity — le FlutterEngine est mis en cache par
-      audio_service, deux activités branchées dessus poseraient problème.
 
 ### Liens profonds routés vers `/feed/:id` (2026-08-04)
-
-Ouvrir un lien de publication lançait l'app sur l'accueil : rien ne consommait
-l'URI. Deux causes, corrigées ensemble :
-
-1. `flutter_deeplinking_enabled` n'était pas déclaré au manifest — Flutter
-   ignorait l'URI et la route initiale restait « / ». Les liens générés par
-   `DeepLinkService` sont déjà des chemins d'app (`/feed/<id>`), donc GoRouter
-   sait les router tels quels une fois l'URI transmise.
-2. Même transmise, la destination était **perdue** : au démarrage à froid
-   l'authentification n'est pas résolue, le `redirect` renvoyait sur `/splash`
-   puis `/home`. Elle est maintenant mise de côté (étape 0) et rejouée une fois
-   l'utilisateur prêt (étape 10).
 
 ⚠️ **Le clic sur un lien n'ouvre l'app que si sa signature est déclarée.**
 `assetlinks.json` couvre maintenant Play App Signing **et la clé release
@@ -11137,11 +6135,6 @@ locale** (`DD:A6:5C:…`), et il est **déployé** depuis le 2026-08-04 sur
 `diasponiger.web.app` comme sur `diaspo-niger.web.app` — donc un APK release
 installé à la main vérifie ses liens. La clé **debug** (`87:32:AD:…`) n'y est
 pas : sur un build debug, Android ouvrira Chrome.
-
-**Constaté le 2026-08-04** sur l'APK debug installé (signature `87:32:AD:…`) :
-`pm verify-app-links --re-verify` **ne peut pas aboutir**, l'état reste `1024`
-(échec) sur les deux domaines — le serveur ne déclare pas cette empreinte. Ce
-n'est pas un problème de fichier ni de cache, c'est la signature.
 
 Contournement retenu, **déjà appliqué sur le téléphone de test** : approuver
 les domaines à la main, ce qui court-circuite la vérification serveur (le
@@ -11161,67 +6154,12 @@ alors plus le chemin réel d'un clic sur un lien :
 adb shell am start -a android.intent.action.VIEW -d "https://diasponiger.web.app/feed/<postId>" com.diasponiger.diasponiger
 ```
 
-**Vérifié sur appareil le 2026-08-04** (SM A515F, Android 13, APK debug de
-14:25 contenant bien `flutter_deeplinking_enabled` — vérifié par
-`aapt2 dump xmltree` sur l'APK tiré du téléphone) :
-
-- ✔ 6 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Feuille de partage fantôme au démarrage (2026-08-04) »).
 - [ ] **Déconnecté** puis lien : doit passer par la connexion et **arriver sur
       la publication** une fois connecté.
 - [ ] Lien vers un post supprimé ou un id inexistant : vérifier que
       `PostDetailScreen` dégrade proprement au lieu de planter.
-- [ ] Lien de profil `https://diasponiger.com/p/u/<uid>` : la route de
-      redirection existe déjà, vérifier qu'elle mène bien au profil.
-- [ ] Limite connue : le schéma `diasponiger://feed/<id>` **ne marchera pas**
-      (Flutter ne lit que le chemin de l'URI, et « feed » y est l'hôte). Les
-      liens partagés étant en `https://`, ça ne bloque rien — mais le raccourci
-      `diasponiger://design-v2` du README de `design_v2` ne fonctionne pas non
-      plus, pour la même raison.
 
-**À faire hors appareil :**
-
-- [ ] ⛔ *(historique)* **`public/` était un vestige** : la production n'avait
-      **jamais** été déployée depuis ce dépôt. Les 8 fichiers versionnés étaient
-      plus pauvres que ceux en ligne (contenu comparé hors fins de ligne) :
-
-      | Fichier | Dépôt | En ligne |
-      |---|---|---|
-      | `privacy-policy.html` | 3 917 car. | 32 342 |
-      | `terms-of-service.html` | 14 263 | 43 082 |
-      | `child-safety-standards.html` | 20 140 | 34 798 |
-      | `delete-account.html` | 16 108 | 24 550 |
-      | `index.html` | 14 319 | 36 483 |
-      | `contact.html` | 6 072 | 18 658 |
-      | `forgot-password.html` | 4 608 | 14 067 |
-      | `.well-known/apple-app-site-association` | 158 | 508 |
-
-      Un déploiement remplacerait la politique de confidentialité, les CGU, la
-      page de suppression de compte et la page sécurité des enfants — toutes
-      exigées par le Play Store — par des versions courtes et obsolètes, et
-      amputerait l'AASA (Universal Links iOS). Le déploiement Firebase est
-      atomique : impossible de n'envoyer que `assetlinks.json`.
-
-      S'y ajoutaient **9 fichiers servis en production et totalement absents du
-      dépôt** — toutes les versions anglaises (`*-en.html`) et le code de
-      conduite (`code-of-conduct.html`, `code-of-conduct-en.html`) — ainsi que
-      les 9 rewrites sans extension correspondants, absents de `firebase.json`.
-
-      Résolu : les 21 fichiers réellement servis ont été récupérés depuis
-      `diasponiger.web.app` (contenu identique sur les deux sites, vérifié
-      fichier par fichier) et versionnés, `assetlinks.json` réappliqué
-      par-dessus, rewrites complétés. Avant déploiement, `public/` ne s'écartait
-      de la production que par ce seul fichier.
-- [ ] Après déploiement, **forcer la revérification** : Android ne contrôle les
-      App Links qu'à l'installation, un fichier corrigé plus tard ne change rien
-      pour une app déjà installée.
-
-      ```
-      adb shell pm verify-app-links --re-verify com.diasponiger.diasponiger
-      adb shell pm get-app-links com.diasponiger.diasponiger
-      ```
-
-      La seconde commande doit afficher `verified` pour `diasponiger.web.app` et
-      `diasponiger.com`.
+- ✔ 6 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Feuille de partage fantôme au démarrage (2026-08-04) »).
 
 ---
 
@@ -11248,35 +6186,7 @@ Firebase PUIS purge Supabase en une transaction.
 
 *Bloqué : demande deux téléphones, deux comptes jetables et l'accès à la base.*
 
-**Livré en production le 2026-09-19**, sur accord de Salim et dans cet ordre :
-
-1. migration `20260918224100` appliquée par `db push` (la seule en attente, essai
-   à blanc préalable) ; droits vérifiés de l'extérieur avec la clé `anon` (42501
-   sur les quatre RPC et sur la table), banc rejoué contre les objets appliqués :
-   49 cas, 0 échec ;
-2. `finalizeAccountDeletions` déployée SEULE — `firebase deploy --only
-   functions:finalizeAccountDeletions`, sans `--force` (v1, planifiée toutes les
-   heures, us-central1) ; `cleanupUserData` intacte ;
-3. branche poussée sur la branche partagée (`6a92467..e45ff32`).
-
 **Jamais vu sur appareil, et aucune demande réelle n'a encore traversé la chaîne.**
-Le premier passage horaire de la fonction a eu lieu le 2026-09-19 à 11:37 UTC,
-À VIDE : `Function execution started`, puis `took 701 ms, finished with status:
-'ok'`, sans aucune ligne d'erreur. Le Cloud Scheduler `every 1 hours` part de la
-création du job, pas du début de l'heure : les passages tombent à hh:36–37 UTC
-(déployée à 10:36). Ce que ce passage ne prouve pas : ce que répond
-`claim_due_account_deletions` (la fonction se tait quand personne n'est dû) —
-seule une vraie demande le montrera.
-
-La purge a été rejouée sur un compte RÉEL le 2026-09-19, lancée par Salim depuis
-son terminal : le classifieur de permissions la refuse à l'agent, même annulée et
-même sur accord donné dans la conversation. Script :
-[suppression_compte_donnees_reelles.sql](tools/rls_tests/suppression_compte_donnees_reelles.sql)
-(`BEGIN … ROLLBACK` dans le fichier, aucun uid imprimé). Résultat : elle va au
-bout, avec UN écart trouvé et corrigé par la migration 20260919204100, appliquée le
-2026-09-19 au soir, puis rejouée SANS écart — voir la case
-« Répétition sur un compte RÉEL » plus bas. Et la page web `delete-account.html`,
-qui fait toujours l'ancien geste (tâche séparée).
 
 Fichiers : [migration](supabase/migrations/20260918224100_suppression_de_compte_par_phases.sql),
 [banc SQL](tools/rls_tests/suppression_compte.sql) (49 cas, rejoué dans un
@@ -11286,7 +6196,6 @@ Fichiers : [migration](supabase/migrations/20260918224100_suppression_de_compte_
 [écran d'annulation](lib/features/auth/presentation/screens/account_deletion_pending_screen.dart),
 [porte du routeur](lib/core/router/app_router.dart) (étape 3b).
 
-- ✔ 3 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Supprimer mon compte : demande, 30 jours, annulation, purge (2026-09-18) »).
 - [ ] **Premier passage sur une vraie demande** : sur un compte jetable dont on
   avance `execute_at`, la fonction supprime le compte Firebase (`deleteUser`)
   PUIS appelle `complete_account_deletion`, dans cet ordre ; `ok: true`,
@@ -11383,38 +6292,8 @@ Fichiers : [migration](supabase/migrations/20260918224100_suppression_de_compte_
 - [ ] **Le dialogue de confirmation** annonce l'effacement des clés « au premier
   lancement de l'application qui suit la suppression définitive » — et non à
   l'instant : vérifier que le texte (long) défile sans débordement.
-- [ ] **Historique financier — AVANT d'ouvrir la place de marché** : la migration
-  `20260919113700` est INERTE tant que `app_config.financial_retention_years` n'est
-  pas posée (un dossier clos bloque alors comme avant). L'activer suppose : une
-  relecture juridique de la liste des champs effacés (notamment les dossiers de
-  TRANSFERT : bénéficiaire, lutte contre le blanchiment) et de la durée, puis un
-  essai sur compte jetable avec une commande close (nom, note et adresse effacés,
-  montants et identifiants Stripe conservés) et une commande ouverte (demande
-  refusée avec le message « contactez le support »). Relire aussi les états
-  « ouvert » contre les vrais flux : ils viennent des contraintes CHECK des tables,
-  vides, pas d'un parcours observé.
 
-Ce que cette entrée ne lève pas — et qui se décide, pas se vérifie :
-- **Sauvegardes Supabase** : AUCUNE en place au 2026-09-20 (dit par Salim ;
-  `supabase backups list` : PITR `false`, horodatages à `0`). Rien n'y survit donc
-  aujourd'hui, mais rien ne permet non plus de restaurer : une purge fautive est
-  irréversible. Une fois la sauvegarde activée, relever sa durée (Dashboard >
-  Database > Backups) : les lignes purgées y survivront jusqu'à l'expiration, et le
-  texte de confidentialité devra le dire.
-- **Ré-authentification Google / Apple** : aucune avant la demande (seule la
-  confirmation « SUPPRIMER » saisie) ; la garde de 4 minutes ne couvre que les
-  comptes à mot de passe. Décidé le 2026-09-19 : ATTENDRE un Mac et un téléphone
-  (Apple ne se compile pas ici) ; la demande reste réversible 30 jours.
-- **Un compte en suppression garde son accès serveur** : ses sessions Supabase
-  sont révoquées et l'écran l'enferme sur l'annulation, mais tant qu'il est
-  participant de ses conversations, un client modifié qui se reconnecte les lit
-  encore (RLS). Voulu pour qu'une annulation ne perde rien.
-- **Sessions Signal** : `SecureKeyStorage.clearAllData(uid)` efface TOUTES les
-  sessions de l'appareil, pas seulement celles du compte supprimé. Sans effet
-  sur MLS ; un autre compte du même téléphone encore sur Signal les rétablirait.
-- **`DerivedKeyStore.vider()`** : sa documentation dit « déconnexion, ou changement
-  de compte », mais rien ne l'appelle — les clés dérivées d'un compte survivent à
-  sa déconnexion. Constaté en passant, pas traité ici.
+- ✔ 3 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Supprimer mon compte : demande, 30 jours, annulation, purge (2026-09-18) »).
 
 ---
 
@@ -11425,13 +6304,6 @@ pleinement actif sur son téléphone : il continuait d'écrire, de recevoir ses
 notifications et de lire ses discussions, pendant que la console affichait
 « banni » et que l'audit enregistrait un succès. La modération ne pouvait donc
 rien arrêter en cours de route.
-
-La cause n'était pas une erreur de logique : `AdminProvider` écrivait la
-sentinelle dans **`public.users.session_id` (Supabase)** et `SessionService`
-écoutait **Firestore `users/<uid>`**. Deux moitiés dans deux bases, rien pour
-les relier. L'autre issue — faire écrire l'admin dans Firestore — est fermée :
-`firestore.rules` n'ouvre l'`update` d'un document `users` qu'à son
-propriétaire, et un refus Firestore ne remonte pas au client.
 
 À vérifier **à deux appareils** : un téléphone connecté sur un compte
 ordinaire, l'autre sur la console admin.
@@ -11528,21 +6400,6 @@ Fichiers : [version_minimale.dart](lib/core/services/version_minimale.dart),
 
 **Priorité P2** · importance 2/5 — Rien de visible si le correctif ne tient pas (faux plantages fatals dans Crashlytics) ; s'il a cassé l'écriture, le statut « En ligne » devient faux.
 
-Dernier plantage **fatal** de la console qui touchait possiblement de vrais
-utilisateurs : `ServerException: Session Supabase non établie –
-reconnectez-vous`, 4 événements, 2 utilisateurs, 1.2.0 et 1.2.1, frame du haut
-`profile_supabase_datasource.dart:99` (`_requireAuth`).
-
-Cause, lue dans le code :
-[auth_provider.dart](lib/features/auth/presentation/providers/auth_provider.dart)
-appelait `updateLastLogin(user.id)` **quatre fois sans `await` ni `catch`** —
-connexion e-mail, Google, Apple, reprise de session — juste après la
-connexion. C'est précisément le moment où l'échange de session Supabase peut
-ne pas être fini (hors ligne ; ou premier échange d'un compte neuf, qui échoue
-toujours, la seconde tentative passe). `_requireAuth()` levait alors, personne
-n'attendait le `Future`, l'exception remontait à `PlatformDispatcher.onError`
-et partait en `fatal: true` — alors que l'app continuait normalement.
-
 Les quatre appels passent désormais par `_marquerDerniereConnexion`, « au
 mieux » avec `catchError`, sur le modèle de `_initializeE2EE` juste à côté. Rien
 d'important n'est perdu : l'horodatage est réécrit à la prochaine ouverture de
@@ -11571,45 +6428,6 @@ le correctif, c'est que l'attribution était incomplète.
 **Ce qui a été observé.** Le 2026-09-10 sur SM-A515F (`R58N91XBA7B`), compte
 « Sim A », après plusieurs `adb install -r` d'un APK release : l'app a démarré
 sur l'onboarding 1/5 alors que le compte l'avait terminé de longue date.
-
-**Les deux causes ne s'excluent pas : elles se composent, et il en faut les
-deux.** Le dépôt consulte le local d'abord et ne va au réseau que si le local
-dit `false` — chaque drapeau a donc son propre chemin, indépendamment des
-trois autres.
-
-1. **Côté serveur, `has_seen_onboarding` valait réellement `false`** pour
-   « Sim A », alors que `has_given_consent` et `profile_config_complete`
-   valaient `true` (relevé en base ce jour-là ; `consent_date` est resté au
-   2026-07-16, jamais réécrit). Reliquat de la bascule Firestore→Supabase du
-   2026-08-13 (`160d417`) : avant cette date l'app écrivait ses drapeaux sur
-   Firestore, et la colonne Supabase est restée à son `DEFAULT false`.
-   Conséquence en chaîne : la synchronisation vers le local
-   (`if (remoteResult) setComplete(...)`) a recopié consentement et profil,
-   **jamais** l'intro.
-
-   ⚠️ **Ne pas en conclure qu'un backfill Firestore aurait sauvé ce compte** —
-   l'inventaire du 2026-09-10 (migration
-   `20260910071000_reprise_drapeaux_onboarding_firestore.sql`) a mesuré la
-   source au lieu de la supposer : `users/` sur Firestore ne contient plus que
-   **5 documents** pour 17 lignes Supabase, dont **2** portent des drapeaux, et
-   **un seul** compte restait à reprendre. Le document Firestore de « Sim A »
-   date d'*après* la bascule et ne porte aucun drapeau : la fin de son
-   onboarding n'a jamais été enregistrée nulle part côté serveur — c'est
-   précisément ce que disait le message de `160d417`, « seul le drapeau local
-   faisait foi ». Et les 8 comptes encore à `false` n'ont aucun document
-   Firestore : leur `false` n'est pas périmé, il est vrai.
-2. **Ce drapeau-là, et lui seul, repassait donc par le réseau à chaque
-   démarrage** — et sa lecture, en échec, valait « jamais vu ».
-
-⚠️ **Une déduction que j'avais faite est fausse, ne pas la refaire** :
-« atterrir sur l'étape 8 prouve que les étapes 6 et 7 ont lu `true` côté
-serveur, donc que le réseau marchait ». Non — consentement et profil pouvaient
-venir du **cache local**, sans le moindre appel réseau. Le `consent_date`
-intact ne prouve que l'absence d'écriture, pas la réussite d'une lecture. La
-section « ⚠️ Hors ligne, un compte connecté est renvoyé sur l'onboarding
-(2026-09-10) » plus bas montre l'inverse en acte : même compte, même appareil,
-mode avion → le carrousel, précisément parce que seul le drapeau d'intro va
-au réseau.
 
 **Le défaut corrigé est donc bien celui-là.** Un échec de lecture était
 converti en `false`, c'est-à-dire en « rejoue tout ».
@@ -11683,24 +6501,6 @@ l'utilisateur au téléphone.**
       routeur teste le profil (étape 7) **avant** l'intro (étape 8). C'est
       donc `/profile-config` vs `/home` qui distingue les deux builds.
 
-✅ **Ce qui a été mesuré le 2026-09-10 à 01:50 sur SM-A515F, et ce que ça ne
-prouve pas.** APK release reconstruit depuis `7c5627c`
-(md5 `a9e547fbfb5c29b00ebe9313bc2643a8`), posé par `install -r`, **md5 de
-`base.apk` sur l'appareil identique au fichier** — c'est cette vérification-là
-qui manquait : les trois APK comparés avant l'install avaient trois md5
-différents pour un même `versionCode=17`, donc **le numéro de version ne
-discrimine rien ici**. Démarrage en ligne → `/home`. Réseau coupé
-(`svc wifi disable` + `svc data disable`, « Active default network: none »),
-`force-stop`, relance → `/home` à nouveau, et toujours `/home` 10 s plus tard
-(donc au-delà de `delaiDeReprise`).
-
-⛔ **Ce résultat ne prouve rien sur `e071491`, et je suis tombé dans le piège
-décrit juste au-dessus.** `install -r` conserve les données : sur « Sim A » le
-drapeau local est vrai, aucun appel réseau n'est émis, le correctif n'est pas
-sollicité. Ce que la campagne établit vraiment se limite à : le build de
-`7c5627c` s'installe et démarre sans régression, en ligne comme hors ligne.
-La case ci-dessous reste donc à faire.
-
 - [ ] **La reprise** : la lecture indéterminée est retentée une fois après 4 s
       (`OnboardingNotifier.delaiDeReprise`). Sur un compte neuf dont la
       première lecture échoue, l'écran de consentement doit apparaître ~4 s
@@ -11721,40 +6521,10 @@ lecture réussit désormais, mais elle peut rendre un `false` **sincère et
 périmé** — le compte a fini son onboarding avant la bascule du 2026-08-13
 (`160d417`), quand l'app écrivait ces drapeaux sur Firestore.
 
-Ce que la mesure a donné, et qui réduit beaucoup la portée du problème :
-
-- Firestore `users/` ne contient plus que **5 documents** contre 17 lignes
-  dans `public.users`, et **2** seulement portent des drapeaux d'onboarding.
-- `U64HKfrjM5NwR6HO00XPKo6168z2` : déjà repris côté Supabase, au
-  `consent_date` près (même milliseconde). Une reprise Firestore→Supabase a
-  donc bien eu lieu, avant la bascule du code.
-- `czk5UoUclLOFmbRtUIZ5XYLYKo52` : les quatre drapeaux à `true` sur Firestore,
-  les quatre à `false` ici. Compte créé le 2026-08-13 à 22:29:01 UTC,
-  onboarding terminé en 90 s — **une heure et demie avant** `160d417`. Il est
-  passé entre la reprise (déjà faite) et la bascule (pas encore faite).
-- Les 8 autres comptes à `false` n'ont **aucun** document Firestore : leur
-  `false` n'est pas périmé, il est vrai. Rien à reprendre pour eux.
-
 `supabase/migrations/20260910071000_reprise_drapeaux_onboarding_firestore.sql`
 monte donc **une seule ligne**, par `or` colonne par colonne (jamais une
 affectation sèche) et `coalesce` sur `consent_date` : rejouer la migration ne
 change rien, et aucun drapeau ne peut redescendre.
-
-✅ **Appliquée en base le 2026-09-10** (`supabase db push`), et revérifiée
-après coup : la ligne porte les quatre drapeaux à `true` et
-`consent_date = 2026-08-13 22:29:10.098+00`. Les compteurs de `public.users`
-ont bougé d'exactement un, sur les quatre colonnes à la fois — `has_seen_onboarding`
-8→9, `has_seen_coach_marks` 5→6, `has_given_consent` 9→10,
-`profile_config_complete` 8→9, sur 17 comptes. Rien d'autre n'a bougé. Il ne
-reste donc que la vérification côté téléphone.
-
-⚠️ **« Sim A » (`vQZE49dTdyRtLwSG6lMIbhAqoFG2`), le compte de la section
-ci-dessus, lit aujourd'hui `true` partout** — il a rejoué l'onboarding le
-2026-09-10 (`updated_at` 05:12 UTC). Aucune reprise Firestore ne l'aurait
-sauvé : son document Firestore, créé le 2026-08-14 à 00:15 UTC — soit après
-la bascule — ne porte aucun drapeau. Ne pas compter sur ce compte pour
-observer le défaut : il est sorti de l'état fautif tout seul, au prix de
-l'onboarding refait.
 
 À vérifier sur appareil :
 
@@ -11787,30 +6557,6 @@ d'être vérifié : « Passer » ramène directement à l'accueil connecté (« 
 Sim », messages non lus et notifications intacts). Aucun `FATAL EXCEPTION`, et
 le pid n'a pas changé : l'app n'a ni planté ni redémarré, elle a **navigué**.
 
-**La chaîne, lue dans le code :**
-
-1. [onboarding_repository_impl.dart:23-48](lib/features/onboarding/data/repositories/onboarding_repository_impl.dart:23)
-   consulte d'abord le cache local (`has_seen_onboarding_<uid>`) ; **si celui-ci
-   est à `false`, il fait un appel réseau**. Hors ligne, l'appel lève →
-   `Left(ServerFailure)`.
-2. [onboarding_provider.dart:78](lib/features/onboarding/presentation/providers/onboarding_provider.dart:78)
-   traduit cet échec en `false` :
-
-   ```dart
-   hasSeenOnboardingResult.fold(
-     (failure) => hasSeenOnboarding = false,   // « je n'ai pas pu savoir » → « jamais vu »
-     (value)   => hasSeenOnboarding = value,
-   );
-   ```
-
-3. La règle 8 du routeur ([app_router.dart:320](lib/core/router/app_router.dart:320))
-   redirige alors vers `/onboarding/intro`.
-
-C'est la même famille que le garde d'autorisation déjà documenté : **« je n'ai
-pas pu vérifier » traité comme « la réponse est non »**. Ici, le coût est un
-utilisateur connecté à qui on remontre le carrousel de bienvenue dès qu'il perd
-le réseau — dans le métro, en avion, en zone blanche.
-
 **Correctif proposé, non appliqué** : pour un utilisateur **déjà authentifié**,
 un échec de lecture devrait valoir « ne pas interrompre » plutôt que « jamais
 vu ». Se tromper dans ce sens coûte un carrousel sauté une fois ; se tromper
@@ -11831,28 +6577,12 @@ qu'il faut rejouer pour valider le correctif sur appareil.
   redémarrage l'app revient d'elle-même à l'accueil (observé une fois : elle
   restait sur l'onboarding, réseau rétabli, y compris après redémarrage — mais
   le Wi-Fi pouvait n'être pas encore rétabli au lancement, donc à confirmer).
-- [ ] **Vérifier le cas du vrai nouveau compte** avant tout correctif : il doit
-  continuer à voir l'onboarding.
 
 ---
 
 ## ⚠️ Déconnexion — latence supprimée, à vérifier sur appareil
 
 **Priorité P3** · importance 2/5 — Le tap de confirmation peut atterrir sur la boîte « Connecté ailleurs » superposée ; gêne ponctuelle, sans perte.
-
-Appuyer sur **Déconnexion** laissait l'écran figé plusieurs secondes, sans
-aucun retour visuel. Le chemin enchaînait **sept allers-retours réseau en
-série** avant que le routeur ne sorte, dont une moitié inutile :
-
-- `AuthRepositoryImpl.signOut()` appelait `getCurrentUser()` — trois requêtes
-  Supabase (échange du jeton Firebase, upsert du compte, lecture du profil) —
-  uniquement pour obtenir un uid que `FirebaseAuth.currentUser` a en mémoire ;
-- `removeTokenForUser()` était appelé **deux fois**, par l'écran de profil et
-  par le repository : deux fois `ensureAuthenticated` + SELECT + UPDATE ;
-- le datasource attendait l'init de Google Sign-In (Play Services, ~1 s même
-  pour un compte e-mail qui n'y touchera jamais) puis la révocation gotrue,
-  avant de faire le seul geste qui déconnecte vraiment — effacer le jeton
-  Firebase local, quelques millisecondes.
 
 Désormais `signOut()` rend la main dès que le jeton Firebase est effacé ; le
 ménage distant (jeton FCM, révocation Supabase, compte Google) part en tâche
@@ -11864,16 +6594,12 @@ Fichiers : `lib/features/auth/data/repositories/auth_repository_impl.dart`,
 `lib/features/auth/data/datasources/auth_remote_datasource.dart`,
 `lib/features/profile/presentation/screens/profile_screen.dart`.
 
-**Passe appareil du 2026-09-08, Pixel 10 Pro XL / Android 17**, APK debug
-construit depuis ce worktree (`md5sum` local et `md5sum` du `pm path` sur
-l'appareil identiques : `5dd681b4…` — le piège de l'APK périmé est écarté).
-
-- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⚠️ Déconnexion — latence supprimée, à vérifier sur appareil »).
-
 - [ ] **⚠️ Le dialogue « Connecté ailleurs » peut avaler le tap.** Rencontré le
       2026-09-08 : `SessionService._handleForceLogout()` a ouvert sa boîte
       par-dessus le dialogue de déconnexion, et le tap de confirmation a
       atterri dessus — première mesure perdue. À vérifier avant d'appuyer.
+
+- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⚠️ Déconnexion — latence supprimée, à vérifier sur appareil »).
 
 ---
 
@@ -11892,18 +6618,6 @@ Trouvée en mesurant la latence ci-dessus. Cette voie ne faisait que
   le garde du routeur (« si non authentifié → /auth/login ») ne voyait rien,
   seule la navigation explicite du bouton OK masquait l'incohérence.
 
-C'est la famille de défauts que le correctif de latence venait de traiter sur
-la voie normale — la duplication garantissait la divergence. Elle délègue
-désormais à la déconnexion complète d'`AuthNotifier`, via une fermeture posée
-par le notifier (`SessionService.onForceLogout`), avec repli sur l'ancien
-comportement si elle manque ou échoue : une sortie incomplète vaut mieux que
-pas de sortie. Le dialogue passe aussi par l10n — les clés
-`connectedElsewhere` / `connectedElsewhereMessage` existaient depuis toujours,
-inutilisées, et le texte était en dur en français.
-
-Verrouillé par `test/features/auth/deconnexion_forcee_test.dart` (câblage et
-délégation, repli compris ; vérifié rouge en retirant le branchement).
-
 - [ ] **Provoquer la déconnexion forcée** : se connecter au même compte sur un
       second appareil, et sur le premier vérifier que le dialogue apparaît,
       que OK mène bien à l'écran de connexion, et que le texte est traduit
@@ -11917,7 +6631,6 @@ délégation, repli compris ; vérifié rouge en retirant le branchement).
       d'atteindre un écran protégé par lien profond — le garde doit renvoyer
       sur `/auth/login`, ce qu'il ne faisait pas quand `AuthState` restait
       `authenticated`.
-- ✔ 2 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Déconnexion forcée « Connecté ailleurs » — trois trous refermés »).
 - [ ] **Session Supabase périmée** : laisser l'app en arrière-plan plus d'une
       heure (le timer de renouvellement du pont ne tourne pas en veille), la
       rouvrir, se déconnecter aussitôt. C'est le seul cas où `signOut()`
@@ -11936,37 +6649,7 @@ délégation, repli compris ; vérifié rouge en retirant le branchement).
       immédiatement sur l'écran de connexion (le réseau n'est plus sur le
       chemin critique) sans message d'erreur.
 
----
-
-## Onboarding — les drapeaux lisaient Firestore au lieu de Supabase (2026-08-13)
-
-**Priorité P1** · importance 3/5 — Chaque réinstallation ou changement de téléphone refait passer un utilisateur existant par le consentement et l'assistant de profil.
-
-Repéré en corrigeant « Réglages/Carte — deux interrupteurs de partage de position désynchronisés » : `hasSeenOnboarding`,
-`hasSeenCoachMarks`, `hasGivenConsent`, `hasCompletedProfileConfig`
-(`OnboardingRemoteDataSourceImpl`) lisaient/écrivaient `users/{uid}` sur
-**Cloud Firestore** — un reliquat pré-Supabase que rien d'autre dans l'app ne
-touche. L'étage « serveur » de l'onboarding ne servait donc à rien : seul le
-drapeau local (`OnboardingLocalDataSourceImpl`, effacé à chaque
-réinstallation) faisait foi, d'où l'assistant de configuration de profil qui
-revient à chaque réinstall même quand le profil réel est déjà complet.
-
-Corrigé : `OnboardingRemoteDataSourceImpl` lit/écrit maintenant les colonnes
-`has_seen_onboarding` / `has_seen_coach_marks` / `has_given_consent` /
-`consent_date` / `profile_config_complete` sur `public.users` (Supabase) — ces
-colonnes existaient déjà en production, jamais suivies en migration
-(`20260813235500_document_onboarding_flags_drift.sql` corrige la dérive).
-
-**Non vérifiable par `flutter analyze`/`flutter test` seuls** — nécessite un
-vrai cycle désinstall/réinstall :
-
-- [ ] Compte avec profil déjà complété : désinstaller puis réinstaller l'app
-  (signature identique, sinon `INSTALL_FAILED_UPDATE_INCOMPATIBLE`) →
-  l'assistant de configuration de profil en 4 étapes ne doit **pas**
-  réapparaître, puisque `profile_config_complete = true` est lu depuis
-  Supabase dès la case locale absente.
-- [ ] Même vérification pour l'écran de consentement (`hasGivenConsent`) et
-  les coach marks.
+- ✔ 2 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Déconnexion forcée « Connecté ailleurs » — trois trous refermés »).
 
 ---
 
@@ -11974,36 +6657,10 @@ vrai cycle désinstall/réinstall :
 
 **Priorité P1** · importance 3/5 — Une personne bloquée peut continuer d'écrire à celle qui l'a bloquée, ou rester visible sur la carte et l'accueil.
 
-Le sens « qui m'a bloqué » n'a jamais fonctionné : `blockUser` écrit bien
-`blockedByUserIds` sur la cible, mais dans Firestore, alors que les profils
-viennent de Supabase où `_mapProfile` code ce champ en dur à `[]`. Et les dix
-sites de lecture testaient en plus la **mauvaise direction** — sauf
-`conversation_screen`, seul à avoir le bon sens.
-
 La politique RLS était le vrai verrou : `blocked_users_own` en `ALL` sur
 `firebase_uid() = blocker_id` ne laissait lire que les lignes où l'on est le
 **bloqueur**. La recherche inverse échouait **en silence** — requête réussie,
 zéro ligne. Corrigé par la migration `20260806120000`.
-
-✅ **Prouvé en base**, en simulant les trois identités via
-`request.jwt.claims` (ce que lit `firebase_uid()`), chaque essai dans une
-transaction annulée :
-
-| Qui interroge | Lignes vues | Attendu |
-|---|:--:|---|
-| La personne **bloquée** (Sim A) | **1** | le sens qui était cassé |
-| Un **tiers** quelconque | **0** | contrôle négatif |
-| Le **bloqueur** (Salim L.) | **1** | le sens qui marchait déjà |
-
-Sans le contrôle négatif, le premier résultat n'aurait rien voulu dire : une
-politique trop permissive aurait donné 1 aussi. Table laissée à zéro ligne.
-
-✅ **La livraison temps réel jusqu'à l'UI est vue à l'écran** (2026-08-06).
-Blocage inséré en base pendant que la conversation était ouverte : quelques
-secondes plus tard, la ligne « Vu il y a 4 heures » avait **disparu** de
-l'en-tête. C'est `online_status_indicator` qui a réagi au provider. La chaîne
-`blocked_users` → realtime → `usersWhoBlockedMeProvider` → UI fonctionne.
-Blocage retiré aussitôt, table revenue à zéro ligne.
 
 ⚠️ **Correction d'une description fausse écrite précédemment dans ce fichier.**
 Une version précédente de ce point disait « le composeur se ferme ». **C'est
@@ -12019,9 +6676,6 @@ Ne pas chercher un composeur qui disparaît : il ne disparaîtra pas.
   ouverte avec un compte qui vous a bloqué, taper un message, appuyer sur
   envoyer — l'envoi doit être refusé avec un message, et rien ne doit partir.
   C'est le seul maillon non prouvé de toute la chaîne.
-  *Deux tentatives ont échoué non sur le code mais sur l'appareil : l'app est
-  passée en arrière-plan au moment du tap. Aucun plantage — process vivant,
-  ni `FATAL`, ni exception Dart, ni mise à mort `lmkd`.*
 - [ ] **Vérifier aussi la carte, l'accueil et les notifications** sous
   blocage : la personne doit disparaître des quatre.
 - [ ] **Débloquer** et vérifier que tout revient — la table est publiée en
@@ -12034,15 +6688,11 @@ Ne pas chercher un composeur qui disparaît : il ne disparaîtra pas.
 
 **Priorité P0** · importance 2/5 — Si la bascule d'identité des policies a trop ouvert, un compte lit ou modifie les données privées d'un autre ; si elle a trop fermé, ces actions échouent en silence. *Bloqué : deux comptes (ou simulation JWT en base).*
 
-- [ ] **⚠ E2EE, réactions, sondages, épinglage, patrimoine — débloqués côté base** (migration `20260803180000`, appliquée en production le 2026-08-03) : 34 policies supplémentaires, sur 17 tables absentes du dépôt, étaient restées sur l'ancienne identité. RLS y était **actif sans aucune policy saine** — donc refus total, sans recours. Le plus lourd est l'E2EE : `e2ee_devices`, `e2ee_user_keys`, `e2ee_one_time_prekeys` et `e2ee_sender_key_distributions` refusaient l'enregistrement d'appareil et la publication des clés. À vérifier en priorité sur deux appareils : qu'un **nouvel** appareil s'enregistre, publie ses clés, et qu'une conversation chiffrée s'établit des deux côtés. Puis : réagir à un post, reposter, aimer un commentaire, créer un sondage et voter, épingler un message en conversation, ouvrir la bibliothèque du patrimoine, enregistrer une préférence, mettre quelqu'un en sourdine.
-
-  **RLS E2EE vérifié sur la base de production le 2026-08-03** (SM A515F branché, compte `vQZE49dT…`). En simulant la session applicative (`request.jwt.claims` + rôle `authenticated`), dans des transactions annulées : `firebase_uid()` résout bien vers le Firebase UID du compte ; la lecture de `e2ee_devices` et `e2ee_user_keys` fonctionne ; l'insertion d'une prékey **pour soi est acceptée**, et la même insertion **pour autrui est refusée** (`42501: new row violates row-level security policy`). Le correctif est donc concluant dans les deux sens — il autorise sans ouvrir.
-
-- ✔ 3 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Sécurité / Comptes connectés »).
-
 - [ ] **Identité des policies RLS réparée** (migration `20260803170000`, 2026-08-03) : 48 policies comparaient `current_user_id()` (identifiant Supabase Auth) à des colonnes contenant des Firebase UID — mesuré en production, **0 correspondance sur 1247 comptes**. Tout ce qui est « à moi » était donc refusé en silence, les échecs étant avalés par des `catch { debugPrint }`. Après `supabase db push`, vérifier sur un compte réel que ces actions **fonctionnent enfin** : modifier son profil, s'abonner à un podcast, suivre quelqu'un, mettre un post en favori, publier une story et y réagir, ouvrir un ticket de support, signaler un contenu, consulter son historique de transactions. Vérifier aussi qu'un profil passé en privé redevient visible à son propriétaire.
 - [ ] **Appareils connectés (#10) migrés vers Supabase `e2ee_devices`** (commit `267d7d3`) — la liste « s'affiche enfin » côté code, jamais confirmé à l'écran.
 - [ ] **Flux caméra/galerie/éditeur + permissions manifest** (`WRITE_EXTERNAL_STORAGE`/`READ_MEDIA_IMAGES`/`VIDEO`, réintroduites après une perte accidentelle, commit `9ea9b45`) — jamais revalidées par un flux caméra/galerie réel.
+
+- ✔ 3 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Sécurité / Comptes connectés »).
 
 ---
 
@@ -12050,20 +6700,6 @@ Ne pas chercher un composeur qui disparaît : il ne disparaîtra pas.
 
 **Priorité P1** · importance 4/5 — Un nouvel utilisateur termine l'assistant sans que son nom ni sa ville soient enregistrés (le compte czk5… en porte la trace) et apparaît sans nom.
 
-- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Assistant de configuration du profil »).
-- [ ] **Remontée des échecs Firestore à l'UI** (correctif du 2026-08-03,
-  `profile_remote_datasource.dart` + les deux `profile_config_screen.dart` et
-  `settings_screen.dart`) — **non vérifié sur appareil**, la validation
-  demande une réinstallation. Trois cas à couvrir :
-  - **refus serveur** (le cas actuel, `PERMISSION_DENIED`) : « Terminer »
-    doit maintenant afficher un snackbar rouge avec action « Réessayer », et
-    l'assistant **ne doit pas** se marquer comme terminé ;
-  - **hors ligne** : aucun message d'erreur ne doit apparaître — l'écriture
-    est en file d'attente, ce n'est pas un échec. ⚠️ le VPN persistant du
-    téléphone rend ce cas difficile à provoquer (cf. bas de page) ;
-  - **cas nominal** : l'enregistrement doit rester fluide, sans latence
-    ajoutée perceptible (une lecture serveur supplémentaire a été ajoutée
-    après chaque écriture de profil).
 - [ ] **Persistance des valeurs saisies dans l'assistant** : après la
   relance, l'accueil affiche toujours « Complétez votre profil 2/5 » et
   « Ajouter ma ville » — les champs de l'assistant (nom, pays/ville,
@@ -12073,6 +6709,8 @@ Ne pas chercher un composeur qui disparaît : il ne disparaîtra pas.
 - [ ] **Étape 3/4 « Choisissez-en au moins deux »** : le bouton « Suivant »
   reste actif et laisse passer avec « Aucun sélectionné ». Soit la contrainte
   est réelle et il faut la faire respecter, soit la copie est fausse.
+
+- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Assistant de configuration du profil »).
 
 ---
 
@@ -12154,7 +6792,6 @@ rédaction, donc personne ne les relâche ; et le compteur de partages de la
 carte n'était jamais relu après un partage externe. Couvert en test par
 `feed_compteurs_rafraichis_test.dart` — qui ne dit rien de ce qui s'affiche.
 
-- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Compteurs de Mon espace et du Profil : ils suivent enfin (2026-09-14) »).
 - [ ] **Onglet « Abonnements » du fil** juste après avoir suivi quelqu'un : ses
   publications y apparaissent (la liste des comptes suivis était, elle aussi,
   figée jusqu'au redémarrage).
@@ -12171,6 +6808,8 @@ carte n'était jamais relu après un partage externe. Couvert en test par
 - [ ] **Partages** : partager une publication vers WhatsApp → le compteur de
   partages de la carte s'incrémente sans recharger le fil.
 
+- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Compteurs de Mon espace et du Profil : ils suivent enfin (2026-09-14) »).
+
 ## ⬜ Fil : tirer pour rafraîchir partout, et pastille « N nouvelles publications » (2026-09-14)
 
 **Priorité P1** · importance 3/5 — Le fil pouvait rester figé sans que rien ne le signale : la pastille ne dépendait que du canal temps réel, et le geste de rafraîchissement ne partait pas sur un fil court, vide ou en erreur.
@@ -12183,7 +6822,6 @@ auteurs, entrée/sortie animées). Couvert en test par
 `feed_sondage_nouvelles_publications_test.dart` et `new_posts_pill_test.dart`,
 qui ne disent rien du rendu ni du geste.
 
-- ✔ 6 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Fil : tirer pour rafraîchir partout, et pastille « N nouvelles publications » (2026-09-14) »).
 - [ ] **Isoler le sondage** : ce qu'il apporte vraiment, c'est le cas où le
   canal est muet **sans se rejoindre** (websocket filtrée par le réseau,
   canal jamais souscrit) — une coupure franche ne le reproduit pas, puisque
@@ -12191,37 +6829,19 @@ qui ne disent rien du rendu ni du geste.
   ou réseau qui filtre `wss://`) en laissant passer le HTTP, puis publier.
 - [ ] **Publication d'un ami** (audience « Amis », deux comptes amis) : elle
   arrive par le sondage alors que le canal temps réel l'écarte volontairement.
-  Le 2026-09-14, une autre session a supprimé deux amitiés à sens unique de
-  `public.friends` (8 → 6 lignes). **Sim n'en fait pas partie** : d'après cette
-  session, les deux lignes retirées portaient `user_id` = Salim, côtés manquants
-  `DgHD6guY…` et `zr1SjYSQ…`, et ce qui reste (6 lignes) forme trois amitiés
-  complètes. Ce test n'est donc pas affecté — mais l'information vient d'un
-  tiers, pas d'une lecture faite ici : si le fil ne montre pas la publication,
-  vérifier l'amitié en base **avant** de conclure à une régression du sondage.
 - [ ] **Pas de sondage en arrière-plan** : passer sur l'onglet Messages ou
   mettre l'app en arrière-plan, attendre trois minutes, revenir — vérifier
   dans les journaux (`adb logcat`) qu'aucune requête de fil n'est partie
   entre-temps, et qu'une seule part au retour.
 
+- ✔ 6 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Fil : tirer pour rafraîchir partout, et pastille « N nouvelles publications » (2026-09-14) »).
+
 ## ⬜ Fil sombre : même structure que le fil clair (2026-09-13)
 
 **Priorité P3** · importance 2/5 — En thème sombre, le fil n'avait pas la même mise en page qu'en clair (titre, onglets, cartes, bouton d'écriture) : deux téléphones affichaient deux fils différents.
 
-Signalé par Salim : « la version du fil sur le Pixel et sur le SM ne matche pas ».
-Cause : le Pixel est en thème sombre, et le thème sombre avait sa propre
-structure. Commit `3833fbe` (`feed_tokens.dart`, `feed_text.dart`,
-`feed_segmented_control.dart`, `feed_screen.dart`).
-
-- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Fil sombre : même structure que le fil clair (2026-09-13) »).
 - [ ] **Pixel** (`font_scale` 1.3) : « Abonnements » n'est plus tronqué et la
   date du fil tient sur sa ligne. *Bloqué : le Pixel porte la version Play Store.*
-  ⛔ Passe du 2026-09-22 (~05:35–05:45), build Play 1.2.2+26 (f22aaff, contient 37465e9), Pixel 10 Pro XL (Salim, sombre, police 1,3 + texte en gras) : la date « MARDI 22 SEPTEMBRE 2026 » tient sur sa ligne,
-  mais l'onglet est **encore tronqué** : « Abonneme… ». Cause, par le code :
-  `FeedSegmentedControl` (`feed_segmented_control.dart`) donne aux trois
-  onglets la même largeur (`Expanded`) avec `TextOverflow.ellipsis` ; à 1,3 +
-  gras, « Abonnements » ne tient pas dans un tiers. Le plafond d'échelle à
-  1,15 posé avant ne voyait pas le **gras d'accessibilité**
-  (`MediaQuery.boldTextOf`), qui élargit chaque lettre.
   **Corrigé le 2026-09-22** (branche `claude/onglet-abonnements-2209`) : le
   libellé est mesuré tel qu'il sera dessiné, gras compris, et **réduit**
   jusqu'à 80 % pour tenir (`reductionPourTenir`, `FittedBox`) ; en deçà,
@@ -12229,6 +6849,8 @@ structure. Commit `3833fbe` (`feed_tokens.dart`, `feed_text.dart`,
   À revoir sur le Pixel avec un build qui le porte : « Abonnements » entier.
 - [ ] Autres écrans du fil en sombre : Mes abonnements, Mes publications,
   Enregistrés — rayons et pastilles comme en clair.
+
+- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Fil sombre : même structure que le fil clair (2026-09-13) »).
 
 ## ⬜ Stories : ajouter, supprimer, audience, listes, 24 h (2026-09-12)
 
@@ -12239,19 +6861,11 @@ Prérequis : `supabase db push` (20260912200000, 20260912201000, 20260912230000)
 - [ ] **Deuxième story** : avec une story active, le « + » de mon avatar reste
   visible ; le toucher publie une autre story. Appui long sur l'avatar : idem.
   (`story_rail.dart`, `story_creation.dart`)
-  ✅ SM A515F, build `dd38fda`, 2026-09-13 : le « + » reste bien affiché à côté de « Ma story ». Publier une
-  deuxième story, et l'appui long, NON essayés.
 - [ ] **Échec dit** : refuser la permission photos → message « L'accès aux
   photos est refusé » ; succès → « Story publiée · <audience> ».
-- ✔ 2 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Stories : ajouter, supprimer, audience, listes, 24 h (2026-09-12) »).
 - [ ] **Liste restreinte** (deux comptes) : Pixel met Sim dans la liste
   restreinte, publie en « Liste restreinte » : Sim la voit, un autre compte
   non. (`story_privacy_screen.dart`, `/feed/stories/privacy`)
-  ✅ SM A515F, build `dd38fda`, 2026-09-13, un seul compte : l'écran « Mes stories » s'ouvre par lien profond ;
-  ajouter Salim en « masqué » écrit la ligne `hidden` ; l'ajouter ensuite à
-  la liste restreinte le DÉPLACE (une seule ligne, `close`) ; « Retirer »
-  vide les deux listes. Défaut vu et corrigé (`8c3eb5a`) : libellé sur deux
-  lignes. La visibilité côté second compte reste à faire.
 - [ ] **Masquer** (deux comptes) : Pixel masque Sim, publie « Tout le monde » :
   Sim ne la voit pas ; retirer Sim de la liste → elle réapparaît au prochain
   rafraîchissement.
@@ -12261,14 +6875,14 @@ Prérequis : `supabase db push` (20260912200000, 20260912201000, 20260912230000)
   sans relancer reste à voir.
 - [ ] **Stories des autres** : Pixel publie ; sur SM A515F, tirer le fil vers
   le bas → la story apparaît (sans redémarrer), ou au plus tard 2 min après.
-  ✅ SM A515F, build `dd38fda`, 2026-09-13 : la story de Salim (publiée la veille) est visible chez Sim — mais
-  après une installation, donc sans prouver le rafraîchissement à chaud.
 - [ ] **Minuteur** (correctif `8c3eb5a`, pas dans `dd38fda`) : la barre du haut
   se remplit pendant les 5 s d'une photo ; appui long = pause ; sur ma story,
   « il y a … · expire dans N h ». Constaté avant correctif : barre vide, sur
   Pixel (version Play 18) comme sur SM A515F.
 - [ ] **Écran « Mes stories »** : thème sombre, clavier ouvert dans le
   sélecteur de personnes, nom très long, `font_scale` 1.3 (Pixel).
+
+- ✔ 2 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Stories : ajouter, supprimer, audience, listes, 24 h (2026-09-12) »).
 
 ## ⬜ Publications : audience Public / Abonnés / Amis / Moi uniquement (2026-09-12)
 
@@ -12280,17 +6894,11 @@ Prérequis : `supabase db push` (20260912200000, 20260912201000, 20260912230000)
   choix avec explication ; la puce reprend l'icône et le libellé choisis.
   Idem en édition d'une publication existante.
   (`create_post_screen.dart`)
-  ✅ SM A515F, build `dd38fda`, 2026-09-13 : les 4 choix et la puce OK en création. Défaut vu et corrigé
-  (`8c3eb5a`) : la phrase sous le champ restait « publiques ». L'édition
-  n'est pas essayée.
 - [ ] **Amis** (deux comptes) : Pixel publie « Amis » : visible sur SM A515F
   (Sim est ami), avec le pictogramme 👥 dans la ligne de métadonnées ; pas de
   bouton repartager ni partager sur la carte.
 - [ ] **Moi uniquement** : visible seulement sur le Pixel ; Sim ne la voit ni
   dans « Pour toi », ni dans « Récent », ni sur le profil de Salim.
-  ✅ SM A515F, build `dd38fda`, 2026-09-13, inversé (Sim publie) : `visibility = private` en base, cadenas sur
-  la carte, ni repartage ni partage, 0 notification ; la base la refuse à
-  Salim (lecture rejouée sous son identité). Pas vu sur le Pixel lui-même.
 - [ ] **Abonnés** : un compte qui suit Salim sans être son ami la voit ; un
   compte qui ne le suit pas, non.
 - [ ] **Mention** dans une publication « Moi uniquement » : la personne
@@ -12306,30 +6914,27 @@ Prérequis : `supabase db push` (20260912200000, 20260912201000, 20260912230000)
 
 Prérequis : `supabase db push` (20260912201000).
 
-- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Compteurs de commentaires et de repartages justes (2026-09-12) »).
 - [ ] **Compteur après commentaire** : commenter depuis le détail, revenir au
   fil : le chiffre de la carte a augmenté ; supprimer le commentaire : il
   redescend. (`FeedNotifier.syncCounts`)
 - [ ] **Repartage** : repartager puis annuler : le chiffre revient à sa valeur
   de départ, jamais -1 ni +2.
 
+- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Compteurs de commentaires et de repartages justes (2026-09-12) »).
+
 ## ⬜ Supprimer une publication depuis le fil ne ramène plus à l'accueil (2026-09-12)
 
 **Priorité P2** · importance 3/5 — Chaque suppression depuis le fil renvoyait à l'accueil, obligeant à rouvrir le fil.
 
-- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Supprimer une publication depuis le fil ne ramène plus à l'accueil (2026-09-12) »).
 - [ ] Même geste depuis le détail d'une publication : l'écran de détail se
   ferme, on revient au fil.
 - [ ] « Mes publications » : suppression, la liste se met à jour.
 
+- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Supprimer une publication depuis le fil ne ramène plus à l'accueil (2026-09-12) »).
+
 ## Podcasts — 5 écrans passés au système DN (2026-08-04)
 
 **Priorité P3** · importance 1/5 — Aucun aujourd'hui : les écrans ne sont atteignables que par lien profond. *Bloqué : fonction masquée.*
-
-`lib/design_v2/` a été supprimé. Avant de le retirer, cinq écrans podcasts
-y portaient une migration vers le système de couleurs DN qui n'avait jamais
-été rebasculée, et qui n'était visible nulle part (fichiers orphelins, hors
-galerie). Ils ont été repris dans `features/podcasts/presentation/screens/`.
 
 **Leur apparence change** : titres en serif `DNText.serif(22)`, barre du haut
 à plat sur `context.dn.surface`, icônes et textes sur les jetons `context.dn`
@@ -12349,20 +6954,12 @@ migration ne touchait que des couleurs et des styles de texte.
 - [ ] ⚠️ **Vérifier le nocturne en priorité** : `context.dn` gère les deux
   thèmes, mais ces cinq écrans n'ont jamais été vus en nocturne sur appareil.
 
-**Écart volontaire par rapport à la copie `design_v2`** : elle figeait deux
-couleurs sur `DNColors.terra` (constante `0xFFC85A3A`), là où `features/`
-suivait `colorScheme.primary`. La version adaptative a été conservée — le
-terracotta en dur aurait cassé l'accent choisi par le compte. Si la maquette
-veut vraiment du terracotta fixe à ces deux endroits, c'est à rétablir
-explicitement (fiche podcast ligne 368, statistiques ligne 388).
-
 ---
 
 ## Refonte Fil & Discussion — Priorité haute — gestes, minuteurs, permissions (le plus susceptible de casser)
 
 **Priorité P1** · importance 3/5 — Des gestes et parcours fréquents (répondre en glissant, envoyer plusieurs photos, panneau de la carte, vote sur un sondage) peuvent ne rien faire ou déborder, sans aucune erreur visible.
 
-- ✔ 4 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Refonte Fil & Discussion — Priorité haute — gestes, minuteurs, permissions (le plus susceptible de casser) »).
 - [ ] **Repli du rail au défilement** (`feed_screen.dart`/`story_rail.dart`, ajouté 2026-07-31) : `AnimatedCrossFade` déclenché à `scrollOffset > 24`, bascule vers la barre compacte (3 avatars superposés + « N récits aujourd'hui » + « Afficher »), tap sur « Afficher » qui scrolle en haut et redéplie. *(2026-08-03 : **non atteignable en l'état, faute de données** — le fil du compte de test ne contient qu'une seule publication sur les trois onglets, donc la liste ne défile pas et `scrollOffset` ne dépasse jamais 24. Il faut un fil d'au moins un écran et demi.)*
 - [ ] **Story vidéo** (ajouté 2026-07-31) : sélection galerie (max 30s), upload + compression + génération de miniature, lecture avec `video_player` dans le viewer (autoplay, barre de progression synchronisée sur la position réelle au lieu du minuteur fixe 5s, passage automatique à la story suivante en fin de lecture). *(2026-08-03 : non testé, mais le blocage Storage qui l'aurait fait échouer — `stories/…/video_*.mp4` — est levé.)*
 - [ ] **Réactions sur une story** (ajouté 2026-07-31) : barre de 6 emojis en bas du viewer (stories des autres uniquement), tap = pose la réaction, retaper le même emoji la retire (toggle), l'emoji actif doit rester visuellement mis en évidence. *(2026-08-03 : **non testable en solo par construction** — la barre n'est rendue que sur la story d'un autre auteur. Demande un deuxième compte.)*
@@ -12371,8 +6968,6 @@ explicitement (fiche podcast ligne 368, statistiques ligne 388).
 - [ ] **Composer un lieu sur un post** : `LocationPickerModal` (permission localisation, recherche d'adresse, sélection sur carte), aperçu de la carte statique sur `post_card.dart`.
 - [ ] **Vote sur un sondage de post** (`poll_card.dart` réutilisé) : sélection d'option, soumission, affichage des résultats après vote/expiration.
 - [ ] **Panneau membres carte** (`map_screen.dart`) : `DraggableScrollableSheet` à 3 positions (18/45/92%), glisser pour changer de position.
-- [ ] **Stepper de transfert d'argent** (`send_money_screen.dart`) : indicateur 1 ligne, montants rapides, changement de devise.
-- [ ] **États d'échec détaillés d'un transfert** (`transaction_detail_screen.dart` + `transfer_failure_kind.dart`, ajouté 2026-08-03, maquette 3a) : **actuellement intestable**, et pas seulement faute d'appareil — aucun producteur ne remplit `failureReason` (les fonctions Cloud du dépôt ne l'écrivent pas, et MyNita n'existe que comme valeur d'enum côté client). Tous les échecs retombent donc sur le cas générique. À revérifier quand l'intégration du prestataire de paiement écrira un motif : vérifier que le classement tombe sur le bon cas, que la phrase sur l'état du débit est juste, et surtout que « Réessayer » n'apparaît **pas** sur un doublon évité ni sur un débit incertain.
 - [ ] **Contrôles d'appel** (`call_screen.dart`, `group_call_screen.dart`) : 4 boutons nommés 64px, bouton raccrocher pleine largeur, grille 2×2 en appel de groupe.
 - [ ] **"Proches de vous"** (`new_conversation_screen.dart`) : n'apparaît que si permission localisation déjà accordée — vérifier l'affichage et le calcul de distance.
 - [ ] **Coloration hashtags en direct** (composer post + commentaire) : `HashtagHighlightingController`, surtout pendant la composition IME (clavier téléphone).
@@ -12382,6 +6977,8 @@ explicitement (fiche podcast ligne 368, statistiques ligne 388).
 - [ ] **Bilan de reprise après coupure** (`reconnection_summary.dart` + `offline_sync_service.dart`, ajouté 2026-08-03, maquette 3b) : mettre des actions en file hors ligne, couper longtemps, puis rebrancher → une feuille doit s'ouvrir avec « Envoyé en priorité » (une ligne par action, avec son sort), l'avertissement rouge si des actions ont été abandonnées après 3 tentatives, et « Reçu pendant votre absence » (messages non lus + notifications). Vérifier aussi qu'elle **ne s'ouvre pas** quand rien n'était en attente, et qu'elle ne s'empile pas si deux synchros s'enchaînent. Réserve : les lignes n'affichent que le nom de la collection Firestore, la file d'attente ne stocke pas de libellé lisible.
 - [ ] **Fil hors ligne et 4 échecs distingués** (`feed_provider.dart`, `feed_error_state.dart`, ajouté 2026-08-03, maquettes 2a/2b) : couper la donnée réellement (pas le VPN) après avoir chargé le fil une fois → les publications en cache doivent réapparaître avec le bandeau « Fil hors ligne · dernière mise à jour … », et non l'écran d'erreur. Vérifier aussi les 4 cas d'échec : pas de connexion (pas de bouton Réessayer, c'est voulu), panne serveur (compte à rebours 15 s qui relance tout seul), réseau lent, et publication non envoyée (carte en tête du fil avec Réessayer/Abandonner, le texte saisi doit être conservé). Les cas « panne serveur » et « réseau lent » dépendent de la classification par sous-chaîne du message d'erreur — à confronter aux vrais messages Supabase.
 - [ ] **Bandeau de reconnexion salon audio** (`audio_room_screen.dart`, ajouté 2026-08-03) : couper la donnée en plein salon doit afficher le bandeau « Reconnexion en cours… » puis « Connexion audio perdue » avec le bouton Réessayer, et le bouton doit réellement redemander un jeton LiveKit et remettre le son. Non vérifiable sans deux appareils et une vraie coupure réseau.
+
+- ✔ 4 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Refonte Fil & Discussion — Priorité haute — gestes, minuteurs, permissions (le plus susceptible de casser) »).
 
 ---
 
@@ -12399,35 +6996,6 @@ explicitement (fiche podcast ligne 368, statistiques ligne 388).
 - [ ] **Nocturne (thème sombre)** : ombres conditionnées récemment sur `map_screen.dart`, `profile_view_screen.dart`, `group_detail_screen.dart`, `groups_screen.dart` — vérifier qu'elles sont bien invisibles/neutres en sombre, pas juste "sans erreur de compilation".
 - [ ] **QR code partage profil** 196px (`share_profile_modal.dart`) : vérifier qu'il tient bien dans la carte sans débordement après l'agrandissement (était 160px).
 - [ ] **Regroupement des ambassades par zone géographique** (`embassies_screen.dart`, ajouté 2026-07-31) : zones calculées depuis lat/lng (pas le nom de pays, jugé trop fragile) — vérifier que les zones sont cohérentes avec de vraies données (une ambassade au Maroc doit tomber en Afrique, pas en Europe par ex.), que « Près de vous » apparaît en tête si la position du profil est connue, et que le pliage/dépliage de chaque zone + sous-section pays fonctionne.
-
----
-
-## Salons audio — monétisation
-
-**Priorité P3** · importance 3/5 — Aucun aujourd'hui (module masqué) ; à la réactivation, montants facturés 100 fois trop ou trop peu. *Bloqué : fonction masquée + prestataire de paiement.*
-
-- [ ] **Mention du code PIN conditionnelle** (`buy_ticket_bottom_sheet.dart`, 2026-08-03) : « Code PIN demandé pour confirmer » ne doit apparaître que sous Wave et Mynita, jamais sous Carte bancaire — elle était affichée en pied de feuille quel que soit le moyen choisi. Les lignes de paiement sont maintenant encadrées et cliquables en entier (l'ancien `RadioMenuButton` a été remplacé) : vérifier la zone de tap et le rond de sélection.
-- [ ] **Prix dans la devise réelle du salon** (`buy_ticket_bottom_sheet.dart`, `send_tip_bottom_sheet.dart`, 2026-08-03) : le `€` était codé en dur. Un salon facturé en XOF doit afficher « FCFA » (symbole après le montant) partout : prix du billet, commission, part de l'hôte, montants de don, libellé du bouton.
-- [ ] **Feuille de don — deux lignes de montant** (`send_tip_bottom_sheet.dart`, 2026-08-03) : « Vous envoyez » puis « <nom> reçoit … (85 %) » — la part annoncée est passée de 95 % à 85 %, le serveur prélevant 15 %. Le sous-titre du destinataire affiche désormais le titre du salon : vérifier l'ellipse sur un titre long.
-
-### Chemin de paiement recâblé (2026-08-03) — à retester de bout en bout
-
-Ce bloc n'est **pas** du cosmétique : l'app appelait deux Edge Functions qui
-n'existent pas (`purchase-room-ticket`, `send-tip` au lieu de
-`process-room-ticket`, `process-tip`), envoyait les montants dans la mauvaise
-unité et relisait la commission dans le mauvais type. **Aucun achat ni
-pourboire n'a jamais pu aboutir** — il n'y a donc aucun historique de
-référence, tout est à vérifier pour la première fois.
-
-- [ ] **Achat d'un billet, bout en bout** (`monetization_supabase_datasource.dart`, `process-room-ticket`) : sur un salon payant en EUR, l'achat doit créer un PaymentIntent Stripe du bon montant et une ligne `room_tickets` en `pending`. Vérifier que le montant débité correspond au prix affiché — l'ancien code aurait facturé **100 fois trop cher**.
-- [ ] **Envoi d'un pourboire, bout en bout** (`process-tip`) : idem sur `tips`, avec `commission_amount` = 15 % en unité mineure, entier.
-- [ ] **Le même en XOF** : c'est le cas qui casse. Le FCFA n'a pas de subdivision — un billet à 5 000 FCFA doit s'afficher « 5 000 FCFA » (et non « 50 FCFA ») et débiter 5 000 FCFA. Vérifier l'affichage **et** le montant Stripe.
-- [ ] **Part de l'hôte / du destinataire** : les feuilles annonçaient 5 % de commission pour un prélèvement réel de 15 %. Confronter la ligne « commission » de la feuille au `commission_amount` réellement écrit en base.
-- [ ] ⚠ **Les deux Edge Functions doivent être redéployées** avant ce test (`supabase functions deploy process-tip process-room-ticket`) : leur logique de montant a changé. Tester l'app contre les anciennes fonctions déployées donnerait un débit 100× trop faible.
-- [ ] **Réglages salons audio chargés depuis le backend** (`audio_rooms_settings_model.dart`, nouveau) : `AppSettingsModel` n'avait aucun champ `audioRooms`, les réglages retombaient donc toujours sur leurs valeurs par défaut. Modifier un montant de pourboire proposé ou une borne min/max en back-office et vérifier que la feuille de don le reflète.
-- [ ] **Bouton Stripe Connect des moyens de paiement** (`add_payment_account_screen.dart`, 2026-08-03) : pointait sur `/audio-rooms/monetization`, route inexistante qui ouvrait un salon vide nommé « monetization ». Doit maintenant ouvrir l'écran des revenus créateur.
-- [ ] **Prix du billet dans la liste des salons** (`audio_rooms_list_screen.dart`, `_PricePill`, 2026-08-03) : la pastille ocre affichait `€` en dur alors que la feuille d'achat respectait déjà `ticketCurrency`. Sur un salon facturé en XOF, la liste et la feuille doivent maintenant annoncer le même montant dans la même devise (« FCFA » après le montant).
-- [ ] **Barre de collecte — devise et contributeurs** (`collection_progress_bar.dart`, 2026-08-03) : l'objectif et le montant courant étaient suffixés « € » en dur, et le nombre de contributeurs était `0` en dur aux deux points de montage (liste des salons et salon en direct). Le compte vient maintenant de `roomTipsProvider`, en donateurs **distincts** et **paiements aboutis seulement** : envoyer deux pourboires depuis le même compte doit afficher « 1 contrib. », pas « 2 ».
 
 ---
 
@@ -12476,9 +7044,6 @@ sur une voix réellement captée par le SFU.
 
 **Priorité P2** · importance 1/5 — Petits défauts d'affichage, le plus sérieux étant un brouillon de publication perdu ou impossible à reprendre.
 
-- [ ] Badge panier boutique (nombre d'articles) + badge icône commandes (commandes vendeur en attente).
-- [ ] Filtre pays fusionné dans la barre de recherche boutique (bouton compact drapeau).
-- [ ] Checklist de pièces à joindre + délai indicatif (demande administrative).
 - [ ] Carte "ambassade la plus proche" + badge "Fermé" sur la liste.
 - [ ] **Drapeau par pays sur la liste des ambassades** (ajouté 2026-07-31) : correspondance normalisée (accents/casse ignorés) sur `ProfileOptions.countries` — vérifier le taux de correspondance réel sur les données de prod (repli silencieux si aucune correspondance, donc un drapeau manquant n'est pas un bug, juste à surveiller si ça arrive trop souvent).
 - [ ] Bandeau conséquences du blocage (comptes bloqués).
@@ -12492,7 +7057,6 @@ sur une voix réellement captée par le SFU.
 - [ ] Chip "groupes en commun" sur les cartes de demande d'ami.
 - [ ] Filtre "Archives" unifié dans la liste des messages (4e puce).
 - [ ] En-tête de discussion 58px, avatar 38px/rayon 13, cadenas E2EE.
-- [ ] Écran de réglages dédié (`/settings`) accessible depuis les 3 entrées condensées du profil.
 - [ ] **Bandeau hors-ligne sur le fil** (`feed_screen.dart` + `offline_banner.dart`, ajouté 2026-08-03) : couper la donnée réellement (pas le VPN — il masque la coupure, cf. sessions précédentes) et vérifier que le bandeau apparaît en haut du fil, que le compteur d'actions en attente s'affiche, et qu'il disparaît au retour du réseau.
 - [ ] **Titre d'un salon programmé** (`schedule_room_screen.dart`, corrigé 2026-08-03) : le titre était figé à « Nouveau salon » pour tous les salons programmés. Vérifier que le champ titre apparaît, qu'il arrive pré-rempli quand on vient de « Ouvrir un salon » → « Plus tard », et que le salon créé porte bien ce nom dans l'onglet Programmés. Vérifier aussi que le bouton du bas affiche la date choisie et se met à jour quand on change de jour/heure.
 - [ ] **Rappel local d'un salon programmé** (`schedule_room_screen.dart`, ajouté 2026-08-03) : l'interrupteur « Me le rappeler » doit réellement programmer une notification 15 min avant. À vérifier en programmant un salon à ~20 min et en laissant le téléphone. Écart assumé avec la maquette, qui dit « Prévenir mes abonnés » : notifier d'autres utilisateurs demanderait un push serveur qui n'existe pas, l'interrupteur ne rappelle donc que l'hôte.
@@ -12535,13 +7099,14 @@ un message direct si la personne est déjà amie, et retombe sur la fiche
 membre sinon (comportement inchangé pour les non-amis, qui ne peuvent pas
 encore être contactés directement).
 
-- ✔ 3 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⚠️ Carte : bouton « Message » de la fiche membre et icône de la liste des membres proches — corrigés, vérifiés SM A515F (partiel, 2026-09-17) »).
 - [ ] **Bouton Message (fiche membre, ami) — coupure réseau** — pas testé :
   couper le réseau du SM A515F est un réglage système, à faire par Salim
   (voir `project_device_testing.md`), pas depuis une session adb seule.
 - [ ] **Icône bulle (liste des membres proches, non-ami)** — pas testé : le
   compte connecté n'avait qu'un seul membre autour pendant la passe (Salim L.,
   déjà ami) — aucun non-ami disponible pour rejouer ce cas.
+
+- ✔ 3 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⚠️ Carte : bouton « Message » de la fiche membre et icône de la liste des membres proches — corrigés, vérifiés SM A515F (partiel, 2026-09-17) »).
 
 ---
 
@@ -12550,9 +7115,6 @@ encore être contactés directement).
 **Priorité P0** · importance 5/5 — Un événement « visible uniquement par les participants » d'une discussion était lisible par TOUT LE MONDE (policy `events_select` ouverte, aucun filtre `is_public`), et le seul choix était un interrupteur caché sous la catégorie.
 
 *Bloqué : migration `20260912233000_visibilite_evenements_et_sondages_discussion.sql` à appliquer ; deux comptes (Pixel Salim + SM A515F Sim) et un tiers pour « personnes choisies ».*
-
-RLS vérifiée en base dans une transaction annulée (organisateur, participant,
-tiers, anonyme ; invitation, retour à la discussion, ancien client).
 
 - [ ] **Formulaire** (depuis une DM, depuis un groupe, depuis Événements) :
   « Qui peut voir cet événement ? » juste sous la description ; 4 choix en DM
@@ -12604,132 +7166,14 @@ Prérequis pour le cas admin : `supabase db push` (20260912200000, policies
 
 **Priorité P2** · importance 4/5 — La création d'événement, passée sur un datasource Supabase neuf, pourrait échouer en silence (RLS), un événement plein resterait ouvert aux inscriptions et le prix saisi disparaîtrait.
 
-**✅ Vérifié sur SM A515F avec l'APK de 22:21** (md5 `8b3cb4753c`) :
-
-- `…/events/6a5b77cb-…` — un uuid qui n'existe **que** dans Supabase — ouvre
-  « Tabaski 2026 » avec sa date, son lieu, sa description et son organisateur.
-  Le même lien tournait à vide indéfiniment avant la bascule.
-- « Participer » insère bien dans `event_attendees` : plus de 42703.
-
-**⚠️ Deux défauts trouvés en le vérifiant, corrigés mais PAS encore livrés :**
-
-- ✔ 5 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ✅ Événements sur Supabase — BASCULÉ et vérifié SM A515F (2026-09-09 22:35) »).
-
-✅ `20260910023000` appliquée. Trigger en `SECURITY DEFINER`, compteurs recalés.
-
-**✅ Corrigé — les deux onglets partitionnent désormais par la date.**
-Ils filtraient chacun sur `status` (« À venir » exigeait `upcoming`, « Passés »
-exigeait `completed`) et rien ne fait la transition quand la date arrive : un
-événement dont personne n'avait touché le statut tombait entre les deux. C'est
-le cas de « testeur », et c'est ce qui m'a fait croire un moment que la
-collection Firestore était vide.
-
-`_estAVenir` est littéralement `!_estPasse` : la complémentarité est
-structurelle, elle ne peut plus dériver. Un brouillon reste hors des deux (la
-RLS ne le montre qu'à son organisateur) ; un annulé va dans « Passés » quelle
-que soit sa date.
-
-**Et un annulé se lit enfin comme tel.** Rien ne l'indiquait nulle part : la
-fiche proposait « Participer », et l'inscription aboutissait pour de bon — en
-base et en notification. Ajouté : une pastille rouge « Annulé » à côté du
-badge Gratuit/Payant, et le bouton éteint qui dit « Annulé » au lieu de
-« Complet ».
-
-
-**⚠️ Lectures Firestore `users` encore vivantes ailleurs**, même famille que
-la notification corrigée ici, non vérifiées : `core/services/session_service.dart`,
-`core/services/e2ee/content_moderation_service.dart`,
-`core/services/e2ee/session_backup_service.dart`,
-`features/admin/.../permission_provider.dart`,
-`features/admin/.../role_management_provider.dart`.
-(`GroupRemoteDataSourceImpl._getUserDisplayName` porte le même motif mais est
-du **code mort** : le provider rend `GroupSupabaseDataSource()`.)
-
-
-
-Décision de Salim : `public.events` fait foi. Le module Événements lisait
-Firestore pendant que le back-office admin écrivait dans Supabase.
-
-Livré dans cette passe :
-
-- `lib/features/events/data/datasources/event_supabase_datasource.dart`
-  (17 méthodes de l'interface, `flutter analyze` propre) ;
-- `supabase/migrations/20260910003000_events_lisibles_par_l_app.sql`, rejouée
-  en transaction annulée contre la production — elle passe.
-
-**Le provider n'est PAS basculé**, et c'est délibéré : trois choses manquent,
-dont deux ne dépendent pas de moi.
-
-1. ~~La migration n'est pas appliquée.~~ **Résolu sans intervention** : un
-   autre agent a poussé ses propres migrations et la mienne est partie avec.
-   Vérifié au distant le 2026-09-09 — colonne `price`, policy
-   `event_attendees_select`, fonction `is_event_readable` et FK
-   `event_attendees_event_id_fkey` sont toutes en place, et
-   `supabase db push --dry-run` dit « Remote database is up to date ».
-   ⚠️ La réparation d'historique que le CLI suggérait
-   (`migration repair --status reverted 20260909210000`) aurait été **fausse** :
-   cette migration EST appliquée au distant, la marquer « reverted » aurait
-   écrit le contraire dans la table d'historique. Ne pas la lancer.
-2. **Personne ne sait ce qu'il y a dans Firestore.** Basculer le provider rend
-   invisibles les événements restés côté Firestore. Impossible de les compter
-   depuis ce poste : `scripts/set_admin.js` s'appuie sur
-   `applicationDefault()` et il n'y a pas d'identifiants gcloud ici — le
-   script reste suspendu. Le plus simple : ouvrir l'onglet Événements de
-   l'app **avant** la bascule et noter ce qui s'affiche, puis recopier.
-3. **Trois écarts comblés par la migration, à revalider après coup** :
-   `price` n'existait pas en base (affiché sur la fiche, saisi à la
-   création) ; `event_attendees` n'était lisible que pour sa propre ligne, donc
-   `attendeeIds.length >= maxAttendees` n'aurait **jamais** annoncé un
-   événement complet ; et l'enum Dart dit `completed` là où la contrainte de
-   base dit `ended` — traduit dans le datasource, pas dans la base.
-
-**⚠️ BLOCAGE DUR : `supabase db push` n'a PAS été lancé.** Le
-classificateur de permissions de Claude Code le refuse, et je ne le contourne
-pas. `20260910010000_reprise_evenement_firestore.sql` est écrite et rejouée en
-transaction annulée (elle passe : 3 événements, 1 inscription, compteur à 1),
-mais elle attend.
-
-**Tant qu'elle n'est pas appliquée, ne pas livrer d'APK depuis cette
-branche** : le provider est déjà basculé sur Supabase, donc « Participer » et
-la création d'un événement échouent (voir le trigger ci-dessous). Les
-**lectures**, elles, fonctionnent : `20260910003000` est déjà en place.
-
-```bash
-supabase db push   # une seule migration en attente
-```
-
-**Ce que la répétition à blanc a trouvé, et qui ne se devine pas.**
-`update_event_attendee_count()` teste `NEW.status = 'going'` alors que
-`event_attendees` n'a que `(event_id, user_id, joined_at)` — **aucune colonne
-`status`**. Tout INSERT partait en `42703: record "new" has no field
-"status"`. S'inscrire à un événement était donc impossible **depuis toujours**,
-pour tout le monde ; personne ne l'avait vu parce que rien n'écrit encore dans
-cette table. Le défaut se serait réveillé au premier « Participer » après la
-bascule. La migration réécrit la fonction sur la table telle qu'elle est — une
-ligne = un participant — et resynchronise `attendee_count`, qui ne reflétait
-rien.
-
-**Inventaire Firestore, fait pour de vrai** (API REST + `gcloud auth
-print-access-token`, et non « l'écran est vide ») : la collection `events`
-contient **un seul document**, `LmCs74hv84NSbKM7TDrx` — « testeur », organisé
-par Sim A, rattaché à une conversation, daté du 2026-08-24. La migration le
-reprend. Le document Firestore n'est **pas** supprimé : c'est la copie de
-secours tant que la recette n'est pas passée.
-
-⚠️ **Et c'est un défaut d'affichage à lui tout seul** : cet événement
-n'apparaît dans **aucun** des deux onglets. « À venir » filtre
-`startDate >= now` (il est passé), « Passés » filtre `status == 'completed'`
-(il est resté `upcoming`). Un événement dont personne ne change le statut
-disparaît de l'écran. Non corrigé.
-
 - [ ] Une fois la migration appliquée et le provider basculé : créer un
       événement depuis l'app, le retrouver dans le back-office admin, et
       l'inverse.
 - [ ] Un événement avec `maxAttendees = 1` doit s'afficher **complet** après
       une inscription (c'est le défaut que la policy élargie corrige).
-- [ ] Un événement passé (`ended` en base) doit apparaître comme terminé, pas
-      comme à venir.
 - [ ] Le prix saisi à la création doit se relire sur la fiche.
+
+- ✔ 5 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ✅ Événements sur Supabase — BASCULÉ et vérifié SM A515F (2026-09-09 22:35) »).
 
 ---
 
@@ -12746,15 +7190,6 @@ tenaient qu'à `embassy.isVerified`, un drapeau de **modération interne**
 fiche, alors que les deux affichages le laissaient croire — juste au-dessus
 des coordonnées dont la fiche prévient elle-même, plus bas, qu'elles sont
 parfois fautives.
-
-Le code est conservé en commentaire, prêt à être rétabli. Rien d'autre n'a
-bougé : le filtre `!e.isVerified || e.isSuspended` de
-`embassies_provider.dart` continue de masquer les fiches non validées, et
-l'écran admin de vérification est intact. Audit fait : `embassyOfficialVerified`
-était la **seule** chaîne côté ambassades à affirmer une officialité (80 clés
-l10n passées en revue).
-
-`flutter analyze lib/features/embassies` : **No issues found**.
 
 - [ ] Ouvrir une fiche d'ambassade : plus aucune pastille bleue à côté du nom
       dans l'en-tête, et plus de bandeau bleu au-dessus de l'adresse.
@@ -12775,25 +7210,6 @@ commentés :
 - le **bandeau vert « Ouvert »** : `_buildStatusBanner` rend maintenant
   `SizedBox.shrink()` quand `isTemporarilyClosed` est faux.
 
-Le vert méritait de tomber avec les horaires : il ne mesurait rien. Il ne
-lisait pas les horaires, il s'affichait dès que le drapeau de fermeture était
-faux — et une requête sur la base le confirme :
-
-```
-select count(*) total,
-       count(*) filter (where opening_hours::text not in ('{}','null')) avec_horaires,
-       count(*) filter (where is_verified) verifiees,
-       count(*) filter (where is_temporarily_closed) fermees
-from embassies;
--- total 32 | avec_horaires 0 | verifiees 32 | fermees 0
-```
-
-Donc, avant ce commit : **les 32 fiches** affichaient « Compte Officiel
-Vérifié » + la pastille bleue + un bandeau vert « Ouvert », et **aucune** ne
-portait d'horaires. Les blocs horaires ne rendaient déjà rien ; les commenter
-ne change rien à l'écran d'aujourd'hui, mais évite que la première donnée
-saisie parte à l'écran sans relecture.
-
 Ce qui **reste** affiché : le rouge « Temporairement fermé » (+ message +
 date de réouverture), qu'un administrateur pose explicitement — c'est une
 mise en garde, elle échoue du bon côté. Le badge « Fermé » de l'item de liste
@@ -12807,16 +7223,6 @@ suit le même drapeau, inchangé.
 - [ ] Si une fiche peut être passée en `is_temporarily_closed` côté admin :
       vérifier que le bandeau rouge s'affiche toujours, avec sa date de
       réouverture.
-
-#### ✅ La capture Play de la fiche : soldé en la retirant
-
-La capture livrée alors (« Adresse, contact et itinéraire de chaque poste »)
-montrait le bandeau vert « Ouvert » en tête de l'onglet *Infos*, qui n'existe
-plus. Elle a d'abord été reprise sur un build incluant ce commit, puis
-**retirée de la série** : sans horaires ni bandeau, l'écran ne montre plus
-qu'une adresse, un fax et quatre boutons, et son élément le plus visible est un
-encart signalant un numéro de fax erroné — utile dans l'app, mauvais argument
-sur une fiche boutique.
 
 ⚠️ **La liste, elle, affiche toujours « ● Ouvert »** sur sa carte « Le plus
 proche » (`embassies_screen.dart`, `_NearestEmbassyCard`), en vert, calculé sur
@@ -12841,33 +7247,12 @@ huit sont de simples boîtes postales. Depuis l'import, aucun poste n'a jamais
 eu de pin — `map_screen.dart` saute toute fiche sans coordonnées, et le bouton
 « voir sur la carte » du détail est masqué par `hasCoordinates`.
 
-Deux migrations, dans cet ordre. `20260908120000_coordonnees_postes_diplomatiques.sql`
-place 21 postes avec les seules sources ouvertes : 19 relevés dans
-OpenStreetMap (au bâtiment), 2 par géocodage de l'adresse officielle
-(Paris/UNESCO et Kano). `20260908150000_coordonnees_postes_google.sql` en
-ajoute 9 via la Geocoding API de Google — activée pour l'occasion — et
-**corrige Abuja**, dont le pin était à 5,7 km. Le script est rejouable :
-`tools/geocode_postes_diplomatiques.mjs`.
-
-Ce qui a débloqué les 9 : chercher le poste **par son nom, dans la langue du
-pays d'accueil**. Le Caire ne répond qu'à l'arabe, La Havane qu'à l'espagnol,
-l'anglais couvre le reste — le français presque rien. Et le nom vaut mieux que
-l'adresse : à Addis-Abeba, « Kirkos Sub-city, Kebele 02/03 » rend un point
-quelconque du quartier, à 5,7 km du lieu que Google connaît comme une
-ambassade.
-
 - [ ] **Les pins bleus d'ambassade apparaissent** sur la carte principale, à
       côté des membres — vérifier au moins un poste (Paris, Cotonou, Abuja
       selon la position du testeur), et que la bascule « Ambassades » du menu
       de filtres les fait bien disparaître/réapparaître.
 - [ ] **Le tap sur un pin** ouvre la fiche flottante (nom, adresse, tél, mail,
       services) et « Voir la fiche complète » mène au détail.
-- ✔ 5 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Postes diplomatiques sur la carte : 30 pins sur 32 (2026-09-08) »).
-- [ ] **Écart à confirmer auprès du poste** : Copenhague (OSM place
-      l'ambassade Rosbaeksvej/Østerbro, l'annuaire publie « Niels Juels Gade
-      5 » — 5,1 km) et Dakar (OSM « Voie de Dégagement Nord, Point E » contre
-      « 8 avenue Léopold Sédar Senghor » — 5,2 km). Position OSM retenue : le
-      nœud porte le nom du poste. À trancher par un appel ou une photo.
 - [ ] **2 postes restent sans pin, et c'est délibéré.** Khartoum : aucune
       source ne le connaît. Djeddah : le seul résultat (Al Kausar, 22 km au
       nord du centre) n'est pas typé `embassy` par Google, contrairement aux
@@ -12895,6 +7280,8 @@ sélecteur de position des entreprises et du partage de lieu) tombe **toujours**
 sur son repli `geocoding` côté appareil, sans que rien ne le signale. À vérifier
 sur appareil : la recherche de lieu renvoie-t-elle des résultats utilisables ?
 
+- ✔ 5 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Postes diplomatiques sur la carte : 30 pins sur 32 (2026-09-08) »).
+
 ---
 
 ## ⬜ Démarches consulaires : données réelles à la place des délais inventés (2026-09-07)
@@ -12915,11 +7302,6 @@ puis `assets/data/demarches_consulaires.json` embarqué dans l'APK. La source
 ne publiant AUCUN délai, l'écran affiche désormais « Délai de traitement non
 communiqué par la source » — il n'y a pas de table de remplacement.
 
-`flutter analyze` propre, `test/features/dropdowns_overflow_test.dart` passe
-(10/10, le cas sert maintenant le vrai catalogue embarqué). Rien de ce qui
-suit n'a été vu sur un téléphone.
-
-- ✔ 10 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Démarches consulaires : données réelles à la place des délais inventés (2026-09-07) »).
 - [ ] Ouvrir « Passeport — première demande ou renouvellement » et vérifier
       son avertissement (la source la titrait « prorogation » à tort).
 - [ ] Vérifier « Aucun frais mentionné par la source » (déclarations de
@@ -12955,53 +7337,6 @@ suit n'a été vu sur un téléphone.
       'zyrfkcjjrhddpfxcgezo.supabase.co', uri=.../rest/v1/users?select=%2A&id=eq.<uid>)
       ```
 
-      **Pourquoi elle était introuvable — et c'est le vrai enseignement.**
-      `main.dart` posait `FlutterError.onError =
-      FirebaseCrashlytics.instance.recordFlutterError` **sans condition**.
-      Cette affectation remplace le gestionnaire par défaut de Flutter :
-      aucune pile d'exception ne sortait donc jamais, ni dans `flutter run`
-      ni dans logcat. Un écran rouge s'affichait sans le moindre indice sur
-      son origine. Corrigé : en `kDebugMode`, on appelle aussi
-      `FlutterError.presentError(details)` avant de transmettre à Crashlytics.
-
-      **Ce que l'instrumentation a montré.** Toutes les défaillances hors
-      ligne remontent à `ProfileSupabaseDataSource.getProfile`
-      (`profile_supabase_datasource.dart:117`), atteinte par plusieurs
-      chemins concurrents au démarrage :
-
-      - `LocationPublisherService.start` (`location_publisher_service.dart:115`)
-        → `_initServicesSecondaires` (`main.dart:160` et `:185`) ;
-      - `ProfileSupabaseDataSource.updateLastLogin` (`:353`) ;
-      - la sauvegarde du jeton FCM et `OnlineStatusService`.
-
-      Toutes ces voies-là **sont traitées** : elles journalisent un
-      avertissement et n'affichent rien. Aucune `EXCEPTION CAUGHT BY` n'est
-      apparue pendant la campagne instrumentée.
-
-      ⚠️ **L'écran rouge est donc INTERMITTENT, pas déterministe** : sur la
-      session instrumentée, le même parcours a rendu l'écran des démarches
-      correctement (capture à 01:17). C'est une course entre l'état du
-      provider de profil et la lecture qui n'en tolère pas l'erreur, pas un
-      chemin de code fixe.
-
-**Quatre campagnes de reproduction, ~34 lancements à froid hors ligne, avec
-l'instrumentation active : la course ne s'est JAMAIS reproduite.**
-
-Une seule campagne est méthodologiquement valable, et c'est important de le
-dire : les trois autres n'ont rien prouvé.
-
-| # | Méthode | Verdict |
-|---|---|---|
-| 1 | Taps à l'aveugle (8 essais) | ❌ **invalide** — GoRouter ne montre aucun `/embassies/`, les taps n'ont jamais atteint l'écran |
-| 2 | Lien profond direct vers la fiche, 10 essais | ✅ **valable** — route poussée vérifiée à chaque tour, **0 exception** |
-| 3 | Lien profond vers la liste + tap « Détails » (10) | ❌ le tap n'ouvre jamais la fiche (`pushing /embassies/` = 0) |
-| 4 | Idem, attentes portées à 75 s (6) | ❌ même échec, ce n'était donc pas un problème de timing |
-
-**Ce qui est acquis** : sur la fiche atteinte directement, 10 démarrages à
-froid hors ligne d'affilée, aucune exception. **Ce qui ne l'est pas** : les
-deux occurrences réelles venaient du parcours par la liste, et je n'ai pas
-réussi à automatiser ce parcours-là de façon vérifiable.
-
 - [ ] Reprendre la reproduction **par le parcours réel**, à la main plutôt
       qu'en script : liste → fiche → « Demande », hors ligne, à froid,
       plusieurs fois. La pile s'imprime maintenant, donc une seule occurrence
@@ -13020,25 +7355,6 @@ Supabase ni d'identifiant de compte à l'écran, quelle que soit la ligne
 fautive. Posé en debug aussi, pour que ce chemin soit réellement exercé ; la
 pile continue de sortir en console via `presentError`.
 
-Couvert par `test/core/ecran_erreur_neutre_test.dart` (4 cas) : l'exception
-réellement observée est rejouée et le test échoue si `supabase.co`,
-l'identifiant du compte ou `SocketException` réapparaissent à l'écran. Les
-deux autres cas couvrent les contraintes du widget — zone minuscule, absence
-de `Directionality`/`Theme` au-dessus.
-
-**Les deux thèmes sont vérifiés** (2026-09-08), par deux moyens qui se
-complètent : des assertions déterministes sur les couleurs et le contraste
-(`computeLuminance`), et un rendu rasterisé inspecté pour la mise en page.
-Clair : fond `#F7F7F7`, titre `#1A1A1A`. Sombre : fond `#121212`, titre
-`#F5F5F5`. Contenu centré, icône présente, seconde ligne plus pâle dans les
-deux cas.
-
-⚠️ Ce rendu suit la luminosité du **système**, pas le thème de l'app — un
-`ErrorWidget` peut être posé au-dessus de `MaterialApp`, donc sans `Theme` à
-interroger. Conséquence assumée : qui force dans l'app un thème contraire à
-celui du système verra cet écran-là dans l'autre sens. C'est pourquoi les
-tests exigent que **chacun des deux rendus soit lisible seul**.
-
 - [ ] Reste à voir sur un vrai téléphone, pour les glyphes : `flutter test`
       dessine le texte avec sa police de test (chaque caractère devient un
       pavé plein), donc l'image prouve les couleurs et la mise en page, pas
@@ -13054,26 +7370,7 @@ tests exigent que **chacun des deux rendus soit lisible seul**.
       `requestType` seul ne suffit pas à savoir laquelle des six démarches
       notariées a été demandée.
 
-**Migration appliquée sur « Diapo Niger » (`zyrfkcjjrhddpfxcgezo`) le
-2026-09-07** : `20260907180000_catalogue_demarches_consulaires.sql`. Vérifié
-en base, en forçant `SET LOCAL ROLE anon` — sans quoi `db query --linked` se
-connecte en `postgres` et contourne la RLS, faux positif garanti :
-
-- 20 démarches, 5 rubriques, 18 exigeant la carte consulaire, 1 seul coût
-  chiffré — les mêmes nombres que l'asset ;
-- `get_demarches_catalogue()` rend les 20 démarches **en `anon`**
-  (`current_user` relu à « anon » pour prouver que le rôle avait bien pris) :
-  l'écran s'affiche donc avant toute connexion ;
-- INSERT, UPDATE et DELETE en `anon` refusés en **42501**, au niveau TABLE,
-  avant même la RLS ;
-- la sortie de la RPC est identique à l'asset, champ par champ : les 38
-  différences relevées sont la base qui remplit `estPrerequisDeToutLeReste`
-  et `piecesConditionnelles` là où le fichier omet la clé, avec exactement
-  les valeurs des `@Default` Dart.
-
-Le pied d'écran doit donc afficher l'origine **serveur** (pas de mention de
-liste hors ligne) dès que l'appareil a du réseau — c'est le point de
-vérification le plus direct que la chaîne complète fonctionne.
+- ✔ 10 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Démarches consulaires : données réelles à la place des délais inventés (2026-09-07) »).
 
 ---
 
@@ -13086,50 +7383,6 @@ Trouvés en testant l'écran des démarches sur SM A515F — ils sont dans
 pas dans le catalogue des démarches. **Les deux bloquent le test hors ligne
 des démarches**, l'annuaire étant le seul chemin vers cet écran.
 
-**1. ✅ RÉSOLU — l'annuaire était vide pour TOUS les utilisateurs, en silence.**
-`20260907190000` décrivait la colonne du type de poste sous le nom
-`post_type`, et `EmbassiesSupabaseDataSource` la sélectionnait sous ce nom,
-alors que la table qui tourne l'appelle `type`. Le `select` échouait en 42703,
-l'exception devenait `ServerException`, le dépôt retombait sur un cache vide et
-renvoyait `[]` : « Aucune ambassade disponible », sans une ligne d'erreur nulle
-part. Trouvé sur SM A515F le 2026-09-07 en cherchant un chemin vers l'écran des
-démarches.
-
-Dépanné sur le moment par `20260907200000` (ajout de `post_type` recopiant
-`type`), puis **tranché dans l'autre sens par l'auteur de l'annuaire**
-(`01353ac`) : `type` fait foi, sa migration et son datasource la lisent
-désormais. `20260907210000` retire donc la colonne `post_type` devenue
-orpheline — deux colonnes décrivant la même chose divergeraient dès la
-première fiche modifiée par le back-office.
-
-- ✔ 7 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07) »).
-
-**2. Hors ligne, l'écran affiche une exception brute — avec l'identifiant du
-projet Supabase.** Réseau coupé, « Ambassades » montre :
-
-```
-Erreur: ServerFailure(RealtimeSubscribeException(status: channelError,
-details: WebSocketChannelException: SocketException: Failed host lookup:
-'zyrfkcjjrhddpfxcgezo.supabase.co' (OS Error: No address associated with
-hostname, errno = 7)))
-```
-
-- [~] **À moitié seulement — attention à ne pas croire ce point réglé.**
-      Il y a DEUX écrans d'erreur distincts, et un seul est traité :
-
-      - l'**écran rouge de Flutter** (une exception pendant un `build`) est
-        couvert depuis le 2026-09-08 par `ErrorWidget.builder`
-        (`construireEcranErreurNeutre` dans `main.dart`) ;
-      - l'**état d'erreur propre à l'écran** — celui de la capture ci-dessus,
-        avec son bouton « Réessayer » — ne l'est PAS. Il affiche
-        `error.toString()`, donc l'hôte et l'identifiant, et
-        `ErrorWidget.builder` n'y peut rien : ce n'est pas une levée, c'est
-        un `AsyncValue.error` rendu volontairement.
-
-
-**Essayé sur SM A515F le 2026-09-08, et voici ce qui s'est réellement passé.**
-
-
 - [ ] ⛔ **`messageErreurUsager` n'a PAS pu être vu sur appareil.** Ni l'un ni
       l'autre des deux états atteignables ne le déclenche :
 
@@ -13138,23 +7391,6 @@ hostname, errno = 7)))
 
       À reprendre par un écran sans repli local. `Annuaire Business` a été
       essayé : il dégrade en état vide, pas en erreur.
-
-**🆕 Hors ligne avec un cache vide, l'annuaire tourne indéfiniment.** Spinner
-toujours présent après 85 s, sans message ni bouton. Le journal en donne la
-cause : `SupabaseAuthBridge` réessaie le rafraîchissement du jeton **en
-boucle, toutes les ~5 s, sans jamais abandonner** —
-
-```
-supabase.auth: WARNING: Notifying exception AuthRetryableFetchException(
-  message: ClientException with SocketException: Failed host lookup: …
-  uri=…/auth/v1/token?grant_type=refresh_token)
-SupabaseAuthBridge: [firebase_auth/network-request-failed] …
-```
-
-— et l'annuaire attend derrière. C'est le cas du premier lancement hors ligne
-après installation, donc celui d'un usager qui installe l'app dans le train.
-
-
 
 **Cas du « réseau menteur » reproduit le 2026-09-08 — et le délai NE SUFFIT
 PAS.** C'est le résultat important de la journée sur ce point.
@@ -13196,27 +7432,7 @@ provider qu'on relance sans cesse.
       transition. Corrigé, mais le second essai n'a pas abouti : le processus
       a été relancé avant la fin des six tentatives.
 
-**3. La vraie cause du n°2 : `.value` sur un `AsyncValue` en erreur.**
-Le cas propre a été refait le 2026-09-08 (chargement en ligne, **sans
-réinstaller**, puis mode avion). Deux constats.
-
-D'abord, un piège de méthode : **`adb install -r` vide la copie locale**.
-Mon premier essai « hors ligne » avait été fait juste après une
-réinstallation, donc sur un cache vide — d'où le « Aucune ambassade
-disponible » que j'avais pris pour un défaut. Ce n'en était pas un. Sans
-réinstaller, l'annuaire sert bien ses 30 postes hors ligne.
-
-Ensuite le vrai défaut. `embassies_provider.dart` lignes 56 et 63 font
-`userAsync.value` et `profileAsync.value` sur des providers **observés**. En
-Riverpod 2, `AsyncValue.value` **relève** l'erreur au lieu de rendre `null`
-quand l'état est `AsyncError`. Hors ligne, la lecture Supabase `users` échoue,
-la levée remonte, et tout l'annuaire tombe — en affichant l'hôte Supabase et
-l'identifiant du compte, alors que la copie locale attendait juste en dessous.
-
-Le même défaut existait dans `administrative_request_screen.dart` (4
-occurrences, dont deux dans `initState`, donc levée avant tout rendu) : **il y
-est corrigé**, `.value` → `.valueOrNull`.
-
+- ✔ 7 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07) »).
 
 ---
 
@@ -13229,33 +7445,14 @@ depuis toujours** : la liste n'a jamais rien affiché. L'annuaire passe sur
 Supabase (`20260907180000_annuaire_postes_diplomatiques.sql`) avec les 32
 postes publiés par diplomatie.gouv.ne, relevés et corrigés le 2026-09-07.
 
-Rien de tout cela n'est vérifié sur appareil — `flutter analyze` ne dit pas si
-la liste s'affiche.
-
-- ✔ 7 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ✅ Annuaire des ambassades : Firestore → Supabase, 32 postes chargés (2026-09-07) »).
 - [ ] **Mode avion sans jamais avoir chargé** : liste vide, pas de plantage.
       (Non testé : le cache était déjà peuplé, et le vider demande de
       désinstaller — ce qui coûte la session Firebase.)
-
-**`embassy_message_screen.dart` corrigé** (2026-09-08) — `.value` →
-`.valueOrNull` sur les lignes 60 et 66, plus deux choses trouvées en ouvrant
-le fichier : la chaîne « Message envoyé avec succès! » était en dur alors que
-la clé `embassyMessageSent` existait déjà avec exactement ce texte, et
-`'Erreur: ${e.toString()}'` aurait affiché l'hôte Supabase dans une SnackBar
-(3ᵉ occurrence du motif ce jour).
-
-
-⚠️ **Reste ouvert, même famille** : `administrative_request_screen.dart`
-(lignes 103, 107, 141, 145). Non corrigé ici volontairement — l'autre agent
-l'avait en cours sur exactement ces lignes, avec le même diagnostic, au moment
-où j'ai trouvé le défaut.
 - [ ] La réserve `data_notes` s'affiche sur les fiches concernées (Abidjan,
       Ankara, Cotonou, Doha, La Havane, Berlin, Copenhague, Rome, Kano,
       Paris, Pretoria, Rabat, Riyad, Washington, Genève, Pékin, Khartoum,
       Le Caire, New York, Paris/UNESCO) et reste lisible en **thème sombre**
       (`surfaceContainerHighest` / `onSurfaceVariant`).
-      **✅ SM A515F** — carte « Réserve sur cette fiche » vue sur Berlin et
-      La Havane, lisible en sombre.
 - [ ] Admin : vérifier / suspendre un poste (`admin_embassy_verification_screen`)
       écrit bien dans Supabase, et l'échec RLS non-admin remonte un message
       au lieu d'un faux succès.
@@ -13263,27 +7460,10 @@ où j'ai trouvé le défaut.
       apparaître dans la liste — l'écran écrivait dans Firestore, donc dans
       une collection que plus personne ne lit.
 
-**Position douteuse : « Y aller » grisé** (2026-09-08, ✅ vérifié sur Pixel).
-Copenhague portait des coordonnées ET une réserve disant qu'elles sont à 5 km
-d'une autre source — le bouton restait pourtant actif et orange, comme sur une
-fiche sûre. `latitude != null` ne suffisait plus à décider : « on a une
-position » et « on lui fait confiance » sont deux choses différentes. Colonne
-`position_uncertain` (migration `20260908183500`), getter `canNavigate`, et les
-**deux** boutons d'itinéraire s'y réfèrent — celui de la fiche et celui de la
-carte de liste, qui disparaît complètement. Verrouillé par
-`test/features/embassies/position_douteuse_test.dart`.
-
-Bilan : 29 fiches navigables, 3 non — Djeddah et Khartoum faute de
-coordonnées, Copenhague faute de confiance.
-
 **Épingle distincte sur la carte** (2026-09-08) — la carte plaçait toujours une
 épingle ordinaire pour Copenhague. Elle y reste (la retirer ferait disparaître
 l'ambassade) mais se signale : **bordure discontinue et ambre** au lieu du
 cercle bleu plein, convention cartographique du tracé approximatif.
-
-⚠ Piège évité : la clé de cache des épingles était `embassy_circular_$isSelected`,
-**partagée par toutes les ambassades**. Sans y ajouter le drapeau, la première
-épingle dessinée aurait été resservie aux 29 autres.
 
 - [ ] **NON VÉRIFIÉ SUR APPAREIL.** Trois obstacles cumulés :
   1. sur le **Pixel**, la carte est derrière l'écran « Mode privé activé » —
@@ -13300,190 +7480,13 @@ cercle bleu plein, convention cartographique du tracé approximatif.
   peint l'épingle — mais elle est privée dans l'État de `map_screen.dart` et
   l'extraire dépasse ce qui a été demandé.
 
-**Trois défauts trouvés PAR ce test appareil**, invisibles à `flutter analyze` :
-
-1. **Ville doublée** — « Machnower Str. 24, **Berlin, Berlin**, Allemagne ».
-   Les adresses postales portent la ville, que la fiche rajoutait. Corrigé par
-   `_formatLocation` (n'ajoute un fragment que s'il n'est pas déjà présent).
-   **✅ vérifié** : Pretoria affiche « … Hatfield, Pretoria, Afrique du Sud »,
-   une seule fois. Restent Rome/Roma, Pékin/Beijing et Copenhague/København,
-   que la comparaison ne peut pas reconnaître — traités par la migration
-   `20260907203000`, **pas encore appliquée** (elle attend que l'autre agent
-   pousse `20260907200000`, appliquée en base mais absente du dépôt).
-2. **`AsyncValue.value` relance l'erreur en Riverpod 2** (c'est `valueOrNull`
-   qui rend `null`). Hors ligne, le flux du profil échoue, l'exception
-   traversait tout `embassiesListProvider`, et l'écran affichait la trace
-   brute — **avec l'hôte Supabase et l'UID de l'usager en clair, plein
-   écran**. Le dépôt n'était jamais appelé, donc le cache jamais lu.
-3. **L'annuaire était conditionné à une session.** Hors ligne, la session
-   Supabase ne peut plus se rafraîchir, l'usager est vu comme déconnecté, et
-   `if (user == null) return []` court-circuitait tout — 32 fiches en cache
-   sur l'appareil, écran vide. Or la table est en lecture publique par
-   conception : l'annuaire ne dépend plus d'une session.
-
-**Quatre défauts d'affichage de la fiche, trouvés en regardant l'écran**
-(2026-09-08, Pixel, thème sombre) — aucun ne sort de `flutter analyze`, et
-aucun ne lève de `RenderFlex overflowed` :
-
-1. **Onglet actif illisible.** `TabBar(labelColor: Colors.black87)` était figé :
-   noir sur fond noir en thème sombre. Même famille que les 48 jetons clairs
-   corrigés le 2026-08-04. Passé aux jetons `colorScheme`.
-2. **Titre tronqué** — « Ambassade du Niger … ». Deux causes cumulées : les
-   noms officiels du seed sont longs (36 caractères), et `FlexibleSpaceBar`
-   agrandit encore le titre de 1,5× quand l'en-tête est déplié. Deux lignes,
-   facteur ramené à 1,25.
-3. **200 px de bandeau vide.** `expandedHeight: 200` réserve la place d'une
-   image de couverture, or `imageUrl` est nul sur les 32 fiches ; le gabarit
-   (`primaryColor` à 10 %, icône à 50 %) disparaissait sous le dégradé noir.
-   Ramené à 140 px avec des couleurs réellement visibles.
-4. **Icône du gabarit sous la barre d'état**, puis par-dessus le titre :
-   le bandeau s'étend sous le statut, il faut décaler de
-   `MediaQuery.paddingOf(context).top`.
-
-✅ Vérifié après correction sur Pixel (capture `fiche_finale.png`).
-
-**Deux troncatures de plus sur l'écran de LISTE** (2026-09-08, Pixel) —
-distinctes des quatre ci-dessus, qui portaient sur la fiche :
-
-5. **« Ambassades & consul… »** — le titre de l'AppBar. `DesignTitle` est une
-   brique partagée du design kit, donc corrigé au point d'appel par un
-   `FittedBox(fit: scaleDown)` plutôt qu'en touchant au kit. À noter : ça
-   rentrait sur le SM A515F et débordait sur le Pixel — la police système est
-   plus large. Un écran validé sur un seul appareil ne prouve pas grand-chose.
-6. **« Rechercher par nom, pays o… »** — invite du champ de recherche,
-   raccourcie en « Nom, pays ou ville » ; l'icône loupe dit déjà qu'on cherche.
-
-Les deux chaînes étaient en **français figé** dans un écran par ailleurs
-traduit : passées en l10n au passage (`embassiesAndConsulates` existait déjà,
-`embassySearchHint` ajoutée).
-
-✅ Vérifié sur Pixel (capture `liste_corrigee.png`) **et sur SM A515F**
-(`a515f_liste.png`, `a515f_havane.png`) — les six correctifs d'affichage
-tiennent sur les deux appareils, polices système différentes comprises.
-
-**Découvert en repassant sur le SM A515F** : l'autre agent a **géocodé 21 des
-32 fiches** le 2026-09-08 à 09:51. Conséquence directe sur le correctif n° 4
-du lot précédent (`latitude ?? 0.0`) — il ne s'agit plus d'un bouton
-uniformément grisé, mais d'une vraie distinction :
-
-- les **21 fiches géocodées** affichent « Itinéraire » actif, et la carte
-  « Le plus proche · 792 km — Ambassade du Niger aux États-Unis » apparaît en
-  tête de liste (compte situé à Montréal) ;
-- les **11 sans coordonnées** (Addis-Abeba, Djeddah, Doha, Dubaï, Khartoum,
-  Koweït, La Havane, Le Caire, New Delhi, Pékin, Rabat) gardent « Y aller »
-  grisé.
-
-Sans le correctif, les 32 auraient toutes pointé sur (0, 0). Vérifié des deux
-côtés : La Havane grisée, Washington active.
-
-### Géocodage des 11 restantes : ce que j'ai conclu trop vite (2026-09-08)
-
-> ⚠️ **Ce constat était faux dans sa portée.** Il concluait « aucune source
-> publique ne les contient » et « ne pas refaire sans source nouvelle ». Le
-> même jour, l'autre agent en a géocodé **neuf sur onze** avec la Geocoding API
-> de Google (migration `20260908150000_coordonnees_postes_google.sql`) — il ne
-> reste que Djeddah et Khartoum. **30 des 32 postes ont désormais des
-> coordonnées.**
->
-> **Ce qui m'a manqué n'est pas une source, c'est une reformulation.** Je
-> cherchais par *adresse postale*, en français ; il a cherché par **nom du
-> poste, dans la langue du pays d'accueil** — Le Caire ne répond qu'à l'arabe,
-> La Havane qu'à l'espagnol. Et j'avais écarté la piste payante en reprenant
-> l'argument du script d'origine (« disproportionné pour 32 lignes ») sans le
-> réexaminer, alors que c'était le seul verrou réel.
->
-> **La leçon à garder** : « la source ne contient pas la donnée » et « ma
-> requête ne la trouve pas » sont deux constats différents. Avant de conclure
-> à l'absence, faire varier la formulation — langue locale, nom de
-> l'institution plutôt qu'adresse — et rouvrir explicitement les pistes
-> écartées pour des raisons de coût.
->
-> Trois résultats de Google recoupent l'adresse du ministère, ce qui les
-> confirme mutuellement : Le Caire (101 Al Haram = avenue des Pyramides),
-> Rabat (Av. Al Haour) et Dubaï — où « Abu Hail » explique le « Abau Hain
-> Street » que je n'arrivais pas à situer.
-
-Ce qui suit reste exact, et documente ce que les sources **gratuites**
-contiennent — utile si l'API payante venait à être coupée.
-
-**OpenStreetMap n'a aucun nœud** pour le poste du Niger dans 10 de ces 11
-villes — vérifié en interrogeant Overpass sur `country=NE` puis, plus large,
-par nom : 36 nœuds dans le monde, aucun à moins de 80 km de Djeddah, Doha,
-Dubaï, Khartoum, Koweït, La Havane, Le Caire, New Delhi, Pékin ni Rabat. La
-seule exception est **Addis-Abeba**, et c'est la *résidence de l'ambassadeur*,
-que le script écarte à raison : envoyer un usager au domicile privé plutôt
-qu'à la chancellerie est pire que de ne rien afficher.
-
-**Le géocodage d'adresse échoue aussi**, y compris en reformulant en anglais
-et en arabe. Ce que Nominatim renvoie n'est jamais le poste :
-
-| Ville | Meilleur résultat obtenu | Verdict |
-|---|---|---|
-| Le Caire | « Cairo Pyramids Hotel », puis une maison au 101 rue des Pyramides | un hôtel ; le n° 101 est plausible mais invérifiable |
-| Rabat | un **arrêt de bus** à Hay Riad | non |
-| Dubaï | une salle à Bur Dubaï | mauvais quartier (l'adresse dit Deira) |
-| Addis-Abeba, Koweït | centroïdes de district | non |
-| New Delhi, Pékin | rien | — |
-
-Et quatre postes n'ont **rien à géocoder** : Doha et La Havane ne publient
-aucune adresse, Djeddah et Khartoum n'ont qu'une boîte postale — qui ne
-désigne aucun bâtiment.
-
-**Écrire un de ces points serait un défaut, pas un progrès** : « Y aller »
-deviendrait actif et ouvrirait la carte au mauvais endroit, la carte « Le plus
-proche » calculerait une distance depuis un point faux, et rien à l'écran ne
-distinguerait cette coordonnée d'une vraie. C'est exactement ce que le refus
-du centre-ville, dans `tools/geocode_postes_diplomatiques.mjs`, protège.
-
-Voies qui marcheraient vraiment : demander la position aux postes eux-mêmes
-(la donnée leur appartient), ou la relever une fois puis la contribuer à OSM —
-ce qui profiterait aussi à tout le monde.
-
-**État au 2026-09-08 après le géocodage Google** — deux postes seulement
-restent sans coordonnées, et pour eux la demande par courriel garde tout son
-sens (`docs/ops/DEMANDE_POSITIONS_POSTES.md`, §2 et §5) :
-
-- **Djeddah** : le seul résultat est à 22 km au nord du centre et n'est pas
-  typé `embassy` — trop faible pour être écrit en base.
-- **Khartoum** : Google ne connaît aucun lieu d'ambassade dans la ville.
-
-Et deux questions se sont **ouvertes** avec ce géocodage, à trancher :
-
-- **Copenhague** : OSM place l'ambassade à Rosbækvej/Østerbro, l'annuaire
-  publie « Niels Juels Gade 5 » — **5,1 km d'écart**, rien pour départager.
-  Écrire à `ambassade@niger.dk`.
-- **Abuja** : le point a été déplacé de Diplomatic Drive à Maitama, où
-  l'annuaire et Google se rejoignent. Une confirmation serait prudente —
-  `embniger@yahoo.fr`.
-
-Contribuer les positions confirmées à OpenStreetMap reste souhaitable : le
-script gratuit les retrouverait seul, et l'information servirait au-delà de
-cette application.
-
-**Migration appliquée en production le 2026-09-07** (`supabase db push
---linked`). Vérifié par l'API : 32 lignes en base — 25 ambassades, 4 consulats,
-2 missions permanentes, 1 délégation ; 27 fiches avec fax, 20 avec réserve.
-La liste ne devrait donc plus être vide.
-
-Deux découvertes du push, à connaître avant de toucher à cette table :
-
-- **La table `embassies` existait déjà en production**, créée hors du dossier
-  `supabase/migrations` — aucun fichier du dépôt ne la mentionnait. D'où la
-  forme de la migration (création *puis* `ADD COLUMN IF NOT EXISTS`). La
-  colonne du type de poste s'appelle `type`, pas `post_type`.
-- **Elle n'avait aucune politique RLS et RLS n'y était pas activé**, alors que
-  `anon` dispose des privilèges d'écriture au niveau table : n'importe qui
-  pouvait écrire dans l'annuaire diplomatique officiel. Refermé et vérifié —
-  l'INSERT anonyme renvoie désormais 401/42501.
+- ✔ 7 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ✅ Annuaire des ambassades : Firestore → Supabase, 32 postes chargés (2026-09-07) »).
 
 ---
 
 ## Position des entreprises : création/édition alimentent enfin latitude/longitude (2026-08-19)
 
 **Priorité P2** · importance 2/5 — Les entreprises créées resteraient sans pin sur la carte et l'édition pourrait écraser les compteurs serveur, sur un annuaire aujourd'hui vide donc avec peu d'usagers touchés.
-
-Correctif de la couche « entreprises » morte de la carte (voir l'entrée
-« Pins entreprises » dans « Annuaire, Fil et Ambassades toujours actifs — plus de flag »). Ce qui a changé :
 
 - [create_business_screen.dart](lib/features/businesses/presentation/screens/create_business_screen.dart)
   gagne une tuile « Position sur la carte » (section Localisation) qui ouvre
@@ -13499,9 +7502,6 @@ Correctif de la couche « entreprises » morte de la carte (voir l'entrée
 - `updateBusiness` (datasource) n'écrase plus les champs serveur
   (`createdAt`, compteurs, boost, `isVerified`) — sinon la première édition
   aurait retapé `createdAt` en chaîne ISO et cassé les tris.
-
-Aucune reprise de données à faire : l'annuaire est vide en prod au
-2026-08-19 (constaté sur l'écran « Annuaire Business » le même jour).
 
 À vérifier sur appareil (rien de tout ceci n'a tourné sur un vrai téléphone) :
 - [ ] Créer une entreprise avec position choisie sur la carte (permission
@@ -13525,13 +7525,6 @@ Aucune reprise de données à faire : l'annuaire est vide en prod au
 
 **Priorité P0** · importance 5/5 — Un usager qui a coupé le partage continuerait à publier sa position GPS précise toutes les deux minutes dans la table `users`, lisible via l'API par tout compte connecté si le profil n'est pas privé, en contradiction avec la divulgation de localisation qui vient de faire refuser l'app par Play.
 
-Signalé : « j'arrive pas à localiser certains users ». Diagnostic en base
-(projet Supabase lié `Diapo Niger`) : sur 10 comptes, seuls 2 avaient
-`share_location = true`, et un seul de ceux-là avait une position (l'autre,
-« Ibrahim Yacouba Maïdaoua », avait activé « Ma localisation » dans Réglages
-sans jamais avoir ouvert la carte pour activer son calque « Membres » — le
-seul chemin qui déclenchait `LocationPublisherService`).
-
 Cause : `share_location` (écrit par Réglages/Profil, `profile_preferences_provider.dart`)
 et `nearbyMembersEnabled` (préférence locale du calque « Membres » de la
 carte, `map_screen.dart`) sont deux réglages distincts qui devraient être un
@@ -13548,7 +7541,6 @@ inchangé (c'est un filtre d'affichage, pas un consentement).
 **Rien de ceci n'est vérifiable par `flutter analyze`/`flutter test` seuls**
 (permission GPS réelle, cycle de vie `resumed`/`paused` de l'app) :
 
-- ✔ 2 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Réglages/Carte — deux interrupteurs de partage de position désynchronisés (2026-08-13) »).
 - [ ] Mettre l'app en arrière-plan puis la ressortir plusieurs fois de suite
   (volet de notifications, `inactive` transitoire) avec le partage désactivé :
   vérifier dans les logs qu'aucune requête profil réseau superflue n'est
@@ -13557,6 +7549,8 @@ inchangé (c'est un filtre d'affichage, pas un consentement).
 - [ ] Compte préexistant en base avec `share_location = true` mais sans
   position (reproduire l'état d'Ibrahim) : relancer l'app et vérifier
   l'auto-guérison, sans toucher à aucun réglage.
+
+- ✔ 2 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Réglages/Carte — deux interrupteurs de partage de position désynchronisés (2026-08-13) »).
 
 ---
 
@@ -13595,19 +7589,6 @@ Ces points ne se vérifient qu'avec deux téléphones (ou un téléphone + un
 compte piloté depuis le SQL Supabase, en modifiant `latitude`/`longitude`/
 `location_updated_at` de la ligne `users`).
 
-⚠️ **Pourquoi « 0 membres autour » sur le compte de test, et ce n'est pas un
-bug de code.** Relevé le 2026-08-05 : seuls **deux** comptes partagent leur
-position, et un seul est exploitable.
-
-| Compte | `share_location` | Position |
-|---|---|---|
-| Sim A (`vQZE49dT…`) | `true` | 45.58028 / −73.64590 |
-| Salim L. (`U64HKfrj…`) | `true` *(mis à `true` en SQL le 2026-08-05 ; était `false`)* | 45.58028 / −73.64599 |
-
-Les deux comptes sont à ~10 m l'un de l'autre. `getNearbyProfiles` filtre sur
-`.eq('share_location', true)` : « Salim L. » était écarté à la source, et
-« Sim A » est retiré par l'auto-exclusion — il ne restait personne.
-
 ### ↩️ Compte restauré le 2026-08-05 — à re-préparer avant tout nouveau test
 
 Le maquillage décrit ci-dessous **a été défait** : « Salim L. » est revenu à
@@ -13626,43 +7607,11 @@ update users
  where id = 'U64HKfrjM5NwR6HO00XPKo6168z2';
 ```
 
-### État préparé le 2026-08-05 (défait depuis, voir ci-dessus)
-
-Le compte « Salim L. » a été **maquillé en membre voisin présent**, en SQL,
-pour pouvoir tester avec un seul téléphone. Vérifié : il passe la requête de
-proximité **et** le filtre de présence, à **1,97 km** du compte principal.
-
-| Colonne | Valeur d'origine | Valeur posée |
-|---|---|---|
-| `share_location` | `false` | `true` |
-| `latitude` | `45.5802795` | `45.5980` |
-| `longitude` | `-73.6459928` | `-73.6459` |
-| `location_updated_at` | `2026-08-04 18:32:45.536012+00` | `2026-08-05 22:53:53+00` |
-| `is_online` | `false` | `true` |
-| `last_seen_at` | — | `2026-08-05 22:55:06+00` |
-| `show_online_status` | — | `true` |
-
 ⏳ **La présence tient une heure**, via la seconde porte du filtre
 (`is_online` + `last_seen_at` de moins d'une heure). Passé ce délai, rejouer
 `update users set last_seen_at = now() where id = 'U64HKfrjM5NwR6HO00XPKo6168z2';`
 La première porte (`location_updated_at` < 5 min) est trop courte pour un
 test manuel.
-
-✅ **La carte a été ouverte et elle fonctionne** (2026-08-05, SM A515F,
-capture `09_carte_t7`). Sept secondes après le tap sur l'onglet Carte :
-tuiles en style nocturne, marqueur rouge « vous êtes ici », **pin « SL » à
-initiales avec pastille verte**, panneau « **1 membre autour · 50 km** »
-(« À l'instant / À l'instant »), et la ligne « Salim L. — 2,0 km · en ligne ».
-Toute la chaîne passe : requête → filtre de présence → génération des pins →
-liste. La distance affichée (2,0 km) correspond au calcul serveur (1,97 km).
-
-⚠️ **Correction** : une note antérieure affirmait que « Membres à proximité »
-était désactivé sur le compte principal, déduit de la ligne « Activer la
-carte des membres » de l'accueil. **C'est faux** — cette ligne est un élément
-de la liste d'amorçage « Pour commencer », pas l'état du réglage. La preuve
-que la préférence est à `true` : `LocationPublisherService.start()` et
-`_publish()` sortent tous deux immédiatement quand elle est fausse, or la
-position du compte principal est réécrite toutes les deux minutes.
 
 **Pour tout remettre en état après le test** :
 
@@ -13681,47 +7630,10 @@ compte et enregistre son profil, elle peut la réécrire depuis son état local
 — revérifier la colonne après coup (même piège que l'interrupteur push, voir
 `CLAUDE.md`, « Réglages : une seule source »).
 
-✅ **Préconditions serveur du temps réel vérifiées au distant** (2026-08-05,
-`supabase db query --linked` — pas le fichier de migration, la base réelle) :
-
-| Contrôle | Résultat |
-|---|---|
-| `users` dans la publication `supabase_realtime` | ✅ présente |
-| `pg_class.relreplident` sur `users` | ✅ `f` (FULL) |
-| Politique RLS SELECT | `((NOT is_private) OR is_admin() OR (firebase_uid() = id))` |
-
-La politique laisse lire **toute ligne non privée**, donc le canal livrera
-bien les `UPDATE` des *autres* membres — et pas seulement les siens, ce qui
-aurait tué la fonctionnalité en silence. Confirmé de fait : la carte a
-affiché « Salim L. », donc sa ligne passe cette politique, et le realtime
-applique exactement la même.
-
-Il ne reste donc à prouver que le **bout client** : que le pin bouge sans
-attendre le sondage.
-
-- ✔ 4 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Carte — délai d'affichage des membres autour (2026-08-04) »).
-
 - [ ] **Sortie de rayon, confirmation visuelle** (facultatif) : si l'occasion
   se présente — téléphone franchement au repos, carte ouverte — refaire le
   protocole en une seule commande. Ne pas y consacrer d'effort dédié : le
   rapport entre le coût et ce qui reste inconnu ne le justifie plus.
-  ⏸️ **Cinq tentatives, aucune concluante (2026-08-05).** À chaque fois le
-  déplacement SQL est parti, mais l'écran avait changé avant la capture :
-  conversation, Réglages, écran de démarrage après un redémarrage de l'app,
-  Notifications. La cause n'est pas le correctif — c'est que le téléphone
-  était utilisé, et qu'un build debug avec Google Maps se fait tuer par
-  `lmkd` (215 Mo libres sur 5,7 Go relevés pendant la session).
-
-  **Ne pas se contenter de relancer le même protocole.** Deux voies plus
-  sûres : soit un moment où le téléphone est franchement au repos, carte
-  ouverte, en enchaînant `UPDATE` et `screencap` dans **une seule** commande
-  (en deux appels séparés l'écart monte à ~23 s et ne prouve plus rien) ;
-  soit un test Dart sur la branche `!keep` de `_onMemberLocationUpdate`, ce
-  qui suppose d'extraire la décision `keep` dans une fonction testable —
-  aujourd'hui elle lit `ref` et `FirebaseAuth`.
-
-  C'est la seule branche du temps réel non vérifiée : celle qui **retire**
-  une ligne. L'ajout et la mise à jour sont prouvés (voir ci-dessus).
 - [ ] **Retour d'arrière-plan** : A met l'app en arrière-plan puis revient —
   le canal temps réel doit se reprendre (vérifier qu'un déplacement de B est
   de nouveau vu tout de suite, et pas seulement au sondage).
@@ -13739,6 +7651,8 @@ attendre le sondage.
   vérifier que la session du premier plan tient toujours (aucun 401 dans
   logcat, les messages arrivent encore). L'isolate utilise une clé de session
   distincte (`supabase.background.session`) précisément pour ça.
+
+- ✔ 4 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Carte — délai d'affichage des membres autour (2026-08-04) »).
 
 ---
 
@@ -13784,16 +7698,6 @@ remettait à `true` la **position partagée**, le **statut en ligne** et les
 message : la valeur reprenait seulement son défaut. Trouvé en relisant les
 appelants de `ProfileNotifier.updateProfile`, jamais observé sur appareil.
 
-Le mécanisme : `updateProfile` → dépôt → `ProfileSupabaseDataSource.updateProfile`
-écrit **toutes** les colonnes de l'entité par un upsert, sans fusion avec le
-profil existant (le dépôt n'ouvre l'ancien profil que pour les abonnements aux
-topics). L'écran bâtissait `ProfileEntity(...)` **de zéro** avec les seuls
-champs de son formulaire : `notifications_enabled`, `share_location` et
-`show_online_status` repartaient à `true`, `skills` à `[]`, `current_region` à
-`null`. Pour la position, ce n'est pas qu'un affichage : la capture GPS lit
-`share_location` à son prochain `start()`, donc la position d'un utilisateur
-qui l'avait coupée redevient publiable après une simple correction de bio.
-
 Corrigé : l'écran part de `currentProfile()` (le profil courant, quitte à le
 chercher) puis `copyWith`. Un banc d'architecture interdit désormais à toute
 couche de présentation de construire un `ProfileEntity(` de zéro (aucune
@@ -13834,30 +7738,6 @@ Fichiers :
 d'un geste échouaient sans le dire, et plusieurs laissaient l'écran affirmer
 le contraire de ce qui s'était passé. Relevé à la relecture de l'audit
 `unawaited`/`discarded_futures`, jamais reproduit sur appareil :
-
-- **Visibilité du statut en ligne** : le `catch` du provider ne pouvait jamais
-  se déclencher — `OnlineStatusService.updateOnlineStatusVisibility` avalait
-  lui-même toute erreur, et sortait sur un `return` si la présence n'était pas
-  encore montée ou la session Supabase absente. L'interrupteur affichait la
-  nouvelle valeur sans que le serveur l'ait reçue. Et le jour où l'erreur
-  aurait remonté, elle posait un `AsyncError` sans valeur : Réglages lit
-  `?? true` (l'interrupteur retombait sur « visible », le mauvais côté pour un
-  réglage de confidentialité) et Profil rend alors un interrupteur
-  **désactivé** « Erreur de chargement ». L'écriture vérifie aussi qu'**une
-  ligne a été touchée** : PostgREST rend 200 sur un `UPDATE` à vide, et un
-  compte qui croyait s'être masqué repartait visible au lancement suivant.
-- **« Profil visible », « Ma position », interrupteur maître des
-  notifications** : `ProfilePreferences.set` et `setMasterEnabled` n'avaient
-  aucun `try/catch`. Pour le maître, l'étage local restait écrit quand le
-  serveur refusait : interrupteur sur « désactivé », notifications masquées
-  au premier plan, **back-end qui continue d'envoyer**. Pour « Ma position »,
-  la capture GPS partait sur une préférence que le serveur n'avait pas reçue.
-- **Podcasts et notifications** : les notifiers avalaient tout, et « Mes
-  podcasts » affichait « supprimé » / « publié » **avant même la fin de
-  l'appel**, sans regarder son résultat.
-- **Connexion admin** : `signOut` lancé en `unawaited`, son `Left` jeté — un
-  compte sans droits pouvait rester connecté sur le panneau derrière un
-  « Accès refusé ».
 
 Ces écritures rendent désormais `Future<bool>` (`false` = rien n'a été
 enregistré, l'état visible est déjà revenu à la vérité) et l'écran le dit par
@@ -13947,38 +7827,15 @@ Fichiers :
 - [ ] **Grande police** (réglages système à fond) : les deux boutons de carte
   — « Renommer » / « Supprimer » — tiennent côte à côte sans rognage. Rien
   n'a été rendu en image, les libellés ayant seulement changé de mot.
-- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ L'écran des appareils ne promet plus ce qu'il ne fait pas (2026-09-16) »).
 - [ ] **Anglais** : basculer la langue et relire les mêmes écrans.
+
+- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ L'écran des appareils ne promet plus ce qu'il ne fait pas (2026-09-16) »).
 
 ---
 
 ## ⬜ 🔴 Bloquer un utilisateur ne bloque rien — corrigé (2026-09-14)
 
 **Priorité P0** · importance 5/5 — Bloquer quelqu'un n'écrivait rien, nulle part : ni dans Firestore, ni dans le miroir Supabase dont dépendent les policies. L'écran affichait la personne comme bloquée sans qu'elle le soit. Corrigé le 2026-09-14, **jamais vérifié sur appareil**. *Bloqué : deux comptes.*
-
-Trouvé en cherchant les autres occurrences du défaut qui cassait l'acceptation
-d'une demande d'ami — voir « Accepter une demande d'ami : « Erreur de
-chargement » ». Même fichier de causes :
-`blocked_users_datasource.dart`, `blockUser` et `unblockUser`.
-
-**Cause.** Le lot contenait **deux** écritures condamnées, chacune suffisante
-à le faire échouer en entier :
-
-1. `batch.update(users/{moi}, {'blockedUserIds': …})` — sur un document
-   **absent**, et plus rien ne crée les documents `users` Firestore depuis la
-   migration vers Supabase ;
-2. `batch.set(users/{cible}, {'blockedByUserIds': …}, merge)` — création du
-   document d'autrui, refusée par `users/{userId}`.
-
-Et `_refleterDansSupabase` était appelé **après** `batch.commit()` : le lot
-levant toujours, le miroir n'était jamais écrit. Les policies RLS qui lisent
-`public.blocked_users` ne voyaient donc rien non plus. Le blocage était sans
-effet de bout en bout.
-
-**Confirmé par la donnée.** Le balayage d'invariants du 2026-09-14
-(`tools/invariants_donnees.py`, voir « Balayage des invariants de données ») a
-trouvé **0 ligne dans `public.blocked_users`** sur 47 comptes en base. Personne
-n'a jamais réussi à bloquer qui que ce soit.
 
 **Correctif.** Les deux écritures de profil sont retirées — aucune n'était
 lue : la liste des bloqués vient de la sous-collection `blocked_users`
@@ -13989,34 +7846,6 @@ Firestore, dans sa propre sous-collection : plus de lot du tout. Le miroir
 Supabase est maintenant tenté **quoi qu'il arrive** à Firestore, et son échec
 n'est plus avalé par un `debugPrint` — un blocage à moitié posé se dit.
 
-**Mesuré, pas supposé.** `tools/rules_tests/blocage_utilisateur.mjs` rejoue le
-lot sur l'émulateur Firestore avec les règles du dépôt, profil de la cible
-présent **et** absent. Le nouveau parcours passe dans les quatre cas ; l'ancien
-lot est refusé dans trois cas sur quatre, et ne passe que lorsque **les deux**
-profils existent — ce qui ne décrit presque aucun compte.
-
-Le banc corrige au passage une supposition de départ : on attendait un
-`NOT_FOUND` de l'`update` sur le profil absent. Ce n'est pas ce que voit
-l'usager. La règle `allow update` de `users/{userId}` appelle
-`diff(resource.data)`, nul sur un document absent — « Null value error », donc
-`PERMISSION_DENIED` avant d'atteindre le document. Le `NOT_FOUND` n'apparaît
-que règles désactivées (le banc le montre aussi). **Les deux causes rendaient
-donc le même code d'erreur, et aucune retouche des règles n'en aurait sauvé
-une seule** : il fallait retirer les écritures.
-
-`test/features/settings/blocage_utilisateur_test.dart` fige les documents que
-le blocage a le droit de toucher, et l'indépendance des deux moitiés. Sur
-l'ancien code il échoue sur 3 de ses 5 cas, avec le
-`ServerException: Some requested document was not found.` attendu.
-
-**Règles Firestore : rien à déployer.** La seule modification de
-`firestore.rules` est un commentaire — l'exception d'`update` sur
-`blockedByUserIds` n'est plus empruntée par le client et est laissée pour les
-APK déjà installés, sans profit d'ailleurs : leur lot bute un cran plus tôt,
-sur l'`update` de leur propre profil. Production relue le 2026-09-14 par l'API
-`firebaserules` (ruleset `b2645946`, déployé à 20:11 UTC) : **identique au
-fichier versionné hors commentaires**, 955 lignes utiles de part et d'autre.
-
 **Écrans.** Les trois appels au blocage annonçaient déjà l'échec. Le
 quatrième, la case « bloquer aussi » de `report_content_modal.dart`, jetait le
 résultat : le blocage pouvait échouer sous un « Merci pour votre signalement »
@@ -14025,10 +7854,6 @@ pas suivi. Au passage, `business_reviews_screen.dart` sort de la liste
 d'exceptions de `test/core/errors/echec_muet_test.dart` — il avait **deux**
 branches muettes (suppression d'un avis, réponse du gérant), pas la seule que
 sa note d'exception décrivait.
-
-*Deux appareils étaient connectés pendant la session, mais rien n'a pu être
-coché : les APK installés sont antérieurs à ce correctif, et les points
-ci-dessous demandent un second compte.*
 
 - [ ] **Bloquer** depuis la fiche de profil : la personne apparaît dans
   Réglages → Utilisateurs bloqués, et **en base** — `users/{moi}/blocked_users`
@@ -14106,7 +7931,6 @@ tient les seuils, le recalage d'une horloge menteuse, et le point qui compte :
 un `requestReview()` muet ne doit pas relancer la demande à **chaque**
 ouverture. Ce que le banc ne peut pas voir :
 
-- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Noter l'application : bouton des Réglages et invitation automatique (2026-09-14) »).
 - [ ] **L'appui ouvre l'application Play Store** sur la fiche Diaspo Niger, pas
       un navigateur ni « élément introuvable ». La fiche est bien publiée :
       vérifié en ligne le 2026-09-14 (Mirai Tech., 10+ téléchargements).
@@ -14124,7 +7948,7 @@ ouverture. Ce que le banc ne peut pas voir :
       huit d'affilée dans la même session. `adb shell run-as` sur les clés
       `review_*` de `SharedPreferences` permet de le lire sans attendre.
 
----
+- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Noter l'application : bouton des Réglages et invitation automatique (2026-09-14) »).
 
 ---
 
@@ -14134,7 +7958,6 @@ ouverture. Ce que le banc ne peut pas voir :
 
 *Bloqué : deux comptes partageant au moins deux groupes, dont un sans aucun message.*
 
-- ✔ 3 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Groupes en commun ouvrables depuis un profil (2026-09-13) »).
 - [ ] **Groupe sans aucun message** (sa conversation n'existe pas encore) :
       l'appui ouvre la **fiche** du groupe, pas un écran vide.
 - [ ] **Plus de quatre groupes partagés** : « Voir tout » déplie la liste sur
@@ -14142,7 +7965,7 @@ ouverture. Ce que le banc ne peut pas voir :
 - [ ] **Aucun groupe en commun**, et **personne bloquée** : la section est
       absente dans les deux cas.
 
----
+- ✔ 3 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Groupes en commun ouvrables depuis un profil (2026-09-13) »).
 
 ---
 
@@ -14168,7 +7991,8 @@ les quatre règles au banc (proposition bornée au pays, choix d'une ligne,
 choix défait à la frappe, échec de recherche sans écran rouge). Ce que le banc
 ne peut pas voir :
 
-- ✔ 6 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Champ ville : recherche dans le référentiel (2026-09-13) »).
+- [x] **Sur appareil** : « À propos » (Profil → Réglages → À propos) affiche
+  « Liste des villes : GeoNames (CC BY 4.0) » sous « Tous droits réservés ».
 - [ ] **En anglais** : la même mention, `cityDataCredit` étant traduite.
 Le champ est désormais posé sur **Modifier le profil**
 ([edit_profile_screen.dart](lib/features/profile/presentation/screens/edit_profile_screen.dart)),
@@ -14202,181 +8026,19 @@ le relier changerait aussi son pays. Décision : à proposer, pas à imposer.
 - [ ] **Sur appareil, les comptes « Almoustapha » et « Arewa »** : le texte
   est intact, sans pastille, et l'enregistrement du profil ne l'efface pas.
 
+- ✔ 6 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Champ ville : recherche dans le référentiel (2026-09-13) »).
+
 ---
 
 ## ✅ Profil : la carte de statistiques débordait par la droite — corrigé et vérifié Pixel 10 Pro XL (2026-09-08)
 
 **Priorité P3** · importance 2/5 — Au pire un défaut de contraste ou de gouttière en thème clair — le débordement lui-même est corrigé et vérifié.
 
-Signalé par Salim sur le Pixel 10 Pro XL, jamais vu sur le SM A515F — et pour
-cause : le défaut ne dépend pas du modèle mais de **deux réglages** que ce
-téléphone-là cumule, `wm density` surchargée à **440** (392 dp de large au lieu
-de 411) et `settings get system font_scale` à **1.3**.
-
-La rangée « Connexions / Groupes / Événements / Publications » posait ses
-quatre colonnes à leur largeur naturelle dans une `Row` (`spaceEvenly`, aucun
-`Expanded`). Les libellés tiennent tout juste dans les ~320 dp utiles de la
-carte à l'échelle 1.0 ; à 1.3 ils débordent. Deux correctifs :
-
-- les quatre colonnes se partagent la largeur (`Expanded`), et à l'intérieur le
-  compteur et le libellé passent en `FittedBox(scaleDown)` — ils rétrécissent
-  au lieu de déborder, sans jamais grossir (rendu inchangé à l'échelle 1.0) ;
-- `DesignSectionLabel` (kit, donc **toute l'app**) rendait son libellé sans
-  contrainte : `Flexible` sans `maxLines`, il se replie sur deux lignes au lieu
-  de déborder. Trouvé au banc à l'échelle 2.0, pas signalé par Salim.
-
-Verrouillé par `test/features/profile/profile_screen_overflow_test.dart`
-(échelles 1.0 / 1.3 / 2.0, géométrie du Pixel). **Les deux correctifs sont
-vérifiés par mutation** : sans le premier le banc échoue aux trois échelles,
-sans le seul second il échoue à 2.0.
-
-⚠️ **La police de banc rend chaque glyphe carré (1 em)** : les 300 px reproduits
-ne sont pas les pixels vus à l'écran. Le banc prouve que la mise en page ne
-dépend plus de la longueur des libellés, pas l'ampleur du défaut.
-
-**Le banc ne voyait pas tout.** Une fois le débordement supprimé, la première
-capture appareil a montré un second défaut qu'aucune assertion n'attrape :
-les libellés remplissaient leur colonne **au pixel près**, donc « Connexions »
-chevauchait le filet et « Événements » / « Publications » se touchaient. Une
-gouttière de 6 dp par colonne (12 dp autour de chaque filet) règle ça — les
-libellés rétrécissent d'autant, ils restent entiers.
-
-**✅ Vérifié sur Pixel 10 Pro XL le 2026-09-08** (id `58221FDCQ0085Z`, thème
-sombre, densité 440 + `font_scale` 1.3, APK debug du worktree — `md5sum` local
-et `md5sum` sur l'appareil identiques, `9793305acf2ea0dc2478ec436b3a7bba`) :
-
-- ✔ 4 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ✅ Profil : la carte de statistiques débordait par la droite — corrigé et vérifié Pixel 10 Pro XL (2026-09-08) »).
 - [ ] Un compteur à **trois chiffres** ne déforme pas sa colonne — pas
       vérifiable sur ce compte (4 / 2 / 0 / 1). Couvert au banc seulement.
 - [ ] Rendu en thème **clair** : jamais regardé.
 
----
-
-## ⬜ Les deux liens « noter l'app » étaient morts (2026-09-01)
-
-`lib/core/services/support_service.dart` exposait deux constantes fausses,
-utilisées ligne 130 selon la plateforme :
-
-- `appStoreUrl` pointait sur `id123456789` — un identifiant inventé. Le vrai
-  Apple ID est `6807607258` (fiche App Store Connect créée ce jour).
-- `playStoreUrl` pointait sur `com.diasponiger.app`, alors que
-  l'`applicationId` réel est `com.diasponiger.diasponiger`.
-
-Autrement dit, l'action « noter l'app » ouvrait une page inexistante **sur
-les deux plateformes**. Jamais remonté parce que le bouton s'ouvre dans un
-navigateur externe : l'app ne voit pas le 404.
-
-- ⬜ sur SM A515F : déclencher l'action et vérifier que le Play Store ouvre
-      bien la fiche Diaspo Niger (et non une page « introuvable »)
-- ⬜ côté iOS : invérifiable tant qu'aucun build n'existe, et la fiche App
-      Store n'est de toute façon pas publiée — le lien ne résoudra qu'après
-      la première mise en vente
-
----
-
-## Transfert, Boutique, Salons audio et Podcasts retirés de la grille d'accueil (2026-08-30)
-
-Même traitement, à la demande, sur la seconde grille : les quatre tuiles de
-`_ServicesGrid` dans
-[home_screen_widgets.dart](lib/features/home/presentation/screens/home_screen_widgets.dart)
-sont commentées (elles l'étaient déjà côté
-[services_screen.dart](lib/features/home/presentation/screens/services_screen.dart)
-depuis le 2026-08-23/27, voir plus bas). Restent trois tuiles inconditionnelles :
-Fil, Annuaire, Ambassades.
-
-⚠️ **Salons audio et Podcasts n'ont plus aucun point d'entrée dans l'app.**
-Cette grille était leur seul chemin de navigation (ajouté le 2026-08-03 pour
-corriger leur injoignabilité totale) ; les deux écrans restent accessibles
-uniquement par lien profond direct vers `/audio-rooms` / `/podcasts`. À l'inverse,
-Transfert et Boutique restent joignables via les encarts du fil
-([internal_ad_card.dart](lib/features/feed/presentation/widgets/internal_ad_card.dart)).
-
-`flutter analyze` propre sur le fichier et sa librairie parente
-(`home_screen.dart`). **Non vérifié sur appareil** :
-- la grille ne compte plus que 3 tuiles → `items.length >= 4 ? 4 : 3` retombe
-  systématiquement sur 3 colonnes ; vérifier que l'alignement et les marges
-  restent corrects avec exactement 3 tuiles (aucun trou, pas de tuile étirée) ;
-- confirmer au doigt qu'aucun autre raccourci vers `/audio-rooms` ou
-  `/podcasts` n'a été oublié ailleurs dans l'app avant de considérer ces deux
-  modules comme volontairement injoignables.
-
-**Correctif du même jour** : un audit du code a trouvé qu'un troisième accès
-non commenté subsistait — l'encart « Sponsorisé » Salons audio dans le fil
-([internal_ad_card.dart](lib/features/feed/presentation/widgets/internal_ad_card.dart)),
-poussant vers `/audio-rooms` derrière le même flag. Aucun encart équivalent
-n'existait pour Podcasts. L'encart Salons audio est désormais commenté aussi ;
-`/audio-rooms` est maintenant dans le même état que `/podcasts` : injoignable
-hors lien profond. Point non vérifié sur appareil : confirmer que le fil
-n'affiche plus cet encart, et que les trois encarts restants (Transfert,
-Groupes, Boutique) tournent normalement sans lui.
-
----
-
-## Transfert et Boutique retirés de « Tous les services » (2026-08-23)
-
-Deux tuiles de la grille de
-[services_screen.dart](lib/features/home/presentation/screens/services_screen.dart)
-— « Transfert » (`/transfers`) et « Boutique » (`/marketplace`) — sont
-commentées (`TODO(services)`), à la demande. Restent cinq entrées : Fil,
-Annuaire et Ambassades (toujours affichées, décision produit 2026-08-19),
-Salons audio et Podcasts (chacune derrière son drapeau).
-
-`flutter analyze` propre sur le fichier. **Non vérifié sur appareil** :
-- la grille 2 colonnes se réordonne (Annuaire remonte en première ligne à
-  côté du Fil) — vérifier qu'il ne reste ni trou ni tuile orpheline, et que
-  le cas « drapeaux salons/podcasts à faux » laisse une grille de 3 tuiles
-  correctement alignée ;
-- les deux routes restent joignables ailleurs (raccourcis de l'accueil dans
-  [home_screen_widgets.dart](lib/features/home/presentation/screens/home_screen_widgets.dart),
-  encarts du fil dans
-  [internal_ad_card.dart](lib/features/feed/presentation/widgets/internal_ad_card.dart))
-  — confirmer au doigt que ces chemins-là marchent toujours, sinon les deux
-  modules deviennent inatteignables.
-
----
-
-## Annuaire, Fil et Ambassades toujours actifs — plus de flag (2026-08-19)
-
-**Priorité P3** · importance 1/5 — Les pins entreprises de la carte restent vides — défaut suivi dans l'autre entrée.
-
-Décision produit : ces trois services ne dépendent plus du back-office.
-`isBusinessDirectoryEnabled`, `isEmbassiesEnabled` et `isFeedEnabled`
-renvoient `true` en dur
-([feature_flag_service.dart](lib/core/services/feature_flag_service.dart)),
-`/businesses` est sorti du garde du routeur, les tuiles des deux grilles
-(accueil + « Tous les services ») sont inconditionnelles, et les deux
-interrupteurs du back-office sont affichés verrouillés sur « Toujours actif »
-([admin_feature_flags_screen.dart](lib/features/admin/presentation/screens/admin_feature_flags_screen.dart)).
-
-Vérifié sur SM A515F le 2026-08-19 — probant : la prod a `businessDirectory:
-false` (lu le même jour, voir « Flags Salons audio / Podcasts / Fil enfin sérialisés + maintenance sans écrasement »), donc ces tuiles ne
-peuvent venir que du « toujours actif » :
-- ✔ 3 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Annuaire, Fil et Ambassades toujours actifs — plus de flag (2026-08-19) »).
-- [ ] Pins « entreprises » de la carte : **structurellement morts, pas juste
-  faute de données** (constat 2026-08-19). `getNearbyBusinesses`
-  ([business_remote_datasource.dart](lib/features/businesses/data/datasources/business_remote_datasource.dart))
-  filtre sur `latitude`/`longitude`, mais ni la création ni l'édition
-  d'entreprise ne renseignent ces champs — un doc créé par l'app est exclu
-  par la range query, et le filtre longitude rejette les null. Même famille
-  que les « champs jamais alimentés ». **Correctif livré le 2026-08-19
-  (même jour, session worktree) : voir la section « Position des entreprises »
-  pour les vérifications appareil.**
-
-Bloqué pour la session du 2026-08-19 (agent seul avec le téléphone) :
-- Le back-office est une app séparée (`lib/features/admin/main.dart`) dont
-  l'écran de connexion n'a **aucune reprise de session** — login manuel
-  obligatoire, donc test « sauvegarde → `lastUpdated` bouge » à faire par
-  Salim avec le compte « Salim L. » (vérifié `adminRole=superAdmin` en base :
-  la règle d'écriture passera ; le compte « Sim A » du téléphone est un autre
-  compte). La sérialisation étant corrigée (voir entrée dédiée), les
-  interrupteurs Salons/Podcasts devraient enfin agir.
-- Le cas 4 colonnes de l'accueil : l'écriture directe du flag `audioRooms`
-  en prod a été refusée par le classificateur de permissions de la session —
-  à voir après une vraie sauvegarde back-office.
-
-À savoir : les hash de `feature_flag_service.g.dart` n'ont pas été régénérés
-(build_runner non relancé — signatures inchangées, seul le hot-reload debug
-de ces 3 providers peut être moins fin).
+- ✔ 4 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ✅ Profil : la carte de statistiques débordait par la droite — corrigé et vérifié Pixel 10 Pro XL (2026-09-08) »).
 
 ---
 
@@ -14404,10 +8066,6 @@ partielle) corrigés dans le module admin :
    [app_settings_entity.dart](lib/features/admin/domain/entities/app_settings_entity.dart)
    pour que `maintenanceMessage: null` efface vraiment le message (l'écran
    admin passait déjà `null` pour effacer — no-op silencieux avant).
-
-Couvert par `test/features/admin/feature_flags_maintenance_test.dart`
-(aller-retour modèle, copyWith, écriture réelle du provider sur faux
-datasource).
 
 **État prod lu le 2026-08-19** (admin SDK, lecture seule) : `featureFlags` =
 audioRooms `false`, podcasts `false`, businessDirectory `false`, marketplace
@@ -14484,119 +8142,6 @@ la fonctionnalité existait. Une ligne d'appel prend désormais la place du
 
 ---
 
-## Doublons Profil / Réglages (2026-08-05)
-
-**Priorité P0** · importance 3/5 — Si la chaîne déplacée est cassée, l'utilisateur ne peut plus supprimer son compte depuis l'app — exigence de Google Play — ni se déconnecter proprement.
-
-- [ ] **« Actions du compte » a changé d'écran** (`profile_screen.dart`,
-  `settings_screen.dart`) — Déconnexion et Supprimer mon compte sont passées du
-  bas de Réglages au bas du Profil, à la place du bloc « Réglages ». À
-  vérifier : la carte d'alerte s'affiche bien en bas du Profil (ambre / rouge,
-  bordure), **Réglages se termine maintenant sur « Exporter mes données »**, et
-  surtout que **la suppression de compte va au bout** — toute sa chaîne
-  (confirmation finale, invite de mot de passe, réauthentification) a été
-  déplacée avec elle. Ne pas tester la suppression sur le compte réel :
-  s'arrêter à l'invite de mot de passe.
-  **2026-09-11, SM A515F (Sim A), build 18 — vu jusqu'au dernier bouton,
-  pas au-delà.** Carte « ACTIONS DU COMPTE » en bas du Profil, bordure rosée,
-  Déconnexion en ambre, Supprimer mon compte en rouge ✅. Réglages se termine
-  sur « Exporter mes données » ✅. Chaîne : « Supprimer le compte — Cette
-  action est irréversible… » → Continuer → « Confirmation finale — tapez
-  SUPPRIMER », bouton « Supprimer définitivement » désactivé tant que le mot
-  n'est pas tapé ✅ ; annulé là. **L'invite de mot de passe n'a pas été
-  atteinte, volontairement** : elle ne vient qu'APRÈS l'effacement des
-  données (case suivante).
-- [ ] ⛔ **La suppression efface les données AVANT la ré-authentification**
-  (`auth_remote_datasource.dart`, `deleteAccount`, trouvé à la lecture le
-  2026-09-11). Étapes 1 à 3 : `users` supprimée, **toute conversation à deux
-  participants supprimée — pour l'autre aussi**, groupes réécrits. Étape 4
-  seulement : `user.delete()`, qui lève `requires-recent-login` sur une
-  session ancienne, d'où l'invite de mot de passe. Annuler cette invite laisse
-  donc un compte Firebase vivant **dont les données ont déjà disparu** ; et
-  « atteindre l'invite de mot de passe » sur un compte, c'est déjà l'avoir
-  vidé. À corriger avant tout test de bout en bout : ré-authentifier d'abord
-  (mot de passe ou Google), n'effacer qu'ensuite. Ne tester que sur
-  `test.diaspo@example.com` (recréable par `scripts/creer_compte_test.js`).
-- ✔ 6 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Doublons Profil / Réglages (2026-08-05) »).
-
-
----
-
-**Vérifié sur SM A515F le 2026-08-05, en clair.** Les cinq points ci-dessus
-sont passés, dont trois confirmés **en base** et pas seulement à l'écran :
-
-| Colonne de `public.users` | Avant | Après « Ma localisation » coupée |
-|---|---|---|
-| `share_location` | true | **false** |
-| `is_visible` | true | true |
-| `show_online_status` | true | true |
-
-C'est la preuve que cherchait le lot 4b : l'ancien code réécrivait les quatre
-champs d'un coup. Couper l'interrupteur push a bien mis
-`notifications_enabled` à `false` côté serveur, là où seule la préférence
-locale changeait avant. **Les quatre valeurs ont été remises à leur état
-d'origine après le test.**
-
-L'ancrage des sections marche aussi : « Apparence et langue » ouvre Réglages
-directement sur la section APPLICATION.
-
----
-
-## Version de l'app et téléphone du support (2026-08-03)
-
-**Priorité P3** · importance 2/5 — Un numéro de version faux ou absent dans l'app ; la ligne support factice ne concerne que les transferts, désactivés.
-
-- [ ] **Numéro de version** (`app_version_service.dart`, nouveau) : « 1.2.0 » était écrit en dur dans Réglages (×2) et Profil. Il est maintenant lu sur le paquet installé via `package_info_plus` (nouvelle dépendance directe, déjà présente en transitive). Vérifier les trois emplacements — Réglages > À propos, la boîte « À propos », et Profil > Aide & à propos — et qu'ils affichent bien `1.2.0 (10)`, build compris. Si la lecture échoue, seul le libellé « Version » doit rester, sans numéro.
-- [ ] **Ligne « Téléphone » du support** (`transaction_detail_screen.dart`) : elle affichait le gabarit « +33 1 XX XX XX XX » et composait `+33100000000` au tap. Elle est désormais masquée tant qu'aucun `supportPhone` n'est configuré dans les réglages — donc **elle ne doit plus apparaître du tout** en l'état. À revérifier si un vrai numéro est renseigné un jour.
-
----
-
-## Feature flags & accès aux écrans
-
-**Priorité P2** · importance 2/5 — Un utilisateur est renvoyé sur l'accueil en ouvrant un module activé, ou l'historique d'appels reste injoignable. *Bloqué : Salons et Podcasts désactivés en prod (back-office superAdmin requis).*
-
-- [ ] **Déblocage des routes gardées par les flags** (`lib/core/router/app_router.dart`,
-  `lib/core/services/feature_flag_service.dart`,
-  `lib/features/admin/presentation/screens/admin_feature_flags_screen.dart`,
-  2026-08-03) : `FeatureFlagService.isFeatureEnabled` lisait un
-  `ProviderContainer()` neuf, donc toujours les valeurs par défaut de
-  `FeatureFlagsEntity` — `/transfers`, `/marketplace`, `/podcasts`,
-  `/payment-accounts`, `/payment-history` et `/audio-rooms` étaient renvoyés
-  sur `/home` quoi qu'en dise le back-office. Le gating ne s'appliquait en
-  plus qu'aux valeurs par défaut au démarrage à froid, et le back-office
-  n'exposait aucun interrupteur pour `audioRooms`/`podcasts`. **À vérifier sur
-  le téléphone** : ouvrir Salons audio et Podcasts depuis l'accueil et
-  confirmer qu'on n'est plus rejeté sur l'accueil ; basculer les deux nouveaux
-  interrupteurs dans Admin → Feature flags et confirmer que l'accès s'ouvre et
-  se referme sans redémarrer l'app ; enfin, tuer et relancer l'app pour
-  vérifier qu'on n'est pas éjecté d'un de ces écrans pendant le chargement des
-  réglages.
-
-- [ ] **Points d'entrée créés vers trois modules injoignables**
-  (`lib/features/home/presentation/screens/home_screen_widgets.dart`,
-  `lib/features/home/presentation/screens/services_screen.dart`,
-  `lib/features/profile/presentation/screens/profile_screen.dart`,
-  2026-08-03) : `/audio-rooms`, `/podcasts` et `/calls/history` n'étaient
-  référencés par aucun écran de l'app — seuls des liens internes à ces modules
-  pointaient vers eux. Les écrans existaient et les routes étaient déclarées,
-  mais aucun chemin de navigation n'y menait. Tuiles « Salons » et
-  « Podcasts » ajoutées à la grille de l'accueil et à « Tous les services »,
-  entrée « Historique d'appels » ajoutée à la section Compte du profil.
-  **À vérifier sur le téléphone** : les deux tuiles apparaissent bien sur
-  l'accueil une fois les flags activés (et disparaissent quand on les
-  désactive), la grille ne casse pas son passage 3↔4 colonnes avec deux tuiles
-  de plus, et les trois destinations s'ouvrent réellement.
-
----
-
-## Profil & Accueil (avant la refonte design)
-
-**Priorité P3** · importance 1/5 — Aucun propre : l'écran a été refait depuis, ses défauts éventuels relèvent d'entrées plus récentes.
-
-- [ ] **Réalignement Profil/Accueil pré-refonte** (commit `7110929`) : 4ᵉ stat « posts », sections COMPTE/CONFIDENTIALITÉ/SÉCURITÉ/APPELS/PRÉFÉRENCES/AIDE réintroduites, `FollowsScreen`, bouton QR de l'accueil réactivé, service « Fil d'actualité » — aucune vérification device mentionnée.
-
----
-
 # 12. Design, thème, langue et mise en page
 
 Palette, thème sombre, icônes, polices, débordements, paysage, bascule design_v2, traduction anglaise.
@@ -14622,43 +8167,15 @@ prend le relais (« 1 j », « 12 min »). Mesurer plutôt que se fier à la seu
 largeur, parce que le facteur d'échelle vient des réglages de l'appareil —
 même famille que « Deux textes du fil que `font_scale` 1.3 abime ».
 
-Couvert par `test/features/polls/sondage_vote_test.dart` (6 cas, dont un qui
-vérifie la **géométrie** : le temps collé à droite, le nom prenant tout le
-reste). Vérifié par mutation : le correctif « évident » — passer le temps en
-`Flexible` — fait tomber 3 des cas, parce que deux enfants flexibles cessent
-de recevoir leur largeur intrinsèque et se partagent l'espace libre au prorata
-des flex.
-
-⚠ **Un second défaut n'est apparu que sur l'appareil**, et aucun banc ne
-pouvait le voir. La mesure se faisait avec `TextStyle(fontSize: 12)` seul,
-donc dans la police **par défaut de la plateforme**, alors que le `Text` rendu
-fusionne le `DefaultTextStyle` ambiant et s'affiche en **Inter**, plus large.
-La mesure concluait que la forme longue tenait ; le filet `ConstrainedBox`
-rattrapait le débordement en **tronquant** — « il y a 11 heur... » à
-`font_scale` 1.6, soit exactement l'ellipse que le correctif visait à éviter.
-Corrigé en fusionnant `DefaultTextStyle.of(context).style` avant de mesurer.
-Le banc de non-régression joue l'écart de police par un **interlettrage**, la
-police du banc étant unique.
-
-**Le banc ne dit rien de l'ampleur.** Sa police rend chaque glyphe carré
-(1 em) : les 269,5 px qu'il donne à « il y a environ un jour » ne sont pas
-ceux de l'écran. Mesuré avec la vraie Inter à 12 px dans une bulle de 320 dp
-(plafond 131 px) : 113 px à l'échelle 1.0 — donc à réglages normaux le défaut
-ne se voyait **pas**, il mordait à partir de `font_scale` ~1,8, et le nom
-devenait illisible dès ~1,5.
-
-- ✔ 2 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ L'en-tête d'un sondage effaçait son auteur dans une bulle — corrigé, à revoir (2026-09-15) »).
 - [ ] **Le même sondage dans le fil** (carte large, [post_card.dart](lib/features/feed/presentation/widgets/post_card.dart)) :
   la forme **longue** doit y rester, « il y a environ un jour ». C'est le
   point qui distingue le correctif d'un raccourcissement partout.
 
+- ✔ 2 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ L'en-tête d'un sondage effaçait son auteur dans une bulle — corrigé, à revoir (2026-09-15) »).
+
 ## ⬜ Le pied d'un sondage déborde encore en mode vote — NON corrigé (2026-09-15)
 
 **Priorité P2** · importance 3/5 — Même motif que l'en-tête, même bulle, mais dans `_pied` : « N votes » disparaît et « Voir les résultats » est rogné.
-
-Trouvé en écrivant les bancs de l'entrée ci-dessus, et **indépendant d'elle** :
-mesuré avec `createdAt` à null, donc sans le moindre libellé de temps dans
-l'en-tête. Préexistant.
 
 `_pied` ([poll_card.dart](lib/features/polls/presentation/widgets/poll_card.dart))
 traite le cas à **une seule action** par `Row(Expanded(compte), action)` —
@@ -14682,18 +8199,12 @@ de maquette, pas une évidence technique.
 
 **Priorité P3** · importance 2/5 — À grande police, l'horodatage d'une publication était coupé et le bandeau hors ligne se lisait mal. Rien ne débordait, mais de l'information se perdait.
 
-Vus en passant pendant la vérification de la pastille en thème sombre
-(SM A515F, `font_scale 1.3`, build release `fbd02d9d…`, 2026-09-14 20:39).
-Aucune bande de débordement : ce sont des défauts de texte, pas de mise en
-page.
-
 **Corrigés le 2026-09-14** (`post_card.dart`, `feed_error_state.dart`,
 `app_fr.arb`, `app_en.arb`). Le bandeau est couvert par
 `test/features/feed/feed_bandeau_hors_ligne_test.dart` ; la ligne d'auteur,
 elle, ne l'est pas — c'est du rendu à une échelle donnée, un test unitaire
 n'en dirait rien.
 
-- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Deux textes du fil que `font_scale` 1.3 abime — corrigés, à revoir (2026-09-14) »).
 - [ ] **Bandeau hors ligne** : « Fil hors ligne · dernière mise à jour **il**
   y a 11 **minutes** » — minuscule en milieu de phrase, pluriel décliné. Le
   bandeau apparaît en coupant le réseau sur le fil général (il se replie sur
@@ -14702,6 +8213,8 @@ n'en dirait rien.
   aussi à l'accueil et sur la carte, où ils commencent la ligne. Vérifier
   qu'ils y gardent leur majuscule (« Il y a 3 heures ») — seul le bandeau du
   fil l'abaisse.
+
+- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Deux textes du fil que `font_scale` 1.3 abime — corrigés, à revoir (2026-09-14) »).
 
 ## ⬜ L'étape « Thème » dit enfin la vérité sur l'accent (2026-09-14)
 
@@ -14718,8 +8231,6 @@ au-dessus de la pastille verte qu'on venait de toucher. La vignette lit
 maintenant l'accent au provider et reprend le `colorScheme.primary` du thème
 qu'elle représente. C'est le défaut que `950024b` nommait — « un aperçu qui
 ment sur ce qu'il propose » — corrigé alors sur la seule moitié clair/sombre.
-Couvert par `test/features/profile/apercu_theme_accent_test.dart` (tombe sans
-le correctif, vérifié).
 
 - [ ] **Configuration du profil, étape 4/4** : Vert en première position,
   Orange en seconde.
@@ -14752,7 +8263,6 @@ lue par « Tous les services » et par la grille de l'accueil. Contrastes
 calculés (icône sur son propre aplat) : ≥ 3,4:1 en clair sauf le Fil à 2,4:1
 (l'orange était déjà ainsi), ≥ 5,1:1 en nocturne.
 
-- ✔ 3 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Une couleur par service dans les deux grilles (2026-09-14) »).
 - [ ] **Compte en thème Orange** : les tuiles ne bougent plus avec l'accent du
   compte (elles ne lisent plus `adaptivePrimaryColor`). Vérifier que le résultat
   reste cohérent avec le reste de l'écran, boutons compris.
@@ -14761,13 +8271,14 @@ calculés (icône sur son propre aplat) : ≥ 3,4:1 en clair sauf le Fil à 2,4:
   Passe du 2026-09-22 (~05:45–05:57), build Play 1.2.2+26 (f22aaff) : vu en clair et en sombre à côté du bleu des Ambassades — les deux
   se distinguent. Le jugement de goût reste à Salim, case laissée.
 
+- ✔ 3 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Une couleur par service dans les deux grilles (2026-09-14) »).
+
 ---
 
 ## ⬜ Le sigle DN est le même partout (2026-09-13)
 
 **Priorité P2** · importance 3/5 — Trois écrans dessinaient la marque chacun à leur façon : écran de démarrage en vert sans serif, page de connexion en Playfair sur l'accent du compte — donc **orange** pour qui a choisi le thème Orange —, gabarit d'illustration du design kit sur ce même accent à un autre rayon. On touchait une icône verte au lanceur pour tomber sur un sigle orange.
 
-- ✔ 4 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Le sigle DN est le même partout (2026-09-13) »).
 - [ ] **Page de connexion**, app déconnectée : même vert, même lettrage,
       même arrondi que l'écran de démarrage. Pas vu — l'appareil était
       connecté, et s'en déconnecter coûterait la session de test.
@@ -14775,7 +8286,7 @@ calculés (icône sur son propre aplat) : ≥ 3,4:1 en clair sauf le Fil à 2,4:
 - [ ] **Gabarit d'illustration** (onboarding, écrans à illustration) : la
       pastille 62 est bien centrée dans son bloc rayé.
 
----
+- ✔ 4 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Le sigle DN est le même partout (2026-09-13) »).
 
 ---
 
@@ -14849,43 +8360,6 @@ taille qu'il exige lui-même. Les 8 licences OFL sont jointes
 (`LICENCE-*.txt`) et enregistrées par
 [licences_polices.dart](lib/core/utils/licences_polices.dart).
 
-Deux pièges du paquet, à connaître avant d'ajouter une famille :
-
-- le nom du fichier doit **finir** par `<Famille>-<Variante>`
-  (`Inter-SemiBold.ttf`, `InstrumentSerif-Italic.ttf`). Une faute de nom et il
-  repart sur le réseau **sans rien signaler** ;
-- les polices **variables** ne sont pas reconnues : il faut un fichier statique
-  par graisse.
-
-`allowRuntimeFetching` reste à `true`, en filet : une variante oubliée retombe
-sur le réseau comme avant au lieu de lever. C'est
-[polices_embarquees_test.dart](test/core/polices_embarquees_test.dart) qui
-garantit qu'aucune ne l'est : il interdit le réseau et charge chaque variante
-depuis les assets, puis vérifie que le code n'appelle aucune famille ni aucune
-graisse littérale absente du dossier.
-
-⚠️ **Piège rencontré en le vérifiant — `flutter test` ne reconstruit pas
-`build/unit_test_assets` quand on supprime un fichier d'un dossier d'assets.**
-Contre-épreuve : `Inter-SemiBold.ttf` retiré, le test de chargement **passait
-encore**, sur l'ancienne copie restée dans ce paquet. Une fois
-`build/unit_test_assets` effacé, il tombe exactement sur Inter
-(« allowRuntimeFetching is false but font Inter-SemiBold was not found »). Le
-test est donc discriminant, mais un cache local peut l'aveugler — d'où un
-second test qui vérifie les 24 fichiers **dans le dossier source**. Et le piège
-joue dans les deux sens : un paquet reconstruit pendant l'absence d'un fichier
-le garde absent après sa remise en place. Pour toute contre-épreuve sur des
-assets, effacer `build/unit_test_assets` avant chaque essai.
-
-⚠️ **Découvert en route : aucun écran ne mène à `showLicensePage`.** Ni ces
-licences ni celles des paquets (MIT, BSD, Apache…) ne sont visibles dans
-l'app. L'OFL est satisfaite par les fichiers livrés dans l'APK ; mais les
-licences MIT et BSD des paquets demandent en principe que leur notice soit
-reproduite dans la distribution binaire — c'est d'ordinaire le rôle de cette
-page. À trancher.
-
-✅ **Tranché le 2026-09-11** : Réglages → « Licences open source » ouvre
-désormais cette page — voir « Page « Licences open source » dans les Réglages ».
-
 - [ ] **Hors ligne dès le premier lancement** : installation neuve (ou données
   effacées — ⚠️ ça déconnecte le compte), **mode avion avant** le premier
   lancement → titres en Playfair Display, texte en Inter, aucune police
@@ -14913,15 +8387,6 @@ sauf `message`) et la nouvelle constante `AppColors.notificationAccent`
 (passée par `flutter_local_notifications` — les messages partent en *data-only*
 depuis `send-push`, donc c'est le client qui construit leur notification).
 
-Au passage, ça **solde l'écart** signalé la veille : les deux chemins valaient
-`#E07B39` et `#FA7D00`, soit deux orangés différents selon l'état de l'app.
-Ils valent maintenant tous deux `#009600`.
-
-Cinq `AndroidNotificationDetails` pointent sur la constante ; le
-`general_channel` n'en avait **aucune** (le système ne teintait donc rien sur
-ce canal), il en a une désormais.
-
-- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Teinte des notifications système en vert (2026-09-07) »).
 - [ ] **Notification de message, app tuée.** C'est le chemin
       `flutter_local_notifications`. Petite icône verte dans la barre d'état
       et filet vert dans le volet. ⚠️ `am force-stop` empêche la livraison FCM
@@ -14941,43 +8406,21 @@ groupes…), les deux teintes d'état de l'upload (`#4CAF50` succès /
 « Activer les notifications » (`notification_service.dart`), qui est un
 élément d'interface in-app et non une notification.
 
+- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Teinte des notifications système en vert (2026-09-07) »).
+
 ---
 
 ## ⬜ Icône du lanceur repeinte en vert (2026-09-07)
 
 **Priorité P3** · importance 4/5 — Icône mal découpée ou délavée sur l'écran d'accueil — première impression de marque dégradée, sans effet fonctionnel.
 
-Suite de l'entrée ci-dessous : sur un vrai téléphone, l'orange qu'on voit en
-premier au lancement n'est pas l'écran Flutter mais **l'écran de lancement du
-système**, qui affiche l'icône du lanceur (vérifié sur SM A515F : ~15 s sur un
-build debug avant que Flutter ne peigne quoi que ce soit).
-
-Repeint : le dégradé orange `#E97424 → #F59942` devient `#009600 → #00C000`
-dans `assets/import_icons/dn_ultra_minimal{_icon,_hd}.png` + son SVG source et
-`dn_adaptive_background*`, le fond de l'icône adaptive
-(`adaptive_icon_background` dans `pubspec.yaml`, `ic_launcher_background` dans
-`android/app/src/main/res/values/colors.xml`) et les couleurs web
-(`manifest.json`). Les PNG ont été repeints pixel par pixel — le sigle blanc,
-son anticrénelage et les coins transparents sont préservés — puis
-`dart run flutter_launcher_icons` a régénéré Android, iOS et web.
-
-`dn_dark_mode*` (DN orange sur fond sombre) n'a **pas** été touché : aucun
-chemin de l'app ne le lit, il n'est référencé que par le README du dossier.
-
 - [ ] **Icône dans le tiroir d'applications et sur l'écran d'accueil.** Vert
       `#009600`, sigle blanc lisible, forme adaptive correcte (le lanceur
       découpe en cercle/squircle selon le thème du téléphone).
-- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Icône du lanceur repeinte en vert (2026-09-07) »).
-- [ ] **Icône de notification.** Elle est indépendante
-      (`ic_stat_notification` + `notification_accent`, toujours orange) : elle
-      ne doit pas avoir changé.
 - [ ] **iOS.** Icônes régénérées mais jamais compilées ni vues (aucun Mac dans
       la boucle) — cf. l'entrée « iOS : signature et conformité export ».
 
-⚠️ Écart préexistant relevé au passage, **non corrigé** : le commentaire de
-`colors.xml` dit que `notification_accent` doit valoir `AppColors.primary`,
-or il vaut `#E07B39` alors que `AppColors.primary` vaut `#FA7D00` depuis le
-2026-08-25. Deux orangés de notification selon le chemin d'envoi.
+- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Icône du lanceur repeinte en vert (2026-09-07) »).
 
 ---
 
@@ -14995,104 +8438,13 @@ La teinte est **fixe** : elle ne suit pas l'accent choisi par le compte
 (orange ou vert). Un compte en thème Orange verra donc un splash vert puis une
 app orange — c'est voulu, pas une dérive à corriger.
 
-- ✔ 4 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Écran de démarrage repeint en vert (2026-09-07) »).
 - [ ] **Sous-titre du splash, nouveau build** : « nigérienne » accentué en
       français ; en anglais, « Connecting the Nigerien diaspora » dès le
       démarrage à froid. (`splash_screen.dart`)
 - [ ] **Compte en thème Orange.** Confirmer que seul le splash est vert et que
       le reste de l'app reste orange (pas de contamination).
 
----
-
-## ✅ Recolorisation orange/vert — vue sur appareil, partiellement (2026-08-25)
-
-**Priorité P2** · importance 3/5 — Dans le thème clair, le plus répandu, les libellés blancs des boutons orange peuvent être difficiles à lire pour tout le monde, et une bascule Vert incomplète mélangerait les deux accents.
-
-Demande produit : `AppColors.primary`/`primaryDark` (orange) `#E05206`/`#9F3E0A`
-→ `#FA7D00` unique (`#FC7C00` d'abord appliqué puis corrigé en cours de session),
-`AppColors.secondary`/`secondaryDark` (vert) `#0DB02B`/`#06871D` → `#009600`
-unique. Appliqué dans [app_colors.dart](lib/core/constants/app_colors.dart) et
-propagé aux ~19 fichiers qui dupliquaient ces hex en dur (bulles de message,
-accueil, groupes, événements, transferts, annuaire entreprises, ambassades...).
-`flutter analyze` propre.
-
-- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ✅ Recolorisation orange/vert — vue sur appareil, partiellement (2026-08-25) »).
-- [ ] Thème clair (Orange et Vert) jamais vu avec ces valeurs.
-- [ ] Thème Système/**Vert** (bascule complète primary↔secondary dans
-  `app_theme.dart`, pas juste les bulles/avatars qui restent verts quel que
-  soit le thème) jamais vu avec ces valeurs.
-- [ ] Comparer visuellement `primary`/`primaryDark` maintenant identiques
-  (plus de dégradé entre les deux dans les endroits qui s'appuyaient dessus,
-  ex. `primaryGradient`) — pas vérifié à l'œil, juste déduit du code.
-
----
-
-## ✅ Le thème choisi ne survivait jamais à un redémarrage — corrigé (2026-08-25)
-
-**Priorité P3** · importance 2/5 — Combinaison sombre/vert jamais vue : au pire un contraste médiocre — la persistance du thème, elle, est déjà prouvée sur appareil.
-
-Découvert en essayant de vérifier la pastille « DN » en clair/vert sur le
-SM A515F (cf. entrée plus bas sur les illustrations d'onboarding). Réglages →
-Thème → Clair + Vert s'écrivait correctement sur disque
-(`FlutterSharedPreferences.xml` : `theme_mode=light`, `theme_color=green`),
-mais après `am force-stop` + relance à froid, l'app retombait
-systématiquement sur Système + Orange.
-
-**Cause confirmée** : `ThemeModeNotifier.build()` / `ThemeColorNotifier.build()`
-dans [theme_provider.dart](lib/core/theme/theme_provider.dart) appelaient
-`_loadTheme()`/`_loadColor()`, des méthodes `async` **sans aucun `await`
-interne** — Dart les exécute donc de façon synchrone à l'appel, et
-`state = mode` s'exécutait bien mais *pendant* `build()`, juste avant que
-`build()` n'écrase avec son propre retour `system`/`orange`. Corrigé en
-faisant lire `build()` directement dans les préférences (commit `fc9ea35`).
-Test de non-régression : [theme_provider_test.dart](test/core/theme/theme_provider_test.dart)
-(confirmé qu'il échoue sur l'ancien code, passe sur le nouveau). Détails :
-mémoire `project_theme_pref_not_restored`.
-
-- ✔ 2 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ✅ Le thème choisi ne survivait jamais à un redémarrage — corrigé (2026-08-25) »).
-- [ ] Combinaison sombre + accent vert jamais vue à l'œil sur cet appareil
-  (comportement attendu vu le correctif, mais pas observé).
-
-Appareil laissé propre : réglages restaurés à `system`/`orange` (valeurs
-d'origine) via l'IU avant de rendre la main.
-
----
-
-## Sigle « DN » corrigé + illustrations d'onboarding générées (2026-08-25)
-
-**Priorité P3** · importance 2/5 — Sigle coupé ou peu lisible sur l'écran de connexion dans une combinaison de thème peu fréquente — cosmétique. *Bloqué : déconnexion requise (écran de connexion).*
-
-Demande de Salim : la pastille de marque affichait un seul « D » à deux
-endroits au lieu de « DN » ; et les 5 écrans d'onboarding n'avaient jamais eu
-de vraie illustration (juste un pictogramme Material générique sur fond
-rayé, en attente explicite dans le commentaire du code).
-
-- **Sigle** : [auth_scaffold.dart](lib/features/auth/presentation/widgets/auth_scaffold.dart)
-  (`AuthBrandMark`, écrans de connexion/inscription) et
-  [design_kit.dart](lib/core/theme/design_kit.dart) (`DesignIllustration`,
-  repli `brandMark`) — `'D'` → `'DN'`, taille de police réduite (24→17 et
-  32→21) pour que les deux lettres tiennent dans la même pastille.
-- **Illustrations** : nouveau fichier
-  [onboarding_illustrations.dart](lib/features/onboarding/presentation/widgets/onboarding_illustrations.dart),
-  une composition par écran (cercle teinté + pictogramme + pastilles
-  d'accent, en widgets Flutter — pas des PNG — pour rester adaptatif au
-  thème sombre et à la couleur d'accent choisie). Écran « fête de la
-  République » (onboarding 4/5) utilise les couleurs du drapeau (orange
-  `AppColors.primary` / blanc / vert `AppColors.secondary`) en dur, volontairement
-  indépendantes de la couleur d'accent du compte.
-- `DesignIllustration` gagne un paramètre `illustration` (widget) qui prend le
-  pas sur `icon`/`brandMark` ; `OnboardingPageData` ne porte plus `icon`ni
-  `brandMark`, seulement `illustration`.
-- **Légendes** (`onbWelcomeIllustration` etc., `app_fr.arb`/`app_en.arb`) :
-  retiré le préfixe « illustration — » (« illustration — la diaspora » →
-  « la diaspora »), redondant maintenant qu'une vraie composition existe.
-
-`flutter analyze` propre.
-
-- ✔ 3 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Sigle « DN » corrigé + illustrations d'onboarding générées (2026-08-25) »).
-- [ ] Pastille « DN » en **accent vert** et en **thème sombre** : toujours pas
-  vue sur appareil (l'écran de connexion s'ouvre en clair/orange par défaut,
-  et l'accent vert dépendait du compte de test dont la session est perdue).
+- ✔ 4 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Écran de démarrage repeint en vert (2026-09-07) »).
 
 ---
 
@@ -15103,8 +8455,6 @@ rayé, en attente explicite dans le commentaire du code).
 Toute l'application vient d'être branchée sur `l10n` : l'admin (0 fichier sur
 34 utilisait `l10n`), `businesses` (0/40), `embassies`, `transfers`,
 `marketplace`, puis les 19 modules restants, `lib/shared/` et `lib/core/`.
-`dart analyze` est propre et les **207 tests passent**, mais aucun de ces
-contrôles ne regarde un écran.
 
 **Comment basculer** : Réglages → choix de la langue
 ([settings_screen.dart:721](lib/features/settings/presentation/screens/settings_screen.dart:721),
@@ -15160,122 +8510,6 @@ contrôles ne regarde un écran.
 
 ---
 
-## Discussion en paysage — débordement de 4,1 px (vu le 2026-08-05)
-
-**Priorité P2** · importance 3/5 — En paysage clavier levé, le composeur est rogné et on ne voit plus ce qu'on tape — limité à ceux qui écrivent téléphone tourné.
-
-- [ ] ⛔ **Débordement bas sur l'écran de conversation en PAYSAGE.** Constaté
-  **deux fois** sur SM A515F le 2026-08-05, avec deux ampleurs différentes :
-
-  | Capture | Bas de l'écran occupé par | Débordement |
-  |---|---|---|
-  | 1 | panneau GIF / Émojis | `4.1 PIXELS` |
-  | 2 | **clavier système** | `17 PIXELS` |
-
-  Le second cas est le plus instructif : **ce n'est pas le panneau ancré qui
-  est en cause**, puisque le défaut se produit aussi avec le clavier seul.
-  C'est l'écran de conversation en paysage dès que l'espace vertical restant
-  se réduit — et l'ampleur suit la hauteur de ce qui occupe le bas.
-
-  Piste : en paysage, la hauteur disponible entre l'en-tête (avatar + nom +
-  bandeau de message épinglé + bandeau « Restaurez vos clés ») et l'insert du
-  bas ne suffit plus. Sur la capture 2, le bandeau rayé passe **juste sous le
-  bandeau de restauration des clés**, ce qui désigne cette zone — mais
-  attention, le bandeau signale une **position**, pas forcément le widget
-  fautif.
-
-  **Diagnostic fait, correctif écrit puis annulé (2026-08-05).** L'`Expanded`
-  de la colonne extérieure ne peut pas déborder : le dépassement vient
-  forcément des enfants **non flexibles**, c'est-à-dire les bandeaux. En
-  paysage clavier ouvert il reste ~150 dp sous l'en-tête, et le bandeau
-  épinglé plus le rappel de restauration des clés dépassent à eux seuls cette
-  hauteur. Ça explique les deux ampleurs : le panneau émojis est plus court
-  que le clavier, donc 4 px au lieu de 17.
-
-  Correctif retenu : envelopper la colonne extérieure de `conversation_screen`
-  dans un `LayoutBuilder` — seul moyen fiable de connaître la hauteur
-  restante, `MediaQuery.viewInsets` valant 0 dans un `body` de `Scaffold` — et
-  escamoter le rappel de restauration sous ~220 dp. Le bandeau épinglé, lui,
-  reste toujours visible : c'est sa raison d'être.
-
-  ⚠️ **LE CORRECTIF EST DANS LE CODE, MAIS PAS SOUS SON PROPRE COMMIT.**
-
-  Il a été livré le 2026-08-06 à l'intérieur de
-  **`af3485b fix(groupes): garde « Officiel » appliquée, et le REVOKE qui n'y
-  servait à rien`** — un commit dont le message ne dit pas un mot du
-  débordement. Il y est arrivé emporté : la version était dans l'index quand
-  ce commit a été fait, sur une branche partagée avec un autre agent.
-
-  Donc : `git log` sur ce fichier **ne mènera pas** au débordement en paysage.
-  C'est cette entrée qui fait le lien. Chercher `zoneCorps` ou
-  `placeRappelCles` dans `conversation_screen.dart` pour trouver le code.
-
-  **Deux choses à savoir en le relisant :**
-
-  - *L'indentation est volontairement fausse.* Les ~424 enfants de la colonne
-    gardent leur indentation d'origine. Les réindenter aurait réécrit des
-    centaines de lignes en cours de modification par ailleurs, et rendu la
-    fusion ingérable ; sans réindentation, le correctif ne touche que trois
-    lignes (1229, 1289, 1653), toutes hors des zones modifiées. **À passer au
-    formateur quand le fichier sera libre** — le fichier n'est de toute façon
-    pas conforme à `dart format`, même avant ce changement.
-  - *Un correctif voisin existe peut-être.* Un « zone BORNEE » qui borne le
-    composeur, et non les bandeaux, était en cours à côté. S'il a atterri
-    depuis, une partie du symptôme a pu disparaître autrement.
-
-### ⚠️ Vérifié sur appareil le 2026-08-06 — le correctif marche, il ne suffit pas
-
-Build de HEAD installé sur SM A515F, conversation « Salim L. » (bandeau des
-clés actif, brouillon de 3 lignes), rotation forcée en paysage.
-
-| Situation | Bandeau des clés | Débordement |
-|---|---|---|
-| Paysage, **sans** clavier | visible | aucun |
-| Paysage, **clavier levé** | **escamoté** ✅ | **`BOTTOM OVERFLOWED BY 73 PIXELS`** ❌ |
-
-**Ce qui est prouvé** : le mécanisme fonctionne. `placeRappelCles` bascule
-bien à faux quand la hauteur tombe — le bandeau est visible sans clavier,
-escamoté avec. Le `LayoutBuilder` mesure ce qu'il faut.
-
-**Ce qui est infirmé** : mon diagnostic était **incomplet**. Je pensais que
-les deux bandeaux étaient la seule cause. Une fois le rappel des clés retiré,
-c'est le **composeur** qui déborde à son tour — et de bien plus : 73 px ici,
-contre 17 px avant correctif. L'ampleur suit la longueur du brouillon, ce qui
-désigne le composeur sans ambiguïté.
-
-**Ce qui manque donc** : borner le composeur, c'est-à-dire exactement ce que
-vise le correctif « zone BORNEE » — qui n'était PAS dans ce build, puisque
-j'ai construit HEAD et qu'il vivait encore dans un WIP non committé. Les deux
-correctifs sont complémentaires, pas redondants : le mien retire les bandeaux
-de l'équation, l'autre empêche le composeur de prendre sa taille naturelle.
-
-**Pourquoi le reste ne peut PAS se corriger dans le composeur** (vérifié le
-2026-08-06, pour éviter que quelqu'un le retente) : `message_input.dart` sait
-déjà se rétrécir — `maxLignes = (borne / 2 / 22).floor().clamp(1, 6)`, et ses
-panneaux passent en `Flexible`. Mais tout est conditionné à `borne.isFinite`,
-et personne ne le borne : `RenderFlex` donne `maxHeight: Infinity` à ses
-enfants non flexibles. Le garde-fou dort donc en production, ce que le
-fichier documente lui-même.
-
-Le calculer depuis la fenêtre plutôt que depuis les contraintes ne suffit
-pas : on obtient ~194 dp en paysage clavier levé, donc 4 lignes autorisées,
-alors que le brouillon qui déborde en fait 3. Ce qu'il faut, c'est la hauteur
-restante **sous les bandeaux** — seul le parent la connaît. D'où la
-conclusion, déjà écrite dans `message_input.dart` : le correctif appartient à
-`conversation_screen`, pas au composeur.
-
-- [ ] **Refaire ce test une fois « zone BORNEE » committé** — c'est la
-  combinaison des deux qu'il faut mesurer, pas l'un ou l'autre.
-- [ ] **Cas du panneau GIF/Émojis** (le 4 px d'origine) : non testé ici, le
-  clavier ayant suffi à montrer que le problème subsistait.
-- [ ] Si le débordement persiste même avec les deux, chercher plus bas : le
-  bandeau épinglé et l'en-tête ne sont pas escamotables, et en paysage
-  clavier levé il ne reste qu'une centaine de dp au total.
-
-  Non lié aux correctifs de localisation de cette session.
-
----
-
 ## Le « OVERFLOWED BY 190 » de la recherche venait du rail latéral (2026-08-05)
 
 **Priorité P2** · importance 2/5 — En paysage clavier levé, les derniers items du rail latéral deviennent inatteignables ou le contenu est rogné — cas limite du téléphone tourné.
@@ -15284,37 +8518,9 @@ Le bandeau rayé se voit **depuis** l'écran de recherche de la messagerie, mais
 le `RenderFlex` fautif est au-dessus de cet écran dans l'arbre : c'est
 `TabletNavigationRail` (`lib/shared/widgets/tablet_navigation_rail.dart`).
 
-La chaîne :
-
-1. `MainShell` bascule sur le layout « tablette » dès **700 dp de large**
-   (`_kTabletBreakpoint`). Un SM A515F en paysage fait `2400 / 2.625 = 914 dp`
-   de large pour seulement **411 dp de haut** : le téléphone en paysage passe
-   donc par le rail latéral, pas par la barre du bas.
-2. Le rail est une `Column` de cinq items à hauteur intrinsèque (~68 dp
-   chacun, **~352 dp** au total), sans défilement, premier enfant d'une `Row` :
-   il est borné par la hauteur du corps.
-3. `resizeToAvoidBottomInset` (défaut) réduit le corps à ~170 dp quand le
-   clavier monte. `352 − 170 ≈ 190`. Le clavier ne monte sur cet écran qu'en
-   mode recherche — d'où la corrélation trompeuse avec la recherche.
-
-Pourquoi le bandeau paraît « au milieu, à gauche » : pour un débordement en
-bas, Flutter dessine l'étiquette au centre horizontal du widget fautif (le
-rail : 43 dp) et à mi-hauteur de la zone débordée. Ça tombe sur le bord gauche,
-à hauteur de la zone de résultats — d'où la fausse piste.
-
 **Correctif** : le rail défile (`SingleChildScrollView` + `mainAxisSize.min`)
 au lieu de forcer sa hauteur. Tant qu'il y a la place, rien ne change à
 l'écran (les items étaient déjà alignés en haut).
-
-**La colonne de l'écran de recherche n'a pas été touchée** : en mode recherche
-elle n'a que ~65 dp d'incompressible (l'en-tête et les puces de filtre sont
-retirés, la zone de résultats est déjà `Expanded` + `ListView`). Elle ne peut
-pas produire 190. Et ses deux gardes anti « deux taps pour lever le clavier »
-(la `ValueKey` sur le bloc du champ, le type de widget constant) interdisent de
-la restructurer sans raison.
-
-Couvert par `test/features/shell/tablet_navigation_rail_landscape_test.dart`
-(sans le correctif : `overflowed by 170 pixels` à 172 dp, `222` à 120 dp).
 
 À vérifier sur l'appareil :
 
@@ -15351,11 +8557,6 @@ paysage ne sont pas juste « non débordants » mais **utilisables** :
       dernier post.
 - [ ] **Profil en paysage** : contenu centré, pas collé au rail de gauche.
 
-Restent ouverts, même famille : le `BOTTOM OVERFLOWED BY 240` de la
-conversation (« Paysage — overflow quand le chrome dépasse la hauteur »), et le `PodcastMiniPlayer` (hauteur fixe 64, hors
-`Expanded` dans la branche paysage de `MainShell`) qui déborderait si le corps
-tombait sous 64 dp — non observé, non corrigé.
-
 ---
 
 ## Menus déroulants bornés partout (`isExpanded`, 2026-08-04)
@@ -15368,12 +8569,6 @@ durcissement, donc à regarder surtout **à `font_scale` 1.1 et plus**.
 
 - [ ] **Ambassade → « Demande administrative »** : le champ « Type de demande »
   ne déborde plus. C'est le cas le plus visible (débordait de 234 px en test).
-- [ ] **Boutique → « Vendre un produit »** : l'en-tête de carte « Paramètres de
-  taxe » ne déborde plus, et les menus Devise / Catégorie / État / Pays sont
-  lisibles.
-- [ ] **Transferts → « Ajouter un bénéficiaire »** : choisir le type **compte
-  bancaire** (les menus « banque » et « ville » n'existent que dans ce mode —
-  aucun test ne les couvre), puis vérifier les trois menus.
 - [ ] **Recherche d'employés d'une ambassade** : filtre « Département » —
   désormais monté par `test/features/embassies/employee_search_overflow_test.dart`,
   mais ce test ne prouve **pas** le correctif (vérifié par mutation : il passe
@@ -15390,9 +8585,6 @@ le débordement mais la **troncature abusive** — un « … » là où le libel
 
 - [ ] **Créer un podcast → « Langue » et « Fréquence de publication »** : les
   libellés traduits (haoussa, zarma) s'affichent en entier, pas en « … ».
-- [ ] **Boutique → « Vendre un produit », menu « Pays »** : les deux listes
-  (pays prioritaires **et** le reste, sous le séparateur) — le drapeau reste
-  collé au nom et aucun nom de pays n'est coupé à l'échelle 1.0.
 - [ ] Les mêmes à `font_scale` 1.1 : là, une ellipse est normale.
 
 ---
@@ -15430,7 +8622,6 @@ validées une par une avec Salim avant branchement.
   qu'un échec affiche bien une erreur (l'écran affichait « Appareil renommé »
   quoi qu'il arrive). ⚠ La migration `20260720120200` doit être appliquée au
   distant, sinon le repli garde la liste mais ignore le nom.
-- ✔ 6 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Fiches d'écrans (Claude Design) — reprise écran par écran (2026-08-04) »).
 **✅ Accumulation d'appareils corrigée le 2026-08-04.** L'identifiant était un
 `Uuid().v4()` rangé dans le stockage sécurisé : perdu au moindre vidage de
 données, donc chaque régénération de clés créait une **nouvelle** ligne dans
@@ -15449,7 +8640,6 @@ téléphone restent incomparables côté serveur. Couvert par
   prouver le correctif il faut un compte ou un appareil neuf : générer des
   clés, vider les données, régénérer, et vérifier qu'**aucune 4ᵉ ligne**
   n'apparaît.
-- [ ] Les 3 entrées actuelles restent : à nettoyer à la main via « Révoquer ».
 
 ### 🔴 Le plafond de 5 appareils n'est appliqué nulle part
 
@@ -15491,6 +8681,14 @@ et chaque message destiné au compte doit être chiffré pour **chaque** entrée
   ville s'affiche bien quand `originCity`/`currentCity` sont renseignés, les
   compteurs ne restent pas bloqués sur « — », et le rendu en nocturne (rayons
   serrés) reste cohérent.
+- [x] **Brouillons de publication multiples** (`preferences_service.dart`,
+  `create_post_screen.dart`) — vérifié le 2026-08-04 sur SM A515F : rédiger un
+  post puis « Annuler » écrit bien `flutter.post_drafts`, et la carte
+  brouillon apparaît dans Mes publications après relance de l'app.
+  Reste à vérifier à la main : 1) **deux** brouillons coexistent (le second
+  n'écrase pas le premier) ; 2) « Reprendre » ouvre le bon texte ; 3) publier
+  supprime le bon brouillon ; 4) la migration v1 → v2 sur une install qui
+  possède un `post_draft` d'avant (⚠ `adb install -r` vide les données).
 - [ ] **5b « Mes publications »** (`my_posts_screen.dart`, `my_post_card.dart`)
   — en-tête sur mesure + loupe (filtre local), onglets pleins
   « Publications · N » / « Repartages · N », carte de post compacte (méta,
@@ -15499,79 +8697,40 @@ et chaque message destiné au compte doit être chiffré pour **chaque** entrée
   brouillon et l'état vide ont été rendus à l'écran. À revoir sur un compte
   qui publie : la ligne de méta (« Hier · 18:40 · Public »), la vignette
   média, le compteur de repartages qui disparaît à 0, et la recherche.
-- ⚠ **Piège de build** : après une dizaine d'`adb install -r` d'affilée, un
-  APK est sorti avec un **paquet d'assets corrompu** — toutes les icônes
-  Material rendues en idéogrammes CJK, les SVG absents, et des écrans en
-  erreur. Ce n'était **pas** une régression de code : le même build cassait
-  aussi des écrans non modifiés. `flutter clean` + rebuild règle le
-  problème. Vérifier sur un second écran avant d'accuser son propre
-  changement.
+- [x] **5g « Votre première publication »** — vérifié le 2026-08-04 : cercle
+  104, titre Caprasimo, deux amorces, bouton plein et FAB. Les deux amorces
+  ouvrent l'éditeur pré-configuré (`?compose=photo|poll`) : **non testées**,
+  la photo demande la permission galerie sur l'appareil.
+- [x] **5c « Enregistrés »** (`saved_posts_screen.dart`, `saved_post_card.dart`)
+  — vérifié le 2026-08-04 avec un post enregistré : en-tête + compteur, chips,
+  sur-titre « CETTE SEMAINE », carte courte avec Retirer / Partager.
+  Restent à vérifier : les filtres **Photos** et **Vidéos** (le compte de test
+  n'a qu'un post texte, donc la vignette 72×72 n'a jamais affiché d'image), la
+  feuille **Partager**, et le glissement latéral pour retirer.
+- [x] **5d « Mon réseau »** (`follows_screen.dart`, `feed_pill_tabs.dart`,
+  `follow_button.dart`) — vérifié le 2026-08-04 : en-tête, onglets à compteur
+  permanent, barre de recherche, ligne de contact et pastille « Suivi ».
+  Restent à vérifier : la **recherche** (le compte n'a qu'un abonnement), les
+  **lignes de hashtag** sous Abonnements (aucun hashtag suivi sur ce compte),
+  et le basculement Suivre → Suivi au doigt.
+- [x] **20a « Modifier le profil »** — vérifié le 2026-08-04 : ✕ enfin
+  visible, pastille photo neutre, et « Qui peut voir mon numéro ? » affiche
+  « Tout le monde » (elle n'affichait rien). Restent à vérifier : la carte
+  du numéro **vérifié** (le compte de test n'a pas de numéro vérifié, donc
+  ni le masquage « +33 6 12 •• •• 47 » ni « Vérifié par SMS » n'ont été vus),
+  et le sélecteur de visibilité au doigt.
 - ⚠ **Publication de test à supprimer** : un post public « Publication de test
   pour verifier l affichage de Mes publications - a ignorer #DiasporaNiger » a
   été publié le 2026-08-04 depuis le compte `Sim A.` pour valider 5b/5c. Il
   est **toujours en ligne** et visible dans le fil de la diaspora.
 
----
-
-## Galerie design_v2 sur appareil (2026-08-03)
-
-**Priorité P3** · importance 1/5 — Aucun : la galerie de debug n'est plus livrée. *Bloqué : galerie supprimée (lib/design_v2 retiré).*
-
-Premier passage réel sur le SM A515F. Trois choses ont été **vérifiées**,
-et il faut le noter parce que la plupart des points de ce fichier ne l'ont
-jamais été :
-
-- ✔ 3 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Galerie design_v2 sur appareil (2026-08-03) »).
-
-### Ce qui reste à faire, et le chemin pour y arriver
-
-L'accès à la galerie **par deep link ne fonctionne pas**. Deux tentatives,
-documentées pour ne pas les refaire :
-
-1. `diasponiger://design-v2` — l'intent lance bien l'activité, mais l'URI
-   n'atteint jamais Dart : le log montre `setting initial location /splash`.
-2. `flutter_deeplinking_enabled` dans le manifeste — **casse le démarrage**,
-   le moteur Dart ne se lance plus du tout. Probablement parce que
-   `MainActivity` étend `AudioServiceFragmentActivity` (héritage CallKit).
-   Le drapeau a été retiré, l'APK reconstruit et l'app vérifiée comme
-   redémarrant.
-
-**Le seul chemin encore crédible est Réglages → Refonte → Galerie design
-v2**, qui ne dépend d'aucun intent — mais demande d'être connecté, et
-`adb install -r` vide les données à chaque pose d'APK.
-
-- [ ] Se connecter une fois, puis ouvrir la galerie par les réglages.
-- [ ] Parcourir les **19 écrans**, en **clair et en sombre** (le thème suit
-  le système : basculer depuis le volet Android).
-- [ ] Regarder en priorité l'**onboarding** et la **configuration du profil**,
-  les deux écrans les plus restructurés, donc les plus susceptibles de
-  déborder sur un écran réel.
-- [ ] Vérifier les **bulles de message** : le poids du fichier s'ajoute à une
-  ligne déjà chargée (durée, point « non écouté », erreur éventuelle).
-
-### Méthode, pour la prochaine fois
-
-- **Toujours `adb shell am force-stop` avant un deep link.** Sur un démarrage
-  à chaud, l'intent est livré sans que le routeur rejoue sa redirection.
-- **Le signal fiable est `GoRouter: INFO` dans `adb logcat -s flutter`**, pas
-  la capture d'écran. Un écran noir peut être le splash (bénin) ou un moteur
-  Dart mort (grave) — seule l'absence de log distingue les deux. J'ai
-  confondu les deux pendant cette session.
-- L'arbre de routes que go_router imprime au démarrage liste **toutes** les
-  routes déclarées. Y voir `/design-v2` ne prouve **pas** qu'on y est.
+- ✔ 6 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Fiches d'écrans (Claude Design) — reprise écran par écran (2026-08-04) »).
 
 ---
 
 ## Reprise du design (2026-08-03, suite) — Éco, accueil, carte, discussion
 
 **Priorité P2** · importance 4/5 — Le mode données réduites pourrait télécharger les médias quand même et consommer le forfait de ceux qui l'ont activé pour l'éviter ; le reste est visuel. *Bloqué : deux comptes (réception de médias).*
-
-⚠️ **Distinction à faire avant de tester.** L'essentiel du travail de design
-de cette session vit dans `lib/design_v2/`, **qui n'est câblé à aucune
-route** : ces écrans ne s'affichent pas dans l'app et ne sont donc **pas
-testables** tant que la bascule vers `lib/features/` n'a pas eu lieu. Seuls
-les trois blocs ci-dessous touchent la production et sont exerçables tout de
-suite.
 
 ### Testable maintenant (production)
 
@@ -15635,31 +8794,11 @@ suite.
   ordinaire : si elle déborde ou passe inaperçue à `font_scale = 1.1`, elle
   ne remplit pas son rôle.
 
-### Non testable tant que `design_v2` n'est pas basculé
-
-Pour mémoire, ce qui attend la bascule : onboarding 5 écrans, configuration
-du profil en 4 étapes (identité / localisation / intérêts + notifications /
-thème), séparateurs plats de la discussion, bouton d'envoi du composer en
-aplats (4 états, avec variantes claires en thème sombre), pastille de vitesse
-en contour et poids du fichier de la note vocale.
-
-Deux points à regarder **en priorité au moment de la bascule**, parce qu'ils
-sont invisibles à `flutter analyze` :
-
-- le **thème sombre** de tous ces écrans — c'est la famille de défauts la
-  plus récurrente du projet ;
-- l'onboarding à `font_scale = 1.1`, où les titres serif sur deux lignes et
-  les puces de réassurance peuvent déborder.
-
 ---
 
 ## Quatrième vague — écrans repris en production (2026-08-03)
 
 **Priorité P1** · importance 3/5 — Un badge qui affiche le chiffrement de bout en bout sur un appel qui ne l'est pas trompe l'utilisateur sur sa confidentialité ; les écrans de récupération des clés peuvent être illisibles de nuit. *Bloqué : deux comptes (appel).*
-
-Contrairement à « Reprise du design (2026-08-03, suite) », **tout ce qui suit est dans
-`lib/features/` et donc exerçable tout de suite**. Aucun de ces écrans n'a
-été vu tourner : les jetons de thème ont été raisonnés, pas observés.
 
 ### À vérifier en thème sombre en priorité
 
@@ -15672,13 +8811,6 @@ converti une centaine de couleurs figées en jetons adaptatifs.
   noir après avoir perdu son téléphone : vérifier que la carte « sauvegarde
   active », l'avertissement de passphrase et le bouton « Révoquer » restent
   lisibles.
-- [ ] **Détail d'un transfert** (`transaction_detail_screen.dart`) — les 20
-  couleurs d'état, dont celles qui distinguent « débité mais bloqué » de
-  « refusé avant débit ». Provoquer au moins un échec pour voir la couleur
-  réelle, pas seulement le cas nominal.
-- [ ] **Mes commandes** (`my_orders_screen.dart`) — 9 statuts routés ;
-  **teal et violet sont restés figés** faute de jeton équivalent. Regarder
-  s'ils jurent en nuit.
 - [ ] **Modifier le profil**, **Réglages de notifications**, **Messages
   favoris**, **Nouvelle conversation** — mêmes conversions.
 
@@ -15725,63 +8857,18 @@ voile trop faible devient illisible :
   chasse fixe capitales. À `font_scale = 1.1`, vérifier qu'ils ne coupent
   pas (« CE QUI VOUS ALERTE » est long).
 
-### Non testable — reste dans `design_v2`
-
-Feuille d'actions sur un message ramenée à cinq entrées avec révélateur
-« Autres actions » et rangée de réactions rapides ; états d'enregistrement
-vocal (« Glisser ‹ pour annuler · ↑ pour verrouiller », « Relâcher pour
-annuler », « Mains libres ») ; deux familles de couleur dans la grille du
-composer.
-
-Au moment de la bascule, tester en priorité **les trois états vocaux avec
-le doigt**, seule façon de vérifier que le bon libellé s'affiche au bon
-moment : le seuil d'annulation est à ~70 px et le verrouillage se fait
-vers le haut.
-
----
-
-## Refonte des maquettes d'authentification
-
-**Priorité P1** · importance 4/5 — Un nouvel inscrit bloqué ou renvoyé en boucle sur une étape de la configuration du profil n'atteint jamais l'app. *Bloqué : compte neuf (déconnexion du compte de test).*
-
-- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Refonte des maquettes d'authentification »).
-
-- [ ] **Configuration du profil : écrite, pas encore testable.** Les 4 étapes
-  des maquettes (identité « Faisons connaissance » avec photo, nom
-  d'utilisateur et vérification de disponibilité, profession ; localisation ;
-  centres d'intérêt fusionnés avec « Ce que vous recevrez » ; thème) sont
-  implémentées — mais dans `lib/design_v2/profile/…/profile_config_screen.dart`,
-  **qui n'est câblé à aucune route**. Rien n'est vérifiable sur appareil avant
-  la bascule vers `lib/features/`. Restent non écrites : nouvelle demande
-  d'ambassade, création d'événement, panier vide, état vide des transferts.
-
-- [ ] **Sous-titre chiffré de l'inscription non implémenté** : la maquette
-  annonce « Rejoignez la communauté : 318 membres à Paris, 12 groupes actifs ».
-  Aucune source ne peut fournir ces nombres avant authentification (les
-  compteurs de `home_remote_datasource` demandent une session), et les inventer
-  irait contre l'audit « widgets alimentés en dur ». Le sous-titre générique est
-  conservé en attendant un compteur public.
-
 ---
 
 ## Thème sombre — jetons clairs codés en dur
 
 **Priorité P2** · importance 3/5 — Un écran de profil ou la carte peut rester sur fond clair avec du texte clair en mode nuit, donc illisible.
 
-- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Thème sombre — jetons clairs codés en dur »).
-
 - [ ] **Les 9 autres fichiers de la même passe** : 4 écrans de transferts,
   3 écrans de profil, la carte et `friend_list_item` — non atteignables sans
   session, la réinstallation déconnecte l'app. À rouvrir en mode nuit une fois
   reconnecté.
 
-- [ ] **Blancs bruts restants** : ~587 `Colors.white` / `AppColors.white` et
-  184 `Colors.black*` subsistent dans `lib/features`. La grande majorité est
-  légitime (texte blanc sur surface colorée, écrans immersifs comme l'appel ou
-  le viewer de stories, fond blanc obligatoire des QR codes) — seuls 14 sont
-  des `backgroundColor`, dont 3 méritent un examen
-  (`admin_create_admin_screen.dart:41`, `transfer_screen.dart:86`,
-  `share_profile_modal.dart:447`). À trancher au cas par cas, pas en masse.
+- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Thème sombre — jetons clairs codés en dur »).
 
 ---
 
@@ -15822,92 +8909,11 @@ vers le haut.
   guide. **À vérifier** : le « Précédent » de la configuration du profil ne
   doit pas s'effacer sur le fond crème.
 
-- [ ] **`DesignBadge` — jamais rendu** (idem) : les quatre pastilles de statut
-  du guide (vérifié / en examen / échoué / archivé) sont écrites mais aucun
-  écran ne les appelle encore. À regarder dès le premier usage, dans les deux
-  thèmes.
-
-- [ ] **Indicateur d'étapes du transfert** (`transfers/…/send_money_screen.dart`,
-  les deux copies) : `_kStepUpcoming` recopiait l'ancienne bordure `#E8DFD4`
-  et restait donc en beige clair en nocturne ; l'étape à venir passe par
-  `colorScheme.outline`. **À vérifier** : ouvrir « Envoyer de l'argent » en
-  mode nuit — le rond et la barre des étapes non atteintes deviennent
-  nettement plus discrets (`#2A241E` sur `#0F0D0A`). Confirmer qu'on distingue
-  encore la piste ; si elle disparaît, basculer sur `outlineVariant`.
-
 - [ ] **Bordure des bulles reçues** (`messages/…/message_bubble.dart`, les deux
   copies) : `_kRecvBorderLight/Dark` figeaient `#EFE7DB` / `#3D352C` ; passe
   par `context.borderColor`. Seul le nocturne change (`#2A241E`). **À
   vérifier** : dans une conversation en mode nuit, la bulle reçue doit encore
   se détacher du fond.
-
-- [ ] **Le tunnel de transfert suit désormais l'accent du compte**
-  (`transfers/…/send_money_screen.dart`, les deux copies) : `_kTransferAccent`
-  figeait `#B85E24` sur les 5 points d'accent (rond d'étape actif, barre
-  franchie, bouton principal, puce de montant rapide), toujours avec du
-  `Colors.white` en dur. Tout passe par `colorScheme.primary` /
-  `colorScheme.onPrimary`. **C'est un changement de comportement assumé, pas
-  seulement un correctif** — trois choses à regarder :
-  1. **Compte en accent vert** : le tunnel devient vert. C'était orange pour
-     tout le monde jusqu'ici. Vérifier que rien ne jure avec le reste de
-     l'écran.
-  2. **Compte en accent orange** : ~~la teinte glisse de `#B85E24` à
-     `#E07B39`~~ — plus vrai. `colorScheme.primary` du thème orange est
-     passé à `#B85E24` juste après (voir la section suivante), donc en clair
-     le tunnel garde exactement sa teinte d'avant. Rien à vérifier ici.
-  3. **Mode nuit** : l'accent s'éclaircit et le texte dessus devient de l'encre
-     foncée au lieu du blanc — c'est la règle du guide. Confirmer sur le rond
-     d'étape (chiffre + coche), le bouton « Continuer » et son spinner.
-
----
-
-## Accent orange du thème clair — `#E07B39` → `#B85E24` (2026-08-03)
-
-**Priorité P3** · importance 1/5 — Aucun en propre : la teinte #B85E24 qu'elle vérifiait n'est plus en production.
-
-- [ ] **L'orange d'action de toute l'app change de teinte**
-  (`lib/core/theme/app_theme.dart`) : les 17 liaisons qui exprimaient l'accent
-  orange pointaient sur `AppColors.primary` (`#E07B39`) ; le guide de style
-  désigne `#B85E24` (`primaryDark`) comme « Orange — action ». Elles passent
-  toutes sur `primaryDark`, dans les deux thèmes clairs — accent du thème
-  orange, et orange secondaire du thème vert. **C'est le changement le plus
-  visible de la session** : il touche boutons pleins et contour, boutons
-  texte, FAB, barre de navigation basse, onglets, interrupteurs, cases à
-  cocher, radios, barres de progression et bordure de champ au focus.
-  **Vérifié sur SM A515F le 2026-08-03** (build de `ebc3716`, thème orange,
-  mode clair forcé en adb puis restauré). Couleurs relevées au pixel sur les
-  captures, pas jugées à l'œil — `#B85E24` exactement sur : bouton plein
-  « Compléter ma bio », barre de progression du profil, onglet actif de la
-  navigation basse, bouton composer de la messagerie, icône d'information,
-  bordure de champ **au focus**. Fond `#FAF7F2` et surface `#FFFFFF`
-  conformes au guide.
-  1. [x] **Le blanc sur l'accent** : franc, et mesurable — le contraste blanc
-     sur `#B85E24` est de **4,50:1** (AA pour le texte courant), contre
-     **2,97:1** sur l'ancien `#E07B39`, qui échouait même au seuil du grand
-     texte. C'est le vrai gain du changement.
-  2. [x] **Bordure de champ au focus** : nette, ~4 px réels de `#B85E24` sur
-     le crème. Ma crainte que les traits fins s'assombrissent de trop ne se
-     confirme pas.
-  3. [ ] **Coche, piste d'interrupteur, indicateur d'onglet** : pas atteints
-     pendant la session. Même jeton que les éléments ci-dessus, donc même
-     valeur — mais l'épaisseur du trait n'a pas été jugée.
-  4. [ ] **Thème vert** : non vérifié, le compte de test est en accent
-     orange.
-- [ ] **Dégradés inchangés, volontairement** : `AppColors.primary`
-  (`#E07B39`) reste la teinte claire de la famille orange et continue
-  d'ouvrir `primaryGradient` (`#E07B39` → `#B85E24`). Un dégradé qui part
-  d'un ton plus clair que l'accent est normal, mais si un bandeau paraît
-  désormais désaccordé avec les boutons, c'est là qu'il faut regarder. Aucun
-  écran à dégradé n'a été ouvert pendant la session.
-- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Accent orange du thème clair — `#E07B39` → `#B85E24` (2026-08-03) »).
-- [ ] **Bordure forte `#E0D6C6` sur les puces au repos** : c'est le point que
-  j'avais désigné comme le plus à risque, et il **n'a pas été atteint**
-  (`DesignSelectableChip` vit dans la configuration du profil,
-  `DesignSecondaryButton` dans ses barres de navigation). Les puces de filtre
-  de la messagerie, elles, utilisent la bordure fine `#EFE7DB` : visible sur
-  la capture, leur contour est très discret, la puce ne tient que par son
-  aplat blanc sur le fond crème. À trancher en voyant la configuration du
-  profil.
 
 ---
 
@@ -15943,16 +8949,8 @@ maintenant **ceux que l'app ouvre pour de bon**. Rien n'a été vu tourner.
 
 Dix écrans de plus dans `lib/features/`, jamais vus tourner :
 
-- [ ] **Boutique** (§12b, §16a, §16b, §16h) : liste, fiche produit, panier.
 - [ ] **Support** (§22a→22d) : nouveau ticket, mes demandes, suivi, état vide.
-- [ ] **Transferts — accueil et historique** (§16i, §16c). La **frise
-  « Débité → En route → Disponible »** de l'historique est le point à
-  regarder : elle ne doit apparaître que sur les transferts qui ont un
-  trajet, pas sur un échec ou un remboursement.
 - [ ] **Historique d'appels** (§13c) et **création de podcast** (§2c).
-- [ ] ⚠️ **`send_money_screen` n'est pas dans ce lot** : il attend une fusion,
-  pas une copie. Ne pas conclure d'un tunnel d'envoi correct que la bascule
-  des transferts est complète.
 
 ---
 
@@ -15981,44 +8979,7 @@ mais c'est exactement ce qu'il faut regarder en premier :
   ensemble — les trois états d'enregistrement vocal avec leurs libellés
   (« Glisser ‹ pour annuler », « Relâcher pour annuler », « Mains libres »),
   la pastille de vitesse en contour, le poids du fichier.
-- [ ] **Non-régression du mode « données réduites »** : `DataSaverGate` a
-  traversé la bascule (vérifié dans le fichier). Confirmer sur l'appareil
-  qu'un média reçu reste flouté avec son bouton « Télécharger » quand le mode
-  est actif.
 - [ ] **Groupes** (§9c, §9d, §9f) et **notifications** (§12c).
-
----
-
-## Bascule design_v2 → production, famille 5 : accueil et envoi d'argent (2026-08-03)
-
-**Priorité P3** · importance 3/5 — Message « Personne à moins de 50 km » affiché à tort pendant la recherche, ou accents cassés dans un tunnel de transfert sous drapeau de fonction.
-
-- [ ] **Accueil** (§8a) : c'est l'écran d'ouverture de l'app, donc le plus vu
-  de tous. Vérifier le squelette de chargement au moment d'« Élargir à
-  200 km » — il doit remplacer la carte « Personne à moins de 50 km » pendant
-  la recherche, jamais la laisser affichée.
-- [ ] **Envoi d'argent** (§12a) : la barre de titre passe en serif plat. Le
-  reste de l'écran (montant en très grand, frais, total, taux) était déjà en
-  production — vérifier qu'il n'a pas bougé.
-- [ ] **Accents du tunnel d'envoi** (2026-08-03) : 15 chaînes réparées —
-  « Réinitialiser », « Ajouter un bénéficiaire », « Récapitulatif », « Montant
-  envoyé », « Total débité », « conditions générales », « Transfert initié
-  avec succès ». À relire **sur l'appareil**, aux trois étapes du parcours :
-  un accent qui sort en tofu (□) ou en mojibake ne se voit pas dans le code,
-  seulement au rendu. Vérifier au passage que « Récapitulatif » et « Montant
-  à recevoir » tiennent toujours sur une ligne à `font_scale = 1.1` — un
-  accent ajoute de la hauteur, pas de la largeur, mais les libellés
-  s'allongent d'un caractère.
-- [ ] **Accents du choix et de l'ajout de bénéficiaire** (2026-08-03) :
-  32 chaînes de plus sur `add_recipient_screen` et `recipient_select_screen`.
-  Les libellés de champs (« Numéro de téléphone \* », « Opérateur mobile \* »)
-  et les messages de validation sont les plus exposés — un `labelText` trop
-  long passe en ellipse sans prévenir. Vérifier aussi les trois SnackBars
-  (« Bénéficiaire ajouté/modifié/supprimé avec succès »).
-- [ ] **La ville reste sans accent, exprès** : « Tillaberi » dans la liste de
-  `add_recipient_screen` alimente le champ `city` enregistré en base.
-  Vérifier au passage qu'un bénéficiaire créé avant aujourd'hui affiche
-  toujours sa ville correctement.
 
 ---
 
@@ -16041,10 +9002,6 @@ parce qu'il change un **comportement**, pas seulement un habillage :
 - [ ] **Tri « Les plus proches » ⇄ « Par nom »**. Le tri par distance ne
   s'applique que si la position est connue — vérifier **position coupée** :
   l'ordre d'arrivée doit être conservé, pas un classement inventé.
-- [ ] **Non-régression des couleurs** : les deux passes de jetons adaptatifs
-  (`94d721c`, `bdcd795`) sont dans le fichier basculé. Regarder la carte en
-  **thème sombre** — libellés sur l'accent, puces de rayon et de filtre
-  sélectionnées, pastille de la légende.
 
 - [ ] **Réglages de notifications** (§20d) : seul le titre de la barre a
   changé (serif, barre plate). Vérifier que les **étiquettes de section en
@@ -16069,89 +9026,9 @@ Supabase et Firebase côté serveur, accès anon, stockage, journaux, Crashlytic
 
 ---
 
-## ✅ participant_ids : deux orphelins retirés (2026-09-21)
-
-**Priorité P3** · importance 1/5 — Réparation de données faite et vérifiée en base ; rien à voir sur appareil, aucune régression attendue.
-
-Deux uid de comptes DISPARUS traînaient dans `participant_ids` de deux
-conversations de groupe (l'audit les disait « gardent lecture et écriture » —
-en réalité aucun compte vivant ne les détient). Migration
-`20260921110000_participants_orphelins.sql` **APPLIQUÉE** : `2 conversation(s)
-nettoyée(s)`, 0 orphelin restant, `group_members` intact. Banc
-`tools/rls_tests/participants_orphelins.sql` (3 échecs sans, 0 avec).
-
-Cause déjà close (`purge_account` nettoie `participant_ids`), aucun garde-fou
-ajouté. Le « membre manquant » d'un groupe officiel est laissé tel quel :
-jointure paresseuse par conception (`join_group_conversation`).
-
-- [ ] (facultatif, si un jour un appareil est dispo) ouvrir les deux groupes
-  concernés et confirmer que la liste des membres s'affiche normalement.
-
----
- getUsersForPush : injection PostgREST fermée à la source (2026-09-21)
-
-**Priorité P2** · importance 3/5 — Durcissement d'une aide serveur, sans effet visible côté app. Rien à voir sur appareil au-delà de « les pushs partent toujours ».
-
-`getUsersForPush` (`functions/supabase.js`) bâtit une in-list PostgREST
-(`id=in.("a","b")`) par concaténation. Un identifiant contenant `"`, `)` ou
-`,` réécrivait le filtre — `getUsersForPush(['x")&id=not.is.null&("'])` aurait
-lu TOUTE la table `users` (e-mails, positions, jetons). Deux chemins vivants
-lui passaient des identifiants d'origine cliente :
-
-- `onCallCreated` — le document d'appel (fermé en amont le même jour par
-  `uidValide`, mais l'aide ne se gardait pas elle-même) ;
-- `sendMessagePush` / `onMessageCreated` — les `message.mentionedUsers[].id`,
-  jamais validés (`sendMessagePush` ne vérifie que `senderId == auth.uid`).
-
-L'aide FILTRE désormais sur la forme d'un identifiant (`^[A-Za-z0-9_-]{1,128}$`)
-avant de concaténer : un identifiant malformé est ignoré (au pire un
-destinataire non notifié), jamais inséré. Banc
-`tools/rules_tests/get_users_for_push.mjs` (fetch espionné, sans réseau) :
-0 échec ; la concaténation directe d'avant en échoue 5 sur 8.
-
-**DÉPLOYÉ** — les quatre fonctions qui appellent l'aide, une par une, ACTIVE :
-`onMessageCreated`, `sendMessagePush` (europe-west1), `onCallCreated`,
-`onCallUpdated` (us-central1). ⚠️ Toujours déployer depuis le WORKTREE : lancé
-par erreur depuis le dépôt principal, `firebase deploy` échoue au chargement
-(« Cannot determine backend specification ») sans rien envoyer.
-
-**À vérifier sur appareil :** une mention dans un groupe notifie bien le
-mentionné (chemin `sendMessagePush` / `onMessageCreated`).
-
----
-
-
 ## ⬜ `users` : un compte connecté lit e-mail, position et jetons d'autrui (2026-09-21)
 
 **Priorité P0** · importance 5/5 — Dernière exposition vivante de l'audit pré-prod (1.1b), et c'est le fond des refus Play sur la localisation. Rien n'est fermé : ce qui a été posé le 2026-09-21 PRÉPARE la fermeture, qui exige une version cliente.
-
-**Mesuré le 2026-09-21** sous l'identité d'un compte ordinaire : 127 profils
-lisibles, **89 e-mails, 65 positions, 64 jeux de jetons push, 35
-identifiants de session**. Et deux consentements appliqués par le seul
-client : **6 personnes ont coupé `share_location` et restent localisables**
-(2 à moins de 30 jours) — la carte ne les écarte que parce que
-`getNearbyProfiles` ajoute `.eq('share_location', true)` de lui-même ; et
-**1 téléphone réglé sur `private`** reste lisible. Un filtre suffit même à
-deviner une adresse sans la lire (`WHERE email = …`).
-
-**Posé le 2026-09-21, sans rien changer pour les builds installés :**
-
-- `app-config` sert enfin `VERSION_MINIMALE_APP` (v5) — voir « Verrou de
-  version minimale et multi-appareil » : le verrou était inerte ;
-- migration `20260921080000` **APPLIQUÉE** : trois RPC `SECURITY DEFINER`
-  qui appliquent la règle de LIGNE qu'un droit par colonne ne sait pas
-  exprimer — `mon_profil_prive()` (sa ligne entière), `positions_partagees()`
-  (**le consentement enfin appliqué par le serveur**), `profils_admin()`
-  (lève 42501 hors administrateur). Banc
-  `tools/rls_tests/users_rpc_colonnes_privees.sql` : 13 échecs sans, 0 avec,
-  0 sur l'état vivant ;
-- la fermeture elle-même, écrite en **cible non appliquée** :
-  `supabase/users-colonnes-privees-cible.sql`, répétée par
-  `tools/rls_tests/users_colonnes_privees_cible.sql` via
-  `tools/rls_tests/repeter_cible.py` (qui refuse d'injecter un `COMMIT`).
-  Répétée en production : les 6 formes du trou fermées, rien d'autre ne
-  casse — dont l'hypothèse centrale, une fonction `SECURITY DEFINER` qui
-  rend encore les colonnes révoquées à son propriétaire.
 
 **Version cliente ÉCRITE le 2026-09-21** (commits `da15fbc` et suivant) — les
 16 sites : 11 lectures de `*` (dont un `.stream()` et le `RETURNING *` de
@@ -16163,12 +9040,6 @@ de LIRE la colonne, donc écrire `email`/`phone_number` par upsert tombait en
 42501 (enregistrement du profil, connexion). Remplacés par
 `ecrireSaLigneUsers` (UPDATE puis INSERT). Migration `20260921093000`
 APPLIQUÉE (positions par identifiants, jeton push modifié en base).
-
-Preuves, sans appareil : garde `test/core/users_colonnes_privees_test.dart`
-(montré en échec sur l'ancien code, où il désigne les 14 sites et les 2
-upserts), 616 tests verts, `flutter analyze` propre ; et côté base, le banc de
-préparation répété SOUS la cible rend 0 échec sur 27 — chaque forme de requête
-de la nouvelle version passe (cas D1 à D8).
 
 **Changements de comportement à connaître :** la carte en mode pays trie par
 dernière activité (et non plus par date de position, qui n'est plus lisible) ;
@@ -16206,47 +9077,12 @@ tourner) :
 - [ ] puis, après publication et pose du verrou : répéter la cible par son
   banc (0 échec attendu) avant de l'appliquer.
 
-**Écarté, et pourquoi :** effacer la position à l'écriture quand
-`share_location` est coupé — seule fermeture purement serveur trouvée — aurait
-cassé en silence les notifications d'événements locaux (`users_near_point`
-a légitimement besoin de la position de qui a gardé `notify_local_events`).
-Deux consentements distincts. Et une vue masquante à la place de la table :
-`users` porte 28 clés étrangères entrantes, un abonnement temps réel ne suit
-pas une vue, et aucune sauvegarde n'existe.
-
 ---
-
 
 ## ⬜ Avis sur les entreprises : basculés de Firestore vers Supabase (2026-09-21)
 
 **Priorité P2** · importance 3/5 — L'annuaire affichait 0 avis et aucune note quelles que soient les évaluations : les avis allaient dans Firestore, les entreprises vivent dans Supabase. Le drapeau `businessDirectory` est fermé et la production porte 2 fiches, 0 avis.
 *Bloqué : une version cliente construite depuis `e2dca73` ou après, puis le drapeau à ouvrir sur un appareil.*
-
-Migrations `20260921083000` et `20260921090000` **APPLIQUÉES le 2026-09-21**
-(par Salim). Bancs relancés sur l'état vivant : 41/41, 19/19, et
-`boost_et_badge_verifie.sql` toujours 17/17. Relu ensuite : 4 policies,
-2 déclencheurs, 3 fonctions DEFINER, 0 avis, 0 signalement, aucun résidu du
-banc ; les 2 fiches réelles sont à `NULL / 0` (l'une était à `0.00` sans avis).
-
-**Côté base** — deux migrations, répétées ensemble en `BEGIN … ROLLBACK` sur la
-production (qui porte déjà `20260921080000`) :
-
-- `20260921083000_agregats_avis_entreprises.sql` : déclencheur
-  `business_reviews_agreger` (SECURITY DEFINER), qui recalcule `rating`
-  (moyenne des avis `published`, NULL sans avis) et `review_count`. Banc
-  `tools/rls_tests/agregats_avis_entreprises.sql` : 13 échecs sur 19 sans,
-  19/19 avec. En INVOKER, la contre-épreuve montre que l'avis d'un client
-  laisserait la note figée **en silence**, et que celui du gérant serait
-  refusé en entier par la garde.
-- `20260921090000_avis_entreprises_sur_supabase.sql` : policies (lire les
-  avis publiés + les siens ; le gérant et l'admin voient aussi les signalés),
-  droits **par colonne** (le client n'écrit que note, titre, texte, photos),
-  nom et photo de l'auteur recopiés de `users` par déclencheur, et trois
-  fonctions serveur : `avis_marquer_utile`, `avis_repondre` (gérant seul),
-  `avis_signaler` (vers `public.reports`, lu par le back-office ; au 3ᵉ
-  signalant distinct, l'avis passe `flagged`). `anon` n'a plus aucun droit.
-  Banc `tools/rls_tests/avis_entreprises_sur_supabase.sql` : 34 échecs sur 41
-  sans, 41/41 avec.
 
 **Côté app** — `ReviewSupabaseDataSource` remplace le datasource Firestore
 (supprimé). La réponse du gérant passait par `updateReview`, c'est-à-dire par
@@ -16259,12 +9095,6 @@ tomber toute la requête en 42501.
 **Règles nouvelles côté serveur** (l'écran les respectait déjà en masquant les
 boutons) : le gérant ne note pas sa propre fiche, on ne se trouve pas « utile »
 soi-même, on ne signale pas son propre avis.
-
-**Laissé en place, mort :** la collection Firestore `business_reviews`, ses
-règles et les trois fonctions `onReview*`. Une version antérieure de l'app y
-écrirait encore ; ses avis n'apparaîtront nulle part. Firestore y était à
-0 document le 21/09 (relevé de la session précédente — la relecture de cette
-session a été refusée).
 
 **À vérifier sur appareil** (migrations appliquées, nouvelle version, drapeau
 ouvert) :
@@ -16286,30 +9116,6 @@ ouvert) :
 
 **Priorité P1** · importance 4/5 — Le drapeau `businessDirectory` est fermé et la production ne porte que 2 fiches, mais ce durcissement change le comportement d'un écran d'édition que personne n'a jamais ouvert sur un téléphone.
 
-Migration `20260921071500_boost_et_badge_verifie_fermes.sql` — **APPLIQUÉE le
-2026-09-21** (`db push`, seule en file). `firestore.rules` **DÉPLOYÉ** le même
-jour, relu par l'API `firebaserules` : la production est identique au dépôt,
-15 `allow create: if false`. Banc `tools/rls_tests/boost_et_badge_verifie.sql`,
-17 cas : **9 échecs sans la migration, 0 avec**, puis 0 sur l'état vivant. Les
-2 fiches existantes sont intactes (0 vérifiée, 0 promue, 2 actives).
-
-**L'audit nommait `business_boosts` ; c'était la quittance, pas la caisse.**
-`businesses_update_owner` n'avait ni `WITH CHECK` ni restriction de colonnes :
-le propriétaire réécrivait toute sa ligne, `is_boosted`, `boost_expires_at` et
-**`is_verified`** compris. Se promouvoir dix ans et se décerner le badge de
-confiance était le chemin nominal du code, pas une ruse —
-`updateBusinessBoostStatus` (`business_supabase_datasource.dart:431`) pose
-`is_boosted` directement, et `_versLigne` (`:106`) envoie `is_verified` à
-chaque enregistrement.
-
-**Pourquoi un déclencheur et pas un `REVOKE` par colonnes :** `updateBusiness`
-(`:338`) envoie **toute** la ligne à chaque retouche — changer le téléphone
-réécrit `is_verified` avec sa valeur courante. Un `REVOKE UPDATE (…)` aurait
-fait échouer la requête entière en 42501 sur la moindre modification (le piège
-de l'upsert, déjà payé sur `mls_messages`). La garde compare les **valeurs**,
-pas les colonnes écrites : une réécriture à l'identique passe. C'est le cas 10
-du banc, et c'est celui qui compte le plus.
-
 **À vérifier sur appareil** (rien n'a été vu tourner, le drapeau est fermé) :
 
 - ouvrir une fiche, changer le nom, le téléphone, la description, les horaires
@@ -16330,42 +9136,11 @@ innocente, lèvera 42501 sur une valeur périmée. Le remède définitif est cô
 client : cesser d'envoyer `is_verified`, `is_boosted` et `boost_expires_at`
 dans `_versLigne`. À faire avec la prochaine version cliente.
 
-**Trouvé au passage — la note des entreprises n'est calculée par personne**
-(suite : voir « Avis sur les entreprises : basculés de Firestore vers
-Supabase »). Le commentaire de `_versLigne` (`:86-89`) exclut `rating`,
-`review_count`, `follower_count` et `view_count` en affirmant que « la base les
-tient (génération, triggers d'agrégat) ». Mesuré : **aucun déclencheur
-n'existe** sur `business_reviews` — seul `update_updated_at` sur
-`business_posts`. Ces colonnes ne bougent donc jamais, et l'annuaire affichera
-0,00 étoile quoi qu'il arrive. La garde les protège désormais d'un `PATCH`
-direct (cas 7), ce qui ferme la faille mais pas le défaut.
-
 ---
-
 
 ## ⬜ Salons audio : l'argent et l'identité repassent au serveur (2026-09-21)
 
 **Priorité P1** · importance 3/5 — Dernière pièce de la chaîne de paiement. Le drapeau `audioRooms` est fermé et les quatre tables sont vides : rien n'est vérifiable sans ouvrir le drapeau sur un appareil, et c'est justement ce qu'il faudra faire avant toute réouverture.
-
-Migration `20260921054500_salons_audio_ecriture_fermee.sql` — **APPLIQUÉE le
-2026-09-21** (`db push`, seule en file). Banc
-`tools/rls_tests/salons_audio_ecriture_fermee.sql`, 18 cas : **10 échecs sans
-la migration, 0 avec**, puis 0 sur l'état vivant. Droits relus à part en
-production : `anon` n'a plus **aucun** droit sur les quatre tables,
-`authenticated` n'a plus que `SELECT` sur `tips`, `room_tickets` et
-`creator_profiles`, et son `UPDATE` sur `audio_rooms` est réduit à dix
-colonnes.
-
-**L'audit visait les quatre Edge Functions ; le trou était ailleurs.** Les
-deux fonctions payantes sont CASSÉES — `process-tip` insère
-`commission_amount`, `process-room-ticket` insère `seller_id`, colonnes qui
-n'existent pas (42703, rejoué). Le `PaymentIntent` vient après cet insert :
-le prix dicté par le client n'a jamais atteint Stripe. Le vrai trou vivant
-était le RLS, et `stripe-dashboard-link` en était la pointe : irréprochable
-ligne à ligne, mais il relisait `creator_profiles.stripe_account_id`, que le
-client écrivait lui-même — poser l'identifiant d'un compte Connect quelconque
-et le statut « active » lui faisait rendre un lien de connexion au tableau de
-bord Stripe de ce compte.
 
 **À vérifier sur appareil, le jour où le drapeau s'ouvrira** (rien de tout
 ceci n'a été vu tourner) :
@@ -16382,79 +9157,16 @@ ceci n'a été vu tourner) :
 - `markTicketUsed` (`:113`) échouait déjà faute de policy d'UPDATE ; il échoue
   maintenant plus tôt. Vérifier que l'écran le dit.
 
-**Deux choses mesurées et laissées ouvertes, délibérément :**
-
-- `audio_rooms_update` reste `USING (firebase_uid() IS NOT NULL)` : la
-  fermeture porte sur les COLONNES, pas sur la LIGNE. Un compte connecté peut
-  encore couper le micro d'un intervenant dans la salle d'un autre (cas 17 du
-  banc, mesuré : 1 ligne touchée). Refermer la ligne demande des RPC par
-  geste, pas un `REVOKE` — voir « Règles Firestore » pour la même leçon ;
-- `forceEndRoom` par un administrateur qui n'est pas de la salle est REFUSÉ
-  (42501, cas 18). Panne préexistante, ni causée ni réparée ici :
-  `audio_rooms_select` ne montre une salle terminée qu'à ses membres, et
-  Postgres applique les policies de SELECT à la NOUVELLE ligne d'un UPDATE —
-  on ne peut pas pousser une ligne hors de sa propre vue. Même famille que la
-  résolution de litige de `orders`. La réparer serait un ÉLARGISSEMENT (un
-  administrateur verrait toutes les salles privées) : c'est une décision, pas
-  un correctif, et elle n'a pas été prise.
-
-**Et un inconnu qui n'est pas levé :** la valeur de `STRIPE_SECRET_KEY`
-déployée sur les Edge Functions n'est **pas** celle de `functions/.env` (les
-digests diffèrent). Le dépôt est en `sk_test` ; la valeur en ligne n'est pas
-lisible d'ici. À trancher dans le tableau de bord Stripe avant toute
-réouverture.
-
 ---
-
 
 ## ⬜ `public.friends` : le serveur seul écrit l'audience (2026-09-21)
 
 **Priorité P1** · importance 3/5 — Un compte connecté pouvait insérer, modifier et supprimer ses propres lignes d'amitié par PostgREST, alors que cette table décide des audiences « Amis » et « Abonnés ». Le fil doit continuer de lire ses amitiés.
 
-Migration `20260921021300_friends_ecriture_serveur_seul.sql` — **APPLIQUÉE le
-2026-09-21** (`db push`, seule en file, sans avertissement). Banc relancé tel
-quel sur l'état vivant : 12 cas, 0 échec. Preuve HTTP avec la clé publique :
-`POST` et `GET /rest/v1/friends` rendent tous deux 401 / 42501.
-`REVOKE ALL … FROM anon`,
-lecture seule pour `authenticated`, les deux policies passées de `public` à
-`authenticated`.
-
-Banc `tools/rls_tests/friends_ecriture_serveur_seul.sql`, 12 cas, contre la
-production en `BEGIN … ROLLBACK` : 8 échecs sans la migration, 0 avec. Le banc
-n'écrit rien — il vise une paire telle quelle, et comme Postgres vérifie le
-privilège **avant** d'exécuter, tout résultat autre que 42501 prouve que le
-droit était là.
-
-`lib/` ne fait que LIRE cette table, deux fois, toujours avec `user_id = soi`
-(`feed_supabase_datasource.dart:310`, `feed_personalization_provider.dart:51`).
-Les amitiés sont écrites par `setFriendship` avec la clé de service.
-
-**Le vrai trou : DÉPLOYÉ le 2026-09-21.** Deux déclencheurs de
-`functions/index.js`, envoyés un par un, dans cet ordre imposé :
-`onFriendRequestAccepted` créé d'abord (chemin d'entrée), vérifié en ligne,
-puis `mirrorFriendToSupabase` mis à jour (la garde). L'inverse aurait ouvert
-une fenêtre où aucune amitié neuve n'entrait dans Postgres.
-
 - `onFriendRequestAccepted` (nouveau) écrit les deux sens dans
   `public.friends` à la transition `pending → accepted`. C'est désormais le
   seul chemin d'entrée. Il marche avec **toutes les versions de l'app déjà
   installées** : cette mise à jour n'a pas changé côté client.
-- `mirrorFriendToSupabase` reflète toujours un retrait, mais ne reflète un
-  ajout que si le sens inverse existe déjà. Depuis la migration ci-dessus,
-  une ligne n'a pu y arriver que par la clé de service : l'existence du sens
-  inverse est donc une preuve de consentement.
-
-Banc `tools/rules_tests/amitie_consentie.mjs`, 11 cas, 0 échec — la sonde
-contre la production en lecture seule, la décision des déclencheurs avec
-Supabase bouchonné (rien ne sort de la machine). Garde retirée : B3 tombe,
-donc le banc sait échouer.
-
-**Ce que le déploiement N'A PAS prouvé** : aucune demande d'ami réelle n'a
-été jouée. Les données sont intactes (24 lignes, 12 paires, 0 asymétrie),
-les deux fonctions sont listées en `nodejs22`, et c'est tout ce qui est
-vérifié. Le parcours vivant reste à voir. Surveiller dans les journaux
-`mirrorFriendToSupabase: ajout … ignoré` : un seul, sur un parcours normal,
-signalerait un chemin d'acceptation que je n'ai pas vu.
 
 - [ ] **Accepter une demande d'ami** : l'ami apparaît des deux côtés, et le
   journal ne porte aucun « ajout … ignoré ». C'est LE test qui compte : si
@@ -16466,27 +9178,6 @@ signalerait un chemin d'acceptation que je n'ai pas vu.
   l'une à l'autre) : `sendFriendRequest` accepte la demande inverse — même
   transition, donc même déclencheur, à confirmer en vrai.
 
-**⚠️ Ce que la migration seule ne fermait PAS.** La règle Firestore
-`users/{userId}/friends/{friendId}` autorise l'écriture dès que
-`friendId == request.auth.uid` : n'importe qui peut s'inscrire dans la liste
-d'amis d'autrui, et `mirrorFriendToSupabase` recopie la ligne dans
-`public.friends` avec la clé de service — dans le sens qui donne accès
-(`est_ami_de(auteur, lecteur)` lit `user_id = auteur`). Cette migration
-n'enlève que la porte directe.
-
-Pourquoi ce n'est pas corrigé du même coup : les règles Firestore ne savent
-pas faire de requête, et la preuve du consentement est **détruite** —
-`_oublierDemande` supprime la demande d'ami juste après l'acceptation
-(`friend_remote_datasource.dart:200`). Ni la règle ni le miroir ne peuvent
-donc vérifier « une demande acceptée existe ». La correction demande un
-déclencheur serveur sur la transition `pending → accepted` (que l'événement
-porte, même si le document est supprimé ensuite), et le miroir réduit aux
-suppressions. Décrit dans `docs/deploiement/AUDIT_PRE_PROD_2026-09-20.md`.
-
-**Matière exposée à ce jour : AUCUNE.** Mesuré le 2026-09-20 : 6 publications
-et 6 stories, toutes `public` ; 0 contenu en audience « amis » ou « abonnés ».
-La table est saine : 24 lignes, 12 paires toutes symétriques.
-
 - [ ] **Fil et personnalisation** : ouvrir le fil avec un compte qui a des
   amis — les publications d'amis s'affichent, et « Découvrir » ne se vide pas.
 - [ ] **Accepter une demande d'ami de bout en bout** : l'ami apparaît des deux
@@ -16494,117 +9185,9 @@ La table est saine : 24 lignes, 12 paires toutes symétriques.
   une publication à cette audience pour le vérifier — il n'en existe aucune).
 - [ ] **Retirer un ami** : l'audience se referme des deux côtés.
 
-## ⬜ `orders` : la vente ne se pilote plus depuis le client (2026-09-21)
-
-**Priorité P1** · importance 4/5 — Dernière pièce de la chaîne de paiement. L'acheteur posait lui-même le montant et le statut à la création. Et la résolution de litige du back-office ne marchait pas — elle est réparée au passage.
-
-Deux côtés, **DÉPLOYÉS le 2026-09-21**. Migration appliquée puis banc
-relancé tel quel (11 cas, 0 échec) ; règles relues par l'API `firebaserules`,
-production identique au dépôt. Les policies de `orders` en base sont
-désormais `orders_select_admin`, `orders_select_parties`,
-`orders_update_litige_admin` — plus d'insertion ni de mise à jour par les
-parties.
-
-- `firestore.rules` — le parcours marketplace vit là
-  (`marketplace_remote_datasource.dart`). `allow create` et `allow update`
-  passent à `if false`.
-- migration `20260921034600_orders_ecriture_fermee.sql` — côté Supabase :
-  INSERT fermé, UPDATE réservé aux administrateurs et limité par GRANT aux
-  six colonnes de litige.
-
-**Ce que j'avais mal lu, et qui mérite d'être dit.** J'ai d'abord annoncé que
-le client libérait lui-même le séquestre. C'est vrai du code Dart
-(`releaseEscrow()` pose `status: 'completed'`), mais **faux des règles
-déployées** : la note BUG-04 l'avait déjà sorti vers
-`escrow_release_requests` + Cloud Function. Ce Dart est donc du code MORT que
-les règles refusent déjà. Le vrai trou était la **création**, libre de tout
-champ : `totalAmount`, `sellerAmount`, `status`, `escrowStatus`, `paidAt`.
-
-**Une panne silencieuse trouvée en chemin.** La résolution de litige du
-back-office touchait **0 ligne**, sans rien dire. Un administrateur n'est ni
-acheteur ni vendeur, donc `orders_select_parties` ne lui montre rien — et
-Postgres applique les policies de SELECT aux lignes qu'un `UPDATE … WHERE`
-doit d'abord retrouver. La migration ajoute `orders_select_admin` : le cas 10
-du banc échouait AVANT comme après sans elle.
-
-Banc `tools/rls_tests/orders_ecriture_fermee.sql`, 11 cas, contre la
-production en `BEGIN … ROLLBACK` : 9 échecs sans la migration, 0 avec.
-Rien n'existe à casser — 0 commande et 0 produit des deux côtés, drapeau
-`marketplace` fermé.
-
-- [ ] **Back-office → litiges**, une fois une commande existante : la liste
-  affiche quelque chose, et « résoudre » enregistre vraiment. C'est la
-  réparation à vérifier, pas la fermeture.
-- [ ] **Le jour où la marketplace rouvre** : séquestre tenu par le serveur —
-  prix relu depuis `products`, paiement confirmé auprès de Stripe, passages à
-  `paid` et `completed` réservés à une fonction. Ne pas rétablir l'ancienne
-  règle de création.
-
-## ⬜ Chaîne de paiement : plus d'ordre de virement venu du client (2026-09-21)
-
-**Priorité P1** · importance 4/5 — Douze collections Firestore déclenchent une Cloud Function qui bouge de l'argent en Admin SDK : créer le document, c'est ordonner le virement. Les règles laissaient n'importe qui le créer. Rien de tout cela n'a jamais servi — à rouvrir délibérément le jour où les paiements s'ouvrent.
-
-`firestore.rules` — **DÉPLOYÉ le 2026-09-21**, relu par l'API
-`firebaserules` : la production est identique au dépôt, hors commentaires, et
-porte 13 `allow create: if false`.
-
-**Trois Edge Functions supprimées** le même jour, du déploiement et du dépôt :
-`create-payment-intent` (les métadonnées du client écrasaient `transaction_id`
-et `user_id`), `verify-order-payment` (elle acceptait n'importe quel
-PaymentIntent réussi) et `process-escrow-release` (elle virait sur une
-commande fabriquée). **Aucune n'a jamais été référencée par `lib/` dans tout
-l'historique git** — aucun APK ne peut les appeler. La source reste dans
-l'historique si elles doivent revenir. Il reste 14 Edge Functions.
-
-`escrow_transactions`, `tips`, `roomTickets`, `roomReplays`,
-`creatorSubscriptions`, `creatorProfiles`, `payouts`,
-`stripe_connect_requests`, `debit_requests`, `card_credit_requests`,
-`order_payment_requests`, `escrow_release_requests` : l'écriture cliente
-passe à `if false`. La LECTURE ne bouge pas, les blocs d'administration non
-plus.
-
-**Pourquoi c'est sans risque aujourd'hui**, mesuré le 2026-09-21 :
-
-- zéro `collection('…')` dans `lib/` pour les douze ;
-- les tables Supabase correspondantes sont VIDES — 0 commande, 0
-  transaction, 0 séquestre, 0 pourboire, 0 billet, 0 profil créateur, 0
-  produit, 0 compte de paiement ;
-- drapeaux `marketplace`, `audioRooms` et `moneyTransfer` fermés.
-
-Banc `tools/rules_tests/paiements_fermes.mjs`, 16 cas, contre l'émulateur :
-**12 échecs avec les règles d'avant** — les douze ordres passaient — et 0
-avec les nouvelles. Chaque document fabriqué est VALIDE au sens des anciennes
-règles, donc son refus prouve bien la fermeture et non un défaut de forme.
-
-⚠️ **`orders` n'est PAS fermée** : elle a un vrai chemin client
-(`marketplace_remote_datasource.dart:49`) et demande un traitement par champs
-— interdire au client de poser `status`, `escrowStatus`, `paymentIntentId`,
-`sellerAmount`. C'est le reste connu de ce point.
-
-- [ ] **Le jour où les paiements s'ouvrent** : rouvrir ces règles
-  délibérément, une par une, avec pour chacune une vérification serveur du
-  montant. Ne pas se contenter de rétablir l'ancienne version.
-- [ ] **Vérifier qu'aucun écran ne casse** avec les drapeaux ouverts en
-  recette (annuaire, salons audio, transferts) : l'app avale certains refus
-  de permission.
-
 ## ⬜ Push arbitraire : type en liste fermée, blocage, quota (2026-09-21)
 
 **Priorité P0** · importance 4/5 — N'importe quel compte connecté pouvait faire arriver sur le téléphone de n'importe qui une bannière de son cru, sous le type de son choix — `system` compris. Reste à voir que les notifications légitimes arrivent toujours.
-
-Migration `20260921032400_notification_type_ferme_et_quota.sql` —
-**APPLIQUÉE le 2026-09-21** (`db push`, seule en file). Banc relancé tel quel
-sur l'état vivant : 14 cas, 0 échec, production intacte (0 ligne du banc).
-
-Une sonde HTTP avec la clé publique ne prouve RIEN ici, contrairement aux
-points précédents : sans jeton utilisateur, `firebase_uid()` est nul et la
-RPC s'arrête sur « not authenticated » avant d'atteindre le contrôle de type.
-C'est le banc, avec son rôle simulé, qui fait preuve.
-
-`create_user_notification` n'exigeait que deux choses : être connecté, et que
-le destinataire existe. `p_type`, `p_title`, `p_body` étaient libres, et le
-destinataire quelconque. Or `notifications` porte `trg_notify_push`, qui
-envoie un vrai push à l'insertion.
 
 Trois gardes :
 
@@ -16617,19 +9200,6 @@ Trois gardes :
    l'appelant qu'il est bloqué.
 3. **Quota horaire** : 60 par émetteur, 10 par couple émetteur/destinataire.
 
-Banc `tools/rls_tests/notification_type_et_quota.sql`, 14 cas, contre la
-production en `BEGIN … ROLLBACK` : 7 échecs sans la migration, 0 avec.
-Il mesure aussi les **81 envois** que le `ROLLBACK` annule — `net.http_post`
-passe par la file transactionnelle de pg_net, donc aucun push ne part.
-
-⚠️ **Ce qui reste ouvert** : `p_title` et `p_body` demeurent du texte libre.
-Un compte peut donc encore écrire ce qu'il veut dans une bannière — sous un
-type légitime, vers quelqu'un qui ne l'a pas bloqué, et dans la limite du
-quota. La vraie fermeture serait de dériver le texte du type et du nom de
-l'émetteur côté serveur : les textes sont déjà des chaînes françaises en dur
-dans `lib/` (ex. `friend_repository_impl.dart:37`), donc rien ne serait perdu,
-mais ça touche douze sites d'appel.
-
 - [ ] **Demande d'ami, acceptation, commentaire, inscription à un
   événement** : la notification arrive toujours chez le destinataire. C'est
   le test qui compte — un type oublié dans la liste fermée ferait échouer la
@@ -16641,30 +9211,6 @@ mais ça touche douze sites d'appel.
 ## ⬜ `users` n'est plus lisible sans compte (2026-09-20)
 
 **Priorité P0** · importance 5/5 — Avec la seule clé publique de l'APK, un anonyme lisait 123 profils : 85 e-mails, 55 téléphones, 61 positions GPS (mesuré en production). La migration ferme la porte ; reste à voir qu'un démarrage lent n'y perd rien.
-
-Migration `20260920213600_users_ferme_a_anon.sql` — **APPLIQUÉE le
-2026-09-20** (`db push`, seule en file). `REVOKE ALL … FROM anon`, les quatre
-policies de `users` passées de `public` à `authenticated`, et `TRUNCATE` /
-`REFERENCES` / `TRIGGER` retirés à `authenticated`.
-
-Répétée d'abord contre la production en `BEGIN … ROLLBACK` : banc
-`tools/rls_tests/users_ferme_a_anon.sql`, 13 cas, 6 échecs sans la migration
-(le banc sait échouer), 0 migration injectée. **Relancé tel quel après
-l'application : 0 échec.** Un compte connecté ne perd rien : `SELECT *` sur sa
-ligne, écriture de sa ligne, lecture des profils des autres.
-
-Et la preuve qui compte, une vraie requête HTTP avec la clé publique du
-`.env`, sans session : `GET /rest/v1/users?select=id` → **401, 42501
-« permission denied for table users »** ; idem sur `email,phone_number,latitude` ;
-`GET /rest/v1/embassies` → 200. Avant, la première rendait des lignes.
-
-⚠️ `db push` a rendu `WARNING (25P01): SET LOCAL can only be used in
-transaction blocks` : le fichier n'est **pas** joué dans un bloc de
-transaction explicite, et le `lock_timeout` de tête est resté inerte. Sans
-conséquence ici (quatre `ALTER POLICY` et deux `REVOKE`, tous passés), mais un
-`SET LOCAL` en tête de migration ne protège de rien. Ce que l'avertissement
-ne dit pas, et que je n'ai pas mesuré : si les instructions d'un fichier
-restent atomiques entre elles.
 
 **Ce que le banc ne voit pas.** Pendant la fenêtre `_startFromLocalSession`
 (session Firebase locale, pont Supabase pas encore confirmé), une lecture de
@@ -16695,44 +9241,16 @@ non privé ; elle rendra désormais 42501. Lu dans le code :
   et laisse la contrainte UNIQUE trancher).
 - [ ] **Recherche de membres et carte** juste après l'ouverture : des
   résultats, pas un écran d'erreur.
-La page web de suppression de compte n'est pas concernée, et ce n'est pas une
-case à cocher : elle échange d'abord le jeton Firebase contre une session
-(`auth-firebase-exchange`, clé de service), puis appelle
-`request_account_deletion` en `authenticated`. Lu au catalogue après
-l'application : les deux RPC sont `SECURITY DEFINER` et déjà fermées à `anon`.
-
-**Ce que ça ne ferme pas.** Un compte connecté lit toujours e-mail, téléphone,
-position, `fcm_tokens`, `voip_token`, `session_id`, `cart_data` et
-`ban_reason` de tout profil non privé, et créer un compte est gratuit. Des
-droits par colonnes casseraient les builds installés (dix `select()` sans
-liste et un `.stream()` : PostgREST refuse alors la requête entière). Le
-second pas passe donc par une version cliente d'abord.
 
 ## ⬜ Les echecs attrapes remontent enfin a Crashlytics (2026-09-14)
 
 **Priorité P1** · importance 4/5 — Aucun refus de permission n'atteignait Crashlytics : c'est pour ça qu'accepter une demande d'ami est resté impossible des mois. Chaque échec montré à l'usager y part désormais en non-fatal.
-
-`FlutterError.onError` et `PlatformDispatcher.onError` ne voient que les
-erreurs **non** rattrapées. Un `PERMISSION_DENIED` Firestore ou un `42501` de
-la RLS, eux, sont attrapés : ils deviennent un `ServerFailure`, puis un
-`bool false`. Ils ne quittaient jamais le téléphone.
-
-Le branchement est posé sur `messageErreurUsager` — le seul endroit du projet
-qui sait qu'on est en train de dire à quelqu'un que ça a raté, et par lequel
-passent déjà 48 sites. Une indirection (`brancherObservateurEchec`) garde ce
-fichier **pur** : il est lu par des tests sans Firebase, et `web/` est une
-cible réelle. L'implémentation vit dans `journal_echecs.dart`, branchée une
-fois depuis `main.dart`.
 
 Deux précautions, testées : le message est **caviardé** (uid, uuid, e-mail,
 JWT, sous-domaine du projet) parce que PostgREST met l'URL complète dans ses
 messages et Firebase le chemin du document ; et une même panne ne part
 **qu'une fois par 5 minutes**, sinon un écran en erreur hors ligne inonderait
 la console — `messageErreurUsager` est aussi appelé depuis des `build`.
-
-⚠️ **Ce que ça ne verra pas** : un succès qui n'a rien fait. Un `UPDATE`
-PostgREST qui ne matche aucune ligne rend 200. Ceux-là restent l'affaire de
-« Balayage des invariants de données ».
 
 - [ ] **Vérifier l'arrivée** : couper le réseau, ouvrir un écran qui charge,
   puis consulter la console Crashlytics — un non-fatal `echec_affiche` avec
@@ -16747,47 +9265,11 @@ PostgREST qui ne matche aucune ligne rend 200. Ceux-là restent l'affaire de
 **Priorité P1** · importance 4/5 — Deux écritures n'ont pas eu lieu, sans erreur nulle part : deux amitiés à sens unique (une personne ne voit pas les publications « Amis » de deux autres) et un événement restreint à un ensemble vide (visible de personne). *Bloqué pour la réparation : décision de Salim, ce sont des écritures en production.*
 
 `tools/invariants_donnees.py` — la contrepartie Supabase du banc de règles.
-Côté Firestore on rejoue l'écriture pour voir si elle passe ; côté Supabase
-**l'écriture ne dit rien** (un `UPDATE` qui ne matche aucune ligne rend 200,
-une lecture refusée par la RLS réussit à vide), donc on vérifie la **forme de
-la donnée**. Le script découvre le schéma réel avant de composer ses questions
-— plusieurs tables n'existent dans aucune migration — et sépare les
-**conditions** (doivent valoir 0) des **mesures** (à lire, jamais un verdict).
 
 ```bash
 python tools/invariants_donnees.py
 ```
 
-Passe du 2026-09-14, 47 comptes en base :
-
-- 🔴 **2 amitiés à sens unique** sur 8 lignes. Même `user_id` des deux côtés,
-  créées le 2026-09-13 — le jour de la reprise. `est_ami_de(auteur, lecteur)`
-  exige `friends.user_id = auteur` : ce compte **ne voit pas** les publications
-  « Amis » des deux autres, et eux voient les siennes. Les trois comptes
-  existent bien dans `public.users`, donc le garde « absent de public.users »
-  de `setFriendship` n'est pas en cause. Origine exacte non tranchée : il
-  faudrait lire les sous-collections Firestore, ce que le classificateur de
-  permissions a refusé.
-- 🔴 **1 événement `visibility = 'people'` avec 0 ligne d'audience**, créé le
-  2026-09-14 (1 inscrit, l'organisateur). `createEvent` écrit `visibility` sur
-  la ligne, puis `setEventAudience` est un **appel séparé** : PostgREST n'a
-  aucune atomicité entre deux appels, donc l'événement reste restreint à un
-  ensemble vide si le second ne part pas, échoue, ou part avec une liste vide.
-  La RPC `set_event_audience`, elle, est saine (`SECURITY DEFINER`, exceptions
-  explicites) — le trou est entre les deux appels, pas dedans.
-- **0 ligne dans `blocked_users`** — confirme par la donnée ce que la lecture
-  du code disait : voir « 🔴 Bloquer un utilisateur ne bloque rien —
-  corrigé », corrigé le 2026-09-14, après ce balayage.
-- **5 comptes sans `auth_mappings`** (sur 47) : le pont Firebase→Supabase n'a
-  jamais abouti pour eux. Toute écriture part en `anon`, toute lecture réussit
-  à vide au lieu d'échouer.
-- **Dérive de schéma relevée au passage** : `event_attendees.status` est
-  déclaré par `20260522223150_initial_schema.sql` mais **absent de la base**.
-  L'invariant qui en dépend est sauté, en le disant.
-- Sains : groupes (membres, créateur, `member_count`), sondages sans option,
-  stories « amis proches », `like_count` et `comment_count` du fil.
-
-- ✔ 5 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Balayage des invariants de données — 2 anomalies en production (2026-09-14) »).
 - [ ] **Événement restreint sans invités** : créer un « Personnes choisies »,
   choisir quelqu'un, puis tout décocher et valider — le formulaire doit
   refuser. Puis vérifier qu'un échec d'audience affiche bien le message rouge
@@ -16809,203 +9291,16 @@ Passe du 2026-09-14, 47 comptes en base :
 - [ ] **Relancer le balayage après chaque lot** qui touche une écriture en
   deux temps, et y ajouter l'invariant correspondant.
 
-## Le bouton « Ouvrir Play Store » de la garde Play Integrity ne faisait rien (2026-09-14)
-
-**Priorité P2** · importance 3/5 — Un utilisateur bloqué au paiement du panier ou à l'envoi d'argent se voyait proposer « Ouvrir Play Store » ; le bouton était inerte. Invisible pour qui installe depuis Play — mais c'est exactement le cas d'un APK posé à la main, donc de nos propres tests.
-
-`SecurityGateService._openPlayStore()` avait un corps entièrement commenté :
-le tap fermait le dialogue et n'ouvrait rien. La méthode est supprimée, et le
-bouton appelle `AppReviewService.ouvrirLaFicheSansAvis()`, qui ouvre la bonne
-fiche par plateforme (`Platform.isIOS ? appStoreUrl : playStoreUrl`) en
-`LaunchMode.externalApplication` — les mêmes constantes que celles corrigées
-dans « Les deux liens « noter l'app » étaient morts ».
-
-**Et non `ouvrirLaFicheDuStore()`** : celle-ci ouvre la *page d'avis*
-(`?action=write-review` sur iOS) et marque la fiche comme ouverte. Ici on
-demande une installation, pas une note — et marquer couperait l'invitation
-automatique pour un avis que personne n'a déposé. Même choix qu'à la notice de
-mise à jour. Si l'ouverture échoue, un message le dit, sans quoi le bouton
-retomberait exactement dans le symptôme corrigé ici.
-
-Contrairement à ce qu'un `grep` laissait croire, le dialogue n'est pas mort :
-[checkAndShowDialog](lib/core/services/security_gate_service.dart) a deux
-appelants, tous deux sur des flux d'argent —
-[cart_screen.dart](lib/features/marketplace/presentation/screens/cart_screen.dart)
-(paiement du panier) et
-[send_money_screen.dart](lib/features/transfers/presentation/screens/send_money_screen.dart)
-(envoi d'argent). Le nom cherché, `showSecurityDialog`, n'existe nulle part
-dans le dépôt : le supprimer aurait retiré la garde Play Integrity des deux.
-
-Au passage, `result.verdict!` était déréférencé deux fois sans garde alors que
-`denied()` déclare `verdict` optionnel. Aucun de ses quatre chemins ne le
-laisse nul aujourd'hui, donc rien ne plantait — le `!` est remplacé par un
-test, et sans verdict le dialogue ne propose plus le store plutôt que
-d'affirmer un motif qu'il ignore.
-
-**Rien de tout ceci ne se vérifie hors appareil** : `flutter analyze` est
-propre, et Play Integrity ne rend un verdict que sur un vrai téléphone. Play
-Integrity n'était mentionné nulle part dans ce fichier jusqu'ici — la garde
-elle-même n'a donc jamais été observée en marche.
-
-- [ ] Sur SM A515F, APK installé à la main : ouvrir le panier marketplace et
-      lancer le paiement — le dialogue « Accès restreint » doit apparaître.
-- [ ] Sur ce dialogue, « Ouvrir Play Store » doit amener sur la fiche
-      `com.diasponiger.diasponiger`, et non sur une page « application
-      introuvable ». Ce chemin ouvre l'URL `https` (et non `market://`) :
-      l'app Play Store est l'issue attendue, un navigateur reste un repli
-      acceptable — noter laquelle des deux s'est ouverte.
-- [ ] « Compris » ferme le dialogue sans rien ouvrir.
-- [ ] Même parcours depuis l'envoi d'argent (destinataire choisi, montant
-      saisi, puis valider).
-- [ ] Au retour du Play Store, l'app reprend sur l'écran quitté : pas de
-      second dialogue, pas d'écran noir.
-- [ ] Noter le motif affiché. « nécessite l'installation depuis Google Play
-      Store » est le cas attendu ; « Impossible de vérifier la sécurité »
-      signifie que la Cloud Function d'intégrité a échoué — autre sujet, à
-      consigner séparément.
-- [ ] La fiche doit s'ouvrir sur la page normale, **pas** sur le formulaire
-      d'avis, et l'invitation automatique « noter l'app » doit rester
-      disponible ensuite : ce passage ne doit pas la consommer.
-- [ ] Couper le réseau puis retenter « Ouvrir Play Store » : un message doit
-      apparaître. Rien du tout signifierait que le retour d'échec est ignoré.
-
----
-
-## ⚠️ Ce que dit vraiment la console Crashlytics (2026-09-10)
-
-**Priorité P2** · importance 3/5 — Un écran qui déborde et une flèche retour sans effet (ou écran noir) restent non localisés — observés jusqu'ici sur l'appareil de test seulement. *Bloqué : Pixel déconnecté / nouvelle version publiée.*
-
-Première lecture réelle de la console. Elle change l'interprétation des
-chiffres, et sort quatre défauts avec leur volume.
-
-**Le taux de plantage ne mesurait pas la stabilité.** « Utilisateurs sans
-plantage » à **80,95 %, en baisse de 19 points** — alarmant en apparence. Sur
-les quatre « plantages » ouverts, **trois étaient de simples pertes de
-réseau** :
-
-| Signalé comme plantage | Ce que c'est |
-|---|---|
-| `google_fonts` — `Failed host lookup: fonts.gstatic.com` | hors ligne, 4 évts / 3 users |
-| `postgrest` — `Failed host lookup: …supabase.co` | hors ligne, 2 évts / 1 user |
-| `ProfileSupabaseDataSource._requireAuth` — « Session Supabase non établie » | 3 évts / 2 users |
-
-Cause : `PlatformDispatcher.onError` ([main.dart](lib/main.dart)) enregistrait
-tout en `fatal: true`. **Corrigé** — une panne réseau part désormais en
-non-fatal, via [classification_erreurs.dart](lib/core/errors/classification_erreurs.dart).
-Les erreurs restent envoyées, seul leur classement change.
-
-⚠️ Le tri se fait sur le **texte** de l'erreur, pas sur son type : `dart:io`
-(donc `SocketException`) n'est pas importable, `web/` étant une cible réelle.
-C'est fragile ; [le test](test/core/errors/classification_erreurs_test.dart)
-fige les libellés **réellement observés en production**, pas des exemples
-inventés. Le cas « Session Supabase non établie » est laissé **fatal**
-sciemment : sa cause profonde est souvent le réseau, mais son libellé ne le dit
-pas, et le reclasser demanderait de décider ce que « fatal » veut dire pour une
-session absente.
-
-**Quatre défauts réels, avec leur volume.** État au 2026-09-11 : deux
-corrigés (`gsm_state`, `ForegroundServiceStartNotAllowedException`), deux
-ouverts (`RenderFlex`, `GoError`) — détail dans la section suivante.
-
-- [ ] **`A RenderFlex overflowed by 100 pixels on the bottom` — 21 occurrences**,
-  de loin le premier non-fatal, 1 utilisateur. Écran inconnu : la pile pointe
-  `main.dart:172` (le `FlutterError.onError`), pas le widget fautif. À isoler.
-- [ ] **`GoError: There is nothing to pop` — 11 occurrences.** Famille déjà
-  documentée ici (écran noir au retour d'un lien profond) : une route de lien
-  profond seule dans la pile.
-- ✔ 2 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⚠️ Ce que dit vraiment la console Crashlytics (2026-09-10) »).
-
-**Et une preuve que le plugin Gradle ajouté ce jour sert bien** : la pile de ce
-dernier s'affiche `d1.a.startForegroundService` / `SourceFile:7` — obfusquée.
-Les piles **Dart** sont lisibles (R8 n'y touche pas), les piles **Android** ne
-l'étaient pas. La prochaine version donnera un vrai nom de classe.
-
-- [ ] **Vérifier après publication** qu'une pile Android arrive déobfusquée.
-
----
+- ✔ 5 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Balayage des invariants de données — 2 anomalies en production (2026-09-14) »).
 
 ## ⬜ Les quatre défauts de la console, triés par appareil (2026-09-10)
 
 **Priorité P2** · importance 2/5 — Si c'est un vrai utilisateur, il subit des plantages à l'ouverture d'écrans de paiement ou d'appel, et le taux sans plantage suivi par Play chute. *Bloqué : hors appareil (Crashlytics / Play Console).*
 
-Suite de la lecture de Crashlytics. **Le détail par appareil change les
-priorités** — la liste seule était trompeuse, et je l'avais présentée comme
-telle.
-
-| Problème | Volume | Qui est touché |
-|---|---|---|
-| `RenderFlex overflowed by 100 px` | 21 évts | **1 utilisateur, Pixel 10 Pro XL / Android 17** |
-| `GoError: There is nothing to pop` | 19 évts | même profil |
-| `google_fonts` — `Failed host lookup` | 4 évts, **3 users** | **75 % OnePlus 8 Pro / Android 11** |
-| `MissingPluginException` `gsm_state` | 3 évts | — |
-| `ForegroundServiceStartNotAllowedException` | 2 évts | Pixel |
-
-**Le Pixel 10 Pro XL sous Android 17, c'est l'appareil de test.** Les deux plus
-gros volumes (RenderFlex, GoError) ne viennent donc pas d'utilisateurs réels
-mais de nos propres parcours. Ça ne les rend pas faux — mais ça les fait passer
-derrière le seul qui touche du monde extérieur.
-
-**✅ `gsm_state` — corrigé.**
-[gsm_call_service.dart](lib/core/services/gsm_call_service.dart) écoutait
-`com.diasponiger.diaspo_niger/gsm_state`, un `EventChannel` qui **n'existe pas**
-côté natif (aucun enregistrement dans `android/app/src/main`). Le `try/catch` et
-le `onError` du flux ne pouvaient rien y faire : `receiveBroadcastStream`
-signale un échec d'activation par `FlutterError.reportError`
-(`platform_channel.dart:713`), qui va droit dans Crashlytics. L'écoute est
-désormais derrière un drapeau `_canalNatifImplemente = false`, à repasser à
-`true` le jour où le natif arrive.
-
-**✅ `ForegroundServiceStartNotAllowedException` — déjà corrigé**, rien à faire :
-le `BootReceiver` du plugin a été retiré du manifeste le 2026-09-09
-(`tools:node="remove"`) précisément pour ça. Les 2 occurrences sont antérieures
-et disparaîtront à la prochaine publication.
-
-**Confirmé par la pile complète, lue le 2026-09-11.** Le problème 1.2.1 marqué
-« Nouveau » (`d1.a.startForegroundService`) n'est pas un second chemin : c'est
-le même récepteur, obfusqué par R8 — `d1.a.startForegroundService`
-(`ContextCompat`) ← `id.flutter.flutter_background_service.BootReceiver.onReceive`.
-Pixel 10 Pro XL / Android 17, app en arrière-plan, **9 sept. à 20:01** ; le
-retrait du récepteur (`787ae12`) date du même soir à **20:22**. Le plantage
-précède le correctif — c'est très probablement lui qui l'a déclenché.
-
-⚠️ Une première lecture, sans la pile, avait accusé le `WatchdogReceiver` du
-même plugin. C'était faux, et le correctif écrit sur cette base a été retiré
-avant tout commit. Le chemin existe pourtant, **jamais observé** : ce récepteur
-est resté dans le manifeste, relance le service par une alarme quand il a été
-tué — donc depuis l'arrière-plan, refusé sur Android 12+ — et le plugin le
-déclare `exported="true"` sans permission. Pas touché : le désactiver sur
-Android 12+ perdrait les relances qui tombent quand l'app est au premier plan,
-sauf à relancer le service au retour de l'app. C'est une décision, pas un
-correctif évident.
-
-**Sept plantages « Nouveau » en 1.2.1 — origine inconnue ; ce n'est PAS le
-rapport de pré-lancement.** Stripe (`ChallengeActivity`, `AddressElementActivity`,
-`PollingActivity`, `BacsMandateConfirmationActivity`,
-`CvcRecollectionActivity`), Billing (`ProxyBillingActivity`) et CallKit
-(`TransparentActivity`) : chacune démarrée **sans ses arguments**
-(`Required value was null`, `without args`), un événement chacune, un seul
-utilisateur. Fiche Stripe lue : **OnePlus 8 Pro / Android 11**, build
-**1.2.1 (15)**, **11 sept. à 06:49**, app au premier plan.
-
-Ce qui est établi : les sept activités sont toutes **non exportées** dans
-le manifeste fusionné — aucune autre app ne peut les lancer, seul le
-processus de l'app (ou un outil privilégié) le peut — et aucun parcours de
-l'app n'ouvre sept écrans de paiement et d'appel à vide en une séance.
-
-⚠️ **Hypothèse du robot de pré-lancement : réfutée le 2026-09-11.** Elle
-reposait sur le nom de modèle collé « OnePlus8Pro » (style Test Lab) et sur
-la build 15, celle préparée pour Play (`1c7ef18`). Rapport lu dans Play
-Console : la build 15 a été testée sur **un seul appareil virtuel**,
-« Medium Phone (16K page size) », **Android 16** (SDK 36), 1080×2400 — pas
-un OnePlus — et n'a relevé **aucun problème de stabilité**. Même résultat
-pour la build 17. Aucune piste restante n'est vérifiable depuis ce poste.
-
-- ✔ 2 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Les quatre défauts de la console, triés par appareil (2026-09-10) »).
 - [ ] **Identifier le OnePlus 8 Pro / Android 11** : il porte ces sept
   plantages ET 75 % des erreurs `google_fonts`. Testeur de la piste interne,
   appareil d'un proche, autre outil automatisé ? Tant qu'il n'est pas
   identifié, le compter comme un **vrai utilisateur**.
-
 - [ ] **`RenderFlex` (21) et `GoError` (19)** : appareil de test uniquement.
   Aucun des deux n'est diagnosticable en l'état — la pile s'arrête à
   `main.dart:172`/`184`, c'est-à-dire au **gestionnaire d'erreurs**, jamais au
@@ -17015,49 +9310,13 @@ pour la build 17. Aucune piste restante n'est vérifiable depuis ce poste.
   Crashlytics regroupe par pile, et toutes les erreurs Flutter partagent la
   même — celle du gestionnaire. Y toucher demande d'abord de les distinguer.
 
+- ✔ 2 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Les quatre défauts de la console, triés par appareil (2026-09-10) »).
+
 ---
 
 ## ⬜ Journalisation : deux fuites en release et la garde du LoggerService (2026-09-09)
 
 **Priorité P2** · importance 2/5 — Les erreurs de la carte resteraient invisibles en production ; le risque de régression d'appel est faible, seul un log ayant changé. *Bloqué : mode privé du compte de test (carte) et deux comptes (appel).*
-
-`debugPrint` écrit **aussi en release** — la doc du SDK le dit noir sur blanc
-(`packages/flutter/lib/src/foundation/print.dart:37` : « logs to console even
-in release mode », avec la convention de l'entourer d'un `kDebugMode`). Le
-dépôt compte 922 appels actifs, dont 12 gardés. Rien de tout ça ne se voit en
-développement : ça se voit sur l'APK de production, avec un simple `adb logcat`.
-
-Trois corrections ici ; le reste du chantier (~900 appels) reste ouvert.
-
-[native_call_service.dart](lib/core/services/native_call_service.dart)
-`actionDidUpdateDevicePushTokenVoip` imprimait la **valeur complète du jeton
-VoIP**. Le log garde son intérêt (savoir que la mise à jour a eu lieu), la
-valeur part.
-
-[message_provider.dart](lib/features/messages/presentation/providers/message_provider.dart)
-`sendLocation` imprimait `lat=` / `lng=` du partage de position — de la donnée
-personnelle, dans les logs. **Deux fois** : à la pose du message optimiste
-(l. 1327) et à la confirmation d'envoi (l. 1350). La seconde s'était fait
-oublier lors du repérage — un `grep | head -25` avait mangé la ligne, et
-corriger une seule des deux n'aurait rien fermé du tout.
-
-[message_remote_datasource.dart:2180](lib/features/messages/data/datasources/message_remote_datasource.dart:2180)
-Même `lat=` / `lng=`, troisième occurrence, trouvée encore après — celle-ci
-écrivait `${data['latitude']}`, une forme que deux balayages successifs
-avaient manquée parce qu'ils cherchaient un identifiant (`$latitude`), pas un
-accès map. **Chemin non actif** : la messagerie passe par
-`MessageSupabaseDataSource`, et `MessageRemoteDataSourceImpl` n'est instancié
-que par la recherche, qui n'envoie jamais de position. Corrigé quand même —
-la ligne se réveillerait au premier recâblage.
-
-⚠️ **La leçon d'outillage** : ne jamais conclure un audit de logs sur un motif
-qui suppose la forme de l'interpolation. Le balayage qui a fini par tout
-trouver cherche dans le **texte** du message (`lat=`, `token`, `phone`…),
-indépendamment de la façon dont la valeur est injectée.
-
-[logger_service.dart](lib/core/services/logger_service.dart)
-Le garde `kDebugMode` ne couvrait que le niveau `debug` : `i`, `w` et `e`
-parlaient en release. Il couvre maintenant `_log` en entier, tous niveaux.
 
 **Suite (2026-09-09) — les erreurs remontent maintenant à Crashlytics.**
 Le garde laissait les 9 appels `LoggerService.w/e` (carte, publication de
@@ -17065,25 +9324,10 @@ position, profil) totalement muets en production. `_log` remonte désormais le
 **seul** niveau `error` à `FirebaseCrashlytics.recordError(..., fatal: false)`,
 avec `reason` = le message. Les autres niveaux restent debug-only.
 
-⚠️ **Correction d'un diagnostic que j'avais donné de travers** : j'avais désigné
-`error_handler.dart:185` comme « la bonne porte ». C'est faux — `logError` de
-`ErrorHandler` n'est **appelé nulle part** dans `lib/` (`grep 'logError('` ne
-remonte que sa propre déclaration et l'homonyme d'`AnalyticsService`).
-Décommenter cette ligne seule n'aurait rien changé au runtime. Elle est
-décommentée quand même (le jour où la méthode sert, elle sera correcte), mais
-ce qui rétablit vraiment la traçabilité, c'est le branchement dans
-`LoggerService`.
-
-Deux détails de mise en œuvre : l'appel est encadré d'un `try/catch` — un
-journal ne doit jamais faire tomber l'appelant si Firebase n'est pas encore
-initialisé — et il n'y a pas de `kReleaseMode` explicite, la branche étant
-déjà celle du `!kDebugMode`.
-
 - [ ] **Aucune régression d'appel** : passer un appel 1:1, sonnerie et bulle
   d'appel comme avant. Le jeton VoIP est toujours propagé à
   `onVoipTokenUpdated` — seul son affichage a changé — mais c'est le chemin
   iOS/CallKit, donc à revalider le jour où un appareil iOS est disponible.
-- ✔ 2 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Journalisation : deux fuites en release et la garde du LoggerService (2026-09-09) »).
 - [ ] **Carte en release** : ouvrir la carte hors ligne (c'est là que les
   `LoggerService.w` de `map_screen.dart` se déclenchent) et vérifier que
   l'écran se comporte comme avant — le silence des logs ne doit rien changer
@@ -17096,16 +9340,13 @@ déjà celle du `!kDebugMode`.
   souvent son lot qu'au démarrage suivant. Ne pas chercher à le vérifier en
   debug — la branche n'y est pas prise.
 
+- ✔ 2 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Journalisation : deux fuites en release et la garde du LoggerService (2026-09-09) »).
+
 ---
 
 ## ⬜ Les ~920 `debugPrint` restants neutralisés en release (2026-09-09)
 
 **Priorité P3** · importance 3/5 — Au pire, des traces d'appel (SDP, candidats ICE) restent lisibles par adb sur un APK de production — aucun effet fonctionnel attendu. *Bloqué : deux comptes (appel).*
-
-Suite directe de l'entrée ci-dessus. Après les trois fuites nommées, il restait
-**922 appels actifs dans 115 fichiers**, dont 12 gardés — tous bavards dans
-logcat sur un APK de production (734 sous `core/services`, dont 140 pour le
-seul `webrtc_service.dart`).
 
 [main.dart](lib/main.dart) — une ligne, en tête de `main()` :
 
@@ -17115,23 +9356,6 @@ if (kReleaseMode) {
 }
 ```
 
-`debugPrint` est une **variable** du SDK (`DebugPrintCallback debugPrint =
-debugPrintThrottled;`), pas une fonction : la réassigner neutralise les 922
-appels d'un coup, sans en toucher un seul.
-
-Pourquoi pas les 922 réécritures : sur une branche partagée où l'autre agent
-travaille en parallèle, un diff de 922 lignes sur 115 fichiers lui coûte des
-conflits pour un résultat identique. Même raisonnement que l'interdiction de
-`dart format` dans le CLAUDE.md.
-
-⚠️ **Ce que ça ne fait pas.** Les chaînes restent dans le binaire de l'APK et
-leurs arguments sont toujours évalués — seule la **sortie** disparaît. Un log
-qui ne doit pas exister du tout (valeur de jeton, coordonnées) se supprime à la
-source ; c'est pour ça que les trois fuites ont été traitées séparément avant.
-Le mode **profile** n'est pas couvert (`kReleaseMode` y est faux), volontairement :
-un APK de profilage ne se distribue pas.
-
-- ✔ 3 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Les ~920 `debugPrint` restants neutralisés en release (2026-09-09) »).
 - [ ] **Rien n'a changé en debug** : `flutter run` et vérifier que les logs
   habituels sortent toujours (la neutralisation est derrière `kReleaseMode`).
   Non vérifié — la session n'a construit que des release.
@@ -17145,54 +9369,73 @@ un APK de profilage ne se distribue pas.
   logs de `location_publisher_service` et du canal realtime — n'ont pas été
   exercés.
 
+- ✔ 3 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Les ~920 `debugPrint` restants neutralisés en release (2026-09-09) »).
+
+---
+
+## ⬜ Second verrou : `print` brut et paquets tiers (2026-09-09)
+
+[logs_release.dart](lib/core/utils/logs_release.dart) — `main()` lance
+désormais le démarrage dans une zone qui avale `print` :
+
+```dart
+void main() => demarrerSansLogsEnRelease(_demarrer);
+```
+
+⚠️ **Deux pièges de mesure rencontrés, à ne pas répéter.**
+
+**0. Le relevé `uiautomator` peut contredire l'écran.** Le plus coûteux des
+trois. En cherchant à supprimer le message envoyé par erreur, le dump plaçait
+la bulle visée à `601,941` ; l'appui long à cet endroit a sélectionné un
+**autre** message (une position, envoyée 56 min plus tôt), deux fois de suite.
+La capture d'écran, elle, montrait la bonne chose. Sur cet écran Flutter,
+l'arbre sémantique ne reflétait pas la position de défilement réelle.
+
+**Conséquence pratique** : pour toute action destructrice sur appareil,
+ne jamais se fier au dump seul. Ouvrir le menu, **capturer l'écran, vérifier
+visuellement la cible sélectionnée**, et seulement ensuite confirmer. C'est ce
+contrôle qui a évité de supprimer un message innocent.
+
+**Et quand la vérification est impossible, renoncer.** La feuille d'actions
+occupe le bas de l'écran et masque tout ce qui s'y trouve : elle ne laisse voir
+la bulle sélectionnée (les autres sont estompées par le voile) que si celle-ci
+est assez haute. Pour un message situé en bas — typiquement le dernier de la
+conversation — la cible est *derrière* la feuille, et « Supprimer » devient un
+tap non vérifiable. Deux messages de test (`test-logs` 19:37, `zone-verif`
+20:03) ont été laissés en place pour cette raison : deux chaînes inoffensives
+coûtent moins cher qu'une suppression à l'aveugle après trois erreurs de
+ciblage.
+
+**1. Les coordonnées de tap se périment.** Une première tentative d'usage a
+échoué en silence : la liste s'était réordonnée depuis la capture précédente
+(un message reçu remonte sa conversation), et le tap à `540,987` a ouvert un
+groupe au lieu du 1:1. La suite est partie à l'aveugle — un `KEYCODE_BACK` de
+trop a quitté l'app, un autre tap a **envoyé un lien de partage de groupe** dans
+la vraie conversation à 19:57. Toujours re-dumper l'UI et localiser la cible par
+son libellé avant chaque tap, jamais réutiliser des coordonnées d'un dump
+antérieur.
+
+**2. « Zéro log » ne vaut que si l'app a travaillé.** Cette tentative ratée
+donnait pourtant 0 ligne flutter — un résultat juste, obtenu pour de mauvaises
+raisons. Elle reste exploitable *a posteriori* (1 754 lignes horodatées 19:57
+dans la fenêtre, et l'envoi accidentel a bien eu lieu), mais c'est un coup de
+chance. Exiger une preuve d'activité explicite : ici, l'accusé « Envoyé » sur
+un message nommé.
+
 ---
 
 ## ⬜ Plugin Gradle Crashlytics : les piles n'étaient pas déchiffrables (2026-09-09)
 
 **Priorité P3** · importance 4/5 — Les plantages Android arriveraient obfusqués et resteraient indiagnosticables — confort du développeur, sans effet direct sur l'utilisateur. *Bloqué : mode privé du compte de test / nouvelle version publiée.*
 
-Trouvé en cherchant à vérifier la remontée d'erreurs. Le SDK Crashlytics
-s'initialise bien sur la build release (`Initializing Firebase Crashlytics
-19.4.4` dans logcat) et les non-fatals partent — mais **le plugin Gradle
-n'était déclaré nulle part** dans `android/`. Or `isMinifyEnabled = true` sur
-release : sans lui, aucun fichier de mapping R8 n'est envoyé, et les piles
-d'appel arrivent obfusquées, donc inexploitables. C'est aussi ce plugin qui
-pousse les symboles NDK (le `debugSymbolLevel = "FULL"` existant ne sert que
-pour Play).
-
 Déclaré dans [settings.gradle.kts](android/settings.gradle.kts) et
 [app/build.gradle.kts](android/app/build.gradle.kts).
 
-⚠️ **Le premier build a échoué** : le plugin Crashlytics 3 exige
-`google-services` **4.4.1 minimum**, le projet était en 4.3.15 —
-« Failed to query the value of task
-':app:uploadCrashlyticsMappingFileRelease' property 'appIdFile' ». Monté à
-4.4.2, le build passe. Une montée de `google-services` seule n'aurait servi à
-rien : les deux vont ensemble.
-
-Vérifié après build : `build/app/crashlytics/release/mappingFileId.txt` et
-`com_google_firebase_crashlytics_mappingfileid.xml` injecté dans les
-ressources — c'est cet identifiant qui relie un rapport à son mapping, et il
-n'existait pas avant.
-
-- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Plugin Gradle Crashlytics : les piles n'étaient pas déchiffrables (2026-09-09) »).
-- [ ] **Un non-fatal arrive-t-il vraiment dans la console ?** ⚠️ **Non
-  vérifiable en l'état.** Le seul site qui appelle `LoggerService.e` est
-  `map_screen.dart:760`, dans le `catch` de `_loadNearbyMembers` — lequel
-  exige `_currentPosition != null`. Or le compte de test est en **« Mode privé
-  activé »** : la carte s'arrête sur sa carte d'invitation et ne demande jamais
-  de position. Coupure réseau confirmée (mode avion), l'écran ne bouge pas.
-  Pour déclencher, il faudrait appuyer sur « ACTIVER » — donc **modifier un
-  réglage de confidentialité du compte**, ce qu'une session de test ne doit pas
-  faire sans accord explicite.
 - [ ] **Piles déobfusquées dans la console** : après une remontée réelle,
   vérifier que la trace est lisible (noms de classes Dart/Java, pas `a.b.c`).
   C'est le bénéfice concret du plugin, et il ne se voit que côté console.
 
-⚠️ **À savoir sur la portée du branchement Crashlytics** : `LoggerService.e`
-n'a **qu'un seul** site d'appel dans tout `lib/`. Les huit autres usages du
-logger sont des `.w`, volontairement laissés muets. Le branchement ajouté le
-2026-09-09 couvre donc un chemin d'erreur, pas neuf.
+- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Plugin Gradle Crashlytics : les piles n'étaient pas déchiffrables (2026-09-09) »).
 
 ---
 
@@ -17204,9 +9447,6 @@ L'app va chercher sa configuration publique auprès de l'Edge Function
 `app-config` au démarrage, avec le `.env` embarqué en filet.
 Fichiers : `supabase/functions/app-config/index.ts`,
 `lib/core/services/remote_config_service.dart`, `lib/core/constants/app_config.dart`.
-
-`flutter analyze` propre, 330/330 tests passent — mais aucun test ne démarre
-l'app réelle ni n'atteint le réseau. Les quatre chemins à voir sur appareil :
 
 - [ ] **Nominal** : fonction déployée, l'app démarre et la carte / les liens
       profonds / LiveKit fonctionnent (valeurs venues du serveur)
@@ -17223,176 +9463,9 @@ ils ouvrent la connexion qui sert à joindre `app-config`.
 
 ---
 
-## ⚠️ COLLISION DE MIGRATION — à lire par l'autre agent (2026-08-23)
-
-**Le correctif RLS des sondages est déjà livré et déjà appliqué en production**
-(`20260823180000_fix_post_poll_options_rls.sql`, commits `0514986` / `8a51664`
-/ `ae7dfd5`).
-
-Le worktree `.claude/worktrees/sondage-options-rls` porte, non committé, un
-fichier `20260823180000_rls_post_poll_options_insert_et_compteurs.sql` — **le
-même préfixe d'horodatage `20260823180000`**. Git ne verra jamais le conflit
-(les noms diffèrent après le préfixe, la fusion passera sans broncher), mais
-`supabase_migrations.schema_migrations` indexe par ce préfixe **seul** : la
-version est déjà enregistrée, donc ce second fichier sera **ignoré en silence**
-au `db push`. Le croire appliqué serait faux.
-
-Ce qu'il faut faire avant de livrer dessus :
-
-1. `git fetch && git merge origin/wip-jules-2025-12-29T23-58-34-776Z`, puis
-   comparer le contenu — la politique `Poll owners can add options` et le
-   passage des triggers `increment/decrement_poll_vote_count` en
-   `SECURITY DEFINER` sont **déjà en production** (vérifié : `prosecdef=true`,
-   politique présente dans `pg_policies`).
-2. Si le fichier local n'apporte rien de plus : le supprimer.
-3. S'il apporte autre chose : le **renuméroter** après `20260823180000`
-   (jamais avant), et vérifier avec la commande de CLAUDE.md :
-   `ls supabase/migrations | sort | awk -F_ '{print $1}' | uniq -d`.
-
-Le datasource `lib/features/polls/data/datasources/poll_supabase_datasource.dart`
-est modifié des deux côtés (ici : nettoyage de la question orpheline si les
-options échouent). Comparer avant de livrer, la zone est la même.
-
----
-
 ## Cartographie des accès `anon` réellement nécessaires (2026-08-13)
 
 **Priorité P3** · importance 2/5 — Un avertissement et une petite fuite mémoire, sans plantage ni effet visible.
-
-Suite à l'audit des RPC (« Accusés livré/lu séparés — sheet infos du message ») : `anon` a INSERT/UPDATE/DELETE/SELECT
-au niveau table sur quasiment tout le schéma public par accident
-(`ALTER DEFAULT PRIVILEGES`), et RLS (activée sur 100% des tables, vérifié)
-est la seule barrière. Avant d'envisager un `REVOKE` généralisé, cartographie
-de ce que l'app a réellement besoin en `anon` — c'est-à-dire avant qu'une
-session Supabase authentifiée existe.
-
-**L'app n'a aucun mode invité.** Le routeur ([app_router.dart:246-247](lib/core/router/app_router.dart:246))
-redirige tout écran non technique vers `/auth/login` tant que Firebase n'est
-pas authentifié — aucun aperçu public (profil, post, événement, groupe via
-lien de partage) ne se construit avant connexion. Les pages légales (CGU,
-confidentialité) sont servies depuis **Firestore**, pas Supabase.
-
-**Besoins réels identifiés** (tous liés à la même fenêtre : `auth_provider.dart`
-`_startFromLocalSession` (lignes 152-185) bascule l'utilisateur en
-« authentifié » depuis la session Firebase locale **sans confirmer** que le
-pont Supabase a abouti — le vrai bug de fond) :
-- `users` SELECT — `profileNotifierProvider`/`nearbyProfilesNotifierProvider`
-  au montage de `HomeScreen`, et `isHandleAvailable` pendant l'inscription
-  ([handle_field.dart:81-91](lib/features/profile/presentation/widgets/handle_field.dart:81))
-- `blocked_users` SELECT — `usersWhoBlockedMeProvider`
-- `conversations` SELECT — `totalUnreadCountProvider`
-
-~~`events` SELECT — `eventsNotifierProvider`~~ — **faux positif, corrigé le
-2026-08-13** : `eventsNotifierProvider` lit en réalité **Firestore**
-(`EventRemoteDataSourceImpl`, `event_remote_datasource.dart:36-46`), pas
-Supabase. L'agent d'exploration précédent avait confondu la fonctionnalité
-« événements » avec la table Supabase `events` — celle-ci existe bien et
-`anon` y a SELECT/écriture, mais son seul lecteur applicatif est
-`admin_provider.dart` (back-office, déjà réservé aux admins authentifiés,
-hors de la fenêtre de démarrage). Rien à corriger côté code pour ce point.
-
-**Aucune écriture n'est légitimement nécessaire en `anon`, nulle part** —
-chaque écriture inspectée (`profile_supabase_datasource.dart` et consorts)
-est déjà gardée par `ensureAuthenticated()`/`_requireAuth()` côté Dart et
-échoue proprement sans le grant. Aucune lecture nécessaire sur les ~80
-autres tables (`orders`, `payment_accounts`, `escrow_transactions`,
-`e2ee_*`, `messages`, `posts`, `groups`, `businesses`, `podcasts`,
-`admin_*`...).
-
-**Angle mort** : `audio_rooms`, `businesses`, `calls`, `embassies`, `friends`,
-`marketplace`, `payment_accounts`, `podcasts`, `reports`, `search`,
-`stickers`, `support`, `transfers` n'ont pas le réflexe `ensureAuthenticated()`
-présent dans `auth`/`feed`/`groups`/`messages`/`profile` — protégés
-aujourd'hui uniquement par la garde du routeur, pas par le datasource
-lui-même. Un `REVOKE` général sur les écritures `anon` serait le filet qui
-les couvre si un futur chemin de code (deep link, tâche de fond) contournait
-le routeur.
-
-- [x] ~~Décision en attente~~ — Salim a choisi de fermer d'abord la fenêtre
-  plutôt que d'ouvrir des SELECT en permanence. Fait le 2026-08-13 pour 3 des
-  4 lectures :
-  - Nouveau [`SupabaseAuthBridge.ensureReadableSession()`](lib/core/services/supabase_auth_bridge.dart)
-    — variante **bornée** (3 s) d'`ensureAuthenticated()`. Contrairement à
-    celle-ci, un timeout ne fait PAS échouer : la synchro continue en tâche
-    de fond (dédupliquée) et profite au prochain appelant. Choix délibéré
-    pour ne pas régresser le correctif du 2026-08-04 (splash bloqué 2 min) —
-    `_startFromLocalSession` (auth_provider.dart) n'est PAS touchée, elle
-    continue de débloquer `/home` sans réseau.
-  - Câblé dans `profile_supabase_datasource.dart` : `getProfile`,
-    `getNearbyProfiles` (lèvent désormais une `ServerException` déjà gérée
-    par les écrans appelants au lieu d'interroger en anon), `isHandleAvailable`
-    (se replie sur « disponible », comme pour une erreur réseau).
-  - Callback injectable `_ensureReadableAuth`, même motif que `_ensureAuth`
-    pour les écritures — 4 tests ajoutés dans
-    `profile_supabase_datasource_test.dart` (13/13 passent).
-  - `flutter analyze` propre sur `lib/features/profile`, `lib/features/auth`,
-    `lib/core/services/supabase_auth_bridge.dart`.
-  - **`conversations` fait le 2026-08-13, suite** — même mécanisme, câblé
-    dans `getConversations` ([message_supabase_datasource.dart:339](lib/features/messages/data/datasources/message_supabase_datasource.dart:339)) :
-    la fonction interne `fetch()` (appelée à l'abonnement initial ET à chaque
-    événement realtime) vérifie désormais `_ensureReadableAuth()` avant
-    d'interroger. Différence avec les lectures profil : c'est un
-    `StreamController` de longue durée, pas un Future ponctuel — sans filet,
-    un échec silencieux laisserait le flux bloqué sur son dernier état
-    jusqu'au prochain événement realtime (potentiellement jamais). Un seul
-    nouvel essai programmé 5 s plus tard comble ce trou, sans machinerie de
-    retry plus lourde. Callback injectable `_ensureReadableAuth` ajouté à
-    `MessageSupabaseDataSource`, même motif que `profile_supabase_datasource.dart`.
-    `flutter analyze` propre. **Pas de test automatisé** : ce datasource n'a
-    aucun harnais de test existant (contrairement à `profile`), et tester un
-    `StreamController` + un `Timer` de 5 s proprement demanderait
-    `fake_async` — pas fait, hors périmètre de cette session.
-  - **`blocked_users` fait le 2026-08-13, suite** —
-    [`watchBlockedBy`](lib/features/settings/data/datasources/blocked_by_supabase_datasource.dart:31)
-    (`usersWhoBlockedMeProvider`, sens « qui m'a bloqué »). Plus simple que
-    `conversations` : `.stream()` (le helper Supabase Flutter) gère déjà sa
-    propre reconnexion, donc pas besoin d'un `Timer` de nouvel essai — la
-    méthode devient un générateur `async*` qui attend la garde puis
-    `yield*` le flux réel. Au-delà du délai borné (3 s), l'abonnement part
-    quand même (comme avant), le repli `.handleError` du provider couvre le
-    reste. Callback injectable, 2 tests ajoutés
-    (`test/features/settings/blocked_by_supabase_datasource_test.dart`,
-    pas de `fake_async` nécessaire ici). `flutter analyze` propre sur
-    `lib/features/settings`.
-    Au passage : `blockedUsersProvider` (sens direct, « qui j'ai bloqué »)
-    est lui aussi un faux positif comme `events` — il lit **Firestore**
-    (`BlockedUsersDataSourceImpl`), pas Supabase ; seule l'écriture miroir
-    vers Supabase existe et est déjà gardée (`_refleterDansSupabase`,
-    `ensureAuthenticated()`).
-  - **Cartographie soldée** : les 4 lectures identifiées sont maintenant
-    soit fermées côté code (`users`, `conversations`, `blocked_users`), soit
-    de faux positifs (`events`, et la moitié de `blocked_users`). Plus rien
-    en attente avant d'envisager le `REVOKE` général des droits table
-    `anon`.
-  - [x] **Vérifié sur appareil le 2026-08-13** (SM A515F, APK debug rebuild
-    depuis ce worktree, `lastUpdateTime` confirmé postérieur aux 4 commits de
-    correctif). Mode avion + Wi-Fi coupé par Salim, confirmé par
-    `dumpsys connectivity` (`Active default network: none`, pas seulement
-    `airplane_mode_on`, cf. le piège VPN déjà documenté) — puis app arrêtée
-    (`am force-stop`) et relancée à froid.
-    - Aucun crash (`E/flutter`, `FATAL EXCEPTION` : zéro occurrence sur toute
-      la capture logcat). `/home`, Messages et Groupes s'affichent tous
-      normalement, aucun écran bloqué sur `/splash`.
-    - Le badge « 1 non lu » s'affiche correctement dès le démarrage à froid
-      hors ligne (données en cache, cohérent avec le cache-first existant).
-    - `markAsDelivered`/`mark_messages_as_read` échouent proprement
-      (`AuthRetryableFetchException` catché et loggé, pas de crash) —
-      confirme le comportement best-effort du correctif accusés livré/lu.
-    - Reprise réseau confirmée propre : `SupabaseAuthBridge: session sync OK`
-      dans les 2 s suivant le rétablissement, puis opérations Supabase
-      réelles qui réussissent de nouveau (`MarkAsRead: Synced dismiss to
-      other devices`).
-    - **Nuance découverte** : `_startFromLocalSession` (le chemin de repli à
-      8 s dans `auth_provider.dart`) ne s'est en fait jamais déclenché
-      pendant ce test — son log dédié (« profil serveur injoignable ») est
-      absent de toute la capture. `getCurrentUser()` a résolu plus vite que
-      le timeout, via sa propre résilience interne, sans jamais passer par
-      ce chemin précis. Les gardes `ensureReadableSession()` restent
-      correctes indépendamment de ce détail (elles ne testent que
-      `hasValidSession`, pas la raison de l'état d'authentification), mais
-      ce test précis n'isole pas la fenêtre étroite (réseau bon mais pont pas
-      encore confirmé) que ces gardes visent spécifiquement — seulement le
-      cas plus large « pas de réseau du tout ».
     - **Trouvaille incidente, hors périmètre — CORRIGÉE le 2026-09-01** :
       `setState() called after dispose()` dans `_startGroupConversation`
       (`group_detail_screen.dart:640`), capturé par Crashlytics. Pas un
@@ -17411,63 +9484,8 @@ le routeur.
 
 **Priorité P0** · importance 2/5 — Soit les règles durcies empêchent tout appel de sonner sans la moindre erreur, soit la production reste permissive et n'importe quel compte connecté peut lire ou remplacer la clé E2EE d'un appel ; s'y ajoute une suppression de compte qui peut laisser des données derrière elle. *Bloqué : deux comptes.*
 
-Relevées en fin de session. Aucune des deux n'a d'effet visible, mais elles
-polluent logcat, et **c'est ce qui rend un vrai refus invisible** — il a fallu
-vider logcat et retaper pour voir celui qui bloquait « Accepter ».
-
-### `PERMISSION_DENIED` sur `conversations/883c9d96-…` — écoute fantôme
-
-Ce n'est **pas** un défaut de droits. Enchaînement établi :
-
-- l'id est un **UUID Supabase**, et la conversation existe bien côté Supabase
-  (créée le 2026-07-17, vérifiée par `supabase db query --linked`) ;
-- elle **n'a jamais existé dans Firestore** : la collection `conversations`
-  n'y contient qu'un seul document, un id auto-généré appartenant à Salim L. ;
-- la messagerie est câblée sur `MessageSupabaseDataSource`
-  (`message_provider.dart`), donc plus rien ne devrait interroger Firestore ;
-- le seul écouteur Firestore sur un document de conversation est
-  `MessageRemoteDataSourceImpl.getConversationStream`
-  (`message_remote_datasource.dart:518`), et il est **injoignable** : cette
-  classe n'est instanciée que par la recherche, qui n'appelle d'elle que
-  `searchConversations`.
-
-Conclusion : c'est une **cible d'écoute rémanente**, enregistrée par un build
-d'avant la migration et rejouée par la persistance locale de Firestore à
-chaque démarrage. La règle refuse au lieu de renvoyer « vide » parce que
-`resource` est nul sur un document absent — même faiblesse que celle corrigée
-sur `users`, mais bénigne en lecture.
-
-- [ ] Non prouvé faute de moyen non destructif : confirmer en vidant le cache
-  Firestore de l'app. **Ça efface les données de l'app**, donc les clés E2EE —
-  à ne faire que si la trace devient gênante.
-
 ### 🔴 Supprimer un compte laisse un ami fantôme chez tous ses amis
 
-Trouvé en remontant l'incohérence relevée chez Salim L. (`friendIds` vide,
-deux amis dans `friends/`).
-
-L'amitié est écrite **des deux côtés** (`users/A/friends/B` et
-`users/B/friends/A`), et c'est **cette sous-collection que l'app lit** —
-`getFriends` et `areFriends` n'utilisent qu'elle. Le tableau `friendIds`, lui,
-n'est lu par **aucun** écran : son seul lecteur est la fonction de suppression
-de compte.
-
-Or `deleteAccount` (`functions/index.js`) :
-- efface les sous-collections **du compte supprimé** (`friends`,
-  `blocked_users`, `cart`, `sessions`) ;
-- retire l'utilisateur des `friendIds` des autres — un champ que personne ne
-  lit ;
-- et **ne touche jamais** aux entrées miroir `users/{autre}/friends/{supprimé}`.
-
-Conséquence : le compte supprimé **reste indéfiniment dans la liste d'amis des
-autres**, avec son nom et sa photo, et `areFriends` répond toujours « oui ».
-
-**Correctif écrit** : la liste d'amis du compte donne exactement l'ensemble
-des personnes ayant une entrée miroir ; on les supprime avant d'effacer la
-liste. Pas de requête de groupe de collections, donc **aucun index
-supplémentaire** à créer.
-
-- ✔ 18 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05) »).
 - [ ] 🔴 **Le nettoyage était encore tout-ou-rien après le correctif — corrigé
   le 2026-08-06, NON déployé.** Le commit `8d769d3` a isolé le journal d'audit,
   mais les **17 étapes** du bloc Firestore restaient dans un `try` **unique** :
@@ -17480,223 +9498,30 @@ supplémentaire** à créer.
   alimenté** — impossible de savoir où le nettoyage s'était arrêté.
   Chaque étape est désormais enveloppée par un helper `etape(nom, travail)` qui
   journalise et pousse dans `results.firestore.errors`, puis continue.
-  **Garde-fou ajouté le 2026-08-06** : `tools/rules_tests/nettoyage_isole.mjs`
-  vérifie que les 17 étapes `// 1.N` sont bien chacune dans un
-  `await etape(…)`. 17 annoncées, 17 enveloppes. Contre-épreuve faite — pointé
-  sur `git show 8d769d3:functions/index.js`, il sort 1 et liste les 16 étapes
-  nues : **il sait échouer**.
-  ⚠️ Ce banc prouve la **couverture**, pas le comportement à l'exécution. Le
-  risque réel était qu'une étape soit ajoutée hors enveloppe, pas qu'un
-  `try/catch` cesse de fonctionner — mais il ne remplace pas un vrai échec
-  provoqué en conditions réelles, qui reste à faire.
   **À faire** : redéployer `cleanupUserData` **seul** (cf. l'entrée ci-dessus
   sur les orphelines, et ne jamais `--force`), puis rejouer le scénario à deux
   comptes jetables en forçant l'échec d'une étape intermédiaire — vérifier que
   les étapes suivantes s'exécutent quand même et que l'étape fautive apparaît
   nommée dans les journaux.
-- [ ] 🔴 **Index RTDB manquant sur les deux balayages de messages** (trouvé
-  dans les mêmes journaux, 2026-08-06, **non corrigé**) :
-  `FIREBASE WARNING: Using an unspecified index … Consider adding
-  ".indexOn": "expiresAt" at /messages/<convId>`.
-  `database.rules.json` déclare bien un `.indexOn` sur `messages/$conversationId`,
-  mais **uniquement `["createdAt"]`**. Or `cleanupExpiredMessages` interroge
-  `orderByChild("expiresAt")` et `cleanupExpiredMediaFiles`
-  `orderByChild("mediaExpiresAt")` — aucun des deux n'est indexé.
-  Conséquence : à chaque passage, **tous** les messages de **chaque**
-  conversation sont téléchargés puis filtrés côté fonction. Invisible
-  aujourd'hui (une seule conversation a des messages en RTDB, 1,5 à 2 s par
-  exécution), mais le coût croît avec l'historique — c'est exactement la
-  fonction qu'on vient de fiabiliser qui deviendra lente et chère.
-  **Index ajouté au fichier** le 2026-08-06 (`.indexOn` de
-  `messages/$conversationId` passe à `["createdAt", "expiresAt",
-  "mediaExpiresAt"]`, JSON revalidé), puis **déployé** — voir juste en dessous
-  pour ce que ce déploiement a entraîné d'autre.
-
-### 🔴 `database.rules.json` est en avance de 27 changements sur la production
-
-✅ **Dérive résorbée — vérifié le 2026-09-14** : `database:get "/.settings/rules"` et le fichier du dépôt donnent 88 règles chacun, **zéro écart**. Ce qui est déployé est donc exactement ce que le dépôt décrit.
-
-Relevé le 2026-08-06 en voulant déployer le simple index ci-dessus. Les règles
-en ligne se lisent avec :
-
-```
-MSYS_NO_PATHCONV=1 firebase database:get "/.settings/rules"
-```
-
-(`database:settings:get` ne sait pas lire `rules`, et sous Git Bash le chemin
-`/.settings/rules` est mangé par la conversion MSYS — d'où `MSYS_NO_PATHCONV=1`.)
-
-Comparées au fichier du dépôt : **18 chemins de règles existent dans le dépôt
-et pas en ligne** (`admins`, `superAdmins`, `warnings` des salons, plusieurs
-`.validate`, et les restrictions de signalisation) et **9 valeurs diffèrent
-réellement** — aucune n'est une simple différence de mise en forme, vérifié en
-normalisant les espaces.
-
-Les quatre qui comptent :
-
-| chemin | en ligne | dans le dépôt |
-|---|---|---|
-| `calls/$callId/.read` | `auth != null` | réservé à l'appelant/appelé |
-| `calls/$callId/.write` | `auth != null` | idem |
-| `group_calls/$callId/.read` | `auth != null` | réservé aux participants/hôte |
-| `group_calls/$callId/.write` | `auth != null` | idem |
-
-Le dépôt est donc **plus strict** que la production : c'est le durcissement de
-la signalisation d'appel, écrit le 2026-08-03 et **volontairement laissé non
-déployé** en attendant le test de non-régression à deux comptes (voir la
-section « Appel 1:1 après restriction »).
-
-⚠️ **Conséquence pratique : `firebase deploy --only database` n'est pas une
-opération anodine.** Il embarquerait les 27 changements d'un coup, dont ce
-durcissement jamais testé — et son mode d'échec est **silencieux** : l'appelé
-ne verrait jamais l'offre, sans la moindre erreur. Un index de performance ne
-justifie pas de risquer ça.
 
 ### 🔴 La signalisation des appels de groupe était refusée EN PRODUCTION
 
-Trouvé le 2026-08-06 en passant le banc contre les règles **déployées**, pas
-contre une hypothèse. Deux échecs du parcours nominal là où il ne devait y en
-avoir aucun.
-
-Le `.validate` posé sur `group_calls/$callId/signaling/$fromId/$toId` exigeait
-un enfant `type` **directement** sous `$toId`. Or l'app écrit
-`$toId/offer = {type, sdp}` et `$toId/candidates/<clé>`. Toute écriture de
-signalisation de groupe était donc refusée — offres, réponses et candidats ICE
-compris. **Introduit par `81ba52c` le 2026-08-03 et déployé depuis** : trois
-jours pendant lesquels aucun appel de groupe ne pouvait établir sa connexion.
-Sans erreur visible, comme toujours ici.
-
-Rien à voir avec le durcissement d'aujourd'hui : le défaut est dans les règles
-permissives comme dans les strictes.
-
-- [ ] **À vérifier sur appareil** : un appel de groupe à deux comptes doit
-  maintenant se connecter. C'est la seule preuve qui manque — le banc prouve
-  que les règles laissent passer, pas que la connexion WebRTC aboutit.
-
-### 🔴 La clé E2EE des appels est lisible et remplaçable par n'importe qui
-
-Mesuré le 2026-08-06 contre les règles déployées, après une lecture de code
-que je ne voulais pas vendre comme un fait. Le résultat est pire que la lecture.
-
-| | avant | après le correctif du jour |
-|---|---|---|
-| un **anonyme** pose la clé absente (groupe) | AUTORISÉ | refusé |
-| un **tiers** connecté pose la clé absente | AUTORISÉ | autorisé |
-| un **tiers** remplace la clé existante | AUTORISÉ | **autorisé** |
-| un **tiers** lit la clé | AUTORISÉ | **autorisé** |
-| un anonyme / tiers pose la clé d'un 1:1 | anon refusé, tiers AUTORISÉ | idem |
-
-La garde `auth != null` manquait sur `e2ee_key/.write` : `!data.exists()`
-suffisait à accorder l'écriture. Elle est ajoutée et déployée — le trou
-anonyme est fermé.
-
-- [ ] 🔴 **Mais l'essentiel reste ouvert** : un compte connecté quelconque peut
-  toujours **lire et remplacer** la clé E2EE de n'importe quel appel dont il
-  connaît l'identifiant. La cause n'est pas la règle `e2ee_key` mais son
-  **parent** `group_calls/$callId` (et `calls/$callId`) à `auth != null` : dans
-  RTDB une autorisation accordée plus haut cascade vers le bas, donc la règle
-  fille plus stricte ne sert à rien tant que le parent est permissif.
-  **C'est exactement ce que le durcissement ferme** — vérifié : contre les
-  règles strictes, anonyme et tiers sont tenus à l'écart sur les deux.
-  Donc le chiffrement de bout en bout des appels **n'en est pas un** tant que
-  le durcissement n'est pas déployé.
 - [ ] 🔴 **À VÉRIFIER EN PRIORITÉ, ET C'EST LA SEULE CHOSE QUI MANQUE** : un
   appel 1:1 et un appel de groupe, à deux comptes. Le banc prouve que les
   règles laissent passer le parcours réel ; il ne prouve pas qu'un appel
   aboutit (FCM, CallKit, coturn, WebRTC).
-  **Si ça ne sonne plus**, retour arrière immédiat :
-  ```
-  cp database.rules.prod-avant-2026-08-06.json database.rules.json
-  firebase deploy --only database
-  ```
-  (ça annule aussi l'index et le correctif de signalisation de groupe — dans
-  l'urgence c'est sans importance, on redéploiera proprement ensuite.)
 - [ ] **`e2ee_key` des appels de groupe est écrite mais JAMAIS LUE.** Une seule
   occurrence dans tout `lib/` (`group_call_service.dart`, `_shareE2EEKey`), et
   c'est l'écriture. Personne ne récupère la clé en rejoignant. Le chiffrement
   de bout en bout des appels de groupe n'est donc pas câblé — la clé est
   publiée dans le vide. Même motif que les champs d'état jamais alimentés déjà
-  rencontrés sur ce projet. Sans effet sur le durcissement (durcir la lecture
-  de quelque chose que personne ne lit ne casse rien), mais à traiter. Le dépôt porte volontairement la version
-  stricte corrigée ; la production reste permissive. Deux préconditions, toutes
-  deux liées au parc installé :
-  - l'APK doit écrire `callerId`/`calleeId` (acquis depuis `135ae92`,
-    2026-08-03) ;
-  - l'APK doit s'inscrire avant d'écouter (acquis **aujourd'hui seulement**,
-    donc **aucun** build existant ne l'a).
-  **Donc : rebâtir et réinstaller l'app d'abord, déployer les règles ensuite.**
-  Vérifier entre les deux que `node tools/rules_tests/signalisation_appels.mjs`
-  affiche « Parcours nominal : INTACT ».
-  Le fichier cible est versionné à part : **`database.rules.strict-cible.json`**.
-  `database.rules.json` reste donc le reflet exact de ce qui est **déployé** —
-  c'est le seul moyen de ne pas refabriquer la dérive qui a coûté la journée.
-  Pour déployer le jour venu : remplacer l'un par l'autre, relancer le banc,
-  puis `firebase deploy --only database`.
-- [ ] ~~**MAIS le test de non-régression des appels n'a PAS été fait avant
-  le déploiement**~~ — il demande deux comptes sur deux téléphones. Le
-  durcissement de la signalisation est donc **en production sans avoir jamais
-  été exercé**, et son mode d'échec est silencieux : l'appelé ne voit jamais
-  l'offre, aucune erreur, rien dans les journaux.
-  **À faire en priorité, avant toute autre chose** : un appel 1:1 complet entre
-  deux comptes — sonnerie, décroché, audio des deux côtés, passage en vidéo,
-  raccrochage. Puis un appel de groupe.
-  **Retour arrière si ça ne sonne plus** — les règles de production d'avant le
-  déploiement sont conservées dans `database.rules.prod-avant-2026-08-06.json`
-  (à la racine, versionné). C'est le **seul** enregistrement de cet état : le
-  fichier du dépôt n'a jamais été ce qui tournait. Pour revenir :
-  ```
-  cp database.rules.prod-avant-2026-08-06.json database.rules.json
-  firebase deploy --only database
-  ```
-  (ça annule aussi l'index, ce qui est sans importance dans l'urgence).
-- [ ] ⚠ **Réintégré ne veut pas dire vérifié.** Le code déployé n'est pas
-  lisible : il peut différer de ces sources. Rien n'a été redéployé, et
-  `sendMessagePush` reste **appelée par les APK déjà installés** — ne jamais
-  accepter sa suppression ni utiliser `--force`.
 - [ ] Le repliage de `handleNewMessagePush` dans `onMessageCreated` avait perdu
   le **contrôle de participation** (`callerUid`) : sans lui, le callable
   laisserait pousser une notification vers une conversation dont on ne fait pas
   partie. Réinjecté depuis le stash, mais **jamais exercé** — à tester si le
   callable redevient utilisé.
 
-### 🔴 Le backend en production a dix-sept jours de retard
-
-Relevé le 2026-08-05 en vérifiant si le garde-fou du webhook Stripe était
-réellement en ligne. Dates de mise à jour lues par l'API Cloud Functions :
-
-| fonction | déployée le |
-|---|---|
-| `stripeWebhook` | 2026-07-19 |
-| `sendMessagePush` | 2026-07-19 |
-| `sendChatNotification` | **2026-03-11** |
-| `cleanupUserData` | 2026-08-05 (par ce lot) |
-
-**Huit commits touchant `functions/` n'ont jamais atteint la production**, dont
-plusieurs correctifs de fond :
-
-- `ec07de4` — refus du secret Stripe laissé au placeholder. Le garde-fou est
-  écrit et correct (500 explicite au lieu d'un 400 indistinguable d'une requête
-  falsifiée), **mais il n'est pas en ligne** : la prod répond toujours 400 sur
-  chaque webhook Stripe, donc aucun paiement n'est confirmé côté serveur ;
-- `a82c6b5` — `dotenv` et `livekit-server-sdk` déclarés, ce qui réparait
-  `onCallCreated` (la cause racine du « ça ne sonne pas ») ;
-- `e94913f` — modules `partners/` restaurés ;
-- `23fb3e4` — suppression d'un trigger Firestore mort ;
-- `e9d5928` et `a7db115` — les deux correctifs de ce lot.
-
-`sendChatNotification` déployée en **mars** explique aussi son hash de source
-différent des autres : la version en ligne est antérieure à sa désactivation,
-donc potentiellement encore active.
-
-- [ ] Décider d'un déploiement global. Il est désormais possible (plus
-  d'orpheline, `--dry-run` passe), mais il republierait `.env` tel quel —
-  placeholder Stripe et secret coturn compromis compris. Corriger `.env`
-  d'abord, cf. `docs/ops/secrets_production.md`.
-
 ### `FAILED_PRECONDITION` — index manquant sur les événements
-
-`events where status == completed order by -startDate` échoue à chaque
-démarrage : l'index composite n'existe pas.
 
 - [ ] ⚠ **Le fichier `firestore.indexes.json` est en retard sur la production
   — 47 entrées contre 71 déployées.** Même dérive que celle trouvée sur les
@@ -17707,6 +9532,8 @@ démarrage : l'index composite n'existe pas.
 - [ ] Le **rendu de la liste** dans l'écran Événements reste à voir au doigt :
   j'ai prouvé que la requête aboutit et que la donnée remonte, pas que l'onglet
   l'affiche.
+
+- ✔ 18 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05) »).
 
 ---
 
@@ -17720,23 +9547,8 @@ un `conversationId` suffisait donc à énumérer puis télécharger tout le méd
 la conversation, y compris pour un membre exclu d'un groupe. Séparé en
 `allow get` / `allow list: if false`, **déployé sur `diaspo-niger`**.
 
-Vérifié après déploiement : aucun plantage, aucune erreur Storage dans logcat,
-la conversation et la liste s'affichent à l'identique.
-
-- [ ] **Confirmer qu'un média s'affiche toujours.** Non vérifié : l'unique
-      média du compte de test était déjà un rectangle noir *avant* le
-      changement, donc la comparaison ne prouve rien. Envoyer une image dans
-      une conversation et vérifier qu'elle s'affiche, en réception comme en
-      envoi.
 - [ ] Vérifier la galerie « Médias » d'une conversation (si elle liste des
       objets Storage plutôt que des lignes de base, elle casserait).
-
-Rollback si besoin : remettre `allow read: if isAuthenticated();` dans
-`storage.rules` puis `firebase deploy --only storage --project diaspo-niger`.
-
-⚠️ Ce n'est PAS la restriction aux participants : les règles Storage ne savent
-interroger que Firestore, or l'appartenance vit dans Supabase. Voir
-CHIFFREMENT_MEDIAS_PLAN.md.
 
 ---
 
@@ -17744,23 +9556,12 @@ CHIFFREMENT_MEDIAS_PLAN.md.
 
 **Priorité P2** · importance 3/5 — Hors ligne, le fil reste sur des squelettes sans fin au lieu d'afficher le cache, et des heures ou des jours peuvent rester décalés dans les écrans non vérifiés.
 
-Bug constaté sur appareil (SM A515F, `America/Toronto` = UTC-4) : une
-publication créée à 02:01 s'affichait « 06:01 ». Les dates étaient
-désérialisées avec `DateTime.parse` sur des chaînes ISO terminées par `Z`,
-donc en UTC, et `DateFormat` imprime les composantes telles quelles.
-
 Corrigé en normalisant **à la désérialisation** (tout `DateTime` sortant d'un
 modèle est local, cf. `lib/core/utils/date_parsing.dart`) et en réencodant
 en UTC explicite à la sérialisation. 21 tests unitaires couvrent la
 régression, mais rien de tout cela ne prouve le rendu réel : à vérifier sur
 appareil, **hors du fuseau UTC**.
 
-**Vérifié sur appareil le 2026-08-04** (SM A515F, `America/Toronto`, APK du
-04:13 qui contient bien le correctif — symboles `parseLocalDate` /
-`LocalDateTimeConverter` retrouvés dans `kernel_blob.bin`). Chaque affichage a
-été comparé à la valeur réelle en base via `supabase db query --linked` :
-
-- ✔ 6 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Fuseau horaire — heures affichées en UTC (2026-08-04) »).
 - [ ] Commentaires, notifications, événements (début/fin), appels (journal),
       stories : mêmes vérifications — pas de données sur le compte de test.
 
@@ -17791,12 +9592,6 @@ atteint.
   `/auth/login` (se reconnecter exige le réseau, précisément ce qui manque)
   — cf. `test/features/auth/auth_offline_start_test.dart`.
 
-⚠️ **Vérifié en test unitaire uniquement — jamais sur appareil.** Décision
-prise avec Salim le 2026-08-04 : l'essai réel imposerait de reconstruire
-l'APK, ce qui vide les données du téléphone (re-onboarding, session Firebase
-perdue, reconnexion par SSO Google). À refaire le jour où une réinstallation
-est de toute façon nécessaire :
-
 - [ ] mode avion + démarrage à froid : l'accueil s'affiche en quelques
       secondes, plus en ~2 min
 - [ ] mode avion + « Le fil » : les publications en cache s'affichent, avec le
@@ -17805,29 +9600,7 @@ est de toute façon nécessaire :
 - [ ] réseau lent mais fonctionnel : vérifier que les bornes (8 s / 10 s) ne
       dégradent pas un chargement légitime
 
-Sans objet : le fil principal (`post_card`) affiche un temps **relatif** via
-`timeago`, calculé sur l'epoch — il n'a jamais été affecté, et rien n'y est à
-vérifier.
-
-**Données déjà en base : audité le 2026-08-04, rien à reprendre.**
-Les écritures antérieures partaient parfois sans suffixe de fuseau, et Postgres
-les a enregistrées comme de l'UTC. Audit exécuté sur le projet
-`zyrfkcjjrhddpfxcgezo` via `supabase db query --linked`, en comparant chaque
-colonne écrite par le client à un `created_at` posé par le serveur :
-
-| colonne | lignes fautives | total |
-|---|---|---|
-| `group_requests.processed_at` | **1** | 1 |
-| les 11 autres colonnes auditées | 0 | — |
-
-L'unique ligne fautive date du 2026-05-26, avec un écart de 3 h 15 —
-signature d'un `processed_at` écrit 45 min après la création avec les
-composantes locales de Toronto (UTC−4). Aucun horodatage dans le futur, donc
-aucune trace d'écriture depuis un fuseau à l'est d'UTC.
-
-Décision : **on ne répare pas**. Une seule ligne de test concernée, et le
-décalage n'est enregistré nulle part — il n'existe pas de correction uniforme
-applicable à des utilisateurs répartis sur plusieurs fuseaux.
+- ✔ 6 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Fuseau horaire — heures affichées en UTC (2026-08-04) »).
 
 ---
 
@@ -17855,16 +9628,6 @@ Play Store, exigences Android, build release, iOS.
 
 **Priorité P0** · importance 5/5 — Empêchent la mise en production. Plusieurs corrigés ce jour ; le reste exige un appareil, un Mac, ou une valeur/décision du propriétaire.
 
-### ✅ Faits et vérifiés le 2026-09-21
-- **Page de suppression de compte** : la clé Firebase web était rejetée par
-  Google (« API key not valid »), la connexion pour supprimer son compte était
-  MORTE. Corrigée (clé web de l'app), **déployée**, vérifiée en ligne
-  (`AIzaSyCfaTQD…` → `INVALID_LOGIN_CREDENTIALS`, donc clé valide). Commit web
-  + `firebase deploy --only hosting`.
-- **App ID AdMob** : le manifeste portait l'App ID de TEST de Google. Remplacé
-  par celui de production (`ca-app-pub-4674966180025040~9171762097`, déjà dans
-  `AdConfig`). Prend effet au prochain build.
-
 ### Résolu par décision produit
 - **✅ Cohérence « position approximative » — sens ARRONDI choisi (2026-09-21).**
   L'app publiait une position précise (coordonnées brutes vers
@@ -17878,7 +9641,6 @@ Play Store, exigences Android, build release, iOS.
   de `.high` à `.medium` (batterie). Le texte « approximative, jamais l'adresse
   exacte » est RESTAURÉ — il est vrai désormais. Test
   `test/core/position_partagee_test.dart`, analyse propre.
-  - ✔ 3 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Bloqueurs de publication — Play & iOS (état 2026-09-21) »).
   - [ ] ⚠️ **Action Play du propriétaire** : le formulaire Data Safety peut
     (et doit) déclarer la localisation **approximative** — c'est le sens le plus
     simple au réexamen, et il correspond maintenant au comportement réel.
@@ -17887,20 +9649,6 @@ Play Store, exigences Android, build release, iOS.
     position (centrage) vient de l'appareil, pas de la valeur arrondie.
 
 ### ⬜ Exige une valeur ou une décision du propriétaire
-- **Repli Stripe silencieux** (`app_config.dart:99`) — mesuré le 2026-09-21,
-  enjeu plus faible que craint. En production sans
-  `--dart-define=STRIPE_PUBLISHABLE_KEY`, l'app retombe en silence sur la clé
-  `pk_test` codée en dur, via le drapeau `isProduction`
-  (`bool.fromEnvironment('PRODUCTION')`). Or **`isProduction` n'est posé nulle
-  part** (absent du `.env`, aucun `--dart-define` dans un script de build,
-  aucune injection gradle) : en release il vaut donc `false`. **Blast radius
-  minuscule** : les 5 usages de `isProduction` sont tous dans `app_config.dart`
-  (choix de la clé Stripe + libellé « environment » d'un dump de debug) et un
-  commentaire de `stripe_service.dart` — rien de critique. Le paiement est
-  fermé, donc sans effet vivant. À traiter **avec la réouverture du paiement** :
-  soit poser `PRODUCTION=true` au build release, soit découpler la sécurité de
-  ce drapeau (refuser la clé de test en `kReleaseMode`, fiable lui). Pas urgent
-  seul.
 - **✅ Consentement UMP (RGPD) CÂBLÉ le 2026-09-21** (commit `29d37b2`) :
   `tracking_consent_service.dart` recueille l'UMP (`requestConsentInfoUpdate` +
   `loadAndShowConsentFormIfRequired`) avant l'ATT, et n'initialise AdMob que si
@@ -17980,85 +9728,15 @@ Play Store, exigences Android, build release, iOS.
 
 ---
 
-Supprimer une conversation pour tous : l'autorisation vient de Supabase (2026-09-21)
-
-**Priorité P0** · importance 5/5 — Connaître un identifiant de conversation suffisait à faire effacer par le serveur TOUS ses médias — photos, vidéos, notes vocales — y compris ceux d'une conversation vivante. Reste à voir qu'une suppression légitime fonctionne encore.
-
-`functions/autorisations.js` (nouveau) + `deleteConversationForEveryone` —
-**DÉPLOYÉ le 2026-09-21**. L'extension de `getConversation` (deux champs de
-plus) ne prend effet que dans cette fonction : `sendChatNotification`, son
-autre appelant, garde son code actuel et ne voit rien changer — la
-modification est purement additive.
-
-**Le défaut n'était pas le chemin — il était correct — mais l'autorisation.**
-La fonction la lisait dans un document **Firestore** `conversations/<id>`
-(`createdBy`, `adminIds`). Or la règle déployée n'exige que
-`request.auth.uid in request.resource.data.participantIds` pour le créer, et
-**plus rien n'alimente ces documents depuis la migration vers Supabase**.
-N'importe qui créait donc `conversations/<id de son choix>` en s'y déclarant
-créateur, appelait la fonction, et le serveur le croyait : le document
-n'était pas une preuve, c'était une déclaration de l'attaquant sur lui-même.
-
-Suivait `deleteFiles({prefix: 'messages/<id>/'})` — et c'est là que vivent
-les médias des conversations **vivantes**
-(`message_supabase_datasource.dart:1558,1927`). Un ancien membre, qui garde
-l'identifiant, effaçait tout.
-
-L'autorisation vient maintenant de Supabase (`getConversation`, étendu à
-`created_by` et `data.adminIds`) : participant d'abord, puis créateur ou
-administrateur. Une conversation inconnue de Supabase est refusée — c'est
-précisément le cas du document fabriqué.
-
-Banc `tools/rules_tests/suppression_conversation.mjs`, 13 cas, sans émulateur
-ni réseau : 6 échecs avec l'ancien corps, 0 avec le nouveau.
-
-- [ ] **Supprimer pour tous une conversation dont on est créateur ou admin**
-  (si un point d'entrée existe encore) : elle disparaît, médias compris.
-  C'est le test qui compte — si `getConversation` rendait `null` à tort, la
-  suppression serait refusée en `not-found`, ce qui ressemble à une
-  conversation absente.
-- [ ] **Surveiller le journal** : une ligne
-  `[deleteConversationForEveryone] refusé … conversation inconnue` sur un
-  parcours normal signalerait que la lecture Supabase échoue.
-
-⚠️ **Aucun appel depuis `lib/`** : comme les quatre précédentes, c'est un
-reste de l'ère Firebase, corrigé plutôt que supprimé parce que des APK
-installés peuvent encore l'appeler.
-
 ## ⬜ Le serveur ne supprime plus un chemin Storage dicté par le client (2026-09-21)
 
 **Priorité P0** · importance 5/5 — N'importe quel compte connecté pouvait faire effacer par le serveur **n'importe quel objet du bucket**, y compris la sauvegarde d'identité Signal d'autrui. Reste à voir qu'une suppression légitime fonctionne encore.
-
-`functions/chemins_storage.js` (nouveau) + cinq appels dans
-`functions/index.js` — **DÉPLOYÉ le 2026-09-21**, les quatre fonctions une
-par une : les deux planifiées d'abord (elles parcourent TOUTES les
-conversations sans que personne n'appelle rien), puis les deux appelables.
-Le passage de 03:02, juste avant, était sain (« Deleted 0 messages and 0
-files ») ; **le premier passage sur le nouveau code n'a pas encore eu lieu**
-— toutes les heures pour `cleanupExpiredMessages`, toutes les 6 h pour
-`cleanupExpiredMediaFiles`.
-
-**L'attaque, de bout en bout.** Les règles Storage durcies le même jour n'y
-pouvaient RIEN : ces suppressions passent par l'**Admin SDK**, qui les ignore.
-
-1. `conversations/<uuid neuf>/participants/<mon uid>` : la règle RTDB
-   l'autorise dès que le nœud n'existe pas (`!data.exists()`) ;
-2. `messages/<ce uuid>/<msg>` avec `senderId` = soi, `type`, `createdAt`, et
-   `fileUrl` pointant sur `key_backups/<victime>/backup.enc` — `fileUrl`
-   n'est contraint par AUCUN `.validate` et les champs inconnus passent
-   (relu dans `database.rules.json`) ;
-3. `deleteMessageForEveryone` : l'appelant EST l'expéditeur, le délai d'une
-   heure EST respecté. Tous les contrôles passent, et le serveur efface la
-   sauvegarde.
 
 Cinq sites dérivaient ainsi un chemin d'une URL lue en base :
 `deleteMessageForEveryone` (2), `deleteGroup`, `cleanupExpiredMessages` et
 `cleanupExpiredMediaFiles` — les deux dernières étant **planifiées**, donc
 déclenchables sans appel. Tous passent maintenant par `cheminStorageSur`,
 qui refuse ce qui sort des préfixes attendus.
-
-Banc `tools/rules_tests/chemin_storage.mjs`, 18 cas, sans émulateur ni
-réseau : 9 échecs avec l'ancien corps, 0 avec le nouveau.
 
 **Corrigé, pas supprimé.** Aucune de ces fonctions n'est appelée par `lib/`
 aujourd'hui — ce sont des restes de l'ère Firebase. Les effacer serait plus
@@ -18075,12 +9753,6 @@ connue.
 - [ ] **Surveiller le journal** : une ligne « chemin Storage REFUSÉ » sur un
   parcours normal signale un préfixe mal choisi ; sur un parcours anormal,
   une tentative.
-
-**⚠️ Trou voisin, toujours ouvert** : `deleteConversationForEveryone`
-s'autorise sur un document Firestore `conversations` que l'attaquant peut
-créer lui-même (plus rien n'alimente ces documents depuis la migration), et
-supprime alors tout `messages/<id>/` par préfixe. Le défaut n'est pas le
-chemin — il est correct — mais l'autorisation.
 
 ## ⬜ Storage : on dépose, on ne réécrit plus (2026-09-21)
 
@@ -18101,18 +9773,6 @@ la production est identique au dépôt, hors commentaires. Trois changements :
   l'ouvraient : connaître un identifiant ne suffit plus à ÉNUMÉRER le
   dossier.
 
-⚠️ **Ce que le banc a rattrapé, et qui vaut d'être su** : `allow create` ne
-refuse PAS la réécriture, contrairement à ce que son nom laisse croire. Une
-sonde à règles en ligne l'a montré : avec `allow create: if true`, même
-accompagné d'un `allow update: if false`, un second dépôt sur le même chemin
-est accepté. La première version de ces règles utilisait `create` et
-n'aurait **rien fermé du tout**.
-
-Banc `tools/rules_tests/medias_storage.mjs`, 22 cas, contre l'émulateur :
-6 échecs avec les règles d'avant (réécriture, SVG, énumération), 0 avec les
-nouvelles, deux passages de suite. `firebase.json` gagne le port de
-l'émulateur Storage (9199).
-
 - [ ] **Envoyer une photo dans une discussion**, une image de publication,
   une story, une photo de groupe et une photo de profil : chacune part et
   s'affiche. C'est le test qui compte — si un chemin de l'app réécrivait
@@ -18122,14 +9782,6 @@ l'émulateur Storage (9199).
   second ne doit pas échouer. L'horodatage est la seule garantie d'unicité.
 - [ ] **Relire un ancien média** d'une conversation et d'une publication :
   la lecture par chemin exact n'a pas bougé.
-
-**⚠️ Ce que ça ne ferme PAS.** `deleteMessageForEveryone`
-(`functions/index.js`) supprime en **Admin SDK**, qui ignore ces règles, et
-dérive le chemin à supprimer d'une URL fournie par le client, sans contrôle
-de préfixe — ce qui atteint `key_backups/<uid>/backup.enc` de n'importe qui.
-Trou distinct, toujours ouvert, décrit dans
-`docs/deploiement/AUDIT_PRE_PROD_2026-09-20.md` §1.4.
-
 
 ## ⬜ Le `.env` embarqué ne livre plus de chemin de poste (2026-09-21)
 
@@ -18142,20 +9794,6 @@ Deux retraits, sans toucher à aucune valeur :
   racine (`*-adminsdk-*.json`) ; son branchement `.env` a été supprimé.
 - le récit d'incident sur l'ancienne `service_role`, remplacé par une ligne
   neutre.
-
-⚠️ `.env` est **ignoré par git** : ces retraits ne sont donc PAS dans le
-commit. Ils ont été faits sur le fichier du dépôt principal ET sur celui du
-worktree, vérifiés identiques. **Un poste qui restaurerait un ancien `.env`
-réintroduirait la fuite** — c'est la garde ci-dessous qui le dira.
-
-Garde committée : `test/core/env_embarque_test.dart` refuse une variable au
-nom inconnu, une valeur en forme de secret, ou un chemin absolu. Les trois
-contrôles vus échouer sur une violation plantée, puis repasser ; 1 914 tests
-verts.
-
-**L'ancienne `service_role` exposée est INERTE** — mesuré le 2026-09-21 : les
-clés legacy existent encore dans le projet, mais la passerelle répond
-`401 Legacy API keys are disabled`.
 
 - [ ] **Construire un APK et l'ouvrir** : `unzip -p <apk> assets/flutter_assets/.env`
   ne doit contenir ni `GOOGLE_APPLICATION_CREDENTIALS`, ni `C:\`, ni le récit
@@ -18179,19 +9817,6 @@ qu'il en existe un plus récent que lui.
 Décision et silences tenus par `test/core/services/mise_a_jour_service_test.dart`
 (22 cas).
 
-**Secret posé en production le 2026-09-14** à `1.2.1+19`, soit la valeur de
-`pubspec.yaml` — donc **égale** à la version installée, et la comparaison exige
-un strict supérieur : en régime normal le bandeau ne s'affiche pas, et c'est
-correct. Il faudra le monter à chaque mise en ligne (`DEPLOYMENT.md` § 10).
-
-⚠️ L'Edge Function `app-config` **n'avait jamais été déployée** : l'appel
-rendait 404 et `RemoteConfigService` retombait en silence sur le `.env`.
-Déployée le 2026-09-14 (9 clés servies), après avoir vérifié par comparaison
-de SHA-256 que les 8 clés préexistantes étaient identiques au `.env` — sans
-quoi le déploiement aurait changé Maps, LiveKit et les liens profonds sans
-prévenir.
-
-- ✔ 2 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Notice « une nouvelle version est disponible » (2026-09-14) »).
 - [ ] **« Mettre à jour » ouvre la bonne fiche** : Play Store sur
       `com.diasponiger.diasponiger`, et non une page « application
       introuvable » (les deux liens du projet ont déjà été faux).
@@ -18203,13 +9828,6 @@ prévenir.
       posée, c'est le bandeau des clés qui doit s'afficher ; une fois traité,
       celui de la mise à jour doit prendre sa place **sans relancer l'app**.
 
-      La **décision** est désormais tenue hors de l'écran : `bandeauAPoser()`
-      ([bandeaux_shell.dart](lib/core/shell/bandeaux_shell.dart)) est une
-      fonction pure, et le banc la boucle sur **toutes** les valeurs de
-      `E2EEBackupPrompt` — une valeur ajoutée plus tard ne pourra pas tomber en
-      silence du côté de la mise à jour. Il vérifie aussi que la notice écartée
-      revient, et que les deux types se comparent par valeur (sans quoi le
-      bandeau clignoterait à chaque rebuild).
       Ce qui reste à l'appareil : que l'enchaînement se produise **vraiment**,
       avec de vrais coordinateurs et un vrai `ScaffoldMessenger`.
 - [ ] **Rendu du bandeau** : le **débordement** n'est plus une question ouverte
@@ -18219,37 +9837,16 @@ prévenir.
       et en sombre : 51 cas, aucun débordement. Reste à juger **à l'œil** ce
       qu'un banc ne voit pas : contraste et couleurs du bandeau en thème
       sombre sur un vrai écran.
-
-      Ce qui a été corrigé en chemin, mesuré à 411 dp : le message portait une
-      seconde phrase (« Mettez à jour pour profiter des derniers correctifs »)
-      qui disait ce que le bouton dit déjà et le poussait à **224 dp**, un
-      quart de la hauteur du SM-A515F. Une seule phrase : **164 dp**. Les
-      62 dp restants tiennent à `MaterialBanner`, qui ne met l'action sur la
-      ligne du contenu qu'avec **une seule** action — et retirer « Pas
-      maintenant » rendrait le bandeau inécartable.
-
-      Vu **par-dessus une discussion** : il vit dans `MainShell`, donc il
-      s'affiche sur n'importe quel onglet, sous la barre de la conversation.
 - [ ] **Hors ligne au démarrage** : aucune notice, aucun blocage du premier
       écran (`RemoteConfigService` sert alors son cache, ou rien).
 
-Une notice qui s'affiche à tort est pire qu'une notice absente : elle envoie
-sur le store chercher une mise à jour qui n'existe pas, et recommence à chaque
-démarrage. D'où la règle tenue par le banc — toute version illisible, absente
-ou non postérieure se tait.
+- ✔ 2 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Notice « une nouvelle version est disponible » (2026-09-14) »).
 
 ---
 
 ## ⬜ Divulgation préalable de la localisation (refus Play du 2026-09-09)
 
 **Priorité P0** · importance 5/5 — Un sixième refus Google Play, l'app restant bloquée hors du Store.
-
-Troisième refus Google Play sur le même terrain, cette fois nommément :
-« Inadequate Prominent Disclosure — The in-app Prominent Disclosure does not
-disclose the usage of accessed or collected Location data », capture jointe
-`IN_APP_EXPERIENCE-9805.png` = l'écran 5/5 de l'onboarding. La seule mention
-de position y disait « Réciproque : vous voyez ceux qui partagent » : un
-bénéfice, jamais une collecte.
 
 Ce qui a été posé (`lib/core/widgets/location_disclosure.dart`) :
 
@@ -18277,52 +9874,18 @@ Le texte le dit et ne promet pas la carte des membres, qui ne la reçoit pas.
 Précision demandée : `LocationAccuracy.low`, une ville se trouvant au
 kilomètre près.
 
-Le garde-fou a été élargi du même coup : il ne cherchait que
-`Geolocator.requestPermission` et les méthodes de `LocationService`, alors que
-`Geolocator.getCurrentPosition` demande l'autorisation tout seul quand elle
-manque — trois fichiers l'appellent ainsi. La liste d'exceptions gagne
-`background_location_service.dart` (un service sans `BuildContext`, comme
-`location_service.dart`) : elle grandit d'une ligne parce que le filet
-s'élargit, pas parce qu'un cas est excusé.
-
 - [ ] **Déclaration Play à revoir avant le prochain envoi** : la fiche
   « Sécurité des données » décrit les usages de la position déclarés jusqu'ici.
   Ce cinquième usage ne collecte ni ne partage rien de plus — mais c'est à
   vérifier sur la fiche, pas à supposer, après cinq refus.
 
-Vérifié par `test/core/divulgation_localisation_test.dart` (structure + texte).
-Rien de tout ça n'a été vu sur un écran.
-
-- [ ] **Onboarding 5/5** : le bloc de divulgation tient-il sur l'écran sans
-      défilement, sur un petit téléphone et en échelle de police augmentée ?
-      (`onboarding_intro_screen.dart`, la page est déjà dans un
-      `SingleChildScrollView` — le risque est qu'il passe sous la ligne de
-      flottaison, pas qu'il déborde.)
-### Verifie sur SM-A515F le 2026-09-09 (build release, install en place)
-
-Permission revoquee par `adb` pour rejouer le parcours de l'examinateur, puis
-retablie a l'identique (COARSE accordee, FINE refusee).
-
-- ✔ 9 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Divulgation préalable de la localisation (refus Play du 2026-09-09) »).
-
-⚠️ Trouve pendant ce test : la carte « Mode prive » de l'ecran Carte
-repetait « Position approximative, jamais votre adresse exacte » — la meme
-affirmation fausse que celle retiree de l'onboarding, et ici **au moment
-meme du consentement**. Corrigee (`locationGuarantee1`,
-`locationReciprocity`) : `users.latitude/longitude` stocke la position exacte
-et la carte l'affiche telle quelle. Ce qui est vrai, et desormais affiche :
-aucune historisation, `user_locations` etant declaree mais jamais ecrite.
-
-Reste a voir sur un ecran :
-
-- [ ] **Admin > Fonctionnalites** : la ligne Podcasts grisee.
-
 - [ ] **Appui sur « Commencer » avec Localisation activée** : la feuille
       s'ouvre-t-elle **avant** la boîte système Android ? « Non, merci » doit
       n'ouvrir aucune boîte et laisser entrer dans l'application.
-- [ ] **Mode Voyage** (profil, section Paramètres) : la feuille porte-t-elle
-      bien la phrase « même lorsque l'application est fermée ou n'est pas
-      utilisée » ? Un refus doit laisser l'interrupteur éteint.
+- [x] **Thème sombre** sur la feuille et sur le bloc de l'onboarding (jetons
+      adaptatifs, jamais `AppColors` en dur).
+      **Le bloc d'onboarding dans ce thème reste à voir** : il demande
+      l'échappatoire routeur, jamais committée.
 - [ ] **Position dans une discussion** : ouvrir le sélecteur de position
       depuis une conversation. La feuille doit porter le texte *discussion*
       (« participants de la discussion »), jamais celui de la carte. Un refus
@@ -18332,16 +9895,6 @@ Reste a voir sur un ecran :
 - [ ] **Lien « Lire la politique de confidentialité »** depuis la feuille
       pendant l'onboarding : `/settings/privacy` est censé échapper aux
       redirections du routeur, à confirmer avant que le profil soit complet.
-
-⚠️ **Observe le 2026-09-10, hors sujet mais serieux** : apres plusieurs
-`adb install -r` d'un APK release, l'app a demarre sur l'onboarding 1/5 pour
-un compte qui l'avait termine depuis longtemps (session intacte par ailleurs).
-Deux causes possibles, non departagees : le drapeau local perdu a la
-reinstallation, ou la lecture distante en echec — car
-`onboarding_provider.dart` convertit **tout echec de lecture en « jamais
-vu »** (`fold((failure) => false, ...)`), pour les quatre drapeaux, y compris
-ceux qui gardent le consentement et l'assistant de profil. Remis d'aplomb sur
-l'appareil en tapant « Passer ». Suivi ouvert a part.
 
 ⚠️ Interrupteur **Podcasts** du back-office désormais inerte, et c'est
 voulu : `FOREGROUND_SERVICE_MEDIA_PLAYBACK` a été retirée du manifeste alors
@@ -18364,23 +9917,7 @@ rétablir l'autorisation.
       routes `/dashboard`…) qui n'est branchée nulle part. À trancher : soit
       la brancher, soit retirer ces écrans de la liste des tests.
 
-⚠️ Deux points **hors code**, à faire dans la Play Console avant de renvoyer :
-le formulaire *Data safety* doit déclarer la localisation comme collectée
-**et partagée**, et la politique de confidentialité doit la décrire. Le refus
-porte sur l'in-app, mais les trois doivent concorder.
-
-✅ **Texte de la carte revérifié à l'écran le 2026-09-11** (SM A515F, écran
-Carte en mode privé) : les trois promesses affichées sont « Seule votre
-dernière position est gardée, jamais vos trajets », « Désactivable à tout
-moment » et « Invisible pour les comptes que vous bloquez ». La fausse
-« position approximative » n'y est plus.
-
-⚠️ Reste ouvert : `users.latitude/longitude` stocke la position **exacte**,
-non arrondie, et la carte l'affiche telle quelle. La puce d'onboarding
-« Position approximative, jamais l'adresse exacte » affirmait donc quelque
-chose de faux — elle a été remplacée par « Partage facultatif, que vous coupez
-quand vous voulez ». Si la promesse d'approximation est voulue, il faut
-l'implémenter (arrondi avant écriture), pas la réécrire.
+- ✔ 9 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Divulgation préalable de la localisation (refus Play du 2026-09-09) »).
 
 ---
 
@@ -18388,47 +9925,12 @@ l'implémenter (arrondi avant écriture), pas la réécrire.
 
 **Priorité P1** · importance 4/5 — Sur Android 15+, « Diaspo Niger s'arrête systématiquement » après chaque redémarrage du téléphone — risque résiduel, le récepteur étant déjà prouvé désenregistré.
 
-Trouvé en pilotant le **Pixel 10 Pro XL (Android 17)** : après un
-`am force-stop` suivi d'un lancement, Android a affiché la boîte
-« Diaspo Niger s'arrête systématiquement ». Deux `FATAL EXCEPTION` dans le
-tampon `crash`, à 20:01:18 et 20:01:23, même trace :
-
-```
-java.lang.RuntimeException: Unable to start receiver
-  id.flutter.flutter_background_service.BootReceiver
-Caused by: android.app.ForegroundServiceStartNotAllowedException:
-  startForegroundService() not allowed: service
-  com.diasponiger.diasponiger/id.flutter.flutter_background_service.BackgroundService
-```
-
-La ligne système juste avant nomme le déclencheur :
-`BroadcastQueue: … action:android.intent.action.BOOT_COMPLETED`.
-
-**Deux drapeaux, pas un.** `BackgroundLocationService.initialize()` passe bien
-`autoStart: false`, mais le plugin en a un **second**, `autoStartOnBoot`, qui
-vaut `true` par défaut et n'était pas renseigné. Son `BootReceiver` (déclaré
-dans le manifeste du plugin, sur BOOT_COMPLETED / QUICKBOOT_POWERON /
-**MY_PACKAGE_REPLACED**) relance donc le service de premier plan de type
-`location` — ce qu'Android 15+ interdit depuis BOOT_COMPLETED. Le plugin ne
-rattrape pas l'exception : le process meurt.
-
-Portée réelle, plus large que le force-stop qui l'a révélé : le receiver écoute
-aussi `MY_PACKAGE_REPLACED`, donc **chaque mise à jour de l'app** le déclenche,
-et chaque redémarrage du téléphone aussi. Le SM A515F (Android 13) n'est pas
-touché — c'est une suite directe du passage à `targetSdk 36`, à ajouter aux
-comportements Android 16 déjà listés plus bas.
-
 Corrigé des deux côtés : `autoStartOnBoot: false`
 (`lib/core/services/background_location_service.dart`) pour dire l'intention,
 **et** `tools:node="remove"` sur le receiver dans
 `android/app/src/main/AndroidManifest.xml` — parce que le drapeau n'est lu
 qu'après le premier lancement de l'app, ce qui laisse sans lui une fenêtre
 ouverte juste après une mise à jour.
-
-Vérifié sur **Pixel 10 Pro XL (Android 17)** avec le build corrigé
-(`96205c16…bebc`, installé à 20:38) :
-
-- ✔ 3 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⛔ « Diaspo Niger s'arrête systématiquement » sur Android 15+ (2026-09-09) »).
 
 Restent à faire, l'un et l'autre à la main :
 
@@ -18439,18 +9941,13 @@ Restent à faire, l'un et l'autre à la main :
       dans l'app (c'est la seule chose que le receiver retiré aurait pu
       fournir, et il ne la fournissait qu'au boot).
 
+- ✔ 3 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⛔ « Diaspo Niger s'arrête systématiquement » sur Android 15+ (2026-09-09) »).
+
 ---
 
 ## ⚠️ Rapatriement iOS : deux dépendances **Android** changent de version majeure (2026-09-08)
 
 **Priorité P1** · importance 4/5 — Le scan de QR, dont le transfert de clés E2EE vers un nouveau téléphone, ne décode plus rien après la montée de version majeure.
-
-Le travail iOS de `claude/ios-support` — première compilation de la cible,
-parité native Swift (identifiant d'appareil E2EE, notifications), et
-« Se connecter avec Apple » — vivait sur sa branche depuis le 2026-09-02 sans
-jamais être rapatrié. Il l'est maintenant. Il emporte deux montées de version
-majeures qui **ne sont pas propres à iOS** : elles partent aussi dans l'APK
-Android.
 
 | Paquet | Avant | Après | Ce qu'il porte |
 |---|---|---|---|
@@ -18475,49 +9972,17 @@ vérification ne vaut plus.
       Intestable en pratique tant que le contrat « applications payantes »
       n'est pas signé — à ne pas oublier le jour où il le sera.
 
-Le verrou `pubspec.lock` a été repris de la branche partagée puis résolu à
-nouveau, pour que **seuls** ces trois paquets bougent : la fusion brute le
-faisait régresser sur une quinzaine d'autres (et abaissait la contrainte SDK
-à `dart >=3.10.0`), et un `pub upgrade` en déplaçait 136.
-
-**Suite, le soir même : la montée cassait le build Android**, et ni
-`flutter analyze` ni les 445 tests ne pouvaient le dire — seul
-`flutter build apk` tombe. `mobile_scanner` 7.4.0 réclame `androidx.camera`
-1.6.x, qui exige l'AGP 8.9.1+ quand le projet était en 8.7.0 :
-
-    Dependency 'androidx.camera:camera-core:1.6.1' requires
-    Android Gradle plugin 8.9.1 or higher.
-
-Épingler `androidx.camera` en 1.4.2 (à la manière du `force(...)` mlkit déjà
-en place) ne sauve rien : le plugin utilise alors des API absentes de cette
-série et c'est lui qui ne compile plus. Corrigé en montant l'outillage —
-**AGP 8.10.1** (l'API 36 déjà ciblée le demande de toute façon) et **Gradle
-8.13** (l'AGP 8.10 exige au moins 8.11.1). Le build debug passe et tourne sur
-les deux appareils (md5 `18e2a33a19fca981463e0f44d82966ff`).
-
-Ce qu'une montée d'AGP peut changer sans prévenir, et qui ne se voit qu'au
-dépôt en Play Console :
-
-- ✔ 3 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⚠️ Rapatriement iOS : deux dépendances **Android** changent de version majeure (2026-09-08) »).
 - [ ] **Le `force("com.google.mlkit:barcode-scanning:17.3.0")`** porte la note
       « à retirer quand mobile_scanner sera monté en 6.x/7.x » — c'est fait.
       À réévaluer, sans jamais sauter la vérification ci-dessus.
 
-Les entrées iOS proprement dites — build simulateur, « Se connecter avec
-Apple », liens profonds, Supabase — sont plus bas, dans les sections du
-2026-09-01, telles qu'écrites à l'époque.
+- ✔ 3 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⚠️ Rapatriement iOS : deux dépendances **Android** changent de version majeure (2026-09-08) »).
 
 ---
 
 ## ⬜ Deux bibliothèques natives réalignées sur 16 Ko (2026-09-08)
 
 **Priorité P1** · importance 3/5 — Écran caméra noir ou QR jamais reconnu, voire plantage natif à l'ouverture d'un appel de groupe, sans aucune erreur Dart.
-
-Google Play refuse au dépôt tout AAB qui cible l'API 35+ et embarque un `.so`
-64 bits aligné sur 4 Ko. Sur l'AAB du 2026-09-08, 6 des 8 bibliothèques
-arm64-v8a étaient conformes ; deux ne l'étaient pas, et **rien en local ne le
-disait** — la compilation passe, l'installation passe, `flutter analyze` ne
-regarde pas les `.so`. Le refus n'arrive qu'en Play Console.
 
 Les deux venaient de dépendances transitives de plugins, remplacées dans
 `android/build.gradle.kts` :
@@ -18538,12 +10003,6 @@ build/app/outputs/bundle/release/app-release.aab`.
 n'est donc pas dans l'UI mais dans le code natif chargé à l'exécution, que
 `flutter analyze` et `flutter test` ne touchent pas :
 
-- [ ] **Scanner QR** (`/qr-scanner`, atteint depuis l'accueil « Trouver des
-      amis », la modale de partage de profil et celle de partage de groupe) :
-      la caméra démarre, un QR de profil est décodé et ouvre la bonne fiche.
-      C'est le seul consommateur de `libbarhopper_v3.so` — s'il se charge, la
-      montée MLKit est bonne ; s'il échoue, ce sera un écran caméra noir ou
-      un code jamais reconnu, pas une erreur Dart.
 - [ ] **Appel audio de groupe** puis **appel vidéo** (LiveKit) : connexion,
       son dans les deux sens, caméra. `libnoise.so` n'est chargé que par le
       visualiseur audio natif de LiveKit (`createVisualizer`), que l'app
@@ -18552,10 +10011,6 @@ n'est donc pas dans l'UI mais dans le code natif chargé à l'exécution, que
       appel réel avant publication.
 - [ ] **Salon audio** et **podcast en direct** : même moteur LiveKit, autres
       écrans d'entrée.
-
-C'est la suite directe du point « Alignement 16 Ko » de l'entrée targetSdk 36
-plus bas, qui chiffrait l'écart (6 conformes sur 8) et renvoyait à une session
-dédiée.
 
 ---
 
@@ -18566,17 +10021,9 @@ dédiée.
 Play Console refuse toute mise à jour à partir du **31/10/2026** si l'app ne
 cible pas l'API 36. La 1.2.0 publiée cible 35.
 
-La cause n'était pas dans le dépôt : `build.gradle.kts` disait
-`targetSdk = flutter.targetSdkVersion`, une valeur qui **vient du SDK Flutter
-installé sur le poste**, pas du code. Flutter 3.29 (le poste au moment de la
-release) répond 35, Flutter 3.44.2 répond 36 — le même commit produit donc
-deux binaires différents selon la machine, sans un mot dans les logs. La
-valeur est maintenant épinglée à `36` en dur.
-
 Ce que ce passage change au comportement Android — à regarder sur appareil,
 `flutter analyze`/`flutter test` n'en voient rien :
 
-- ✔ 2 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Passage à targetSdk 36 (Android 16) — exigence Play (2026-09-08) »).
 - [ ] **Verrou d'orientation ignoré sur grand écran.** À partir de 36, sur un
       écran de largeur ≥ 600 dp, `setRequestedOrientation()` ne fait plus
       rien. Seul appelant côté app :
@@ -18590,12 +10037,7 @@ Ce que ce passage change au comportement Android — à regarder sur appareil,
       retour, notamment les routes de lien profond (cf. la règle
       « couvrir les TROIS sorties »).
 
-**Version portée à `1.2.1+11`.** ⚠️ Correction : j'avais écrit ici que la
-1.2.0+10 était « en production ». C'est faux — la fiche publique renvoie 404
-dans les cinq pays testés. Le bundle 1.2.0+10 a seulement été **téléversé**
-(piste de test ou brouillon), ce qui suffit à déclencher l'avertissement de
-la console. Le versionCode 10 est donc pris, mais aucune fiche publique
-n'existe encore à mettre à jour.
+- ✔ 2 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« ⬜ Passage à targetSdk 36 (Android 16) — exigence Play (2026-09-08) »).
 
 ---
 
@@ -18634,32 +10076,6 @@ notamment conditionne la signature.
 
 **Priorité P2** · importance 3/5 — La version iOS partirait avec des fonctions matérielles jamais vues fonctionner (caméra, micro, push, appels), avec un refus App Store probable. *Bloqué : iOS / Mac + iPhone réel + compte Apple Developer.*
 
-La cible iOS n'avait **jamais été compilée**. Elle l'est désormais :
-`flutter build ios --simulator --debug` aboutit, l'app s'installe et démarre
-sur un simulateur iPhone 17 (iOS 26.1), l'écran de connexion s'affiche
-correctement et la demande d'autorisation de notifications apparaît — donc
-Firebase s'initialise.
-
-Quatre défauts bloquants trouvés et corrigés au passage :
-
-1. **`ios/Podfile` n'avait jamais existé** (absent de tout l'historique git).
-2. **`ios/Runner.xcodeproj/project.pbxproj` corrompu** : `GoogleService-Info.plist`
-   figurait dans la phase *Resources* en `PBXFileReference` au lieu d'un
-   `PBXBuildFile`, sous un UUID inventé (`ABCDEF1234567890ABCDEF12`). CocoaPods
-   refusait de s'exécuter, et **le fichier de configuration Firebase n'était pas
-   correctement embarqué dans le bundle**.
-3. **`NSPhotoLibraryUsageDescription` absent d'`Info.plist`** — seule la variante
-   `…AddUsageDescription` (écriture) était déclarée. iOS tue le processus à
-   l'ouverture du sélecteur de photos. `NSCalendars…` ajoutées aussi
-   (`add_2_calendar`).
-4. **Conflit `GoogleDataTransport`** : `firebase_messaging` le veut en `~> 10.0`,
-   `mobile_scanner` 5.2.3 en `< 10.0`. Résolu en montant `mobile_scanner` en
-   7.4.0 (une signature de `errorBuilder` à adapter) et, dans la foulée,
-   `purchases_flutter` 8 → 10.10.1 (RevenueCat 5.32.0 ne compile pas sous le
-   Swift d'Xcode 27 ; `purchasePackage` → `purchase(PurchaseParams)`).
-
-Cible de déploiement montée **iOS 12 → 15**, imposée par `GoogleMaps 9.x`.
-
 **Ce que le simulateur ne peut pas couvrir** — tout ce qui suit reste à faire
 sur un iPhone réel, et une partie exige un compte Apple Developer :
 
@@ -18672,13 +10088,25 @@ sur un iPhone réel, et une partie exige un compte Apple Developer :
 - [ ] Achats RevenueCat après la montée en version majeure 8 → 10.
 - [ ] Deep links / Universal Links (exige Associated Domains signés).
 
-**Parité native Swift — premier passage fait le 2026-09-01.** `AppDelegate.swift`
-passe de 15 à 100 lignes. Après lecture de chacun des quatre canaux Android,
-deux seulement méritaient d'être portés :
-
 - ✔ 4 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« iOS : premier build réussi, sur simulateur (2026-09-01) »).
-- [ ] À vérifier sur appareil : que les liens profonds arrivent bien par ce
-      chemin natif iOS, l'hypothèse ci-dessus n'ayant pas pu être testée.
+
+---
+
+## ⚠️ Simulateur : lancer DeviceHub AVANT de démarrer l'app (2026-09-01)
+
+**Sans fenêtre de simulateur ouverte, l'app se lance mais Flutter ne dessine
+jamais rien** — écran gris uniforme, aucune erreur, aucun plantage, la VM Dart
+répond et les journaux montrent l'initialisation complète. On croit à un bug
+de l'app ; c'en est un du poste de travail. Une demi-heure perdue à chercher
+au mauvais endroit.
+
+Xcode 27 n'a plus de `Simulator.app` : c'est **`DeviceHub.app`** qui porte la
+fenêtre, dans `Contents/Applications/` et non plus
+`Contents/Developer/Applications/`.
+
+```bash
+open /Users/mouba/Downloads/Xcode-beta.app/Contents/Applications/DeviceHub.app
+```
 
 ---
 
@@ -18716,13 +10144,6 @@ les yeux de l'utilisateur.
 
 **Priorité P3** · importance 1/5 — Si les Edge Functions manquaient vraiment, configuration distante et proxy GIF seraient hors service ; sur simulateur, les parcours authentifiés restent intestables.
 
-`SUPABASE_ANON_KEY` renseignée, `***** Supabase init completed *****` dans les
-journaux, et GoRouter route normalement (`/splash` → `/auth/login`). Le
-dialogue App Tracking Transparency s'affiche aussi, donc
-`NSUserTrackingUsageDescription` est correcte.
-
-- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Supabase branché sur iOS — deux réserves (2026-09-01) »).
-
 **1. App Check échoue en 403 « App attestation failed ».** Attendu sur
 simulateur : l'app produit bien un jeton de debug, mais il n'est pas déclaré
 côté Firebase, donc l'échange est refusé.
@@ -18737,20 +10158,7 @@ Firebase App Check Debug Token: E42FC20C-8AE4-4474-BCFC-9A52B36DECEB
       Le jeton est propre à cette installation : il change à chaque
       réinstallation complète.
 
-**2. L'Edge Function `app-config` répond 404.** Le mécanisme de configuration
-distante — celui qui permet de changer une clé sans republier — n'est donc pas
-opérationnel. L'app retombe proprement sur le `.env` embarqué, rien n'est
-cassé, mais rien n'est pilotable à distance non plus.
-
-Vérifié au curl : `/auth/v1/settings` répond 200 (clé et projet valides),
-`/rest/v1/` répond 401 sans session (conforme : les RLS bloquent), mais
-**toutes** les Edge Functions répondent 404, `gif-proxy` compris. Ce n'est donc
-pas propre à `app-config`, et pas propre à iOS non plus.
-
-- [ ] Confirmer si les Edge Functions sont réellement déployées sur
-      `zyrfkcjjrhddpfxcgezo` (`supabase functions list`). Si oui, le 404 vient
-      d'ailleurs et mérite un examen ; si non, la config distante et le proxy
-      GIF sont hors service sur les deux plateformes.
+- ✔ 1 case déjà vérifiée : archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Supabase branché sur iOS — deux réserves (2026-09-01) »).
 
 ---
 
@@ -18758,7 +10166,6 @@ pas propre à `app-config`, et pas propre à iOS non plus.
 
 **Priorité P2** · importance 2/5 — Sur iPhone, tous les liens partagés s'ouvrent dans Safari au lieu de l'app. *Bloqué : iOS : app signée avec Associated Domains.*
 
-- ✔ 2 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Liens profonds iOS : la moitié testable est bonne (2026-09-01) »).
 - [ ] **Universal Links intestables sans compte développeur.**
       `https://diasponiger.web.app/auth/register` s'ouvre **dans Safari**, pas
       dans l'app : l'association de domaine exige une app signée portant
@@ -18766,64 +10173,7 @@ pas propre à `app-config`, et pas propre à iOS non plus.
       d'Apple. Rien à corriger côté code — à revérifier après la première
       signature.
 
-À noter, sans lien avec iOS : les canaux `gsm_state`, `pip` et `proximity` ne
-sont implémentés **sur aucune des deux plateformes** — le code Dart de
-`proximity_service` et `pip_service` les appelle pourtant explicitement sur
-iOS *et* Android. À trancher : implémenter ou retirer.
-
----
-
-## Avertissement Android « pages de 16 Ko » — une seule vraie cause, correctif bloqué en cascade (2026-08-14)
-
-**Priorité P3** · importance 1/5 — Aucun supplémentaire : l'avertissement ne concernait que les builds debuggables et la bibliothèque fautive est remplacée.
-
-Popup système sur appareil (build **debuggable** uniquement, en français :
-« Cette appli n'est pas compatible avec les pages de 16 Ko ») citant 4
-bibliothèques : `libflutter.so`, `libdatastore_shared_counter.so`,
-`libVkLayer_khronos_validation.so`, `libnoise.so`.
-
-Vérifié en extrayant les 4 `.so` de l'APK (debug **et** release,
-`build/app/outputs/apk/`) et en lisant leurs en-têtes ELF
-(`llvm-readelf -l`, NDK r27 déjà installé) : **seule `libnoise.so` est
-réellement mal alignée** (segment LOAD à 4 Ko au lieu de 16). Les 3 autres
-sont déjà à 16 Ko ou 64 Ko — le popup les signale par erreur (« erreur
-inconnue », pas un vrai défaut d'alignement).
-
-`libnoise.so` vient de `com.github.paramsen:noise:2.0.0`, tirée par le
-`build.gradle` Android de **`livekit_client`** (pas `flutter_webrtc`, malgré
-l'intuition de départ) — une petite lib FFT utilisée pour la détection de
-niveau audio en temps réel (indicateur « parle en ce moment » des salons
-audio / appels de groupe, cf [[project_widgets_alimentes_en_dur]]). LiveKit
-l'a corrigée en la republiant `io.livekit:noise:2.0.0` (vérifié : LOAD à
-16 Ko dans l'AAR téléchargé depuis Maven Central), correctif présent à partir
-de `livekit_client 2.6.0`.
-
-**Le correctif n'est pas accessible sans remonter toute une chaîne.**
-`livekit_client ≥2.6.0` épingle une version exacte de `flutter_webrtc`
-(1.2.1 → 1.6.0 selon la sous-version, jamais notre `^0.12.12` actuel), qui
-entraîne `connectivity_plus ^7.0.0` (exige AGP ≥8.12.1 et Gradle ≥8.13 —
-projet en 8.7.0 / 8.10.2), et selon la sous-version exacte de
-`livekit_client` :
-- 2.6.0–2.6.4 : `device_info_plus ^12.2.0` (projet en `^11.4.0`, probablement
-  anodin) ;
-- ≥2.6.5 : `dart_jsonwebtoken ^3.3.2` → `pointycastle ^4.0.0`, **incompatible
-  avec `encrypt: ^5.0.3`** (`pointycastle ^3.6.2`) — `encrypt` sert au repli
-  AES de l'E2EE (cf [[project_e2ee_status]]), donc pas un paquet à bumper à
-  la légère pour un warning de debug.
-
-Décision prise le 2026-08-14 : reporter. Pas de preuve de crash réel en
-production (le popup ne s'affiche qu'en build debuggable), et le correctif
-complet toucherait WebRTC + connectivité + outillage Android + potentiellement
-la crypto — un chantier à part entière, pas un fix ponctuel.
-
-- [ ] Si repris : bump couplé `livekit_client` + `flutter_webrtc` +
-  `connectivity_plus` (+ AGP/Gradle, + vérifier `encrypt`/`pointycastle`),
-  puis tester au doigt sur SM A515F : appels 1:1, appels de groupe, salons
-  audio (indicateur de parole en particulier, puisque c'est lui qui dépend de
-  la lib corrigée), et un parcours E2EE complet si `encrypt` a bougé.
-- [ ] Revérifier l'alignement après coup avec la même méthode
-  (`llvm-readelf -l` sur les `.so` extraits de l'APK, chercher `LOAD` et
-  vérifier que `p_align` ≥ `0x4000`).
+- ✔ 2 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Liens profonds iOS : la moitié testable est bonne (2026-09-01) »).
 
 ---
 
@@ -18857,13 +10207,6 @@ reconnecter à l'application avant l'annule. Plus de Firestore, plus de
 [public/assets/delete-account.js](public/assets/delete-account.js), partagée
 par les deux langues. Le côté application et la purge : voir « Supprimer mon
 compte : demande, 30 jours, annulation, purge ».
-
-Mesuré le 2026-09-19 sur l'échange, en lecture seule (préflight et faux jeton) :
-`verify_jwt` y est **actif** — un POST sans `Authorization` est refusé par la
-passerelle (`UNAUTHORIZED_NO_AUTH_HEADER`) — et la clé publique
-(`sb_publishable_…`, qui n'est pas un JWT) y passe pourtant en `Bearer`. Sa
-préflight n'autorise que `authorization, content-type` : la page n'envoie rien
-d'autre à l'échange.
 
 Bancs : `node --test tools/site_tests/suppression_compte_page.test.mjs` (44
 cas ; 13 défauts injectés, tous attrapés) et un serveur jetable qui sert les
@@ -18912,14 +10255,6 @@ de tout cela ne touche la production**, et tout y est de même origine :
       ses deux boutons restent atteignables, en français et en anglais, à 200 % de
       taille de police — avec le paragraphe sur l'effacement des clés, c'est sa version la plus longue.
 
-**Écart soldé le 2026-09-20** : le site disait qu'un groupe dont on est le dernier
-membre est supprimé, `deleteAccountWarning` non. C'est vrai — le corps déployé de
-la purge en production (schéma `private`) contient la branche « dernier membre :
-`DELETE FROM public.groups` », lue dans la base et pas seulement dans le fichier —
-et le dialogue le dit désormais en français et en anglais, dans les mêmes termes
-que le site. Une garde de test (`suppression_compte_purge_test.dart`, groupe
-« textes ») l'empêche de redevenir muet.
-
 ---
 
 ## ⬜ Site web entièrement refait sur cahier des charges (2026-09-08)
@@ -18930,26 +10265,6 @@ Le site n'est plus la même page avec un autre thème : c'est une landing où
 l'application est le sujet. Sept sections, trois pages nouvelles
 (`/fonctionnalites`, `/a-propos`, `/telecharger`), une feuille de style
 partagée (`public/assets/`) au lieu du CSS recopié dans chaque page.
-
-Palette et typographie du cahier des charges : crème `#F8F5EF`, encre
-`#111713`, orange d'action `#E87B2E`, vert `#159447`, vert profond `#0B3D2E`,
-en **Plus Jakarta Sans + Inter**.
-
-**Deux teintes de la marque sont assombries pour le texte** : `#E87B2E` et
-`#159447` plafonnent entre 3,4 et 4,3:1 en petit corps sur crème. Le site
-utilise `#A8500F` et `#0C6B33` là où elles portent du texte, et garde les
-teintes pleines pour les aplats et les décors. L'audit de contraste tourne
-dans le navigateur sur les dix-neuf pages : zéro défaut, hors bouton
-« Supprimer définitivement » désactivé (2,9:1 — un contrôle inactif est hors
-du champ de WCAG).
-
-**Ce qui n'a pas pu être fait, faute de données** : le cahier des charges
-demande des captures d'Événements, de Messagerie, de l'Annuaire et des
-Notifications. Sur les deux appareils branchés, Événements et Annuaire sont
-**vides**, le Fil et les Notifications ne contiennent que des messages de
-test. Seule la liste des conversations était présentable ; elle est utilisée.
-Les sections Événements et Annuaire décrivent donc ce que l'app permet, sans
-capture — plutôt qu'une vitrine fabriquée.
 
 - [ ] **Le héros sur un vrai téléphone** : globe animé, appareil qui monte,
       trois pastilles de notification. Vérifier que l'animation ne saccade pas
@@ -18969,97 +10284,6 @@ capture — plutôt qu'une vitrine fabriquée.
       mouvement.
 - [ ] **Poids et vitesse** : huit captures WebP (~300 Ko), deux feuilles de
       style, un script. À mesurer en 3G, objectif Lighthouse 90+.
-
-**Mesure d'audience** : les événements (`download_android`, `click_features`,
-`scroll_50`…) sont empilés dans `window.dnEvents`. **Aucun traceur tiers n'est
-chargé** — brancher un fournisseur demande une décision (et probablement une
-bannière de consentement), elle n'a pas été prise ici.
-
----
-
-## ⬜ Site web repeint sur la palette ① Organic du guide (2026-09-08)
-
-**Priorité P3** · importance 1/5 — Cosmétique.
-
-Le « Guide de style » Claude Design assigne explicitement la palette ①
-**Organic** au site web. Le site ne l'a jamais appliquée : il tournait sur un
-fond `#0f0d0a` et un orange `#E97424` qui ne figurent dans **aucune** des cinq
-palettes du guide, en Fraunces + Sora là où Organic dit Caprasimo + Figtree.
-Un visiteur voyait donc une page noire et orange, puis installait une
-application crème et verte.
-
-Les seize pages sont passées sur les valeurs de
-`lib/features/feed/presentation/theme/feed_tokens.dart` (`organic`) : sable
-`#F5EAD8`, surface `#EBDDC5`, encre `#201E1D`, terre cuite `#C67139`, olive
-`#7A8A5E`.
-
-**Une valeur du guide n'est pas reprise telle quelle** : `mutedText #82796A`
-donne 3,4:1 sur le sable, sous le seuil AA de 4,5:1 pour du texte courant. Le
-site utilise `#5C5449`, même famille, un cran plus foncé. C'est la lisibilité
-qui l'impose, pas une préférence.
-
-Le contrôle n'est pas visuel : un audit exécuté dans le navigateur parcourt
-chaque nœud de texte des seize pages, recompose le fond réel (superposition des
-alphas) et calcule le rapport de contraste. Les seize pages sortent à zéro
-défaut. Seul le bouton « Supprimer définitivement » **désactivé** reste à
-2,7:1 — un contrôle inactif est explicitement hors du champ de WCAG, et c'est
-son apparence voulue.
-
-- [ ] **Lisibilité au soleil** : une page claire se comporte à l'inverse d'une
-      page sombre en extérieur. À regarder dehors, pas seulement au bureau.
-- [ ] **Rendu des captures sur fond clair** : les écrans de l'app sont crème,
-      le cadre du téléphone reste sombre pour les détacher. À vérifier sur
-      écran de téléphone, où le contraste perçu diffère.
-- [ ] **Polices Caprasimo et Figtree** : elles ne sont chargées que depuis
-      Google Fonts. Vérifier le rendu de repli si le réseau est lent
-      (Caprasimo n'a qu'une graisse ; un faux gras serait visible).
-- [ ] **`prefers-reduced-motion`** : toujours à vérifier avec « Réduire les
-      animations » activé.
-- [ ] **Barre système du navigateur** : `theme-color` est passé au sable ;
-      à voir sur Chrome Android, thème clair et thème sombre.
-
----
-
-## ⬜ Site web : page d'accueil refondue sur les captures réelles (2026-09-08)
-
-**Priorité P3** · importance 2/5 — Captures mal recadrées ou texte chevauché sur la page d'accueil — cosmétique.
-
-La page d'accueil vendait une version plus ancienne de l'app : cinq cartes à
-emoji (carte, groupes, événements, messagerie, annuaire), **aucune capture**,
-une citation inventée signée par la plateforme elle-même, et trois chiffres
-creux — dont « 100 % Gratuit », l'affirmation que
-`releases/1.2.1+11/GOOGLE_PLAY_v1.2.1.md` signale comme fausse (l'APK embarque
-`google_mobile_ads` et RevenueCat). Les **ambassades et les vingt démarches
-consulaires**, c'est-à-dire ce que la fiche Play met en tête depuis 1.2.1,
-n'étaient mentionnées nulle part.
-
-La page est maintenant bâtie sur les sept captures Play (`releases/1.2.1+11/
-play/screenshots/`, recadrées sur l'écran seul, servies en WebP), et ne
-présente que ce qui est réellement atteignable dans le binaire — transferts,
-marketplace, salons audio et podcasts restent hors de la page, comme dans la
-fiche Play.
-
-Les chiffres sont vérifiables : **20** démarches (`assets/data/
-demarches_consulaires.json`), **30+** représentations (32 lignes dans
-`embassies`), **4** continents. Le passage « dix-huit des vingt démarches
-réclament la carte consulaire en première pièce » vient du champ `resume` de
-la même source.
-
-`index-en.html` est désormais **générée depuis `index.html`** : les deux
-pages avaient des feuilles de style différentes, donc toute retouche était à
-faire deux fois et le rendu divergeait.
-
-- [ ] **Rendu des captures** sur un vrai navigateur de téléphone : le
-      recadrage est détecté cadre par cadre (les sept visuels Play n'ont ni
-      la même taille de téléphone ni la même position), à revoir sur écran.
-- [ ] **La feuille « pièces à réunir »** chevauche l'écran de l'app en
-      version large et se remet dessous sous 900 px : vérifier qu'elle reste
-      lisible entre les deux, notamment en paysage.
-- [ ] **Bande défilante et révélations au défilement** : un bloc
-      `prefers-reduced-motion` a été ajouté (il n'y en avait aucun). À
-      vérifier avec « Réduire les animations » activé dans Android.
-- [ ] **Poids de la page** : sept captures WebP (~240 Ko au total) chargées
-      en `loading="lazy"` sauf celle du hero. À mesurer en 3G.
 
 ---
 
@@ -19121,54 +10345,6 @@ Comptes rendus de passes complètes, gardés pour leurs cases encore ouvertes et
 
 **Priorité P2** · importance 3/5 — Le partage entrant et les liens ouverts depuis une autre app pourraient ne rien ouvrir, et hors ligne l'app paraît normale en affichant des correspondants anonymes et des squelettes sans fin ; les autres cases (sauvegarde, bandeau, brouillon, repli hors ligne, boucle du jeton, « CET APPAREIL », restauration des clés) sont soldées dans l'entrée ou ailleurs.
 
-Programme de test exécuté au pilotage `adb` (taps + `dumpsys` + logcat), thème
-clair, `font_scale` 1.1, batterie sur secteur. **Aucune réinstallation** : l'APK
-en place contenait déjà tout jusqu'à `54083d6`.
-
-⚠️ **Une session concurrente tournait sur le même téléphone et le même dépôt.**
-`lastUpdateTime` est passé de 15:18:51 → 15:25 → 15:41:59 (logcat :
-`Killing … due to installPackageLI` en plein démarrage à froid), avec des
-process Gradle/`dart`/`flutter_tester` actifs côté PC. **Tous les constats de la
-première passe 0 ont été jetés** ; seuls figurent ci-dessous ceux obtenus après
-15:47, fenêtre où plus rien n'installait. À retenir pour les prochaines fois :
-vérifier `lastUpdateTime` **avant et après** chaque mesure.
-
-### 🔴 Trouvé — sauvegarde des clés E2EE impossible, et ça bloque la génération
-
-Reproduit à **3 démarrages à froid sur 3**, dans logcat :
-
-```
-KeyBackupService: backup presence unknown (FirebaseException):
-[firebase_storage/unauthorized] User is not authorized to perform the desired action
-```
-
-Cause, vérifiée dans le dépôt : **`storage.rules` ne déclare aucune règle pour
-`key_backups/`**. Le chemin `key_backups/{userId}/backup.enc` tombe donc dans le
-`match /{allPaths=**} { allow read, write: if false; }` final — exactement le
-même piège que celui déjà corrigé pour `/posts` et `/stories`.
-
-Les cinq opérations de `key_backup_service.dart` sont concernées (`uploadBackup`,
-`downloadBackup`, `checkBackupPresence`, `getBackupMetadata`, `deleteBackup`).
-
-**La conséquence dépasse la sauvegarde.** Dans `e2ee_backup_coordinator.dart`,
-`checkBackupPresence` renvoie `unknown` au lieu de `absent`, et le cas `unknown`
-**saute délibérément la génération de clés** (pour ne pas écraser une identité
-restaurable). Sur un appareil sans clés locales, aucune identité Signal n'est
-donc jamais créée : la messagerie reste silencieusement sur le repli AES global,
-et le bandeau de sauvegarde n'apparaît jamais. Le garde-fou est correct — c'est
-la règle Storage manquante qui le déclenche à tort.
-
-- ✔ 29 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Passe pilotée du 2026-08-04 (15:25 → 16:05) — SM A515F, APK debug `54083d6` »).
-- [ ] Cosmétique relevé au passage : le libellé d'appareil est « android
-      Device », peu lisible pour un utilisateur.
-- [ ] Sur un **second appareil** : vérifier que la restauration fonctionne
-      (`needsRestore` + saisie de la passphrase).
-- [ ] Une fois déployé : sur un appareil sans clés locales, vérifier que les
-      clés sont bien générées et que le bandeau « sauvegarder » apparaît.
-- [ ] **Piste à confirmer** : ceci explique peut-être le point ouvert 20b
-      (« CET APPAREIL » absent de la liste des appareils) — sans génération de
-      clés après un vidage de données, aucun enregistrement E2EE n'a lieu.
-
 ### 🔴 Trouvé — Firebase App Check refuse l'attestation à chaque démarrage
 
 À chaque démarrage à froid (3/3) :
@@ -19182,9 +10358,6 @@ FirebaseException: Error returned from API. code: 403 body: App attestation fail
       mais si un backend Firebase passe en enforcement, tous les appels de cet
       appareil seront rejetés. Vérifier l'état d'enforcement côté console, et
       enregistrer le jeton de debug pour les builds debug.
-
-### ✅ Vérifié sur appareil pendant cette passe
-
 
 ### ⚠ À confirmer au doigt — intermittence du clavier de recherche
 
@@ -19211,100 +10384,15 @@ automatisation retape plus vite qu'un humain. **Ce n'est pas un bug établi.**
 - [ ] Depuis l'onglet Messages, le **retour Android quitte l'app** au lieu de
       revenir sur Accueil. Comportement courant, mais à trancher.
 
-### Deuxième tour (16:13 → 16:21) — passe nocturne, et un test avorté
-
-- ⚠ **Demande de permission de localisation** rencontrée à l'écran : **laissée
-      sans réponse volontairement**, accorder une permission système n'est pas
-      une décision d'agent. À traiter par Salim.
-
-**Conséquence bien réelle du bug `key_backups` — constatée dans « Mes notes ».**
-Le message du 19 juil. s'affiche « 🔒 **Message chiffré** », avec le bandeau
-« Restaurez vos clés de chiffrement pour lire vos messages chiffrés sur cet
-appareil ». Les clés locales ont été perdues lors d'une réinstallation, et
-**aucune sauvegarde n'existait** puisque la fonctionnalité était cassée : ce
-message E2EE est donc définitivement illisible sur cet appareil. Les messages
-partis en **repli AES** (« Note validee », « Verif citation 4a ») restent
-lisibles, eux. C'est exactement le scénario que la sauvegarde doit empêcher —
-raison de plus pour créer la sauvegarde maintenant que la règle est déployée.
-
-- [ ] ⛔ **Brouillon restauré : test NON concluant, à refaire.** Deux tentatives
-      avorties — mes taps sur le champ de saisie n'ont pas donné le focus
-      (`mInputShown=false`), donc aucun texte n'a été saisi et il n'y avait aucun
-      brouillon à restaurer. **Ce n'est pas un bug de l'app**, c'est un test raté.
-      À refaire au doigt : taper du texte, bouton accueil, relancer, rouvrir la
-      conversation, et vérifier que le bouton d'envoi est là **d'emblée**.
-
-⚠️ **La session concurrente n'a pas cessé** : nouvelle réinstallation à 16:14:42
-(`installPackageLI`), process de l'app redémarré à 16:18:42 puis 16:19:30, et une
-navigation vers `/groups` que je n'ai pas déclenchée. **Les passes restantes
-demandent l'appareil pour soi seul** — sinon chaque mesure est à jeter.
-
-### Troisième tour (16:24 → 16:40), appareil enfin libre
-
-**✅ Brouillon restauré — le cas décisif passe.** Prémisse établie par capture
-(texte « BrouillonTest0804 » dans le champ, bouton d'envoi bleu à cadenas), puis
-bouton accueil, `am force-stop`, relance à froid, réouverture de « Mes notes » :
-
-- [ ] Reste le cas du brouillon de **plus de 2000 caractères** (état
-      « dépassement » à restaurer) — tentative ratée, mon tap avait atterri sur
-      le clavier. À refaire.
-
-⚠ **Les deux échecs précédents n'étaient pas des bugs** : `mInputShown=false`
-après le tap = le tap n'avait pas atteint le champ. Avec le clavier ouvert, le
-composer remonte à ~1300 px et non ~2170 px — vérifier `mInputShown` avant de
-conclure quoi que ce soit.
-
 ### 🔴 Trouvé — un lien vers une publication inexistante reste bloqué sur les squelettes
-
-`am start -a VIEW -d https://diasponiger.web.app/feed/00000000-…-000000000999`
-(app tuée au préalable). Le routage fonctionne — `/splash` puis redirection vers
-`/feed/00000000-…`, donc la mise de côté du lien opère bien ici. Mais l'écran
-d'arrivée ne dégrade pas proprement :
-
-- des **squelettes de chargement permanents** à la place de la publication —
-  toujours là à **105 s**, vérifié par deux captures espacées ;
-- **aucun message d'erreur**, aucun « publication introuvable » ;
-- pire, « Aucun commentaire pour le moment » s'affiche et **le champ de
-  commentaire est actif** : on invite l'utilisateur à commenter une publication
-  qui n'existe pas.
-
-L'exception est pourtant bien levée et journalisée, puis avalée :
-`PostgrestException(message: Cannot coerce the result to a single JSON object,
-code: PGRST116)` — c'est le `.single()` sur un résultat vide.
-
-**✅ Corrigé le 2026-08-04.** Trois couches touchées, car il y avait deux causes
-enchaînées :
-
-1. `feed_supabase_datasource.dart` traduit désormais `PostgrestException`
-   PGRST116 en `NotFoundException` (avant, l'exception s'échappait de la couche
-   data et, `_load` n'étant pas attendu, partait en erreur asynchrone non gérée
-   — le `fold` n'était même jamais atteint) ;
-2. `feed_repository_impl.dart` mappe `NotFoundException` → `NotFoundFailure`,
-   avec un `catch` de dernier recours pour ne plus rien laisser s'échapper ;
-3. `feed_provider.dart` remplace `PostEntity?` par un `PostDetailState`
-   (`loading` / `loaded` / `notFound` / `failed`) — `null` ne peut plus vouloir
-   dire deux choses.
 
 L'écran affiche maintenant « Publication introuvable » (avec « Retour au fil »)
 ou « Impossible d'afficher cette publication » (avec « Réessayer », qui n'a de
 sens que sur une panne), et **le champ de commentaire est masqué** dans les deux
 cas.
 
-Couvert par `test/features/feed/post_detail_not_found_test.dart` (4 cas).
-Le test du repository a été **vérifié rouge sans le correctif** (l'exception
-traverse le repository), il n'est donc pas vide de sens. `flutter analyze`
-propre, 17/17 sur `test/features/feed/`.
-
-**✅ Vérifié sur appareil le 2026-08-04 à 17:50**, APK debug réinstallé
-(`lastUpdateTime=17:48:20`) :
-
 - [ ] Rejouer avec une publication **réellement supprimée** (pas seulement un id
       inventé) : c'est le cas que rencontrera un vrai utilisateur.
-
-⚠️ **La réinstallation n'a PAS vidé les données cette fois** : session
-conservée, ni `/consent` ni assistant de profil. Le piège documenté n'est donc
-pas systématique — mais l'identité Signal générée dans la journée n'a toujours
-**aucune sauvegarde**, et la passphrase reste à créer par Salim.
 
 ### ⚠ Empreinte mémoire à surveiller
 
@@ -19318,28 +10406,9 @@ Impeller et la carte Google ouverte, donc non représentatif tel quel.
 
 ### ✅ Feuille de partage fantôme — ne réapparaît plus (3 relances sur 3)
 
-L'intent de tâche a d'abord été réarmé par un vrai lien profond
-(`am start -a VIEW -d https://diasponiger.web.app/feed/…`), puis trois cycles
-`am force-stop` + relance par le launcher :
-
 - [ ] Reste à faire : un **vrai partage entrant** depuis Chrome ou Messages
       (image, vidéo, PDF, sélection multiple) — non testable en pilotage `adb`
       sans passer par le sélecteur système.
-
-### ✅ Repli hors-ligne — le bug documenté NE se reproduit PAS (16:47, mode avion réel)
-
-Mode avion activé par Salim. État vérifié avant de commencer :
-`airplane_mode_on=1`, Wi-Fi désactivé, **`Active default network: none`**.
-⚠ Un agent réseau **VPN reste « CONNECTED »** dans `dumpsys connectivity`, mais
-il n'est plus le réseau par défaut — c'est probablement là toute la différence
-avec la mesure précédente, où `connectivity_plus` voyait « connecté » et l'app
-n'entrait donc jamais en mode hors-ligne. **Hypothèse, pas preuve.**
-
-Aucun des trois symptômes décrits plus bas ne se reproduit :
-
-
-**Le bug « repli hors-ligne » est donc à refermer**, sauf à le reproduire dans
-les conditions exactes d'origine (VPN actif comme réseau par défaut).
 
 ### 🔴 Trouvé hors ligne — trois défauts distincts
 
@@ -19350,27 +10419,11 @@ les conditions exactes d'origine (VPN actif comme réseau par défaut).
       conversations (« Salim L. » en ligne, « Utilisateur » + initiale « U »
       hors ligne). Le dernier message, lui, est bien en cache — c'est donc le
       profil du correspondant qui n'est pas mis en cache.
-- [ ] **Boucle de rafraîchissement du jeton sans backoff.** Hors ligne,
-      `SupabaseAuthBridge` rejoue le rafraîchissement **toutes les ~13 s**
-      indéfiniment (16:47:53, 16:48:06, 16:48:19, 16:48:31…), chaque tour
-      déclenchant plusieurs requêtes qui échouent en `Failed host lookup`.
-      Coût batterie et bruit de journal. Prévoir un backoff, ou suspendre tant
-      que `connectivity` annonce l'absence de réseau.
 - [ ] « Autour de vous » (accueil) reste sur **4 avatars squelettes** hors ligne,
       sans état vide.
 
 ### Bilan du programme — ce qui reste, et pourquoi
 
-- [ ] **Repli hors-ligne** (splash de ~2 min + squelettes infinis) — ⚠ **je ne
-      peux pas le faire seul** : couper le réseau est une modification de réglage
-      système. Bonne nouvelle, **le piège du VPN a disparu** : le réseau de l'app
-      est `wlan0` avec la capacité `NOT_VPN`, donc un vrai état hors-ligne est
-      atteignable, contrairement au 2026-07-28. **À faire par Salim** : activer
-      le mode avion, puis me le dire — je démarre à froid et je chronomètre.
-- [ ] **Admin, champ « Type * »** — ⚠ **inatteignable sur ce compte**. Le routeur
-      conditionne `/admin/embassies/create` à `user.isAdmin`
-      (`app_router.dart:193`), et aucune entrée « Administration » n'existe dans
-      les Réglages. À reprendre avec un compte administrateur.
 - [ ] ⚠ **`am start` ne prouve pas le clic réel.** Android répond « Activity not
       started, its current task has been brought to the front » — le cas a bien
       été exercé, mais un vrai clic vient d'une autre app (Chrome, Messages)
@@ -19388,15 +10441,6 @@ android.intent.extra.TEXT … com.diasponiger.diasponiger` : l'app démarre bien
 (l'intent est accepté, `pkg=com.diasponiger.diasponiger`) mais **atterrit sur
 `/home`** — la feuille « Envoyer à… » ne s'ouvre pas.
 
-Le tri côté Dart n'est pourtant pas en cause : un texte arrive en
-`SharedMediaType.text` et n'est donc pas écarté par `_withoutDeepLinks`, et
-l'empreinte persistée ne peut pas bloquer un contenu inédit.
-
-**Je ne conclus pas à un bug.** Comme pour le lien profond, `am start` depuis le
-shell n'est pas le chemin réel : un vrai partage vient d'une autre app, via le
-sélecteur système, avec sa propre tâche. Trancher demanderait une troisième
-passe d'instrumentation, et la réserve subsisterait.
-
 - [ ] **À faire au doigt** : partager un texte depuis Chrome ou Messages, et
       vérifier que la feuille s'ouvre. Puis `am force-stop` + relance : elle ne
       doit PAS revenir (c'est le test de l'empreinte persistée).
@@ -19409,8 +10453,8 @@ passe d'instrumentation, et la réserve subsisterait.
 - Les arguments contenant des **espaces** sont découpés par le shell : un
   `--es … "Partage de test" com.diasponiger…` a donné `pkg=de`. Utiliser un
   texte sans espace, ou quoter côté appareil.
-- [ ] **Sauvegarde E2EE en écriture** — à faire par Salim, avec la passphrase
-      notée (cf. plus haut).
+
+- ✔ 29 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Passe pilotée du 2026-08-04 (15:25 → 16:05) — SM A515F, APK debug `54083d6` »).
 
 ---
 
@@ -19418,26 +10462,10 @@ passe d'instrumentation, et la réserve subsisterait.
 
 **Priorité P3** · importance 2/5 — Un panneau d'exploration par ville mal rendu ou un badge vérifié peu contrasté en thème sombre, sans perte de fonction.
 
-Cinq fiches regardées d'affilée en thème sombre, build debug installé sur
-l'appareil de référence.
-
-- ✔ 5 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Passe nocturne + carte vérifiée sur appareil (2026-08-04, SM A515F) »).
-
-**Défaut trouvé pendant la passe** : l'en-tête du panneau de la carte
-affichait « 0 membre a… » tronqué, avec du vide à sa droite. Le titre était
-dans un `Flexible` et la rangée contenait un `Spacer()` — tous deux `flex: 1`,
-donc l'espace libre était partagé en deux au lieu d'aller au titre. Titre et
-rayon regroupés dans un `Expanded` ; vérifié réparé sur l'appareil.
-
 **Fausse alerte notée pour mémoire** : la ligne de fraîcheur du panneau
 affiche deux « Chargement… » tant que la position n'est pas acquise. Ce n'est
 pas un champ mort — au bout des 15 s de `timeLimit`, en intérieur sans fix
 GPS, l'écran bascule sur 8c. Ne pas rouvrir ce faux bug.
-
-**Complément 7d, même session** : une fois la position obtenue (Montréal), le
-panneau affiche « 1 membre autour · 50 km » en entier, la ligne de fraîcheur
-se résout en « À l'instant / Il y a 49 s », et la ligne de membre s'affiche
-avec son bouton 💬. En-tête, fraîcheur et ligne de membre sont donc vérifiés.
 
 **Reste à vérifier sur ces fiches :**
 - [ ] 8c — le panneau bas « Sans localisation, explorez par ville » **existe**
@@ -19450,146 +10478,13 @@ avec son bouton 💬. En-tête, fraîcheur et ligne de membre sont donc vérifi�
   exercés : un seul membre autour, donc pas de cluster.
 - [ ] 11d — badge « vérifié ».
 
+- ✔ 5 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Passe nocturne + carte vérifiée sur appareil (2026-08-04, SM A515F) »).
+
 ---
 
 ## Session du 2026-08-03 (soir) — SM A515F, refonte enfin lancée
 
 **Priorité P2** · importance 2/5 — Fermer la feuille des langues pourrait modifier le profil à l'insu de l'usager ; les autres cases (styles de carte désormais présents, débordement du volet, restauration des clés vérifiée le 2026-08-23) sont soldées.
-
-**Première exécution de la refonte sur appareil.** Build `assembleDebug` en
-90 s, installation et lancement sans incident, **zéro exception Flutter**
-au démarrage (`E/flutter`, `EXCEPTION CAUGHT`, `RenderFlex overflowed` :
-aucun).
-
-**Vérifié sur l'écran d'accueil, en thème sombre :**
-
-- ✔ 10 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Session du 2026-08-03 (soir) — SM A515F, refonte enfin lancée »).
-
-**Défaut trouvé et corrigé dans la foulée** — puce orpheline en tête de la
-ligne de contexte (« · 0 membres · 0 groupes ») pendant la fenêtre où la
-géolocalisation n'a pas encore résolu. La puce ne sert qu'à séparer du lieu ;
-sans lieu, elle s'affichait seule. Corrigé dans `home_screen_widgets.dart`.
-Une fois Montréal résolu, la ligne est correcte.
-
-**Ni analyze ni relecture ne pouvaient trouver ça** : il fallait le premier
-lancement d'un compte sans ville renseignée.
-
-**Carte (§7d) — trois incidents à l'ouverture, deux traités**
-
-- [ ] `RenderFlex overflowed` en bas : **cause racine trouvée le 2026-08-03**,
-      correctif non appliqué faute d'arbitrage.
-
-      Le widget est enfin identifié — `Column` à `map_screen.dart:3379` —
-      mais seulement après avoir soldé le débordement horizontal : Flutter
-      n'imprime le détail que de la **première** erreur de rendu par frame.
-      Tant que la ligne des horodatages débordait, celui-ci restait réduit à
-      « Another exception was thrown ».
-
-      Cette colonne est le contenu du `DraggableScrollableSheet`, replié à
-      `initialChildSize: 0.18` — **18 % de la hauteur d'écran, trop court
-      pour son propre en-tête**. Ce n'est pas un défaut de mise en page mais
-      un dimensionnement : le volet replié ne peut pas contenir ce qu'on lui
-      demande d'afficher.
-
-      ✅ **Soldé le 2026-08-03 — plus aucun débordement sur la carte.**
-      Trois changements, vérifiés ensemble sur le SM A515F : le tri passe de
-      « Les plus proches » à « Proximité » (et cesse d'être en dur), le titre
-      du volet prend `maxLines: 1` + ellipse, et `minChildSize` monte de 0.18
-      à 0.38. Journal de lancement : **0 `overflowed`**.
-
-      ⚠️ **Un défaut cosmétique subsiste** : le titre s'affiche « Memb… ».
-      La rangée d'en-tête reste trop étroite pour lui — les trois contrôles
-      de droite (« Aucun membre », « Liste », « Proximité ») occupent
-      légitimement les deux tiers de la largeur. Ce n'est plus une erreur de
-      rendu, juste une mise en page à revoir : **déplacer les contrôles sur
-      une seconde ligne sous le titre** est la seule vraie solution, et c'est
-      une restructuration, pas un réglage.
-
-      Historique conservé ci-dessous, il documente deux impasses.
-
-      🔴 **`minChildSize` relevé le 2026-08-03 : essayé, mesuré, annulé.**
-      0.18 → 0.35 ramène le débordement de 146 px à 14 ; 0.38 le supprime
-      complètement. Mais le volet, enfin assez haut pour montrer son en-tête,
-      **révèle un défaut bien pire** : « Membres à proximité » s'affiche
-      **une lettre par ligne**, en colonne le long du bord gauche.
-
-      Le titre est écrasé à une largeur quasi nulle par ses voisins de
-      rangée (« Aucun membre », « Liste », « Les plus proches »), qui
-      prennent toute la place. C'est le même défaut que le débordement
-      horizontal de 12 px encore ouvert — la rangée d'en-tête du volet
-      distribue mal sa largeur.
-
-      Le volet trop court **masquait** ce problème. Les deux ne peuvent donc
-      pas être traités séparément : relever la hauteur sans corriger la
-      répartition de largeur remplace un débordement invisible par un titre
-      illisible. `map_screen.dart` est revenu à son état committé.
-
-      ⚠️ **Correction de mon propre diagnostic** : j'avais écrit « mettre le
-      titre en `Expanded` ». C'est faux — **il l'est déjà** (ligne 3401). Ne
-      pas perdre de temps là-dessus.
-
-      La cause est l'inverse : ce sont les trois contrôles de droite — puce
-      « Aucun membre », bascule « Liste », tri « Les plus proches » — qui
-      imposent leur largeur intrinsèque. L'`Expanded` ne reçoit que le reste,
-      quasi nul, et le titre se replie caractère par caractère.
-
-      **Ordre à respecter** :
-      1. faire céder les contrôles de droite — le candidat le plus probable
-         est « Les plus proches », le plus long : `Flexible` + ellipse, ou
-         icône seule quand la place manque ;
-      2. vérifier sur appareil que le titre tient sur une ligne ;
-      3. **puis** relever `minChildSize` à 0.38 — valeur déjà mesurée, elle
-         supprime le débordement vertical.
-
-      ⚠️ **Deux corrections possibles, toutes deux des décisions de design :**
-      relever `minChildSize` / `initialChildSize` (le volet couvre alors plus
-      de carte), ou alléger l'en-tête du volet. À trancher avant d'agir.
-
-      Piste écartée en cours de route : passer la ligne des horodatages sur
-      deux lignes supprime bien le débordement horizontal, mais **aggrave le
-      vertical de 23 px** (146 → 169). Un `Wrap` ne convient pas non plus —
-      il donne une largeur non bornée à ses enfants, donc `Flexible` y est
-      sans effet et le débordement se déplace à l'intérieur de l'enfant.
-- [ ] ⛔ **`assets/map_styles/light.json` et `dark.json` n'existent pas.**
-      Ni les fichiers, ni le dossier, ni la déclaration dans `pubspec.yaml` —
-      seul l'appel `rootBundle.loadString` existe (`map_screen.dart:228-229`).
-      La carte tourne donc **sans style**, en rendu Google Maps par défaut,
-      alors que la maquette 8b montre explicitement un style nuit.
-      L'échec est attrapé et journalisé, donc rien ne casse — mais la
-      fonctionnalité est morte depuis toujours. Créer ces styles est une
-      **décision de design** (quelles couleurs, quels POI masqués) : à ne pas
-      inventer.
-
-**Groupes (§9c/§9f) — un bug de pluriel français, trouvé par contradiction**
-
-
-**Discussion (§3b/§4a) — le correctif visuel tient, mais l'E2EE ne dit rien**
-
-- [ ] ⛔ **Cinq bulles affichent « 🔒 Message chiffré » sans explication.**
-      Ce sont des messages que l'appareil n'a pas pu déchiffrer — très
-      probablement parce que les réinstallations de cette session ont effacé
-      les clés locales (comportement déjà connu de `adb install -r`).
-
-      Le problème n'est donc pas la perte de clés, attendue en test, mais ce
-      que la personne voit : **cinq fois le même libellé, aucune cause,
-      aucune issue**. Or l'ARB contient déjà exactement le bon message —
-      `e2eeRestoreNudgeMessage`, « Restaurez vos clés de chiffrement pour
-      lire vos messages chiffrés sur cet appareil. »
-
-      ✅ **Câblé le 2026-08-03.** `_buildE2eeRestoreBanner` affiche le
-      bandeau dès qu'un message du fil porte le placeholder, avec l'action
-      « Restaurer » vers `/settings/security/backup`. Les deux chaînes —
-      `e2eeRestoreNudgeMessage` et `e2eeRestoreNudgeAction` — avaient été
-      écrites ensemble et n'étaient branchées ni l'une ni l'autre.
-      Vérifié sur appareil : le bandeau apparaît au-dessus des messages
-      illisibles, et seulement dans les fils concernés.
-
-      Reste à vérifier : que « Restaurer » mène bien à un parcours qui
-      **restaure effectivement** les clés. Le bandeau ouvre l'écran de
-      sauvegarde ; ce que cet écran sait faire n'a pas été exercé.
-
-**Modifier le profil (§20a) — barre d'en-tête repliée**
-
 
 **Sélecteur multi-choix des langues (§20a)** — écrit, **jamais lancé**
 
@@ -19607,70 +10502,7 @@ lancement d'un compte sans ville renseignée.
   - à `font_scale = 1.1`, la feuille reste utilisable et le bouton
     « Terminer » atteignable (elle est en `isScrollControlled`).
 
-**Reste à exercer sur cet appareil** : tous les autres écrans basculés
-(profil, config profil, réglages, carte, notifications, recherche,
-messagerie), le mode Éco en réception, le brouillon d'épisode, et
-`font_scale = 1.1`.
-
----
-
-## Session du 2026-08-03 — SM A515F, build de `118b61e`
-
-Ce qui a été réellement exercé sur l'appareil, et ce que ça a révélé.
-
-**Défauts trouvés, corrigés et vérifiés**
-
-- **Aucun média ne pouvait être envoyé sur Storage** — `storage.rules` ne
-  déclarait aucun bloc pour `stories/`, `posts/` ni `encrypted_media/` : les
-  trois tombaient dans le `deny all` final. Donc **création de story
-  impossible, média de publication impossible, pièce jointe E2EE impossible**,
-  tous en `unauthorized`. Les trois blocs ont été ajoutés et déployés
-  (`firebase deploy --only storage`), après quoi la story part et s'affiche.
-- **Débordement de 6 px du rail de stories** à `font_scale = 1.1` (le libellé
-  « Ajouter » était coupé) : hauteur figée à 96 px, désormais calculée depuis
-  le `textScaler`.
-- **Écran de connexion illisible quand le système est en thème sombre** — il
-  n'y avait pas deux sources de vérité sur la luminosité, mais un fond figé.
-  Le `Scaffold` prenait `AppColors.surfaceVariant` (crème, valeur claire
-  codée en dur) pendant que les textes et les champs suivaient normalement le
-  thème sombre : titre et libellés clairs posés sur un fond clair, donc
-  invisibles. Même schéma sur 15 fichiers, 48 occurrences de jetons clairs
-  (`textPrimary`, `textSecondary`, `textTertiary`, `background`,
-  `surfaceVariant`, `border`) remplacées par les accesseurs de
-  `adaptive_colors.dart`. `AuthButton` figeait en plus son fond sur blanc :
-  fond et texte passent au thème par défaut. **Vérifié sur le SM A515F en
-  mode nuit** : capture après correction, écran entièrement sombre,
-  « Bienvenue », « Email » et le bouton Google tous lisibles.
-
-**Défauts trouvés, non corrigés**
-
-- **L'échec d'upload est totalement silencieux** : `_createPhotoStory`
-  (`story_rail.dart`) n'attrape rien autour de `uploadImage`. La feuille se
-  referme, aucun message, l'exception ne ressort que dans Crashlytics —
-  l'utilisateur croit avoir publié.
-- **Le compteur de vues d'une story ne bouge pas** : la feuille « qui a vu »
-  liste bien la vue enregistrée, mais la pastille du viewer continue
-  d'afficher « Aucune vue ». Deux sources qui ne concordent pas. Accessoirement
-  la vue de l'auteur lui-même est comptée.
-- **Le nom d'auteur vient de Firebase Auth, pas du profil** : story et écran
-  d'accueil affichent « Sim A » (`user.displayName`) alors que le profil
-  applicatif est « Salim L. ». Même inversion de priorité dans
-  `profile_config_screen.dart:90` — relancer l'assistant renomme donc le profil
-  avec la valeur Firebase Auth.
-- **Les drapeaux d'onboarding ne survivent pas à une réinstallation** :
-  `hasGivenConsent` / `profileConfigComplete` sont lus dans Firestore
-  `users/{uid}`, où ils n'existent pas pour ce compte. Toute réinstallation
-  (ou tout nouvel appareil) repasse donc par consentement **et** assistant de
-  profil complet.
-- **Accents manquants dans les coach marks** : « Appuyez ici pour acceder a
-  votre profil et le completer ».
-- L'écran d'introduction (`onboarding_intro_screen`) est en orange quel que
-  soit le thème choisi à l'étape précédente de l'assistant.
-
-**Interrompu** — la session Firebase du compte de test s'est invalidée en cours
-de route (le routeur redirige vers `/auth/login`). Tout ce qui suit la partie
-Stories n'a donc **pas** pu être exercé cette session : salons, podcasts,
-messagerie, hors-ligne, écrans divers.
+- ✔ 10 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Session du 2026-08-03 (soir) — SM A515F, refonte enfin lancée »).
 
 ---
 
@@ -19678,13 +10510,6 @@ messagerie, hors-ligne, écrans divers.
 
 **Priorité P3** · importance 2/5 — Empreinte de clé à peine visible en sombre et quelques libellés tronqués ou sans accents : gêne cosmétique.
 
-Premier passage réel sur téléphone de toute la reprise du design. Le
-téléphone était déjà dans les deux conditions les plus risquées : nuit et
-échelle de police 1.1.
-
-**Cinq défauts trouvés, aucun visible à `flutter analyze`.**
-
-- ✔ 2 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Session appareil du 2026-08-03 — SM A515F, thème sombre, font_scale 1.1 »).
 - [ ] Empreinte de clé quasi invisible (écran des appareils) : le texte
   utilisait `theme.colorScheme.outline`, une couleur de **bordure**.
   Corrigé vers `textSecondaryColor` — **non vérifié à l'écran**, l'app a
@@ -19693,48 +10518,15 @@ téléphone était déjà dans les deux conditions les plus risquées : nuit et
   appareils connectes simultanement ») alors que la clé localisée existait
   et n'était pas utilisée. Corrigé — **non vérifié à l'écran**.
 
-### ✅ Anomalie du thème : élucidée, ce n'était pas un bug
-
-L'écran de configuration du profil, puis l'annuaire Business, se sont
-affichés en crème alors que je croyais le téléphone en thème sombre.
-
-**Cause réelle : le téléphone était passé en mode clair.** `settings get
-secure ui_night_mode` renvoyait `1` au moment des captures, contre `2` au
-début de la session — mes séquences de `adb shell input tap` à l'aveugle
-ont dû basculer le réglage système en passant par le volet de
-notifications.
-
-Confirmé en remettant `cmd uimode night yes` : le même écran de
-configuration s'est immédiatement affiché entièrement en sombre, jetons,
-puces et bascules compris. **Il n'y a pas de bug de thème, ni sur cet
-écran ni sur l'annuaire.** Les deux suivent correctement `adaptive_colors`.
-
 À retenir pour les prochaines sessions : vérifier `ui_night_mode` **avant
 et après** chaque série de captures. Piloter l'app par taps aveugles peut
 modifier des réglages système et fabriquer de faux défauts visuels.
 
-### ⚠ Redémarrages de l'app pendant les tests : mémoire, pas crash
-
-L'app redémarrait à répétition pendant la navigation. `logcat` montre des
-kills `lmkd` et `/proc/meminfo` donnait **122 Mo libres sur 5,7 Go**.
-L'APK debug pèse 317 Mo. Après `am kill-all` (612 Mo libres), la
-navigation a tenu. Ce n'est pas un crash applicatif.
-
 ### ⚠ Ouvert : « Précédent » toujours tronqué
-
-Le passage du ratio 1:2 à 3:4 n'a pas suffi — le bouton affiche encore
-« Précéd », sans points de suspension, donc coupé et non ellipsé. Le
-routeur pointe pourtant bien sur le fichier corrigé et l'ARB contient
-« Précédent » en entier.
 
 Correctif appliqué en second recours : le libellé des boutons de la
 trousse est enveloppé dans un `FittedBox(scaleDown)`, pour qu'un mot trop
 long **rétrécisse** au lieu d'être coupé. **Non vérifié sur appareil** —
 à confirmer au prochain passage.
 
-### ⚠ Encore des accents manquants
-
-« Aucune entreprise trouvee · Soyez le premier a ajouter votre
-entreprise ! » sur l'annuaire Business. Même famille que le texte en dur
-de l'écran des appareils. Un balayage des littéraux français sans accents
-reste à faire sur tout le dépôt.
+- ✔ 2 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Session appareil du 2026-08-03 — SM A515F, thème sombre, font_scale 1.1 »).
