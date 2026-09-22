@@ -250,7 +250,7 @@ class MlsGateway {
     fil.sort((a, b) => a.createdAt.compareTo(b.createdAt));
     _appliquerEditionsEnAttente(fil);
     _connus.addAll(deja);
-    return _avecMetadonnees(List.of(fil));
+    return _avecMetadonnees(fil);
   }
 
   /// Reprend le fil déchiffré depuis le cache local de l'appareil.
@@ -281,6 +281,10 @@ class MlsGateway {
     // même fil réapparaissait dès qu'on renvoyait un message, ce qui faisait
     // passer la panne pour un caprice d'affichage.
     if (caches.isEmpty) return;
+    // Une entrée de cache déjà marquée supprimée pour tous n'entre dans le fil
+    // que vidée : jusqu'ici, elle était mise en cache avec son clair, le
+    // drapeau posé à côté.
+    caches = [for (final m in caches) _videSiSupprime(m)];
     final vivant = _fil[conversationId];
     if (vivant == null || vivant.isEmpty) {
       final fil = [...caches]
@@ -302,6 +306,18 @@ class MlsGateway {
     // 2026-09-21 sur SM A515F : discussion rouverte après une coupure, de
     // « Tygg » (mardi) directement à PE1 ; une vingtaine de messages du jour
     // masqués jusqu'à la relance, tous intacts en base et dans le cache.
+    //
+    // Une exception au « jamais remplacé » : la suppression pour tous. Le
+    // cache peut la savoir avant le fil — `_marquerSupprimeDansLeCache` l'y
+    // écrit dès le geste, alors que le fil ne l'apprend qu'au prochain
+    // recollage réussi. Garder la copie vivante telle quelle ferait réécrire
+    // au cache, au passage suivant, le clair avec un drapeau retombé à faux :
+    // le drapeau n'est jamais dégradé.
+    final supprimesAuCache = {
+      for (final m in caches)
+        if (m.deletedForEveryone) m.id,
+    };
+    if (supprimesAuCache.isNotEmpty) _vider(vivant, supprimesAuCache);
     final deja = {for (final m in vivant) m.id};
     final manquants = [
       for (final m in caches)
@@ -335,6 +351,9 @@ class MlsGateway {
     for (var i = 0; i < fil.length; i++) {
       final edition = _editions.remove(fil[i].id);
       if (edition == null) continue;
+      // Une modification ne ressuscite pas un message supprimé pour tous :
+      // `copyWith(content:)` lui rendrait un texte.
+      if (fil[i].deletedForEveryone) continue;
       fil[i] = fil[i].copyWith(
         content: edition.texte,
         editedAt: edition.quand,
@@ -342,8 +361,38 @@ class MlsGateway {
     }
   }
 
+  /// Un message supprimé pour tous, réduit à sa coquille ; les autres tels
+  /// quels.
+  static MessageEntity _videSiSupprime(MessageEntity m) =>
+      m.deletedForEveryone ? m.videPourSuppression() : m;
+
+  /// Vide, **dans le fil lui-même**, les messages supprimés pour tous — ceux
+  /// qui portent déjà le drapeau et ceux de [supprimes].
+  ///
+  /// Le serveur vide la ligne d'un message en clair ; celle d'un message MLS
+  /// n'a jamais eu de clair, qui ne vit qu'ici — et dans le cache de
+  /// l'appareil, copie de ce fil. Poser le drapeau sans vider laissait le
+  /// texte, le fichier local, la clé du média et la citation dans la mémoire
+  /// de la passerelle et sur le disque, réinjectés dans l'écran à chaque
+  /// passage.
+  void _vider(List<MessageEntity> fil, [Set<String> supprimes = const {}]) {
+    for (var i = 0; i < fil.length; i++) {
+      final m = fil[i];
+      if (m.deletedForEveryone || supprimes.contains(m.id)) {
+        fil[i] = m.videPourSuppression();
+      }
+    }
+  }
+
   /// Recolle les métadonnées en ligne sur un fil déjà déchiffré.
-  Future<List<MessageEntity>> _avecMetadonnees(List<MessageEntity> fil) async {
+  ///
+  /// [vivant] est le fil de la passerelle : les suppressions pour tous y sont
+  /// appliquées en place (voir [_vider]), le recollage porte sur une copie.
+  Future<List<MessageEntity>> _avecMetadonnees(
+    List<MessageEntity> vivant,
+  ) async {
+    _vider(vivant);
+    final fil = List.of(vivant);
     if (fil.isEmpty) return fil;
     final lot = await _meta.pour(fil.map((m) => m.id));
     // **On sort sur l'échec de lecture, pas sur le vide.**
@@ -359,9 +408,12 @@ class MlsGateway {
     // donc à l'écran pour toujours, et une réaction dont l'écriture avait
     // échoué paraissait avoir pris — l'échec muet, là encore.
     if (!lot.lu) return fil;
+    // Après l'`await`, le fil vivant a pu bouger (envoi, amorçage) : vidage
+    // par identifiant, pas par position.
+    if (lot.supprimes.isNotEmpty) _vider(vivant, lot.supprimes);
     return [
       for (final m in fil)
-        m.copyWith(
+        (lot.supprimes.contains(m.id) ? m.videPourSuppression() : m).copyWith(
           reactions: lot.reactions[m.id] ?? const {},
           readBy: lot.lecteurs[m.id] ??
               // L'expéditeur a forcément lu le sien : le mapper l'a déjà posé,
@@ -658,8 +710,16 @@ class MlsGateway {
 
   /// « Supprimer pour tous » — le serveur cesse de servir le ciphertext.
   /// Réservé à l'expéditeur par le RLS.
-  Future<void> supprimerPourTous(String messageId) =>
-      _meta.supprimerPourTous(messageId);
+  ///
+  /// Et le fil de cet appareil perd le clair aussitôt, sans attendre le
+  /// prochain recollage : c'est lui que le dépôt remet en cache.
+  Future<void> supprimerPourTous(String messageId) async {
+    await _meta.supprimerPourTous(messageId);
+    _editions.remove(messageId);
+    for (final fil in _fil.values) {
+      _vider(fil, {messageId});
+    }
+  }
 
   static const modificationBranchee = true;
 

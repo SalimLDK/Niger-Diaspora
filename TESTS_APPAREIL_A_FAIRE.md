@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1554 cases à cocher, 682 cochées** — 306 entrées sur 357 ont encore des cases ouvertes.
+**1558 cases à cocher, 682 cochées** — 307 entrées sur 358 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -97,7 +97,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (107)
+**P1 — fonction importante, jamais vérifiée** (108)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -109,6 +109,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [⬜ Verrou de version minimale et multi-appareil (2026-09-15)](#-verrou-de-version-minimale-et-multi-appareil-2026-09-15) · *Comptes, session et onboarding*
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
+- 4 · [⬜ Message chiffré supprimé pour tous : plus de clair en mémoire ni dans le cache (2026-09-21)](#-message-chiffré-supprimé-pour-tous--plus-de-clair-en-mémoire-ni-dans-le-cache-2026-09-21) · *Messagerie*
 - 2 · [⬜ La pastille de non-lus retombe en quittant une discussion chiffrée (2026-09-21)](#-la-pastille-de-non-lus-retombe-en-quittant-une-discussion-chiffrée-2026-09-21) · *Messagerie*
 - 4 · [⬜ Les premiers messages reçus restent « Message chiffré » dans la liste (2026-09-21)](#-les-premiers-messages-reçus-restent--message-chiffré--dans-la-liste-2026-09-21) · *Messagerie*
 - 7 · [⬜ Ouvrir une discussion lit ce qui est à l'écran, tout de suite (2026-09-16)](#-ouvrir-une-discussion-lit-ce-qui-est-à-lécran-tout-de-suite-2026-09-16) · *Messagerie*
@@ -364,7 +365,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 346 à faire, 143 faites
+- [2. Messagerie](#2-messagerie) — 350 à faire, 143 faites
 - [3. Groupes](#3-groupes) — 149 à faire, 64 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 144 à faire, 45 faites
 - [5. Appels](#5-appels) — 26 à faire, 8 faites
@@ -626,6 +627,39 @@ Discussions : bulles, composeur, médias, épingles, réactions, accusés, reche
 
 ---
 
+## ⬜ Message chiffré supprimé pour tous : plus de clair en mémoire ni dans le cache (2026-09-21)
+
+**Priorité P1** · importance 4/5 — le texte, la clé du média et la citation
+d'un message MLS supprimé pour tous restaient sur le disque de chaque
+téléphone, et dans la mémoire de la passerelle.
+
+Le serveur vide la ligne d'un message en clair ; celle d'un message MLS n'a
+jamais eu de clair. `MlsGateway._avecMetadonnees` se contentait de poser
+`deletedForEveryone` : le fil de la passerelle (`_fil`) gardait tout, et le
+dépôt le remettait tel quel dans le cache Hive à chaque passage (lecture,
+temps réel, rattrapage de la liste). Désormais le fil est vidé **en place**
+par `videPourSuppression()` (`_vider`, `mls_gateway.dart`) — au recollage,
+à l'amorçage depuis le cache et dès `supprimerPourTous` ; une modification
+en attente ne ressuscite plus le texte ; une vieille copie en clair du cache
+ne recomplète pas une entrée vidée, et un cache qui sait la suppression
+avant le fil l'emporte (le drapeau n'est jamais dégradé). Côté dépôt,
+`jsonPourCacheMls` vide avant toute écriture et `mlsDuCache` à la lecture :
+les entrées déjà écrites en clair sont réécrites vidées au passage suivant.
+Tenu par `test/core/crypto/mls_metadonnees_test.dart` (groupe « Un message
+supprimé pour tous ne garde son clair nulle part »).
+
+- [ ] **Côté auteur** : discussion chiffrée, envoyer une photo avec légende,
+  « Supprimer pour tout le monde » → pierre tombale ; tuer l'app, relancer
+  hors ligne → toujours la pierre tombale, ni photo ni légende.
+- [ ] **Côté destinataire** : même parcours reçu sur l'autre téléphone,
+  discussion ouverte puis rouverte après relance à froid → pierre tombale,
+  jamais le texte ni la photo, même un instant.
+- [ ] **Cache d'avant le correctif** : sur un téléphone qui a un message MLS
+  supprimé avant cette version, ouvrir la discussion une fois en ligne, puis
+  relancer hors ligne → pierre tombale (l'entrée a été réécrite vidée).
+- [ ] **Pas de régression** : les autres messages du même fil gardent texte,
+  photos, réponses citées et réactions.
+
 ## ⬜ Accusés, réactions, modifications et suppressions reçus en direct, discussion en clair (2026-09-21)
 
 **Priorité P1** · importance 3/5 — dans une discussion non chiffrée restée
@@ -668,9 +702,9 @@ citation restaient dans l'état. Tout message supprimé pour tous est
 désormais réduit à sa coquille à **chaque écriture de l'état de l'écran**
 (`sansContenuSupprime` dans le `set state` du notifier, liste d'inclusion
 `MessageEntity.videPourSuppression`) : temps réel, cache et pagination
-confondus. ⚠️ Non traité : le fil en mémoire de la passerelle et le cache
-disque gardent le clair du message MLS supprimé (le garde-fou d'aperçu
-l'empêche seulement de ressortir dans la liste).
+confondus. Le fil en mémoire de la passerelle et le cache disque, qui
+gardaient le clair, sont traités à part : voir « Message chiffré supprimé
+pour tous : plus de clair en mémoire ni dans le cache » ci-dessus.
 
 - [ ] **HOME court, accusé** : envoyer un message en clair, HOME ; l'autre
   téléphone ouvre la discussion ; revenir → la double coche « Lu » est là

@@ -141,7 +141,10 @@ void main() {
 
     test('les messages MLS sont mis en cache pour le mode hors ligne', () {
       final repo = source('lib/features/messages/data/repositories/message_repository_impl.dart');
-      expect(repo, contains('MessageModel.fromEntity(m).toJson()'));
+      // Par `jsonPourCacheMls`, qui vide un message supprimé pour tous avant
+      // de l'écrire (tenu par `mls_metadonnees_test.dart`).
+      expect(repo, contains('jsonPourCacheMls(mls)'));
+      expect(repo, contains('jsonPourCacheMls(fil)'));
     });
 
     test('un média dans une conversation chiffrée l’est forcément', () {
