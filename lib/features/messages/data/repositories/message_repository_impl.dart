@@ -1095,7 +1095,7 @@ class MessageRepositoryImpl implements MessageRepository {
           if (mls.isEmpty) continue;
           await cacheService.cacheMessages(
             id,
-            [for (final m in mls) MessageModel.fromEntity(m).toJson()],
+            jsonPourCacheMls(mls),
           );
           dechiffre = true;
         } catch (e) {
@@ -1209,7 +1209,7 @@ class MessageRepositoryImpl implements MessageRepository {
       // clair, et le cliquet ne se rejoue pas.
       unawaited(cacheService.cacheMessages(
         conversationId,
-        [for (final m in mls) MessageModel.fromEntity(m).toJson()],
+        jsonPourCacheMls(mls),
       ));
       return MlsSourceMerger.fusionner(
         legacy: legacy,
@@ -1234,6 +1234,28 @@ class MessageRepositoryImpl implements MessageRepository {
   List<MessageEntity> _mlsDuCache(String conversationId, DateTime? depuis) =>
       mlsDuCache(cacheService.getCachedMessages(conversationId), depuis);
 
+  /// Le fil chiffré, tel qu'il peut entrer dans le cache local.
+  ///
+  /// **Un message supprimé pour tous n'y entre que vidé.** Le cache est le
+  /// seul endroit de l'appareil où le clair d'un message MLS survit d'un
+  /// lancement à l'autre ; y écrire le texte, le chemin du fichier ou la clé
+  /// du média d'un message supprimé, c'était garder sur le disque ce que le
+  /// geste venait de retirer. `cacheMessages` remplace par identifiant : une
+  /// entrée écrite en clair par un passage antérieur est réécrite vidée au
+  /// passage suivant.
+  ///
+  /// La passerelle rend déjà un fil vidé ; la garde est répétée ici parce que
+  /// c'est ici qu'on écrit.
+  @visibleForTesting
+  static List<Map<String, dynamic>> jsonPourCacheMls(
+    List<MessageEntity> fil,
+  ) => [
+    for (final m in fil)
+      MessageModel.fromEntity(
+        m.deletedForEveryone ? m.videPourSuppression() : m,
+      ).toJson(),
+  ];
+
   /// La règle seule, sans cache — pour pouvoir la tenir par un test.
   @visibleForTesting
   static List<MessageEntity> mlsDuCache(
@@ -1248,7 +1270,9 @@ class MessageRepositoryImpl implements MessageRepository {
         if (m.createdAt.isBefore(depuis)) continue;
         if (MlsMessageMapper.estSeparateur(m)) continue;
         if (m.content == MlsMessageMapper.placeholderIllisible) continue;
-        sortie.add(m);
+        // Une entrée écrite avant que le fil ne soit vidé porte encore son
+        // clair à côté du drapeau : elle n'en sort que vidée.
+        sortie.add(m.deletedForEveryone ? m.videPourSuppression() : m);
       } catch (_) {
         // Une entrée de cache illisible ne coûte que ce message.
         continue;
@@ -1765,7 +1789,7 @@ class MessageRepositoryImpl implements MessageRepository {
             // l'instant », absent du fil à la réouverture suivante.
             unawaited(cacheService.cacheMessages(
               conversationId,
-              [for (final m in fil) MessageModel.fromEntity(m).toJson()],
+              jsonPourCacheMls(fil),
             ));
             return Right<Failure, List<MessageEntity>>(fil);
           } catch (e) {

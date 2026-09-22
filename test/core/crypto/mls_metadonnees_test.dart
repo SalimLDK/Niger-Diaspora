@@ -9,6 +9,7 @@ import 'package:diaspo_niger/core/crypto/mls/mls_metadonnees.dart';
 import 'package:diaspo_niger/core/crypto/mls/mls_payload_codec.dart';
 import 'package:diaspo_niger/features/messages/data/repositories/message_repository_impl.dart';
 import 'package:diaspo_niger/features/messages/domain/entities/conversation_entity.dart';
+import 'package:diaspo_niger/features/messages/domain/entities/message_entity.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// Ce que ces tests protègent (plan MLS § 4, décision J)
@@ -807,4 +808,135 @@ void main() {
       });
     }
   });
+
+  group('Un message supprimé pour tous ne garde son clair nulle part', () {
+    // Le serveur vide la ligne d'un message en clair ; un message MLS n'a
+    // jamais eu de clair côté serveur. La passerelle se contentait de poser
+    // le drapeau : texte, clé du média et citation restaient dans son fil,
+    // puis dans le cache disque qu'on en tire — et revenaient à l'écran.
+
+    const media = MediaChiffre(
+      storagePath: 'encrypted_media/c1/u2/f',
+      encryptedUrl: 'https://exemple.invalid/f',
+      fileKeyBase64: 'CLE-SECRETE',
+      ivBase64: 'IV',
+      fileName: 'passeport.jpg',
+      mimeType: 'image/jpeg',
+      size: 10,
+    );
+
+    MessageEntity plein(String id, {bool supprime = false}) =>
+        MlsMessageMapper.depuisPayload(_payload(id),
+                row: _ligne(id), senderName: 'Nom', currentUserId: 'u1')
+            .copyWith(
+          content: 'SECRET-$id',
+          localFilePath: '/data/$id.jpg',
+          mediaChiffre: media,
+          replyToMessageData: const {'content': 'CITATION'},
+          deletedForEveryone: supprime,
+        );
+
+    void vide(MessageEntity m) {
+      expect(m.deletedForEveryone, isTrue);
+      expect(m.content, isEmpty);
+      expect(m.localFilePath, isNull);
+      expect(m.mediaChiffre, isNull);
+      expect(m.replyToMessageData, isNull);
+    }
+
+    test('la suppression apprise du serveur vide le fil vivant, et le reste',
+        () async {
+      final meta = _MetaReglable();
+      final passerelle = _passerelle(_ServiceFige(const []), meta);
+      passerelle.amorcer('c1', [plein('m1'), plein('m2')]);
+      expect((await passerelle.messages('c1')).first.content, 'SECRET-m1');
+
+      meta.actuel = const MlsMetadonneesLot(supprimes: {'m1'});
+      vide((await passerelle.messages('c1')).first);
+
+      // Le serveur ne répond plus, puis répond sans la suppression : ni le
+      // drapeau ni le vide ne reculent — c'est le fil lui-même qui a été vidé.
+      meta.actuel = MlsMetadonneesLot.illisible;
+      vide((await passerelle.messages('c1')).first);
+      meta.actuel = MlsMetadonneesLot.vide;
+      final fil = await passerelle.messages('c1');
+      vide(fil.first);
+      expect(fil[1].content, 'SECRET-m2', reason: 'les autres restent intacts');
+    });
+
+    test('une vieille copie en clair du cache ne recomplète pas le message',
+        () async {
+      final meta = _MetaReglable(const MlsMetadonneesLot(supprimes: {'m1'}));
+      final passerelle = _passerelle(_ServiceFige(const []), meta);
+      passerelle.amorcer('c1', [plein('m1')]);
+      await passerelle.messages('c1');
+
+      // Nouvel amorçage depuis un cache écrit avant la suppression.
+      meta.actuel = MlsMetadonneesLot.illisible;
+      passerelle.amorcer('c1', [plein('m1')]);
+      vide((await passerelle.messages('c1')).single);
+    });
+
+    test('le cache qui sait la suppression avant le fil l\'emporte', () async {
+      // `_marquerSupprimeDansLeCache` pose le drapeau dès le geste ; le fil
+      // vivant, lui, ne l'apprend qu'au prochain recollage réussi.
+      final passerelle =
+          _passerelle(_ServiceFige(const []), _MetaReglable(MlsMetadonneesLot.illisible));
+      passerelle.amorcer('c1', [plein('m1')]);
+      await passerelle.messages('c1');
+
+      passerelle.amorcer('c1', [plein('m1', supprime: true)]);
+      vide((await passerelle.messages('c1')).single);
+    });
+
+    test('supprimer pour tous vide le fil sans attendre le serveur', () async {
+      final passerelle =
+          _passerelle(_ServiceFige(const []), _MetaReglable(MlsMetadonneesLot.illisible));
+      passerelle.amorcer('c1', [plein('m1')]);
+      await passerelle.messages('c1');
+
+      await passerelle.supprimerPourTous('m1');
+      vide((await passerelle.messages('c1')).single);
+    });
+
+    test('une modification en attente ne ressuscite pas le texte', () async {
+      final meta = _MetaReglable();
+      final passerelle = _passerelle(_ServiceFige(const []), meta);
+      passerelle.amorcer('c1', [plein('m1', supprime: true)]);
+      await passerelle.modifier(
+          conversationId: 'c1', messageId: 'm1', nouveauTexte: 'REVENU');
+      vide((await passerelle.messages('c1')).single);
+    });
+
+    test('ce qui part au cache est vidé, ce qui en revient aussi', () {
+      final json = MessageRepositoryImpl.jsonPourCacheMls(
+          [plein('m1', supprime: true), plein('m2')]);
+      expect(json.first.toString(), isNot(contains('SECRET')));
+      expect(json.first.toString(), isNot(contains('CLE-SECRETE')));
+      expect(json.first.toString(), isNot(contains('CITATION')));
+      expect(json.first['deletedForEveryone'], isTrue);
+      expect(json[1]['content'], 'SECRET-m2');
+
+      // Une entrée déjà écrite en clair, drapeau posé à côté.
+      final ancien = MessageRepositoryImpl.jsonPourCacheMls([plein('m1')])
+          .single
+        ..['deletedForEveryone'] = true;
+      vide(MessageRepositoryImpl.mlsDuCache(
+              [ancien], DateTime.utc(2026, 9, 15, 11))
+          .single);
+    });
+  });
+}
+
+/// Des métadonnées qui changent d'un passage à l'autre, comme en vrai.
+class _MetaReglable extends _MetaEspion {
+  _MetaReglable([this.actuel = MlsMetadonneesLot.vide]);
+
+  MlsMetadonneesLot actuel;
+
+  @override
+  Future<MlsMetadonneesLot> pour(Iterable<String> messageIds) async => actuel;
+
+  @override
+  Future<void> marquerModifie(String messageId) async {}
 }
