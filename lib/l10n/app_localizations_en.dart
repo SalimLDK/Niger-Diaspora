@@ -6499,6 +6499,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cannotDeleteAfter1Hour => 'Cannot delete message after 1 hour';
 
   @override
+  String get deleteForEveryoneFailed =>
+      'This message could not be deleted for everyone.';
+
+  @override
   String get sendAction => 'Send';
 
   @override

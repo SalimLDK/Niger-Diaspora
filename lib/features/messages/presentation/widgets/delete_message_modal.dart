@@ -105,6 +105,10 @@ class _DeleteMessageModalState extends ConsumerState<DeleteMessageModal> {
 
     // Unfocus to prevent keyboard from appearing
     FocusScope.of(context).unfocus();
+    // Le messager est pris AVANT de fermer : après le `pop`, ce contexte-ci
+    // n'est plus monté, et l'échec ne pourrait plus être dit.
+    final messager = ScaffoldMessenger.of(context);
+    final echec = l10n.deleteForEveryoneFailed;
     // Close modal immediately - deletion happens in background with optimistic update
     Navigator.pop(context);
 
@@ -117,8 +121,17 @@ class _DeleteMessageModalState extends ConsumerState<DeleteMessageModal> {
 
     if (success) {
       widget.onDeleted?.call();
+      return;
     }
-    // No SnackBar - the message shows "supprimé" instantly thanks to optimistic update
+    // Le succès se voit (« supprimé » s'affiche aussitôt) ; l'échec, lui, ne
+    // se voyait pas : la bulle revenait telle quelle, sans explication. Le
+    // serveur refuse par exemple un message qui n'est pas le sien.
+    messager.showSnackBar(
+      SnackBar(
+        content: Text(echec),
+        backgroundColor: Colors.red,
+      ),
+    );
   }
 
   Future<void> _reportMessage() async {

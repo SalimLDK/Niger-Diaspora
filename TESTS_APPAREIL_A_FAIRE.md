@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1551 cases à cocher, 682 cochées** — 306 entrées sur 357 ont encore des cases ouvertes.
+**1549 cases à cocher, 687 cochées** — 307 entrées sur 358 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -64,9 +64,9 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [⬜ Une conversation ne bascule plus sans ses participants (2026-09-15)](#-une-conversation-ne-bascule-plus-sans-ses-participants-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ MLS ouvert pour un seul compte (phase 5, 2026-09-15)](#-mls-ouvert-pour-un-seul-compte-phase-5-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 5 · [⬜ Signal remis en service : la garde de session sur les lectures de clés (2026-09-14)](#-signal-remis-en-service--la-garde-de-session-sur-les-lectures-de-clés-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
-- 14 · [⬜ Cinq messages reçus, un seul lisible : la bannière ne s'empilait pas (2026-09-16)](#-cinq-messages-reçus-un-seul-lisible--la-bannière-ne-sempilait-pas-2026-09-16) · *Notifications et push*
+- 12 · [⬜ Cinq messages reçus, un seul lisible : la bannière ne s'empilait pas (2026-09-16)](#-cinq-messages-reçus-un-seul-lisible--la-bannière-ne-sempilait-pas-2026-09-16) · *Notifications et push*
 - 3 · [⬜ Aperçu MLS quand l'app est OUVERTE (le même message, l'autre isolate)](#-aperçu-mls-quand-lapp-est-ouverte-le-même-message-lautre-isolate) · *Notifications et push*
-- 8 · [⬜ Aperçu des notifications MLS reconstruit sur l'appareil (phase 4, Android)](#-aperçu-des-notifications-mls-reconstruit-sur-lappareil-phase-4-android) · *Notifications et push*
+- 7 · [⬜ Aperçu des notifications MLS reconstruit sur l'appareil (phase 4, Android)](#-aperçu-des-notifications-mls-reconstruit-sur-lappareil-phase-4-android) · *Notifications et push*
 - 6 · [⬜ Accepter une demande d'ami : « Erreur de chargement » (2026-09-14)](#-accepter-une-demande-dami---erreur-de-chargement--2026-09-14) · *Notifications et push* · bloqué
 - 22 · [⬜ Supprimer mon compte : demande, 30 jours, annulation, purge (2026-09-18)](#-supprimer-mon-compte--demande-30-jours-annulation-purge-2026-09-18) · *Comptes, session et onboarding*
 - 9 · [⬜ Expulsion admin et bannissement : ils n'éjectaient personne (2026-09-16)](#-expulsion-admin-et-bannissement--ils-néjectaient-personne-2026-09-16) · *Comptes, session et onboarding*
@@ -135,7 +135,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
 - 5 · [⬜ Pixel réinstallé : la discussion MLS avec Sim A se rouvre malgré des Welcome périmés (2026-09-21)](#-pixel-réinstallé--la-discussion-mls-avec-sim-a-se-rouvre-malgré-des-welcome-périmés-2026-09-21) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ L'app lancée sans son écran n'inscrit plus d'appareil fantôme (2026-09-16)](#-lapp-lancée-sans-son-écran-ninscrit-plus-dappareil-fantôme-2026-09-16) · *Chiffrement de bout en bout et clés*
-- 5 · [⬜ « Chiffré de bout en bout » corrigé sur 8 surfaces, dont la politique de confidentialité (2026-09-16)](#--chiffré-de-bout-en-bout--corrigé-sur-8-surfaces-dont-la-politique-de-confidentialité-2026-09-16) · *Chiffrement de bout en bout et clés*
+- 3 · [⬜ « Chiffré de bout en bout » corrigé sur 8 surfaces, dont la politique de confidentialité (2026-09-16)](#--chiffré-de-bout-en-bout--corrigé-sur-8-surfaces-dont-la-politique-de-confidentialité-2026-09-16) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ La vidéo entre dans le chiffrement (2026-09-16)](#-la-vidéo-entre-dans-le-chiffrement-2026-09-16) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ Une réaction retirée disparaît vraiment de l'écran (2026-09-15)](#-une-réaction-retirée-disparaît-vraiment-de-lécran-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 8 · [⬜ Code de sécurité d'un appareil MLS (phase 7, 2026-09-15)](#-code-de-sécurité-dun-appareil-mls-phase-7-2026-09-15) · *Chiffrement de bout en bout et clés*
@@ -207,7 +207,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (93)
+**P2 — fonction secondaire ou cas limite** (94)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -218,6 +218,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [Reprise du design (2026-08-03, suite) — Éco, accueil, carte, discussion](#reprise-du-design-2026-08-03-suite--éco-accueil-carte-discussion) · *Design, thème, langue et mise en page* · bloqué
 - 6 · [Bascule design_v2 → production, famille 4 : messagerie, groupes, recherche, profil (2026-08-03)](#bascule-design_v2--production-famille-4--messagerie-groupes-recherche-profil-2026-08-03) · *Design, thème, langue et mise en page*
 - 7 · [⬜ Site web entièrement refait sur cahier des charges (2026-09-08)](#-site-web-entièrement-refait-sur-cahier-des-charges-2026-09-08) · *Site web*
+- 3 · [⬜ « Supprimer pour tous » proposé sur le message de l'autre en 1:1 (2026-09-21)](#--supprimer-pour-tous--proposé-sur-le-message-de-lautre-en-11-2026-09-21) · *Messagerie*
 - 6 · [⬜ Le séparateur « N messages non lus » part quand tout est lu (2026-09-17)](#-le-séparateur--n-messages-non-lus--part-quand-tout-est-lu-2026-09-17) · *Messagerie*
 - 3 · [⬜ « Distribué » et « Lu » ne tombent plus à la même seconde (2026-09-16)](#--distribué--et--lu--ne-tombent-plus-à-la-même-seconde-2026-09-16) · *Messagerie*
 - 4 · [⬜ Forme de la bulle qui cite un message (2026-09-16)](#-forme-de-la-bulle-qui-cite-un-message-2026-09-16) · *Messagerie*
@@ -364,11 +365,11 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 343 à faire, 143 faites
+- [2. Messagerie](#2-messagerie) — 346 à faire, 143 faites
 - [3. Groupes](#3-groupes) — 149 à faire, 64 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 144 à faire, 45 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 142 à faire, 47 faites
 - [5. Appels](#5-appels) — 26 à faire, 8 faites
-- [6. Notifications et push](#6-notifications-et-push) — 157 à faire, 85 faites
+- [6. Notifications et push](#6-notifications-et-push) — 154 à faire, 88 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 69 à faire, 10 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 118 à faire, 16 faites
@@ -670,6 +671,42 @@ ne remplace jamais du texte clair.
   requise] » quand l'écho revient, ni après un accusé de lecture.
 - [ ] **Deux modifications rapprochées** : l'autre modifie deux fois de suite
   en quelques secondes → c'est la seconde version qui reste affichée.
+
+---
+
+## ⬜ « Supprimer pour tous » proposé sur le message de l'autre en 1:1 (2026-09-21)
+
+**Priorité P2** · importance 3/5 — Sim, créateur du 1:1, se voyait proposer
+« Supprimer pour tous » sur un message de Salim. Le serveur refuse
+(`mls_supprimer_pour_tous` exige l'expéditeur, vérifié : le message reste
+intact en base) — mais l'écran ne disait rien, la bulle restait telle quelle.
+
+Cause : `conversation_screen.dart` tenait pour « admin » d'un 1:1 celui qui
+avait créé la conversation. Un 1:1 n'a pas d'administrateur : `isAdmin` ne
+vient plus que du groupe. Et un échec de « Supprimer pour tous » affiche
+désormais « Ce message n'a pas pu être supprimé pour tout le monde. »
+(`delete_message_modal.dart`). Tenu par
+`test/features/messages/pas_d_admin_en_un_a_un_test.dart`.
+
+*Bloqué : build Play à mettre à jour (voir « Temps réel après l'arrière-plan,
+et texte supprimé dans la liste »).*
+
+- [ ] **1:1, message de l'autre** : la boîte de suppression ne propose plus
+  que « Supprimer pour moi ».
+- [ ] **Son propre message de moins d'une heure** : « Supprimer pour tous »
+  toujours proposé et efficace.
+- [ ] **Groupe, administrateur** : « Supprimer pour tous » toujours proposé
+  sur le message d'un membre (modération).
+
+**Constaté au passage, non corrigé — la Carte dit « Mode privé activé »
+pendant que la position est partagée.** Sur le SM A515F, `share_location =
+true` et position publiée à 20:27, mais l'onglet Carte affiche « Mode privé
+activé » avec un bouton « ACTIVER ». C'est le calque « Membres », filtre
+d'affichage local (`nearbyMembersEnabled`), et non le consentement — mais le
+libellé fait croire à l'utilisateur que sa position est cachée alors qu'elle
+ne l'est pas. À trancher (libellé ou fusion des deux réglages), sensible au
+vu des refus Play sur la localisation. Voir « Réglages/Carte — deux
+interrupteurs de partage de position désynchronisés ».
 
 ---
 
@@ -1102,6 +1139,7 @@ Le banc prouve les droits, pas l'affichage — d'où cette entrée.
 - [ ] **Favori / signalement / supprimer pour moi** sur le message d'un
       **autre** : les trois passent toujours (ce sont les seules écritures
       qu'un non-expéditeur garde)
+  ✅ favori et supprimer pour moi, Passe du 2026-09-21 (20 h), build Play 1.2.2+26, Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS (MLS) : Sim met en favori PK1 de Salim (`mls_message_stars`, étoile sous la bulle) et supprime pour lui PK2 (`mls_message_hidden`, bulle retirée chez Sim, toujours visible chez Salim). Signalement pas testé (écrit chez les modérateurs). ⚠️ Et « Supprimer pour tous » était PROPOSÉ sur le message de l'autre : voir « « Supprimer pour tous » proposé sur le message de l'autre en 1:1 ».
 - [ ] **Modération** : dans un groupe, un admin fait « supprimer pour tout le
       monde » sur le message d'un membre → la bulle passe à « message
       supprimé » chez les deux
@@ -7978,11 +8016,13 @@ d'ici.
       comme en anglais, à l'échelle de police par défaut
 - [ ] Onboarding, écran Groupes : la puce raccourcie ne casse pas l'alignement
       des trois puces
-- [ ] FAQ › « Mes messages sont-ils protégés ? » : la réponse est bien plus
+- [x] FAQ › « Mes messages sont-ils protégés ? » : la réponse est bien plus
       longue qu'avant (deux phrases au lieu d'une) — vérifier que le panneau
       dépliant ne déborde pas, et à l'échelle de police ×2
-- [ ] Réglages › Sécurité › Sauvegarde : la carte d'en-tête tient sans
+  ✅ Passe du 2026-09-21 (20 h), build Play 1.2.2+26, Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : réponse en deux phrases, panneau sans débordement sur SM A515F (police 1,0, clair) et Pixel (police 1,3 + gras, sombre). Échelle ×2 non essayée (réglage système).
+- [x] Réglages › Sécurité › Sauvegarde : la carte d'en-tête tient sans
       débordement, en clair comme en sombre
+  ✅ Passe du 2026-09-21 (20 h), build Play 1.2.2+26, Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : carte « Chiffrement des messages » sans débordement en clair (SM A515F) et en sombre à 1,3 + gras (Pixel).
 - [ ] Les quatre écrans en **anglais** aussi (la version longue anglaise est
       encore plus longue que la française)
 
@@ -10792,6 +10832,7 @@ Fichiers : [notification_pile_messages.dart](lib/core/services/notification_pile
   messages en attente, pas « 1 ».
 - [ ] **Passer du premier plan à l'arrière-plan en cours de conversation** :
   les messages vus au premier plan figurent encore dans la bannière suivante.
+  Passe du 2026-09-21 (20 h), build Play 1.2.2+26, Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : PK1 reçu discussion affichée, HOME, PK2 reçu → la bannière ne montre QUE PK2 (`number=1`). Contraire à cette case, conforme à « les lus ne reviennent pas » plus haut dans la même entrée : les deux règles se contredisent, à trancher.
 - [ ] **Même message poussé deux fois** (couper/rétablir le réseau) : une
   seule ligne dans la bannière.
 - [ ] **Se déconnecter** : plus aucun texte de message dans les préférences
@@ -10843,8 +10884,9 @@ ligne**. Il est retiré du texte, et seulement là où le serveur l'a mis.
   ligne de notification est du texte, pas une mise en page. Un vrai alignement
   demanderait un `RemoteViews` maison, au prix du regroupement par expéditeur
   et des avatars — à trancher à l'écran si la fin de ligne ne suffit pas.
-- [ ] **Message long qui passe à la ligne** : l'heure reste lisible et ne se
+- [x] **Message long qui passe à la ligne** : l'heure reste lisible et ne se
   retrouve pas seule sur une deuxième ligne de façon gênante.
+  ✅ Passe du 2026-09-21 (20 h), build Play 1.2.2+26, Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : message de 19 mots, trois lignes dans la bannière dépliée, « · 20:11 » en fin de dernière ligne, rien de perdu.
 - [ ] **Pile à cheval sur minuit** : recevoir un message avant minuit et un
   après, puis regarder la bannière. Celui d'avant doit porter « hier », sinon
   l'ordre paraît faux — 23:50 semble plus tard que 00:05. La fenêtre de la pile
@@ -10852,8 +10894,9 @@ ligne**. Il est retiré du texte, et seulement là où le serveur l'a mis.
 - [ ] **Groupe** : chaque ligne montre son expéditeur **une seule fois**.
 - [x] **1:1** : le texte n'a rien perdu (aucun préfixe à retirer là).
   ✅ Passe du 2026-09-21, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS.
-- [ ] **Message dont le texte commence par le nom de l'expéditeur** (« Alice a
+- [x] **Message dont le texte commence par le nom de l'expéditeur** (« Alice a
   raison ») : rien n'est rogné.
+  ✅ Passe du 2026-09-21 (20 h), build Play 1.2.2+26, Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : « Salim L. a raison PJ2 » affiché en entier sous l'en-tête « Salim L. ».
 
 **Et le cas d'un même expéditeur qui enchaîne** : c'est là que la clé
 d'identité de la `Person` compte. Android regroupe les messages consécutifs
@@ -11050,6 +11093,7 @@ Fichiers : [notification_service.dart](lib/core/services/notification_service.da
   ✅ Passe du 2026-09-21 (soir), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : PD1–PD5 alternés, discussion ouverte des deux côtés : 5/5 en direct et lisibles des deux côtés.
 - [ ] **Réglage « aperçu des messages » coupé** (Profil → Notifications) :
   la bannière repasse à « Nouveau message » app ouverte comme app fermée.
+  ⛔ Passe du 2026-09-21 (20 h), build Play 1.2.2+26, Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : même constat — réglage absent de l'interface (voir « Aperçu des notifications MLS reconstruit sur l'appareil (phase 4, Android) »).
 - [ ] **Sondage et appel** reçus chiffrés : libellés « Sondage » et « Appel »
   (deux types que `resume` ignorait, d'où un repli générique alors que le
   message était déchiffré).
@@ -11185,8 +11229,9 @@ Fichiers : [mls_notification_preview.dart](lib/core/crypto/mls/mls_notification_
   l'app affiche le texte une fois le commit traité.
 - [ ] **Média, note vocale, position** : la bannière dit « Pièce jointe »,
   « Note vocale », « Position » — jamais le nom du fichier.
-- [ ] **Conversation en sourdine** : aucune notification (le trigger respecte
+- [x] **Conversation en sourdine** : aucune notification (le trigger respecte
   `mutedBy`).
+  ✅ Passe du 2026-09-21 (20 h), build Play 1.2.2+26, Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : sourdine 1 h posée par Sim (`mutedBy` en base), PH1 envoyé → aucune notification sur le téléphone, aucune ligne `notifications`. ⚠️ Le menu de la discussion affiche toujours « Mettre en sourdine » pendant la sourdine et n'offre pas de la lever ; seul l'appui long dans la liste propose « Réactiver les notifications ».
 - [ ] **Groupe** : le titre est le nom du groupe, le corps `Nom : texte`.
 - [ ] **Aucune copie jetable ne traîne** : `run-as … ls files/…/mls/` ne
   montre aucun fichier `*apercu-*`.
@@ -11196,6 +11241,7 @@ Fichiers : [mls_notification_preview.dart](lib/core/crypto/mls/mls_notification_
   générique même quand le déchiffrement aurait réussi. Câblé le 2026-09-15 —
   `MlsNotificationPreview.concerne` lit le drapeau `showMessagePreview` que
   `send-push` transmet déjà —, à vérifier sur appareil.
+  ⛔ Passe du 2026-09-21 (20 h), build Play 1.2.2+26, Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : impossible à tester — **le réglage n'existe pas dans l'app**. `PreferencesService.setShowMessagePreview` n'a aucun appelant ; l'écran Réglages › Notifications ne propose pas d'« Aperçu des messages ».
 
 ---
 
@@ -20018,6 +20064,7 @@ tourner) :
 - [ ] profil (le sien, celui d'un autre), recherche, liste des discussions,
   carte et back-office s'affichent comme avant — le sien avec son e-mail et
   son téléphone ;
+  ✅ en partie, Passe du 2026-09-21 (20 h), build Play 1.2.2+26, Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : son profil (Sim), celui d'un autre (Salim : nom, pseudo, en ligne, groupes en commun, aucun e-mail), recherche « Salim » (2 résultats), liste des discussions : tout s'affiche. Aucun écran n'affiche son propre e-mail ; Sim n'a pas de téléphone. Carte et back-office non vus.
 - [ ] **un nouvel appareil reçoit les notifications push** — c'est le site le
   plus dangereux ; et après déconnexion, l'appareil n'en reçoit plus ;
 - [ ] modifier son profil (téléphone compris) et enregistrer : pas d'erreur,
@@ -22728,6 +22775,7 @@ Reste a voir sur un ecran :
       (« participants de la discussion »), jamais celui de la carte. Un refus
       à l'ouverture doit laisser le bouton « envoyer ma position » reproposer
       la feuille.
+  Passe du 2026-09-21 (20 h), build Play 1.2.2+26, Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : permission de localisation déjà accordée sur le SM A515F → le sélecteur s'ouvre directement sur la carte, sans feuille ; la feuille ne se voit qu'avec la permission retirée (réglage système, pas fait par adb).
 - [ ] **Lien « Lire la politique de confidentialité »** depuis la feuille
       pendant l'onboarding : `/settings/privacy` est censé échapper aux
       redirections du routeur, à confirmer avant que le profil soit complet.

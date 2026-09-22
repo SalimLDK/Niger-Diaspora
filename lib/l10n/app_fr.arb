@@ -3035,6 +3035,7 @@
   "positionLabel": "Position",
   "microphonePermissionRequired": "Permission du microphone requise",
   "cannotDeleteAfter1Hour": "Impossible de supprimer le message après 1h",
+  "deleteForEveryoneFailed": "Ce message n'a pas pu être supprimé pour tout le monde.",
   "sendAction": "Envoyer",
   "forwardError": "Erreur lors du transfert",
   "cannotStartCall": "Impossible de démarrer l'appel",

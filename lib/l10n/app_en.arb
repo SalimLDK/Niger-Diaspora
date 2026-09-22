@@ -2989,6 +2989,7 @@
   "microphonePermissionRequired": "Microphone permission required",
 
   "cannotDeleteAfter1Hour": "Cannot delete message after 1 hour",
+  "deleteForEveryoneFailed": "This message could not be deleted for everyone.",
   "sendAction": "Send",
 
   "forwardError": "Error forwarding message",

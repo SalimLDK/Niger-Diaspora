@@ -6575,6 +6575,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Impossible de supprimer le message après 1h';
 
   @override
+  String get deleteForEveryoneFailed =>
+      'Ce message n\'a pas pu être supprimé pour tout le monde.';
+
+  @override
   String get sendAction => 'Envoyer';
 
   @override

@@ -3125,16 +3125,16 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
             effectiveGroupId != null
                 ? ref.watch(groupStreamProvider(effectiveGroupId)).valueOrNull
                 : null;
+        // Un 1:1 n'a pas d'administrateur. En tenir un pour « celui qui a
+        // créé la conversation » offrait à ce seul participant « Supprimer pour
+        // tous » sur les messages de L'AUTRE — refusé par le serveur, sans un
+        // mot à l'écran. Vu le 2026-09-21 sur SM A515F (Sim, créateur du 1:1).
         final isAdmin =
-            _isGroup
-                ? (currentUserId != null &&
-                    groupForAdminCheck != null &&
-                    (groupForAdminCheck.creatorId == currentUserId ||
-                        groupForAdminCheck.adminIds.contains(currentUserId)))
-                : (conversation != null &&
-                    currentUserId != null &&
-                    (conversation.createdBy == currentUserId ||
-                        conversation.adminIds.contains(currentUserId)));
+            _isGroup &&
+            currentUserId != null &&
+            groupForAdminCheck != null &&
+            (groupForAdminCheck.creatorId == currentUserId ||
+                groupForAdminCheck.adminIds.contains(currentUserId));
 
         // L'expéditeur de CE message est-il admin/créateur du groupe ?
         // (Badge « Admin » à côté de son nom.)

@@ -12068,6 +12068,12 @@ abstract class AppLocalizations {
   /// **'Impossible de supprimer le message après 1h'**
   String get cannotDeleteAfter1Hour;
 
+  /// No description provided for @deleteForEveryoneFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce message n\'a pas pu être supprimé pour tout le monde.'**
+  String get deleteForEveryoneFailed;
+
   /// No description provided for @sendAction.
   ///
   /// In fr, this message translates to:
