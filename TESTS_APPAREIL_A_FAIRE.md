@@ -774,7 +774,7 @@ dans une piste Play (Tests internes) pour les mettre à jour.*
   ensuite sauté (`MlsGateway.amorcer` complète désormais un fil vivant ; test
   dans `mls_metadonnees_test.dart`, échoue sur l'ancien code). Probablement
   aussi la cause d'origine de « Le fil chiffré se tronque au redémarrage dès
-  qu'un message arrive en direct ».
+  qu'un message arrive en direct » (archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md)).
 - [ ] **Carte « Messages non lus » de l'Accueil** : ouvrir une discussion
   chiffrée depuis une bannière, lire, revenir à l'Accueil → le compte retombe.
 - [ ] **Statut en ligne** (même livraison, `online_status_provider.dart`) :
@@ -1108,7 +1108,7 @@ modification est expiré (25 min) ».
 - [ ] **Le clavier.** Le bandeau ajoute une ligne au-dessus du composeur :
   vérifier qu'aucun débordement n'apparaît, clavier ouvert, en portrait puis
   en **paysage** — c'est là que le composeur est déjà le plus serré (voir
-  « Paysage — overflow quand le chrome dépasse la hauteur »).
+  « Paysage — overflow quand le chrome dépasse la hauteur », archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md)).
   ⬜ moitié, Passe du 2026-09-22 (suite, ~01:20–01:40), build Play 1.2.2+26 (f22aaff), SM A515F (Sim) : portrait, clavier ouvert → bandeau « Modifier le
   message / PA22ECHEC » + croix au-dessus du champ, aucun débordement (capture).
   Paysage non essayé (rotation = réglage système).
@@ -8167,7 +8167,7 @@ doit bouger), pas sur l'absence d'erreur à l'écran.
   interrupteurs Salons audio/Podcasts gardent leur état (avant le correctif
   ils seraient retombés à désactivé). Le flag `feed` est lui aussi préservé
   dans Firestore, même s'il n'agit plus sur l'app depuis que le Fil est
-  toujours actif (voir « Annuaire, Fil et Ambassades toujours actifs — plus de flag »).
+  toujours actif (voir « Annuaire, Fil et Ambassades toujours actifs — plus de flag », archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md)).
 - [ ] Effacer le message de maintenance (vider le champ) puis sauvegarder →
   le message ne réapparaît pas à la réouverture de l'écran.
 
