@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1555 cases à cocher, 706 cochées** — 311 entrées sur 362 ont encore des cases ouvertes.
+**1549 cases à cocher, 712 cochées** — 310 entrées sur 362 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -97,7 +97,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 13 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (111)
+**P1 — fonction importante, jamais vérifiée** (110)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -141,7 +141,6 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [⬜ L'app lancée sans son écran n'inscrit plus d'appareil fantôme (2026-09-16)](#-lapp-lancée-sans-son-écran-ninscrit-plus-dappareil-fantôme-2026-09-16) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ « Chiffré de bout en bout » corrigé sur 8 surfaces, dont la politique de confidentialité (2026-09-16)](#--chiffré-de-bout-en-bout--corrigé-sur-8-surfaces-dont-la-politique-de-confidentialité-2026-09-16) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ La vidéo entre dans le chiffrement (2026-09-16)](#-la-vidéo-entre-dans-le-chiffrement-2026-09-16) · *Chiffrement de bout en bout et clés*
-- 4 · [⬜ Une réaction retirée disparaît vraiment de l'écran (2026-09-15)](#-une-réaction-retirée-disparaît-vraiment-de-lécran-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 8 · [⬜ Code de sécurité d'un appareil MLS (phase 7, 2026-09-15)](#-code-de-sécurité-dun-appareil-mls-phase-7-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ Recherche, favoris et galerie d'une conversation chiffrée (2026-09-15)](#-recherche-favoris-et-galerie-dune-conversation-chiffrée-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ Registre d'appareils MLS — inscription à la connexion, KeyPackages, écran (phase 2, 2026-09-15)](#-registre-dappareils-mls--inscription-à-la-connexion-keypackages-écran-phase-2-2026-09-15) · *Chiffrement de bout en bout et clés*
@@ -225,8 +224,8 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [⬜ « Supprimer pour tous » proposé sur le message de l'autre en 1:1 (2026-09-21)](#--supprimer-pour-tous--proposé-sur-le-message-de-lautre-en-11-2026-09-21) · *Messagerie*
 - 6 · [⬜ Le séparateur « N messages non lus » part quand tout est lu (2026-09-17)](#-le-séparateur--n-messages-non-lus--part-quand-tout-est-lu-2026-09-17) · *Messagerie*
 - 3 · [⬜ « Distribué » et « Lu » ne tombent plus à la même seconde (2026-09-16)](#--distribué--et--lu--ne-tombent-plus-à-la-même-seconde-2026-09-16) · *Messagerie*
-- 4 · [⬜ Forme de la bulle qui cite un message (2026-09-16)](#-forme-de-la-bulle-qui-cite-un-message-2026-09-16) · *Messagerie*
-- 6 · [⬜ « Modifier le message » : saisie en ligne, fenêtre de 48 h, motifs dits (2026-09-16)](#--modifier-le-message---saisie-en-ligne-fenêtre-de-48-h-motifs-dits-2026-09-16) · *Messagerie*
+- 3 · [⬜ Forme de la bulle qui cite un message (2026-09-16)](#-forme-de-la-bulle-qui-cite-un-message-2026-09-16) · *Messagerie*
+- 5 · [⬜ « Modifier le message » : saisie en ligne, fenêtre de 48 h, motifs dits (2026-09-16)](#--modifier-le-message---saisie-en-ligne-fenêtre-de-48-h-motifs-dits-2026-09-16) · *Messagerie*
 - 5 · [⬜ Le repère de bascule ne parle plus français à tout le monde (2026-09-15)](#-le-repère-de-bascule-ne-parle-plus-français-à-tout-le-monde-2026-09-15) · *Messagerie*
 - 2 · [⬜ « Sélectionner » sort de « Autres actions » (2026-09-14)](#--sélectionner--sort-de--autres-actions--2026-09-14) · *Messagerie*
 - 2 · [⬜ Sondage dans une discussion privée (2026-09-12)](#-sondage-dans-une-discussion-privée-2026-09-12) · *Messagerie*
@@ -369,9 +368,9 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 10 faites
-- [2. Messagerie](#2-messagerie) — 356 à faire, 158 faites
+- [2. Messagerie](#2-messagerie) — 354 à faire, 160 faites
 - [3. Groupes](#3-groupes) — 149 à faire, 64 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 138 à faire, 51 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 134 à faire, 55 faites
 - [5. Appels](#5-appels) — 26 à faire, 8 faites
 - [6. Notifications et push](#6-notifications-et-push) — 154 à faire, 88 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 43 à faire, 62 faites
@@ -1526,12 +1525,17 @@ golden ne dit pas :
 
 - [ ] **Thème sombre** : l'aplat blanc à 14 % sur le vert `#009600` — détaché
   sans virer au laiteux.
-- [ ] **Échelle de police à 130 %** (réglages Android) : la citation tient sur
+- [x] **Échelle de police à 130 %** (réglages Android) : la citation tient sur
   ses deux lignes, la bulle ne déborde pas. Voir « Échelle de police ».
+  ✅ Passe du 2026-09-22 (suite, ~01:20–01:40), build Play 1.2.2+26 (f22aaff), Pixel 10 Pro XL (Salim, sombre, police 1,3 + gras) : PF1 (reçue, cite « Vous · PE1 ») à la police 1,3 + gras →
+  citation sur deux lignes, bulle entière, rien ne déborde.
 - [ ] **Réponse à une photo, puis à une note vocale** : ces bulles passent par
   le chemin SANS `IntrinsicWidth` — la citation ne s'y étire pas, et rien ne
   doit lever.
 - [ ] **Bulle reçue** portant une citation, en clair et en sombre.
+  ⬜ moitié, Passe du 2026-09-22 (suite, ~01:20–01:40), build Play 1.2.2+26 (f22aaff) : vue en **sombre** sur le Pixel 10 Pro XL (Salim, sombre, police 1,3 + gras) (PF1 : fond gris foncé,
+  filet orange, « Vous » en orange, lisible). En clair, pas de bulle reçue
+  citante dans le 1:1 côté Sim.
 
 ---
 
@@ -1551,7 +1555,7 @@ disparaître. Et chaque échec porte enfin sa cause : avant, coupure réseau,
 refus serveur et échec de la passerelle MLS s'annonçaient tous « Le délai de
 modification est expiré (25 min) ».
 
-- [ ] **Le brouillon survit.** C'est le point à vérifier en premier, parce
+- [x] **Le brouillon survit.** C'est le point à vérifier en premier, parce
   qu'il se perd en silence : écrire un début de message SANS l'envoyer, entrer
   en modification sur un message plus haut, ressortir par la croix — le
   brouillon doit être revenu intact dans le champ. Puis recommencer en
@@ -1559,13 +1563,24 @@ modification est expiré (25 min) ».
   le brouillon qui doit être là, jamais le texte du message modifié. Tenu par
   `test/features/messages/modifier_message_test.dart`, mais le cycle de vie
   réel de l'écran n'est pas celui du banc.
+  ✅ Passe du 2026-09-22 (suite, ~01:20–01:40), build Play 1.2.2+26 (f22aaff), SM A515F (Sim), 1:1 MLS : « BROUILLON22 » tapé sans envoyer, « Modifier »
+  sur PA22ECHEC → le champ prend le texte du message ; sortie par la croix →
+  « BROUILLON22 » revient intact. Puis modification rouverte et **discussion
+  quittée** (deux Retour) ; rouverte depuis la liste → « BROUILLON22 » dans le
+  champ, aucun bandeau de modification.
 - [ ] **Le clavier.** Le bandeau ajoute une ligne au-dessus du composeur :
   vérifier qu'aucun débordement n'apparaît, clavier ouvert, en portrait puis
   en **paysage** — c'est là que le composeur est déjà le plus serré (voir
   « Paysage — overflow quand le chrome dépasse la hauteur »).
+  ⬜ moitié, Passe du 2026-09-22 (suite, ~01:20–01:40), build Play 1.2.2+26 (f22aaff), SM A515F (Sim) : portrait, clavier ouvert → bandeau « Modifier le
+  message / PA22ECHEC » + croix au-dessus du champ, aucun débordement (capture).
+  Paysage non essayé (rotation = réglage système).
 - [ ] **Le bouton.** En modification il doit porter une coche, jamais le micro,
   et un appui long ne doit **pas** lancer un enregistrement vocal. Grisé tant
   que le champ est vide.
+  ⬜ en partie, Passe du 2026-09-22 (suite, ~01:20–01:40), build Play 1.2.2+26 (f22aaff), SM A515F (Sim) : coche bleue à la place du micro (le « + » du
+  composeur disparaît aussi) ; champ vidé → coche **grisée**, non cliquable.
+  Appui long sur la coche non essayé (risque d'enregistrer).
 - [ ] **Message d'hier.** Un message de la veille doit encore se modifier
   (c'était le cas le plus courant refusé par la fenêtre de 25 min). Un message
   de plus de 48 h doit montrer l'entrée **grisée**, avec « Passé 48 h, un
@@ -1575,10 +1590,32 @@ modification est expiré (25 min) ».
   conversation **basculée en MLS**, vérifier qu'une modification aboutit
   réellement — la passerelle passe par un message de contrôle chiffré, et
   l'échec y était particulièrement trompeur.
+  ⬜ moitié, Passe du 2026-09-22 (suite, ~01:20–01:40), build Play 1.2.2+26 (f22aaff) :
+  - ✅ **MLS, en ligne** : PA22ECHEC → « PA22ECHEC MODIF » → une ligne
+    `mls_messages` `kind=control` (01:30:34), l'original porte `edited_at` ; la
+    bulle dit « modifié » chez Sim, et chez Salim (Pixel 10 Pro XL (Salim, sombre, police 1,3 + gras), relance à froid) :
+    « PA22ECHEC MODIF · modifié ».
+  - ⛔ **Réseau coupé (mode avion)** : la bulle prend « MODIF2 » puis revient à
+    « MODIF », le bandeau reste avec le texte (on peut réessayer), mais le
+    message affiché est **« Une erreur inattendue s'est produite. Veuillez
+    réessayer. »** — capturé en rafale, il ne parle pas de connexion. Cause, par
+    le code et `dumpsys connectivity` : en mode avion le tunnel VPN du A515F
+    reste « CONNECTED » (réseau par défaut : none) ; `NetworkInfoImpl.isConnected`
+    compte `ConnectivityResult.vpn` seul comme une connexion, donc la garde
+    `NetworkFailure` d'`editMessage` est sautée, et l'exception réseau de
+    `passerelle.modifier` tombe dans le `catch` générique (`unexpectedError`).
+    Tout utilisateur avec un VPN permanent verra ce message. Non corrigé.
 - [ ] **« Infos » dit quand.** Le panneau d'informations d'un message modifié
   doit afficher « Modifié · <date> », et « Modifié N fois · <date> » au-delà
   d'une modification. Le texte d'avant n'est **pas** conservé : il n'y a pas
   d'historique de versions à attendre là.
+  ⬜ en partie, Passe du 2026-09-22 (suite, ~01:20–01:40), build Play 1.2.2+26 (f22aaff), SM A515F (Sim) : « Infos du message » (sous « Autres actions »,
+  après défilement de la feuille) → « Envoyé · Sep 22, 2026 00:44 » et
+  « Modifié · Sep 22, 2026 01:30 ». La ligne est là, mais ⛔ **la date est en
+  anglais** : `message_info_sheet.dart` (l. 681 et 700) appelle
+  `DateFormat.yMMMd()` sans locale, alors que le reste de l'app écrit
+  « 11 sept. 2026 ». « Modifié N fois » non vu (la 2ᵉ modification a échoué
+  hors ligne).
 
 Fichiers : `lib/features/messages/presentation/widgets/message_input.dart`,
 `message_bubble.dart`, `message_info_sheet.dart`,
@@ -2880,6 +2917,10 @@ Couvert par `test/features/messages/menu_appui_long_selectionner_test.dart`.
   sondage envoyé : « Supprimer » hors écran. La feuille s'arrête sur
   « Sélectionner » (y 2016–2186). Pas d'« Épingler » ni d'« Autres actions »
   dans ce menu MLS. Rien vu à 1,3 (réglage système interdit dans la passe).
+  Passe du 2026-09-22 (suite, ~01:20–01:40), build Play 1.2.2+26 (f22aaff) : même constat sur un message **envoyé** (PA22ECHEC) — Répondre,
+  Modifier, Copier, Transférer à…, Ajouter aux favoris visibles, puis
+  **« Sélectionner » hors écran** : la porte d'entrée que cette entrée devait
+  rendre visible est à nouveau sous le pli pour ses propres messages.
 - [x] **En mode sélection, taper une option de sondage** coche le message
   au lieu de voter — corrigé depuis, voir « En sélection, la bulle ne fait
   plus que cocher ».
@@ -8704,15 +8745,36 @@ Fichiers : [mls_metadonnees.dart](lib/core/crypto/mls/mls_metadonnees.dart)
       conversation. Build neuf installé, discussion rouverte : le badge a
       disparu. C'est exactement le cas que le correctif vise, observé sur une
       donnée réelle et non fabriquée.
-- [ ] **Réagir puis retirer la réaction dans la foulée** : le badge disparaît,
+- [x] **Réagir puis retirer la réaction dans la foulée** : le badge disparaît,
       et `mls_message_reactions` ne porte plus la ligne. Reste à faire — le
       téléphone était tenu par une autre session.
-- [ ] **Étoiler puis retirer** : même chose côté `mls_message_stars`.
-- [ ] **Réagir hors ligne** : le badge ne doit pas rester figé comme un succès
+      ✅ Passe du 2026-09-22 (suite, ~01:20–01:40), build Play 1.2.2+26 (f22aaff), SM A515F (Sim), 1:1 MLS : ❤️ sur PH1 retiré (double tap → ❤️) → badge parti
+      à l'écran, 0 ligne `mls_message_reactions` pour PH1.
+- [x] **Étoiler puis retirer** : même chose côté `mls_message_stars`.
+      ✅ Passe du 2026-09-22 (suite, ~01:20–01:40), build Play 1.2.2+26 (f22aaff), SM A515F (Sim) : PJ1 étoilé puis désétoilé → ligne retirée de
+      `mls_message_stars`, étoile partie de la bulle (PK1 garde la sienne). La LISTE
+      des favoris, elle, ne suivait pas — défaut corrigé le 2026-09-22, voir
+      « Recherche, favoris et galerie d'une conversation chiffrée ».
+- [x] **Réagir hors ligne** : le badge ne doit pas rester figé comme un succès
       une fois la connexion revenue sans que rien n'ait été écrit.
-- [ ] **Couper le réseau sur un fil qui porte des réactions** : elles restent
+      ✅ Passe du 2026-09-22 (suite, ~01:20–01:40), build Play 1.2.2+26 (f22aaff), SM A515F (Sim) : mode avion, 😮 sur PJ2 → badge affiché, puis **retiré seul
+      en moins de 16 s** ; réseau rétabli : aucune ligne écrite après coup. Aucun
+      message n'a été vu à l'écran pour dire l'échec (le badge disparaît sans
+      explication).
+- [x] **Couper le réseau sur un fil qui porte des réactions** : elles restent
       affichées, elles ne s'effacent pas d'un coup. C'est l'autre moitié du
       correctif.
+      ✅ Passe du 2026-09-22 (suite, ~01:20–01:40), build Play 1.2.2+26 (f22aaff), SM A515F (Sim) : mode avion + relance à froid → les réactions restent
+      affichées, rien ne s'efface d'un coup.
+      ⛔ **Mais elles sont PÉRIMÉES** (défaut nouveau) : le fil hors ligne montrait
+      le ❤️ retiré de PH1 une minute plus tôt, et PAS le 👍 posé sur PK1 juste
+      avant. Cause, par le code : réagir et étoiler ne mettent à jour que l'état en
+      mémoire et le serveur — aucun appel `cacheService` dans ces chemins
+      (`message_provider.dart` `toggleReaction`/`toggleStar`,
+      `message_repository_impl.dart`) ; hors ligne, le fil ressert le dernier
+      instantané Hive. Et réseau revenu **discussion restée ouverte**, l'écran est
+      resté faux plus d'une minute ; seule la relance à froid en ligne a remis
+      l'état juste (PH1 sans réaction, 👍 sur PK1). Non corrigé.
 
 ---
 
