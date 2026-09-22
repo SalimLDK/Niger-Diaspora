@@ -2437,8 +2437,8 @@ pose la pastille ÉCO **à droite du bandeau**, sur la même ligne. Le raccourci
   composeur. Sans rapport avec les gestes vocaux (rien n'a été supprimé pendant
   la passe) — vraisemblablement le ménage des données de test. À vérifier : une
   auto-conversation ne devrait pas pouvoir tomber dans l'état « supprimé ».
-- [ ] **font_scale 1.1 avec un texte réel** : les mesures ci-dessus sont à
-  l'échelle 1.0 du banc. Vérifier qu'un vrai message long garde une largeur
+- [ ] **font_scale 1.1 avec un texte réel** : les largeurs du correctif ont été
+  mesurées au banc, à l'échelle 1.0. Vérifier qu'un vrai message long garde une largeur
   confortable sur l'appareil.
 
 - ✔ 6 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Composeur — largeur de la pilule et « + » en clair (2026-08-05) »).
@@ -3461,8 +3461,8 @@ pose le compte plateforme comme `creator_id`, et ajoute la ligne
 - [ ] **Vérification sur appareil demandée par Salim** : dès qu'un vrai
   compte renseigne pour la première fois un pays sans groupe officiel
   existant, confirmer sur cet appareil que le groupe apparaît normalement
-  (nom, « Créé par Diaspo Niger », membre compté) — la transaction annulée
-  ci-dessus prouve la logique SQL, pas le chemin réel `ProfileNotifier` →
+  (nom, « Créé par Diaspo Niger », membre compté) — le rejeu de la RPC en
+  transaction annulée prouve la logique SQL, pas le chemin réel `ProfileNotifier` →
   RPC → écran groupe de bout en bout. Repérable via
   `select id, name, country_code, created_at from groups where is_official
   order by created_at desc;` (un nouveau pays = une ligne de plus).
@@ -5339,7 +5339,7 @@ disparaît entièrement à la déconnexion — elle porte du texte en clair.
   ✅ Passe du 2026-09-22, build Play 1.2.2+26 (f22aaff) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), lanceur Samsung (SM A515F) : « Diaspo Niger, 5 notifications » pour 3 + 2 messages en attente.
 - [ ] **Passer du premier plan à l'arrière-plan en cours de conversation** :
   les messages vus au premier plan figurent encore dans la bannière suivante.
-  Passe du 2026-09-21 (20 h), build Play 1.2.2+26, Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : PK1 reçu discussion affichée, HOME, PK2 reçu → la bannière ne montre QUE PK2 (`number=1`). Contraire à cette case, conforme à « les lus ne reviennent pas » plus haut dans la même entrée : les deux règles se contredisent, à trancher.
+  Passe du 2026-09-21 (20 h), build Play 1.2.2+26, Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : PK1 reçu discussion affichée, HOME, PK2 reçu → la bannière ne montre QUE PK2 (`number=1`). Contraire à cette case, conforme à la case « Ouvrir la conversation, puis recevoir un nouveau message : les lus ne reviennent pas » (vérifiée, archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md)) : les deux règles se contredisent, à trancher.
 - [ ] **Même message poussé deux fois** (couper/rétablir le réseau) : une
   seule ligne dans la bannière.
 - [ ] **Se déconnecter** : plus aucun texte de message dans les préférences
@@ -5710,7 +5710,7 @@ les messages *reçus* (`showTimeInfo = _isLastInGroup || _metaRevealed`).
   Bloqué par le même « Quatrième bug » (même mécanisme de dispatch).
 
 **Quatrième bug, trouvé en testant le tap réel sur « Répondre » (2026-08-14),
-bloquant :** les trois bugs ci-dessus posés et vérifiés (currentUserId,
+bloquant :** les trois bugs précédents corrigés et vérifiés (currentUserId,
 écriture Supabase, boutons visibles), taper « Répondre » ouvre bien le champ
 de saisie inline par-dessus la notification (comportement Android correct,
 confirmé par capture), taper du texte et valider ferme bien ce champ — mais
@@ -6762,7 +6762,8 @@ Ne pas chercher un composeur qui disparaît : il ne disparaîtra pas.
   relance, l'accueil affiche toujours « Complétez votre profil 2/5 » et
   « Ajouter ma ville » — les champs de l'assistant (nom, pays/ville,
   centres d'intérêt) ne semblent pas avoir été enregistrés côté serveur, ce
-  qui est cohérent avec le `PERMISSION_DENIED` ci-dessus. À revérifier une
+  qui est cohérent avec le `PERMISSION_DENIED` que logcat montrait sur
+  l'écriture Firestore `users/{uid}` à l'étape 4/4. À revérifier une
   fois le rejet Firestore corrigé.
 - [ ] **Étape 3/4 « Choisissez-en au moins deux »** : le bouton « Suivant »
   reste actif et laisse passer avec « Aucun sélectionné ». Soit la contrainte
@@ -7416,8 +7417,9 @@ pile continue de sortir en console via `presentError`.
       le texte. Suppose de provoquer une levée à la demande — et celle qu'on
       connaît ne se reproduit pas.
 - [ ] Premier lancement **hors ligne, cache vide** : l'écran doit afficher la
-      liste embarquée, pas un spinner ni une erreur. (Même blocage que
-      ci-dessus.)
+      liste embarquée, pas un spinner ni une erreur. Bloqué par l'attente
+      infinie de l'annuaire hors ligne : voir « Annuaire des ambassades : deux
+      défauts vus sur appareil ».
 - [ ] Aucun débordement sur les libellés les plus longs à **échelle de police
       1.1** (le résumé de la carte consulaire fait trois lignes).
 - [ ] Envoyer une demande, puis vérifier côté back-office que
@@ -7646,7 +7648,8 @@ compte piloté depuis le SQL Supabase, en modifiant `latitude`/`longitude`/
 
 ### ↩️ Compte restauré le 2026-08-05 — à re-préparer avant tout nouveau test
 
-Le maquillage décrit ci-dessous **a été défait** : « Salim L. » est revenu à
+Le compte « Salim L. » avait été maquillé en SQL en membre voisin présent ;
+c'est **défait** : il est revenu à
 `share_location = false`, position `45.5802795 / -73.6459928`,
 `location_updated_at = 2026-08-04 18:32:45+00`, `is_online = false`. Plus
 aucune fausse donnée en base. Pour retester, rejouer la préparation :
@@ -8469,7 +8472,7 @@ depuis `send-push`, donc c'est le client qui construit leur notification).
 - [ ] **Notification de message, app tuée.** C'est le chemin
       `flutter_local_notifications`. Petite icône verte dans la barre d'état
       et filet vert dans le volet. ⚠️ `am force-stop` empêche la livraison FCM
-      — lancer l'app, attendre, puis `KEYCODE_HOME` (cf. méthode plus bas).
+      — lancer l'app, attendre, puis `adb shell input keyevent KEYCODE_HOME`.
 - [ ] **Notification d'un autre type** (demande d'ami, événement…). C'est le
       chemin SDK Firebase, donc la ressource XML. Même vert attendu.
 - [ ] **Canal « general_channel ».** Il n'était pas teinté du tout avant :
@@ -9581,8 +9584,8 @@ ils ouvrent la connexion qui sert à joindre `app-config`.
   alimenté** — impossible de savoir où le nettoyage s'était arrêté.
   Chaque étape est désormais enveloppée par un helper `etape(nom, travail)` qui
   journalise et pousse dans `results.firestore.errors`, puis continue.
-  **À faire** : redéployer `cleanupUserData` **seul** (cf. l'entrée ci-dessus
-  sur les orphelines, et ne jamais `--force`), puis rejouer le scénario à deux
+  **À faire** : redéployer `cleanupUserData` **seul** (les fonctions orphelines
+  ont été réintégrées au dépôt par `a7db115` ; ne jamais `--force`), puis rejouer le scénario à deux
   comptes jetables en forçant l'échec d'une étape intermédiaire — vérifier que
   les étapes suivantes s'exécutent quand même et que l'étape fautive apparaît
   nommée dans les journaux.
