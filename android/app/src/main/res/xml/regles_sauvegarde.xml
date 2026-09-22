@@ -17,11 +17,27 @@
   traite déjà le cas d'une identité neuve (identite_mls_changee) : repartir
   d'une base vide est le comportement JUSTE, pas une perte.
 
-  Le reste de l'app continue d'être sauvegardé.
+  files/medias_dechiffres/ porte, EN CLAIR, chaque photo, audio ou document
+  chiffré déjà affiché (MediaDechiffreCache). Le chiffrement de bout en bout
+  n'a de sens que si ce clair ne quitte pas le téléphone.
+
+  app_flutter/ (domaine root) est le répertoire documents de Flutter : Hive y
+  range ses boîtes, dont le cache des messages (texte clair des messages
+  chiffrés, seule copie lisible d'un message MLS), les aperçus de la liste, la
+  file des messages non envoyés et les anciennes boîtes Signal ; les pièces
+  jointes et podcasts téléchargés y sont aussi. Exclu EN ENTIER plutôt que
+  boîte par boîte : une boîte ajoutée plus tard est exclue d'office. Rien n'y
+  est à restaurer : tout se reconstruit depuis le serveur ou se retélécharge.
+
+  Relevé le 2026-09-21 : seul mls/ était exclu, le clair partait avec le reste.
+
+  Le reste de l'app continue d'être sauvegardé (préférences comprises).
 
   ATTENTION : pas de tiret double dans ce commentaire, XML l'interdit. Le
   build a échoué dessus le 2026-09-15, sur mergeReleaseResources.
 -->
 <full-backup-content>
     <exclude domain="file" path="mls/" />
+    <exclude domain="file" path="medias_dechiffres/" />
+    <exclude domain="root" path="app_flutter/" />
 </full-backup-content>

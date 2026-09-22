@@ -120,6 +120,63 @@ void main() {
     });
   });
 
+  group("le clair des messages ne quitte pas l'appareil non plus", () {
+    // Relevé le 2026-09-21 : seul `mls/` était exclu. Partaient donc dans la
+    // sauvegarde Google et le transfert d'appareil les médias chiffrés déjà
+    // déchiffrés (`files/medias_dechiffres/`, en clair) et le répertoire
+    // documents de Flutter (`app_flutter/`) : cache Hive des messages — seule
+    // copie lisible d'un message MLS —, aperçus, file d'envoi, téléchargements.
+    const exclusions = [
+      '<exclude domain="file" path="medias_dechiffres/" />',
+      '<exclude domain="root" path="app_flutter/" />',
+    ];
+
+    test('la sauvegarde cloud, Android 11 et avant, les exclut', () {
+      final x = _lire(sauvegarde);
+      for (final e in exclusions) {
+        expect(x.contains(e), isTrue, reason: e);
+      }
+    });
+
+    test('Android 12+ les exclut dans les DEUX blocs', () {
+      final x = _lire(extraction);
+      for (final (debut, fin) in [
+        ('<cloud-backup>', '</cloud-backup>'),
+        ('<device-transfer>', '</device-transfer>'),
+      ]) {
+        final bloc = x.substring(x.indexOf(debut), x.indexOf(fin));
+        for (final e in exclusions) {
+          expect(bloc.contains(e), isTrue, reason: '$debut : $e');
+        }
+      }
+    });
+
+    test('les chemins exclus sont bien ceux que le code utilise', () {
+      // `getApplicationSupportDirectory` = `files/` sur Android ;
+      // `getApplicationDocumentsDirectory` = `app_flutter/`, là où
+      // `Hive.initFlutter()` sans sous-dossier range ses boîtes.
+      final cache = _lire('lib/core/services/e2ee/media_dechiffre_cache.dart');
+      expect(cache.contains('getApplicationSupportDirectory()'), isTrue);
+      expect(cache.contains("_dossier = 'medias_dechiffres'"), isTrue);
+
+      final main = _lire('lib/main.dart');
+      expect(main.contains('await Hive.initFlutter();'), isTrue,
+          reason: 'un sous-dossier déplacerait Hive hors de app_flutter/ '
+              'et des règles');
+    });
+
+    test('iOS : les deux dossiers reçoivent le drapeau', () {
+      final cache = _lire('lib/core/services/e2ee/media_dechiffre_cache.dart');
+      expect(cache.contains('exclureDeLaSauvegardeIos(dossier'), isTrue);
+      final main = _lire('lib/main.dart');
+      expect(main.contains("exclureDeLaSauvegardeIos(d, etiquette: 'Hive')"),
+          isTrue);
+      final aide = _lire('lib/core/utils/exclusion_sauvegarde_ios.dart');
+      expect(aide.contains("invokeMethod<bool>('exclureDeLaSauvegarde'"), isTrue);
+      expect(aide.contains('if (!Platform.isIOS) return;'), isTrue);
+    });
+  });
+
   group('iOS : le meme dossier, par un drapeau', () {
     // Android l'obtient par deux fichiers de regles, declaratifs. iOS n'a pas
     // d'equivalent : c'est un drapeau pose sur le dossier a l'execution.

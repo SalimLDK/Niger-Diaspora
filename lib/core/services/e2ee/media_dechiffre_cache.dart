@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../../../features/messages/domain/entities/media_chiffre.dart';
+import '../../utils/exclusion_sauvegarde_ios.dart';
 import 'media_encryption_service.dart';
 
 final mediaDechiffreCacheProvider = Provider<MediaDechiffreCache>((ref) {
@@ -42,6 +43,8 @@ class MediaDechiffreCache {
   /// Un seul déchiffrement en vol par message, même si trois widgets le
   /// demandent en même temps.
   final Map<String, Future<String>> _enVol = {};
+
+  bool _exclusIcloud = false;
 
   static const _dossier = 'medias_dechiffres';
 
@@ -117,6 +120,13 @@ class MediaDechiffreCache {
     final dossier = await _racine();
     if (!await dossier.exists()) {
       await dossier.create(recursive: true);
+    }
+    // Hors de la sauvegarde iCloud — `medias_dechiffres/` l'est des
+    // sauvegardes Android par `regles_sauvegarde.xml`. Une fois par
+    // processus : le drapeau tient sur le dossier, pas sur les fichiers.
+    if (!_exclusIcloud) {
+      _exclusIcloud = true;
+      await exclureDeLaSauvegardeIos(dossier, etiquette: 'Médias déchiffrés');
     }
     final cible = File('${dossier.path}/${nomDeFichier(messageId, media.mimeType)}');
     if (await cible.exists() && await cible.length() > 0) {
