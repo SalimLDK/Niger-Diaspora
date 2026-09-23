@@ -39,13 +39,13 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1268 cases à cocher, 52 cochées** — 283 entrées sur 297 ont encore des cases ouvertes.
+**1265 cases à cocher, 55 cochées** — 283 entrées sur 297 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
 **P0 — avant toute nouvelle version** (47)
 
-- 3 · [⬜ Temps réel après l'arrière-plan, et texte supprimé dans la liste (2026-09-21)](#-temps-réel-après-larrière-plan-et-texte-supprimé-dans-la-liste-2026-09-21) · *Messagerie*
+- 2 · [⬜ Temps réel après l'arrière-plan, et texte supprimé dans la liste (2026-09-21)](#-temps-réel-après-larrière-plan-et-texte-supprimé-dans-la-liste-2026-09-21) · *Messagerie*
 - 5 · [⬜ Droits d'écriture sur `messages` resserrés : accusés et modification (2026-09-16)](#-droits-décriture-sur-messages-resserrés--accusés-et-modification-2026-09-16) · *Messagerie*
 - 7 · [⬜ L'aperçu de la liste dit pourquoi il est vide (2026-09-15)](#-laperçu-de-la-liste-dit-pourquoi-il-est-vide-2026-09-15) · *Messagerie*
 - 2 · [⬜ Un fil chiffré survit au redémarrage de l'application (2026-09-15)](#-un-fil-chiffré-survit-au-redémarrage-de-lapplication-2026-09-15) · *Messagerie*
@@ -105,9 +105,9 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [⬜ Verrou de version minimale et multi-appareil (2026-09-15)](#-verrou-de-version-minimale-et-multi-appareil-2026-09-15) · *Comptes, session et onboarding*
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
-- 3 · [⬜ Présence et appels : la connexion RTDB ne revient pas après l'arrière-plan (SM A515F) (2026-09-22)](#-présence-et-appels--la-connexion-rtdb-ne-revient-pas-après-larrière-plan-sm-a515f-2026-09-22) · *Messagerie*
+- 2 · [⬜ Présence et appels : la connexion RTDB ne revient pas après l'arrière-plan (SM A515F) (2026-09-22)](#-présence-et-appels--la-connexion-rtdb-ne-revient-pas-après-larrière-plan-sm-a515f-2026-09-22) · *Messagerie*
 - 2 · [⬜ Note vocale : l'enregistrement continue sans doigt après la demande de micro (2026-09-22)](#-note-vocale--lenregistrement-continue-sans-doigt-après-la-demande-de-micro-2026-09-22) · *Messagerie*
-- 4 · [⬜ Présence « En ligne » : elle suit enfin l'état réel (2026-09-22)](#-présence--en-ligne---elle-suit-enfin-létat-réel-2026-09-22) · *Messagerie*
+- 3 · [⬜ Présence « En ligne » : elle suit enfin l'état réel (2026-09-22)](#-présence--en-ligne---elle-suit-enfin-létat-réel-2026-09-22) · *Messagerie*
 - 2 · [⬜ Le clair des messages exclu des sauvegardes Google et iCloud (2026-09-21)](#-le-clair-des-messages-exclu-des-sauvegardes-google-et-icloud-2026-09-21) · *Messagerie*
 - 5 · [⬜ Médias déchiffrés effacés du disque : suppression, déconnexion, compte supprimé (2026-09-21)](#-médias-déchiffrés-effacés-du-disque--suppression-déconnexion-compte-supprimé-2026-09-21) · *Messagerie*
 - 4 · [⬜ Message chiffré supprimé pour tous : plus de clair en mémoire ni dans le cache (2026-09-21)](#-message-chiffré-supprimé-pour-tous--plus-de-clair-en-mémoire-ni-dans-le-cache-2026-09-21) · *Messagerie*
@@ -341,7 +341,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 0 faites
-- [2. Messagerie](#2-messagerie) — 296 à faire, 28 faites
+- [2. Messagerie](#2-messagerie) — 293 à faire, 31 faites
 - [3. Groupes](#3-groupes) — 128 à faire, 0 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 121 à faire, 4 faites
 - [5. Appels](#5-appels) — 24 à faire, 1 faites
@@ -473,9 +473,10 @@ SDK rejoue écritures en attente et écouteurs ; `.info/connected` réarme
 Le « hors ligne » de HOME, lui, reste impossible en économiseur (réseau
 coupé) : la fraîcheur de 55 s est le seul filet, c'est voulu.
 
-- [ ] **Économiseur de batterie activé**, 5 min à l'accueil, retour → en
+- [x] **Économiseur de batterie activé**, 5 min à l'accueil, retour → en
       ligne chez l'autre en quelques secondes, et le statut de l'autre est
       à jour (pas « Vu il y a N minutes » figé).
+  ✅ Passe du 2026-09-23 (~00:50–01:12), build 1.2.2+31 (6bcd563, partage interne) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim, ÉCONOMISEUR DE BATTERIE ACTIF) : relance à froid, HOME 5 min → au retour, `presence/<uid>` de Sim repasse `isOnline: true` avec `battement: 20` en ~8 s (le +29 restait bloqué plus de 20 min), et le battement tient (+20 s). Second essai, discussion ouverte des deux côtés, Salim part à l'accueil pendant l'absence de Sim : au retour, Sim voit « Vu il y a environ 4 minutes » (juste) ; Salim revient → Sim voit « En ligne » en 6 s, et le Pixel voit Sim « En ligne ».
 - [ ] **Même parcours, appel entrant** juste après le retour : l'offre
       arrive (la signalisation passe par la même connexion).
 - [ ] **Pas de régression** : un retour rapide (< 30 s) ne coupe rien de
@@ -555,9 +556,10 @@ par minute et par utilisateur au premier plan.
   ✅ Passe du 2026-09-22 (suite, ~22:40–23:05), build 1.2.2+29 (57a24bb) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim) : Pixel à l'accueil (hors ligne), Sim envoie P29 PUSH1 → bannière déchiffrée sur le Pixel, et `presence/<uid>` de Salim reste `isOnline: false` sur 24 s.
 - [ ] **Ancien build** chez A (sans le correctif), nouveau chez B : A en
       ligne reste affiché « En ligne » (ancienne règle, faute de battement).
-- [ ] **« Afficher mon statut en ligne » coupé** chez A : aucun battement,
+- [x] **« Afficher mon statut en ligne » coupé** chez A : aucun battement,
       A reste hors ligne pour tous.
   ⬜ Passe du 2026-09-22 (suite, ~22:40–23:05), build 1.2.2+29 (57a24bb) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim) (A515F) : pas mesurable ce soir — la connexion RTDB de Sim était morte (retour d'arrière-plan en économiseur), aucune écriture ne partait. Et l'écriture du réglage en a été retenue : voir « Temps réel après l'arrière-plan, et texte supprimé dans la liste », case « Statut en ligne ».
+  ✅ Passe du 2026-09-23 (~00:50–01:12), build 1.2.2+31 (6bcd563, partage interne) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim, ÉCONOMISEUR DE BATTERIE ACTIF) (A515F) : statut coupé, app au premier plan → `presence/<uid>` reste `isOnline: false`, `lastSeen` figé, aucun `battement` sur 48 s ; rallumé → en ligne avec `battement: 20` en ~6 s.
 - [x] `presence/<uid>` dans RTDB : `battement` = 20 et `lastSeen` avance
       d'environ 20 s tant que l'app est affichée.
   ✅ Passe du 2026-09-22 (suite, ~22:40–23:05), build 1.2.2+29 (57a24bb) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim) (Pixel) : `battement: 20`, `lastSeen` relevé à 1790131627398, …647392, …667347, …687348 (pendant le test du volet) — +20 s à chaque battement, app affichée. Même chose sur le A515F après une relance à froid.
@@ -845,10 +847,11 @@ dans une piste Play (Tests internes) pour les mettre à jour.*
 - [ ] **Carte « Messages non lus » de l'Accueil** : ouvrir une discussion
   chiffrée depuis une bannière, lire, revenir à l'Accueil → le compte retombe.
   ⬜ moitié, Passe du 2026-09-22 (~21:50–22:35), build 1.2.2+29 (57a24bb, partage interne ; l'app affiche « 1.2.2 +28 », libellé saisi) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS (A515F) : discussion ouverte depuis la LISTE (pas depuis une bannière — le volet du A515F montre des notifications personnelles), 2 non-lus lus, retour → la carte « Messages non lus » disparaît de l'Accueil.
-- [ ] **Statut en ligne** (même livraison, `online_status_provider.dart`) :
+- [x] **Statut en ligne** (même livraison, `online_status_provider.dart`) :
   couper « Afficher mon statut en ligne » dans Réglages, modifier sa bio,
   enregistrer → `show_online_status` reste `false` en base.
   ⛔ Passe du 2026-09-22 (suite, ~22:40–23:05), build 1.2.2+29 (57a24bb) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim) (A515F) : « Afficher mon statut en ligne » coupé → `show_online_status = false` en base ; bio modifiée (« PAbio23 »), Enregistrer → **`show_online_status` de retour à `true`**. Cause : `setValue` n'appelait `appliquerSansEcrire` qu'après `updateOnlineStatusVisibility`, qui attendait l'alignement de présence dans la file RTDB — bloquée derrière la socket morte (voir « Présence et appels : la connexion RTDB ne revient pas après l'arrière-plan (SM A515F) »). Le profil en mémoire gardait `true`, et l'enregistrement réécrit toutes les colonnes. Corrigé : l'alignement n'est plus attendu (`online_status_service.dart`, test dans `presence_fraicheur_test.dart`). À revoir sur le build suivant. Sim remis à « visible ».
+  ✅ Passe du 2026-09-23 (~00:50–01:12), build 1.2.2+31 (6bcd563, partage interne) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim, ÉCONOMISEUR DE BATTERIE ACTIF) (A515F) : statut coupé dans Réglages (`show_online_status = false`), bio « PAbio24 » enregistrée → `show_online_status` reste `false`. Sim remis à « visible » ensuite (`true`, en ligne).
 
 ---
 
