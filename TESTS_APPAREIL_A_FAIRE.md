@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1275 cases à cocher, 45 cochées** — 284 entrées sur 297 ont encore des cases ouvertes.
+**1268 cases à cocher, 52 cochées** — 283 entrées sur 297 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -107,11 +107,11 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
 - 3 · [⬜ Présence et appels : la connexion RTDB ne revient pas après l'arrière-plan (SM A515F) (2026-09-22)](#-présence-et-appels--la-connexion-rtdb-ne-revient-pas-après-larrière-plan-sm-a515f-2026-09-22) · *Messagerie*
 - 2 · [⬜ Note vocale : l'enregistrement continue sans doigt après la demande de micro (2026-09-22)](#-note-vocale--lenregistrement-continue-sans-doigt-après-la-demande-de-micro-2026-09-22) · *Messagerie*
-- 8 · [⬜ Présence « En ligne » : elle suit enfin l'état réel (2026-09-22)](#-présence--en-ligne---elle-suit-enfin-létat-réel-2026-09-22) · *Messagerie*
+- 4 · [⬜ Présence « En ligne » : elle suit enfin l'état réel (2026-09-22)](#-présence--en-ligne---elle-suit-enfin-létat-réel-2026-09-22) · *Messagerie*
 - 2 · [⬜ Le clair des messages exclu des sauvegardes Google et iCloud (2026-09-21)](#-le-clair-des-messages-exclu-des-sauvegardes-google-et-icloud-2026-09-21) · *Messagerie*
 - 5 · [⬜ Médias déchiffrés effacés du disque : suppression, déconnexion, compte supprimé (2026-09-21)](#-médias-déchiffrés-effacés-du-disque--suppression-déconnexion-compte-supprimé-2026-09-21) · *Messagerie*
 - 4 · [⬜ Message chiffré supprimé pour tous : plus de clair en mémoire ni dans le cache (2026-09-21)](#-message-chiffré-supprimé-pour-tous--plus-de-clair-en-mémoire-ni-dans-le-cache-2026-09-21) · *Messagerie*
-- 4 · [⬜ Manquements de la passe du 2026-09-21 : cinq correctifs à voir sur appareil](#-manquements-de-la-passe-du-2026-09-21--cinq-correctifs-à-voir-sur-appareil) · *Messagerie*
+- 2 · [⬜ Manquements de la passe du 2026-09-21 : cinq correctifs à voir sur appareil](#-manquements-de-la-passe-du-2026-09-21--cinq-correctifs-à-voir-sur-appareil) · *Messagerie*
 - 1 · [⬜ La pastille de non-lus retombe en quittant une discussion chiffrée (2026-09-21)](#-la-pastille-de-non-lus-retombe-en-quittant-une-discussion-chiffrée-2026-09-21) · *Messagerie*
 - 3 · [⬜ Les premiers messages reçus restent « Message chiffré » dans la liste (2026-09-21)](#-les-premiers-messages-reçus-restent--message-chiffré--dans-la-liste-2026-09-21) · *Messagerie*
 - 7 · [⬜ Ouvrir une discussion lit ce qui est à l'écran, tout de suite (2026-09-16)](#-ouvrir-une-discussion-lit-ce-qui-est-à-lécran-tout-de-suite-2026-09-16) · *Messagerie*
@@ -207,7 +207,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (90)
+**P2 — fonction secondaire ou cas limite** (89)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -218,7 +218,6 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [Reprise du design (2026-08-03, suite) — Éco, accueil, carte, discussion](#reprise-du-design-2026-08-03-suite--éco-accueil-carte-discussion) · *Design, thème, langue et mise en page* · bloqué
 - 5 · [Bascule design_v2 → production, famille 4 : messagerie, groupes, recherche, profil (2026-08-03)](#bascule-design_v2--production-famille-4--messagerie-groupes-recherche-profil-2026-08-03) · *Design, thème, langue et mise en page*
 - 7 · [⬜ Site web entièrement refait sur cahier des charges (2026-09-08)](#-site-web-entièrement-refait-sur-cahier-des-charges-2026-09-08) · *Site web*
-- 1 · [⬜ « Supprimer pour tous » proposé sur le message de l'autre en 1:1 (2026-09-21)](#--supprimer-pour-tous--proposé-sur-le-message-de-lautre-en-11-2026-09-21) · *Messagerie*
 - 3 · [⬜ Le séparateur « N messages non lus » part quand tout est lu (2026-09-17)](#-le-séparateur--n-messages-non-lus--part-quand-tout-est-lu-2026-09-17) · *Messagerie*
 - 3 · [⬜ « Distribué » et « Lu » ne tombent plus à la même seconde (2026-09-16)](#--distribué--et--lu--ne-tombent-plus-à-la-même-seconde-2026-09-16) · *Messagerie*
 - 1 · [⬜ Forme de la bulle qui cite un message (2026-09-16)](#-forme-de-la-bulle-qui-cite-un-message-2026-09-16) · *Messagerie*
@@ -342,7 +341,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 0 faites
-- [2. Messagerie](#2-messagerie) — 303 à faire, 21 faites
+- [2. Messagerie](#2-messagerie) — 296 à faire, 28 faites
 - [3. Groupes](#3-groupes) — 128 à faire, 0 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 121 à faire, 4 faites
 - [5. Appels](#5-appels) — 24 à faire, 1 faites
@@ -542,21 +541,26 @@ par minute et par utilisateur au premier plan.
 - [ ] **A utilise l'app** plusieurs minutes (écrit, lit, fait défiler) : B
       le voit « En ligne » sans interruption, y compris après une coupure
       réseau brève chez A.
-- [ ] **A passe en arrière-plan** (bouton accueil) : B voit « Vu à l'instant »
+- [x] **A passe en arrière-plan** (bouton accueil) : B voit « Vu à l'instant »
       en quelques secondes, et plus « En ligne » ; A revient : « En ligne ».
       Refaire 3 fois (mesure d'avant : 3 sur 3 restaient ~95 s) en lisant
       `presence/<uid>` : la dernière écriture doit être `isOnline: false`.
   ⛔ Passe du 2026-09-22 (~21:50–22:35), build 1.2.2+29 (57a24bb, partage interne ; l'app affiche « 1.2.2 +28 », libellé saisi) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS (A515F) : **0 sur 3** — `presence/<uid>` relu toutes les ~3 s pendant 40 s après HOME : `isOnline` reste `true`, seul le battement s'arrête (`lastSeen` figé). Le retour, lui, remet en ligne en ~4 s (3 sur 3). Chez le Pixel, Sim passe à « Vu il y a environ une minute » au bout de ~60 s : c'est la fraîcheur (55 s) qui joue, pas l'écriture. Voir aussi « Présence et appels : la connexion RTDB ne revient pas après l'arrière-plan (SM A515F) ».
-- [ ] **Volet de notifications tiré** chez A, app ouverte : A reste
+  ✅ Passe du 2026-09-22 (suite, ~22:40–23:05), build 1.2.2+29 (57a24bb) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim) (Pixel, économiseur COUPÉ) : **3 sur 3** — HOME → `presence/<uid>` lu à `isOnline: false` dès la première lecture (~4 s), `lastSeen` à la seconde du départ. Le ⛔ ci-dessus vient de l'économiseur de batterie du A515F, qui coupe le réseau hors premier plan : voir « Présence et appels : la connexion RTDB ne revient pas après l'arrière-plan (SM A515F) ».
+- [x] **Volet de notifications tiré** chez A, app ouverte : A reste
       « En ligne » (`inactive` n'écrit plus rien).
-- [ ] **Un push réveille l'app de A en arrière-plan** : A ne passe PAS
+  ✅ Passe du 2026-09-22 (suite, ~22:40–23:05), build 1.2.2+29 (57a24bb) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim) (Pixel) : volet tiré 36 s, app ouverte → `isOnline` reste vrai et `lastSeen` avance toujours de 20 s.
+- [x] **Un push réveille l'app de A en arrière-plan** : A ne passe PAS
       « En ligne ».
+  ✅ Passe du 2026-09-22 (suite, ~22:40–23:05), build 1.2.2+29 (57a24bb) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim) : Pixel à l'accueil (hors ligne), Sim envoie P29 PUSH1 → bannière déchiffrée sur le Pixel, et `presence/<uid>` de Salim reste `isOnline: false` sur 24 s.
 - [ ] **Ancien build** chez A (sans le correctif), nouveau chez B : A en
       ligne reste affiché « En ligne » (ancienne règle, faute de battement).
 - [ ] **« Afficher mon statut en ligne » coupé** chez A : aucun battement,
       A reste hors ligne pour tous.
-- [ ] `presence/<uid>` dans RTDB : `battement` = 20 et `lastSeen` avance
+  ⬜ Passe du 2026-09-22 (suite, ~22:40–23:05), build 1.2.2+29 (57a24bb) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim) (A515F) : pas mesurable ce soir — la connexion RTDB de Sim était morte (retour d'arrière-plan en économiseur), aucune écriture ne partait. Et l'écriture du réglage en a été retenue : voir « Temps réel après l'arrière-plan, et texte supprimé dans la liste », case « Statut en ligne ».
+- [x] `presence/<uid>` dans RTDB : `battement` = 20 et `lastSeen` avance
       d'environ 20 s tant que l'app est affichée.
+  ✅ Passe du 2026-09-22 (suite, ~22:40–23:05), build 1.2.2+29 (57a24bb) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim) (Pixel) : `battement: 20`, `lastSeen` relevé à 1790131627398, …647392, …667347, …687348 (pendant le test du volet) — +20 s à chaque battement, app affichée. Même chose sur le A515F après une relance à froid.
 
 ---
 
@@ -735,9 +739,10 @@ et texte supprimé dans la liste »).*
   s'affichent pendant la frappe. Vérifier aussi le retour à la normale en
   changeant d'onglet et en refermant le panneau.
   ✅ Passe du 2026-09-22 (~21:50–22:35), build 1.2.2+29 (57a24bb, partage interne ; l'app affiche « 1.2.2 +28 », libellé saisi) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS (A515F) : GIF › Recherche › « chat » → champ et résultats au-dessus du clavier pendant la frappe ; « Annuler » rend le panneau entier, l'onglet Émojis s'affiche normalement, refermer le panneau rend le clavier. Stickers non recherchés.
-- [ ] **« Aucun émoji récent »** en français, lisible en thème sombre, à la
+- [x] **« Aucun émoji récent »** en français, lisible en thème sombre, à la
   place de « No Recents » (sélecteur d'émojis et de réactions).
   ⬜ moitié, Passe du 2026-09-22 (~21:50–22:35), build 1.2.2+29 (57a24bb, partage interne ; l'app affiche « 1.2.2 +28 », libellé saisi) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS (Pixel, sombre) : sélecteur d'émojis du composeur → « Aucun émoji récent », lisible. Le sélecteur de RÉACTIONS n'a pas été vu (le A515F a déjà des récents).
+  ✅ Passe du 2026-09-22 (suite, ~22:40–23:05), build 1.2.2+29 (57a24bb) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim) (Pixel, sombre) : appui long › « Plus de réactions » › Récents → « Aucun émoji récent » aussi dans le sélecteur de réactions.
 - [x] **Bannière et message supprimé pour tous** (DÉPLOYÉ le 2026-09-21 :
   migration `20260921230000`, send-push v34) : A envoie deux messages, B en
   arrière-plan, A supprime le second pour tous → la bannière de B ne garde
@@ -746,13 +751,15 @@ et texte supprimé dans la liste »).*
   `messageDeleted` pour Salim, push `200 {"sent":1}`, et **aucune bannière
   parasite** sur le Pixel encore en +26 (l'ancien client ignore le signal).
   ✅ Passe du 2026-09-22 (~21:50–22:35), build 1.2.2+29 (57a24bb, partage interne ; l'app affiche « 1.2.2 +28 », libellé saisi) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : Sim en arrière-plan, Salim envoie P29 B1 puis B2 → bannière de Sim à 2 lignes ; B2 supprimé pour tous → la bannière ne garde que B1 (`number=1`), sans re-sonner : `flags=0x18` (ONLY_ALERT_ONCE), `Interruptive=false`, Samsung journalise « Alert once notification » ; B1 supprimé à son tour → plus aucune notification de l'app.
-- [ ] **Édition après lecture** : A corrige un message que B a déjà lu mais
+- [x] **Édition après lecture** : A corrige un message que B a déjà lu mais
   dont la bannière est encore dans le volet → la bannière prend le nouveau
   texte (le garde serveur ne demande plus une notification NON LUE, seulement
   une bannière envoyée depuis 24 h).
   ⬜ moitié, Passe du 2026-09-22 (~21:50–22:35), build 1.2.2+29 (57a24bb, partage interne ; l'app affiche « 1.2.2 +28 », libellé saisi) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : édition AVANT lecture vue — P29 M1 corrigé en « P29 M1X » pendant que sa bannière était posée → la bannière de Sim prend « P29 M1X » en ~5 s. Le cas « déjà lu, bannière encore dans le volet » n'a pas été monté.
+  ✅ Passe du 2026-09-22 (suite, ~22:40–23:05), build 1.2.2+29 (57a24bb) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim) : Salim envoie P29 E1, Sim (en arrière-plan) a sa bannière, ouvre la discussion (`read_at` 22:52:04) et revient à l'accueil — la bannière reste dans le volet ; Salim corrige en « P29 E1X » → la bannière de Sim prend « P29 E1X » en ~6 s.
 - [ ] **Message éphémère expiré** pendant que sa bannière est affichée → sa
   ligne quitte la bannière (même signal, sur ciphertext vidé).
+  ⬜ Passe du 2026-09-22 (suite, ~22:40–23:05), build 1.2.2+29 (57a24bb) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim) : pas faisable ce soir — la durée la plus courte proposée est 24 h.
 - [ ] **Carte, calque « Membres » coupé mais position partagée** : le titre
   dit « Membres masqués sur la carte » et précise que la position reste
   partagée, au lieu de « Mode privé activé ». Position non partagée : le
@@ -784,8 +791,9 @@ et texte supprimé dans la liste »).*
 - [x] **Son propre message de moins d'une heure** : « Supprimer pour tous »
   toujours proposé et efficace.
   ✅ Passe du 2026-09-22 (~21:50–22:35), build 1.2.2+29 (57a24bb, partage interne ; l'app affiche « 1.2.2 +28 », libellé saisi) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS (Pixel) : « Supprimer pour tous » proposé sur P29 B2 et B1 (« Envoyé à l'instant ») ; les deux passent en « Message supprimé » des deux côtés (`is_deleted`, ciphertext vidé).
-- [ ] **Groupe, administrateur** : « Supprimer pour tous » toujours proposé
+- [x] **Groupe, administrateur** : « Supprimer pour tous » toujours proposé
   sur le message d'un membre (modération).
+  ✅ Passe du 2026-09-22 (suite, ~22:40–23:05), build 1.2.2+29 (57a24bb) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim) (Pixel, groupe MLS « Testeurs », Salim admin) : sur « MODO D1 » de Sim (16 h) → « Supprimer pour moi », « Supprimer pour tous », « Signaler ». Le toucher reste sans effet : voir « Groupe chiffré : un administrateur ne peut rien retirer ».
 
 ---
 
@@ -840,6 +848,7 @@ dans une piste Play (Tests internes) pour les mettre à jour.*
 - [ ] **Statut en ligne** (même livraison, `online_status_provider.dart`) :
   couper « Afficher mon statut en ligne » dans Réglages, modifier sa bio,
   enregistrer → `show_online_status` reste `false` en base.
+  ⛔ Passe du 2026-09-22 (suite, ~22:40–23:05), build 1.2.2+29 (57a24bb) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim) (A515F) : « Afficher mon statut en ligne » coupé → `show_online_status = false` en base ; bio modifiée (« PAbio23 »), Enregistrer → **`show_online_status` de retour à `true`**. Cause : `setValue` n'appelait `appliquerSansEcrire` qu'après `updateOnlineStatusVisibility`, qui attendait l'alignement de présence dans la file RTDB — bloquée derrière la socket morte (voir « Présence et appels : la connexion RTDB ne revient pas après l'arrière-plan (SM A515F) »). Le profil en mémoire gardait `true`, et l'enregistrement réécrit toutes les colonnes. Corrigé : l'alignement n'est plus attendu (`online_status_service.dart`, test dans `presence_fraicheur_test.dart`). À revoir sur le build suivant. Sim remis à « visible ».
 
 ---
 

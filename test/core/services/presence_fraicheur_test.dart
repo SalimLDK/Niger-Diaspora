@@ -189,6 +189,19 @@ void main() {
       expect(rebrancher, contains('await _database.goOnline();'));
     });
 
+    test('changer la visibilité n\'attend pas la file RTDB', () {
+      // SM A515F, 2026-09-22 : statut coupé dans Réglages (false en base),
+      // bio enregistrée → show_online_status de retour à true. La file était
+      // bloquée derrière une socket morte : `setValue` attendait
+      // l'alignement de présence et ne reportait jamais la valeur dans le
+      // profil en mémoire, que « Modifier le profil » réécrit en entier.
+      final maj = corps('Future<void> updateOnlineStatusVisibility(');
+      expect(maj, contains('await writeShowOnlineStatus('));
+      expect(maj, contains('unawaited(_alignerPresenceSurVisibilite('));
+      expect(maj, isNot(contains('await _enFile(')));
+      expect(maj, isNot(contains('await _setupPresenceForUser(')));
+    });
+
     test('la préférence en mémoire suit le réglage et s\'oublie à la déconnexion',
         () {
       expect(src, contains('_visibleEnMemoire = showStatus;'));

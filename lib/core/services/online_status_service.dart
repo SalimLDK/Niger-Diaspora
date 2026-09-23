@@ -631,6 +631,20 @@ class OnlineStatusService {
     await writeShowOnlineStatus(_supabase, userId, showStatus);
     _visibleEnMemoire = showStatus;
 
+    // SANS l'attendre. L'alignement passe par la file d'écritures RTDB, qui
+    // peut rester bloquée derrière une socket morte (retour d'arrière-plan en
+    // économiseur de batterie). L'attendre retenait l'appelant, qui ne
+    // reportait donc jamais la valeur dans le profil en mémoire — et le
+    // prochain « Modifier le profil », qui réécrit toutes les colonnes,
+    // remettait `show_online_status` à vrai. Vu le 2026-09-22 sur SM A515F.
+    unawaited(_alignerPresenceSurVisibilite(userId, showStatus));
+  }
+
+  /// Au mieux : la préférence, elle, est déjà enregistrée.
+  Future<void> _alignerPresenceSurVisibilite(
+    String userId,
+    bool showStatus,
+  ) async {
     try {
       if (showStatus) {
         // Re-setup presence tracking
