@@ -372,13 +372,55 @@ class OnlineStatusService {
     if (enLigne == null) return;
     _auPremierPlan = enLigne;
     if (enLigne) {
+      final parti = _partiLe;
+      _partiLe = null;
+      // HORS de la file : le « hors ligne » du départ y attend peut-être
+      // l'accusé d'une socket morte, et n'en sortira qu'une fois rebranché.
+      if (parti != null && doitRebrancher(DateTime.now().difference(parti))) {
+        await _rebrancherRtdb();
+      }
       await _enFile(() => _setOnline(userId));
       // Le réglage a pu changer ailleurs pendant l'absence : relu sans
       // retarder l'écriture qui précède.
       unawaited(_relireVisibilite(userId));
     } else {
+      _partiLe ??= DateTime.now();
       _heartbeatTimer?.cancel();
       await _enFile(() => _setOffline(userId));
+    }
+  }
+
+  // ── Connexion RTDB au retour d'arrière-plan ─────────────────────────────
+  //
+  // Vu le 2026-09-22 sur SM A515F en économiseur de batterie : Android coupe
+  // le réseau de l'app dès qu'elle quitte le premier plan
+  // (`blocked=BATTERY_SAVER, allowed=FOREGROUND|TOP`). Après quelques
+  // minutes, la socket RTDB est morte sans que le SDK le sache, et il ne se
+  // reconnecte pas au retour : plus de 20 min « hors ligne » app ouverte,
+  // les autres figés, la signalisation d'appel muette — jusqu'à ce qu'une
+  // bascule réseau force la reconnexion. Supabase, lui, se rebranchait seul.
+
+  /// Moment du départ en arrière-plan ; nul au premier plan.
+  DateTime? _partiLe;
+
+  /// Absence au-delà de laquelle on rebranche RTDB au retour. En deçà, la
+  /// socket a peu de chances d'être morte, et un rebranchement coûterait
+  /// une resynchronisation de tous les écouteurs pour rien.
+  static const seuilRebranchement = Duration(seconds: 30);
+
+  @visibleForTesting
+  static bool doitRebrancher(Duration absence) =>
+      absence >= seuilRebranchement;
+
+  /// Ferme la connexion RTDB et en rouvre une neuve. Les écritures en
+  /// attente et les écouteurs survivent (le SDK les rejoue) ; le serveur
+  /// exécute `onDisconnect`, que `.info/connected` réarme au retour.
+  Future<void> _rebrancherRtdb() async {
+    try {
+      await _database.goOffline();
+      await _database.goOnline();
+    } catch (e) {
+      debugPrint('OnlineStatusService: rebranchement RTDB échoué ($e)');
     }
   }
 

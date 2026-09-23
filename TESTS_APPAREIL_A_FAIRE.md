@@ -465,6 +465,15 @@ ne part jamais (0 sur 3, voir « Présence « En ligne » : elle suit enfin
 l'état réel ») ; et la socket RTDB meurt sans que le SDK le voie, qui ne se
 reconnecte pas au retour. Le Pixel (économiseur coupé) n'a rien montré.
 
+Corrigé (`online_status_service.dart`) : au retour au premier plan après
+plus de 30 s d'absence, la connexion RTDB est rebranchée (`goOffline` puis
+`goOnline`) **avant** le passage en ligne, et hors de la file d'écritures —
+le « hors ligne » du départ peut y attendre l'accusé de la socket morte. Le
+SDK rejoue écritures en attente et écouteurs ; `.info/connected` réarme
+`onDisconnect`. Tenu par `test/core/services/presence_fraicheur_test.dart`.
+Le « hors ligne » de HOME, lui, reste impossible en économiseur (réseau
+coupé) : la fraîcheur de 55 s est le seul filet, c'est voulu.
+
 - [ ] **Économiseur de batterie activé**, 5 min à l'accueil, retour → en
       ligne chez l'autre en quelques secondes, et le statut de l'autre est
       à jour (pas « Vu il y a N minutes » figé).

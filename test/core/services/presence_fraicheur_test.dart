@@ -155,6 +155,40 @@ void main() {
       expect(horsLigne, isNot(contains('await _persistStatus(')));
     });
 
+    test('un retour après plus de 30 s rebranche RTDB ; un retour rapide non',
+        () {
+      // SM A515F en économiseur de batterie, 2026-09-22 : réseau coupé hors
+      // premier plan, socket RTDB morte au retour, plus de 20 min « hors
+      // ligne » app ouverte.
+      expect(OnlineStatusService.doitRebrancher(const Duration(seconds: 5)),
+          isFalse);
+      expect(OnlineStatusService.doitRebrancher(const Duration(seconds: 29)),
+          isFalse);
+      expect(OnlineStatusService.doitRebrancher(const Duration(seconds: 30)),
+          isTrue);
+      expect(OnlineStatusService.doitRebrancher(const Duration(minutes: 4)),
+          isTrue);
+    });
+
+    test('le rebranchement se fait HORS de la file, avant le passage en ligne',
+        () {
+      // Le « hors ligne » du départ attend peut-être dans la file l'accusé
+      // d'une socket morte : mis dans la file, le rebranchement ne
+      // partirait jamais.
+      final debut = src.indexOf('void _handleLifecycleStateChange(');
+      final cycle = src.substring(debut, src.indexOf('Future<void> _relireVisibilite('));
+      expect(cycle, contains('await _rebrancherRtdb();'));
+      expect(cycle, isNot(contains('_enFile(_rebrancherRtdb')));
+      expect(cycle, isNot(contains('_enFile(() => _rebrancherRtdb')));
+      expect(cycle.indexOf('await _rebrancherRtdb();'),
+          lessThan(cycle.indexOf('_enFile(() => _setOnline(userId))')));
+      expect(cycle, contains('_partiLe ??= DateTime.now();'));
+
+      final rebrancher = corps('Future<void> _rebrancherRtdb()');
+      expect(rebrancher, contains('await _database.goOffline();'));
+      expect(rebrancher, contains('await _database.goOnline();'));
+    });
+
     test('la préférence en mémoire suit le réglage et s\'oublie à la déconnexion',
         () {
       expect(src, contains('_visibleEnMemoire = showStatus;'));
