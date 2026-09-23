@@ -39,13 +39,13 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1290 cases à cocher, 27 cochées** — 284 entrées sur 296 ont encore des cases ouvertes.
+**1275 cases à cocher, 45 cochées** — 284 entrées sur 297 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
 **P0 — avant toute nouvelle version** (47)
 
-- 10 · [⬜ Temps réel après l'arrière-plan, et texte supprimé dans la liste (2026-09-21)](#-temps-réel-après-larrière-plan-et-texte-supprimé-dans-la-liste-2026-09-21) · *Messagerie*
+- 3 · [⬜ Temps réel après l'arrière-plan, et texte supprimé dans la liste (2026-09-21)](#-temps-réel-après-larrière-plan-et-texte-supprimé-dans-la-liste-2026-09-21) · *Messagerie*
 - 5 · [⬜ Droits d'écriture sur `messages` resserrés : accusés et modification (2026-09-16)](#-droits-décriture-sur-messages-resserrés--accusés-et-modification-2026-09-16) · *Messagerie*
 - 7 · [⬜ L'aperçu de la liste dit pourquoi il est vide (2026-09-15)](#-laperçu-de-la-liste-dit-pourquoi-il-est-vide-2026-09-15) · *Messagerie*
 - 2 · [⬜ Un fil chiffré survit au redémarrage de l'application (2026-09-15)](#-un-fil-chiffré-survit-au-redémarrage-de-lapplication-2026-09-15) · *Messagerie*
@@ -93,7 +93,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 6 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (110)
+**P1 — fonction importante, jamais vérifiée** (111)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -105,13 +105,14 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [⬜ Verrou de version minimale et multi-appareil (2026-09-15)](#-verrou-de-version-minimale-et-multi-appareil-2026-09-15) · *Comptes, session et onboarding*
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
+- 3 · [⬜ Présence et appels : la connexion RTDB ne revient pas après l'arrière-plan (SM A515F) (2026-09-22)](#-présence-et-appels--la-connexion-rtdb-ne-revient-pas-après-larrière-plan-sm-a515f-2026-09-22) · *Messagerie*
 - 2 · [⬜ Note vocale : l'enregistrement continue sans doigt après la demande de micro (2026-09-22)](#-note-vocale--lenregistrement-continue-sans-doigt-après-la-demande-de-micro-2026-09-22) · *Messagerie*
 - 8 · [⬜ Présence « En ligne » : elle suit enfin l'état réel (2026-09-22)](#-présence--en-ligne---elle-suit-enfin-létat-réel-2026-09-22) · *Messagerie*
-- 3 · [⬜ Le clair des messages exclu des sauvegardes Google et iCloud (2026-09-21)](#-le-clair-des-messages-exclu-des-sauvegardes-google-et-icloud-2026-09-21) · *Messagerie*
+- 2 · [⬜ Le clair des messages exclu des sauvegardes Google et iCloud (2026-09-21)](#-le-clair-des-messages-exclu-des-sauvegardes-google-et-icloud-2026-09-21) · *Messagerie*
 - 5 · [⬜ Médias déchiffrés effacés du disque : suppression, déconnexion, compte supprimé (2026-09-21)](#-médias-déchiffrés-effacés-du-disque--suppression-déconnexion-compte-supprimé-2026-09-21) · *Messagerie*
 - 4 · [⬜ Message chiffré supprimé pour tous : plus de clair en mémoire ni dans le cache (2026-09-21)](#-message-chiffré-supprimé-pour-tous--plus-de-clair-en-mémoire-ni-dans-le-cache-2026-09-21) · *Messagerie*
-- 9 · [⬜ Manquements de la passe du 2026-09-21 : cinq correctifs à voir sur appareil](#-manquements-de-la-passe-du-2026-09-21--cinq-correctifs-à-voir-sur-appareil) · *Messagerie*
-- 2 · [⬜ La pastille de non-lus retombe en quittant une discussion chiffrée (2026-09-21)](#-la-pastille-de-non-lus-retombe-en-quittant-une-discussion-chiffrée-2026-09-21) · *Messagerie*
+- 4 · [⬜ Manquements de la passe du 2026-09-21 : cinq correctifs à voir sur appareil](#-manquements-de-la-passe-du-2026-09-21--cinq-correctifs-à-voir-sur-appareil) · *Messagerie*
+- 1 · [⬜ La pastille de non-lus retombe en quittant une discussion chiffrée (2026-09-21)](#-la-pastille-de-non-lus-retombe-en-quittant-une-discussion-chiffrée-2026-09-21) · *Messagerie*
 - 3 · [⬜ Les premiers messages reçus restent « Message chiffré » dans la liste (2026-09-21)](#-les-premiers-messages-reçus-restent--message-chiffré--dans-la-liste-2026-09-21) · *Messagerie*
 - 7 · [⬜ Ouvrir une discussion lit ce qui est à l'écran, tout de suite (2026-09-16)](#-ouvrir-une-discussion-lit-ce-qui-est-à-lécran-tout-de-suite-2026-09-16) · *Messagerie*
 - 6 · [⬜ Lecture par curseur dans les discussions en clair (2026-09-16)](#-lecture-par-curseur-dans-les-discussions-en-clair-2026-09-16) · *Messagerie*
@@ -217,7 +218,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [Reprise du design (2026-08-03, suite) — Éco, accueil, carte, discussion](#reprise-du-design-2026-08-03-suite--éco-accueil-carte-discussion) · *Design, thème, langue et mise en page* · bloqué
 - 5 · [Bascule design_v2 → production, famille 4 : messagerie, groupes, recherche, profil (2026-08-03)](#bascule-design_v2--production-famille-4--messagerie-groupes-recherche-profil-2026-08-03) · *Design, thème, langue et mise en page*
 - 7 · [⬜ Site web entièrement refait sur cahier des charges (2026-09-08)](#-site-web-entièrement-refait-sur-cahier-des-charges-2026-09-08) · *Site web*
-- 3 · [⬜ « Supprimer pour tous » proposé sur le message de l'autre en 1:1 (2026-09-21)](#--supprimer-pour-tous--proposé-sur-le-message-de-lautre-en-11-2026-09-21) · *Messagerie*
+- 1 · [⬜ « Supprimer pour tous » proposé sur le message de l'autre en 1:1 (2026-09-21)](#--supprimer-pour-tous--proposé-sur-le-message-de-lautre-en-11-2026-09-21) · *Messagerie*
 - 3 · [⬜ Le séparateur « N messages non lus » part quand tout est lu (2026-09-17)](#-le-séparateur--n-messages-non-lus--part-quand-tout-est-lu-2026-09-17) · *Messagerie*
 - 3 · [⬜ « Distribué » et « Lu » ne tombent plus à la même seconde (2026-09-16)](#--distribué--et--lu--ne-tombent-plus-à-la-même-seconde-2026-09-16) · *Messagerie*
 - 1 · [⬜ Forme de la bulle qui cite un message (2026-09-16)](#-forme-de-la-bulle-qui-cite-un-message-2026-09-16) · *Messagerie*
@@ -299,7 +300,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [✅ Bulle de chargement d'une vidéo pendant l'upload (2026-08-30)](#-bulle-de-chargement-dune-vidéo-pendant-lupload-2026-08-30) · *Messagerie*
 - 21 · [Refonte Fil & Discussion — Priorité basse — cosmétique, faible risque](#refonte-fil--discussion--priorité-basse--cosmétique-faible-risque) · *Fil, stories, salons audio et podcasts*
 
-**P3 — confort, cosmétique, fonction en pause** (37)
+**P3 — confort, cosmétique, fonction en pause** (36)
 
 - 3 · [⬜ Polices embarquées : plus de téléchargement au premier affichage (2026-09-11)](#-polices-embarquées--plus-de-téléchargement-au-premier-affichage-2026-09-11) · *Design, thème, langue et mise en page* · bloqué
 - 2 · [⬜ Icône du lanceur repeinte en vert (2026-09-07)](#-icône-du-lanceur-repeinte-en-vert-2026-09-07) · *Design, thème, langue et mise en page*
@@ -312,7 +313,6 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⬜ Écran de démarrage repeint en vert (2026-09-07)](#-écran-de-démarrage-repeint-en-vert-2026-09-07) · *Design, thème, langue et mise en page*
 - 5 · [Guide de style — alignement des jetons (2026-08-03)](#guide-de-style--alignement-des-jetons-2026-08-03) · *Design, thème, langue et mise en page*
 - 3 · [⬜ Les ~920 `debugPrint` restants neutralisés en release (2026-09-09)](#-les-920-debugprint-restants-neutralisés-en-release-2026-09-09) · *Backend, sécurité et observabilité* · bloqué
-- 2 · [⬜ Sélecteur de GIF : la recherche se tape à l'aveugle (2026-09-22)](#-sélecteur-de-gif--la-recherche-se-tape-à-laveugle-2026-09-22) · *Messagerie*
 - 2 · [⬜ Fiches de partage : libellés sur une ligne, vrais logos, bouton (2026-09-20)](#-fiches-de-partage--libellés-sur-une-ligne-vrais-logos-bouton-2026-09-20) · *Messagerie*
 - 6 · [⬜ Squelette de chargement de la messagerie (2026-09-15)](#-squelette-de-chargement-de-la-messagerie-2026-09-15) · *Messagerie*
 - 7 · [⬜ Une couleur par pièce jointe dans le « + » (2026-09-14)](#-une-couleur-par-pièce-jointe-dans-le----2026-09-14) · *Messagerie*
@@ -342,7 +342,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 0 faites
-- [2. Messagerie](#2-messagerie) — 318 à faire, 3 faites
+- [2. Messagerie](#2-messagerie) — 303 à faire, 21 faites
 - [3. Groupes](#3-groupes) — 128 à faire, 0 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 121 à faire, 4 faites
 - [5. Appels](#5-appels) — 24 à faire, 1 faites
@@ -446,6 +446,35 @@ Discussions : bulles, composeur, médias, épingles, réactions, accusés, reche
 
 ---
 
+## ⬜ Présence et appels : la connexion RTDB ne revient pas après l'arrière-plan (SM A515F) (2026-09-22)
+
+**Priorité P1** · importance 4/5 — après quelques minutes en arrière-plan, un téléphone en économiseur de batterie revient dans l'app avec une connexion Realtime Database morte : il reste « hors ligne » pour tout le monde en utilisant l'app, voit les autres figés (« Vu il y a 21 minutes » pour un compte en ligne), et la signalisation des appels, qui passe par la même connexion, est muette.
+
+Vu le 2026-09-22 (build 1.2.2+29, `57a24bb`) sur SM A515F (Sim), deux fois
+sur ~6 retours : après 3-4 min à l'accueil, retour dans la discussion →
+`presence/<uid>` reste `{isOnline: false}` sans `battement` pendant plus de
+20 min, app au premier plan ; le Pixel voit « Vu il y a environ 21 minutes ».
+Les messages (Supabase) arrivent pourtant en direct. Seules une bascule
+mode avion ↔ réseau ou une relance à froid rétablissent la présence.
+
+Cause côté appareil : **économiseur de batterie actif** (`settings get
+global low_power` = 1). `dumpsys netpolicy` pour l'app :
+`blocked=BATTERY_SAVER, allowed=FOREGROUND|TOP` — le réseau est coupé dès
+que l'app quitte le premier plan. Conséquences : le « hors ligne » de HOME
+ne part jamais (0 sur 3, voir « Présence « En ligne » : elle suit enfin
+l'état réel ») ; et la socket RTDB meurt sans que le SDK le voie, qui ne se
+reconnecte pas au retour. Le Pixel (économiseur coupé) n'a rien montré.
+
+- [ ] **Économiseur de batterie activé**, 5 min à l'accueil, retour → en
+      ligne chez l'autre en quelques secondes, et le statut de l'autre est
+      à jour (pas « Vu il y a N minutes » figé).
+- [ ] **Même parcours, appel entrant** juste après le retour : l'offre
+      arrive (la signalisation passe par la même connexion).
+- [ ] **Pas de régression** : un retour rapide (< 30 s) ne coupe rien de
+      visible ; un appel en cours ne tombe pas au retour de l'arrière-plan.
+
+---
+
 ## ⬜ Note vocale : l'enregistrement continue sans doigt après la demande de micro (2026-09-22)
 
 **Priorité P1** · importance 4/5 — La toute première note vocale fait démarrer un enregistrement qu'on ne peut plus arrêter : le micro reste ouvert, doigt levé.
@@ -463,8 +492,10 @@ Vu sur le Pixel (build +26) le 2026-09-22, permission micro jamais accordée : a
 
 Vu sur le Pixel le 2026-09-22 : « Recherche » ouvre le clavier, qui prend la place du panneau GIF (champ de recherche invisible) ; le texte et les résultats n'apparaissent qu'une fois le clavier fermé. Et l'onglet Émojis vide dit « No Recents », en anglais.
 
-- [ ] Le champ de recherche reste visible au-dessus du clavier pendant la frappe.
-- [ ] « No Recents » traduit.
+- [x] Le champ de recherche reste visible au-dessus du clavier pendant la frappe.
+  ✅ Passe du 2026-09-22 (~21:50–22:35), build 1.2.2+29 (57a24bb, partage interne ; l'app affiche « 1.2.2 +28 », libellé saisi) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS (A515F) : « chat » tapé, champ et grille de résultats visibles au-dessus du clavier pendant la frappe. Voir « Manquements de la passe du 2026-09-21 : cinq correctifs à voir sur appareil ».
+- [x] « No Recents » traduit.
+  ✅ Passe du 2026-09-22 (~21:50–22:35), build 1.2.2+29 (57a24bb, partage interne ; l'app affiche « 1.2.2 +28 », libellé saisi) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS (Pixel, sombre) : onglet Émojis › Récents → « Aucun émoji récent », lisible.
 
 ---
 
@@ -506,6 +537,7 @@ par minute et par utilisateur au premier plan.
       en quelques secondes, et plus « En ligne » ; A revient : « En ligne ».
       Refaire 3 fois (mesure d'avant : 3 sur 3 restaient ~95 s) en lisant
       `presence/<uid>` : la dernière écriture doit être `isOnline: false`.
+  ⛔ Passe du 2026-09-22 (~21:50–22:35), build 1.2.2+29 (57a24bb, partage interne ; l'app affiche « 1.2.2 +28 », libellé saisi) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS (A515F) : **0 sur 3** — `presence/<uid>` relu toutes les ~3 s pendant 40 s après HOME : `isOnline` reste `true`, seul le battement s'arrête (`lastSeen` figé). Le retour, lui, remet en ligne en ~4 s (3 sur 3). Chez le Pixel, Sim passe à « Vu il y a environ une minute » au bout de ~60 s : c'est la fraîcheur (55 s) qui joue, pas l'écriture. Voir aussi « Présence et appels : la connexion RTDB ne revient pas après l'arrière-plan (SM A515F) ».
 - [ ] **Volet de notifications tiré** chez A, app ouverte : A reste
       « En ligne » (`inactive` n'écrit plus rien).
 - [ ] **Un push réveille l'app de A en arrière-plan** : A ne passe PAS
@@ -542,10 +574,11 @@ messages MLS d'avant la restauration, dont le clair n'existait que dans ce
 cache, n'étaient de toute façon pas relisibles (la base MLS était déjà
 exclue).
 
-- [ ] **Le build passe** : `flutter build appbundle --release` va jusqu'au
+- [x] **Le build passe** : `flutter build appbundle --release` va jusqu'au
   bout — `aapt2` refuse un XML de règles invalide à
   `:app:mergeReleaseResources` (7 min perdues le 2026-09-15 sur un tiret
   double).
+  ✅ 2026-09-22 : `flutter build appbundle --release` jusqu'au bout, deux fois (+28 à 20:41, +29 à 20:49, 57a24bb) — `:app:mergeReleaseResources` accepte les règles.
 - [ ] **Restauration** (téléphone de test, pas le Pixel) : sauvegarde Google
   puis restauration sur un appareil remis à zéro → l'app démarre, se
   reconnecte, les discussions se rechargent ; aucun plantage sur un cache
@@ -673,41 +706,49 @@ corrigés dans le code, jamais vus tourner.
 *Bloqué : build Play à mettre à jour (voir « Temps réel après l'arrière-plan,
 et texte supprimé dans la liste »).*
 
-- [ ] **« Lu » et réactions en direct côté expéditeur (MLS)** : A écrit, B
+- [x] **« Lu » et réactions en direct côté expéditeur (MLS)** : A écrit, B
   lit → la coche de A passe à « Lu » en quelques secondes, discussion
   ouverte, sans rouvrir. Même chose pour une réaction de B. Le canal `mls_new`
   écoute désormais `mls_message_receipts` et `mls_message_reactions`. Limite :
   un retrait de réaction ne se voit qu'au rafraîchissement suivant.
-- [ ] **Sourdine dans le menu de la discussion** : pendant la sourdine, le
+  ✅ Passe du 2026-09-22 (~21:50–22:35), build 1.2.2+29 (57a24bb, partage interne ; l'app affiche « 1.2.2 +28 », libellé saisi) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : Salim envoie P29 LU1, Sim ouvre la discussion → la coche du Pixel passe à « Lu » en ~10 s, discussion ouverte, sans rouvrir. Sim réagit 👍 → la réaction paraît sous la bulle du Pixel en ~6 s. Retrait de réaction non testé.
+- [x] **Sourdine dans le menu de la discussion** : pendant la sourdine, le
   menu dit « Réactiver les notifications » et la lève (`isMuted` n'était
   jamais passé au menu ; test `menu_options_porte_son_etat_test.dart`).
-- [ ] **Réglages › Notifications › Aperçu des messages** : l'interrupteur
+  ✅ Passe du 2026-09-22 (~21:50–22:35), build 1.2.2+29 (57a24bb, partage interne ; l'app affiche « 1.2.2 +28 », libellé saisi) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS (A515F) : sourdine 1 h → le menu dit « Réactiver les notifications » ; message reçu app en arrière-plan → aucune bannière ; « Réactiver » → le menu redit « Mettre en sourdine ».
+- [x] **Réglages › Notifications › Aperçu des messages** : l'interrupteur
   existe ; le couper → la bannière suivante dit « Nouveau message » sans le
   texte (colonne `show_message_preview`, lue par send-push) ; le rallumer →
   texte de retour. Tests dans `notification_type_prefs_test.dart`.
-- [ ] **Recherche GIF / stickers / émojis** : « Recherche » garde le panneau
+  ✅ Passe du 2026-09-22 (~21:50–22:35), build 1.2.2+29 (57a24bb, partage interne ; l'app affiche « 1.2.2 +28 », libellé saisi) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS (A515F) : l'interrupteur existe (Réglages › Notifications) ; coupé → `users.show_message_preview = false`, bannière suivante « 🔒 Nouveau message · 22:16 » sans le texte ; rallumé → `true`, bannière « P29 AP2 · 22:16 ».
+- [x] **Recherche GIF / stickers / émojis** : « Recherche » garde le panneau
   AU-DESSUS du clavier (240 dp) — le champ reste visible, les résultats
   s'affichent pendant la frappe. Vérifier aussi le retour à la normale en
   changeant d'onglet et en refermant le panneau.
+  ✅ Passe du 2026-09-22 (~21:50–22:35), build 1.2.2+29 (57a24bb, partage interne ; l'app affiche « 1.2.2 +28 », libellé saisi) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS (A515F) : GIF › Recherche › « chat » → champ et résultats au-dessus du clavier pendant la frappe ; « Annuler » rend le panneau entier, l'onglet Émojis s'affiche normalement, refermer le panneau rend le clavier. Stickers non recherchés.
 - [ ] **« Aucun émoji récent »** en français, lisible en thème sombre, à la
   place de « No Recents » (sélecteur d'émojis et de réactions).
-- [ ] **Bannière et message supprimé pour tous** (DÉPLOYÉ le 2026-09-21 :
+  ⬜ moitié, Passe du 2026-09-22 (~21:50–22:35), build 1.2.2+29 (57a24bb, partage interne ; l'app affiche « 1.2.2 +28 », libellé saisi) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS (Pixel, sombre) : sélecteur d'émojis du composeur → « Aucun émoji récent », lisible. Le sélecteur de RÉACTIONS n'a pas été vu (le A515F a déjà des récents).
+- [x] **Bannière et message supprimé pour tous** (DÉPLOYÉ le 2026-09-21 :
   migration `20260921230000`, send-push v34) : A envoie deux messages, B en
   arrière-plan, A supprime le second pour tous → la bannière de B ne garde
   que le premier, SANS re-sonner ; supprimer les deux → la bannière
   disparaît. Côté serveur déjà vérifié en réel : suppression de PL1 → ligne
   `messageDeleted` pour Salim, push `200 {"sent":1}`, et **aucune bannière
   parasite** sur le Pixel encore en +26 (l'ancien client ignore le signal).
+  ✅ Passe du 2026-09-22 (~21:50–22:35), build 1.2.2+29 (57a24bb, partage interne ; l'app affiche « 1.2.2 +28 », libellé saisi) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : Sim en arrière-plan, Salim envoie P29 B1 puis B2 → bannière de Sim à 2 lignes ; B2 supprimé pour tous → la bannière ne garde que B1 (`number=1`), sans re-sonner : `flags=0x18` (ONLY_ALERT_ONCE), `Interruptive=false`, Samsung journalise « Alert once notification » ; B1 supprimé à son tour → plus aucune notification de l'app.
 - [ ] **Édition après lecture** : A corrige un message que B a déjà lu mais
   dont la bannière est encore dans le volet → la bannière prend le nouveau
   texte (le garde serveur ne demande plus une notification NON LUE, seulement
   une bannière envoyée depuis 24 h).
+  ⬜ moitié, Passe du 2026-09-22 (~21:50–22:35), build 1.2.2+29 (57a24bb, partage interne ; l'app affiche « 1.2.2 +28 », libellé saisi) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : édition AVANT lecture vue — P29 M1 corrigé en « P29 M1X » pendant que sa bannière était posée → la bannière de Sim prend « P29 M1X » en ~5 s. Le cas « déjà lu, bannière encore dans le volet » n'a pas été monté.
 - [ ] **Message éphémère expiré** pendant que sa bannière est affichée → sa
   ligne quitte la bannière (même signal, sur ciphertext vidé).
 - [ ] **Carte, calque « Membres » coupé mais position partagée** : le titre
   dit « Membres masqués sur la carte » et précise que la position reste
   partagée, au lieu de « Mode privé activé ». Position non partagée : le
   libellé d'avant.
+  ⬜ moitié, Passe du 2026-09-22 (~21:50–22:35), build 1.2.2+29 (57a24bb, partage interne ; l'app affiche « 1.2.2 +28 », libellé saisi) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS (A515F, clair) : calque « Membres » coupé, position partagée → « Membres masqués sur la carte » + « Votre position reste partagée avec les membres. Pour la cacher, coupez « Ma localisation »… ». « ACTIVER » rétablit le calque. Le cas « position non partagée » n'a pas été vu (réglage laissé intact).
 
 ---
 
@@ -728,10 +769,12 @@ désormais « Ce message n'a pas pu être supprimé pour tout le monde. »
 *Bloqué : build Play à mettre à jour (voir « Temps réel après l'arrière-plan,
 et texte supprimé dans la liste »).*
 
-- [ ] **1:1, message de l'autre** : la boîte de suppression ne propose plus
+- [x] **1:1, message de l'autre** : la boîte de suppression ne propose plus
   que « Supprimer pour moi ».
-- [ ] **Son propre message de moins d'une heure** : « Supprimer pour tous »
+  ✅ Passe du 2026-09-22 (~21:50–22:35), build 1.2.2+29 (57a24bb, partage interne ; l'app affiche « 1.2.2 +28 », libellé saisi) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS (A515F) : appui long sur P29 LU1 (de Salim) › Supprimer → seuls « Supprimer pour moi » et « Signaler le message ».
+- [x] **Son propre message de moins d'une heure** : « Supprimer pour tous »
   toujours proposé et efficace.
+  ✅ Passe du 2026-09-22 (~21:50–22:35), build 1.2.2+29 (57a24bb, partage interne ; l'app affiche « 1.2.2 +28 », libellé saisi) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS (Pixel) : « Supprimer pour tous » proposé sur P29 B2 et B1 (« Envoyé à l'instant ») ; les deux passent en « Message supprimé » des deux côtés (`is_deleted`, ciphertext vidé).
 - [ ] **Groupe, administrateur** : « Supprimer pour tous » toujours proposé
   sur le message d'un membre (modération).
 
@@ -753,20 +796,26 @@ dans une piste Play (Tests internes) pour les mettre à jour.*
   autre app), revenir sur une discussion chiffrée ouverte ; l'autre téléphone
   envoie → le message arrive **en direct**, sans relancer. La liste suit
   aussi.
-- [ ] **HOME court, discussion affichée** : recevoir un message pendant
+- [x] **HOME court, discussion affichée** : recevoir un message pendant
   l'absence, revenir → il est **dans le fil** et marqué lu, sans rouvrir.
-- [ ] **Pas de doublon** après le rattrapage (le fil dédoublonne par id).
-- [ ] **Supprimer pour tous son dernier message chiffré** → la tuile de
+  ✅ Passe du 2026-09-22 (~21:50–22:35), build 1.2.2+29 (57a24bb, partage interne ; l'app affiche « 1.2.2 +28 », libellé saisi) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS (A515F) : discussion affichée, HOME, Salim envoie P29 H1, retour ~6 s plus tard → H1 dans le fil sans rouvrir, lu (`read_at` 21:59:20, « Lu » chez le Pixel).
+- [x] **Pas de doublon** après le rattrapage (le fil dédoublonne par id).
+  ✅ Passe du 2026-09-22 (~21:50–22:35), build 1.2.2+29 (57a24bb, partage interne ; l'app affiche « 1.2.2 +28 », libellé saisi) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS : un seul P29 H1 dans le fil après le rattrapage.
+- [x] **Supprimer pour tous son dernier message chiffré** → la tuile de
   l'expéditeur dit « Message supprimé » **tout de suite**, sans relance.
-- [ ] **Modifier son dernier message chiffré** → la tuile prend le nouveau
+  ✅ Passe du 2026-09-22 (~21:50–22:35), build 1.2.2+29 (57a24bb, partage interne ; l'app affiche « 1.2.2 +28 », libellé saisi) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS (Pixel) : P29 B2 puis B1 supprimés pour tous → retour à la liste, tuile « Sim A · 21:54 · Message supprimé » tout de suite.
+- [x] **Modifier son dernier message chiffré** → la tuile prend le nouveau
   texte tout de suite.
-- [ ] **Réseau** : basculer plusieurs fois mode avion ↔ réseau, puis
+  ✅ Passe du 2026-09-22 (~21:50–22:35), build 1.2.2+29 (57a24bb, partage interne ; l'app affiche « 1.2.2 +28 », libellé saisi) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS (Pixel) : P29 M1 modifié en « P29 M1X » → tuile « Vous: P29 M1X » tout de suite. (La modification part en ligne `kind=control` dans `mls_messages` : normal.)
+- [x] **Réseau** : basculer plusieurs fois mode avion ↔ réseau, puis
   vérifier que les messages arrivent toujours en direct (le réabonnement ne
   laisse pas le socket fermé).
-- [ ] **Discussion chiffrée ouverte HORS LIGNE**, message reçu entre-temps,
+  ✅ Passe du 2026-09-22 (~21:50–22:35), build 1.2.2+29 (57a24bb, partage interne ; l'app affiche « 1.2.2 +28 », libellé saisi) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS (A515F) : deux cycles mode avion ↔ réseau (`cmd connectivity airplane-mode`), puis P29 NET3 arrive en direct en ~6 s. ⚠️ La présence (RTDB) de Sim, elle, était morte à ce moment-là : voir « Présence et appels : la connexion RTDB ne revient pas après l'arrière-plan (SM A515F) ».
+- [x] **Discussion chiffrée ouverte HORS LIGNE**, message reçu entre-temps,
   réseau rétabli sans toucher → le message s'insère seul. Le canal `mls_new`
   relit désormais dès son premier `subscribed` (celui du retour du réseau).
-- [ ] **Fil complet après une coupure** : discussion chiffrée ouverte hors
+  ✅ Passe du 2026-09-22 (~21:50–22:35), build 1.2.2+29 (57a24bb, partage interne ; l'app affiche « 1.2.2 +28 », libellé saisi) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS (A515F) : discussion ouverte, mode avion, Salim envoie P29 OFF2, réseau rétabli sans toucher → OFF2 s'insère seul, mais en **~45–50 s** (relevé toutes les 8 s). Lent, pas bloqué.
+- [x] **Fil complet après une coupure** : discussion chiffrée ouverte hors
   ligne, message reçu, réseau rétabli, revenir à la liste puis rouvrir → TOUT
   le fil du jour est là, pas seulement le dernier message. Le 2026-09-21 sur
   SM A515F il sautait de mardi à PE1 : le rattrapage de fond de la liste
@@ -775,8 +824,10 @@ dans une piste Play (Tests internes) pour les mettre à jour.*
   dans `mls_metadonnees_test.dart`, échoue sur l'ancien code). Probablement
   aussi la cause d'origine de « Le fil chiffré se tronque au redémarrage dès
   qu'un message arrive en direct » (archivée dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md)).
+  ✅ Passe du 2026-09-22 (~21:50–22:35), build 1.2.2+29 (57a24bb, partage interne ; l'app affiche « 1.2.2 +28 », libellé saisi) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS (A515F) : après la coupure ci-dessus, retour à la liste puis réouverture → le fil remonte sans trou jusqu'aux messages de 02:45 (PT2…PV1), puis tous les P29 jusqu'à OFF2.
 - [ ] **Carte « Messages non lus » de l'Accueil** : ouvrir une discussion
   chiffrée depuis une bannière, lire, revenir à l'Accueil → le compte retombe.
+  ⬜ moitié, Passe du 2026-09-22 (~21:50–22:35), build 1.2.2+29 (57a24bb, partage interne ; l'app affiche « 1.2.2 +28 », libellé saisi) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS (A515F) : discussion ouverte depuis la LISTE (pas depuis une bannière — le volet du A515F montre des notifications personnelles), 2 non-lus lus, retour → la carte « Messages non lus » disparaît de l'Accueil.
 - [ ] **Statut en ligne** (même livraison, `online_status_provider.dart`) :
   couper « Afficher mon statut en ligne » dans Réglages, modifier sa bio,
   enregistrer → `show_online_status` reste `false` en base.
@@ -788,9 +839,10 @@ dans une piste Play (Tests internes) pour les mettre à jour.*
 **Priorité P1** · importance 4/5 — signalé par Salim le 2026-09-21 : la page
 Messages ne se met pas à jour après avoir quitté une discussion.
 
-- [ ] **Discussion chiffrée avec non-lus** : l'ouvrir, revenir → la pastille
+- [x] **Discussion chiffrée avec non-lus** : l'ouvrir, revenir → la pastille
       de la tuile, le compteur « N non lus » de l'en-tête et le badge de
       l'onglet Messages tombent à 0 en ≤ 1 s, sans tirer-pour-rafraîchir.
+  ✅ Passe du 2026-09-22 (~21:50–22:35), build 1.2.2+29 (57a24bb, partage interne ; l'app affiche « 1.2.2 +28 », libellé saisi) sur Pixel 10 Pro XL (Salim) + SM A515F (Sim), 1:1 MLS (A515F) : 2 non-lus (N1, N2) → tuile « 2 », en-tête « 2 non lus », onglet « 2 » ; ouvrir, revenir → les trois à 0 dès le premier relevé (≤ 1 s).
 - [ ] **Longue discussion, lue en partie** (défilement partiel) : le compte
       restant est juste, pas 0.
 
