@@ -347,6 +347,12 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
   String? _vuJusquaId;
   Timer? _envoiCurseur;
 
+  /// Nouvel essai après un envoi du curseur en échec — voir
+  /// [_reessayerLeCurseur].
+  StreamSubscription<void>? _attenteSessionCurseur;
+  Timer? _filetCurseur;
+  int _essaisCurseur = 0;
+
   /// Les bulles d'autrui **actuellement** à l'écran, et le moment où la vue
   /// est posée.
   ///
@@ -494,6 +500,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     // La borne peut être un message MLS : le serveur relit sa date.
     try {
       await ref.read(lectureServeurProvider).avancerJusqua(conversationId, jusquaId);
+      _essaisCurseur = 0;
       // Les notifications de la discussion — `message`, `messageReaction` et
       // `messageMention` — sont marquées lues par `marquer_lus_jusqua`
       // elle-même, jusqu'à la même borne (20260919120000) : rien à faire ici.
@@ -510,11 +517,43 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
           .markAsRead(conversationId: conversationId, userId: moi.id);
     } catch (e) {
       // Un refus ou une panne ne se rattrapent PAS par l'ancien chemin : il
-      // marquerait aussi ce qui n'a pas été vu. Le prochain lot vu repassera.
+      // marquerait aussi ce qui n'a pas été vu. On retente la MÊME borne.
       debugPrint('ConversationScreen: curseur non avancé ($e)');
+      _reessayerLeCurseur();
     }
 
     await _suivreLaLecture();
+  }
+
+  /// Retente l'envoi du curseur après un échec.
+  ///
+  /// On comptait sur « le prochain lot vu » pour repasser. Or il n'y en a
+  /// souvent pas : ouvrir une discussion depuis une notification, lire le
+  /// message, et rien d'autre n'arrive. L'échec le plus courant est
+  /// justement là — au retour d'arrière-plan, la session Supabase n'est pas
+  /// encore rétablie et `avancerJusqua` refuse de partir en anon. Le « Lu »
+  /// était alors perdu : l'expéditeur restait sur « Distribué » alors que le
+  /// message avait été lu, jusqu'au message suivant.
+  ///
+  /// On relance dès que la session est établie ; sinon à 3, 6 puis 9 s, pour
+  /// une panne réseau qui ne s'annonce pas. Même borne, relue au moment de
+  /// relancer : le serveur ne marque jamais au-delà de ce qui a été vu.
+  void _reessayerLeCurseur() {
+    if (!mounted || _essaisCurseur >= 3) return;
+    _essaisCurseur++;
+    void relancer() {
+      _filetCurseur?.cancel();
+      _filetCurseur = null;
+      unawaited(_attenteSessionCurseur?.cancel());
+      _attenteSessionCurseur = null;
+      if (mounted) unawaited(_pousserCurseur());
+    }
+
+    _filetCurseur?.cancel();
+    unawaited(_attenteSessionCurseur?.cancel());
+    _attenteSessionCurseur =
+        ref.read(sessionSupabaseEtablieProvider).listen((_) => relancer());
+    _filetCurseur = Timer(Duration(seconds: 3 * _essaisCurseur), relancer);
   }
 
   /// Le séparateur et le badge **après** l'ouverture (étape B). Voir
@@ -1208,6 +1247,8 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     }
     _attentesDeVisibilite.clear();
     _envoiCurseur?.cancel();
+    _filetCurseur?.cancel();
+    unawaited(_attenteSessionCurseur?.cancel());
     _filetPlacement?.cancel();
     // Clear current conversation to re-enable in-app notifications
     NotificationService().setCurrentConversation(null);
