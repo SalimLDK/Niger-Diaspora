@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1270 cases à cocher, 55 cochées** — 284 entrées sur 298 ont encore des cases ouvertes.
+**1271 cases à cocher, 55 cochées** — 284 entrées sur 298 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -105,7 +105,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [⬜ Verrou de version minimale et multi-appareil (2026-09-15)](#-verrou-de-version-minimale-et-multi-appareil-2026-09-15) · *Comptes, session et onboarding*
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
-- 5 · [⬜ Liste, discussion et « Lu » : le message arrive après sa notification, la liste ne s'actualise pas (2026-09-27)](#-liste-discussion-et--lu---le-message-arrive-après-sa-notification-la-liste-ne-sactualise-pas-2026-09-27) · *Messagerie*
+- 6 · [⬜ Liste, discussion, « Distribué » et « Lu » : le message arrive après sa notification, la liste ne s'actualise pas (2026-09-27)](#-liste-discussion--distribué--et--lu---le-message-arrive-après-sa-notification-la-liste-ne-sactualise-pas-2026-09-27) · *Messagerie*
 - 2 · [⬜ Présence et appels : la connexion RTDB ne revient pas après l'arrière-plan (SM A515F) (2026-09-22)](#-présence-et-appels--la-connexion-rtdb-ne-revient-pas-après-larrière-plan-sm-a515f-2026-09-22) · *Messagerie*
 - 2 · [⬜ Note vocale : l'enregistrement continue sans doigt après la demande de micro (2026-09-22)](#-note-vocale--lenregistrement-continue-sans-doigt-après-la-demande-de-micro-2026-09-22) · *Messagerie*
 - 3 · [⬜ Présence « En ligne » : elle suit enfin l'état réel (2026-09-22)](#-présence--en-ligne---elle-suit-enfin-létat-réel-2026-09-22) · *Messagerie*
@@ -342,7 +342,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 0 faites
-- [2. Messagerie](#2-messagerie) — 298 à faire, 31 faites
+- [2. Messagerie](#2-messagerie) — 299 à faire, 31 faites
 - [3. Groupes](#3-groupes) — 128 à faire, 0 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 121 à faire, 4 faites
 - [5. Appels](#5-appels) — 24 à faire, 1 faites
@@ -446,7 +446,7 @@ Discussions : bulles, composeur, médias, épingles, réactions, accusés, reche
 
 ---
 
-## ⬜ Liste, discussion et « Lu » : le message arrive après sa notification, la liste ne s'actualise pas (2026-09-27)
+## ⬜ Liste, discussion, « Distribué » et « Lu » : le message arrive après sa notification, la liste ne s'actualise pas (2026-09-27)
 
 **Priorité P1** · importance 4/5 — signalé par un utilisateur en production : la notification d'un message arrive, mais le message n'est pas encore dans l'app, que ce soit dans la discussion ouverte ou dans la liste. La liste reste parfois sur un état périmé.
 
@@ -478,6 +478,7 @@ probablement celui de l'utilisateur) :
 - [ ] HOME pendant plus de 5 min, puis toucher la notification d'un message : le message est affiché dans la discussion en moins de 2 s après son ouverture.
 - [ ] Même chose en rouvrant l'app par son icône : la liste montre le nouveau message sans tirer pour rafraîchir.
 - [ ] « Lu » : toucher la notification après > 5 min en arrière-plan, lire, NE RIEN recevoir d'autre — l'expéditeur voit « Lu » en moins de 5 s (avant : restait « Distribué » jusqu'au message suivant ; `_reessayerLeCurseur`, `conversation_screen.dart`).
+- [ ] « Distribué » : destinataire en ARRIÈRE-PLAN (HOME, et aussi app fermée par le multitâche), économiseur actif ; envoyer un message — l'expéditeur voit « Distribué » dans les secondes qui suivent la bannière, sans que le destinataire ouvre l'app (avant : médiane ~58 h en prod, posé seulement à l'ouverture ; `_accuserReceptionEnArrierePlan`, `notification_service.dart`). Surveiller aussi que la session de l'app principale ne casse pas (échange de jeton concurrent depuis l'isolate du push).
 
 ---
 

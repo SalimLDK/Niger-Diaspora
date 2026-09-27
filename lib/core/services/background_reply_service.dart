@@ -145,6 +145,30 @@ class BackgroundReplyService {
     }
   }
 
+  /// Une session Supabase utilisable dans l'isolate d'arrière-plan, ou `false`.
+  ///
+  /// Pour le gestionnaire FCM d'arrière-plan, qui n'avait **aucun** client
+  /// Supabase : il appelait `Supabase.instance` sans l'avoir initialisé, et
+  /// l'échec était avalé. Voir `firebaseMessagingBackgroundHandler`.
+  ///
+  /// Bornée par [delai] : l'isolate d'un push n'a que quelques secondes, et
+  /// un échange de jeton sur un réseau lent ne doit pas les consommer toutes.
+  /// La session est gardée sous la clé propre à cet isolate : l'échange
+  /// n'a lieu qu'une fois par durée de vie du jeton, pas à chaque push.
+  static Future<bool> preparerSession({
+    Duration delai = const Duration(seconds: 8),
+  }) async {
+    try {
+      if (Firebase.apps.isEmpty) await Firebase.initializeApp();
+      if (!await _initializeSupabaseForIsolate()) return false;
+      return await SupabaseAuthBridge.instance
+          .ensureReadableSession(timeout: delai);
+    } catch (e) {
+      debugPrint('BackgroundReplyService: session indisponible ($e)');
+      return false;
+    }
+  }
+
   /// Envoie une réponse depuis l'isolate background.
   /// En cas d'échec, le message est mis en queue pour réessai ultérieur.
   /// Retourne true en cas de succès, false en cas d'échec.

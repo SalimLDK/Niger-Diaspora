@@ -597,20 +597,6 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     final prefs = await SharedPreferences.getInstance();
     final userId = prefs.getString('currentUserId');
 
-    if (conversationId != null && messageId != null && userId != null) {
-      try {
-        // Confirm delivery directly via Supabase RPC (single source of truth).
-        // RTDB delivery tracking has been retired; all delivery/read state lives
-        // in the messages.data JSONB column and is surfaced by Supabase Realtime.
-        await Supabase.instance.client.rpc('mark_messages_as_delivered', params: {
-          'p_conversation_id': conversationId,
-          'p_user_id': userId,
-        });
-      } catch (e) {
-        // Silently fail - delivery confirmation is best effort
-      }
-    }
-
     // Fallback local notification for Android OEM devices (Xiaomi, Huawei, OPPO…)
     // that may suppress the FCM notification field in background state.
     // Same tag as Cloud Functions (msg_{conversationId}) → replaces FCM notification,
@@ -645,6 +631,43 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
         debugPrint('firebaseMessagingBackgroundHandler: notification fallback error: $e');
       }
     }
+
+    // L'accusé « Distribué » APRÈS la bannière : il peut attendre un échange
+    // de jeton, la bannière non.
+    if (conversationId != null && messageId != null && userId != null) {
+      await _accuserReceptionEnArrierePlan(conversationId, userId);
+    }
+  }
+}
+
+/// Pose « Distribué » depuis l'isolate d'un push reçu en arrière-plan.
+///
+/// **Ne marchait jamais.** Cet isolate n'a que Firebase : l'appel partait sur
+/// un `Supabase.instance` jamais initialisé ici, levait, et l'échec était
+/// avalé (« best effort »). Et même initialisé, il aurait été anonyme : la
+/// RPC exige que `p_user_id` soit l'appelant (`firebase_uid()`). « Distribué »
+/// n'était donc posé qu'à l'ouverture de la discussion, en même temps que
+/// « Lu ». Mesuré en production le 2026-09-27 sur 14 jours : délai médian
+/// envoi → distribué de ~58 h, 41 accusés sur 1 900 en moins de 10 s, 1 123
+/// posés à moins de 3 s de la lecture.
+///
+/// La session vient de [BackgroundReplyService.preparerSession], le même
+/// mécanisme que la réponse rapide, sous sa propre clé de stockage.
+Future<void> _accuserReceptionEnArrierePlan(
+  String conversationId,
+  String userId,
+) async {
+  if (!await BackgroundReplyService.preparerSession()) {
+    debugPrint('Distribué non posé : pas de session dans cet isolate');
+    return;
+  }
+  try {
+    await Supabase.instance.client.rpc('mark_messages_as_delivered', params: {
+      'p_conversation_id': conversationId,
+      'p_user_id': userId,
+    });
+  } catch (e) {
+    debugPrint('Distribué non posé : $e');
   }
 }
 
@@ -3259,6 +3282,10 @@ class NotificationService {
       final prefs = await SharedPreferences.getInstance();
       final userId = prefs.getString('currentUserId');
       if (userId == null) return;
+
+      // Au retour d'arrière-plan, le jeton peut être périmé : sans session,
+      // la RPC refuse (elle n'accuse réception que pour l'appelant).
+      if (!await SupabaseAuthBridge.instance.ensureReadableSession()) return;
 
       await Supabase.instance.client.rpc('mark_messages_as_delivered', params: {
         'p_conversation_id': conversationId,
