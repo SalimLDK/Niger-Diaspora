@@ -77,6 +77,19 @@ class SupabaseAuthBridge {
   /// Quand une nouvelle tentative vaut la peine. Voir `politique_de_reprise.dart`.
   final PolitiqueDeReprise _reprise = PolitiqueDeReprise();
 
+  final StreamController<void> _sessionEtablie =
+      StreamController<void>.broadcast();
+
+  /// Émet à chaque échange réussi : une session neuve est en place.
+  ///
+  /// Les écrans dont la lecture a échoué faute de session s'y branchent pour
+  /// relire **tout de suite**. Sans ce signal, ils ne savaient que réessayer
+  /// à heure fixe (5 s pour la liste des discussions, 4 puis 10 s pour la
+  /// discussion) : au retour d'arrière-plan, le jeton neuf arrivait en moins
+  /// d'une seconde et l'écran restait figé plusieurs secondes de plus, alors
+  /// que la notification du message, elle, était déjà là.
+  Stream<void> get sessionEtablie => _sessionEtablie.stream;
+
   /// Échange le token Firebase contre une session Supabase.
   /// À appeler après chaque `FirebaseAuth.instance.authStateChanges()` non-null.
   Future<void> syncWithFirebase(firebase_auth.User firebaseUser) {
@@ -162,6 +175,7 @@ class SupabaseAuthBridge {
 
       _reprise.enregistrerSucces();
       _scheduleRenewal(expiresIn);
+      _sessionEtablie.add(null);
       debugPrint('SupabaseAuthBridge: session sync OK');
     } catch (e) {
       // Ne pas crasher si Supabase n'est pas disponible — l'app fonctionne sans

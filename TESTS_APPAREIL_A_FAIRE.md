@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1265 cases à cocher, 55 cochées** — 283 entrées sur 297 ont encore des cases ouvertes.
+**1269 cases à cocher, 55 cochées** — 284 entrées sur 298 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -93,7 +93,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 6 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (111)
+**P1 — fonction importante, jamais vérifiée** (112)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -105,6 +105,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [⬜ Verrou de version minimale et multi-appareil (2026-09-15)](#-verrou-de-version-minimale-et-multi-appareil-2026-09-15) · *Comptes, session et onboarding*
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
+- 4 · [⬜ Liste et discussion : le message arrive après sa notification, la liste ne s'actualise pas (2026-09-27)](#-liste-et-discussion--le-message-arrive-après-sa-notification-la-liste-ne-sactualise-pas-2026-09-27) · *Messagerie*
 - 2 · [⬜ Présence et appels : la connexion RTDB ne revient pas après l'arrière-plan (SM A515F) (2026-09-22)](#-présence-et-appels--la-connexion-rtdb-ne-revient-pas-après-larrière-plan-sm-a515f-2026-09-22) · *Messagerie*
 - 2 · [⬜ Note vocale : l'enregistrement continue sans doigt après la demande de micro (2026-09-22)](#-note-vocale--lenregistrement-continue-sans-doigt-après-la-demande-de-micro-2026-09-22) · *Messagerie*
 - 3 · [⬜ Présence « En ligne » : elle suit enfin l'état réel (2026-09-22)](#-présence--en-ligne---elle-suit-enfin-létat-réel-2026-09-22) · *Messagerie*
@@ -341,7 +342,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 0 faites
-- [2. Messagerie](#2-messagerie) — 293 à faire, 31 faites
+- [2. Messagerie](#2-messagerie) — 297 à faire, 31 faites
 - [3. Groupes](#3-groupes) — 128 à faire, 0 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 121 à faire, 4 faites
 - [5. Appels](#5-appels) — 24 à faire, 1 faites
@@ -442,6 +443,40 @@ du SM A515F (compte « Sim A », non-admin, sans pays renseigné).
 # 2. Messagerie
 
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
+
+---
+
+## ⬜ Liste et discussion : le message arrive après sa notification, la liste ne s'actualise pas (2026-09-27)
+
+**Priorité P1** · importance 4/5 — signalé par un utilisateur en production : la notification d'un message arrive, mais le message n'est pas encore dans l'app, que ce soit dans la discussion ouverte ou dans la liste. La liste reste parfois sur un état périmé.
+
+Le trafic réel est sur le chemin **classique** (`messages`, 19 expéditeurs
+en 7 jours au 27/09), pas sur MLS (2 comptes, ceux des tests).
+
+Deux causes trouvées à la lecture, corrigées sans mesure sur appareil :
+
+- **Retour d'arrière-plan** : le jeton Supabase est périmé, la première
+  lecture échoue faute de session. La liste ne réessayait qu'au bout de
+  **5 s fixes**, la discussion à **4 puis 10 s**, alors que le jeton neuf
+  arrive en moins d'une seconde. Désormais les deux relisent dès
+  `SupabaseAuthBridge.sessionEtablie` (`message_supabase_datasource.dart`,
+  `message_provider.dart`) ; les délais fixes ne sont plus qu'un filet.
+- **Liste qui reste en arrière** : chaque modification d'une ligne
+  `conversations` relançait une lecture complète, en parallèle des autres.
+  Un message en produit plusieurs (aperçu, accusé, lecture) ; une réponse
+  ancienne revenue la dernière figeait la liste. Désormais une passe à la
+  fois, et les rafales sont regroupées (`LectureSansChevauchement`, 200 ms).
+
+Tenu par `test/core/utils/lecture_sans_chevauchement_test.dart` et
+`test/features/messages/liste_relue_des_la_session_test.dart`.
+
+À vérifier, **en économiseur de batterie** (le cas du A515F, et
+probablement celui de l'utilisateur) :
+
+- [ ] Discussion ouverte : un message envoyé depuis l'autre téléphone apparaît en moins de 2 s.
+- [ ] Liste des discussions : l'aperçu et la pastille suivent chaque message, et la liste ne revient jamais à un état plus ancien.
+- [ ] HOME pendant plus de 5 min, puis toucher la notification d'un message : le message est affiché dans la discussion en moins de 2 s après son ouverture.
+- [ ] Même chose en rouvrant l'app par son icône : la liste montre le nouveau message sans tirer pour rafraîchir.
 
 ---
 

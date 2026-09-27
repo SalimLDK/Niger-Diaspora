@@ -39,10 +39,17 @@ import '../../../../core/services/e2ee/media_encryption_service.dart';
 import 'media_dechiffre_provider.dart';
 import '../../../../core/crypto/mls/mls_providers.dart';
 import '../../../../core/services/oubli_medias_locaux.dart';
+import '../../../../core/services/supabase_auth_bridge.dart';
 
 const int _pageSize = 30;
 
 // ============ Providers de base ============
+
+/// Émet quand une session Supabase neuve est en place — voir
+/// [SupabaseAuthBridge.sessionEtablie]. Provider pour être remplacé en test.
+final sessionSupabaseEtablieProvider = Provider<Stream<void>>(
+  (ref) => SupabaseAuthBridge.instance.sessionEtablie,
+);
 
 /// Provider pour le datasource de messages
 final messageRemoteDataSourceProvider = Provider<MessageRemoteDataSource>((ref) {
@@ -306,6 +313,10 @@ class PaginatedMessagesNotifier extends StateNotifier<MessagePaginationState> {
   /// Relances programmées, annulées à la disposition du notifier.
   final List<Timer> _relances = [];
 
+  /// Écoute de [sessionSupabaseEtablieProvider], posée au premier échec et
+  /// retirée dès que la lecture a abouti.
+  StreamSubscription<void>? _attenteSession;
+
   PaginatedMessagesNotifier(this._ref, this.conversationId)
       : super(const MessagePaginationState(isLoadingInitial: true)) {
     // Load cache synchronously for instant display
@@ -328,7 +339,17 @@ class PaginatedMessagesNotifier extends StateNotifier<MessagePaginationState> {
   /// encore établie — la lecture échoue alors sans qu'aucun événement ne
   /// vienne ensuite la relancer. Deux essais espacés suffisent ; au-delà,
   /// c'est à l'utilisateur de revenir sur l'écran.
+  ///
+  /// Et surtout, relire **dès que la session est établie** : c'est presque
+  /// toujours elle qui manquait (démarrage à froid, jeton périmé au retour
+  /// d'arrière-plan en ouvrant une notification). Le jeton neuf arrive en
+  /// moins d'une seconde ; attendre les 4 s fixes laissait l'écran vide alors
+  /// que la notification venait d'annoncer le message. Les relances à heure
+  /// fixe ne sont plus qu'un filet, pour un échange qui échoue.
   void _programmerRelance() {
+    _attenteSession ??= _ref.read(sessionSupabaseEtablieProvider).listen((_) {
+      if (!_lectureReseauAboutie && mounted) unawaited(_loadNetworkData());
+    });
     if (_relances.length >= 2) return;
     final delai = Duration(seconds: _relances.isEmpty ? 4 : 10);
     _relances.add(
@@ -471,6 +492,8 @@ class PaginatedMessagesNotifier extends StateNotifier<MessagePaginationState> {
       },
       (paginatedMessages) {
         _lectureReseauAboutie = true;
+        unawaited(_attenteSession?.cancel());
+        _attenteSession = null;
         state = MessagePaginationState(
           messages: _avecMessagesJamaisPartis(
             _withPendingLocalMessages(paginatedMessages.messages),
@@ -525,6 +548,7 @@ class PaginatedMessagesNotifier extends StateNotifier<MessagePaginationState> {
       relance.cancel();
     }
     _relances.clear();
+    unawaited(_attenteSession?.cancel());
     super.dispose();
   }
 

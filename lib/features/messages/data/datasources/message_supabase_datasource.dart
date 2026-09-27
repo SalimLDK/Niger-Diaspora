@@ -15,6 +15,7 @@ import '../../../../core/services/e2ee/undecryptable_placeholders.dart';
 import '../../../../core/services/notification_read_sync.dart';
 import '../../../../core/services/supabase_auth_bridge.dart';
 import '../../../../core/utils/date_parsing.dart';
+import '../../../../core/utils/lecture_sans_chevauchement.dart';
 import '../../../../core/utils/realtime_rattrapage.dart';
 
 import '../models/conversation_model.dart';
@@ -117,10 +118,13 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     SupabaseClient? client,
     MessageCryptoService? cryptoService,
     Future<bool> Function()? ensureReadableAuth,
+    Stream<void>? sessionEtablie,
   }) : _supabase = client ?? Supabase.instance.client,
        _crypto = cryptoService,
        _ensureReadableAuth =
-           ensureReadableAuth ?? SupabaseAuthBridge.instance.ensureReadableSession;
+           ensureReadableAuth ?? SupabaseAuthBridge.instance.ensureReadableSession,
+       _sessionEtablie =
+           sessionEtablie ?? SupabaseAuthBridge.instance.sessionEtablie;
 
   final SupabaseClient _supabase;
   final MessageCryptoService? _crypto;
@@ -130,6 +134,10 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
   /// [SupabaseAuthBridge.ensureReadableSession] et le même motif dans
   /// `profile_supabase_datasource.dart`. Injectable pour les tests.
   final Future<bool> Function() _ensureReadableAuth;
+
+  /// Une session neuve vient d'être établie — voir
+  /// [SupabaseAuthBridge.sessionEtablie]. Injectable pour les tests.
+  final Stream<void> _sessionEtablie;
 
   // ── Channel registry ─────────────────────────────────────────────────────
 
@@ -828,16 +836,37 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     // occasion de charger — voir [rattrapageAuRejoint].
     var echecInitial = false;
 
+    // Attente d'une session, armée au plus une fois à la fois.
+    StreamSubscription<void>? attenteSession;
+    Timer? filet;
+    late final LectureSansChevauchement lecture;
+
+    void relancerApresSession() {
+      filet?.cancel();
+      filet = null;
+      unawaited(attenteSession?.cancel());
+      attenteSession = null;
+      if (!controller.isClosed) unawaited(lecture.lire());
+    }
+
     Future<void> fetch() async {
       try {
         // Session non confirmée (fenêtre `_startFromLocalSession`,
-        // auth_provider.dart) : ne pas interroger en anon. `conversationsProvider`
-        // aura déjà émis son cache le temps que la session se confirme ; sans
-        // ce nouvel essai, le stream resterait bloqué sur ce cache jusqu'au
-        // prochain événement realtime (potentiellement jamais).
+        // auth_provider.dart, ou jeton périmé au retour d'arrière-plan) : ne
+        // pas interroger en anon. `conversationsProvider` aura déjà émis son
+        // cache ; sans nouvel essai, le stream resterait bloqué dessus
+        // jusqu'au prochain événement realtime (potentiellement jamais).
+        //
+        // On relit **dès que la session est établie**. On ne réessayait
+        // qu'au bout de 5 s fixes : le jeton neuf arrivait bien avant, et la
+        // liste restait figée pendant que la notification du message, elle,
+        // était déjà affichée. Les 5 s ne sont plus qu'un filet, pour le cas
+        // où l'échange échoue et ne signale donc rien.
         if (!await _ensureReadableAuth()) {
-          if (!controller.isClosed) {
-            Timer(const Duration(seconds: 5), fetch);
+          if (!controller.isClosed && attenteSession == null) {
+            attenteSession =
+                _sessionEtablie.listen((_) => relancerApresSession());
+            filet = Timer(const Duration(seconds: 5), relancerApresSession);
           }
           return;
         }
@@ -858,27 +887,37 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
       }
     }
 
-    // Initial load
-    unawaited(fetch());
+    // Toutes les lectures passent par là : une seule à la fois, sinon une
+    // réponse ancienne revenue la dernière figeait la liste sur un état
+    // périmé. Voir [LectureSansChevauchement].
+    lecture = LectureSansChevauchement(fetch);
 
-    // Real-time updates
+    // Initial load
+    unawaited(lecture.lire());
+
+    // Real-time updates — regroupés : un seul message réécrit la ligne
+    // plusieurs fois (aperçu, accusé, lecture), inutile de tout relire à
+    // chaque fois.
     final ch = _channel('conversations:$userId');
     ch
         .onPostgresChanges(
           event: PostgresChangeEvent.all,
           schema: 'public',
           table: 'conversations',
-          callback: (_) => fetch(),
+          callback: (_) => lecture.planifier(),
         )
         .subscribe(
           rattrapageAuRejoint(
-            fetch,
+            lecture.lire,
             lectureInitialeEnEchec: () => echecInitial,
             etiquette: 'conversations',
           ),
         );
 
     controller.onCancel = () {
+      lecture.fermer();
+      filet?.cancel();
+      unawaited(attenteSession?.cancel());
       unawaited(ch.unsubscribe());
       _channels.remove('conversations:$userId');
     };
