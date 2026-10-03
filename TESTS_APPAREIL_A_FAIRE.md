@@ -39,12 +39,13 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1279 cases à cocher, 55 cochées** — 286 entrées sur 300 ont encore des cases ouvertes.
+**1282 cases à cocher, 55 cochées** — 287 entrées sur 301 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
-**P0 — avant toute nouvelle version** (47)
+**P0 — avant toute nouvelle version** (48)
 
+- 3 · [⬜ Envoi raté après avoir quitté la discussion : le message n'est plus perdu, et la fenêtre de 24 h tient (2026-10-03)](#-envoi-raté-après-avoir-quitté-la-discussion--le-message-nest-plus-perdu-et-la-fenêtre-de-24-h-tient-2026-10-03) · *Messagerie*
 - 2 · [⬜ Temps réel après l'arrière-plan, et texte supprimé dans la liste (2026-09-21)](#-temps-réel-après-larrière-plan-et-texte-supprimé-dans-la-liste-2026-09-21) · *Messagerie*
 - 5 · [⬜ Droits d'écriture sur `messages` resserrés : accusés et modification (2026-09-16)](#-droits-décriture-sur-messages-resserrés--accusés-et-modification-2026-09-16) · *Messagerie*
 - 7 · [⬜ L'aperçu de la liste dit pourquoi il est vide (2026-09-15)](#-laperçu-de-la-liste-dit-pourquoi-il-est-vide-2026-09-15) · *Messagerie*
@@ -344,7 +345,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 0 faites
-- [2. Messagerie](#2-messagerie) — 307 à faire, 31 faites
+- [2. Messagerie](#2-messagerie) — 310 à faire, 31 faites
 - [3. Groupes](#3-groupes) — 128 à faire, 0 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 121 à faire, 4 faites
 - [5. Appels](#5-appels) — 24 à faire, 1 faites
@@ -445,6 +446,32 @@ du SM A515F (compte « Sim A », non-admin, sans pays renseigné).
 # 2. Messagerie
 
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
+
+---
+
+## ⬜ Envoi raté après avoir quitté la discussion : le message n'est plus perdu, et la fenêtre de 24 h tient (2026-10-03)
+
+**Priorité P0** · importance 5/5 — perte de données : un message dont l'envoi échouait après la sortie de la discussion disparaissait sans trace.
+
+L'échec définitif arrive après les nouvelles tentatives, des secondes après
+le tap. Écran fermé, il se perdait : il n'y avait plus d'écran pour le mettre
+de côté. Désormais `signalerEnvoiEnEchec` le met d'abord dans la file hors
+ligne, puis marque la bulle si l'écran est encore là
+(`message_provider.dart`). Et le renvoi automatique garde la date
+d'écriture d'origine : chaque essai raté repoussait la fenêtre de 24 h.
+Tenu par `test/features/messages/echec_apres_fermeture_test.dart`. Jamais vu
+sur téléphone.
+
+À vérifier :
+
+- [ ] Mode avion **après** le tap « Envoyer » (le message part « en cours »),
+      quitter aussitôt la discussion, attendre ~15 s, revenir : la bulle est
+      là, en échec, avec « Renvoyer ».
+- [ ] Même scénario, puis réactiver le réseau sans rouvrir la discussion :
+      le message part tout seul dans la minute, une seule fois (le
+      destinataire ne le reçoit pas en double).
+- [ ] Un message en échec depuis plus de 24 h ne part plus tout seul, mais
+      « Renvoyer » à la main le fait partir.
 
 ---
 

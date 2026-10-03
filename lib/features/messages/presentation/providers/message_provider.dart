@@ -971,31 +971,12 @@ class PaginatedMessagesNotifier extends StateNotifier<MessagePaginationState> {
     // `autoDispose`, quitter l'écran plus de cinq secondes l'effaçait pour de
     // bon, sans que rien ne le signale.
     final aSauver = tombeEnEchec;
-    if (aSauver != null) unawaited(_mettreDeCote(aSauver));
-  }
-
-  /// Enregistre un message en échec pour qu'il survive à la fermeture de
-  /// l'écran, et puisse repartir plus tard.
-  Future<void> _mettreDeCote(MessageEntity message) async {
-    try {
-      final file = _ref.read(offlineQueueServiceProvider);
-      if (file.isInQueue(message.id)) return;
-      await file.enqueue(
-        PendingMessage(
-          id: message.id,
-          conversationId: conversationId,
-          senderId: message.senderId,
-          senderName: message.senderName,
-          senderPhotoUrl: message.senderPhotoUrl,
-          content: message.content,
-          type: message.type.name,
-          filePath: message.localFilePath,
-          createdAt: message.createdAt,
-          messageJson: jsonEncode(MessageModel.fromEntity(message).toJson()),
-        ),
-      );
-    } catch (e) {
-      debugPrint('mise de côté du message en échec : $e');
+    if (aSauver != null) {
+      unawaited(mettreDeCoteEnEchec(
+        _ref.read(offlineQueueServiceProvider),
+        conversationId,
+        aSauver,
+      ));
     }
   }
 
@@ -1301,6 +1282,104 @@ class ModificationEchouee extends ResultatModification {
 
 // ============ Notifier pour envoyer des messages ============
 
+/// Enregistre un message en échec dans la file hors ligne, pour qu'il
+/// survive à la fermeture de l'écran et puisse repartir plus tard.
+///
+/// Ouvre la file avant de la consulter : `isInQueue` lit la boîte Hive, qui
+/// n'est ouverte que par `init()` — sans lui, la question « déjà en file ? »
+/// répondait toujours non, et un même message pouvait entrer deux fois.
+///
+/// [ecritLe] : quand le message a été écrit, s'il l'a été avant cet envoi —
+/// c'est la date que compare [kFenetreRenvoiAutomatique]. Un renvoi recrée le
+/// message sous un nouvel identifiant, daté de maintenant ; sans cette date
+/// d'origine, chaque essai raté repoussait la fenêtre de 24 h, et un message
+/// écrit il y a trois jours pouvait partir à l'improviste. Une entrée déjà en
+/// file avec une date plus récente (mise de côté par le délai de 30 s de
+/// l'écran, avant l'échec définitif) est corrigée.
+Future<void> mettreDeCoteEnEchec(
+  OfflineQueueService file,
+  String conversationId,
+  MessageEntity message, {
+  DateTime? ecritLe,
+}) async {
+  try {
+    await file.init();
+    if (file.isInQueue(message.id)) {
+      if (ecritLe == null) return;
+      final deja = file.getQueue().firstWhere((m) => m.id == message.id);
+      if (!deja.createdAt.isAfter(ecritLe)) return;
+      await file.dequeue(deja.id);
+      await file.enqueue(PendingMessage(
+        id: deja.id,
+        conversationId: deja.conversationId,
+        senderId: deja.senderId,
+        senderName: deja.senderName,
+        senderPhotoUrl: deja.senderPhotoUrl,
+        content: deja.content,
+        type: deja.type,
+        filePath: deja.filePath,
+        createdAt: ecritLe,
+        retryCount: deja.retryCount,
+        messageJson: deja.messageJson,
+      ));
+      return;
+    }
+    await file.enqueue(
+      PendingMessage(
+        id: message.id,
+        conversationId: conversationId,
+        senderId: message.senderId,
+        senderName: message.senderName,
+        senderPhotoUrl: message.senderPhotoUrl,
+        content: message.content,
+        type: message.type.name,
+        filePath: message.localFilePath,
+        createdAt: ecritLe ?? message.createdAt,
+        messageJson: jsonEncode(MessageModel.fromEntity(message).toJson()),
+      ),
+    );
+  } catch (e) {
+    debugPrint('mise de côté du message en échec : $e');
+  }
+}
+
+/// L'échec **définitif** d'un envoi — point de passage unique des cinq
+/// méthodes d'envoi de [SendMessageNotifier].
+///
+/// L'échec arrive après les nouvelles tentatives, donc souvent des secondes
+/// après le tap. Si l'utilisateur a quitté la discussion entre-temps,
+/// l'écran (`paginatedMessagesProvider`, autoDispose) n'existe plus : le lire
+/// en recréait une instance **vide**, `updateMessageStatus` n'y trouvait pas
+/// le message, et rien ne le mettait de côté. Le message était perdu sans
+/// aucune trace — ni bulle rouge à la réouverture, ni nouvel essai.
+///
+/// Désormais le message part d'abord dans la file, puis l'écran — s'il
+/// existe encore — passe la bulle en échec ; sa propre mise de côté trouve
+/// alors l'entrée déjà là. On ne lit l'écran que s'il existe : le lire sinon
+/// en ressusciterait un, vide, avec tout son chargement réseau.
+///
+/// [ecritLe] : voir [mettreDeCoteEnEchec].
+Future<void> signalerEnvoiEnEchec(
+  Ref ref,
+  String conversationId,
+  MessageEntity optimiste, {
+  DateTime? ecritLe,
+}) async {
+  await mettreDeCoteEnEchec(
+    ref.read(offlineQueueServiceProvider),
+    conversationId,
+    optimiste.copyWith(status: MessageStatus.failed),
+    ecritLe: ecritLe,
+  );
+  final ecran = paginatedMessagesProvider(conversationId);
+  if (ref.exists(ecran)) {
+    ref.read(ecran.notifier).updateMessageStatus(
+          optimiste.id,
+          MessageStatus.failed,
+        );
+  }
+}
+
 final sendMessageProvider = StateNotifierProvider<SendMessageNotifier, AsyncValue<void>>(
   (ref) => SendMessageNotifier(ref),
 );
@@ -1327,6 +1406,7 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
     Map<String, dynamic>? linkPreviewData,
     bool isForwarded = false,
     List<MentionedUser> mentionedUsers = const [],
+    DateTime? ecritLe,
   }) async {
     final currentUser = await _ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) return false;
@@ -1392,7 +1472,7 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
               senderPhotoUrl: currentUser.photoUrl,
               content: content,
               type: MessageType.text.name,
-              createdAt: optimisticMessage.createdAt,
+              createdAt: ecritLe ?? optimisticMessage.createdAt,
               messageJson: jsonEncode(
                 MessageModel.fromEntity(optimisticMessage).toJson(),
               ),
@@ -1529,10 +1609,12 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
             linkPreviewData: linkPreviewData,
             isForwarded: isForwarded,
             mentionedUsers: mentionedUsers,
+            ecritLe: ecritLe,
           );
         }
 
-        _ref.read(paginatedMessagesProvider(conversationId).notifier).updateMessageStatus(tempId, MessageStatus.failed);
+        unawaited(signalerEnvoiEnEchec(_ref, conversationId, optimisticMessage,
+            ecritLe: ecritLe));
         state = AsyncValue.error(failure.message, StackTrace.current);
         return false;
       },
@@ -1556,6 +1638,10 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
   Future<bool> retryFailedMessage({
     required String conversationId,
     required MessageEntity failedMessage,
+    /// Date d'écriture d'origine, pour le renvoi automatique : voir
+    /// [mettreDeCoteEnEchec]. Absente pour un renvoi à la main, qui est une
+    /// intention neuve.
+    DateTime? ecritLe,
   }) async {
     final pagination =
         _ref.read(paginatedMessagesProvider(conversationId).notifier);
@@ -1589,6 +1675,7 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
           replyToMessage: replyToMessage,
           productData: failedMessage.productData,
           eventData: failedMessage.eventData,
+          ecritLe: ecritLe,
         );
       case MessageType.audio:
       case MessageType.voiceNote:
@@ -1603,6 +1690,7 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
             duration: failedMessage.audioDuration ?? 0,
             waveform: failedMessage.audioWaveform ?? const [],
             replyToMessage: replyToMessage,
+            ecritLe: ecritLe,
           );
         }
         // Plus de fichier local (message d'une session précédente) : on garde
@@ -1630,6 +1718,7 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
             longitude: failedMessage.longitude!,
             address: failedMessage.locationAddress ?? '',
             replyToMessage: replyToMessage,
+            ecritLe: ecritLe,
           );
         }
         return false;
@@ -1645,6 +1734,7 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
             conversationId: conversationId,
             pollId: failedMessage.pollId!,
             question: failedMessage.content,
+            ecritLe: ecritLe,
           );
         }
         return false;
@@ -1658,6 +1748,7 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
             stickerUrl: failedMessage.fileUrl!,
             isAnimated: failedMessage.isAnimatedSticker,
             replyToMessage: replyToMessage,
+            ecritLe: ecritLe,
           );
         }
         return false;
@@ -1737,6 +1828,7 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
     required int duration,
     required List<double> waveform,
     MessageEntity? replyToMessage,
+    DateTime? ecritLe,
   }) async {
     final currentUser = await _ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) return false;
@@ -1793,7 +1885,8 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
 
     return result.fold(
       (failure) {
-        _ref.read(paginatedMessagesProvider(conversationId).notifier).updateMessageStatus(tempId, MessageStatus.failed);
+        unawaited(signalerEnvoiEnEchec(_ref, conversationId, optimisticMessage,
+            ecritLe: ecritLe));
         state = AsyncValue.error(failure.message, StackTrace.current);
         return false;
       },
@@ -1813,6 +1906,7 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
     required double longitude,
     required String address,
     MessageEntity? replyToMessage,
+    DateTime? ecritLe,
   }) async {
     final currentUser = await _ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) return false;
@@ -1869,7 +1963,8 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
     return result.fold(
       (failure) {
         debugPrint('❌ sendLocation: Failed - ${failure.message}');
-        _ref.read(paginatedMessagesProvider(conversationId).notifier).updateMessageStatus(tempId, MessageStatus.failed);
+        unawaited(signalerEnvoiEnEchec(_ref, conversationId, optimisticMessage,
+            ecritLe: ecritLe));
         state = AsyncValue.error(failure.message, StackTrace.current);
         return false;
       },
@@ -1893,6 +1988,7 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
     required String conversationId,
     required String pollId,
     required String question,
+    DateTime? ecritLe,
   }) async {
     final currentUser = await _ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) return false;
@@ -1929,9 +2025,8 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
 
     return result.fold(
       (failure) {
-        _ref
-            .read(paginatedMessagesProvider(conversationId).notifier)
-            .updateMessageStatus(tempId, MessageStatus.failed);
+        unawaited(signalerEnvoiEnEchec(_ref, conversationId, optimisticMessage,
+            ecritLe: ecritLe));
         state = AsyncValue.error(failure.message, StackTrace.current);
         return false;
       },
@@ -1956,6 +2051,7 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
     required String stickerUrl,
     bool isAnimated = false,
     MessageEntity? replyToMessage,
+    DateTime? ecritLe,
   }) async {
     final currentUser = await _ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) return false;
@@ -2014,7 +2110,8 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
     return result.fold(
       (failure) {
         debugPrint('❌ sendSticker: Failed - ${failure.message}');
-        _ref.read(paginatedMessagesProvider(conversationId).notifier).updateMessageStatus(tempId, MessageStatus.failed);
+        unawaited(signalerEnvoiEnEchec(_ref, conversationId, optimisticMessage,
+            ecritLe: ecritLe));
         state = AsyncValue.error(failure.message, StackTrace.current);
         return false;
       },
@@ -2820,6 +2917,7 @@ class RenvoiMessagesEnAttente {
               .retryFailedMessage(
                 conversationId: attente.conversationId,
                 failedMessage: entite,
+                ecritLe: attente.createdAt,
               );
           if (parti) await file.dequeue(attente.id);
         } catch (e) {
