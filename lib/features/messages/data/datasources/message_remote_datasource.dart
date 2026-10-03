@@ -33,11 +33,17 @@ abstract class MessageRemoteDataSource {
   /// Stream d'une conversation spécifique (pour détecter suppression/changements)
   Stream<ConversationModel?> getConversationStream(String conversationId);
 
-  /// Récupérer les messages avec pagination (RTDB)
+  /// Récupérer les messages avec pagination.
+  ///
+  /// Le curseur d'une page plus ancienne est le plus ancien message déjà
+  /// affiché : son id dans [lastMessageKey], sa date dans [beforeCreatedAt].
+  /// Les deux ensemble — la date seule perdrait les ex-aequo, l'id seul ne se
+  /// compare à rien.
   Future<(List<MessageModel>, dynamic)> getMessagesPaginated({
     required String conversationId,
     required int limit,
     dynamic lastMessageKey,
+    DateTime? beforeCreatedAt,
     DateTime? filterAfterDate,
   });
 
@@ -596,6 +602,7 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
     required String conversationId,
     required int limit,
     dynamic lastMessageKey,
+    DateTime? beforeCreatedAt,
     DateTime? filterAfterDate,
   }) async {
     try {

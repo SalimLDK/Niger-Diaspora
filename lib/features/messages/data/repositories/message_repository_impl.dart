@@ -1654,6 +1654,7 @@ class MessageRepositoryImpl implements MessageRepository {
     required String conversationId,
     required int limit,
     String? beforeMessageId,
+    DateTime? beforeCreatedAt,
     DateTime? filterAfterDate,
   }) async {
     // debugPrint(
@@ -1671,6 +1672,7 @@ class MessageRepositoryImpl implements MessageRepository {
           conversationId: conversationId,
           limit: limit + 1,
           lastMessageKey: beforeMessageId,
+          beforeCreatedAt: beforeCreatedAt,
           filterAfterDate: filterAfterDate,
         );
 
@@ -1693,7 +1695,13 @@ class MessageRepositoryImpl implements MessageRepository {
         // Coexistence (plan MLS § 2.3) : l'historique legacy est gelé, le
         // fil MLS est vivant. On les fusionne ici, une fois, plutôt que de
         // faire connaître deux sources aux 81 fichiers de la couche messages.
-        final fusionnes = await _fusionnerAvecMls(conversationId, entities);
+        // Première page seulement. Le fil MLS est postérieur à `mls_since`,
+        // donc à tout l'historique legacy : une page plus ancienne n'en
+        // contient rien. Le refusionner à chaque page ajoutait tout le fil
+        // chiffré, une fois de plus, en tête de la liste affichée.
+        final fusionnes = beforeMessageId == null
+            ? await _fusionnerAvecMls(conversationId, entities)
+            : entities;
 
         return Right(
           PaginatedMessages(

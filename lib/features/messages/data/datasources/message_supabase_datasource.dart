@@ -3369,8 +3369,19 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     required String conversationId,
     required int limit,
     dynamic lastMessageKey,
+    DateTime? beforeCreatedAt,
     DateTime? filterAfterDate,
   }) async {
+    // Un id sans sa date ne se compare à rien. C'était le défaut : l'id
+    // (uuid) du plus ancien message partait dans `.lt('created_at', …)`,
+    // Postgres refusait (22007), et aucune page plus ancienne ne se chargeait
+    // jamais — au-delà de 30 messages, l'historique était inaccessible.
+    if (lastMessageKey != null && beforeCreatedAt == null) {
+      throw ArgumentError(
+        'getMessagesPaginated : curseur incomplet, beforeCreatedAt requis '
+        'avec lastMessageKey',
+      );
+    }
     // Garde obligatoire, et la conséquence de son absence est une perte de
     // données, pas seulement un écran vide : `messages_select` vaut pour le
     // rôle `public`, donc une lecture sans session **réussit** en ne renvoyant
@@ -3381,33 +3392,36 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
       throw ServerException('Session non établie – réessayez');
     }
     try {
-      // Build filter query — cursor filter must precede order/limit
-      final baseQuery = _supabase
+      // Les filtres précèdent order/limit.
+      var query = _supabase
           .from('messages')
           .select()
           .eq('conversation_id', conversationId);
 
-      final filteredQuery =
-          lastMessageKey != null
-              ? baseQuery.lt('created_at', lastMessageKey.toString())
-              : baseQuery;
+      // Dans la requête, pas après la limite : filtrée côté client, une page
+      // d'un groupe privé pouvait revenir vide alors que des messages plus
+      // récents que l'arrivée du membre existaient encore plus loin.
+      if (filterAfterDate != null) {
+        query = query.gt(
+          'created_at',
+          filterAfterDate.toUtc().toIso8601String(),
+        );
+      }
 
-      final rows = await filteredQuery
+      if (lastMessageKey != null) {
+        query = query.or(
+          filtreAvantCurseur(beforeCreatedAt!, lastMessageKey.toString()),
+        );
+      }
+
+      // L'id départage les ex-aequo : sans lui, deux messages de même
+      // `created_at` de part et d'autre d'une page en perdaient un.
+      final rows = await query
           .order('created_at', ascending: false)
+          .order('id', ascending: false)
           .limit(limit + 1);
 
-      var messages = await Future.wait(rows.map(_msgFromRowAsync));
-
-      if (filterAfterDate != null) {
-        messages =
-            messages
-                .where(
-                  (m) =>
-                      m.createdAt != null &&
-                      m.createdAt!.isAfter(filterAfterDate),
-                )
-                .toList();
-      }
+      final messages = await Future.wait(rows.map(_msgFromRowAsync));
 
       final hasMore = messages.length > limit;
       if (hasMore) messages.removeLast();
@@ -3722,4 +3736,16 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
       throw ServerException('_mergeMsgData error: $e');
     }
   }
+}
+
+/// Filtre PostgREST des messages strictement plus anciens que le curseur
+/// `(createdAt, id)`, dans l'ordre `created_at desc, id desc` de la page.
+///
+/// Valeurs entre guillemets : une date porte `:` et `.`, que la syntaxe des
+/// arbres logiques de PostgREST réserve.
+@visibleForTesting
+String filtreAvantCurseur(DateTime createdAt, String id) {
+  final date = createdAt.toUtc().toIso8601String();
+  return 'created_at.lt."$date",'
+      'and(created_at.eq."$date",id.lt."$id")';
 }

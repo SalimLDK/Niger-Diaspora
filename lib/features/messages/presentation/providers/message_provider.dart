@@ -579,6 +579,7 @@ class PaginatedMessagesNotifier extends StateNotifier<MessagePaginationState> {
           conversationId: conversationId,
           limit: _pageSize,
           beforeMessageId: state.lastMessageId,
+          beforeCreatedAt: state.oldestMessageTimestamp,
           filterAfterDate: _filterAfterDate,
         );
 

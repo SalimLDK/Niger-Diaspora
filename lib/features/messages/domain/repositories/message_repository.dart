@@ -30,10 +30,14 @@ abstract class MessageRepository {
   /// Récupérer les messages avec pagination (pour infinite scroll)
   /// [filterAfterDate] - Si fourni, ne retourne que les messages créés après cette date
   /// (utilisé pour les groupes privés où les nouveaux membres ne voient pas les anciens messages)
+  ///
+  /// Une page plus ancienne se demande avec le plus ancien message affiché :
+  /// [beforeMessageId] **et** [beforeCreatedAt].
   Future<Either<Failure, PaginatedMessages>> getMessagesPaginated({
     required String conversationId,
     required int limit,
     String? beforeMessageId,
+    DateTime? beforeCreatedAt,
     DateTime? filterAfterDate,
   });
 
