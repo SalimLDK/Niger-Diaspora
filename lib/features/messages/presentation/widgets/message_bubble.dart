@@ -2503,7 +2503,13 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
     final eventData = widget.message.eventData;
     final linkPreviewData = widget.message.linkPreviewData;
     final hasProduct = productData != null;
-    final hasLinkPreview = linkPreviewData != null;
+    // Une carte dont l'URL n'est pas un lien du texte n'est pas montrée :
+    // voir LinkPreviewBubble.
+    final hasLinkPreview = LinkPreviewBubble.urlFiable(
+          linkPreviewData,
+          widget.message.content,
+        ) !=
+        null;
 
     // Emoji-only messages: larger text, no bubble background
     if (isEmojiOnly && !hasProduct && eventData == null) {
@@ -2559,7 +2565,11 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
             _buildRichTextWithLinks(context, widget.message.content),
           // Link preview card
           if (hasLinkPreview)
-            LinkPreviewBubble.fromMap(linkPreviewData, isMe: widget.isMe),
+            LinkPreviewBubble.fromMap(
+              linkPreviewData!,
+              isMe: widget.isMe,
+              confirmerOuverture: _showUrlConfirmDialog,
+            ),
         ],
       ),
     );

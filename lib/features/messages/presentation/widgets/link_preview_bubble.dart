@@ -6,17 +6,35 @@ import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/services/link_preview_service.dart';
 import '../../../../core/services/qr_code_parser.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 
+/// Carte d'aperçu d'un lien.
+///
+/// **Tout ce qu'elle porte est écrit par l'expéditeur** : `linkPreviewData`
+/// voyage dans le message, et rien n'oblige un client modifié à le remplir
+/// depuis la vraie page. Une carte « Banque X » pouvait donc mener ailleurs
+/// que le lien visible dans le texte, vers n'importe quel schéma (`intent:`,
+/// `file:`…), et s'ouvrait au premier appui, sans la confirmation que les
+/// liens du texte demandent. D'où trois règles :
+///
+///  * la carte n'est montrée que si son URL est un lien du texte lui-même
+///    ([urlFiable]) — le lien qu'on lit est celui qu'on ouvre ;
+///  * la ligne « où ça mène » affiche l'hôte calculé depuis l'URL, jamais le
+///    `siteName` fourni ;
+///  * un lien externe passe par [confirmerOuverture], la même boîte que les
+///    liens du texte.
 class LinkPreviewBubble extends StatelessWidget {
   final String? url;
   final String? title;
   final String? description;
   final String? imageUrl;
-  final String? siteName;
   final bool isMe;
+
+  /// Demandée avant d'ouvrir un lien hors de l'app. `true` pour ouvrir.
+  final Future<bool?> Function(String url)? confirmerOuverture;
 
   const LinkPreviewBubble({
     super.key,
@@ -24,19 +42,52 @@ class LinkPreviewBubble extends StatelessWidget {
     this.title,
     this.description,
     this.imageUrl,
-    this.siteName,
     required this.isMe,
+    this.confirmerOuverture,
   });
 
-  factory LinkPreviewBubble.fromMap(Map<String, dynamic> data, {required bool isMe}) {
+  factory LinkPreviewBubble.fromMap(
+    Map<String, dynamic> data, {
+    required bool isMe,
+    Future<bool?> Function(String url)? confirmerOuverture,
+  }) {
     return LinkPreviewBubble(
       url: data['url'] as String?,
       title: data['title'] as String?,
       description: data['description'] as String?,
       imageUrl: data['imageUrl'] as String?,
-      siteName: data['siteName'] as String?,
       isMe: isMe,
+      confirmerOuverture: confirmerOuverture,
     );
+  }
+
+  /// L'URL de la carte, si elle peut être montrée sous ce [texte] : un lien
+  /// `http(s)` qui est l'un des liens du texte, sous la forme que l'envoi lui
+  /// donne (`https://` ajouté quand le texte n'a pas de schéma). Sinon `null`,
+  /// et la carte ne s'affiche pas — le texte, lui, reste.
+  static String? urlFiable(Map<String, dynamic>? data, String texte) {
+    final url = data?['url'];
+    if (url is! String || url.isEmpty) return null;
+    final uri = Uri.tryParse(url);
+    if (uri == null ||
+        !(uri.isScheme('http') || uri.isScheme('https')) ||
+        uri.host.isEmpty) {
+      return null;
+    }
+    for (final lien in LinkPreviewService.extractAllUrls(texte)) {
+      final normalise =
+          lien.startsWith('http://') || lien.startsWith('https://')
+              ? lien
+              : 'https://$lien';
+      if (normalise == url) return url;
+    }
+    return null;
+  }
+
+  /// L'hôte affiché sous la carte, sans `www.`.
+  static String hote(String url) {
+    final h = Uri.tryParse(url)?.host ?? '';
+    return h.startsWith('www.') ? h.substring(4) : h;
   }
 
   @override
@@ -184,8 +235,9 @@ class LinkPreviewBubble extends StatelessWidget {
                     ),
                   ],
 
-                  // Site name
-                  if (siteName != null && siteName!.isNotEmpty) ...[
+                  // Où mène le lien : l'hôte réel, jamais le `siteName`
+                  // fourni par l'expéditeur.
+                  if (hote(url!).isNotEmpty) ...[
                     const SizedBox(height: 6),
                     Row(
                       mainAxisSize: MainAxisSize.min,
@@ -200,7 +252,7 @@ class LinkPreviewBubble extends StatelessWidget {
                         const SizedBox(width: 4),
                         Flexible(
                           child: Text(
-                            siteName!,
+                            hote(url!),
                             style: TextStyle(
                               fontSize: 12,
                               color: isMe
@@ -237,7 +289,12 @@ class LinkPreviewBubble extends StatelessWidget {
       return;
     }
 
-    final uri = Uri.parse(url);
+    final uri = Uri.tryParse(url);
+    if (uri == null || !(uri.isScheme('http') || uri.isScheme('https'))) {
+      return;
+    }
+    final confirmer = confirmerOuverture;
+    if (confirmer != null && await confirmer(url) != true) return;
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     }
