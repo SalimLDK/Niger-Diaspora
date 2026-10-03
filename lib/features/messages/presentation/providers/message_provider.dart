@@ -2719,6 +2719,46 @@ class DeleteMessageNotifier extends StateNotifier<AsyncValue<void>> {
     );
   }
 
+  /// « Supprimer pour moi » sur une sélection : le même chemin que
+  /// [deleteForMe], message par message.
+  ///
+  /// La sélection passait par `MessageDeletionService.deleteMultipleForMe`,
+  /// qui écrivait `deletedFor` dans **Firebase RTDB** — que plus rien ne lit
+  /// depuis la migration vers Supabase. L'écran masquait localement, puis les
+  /// messages revenaient au rechargement.
+  ///
+  /// Rend le nombre de messages réellement supprimés. Au premier échec,
+  /// l'écran est relu (les masquages locaux non suivis d'effet disparaissent)
+  /// et l'erreur est posée dans [state].
+  Future<int> deleteManyForMe({
+    required String conversationId,
+    required List<String> messageIds,
+  }) async {
+    final currentUser = await _ref.read(currentUserAsyncProvider.future);
+    if (currentUser == null) return 0;
+
+    state = const AsyncValue.loading();
+    final ecran = _ref.read(paginatedMessagesProvider(conversationId).notifier);
+    var supprimes = 0;
+    for (final messageId in messageIds) {
+      ecran.markMessageDeletedForMe(messageId, currentUser.id);
+      final result = await _ref.read(messageRepositoryProvider).deleteMessageForMe(
+        conversationId: conversationId,
+        messageId: messageId,
+        userId: currentUser.id,
+      );
+      final echec = result.fold((f) => f, (_) => null);
+      if (echec != null) {
+        state = AsyncValue.error(echec.message, StackTrace.current);
+        _ref.invalidate(paginatedMessagesProvider(conversationId));
+        return supprimes;
+      }
+      supprimes++;
+    }
+    state = const AsyncValue.data(null);
+    return supprimes;
+  }
+
   Future<bool> deleteForEveryone({
     required String conversationId,
     required String messageId,

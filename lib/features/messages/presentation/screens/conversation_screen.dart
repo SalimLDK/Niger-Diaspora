@@ -61,7 +61,6 @@ import 'dart:convert';
 import '../../../../core/errors/failure_mapper.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../core/providers/in_app_notification_provider.dart';
-import '../../domain/services/message_deletion_service.dart';
 // Appels mis en pause (1-à-1 le 2026-08-14, groupe le 2026-09-14) :
 // imports devenus inutilisés, conservés en commentaire pour réactivation.
 // TODO(appels): réactiver après vérification à deux vrais téléphones —
@@ -1783,48 +1782,34 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
     );
 
     if (confirmed == true && mounted) {
-      // Utiliser la suppression batch pour de meilleures performances
-      final service = ref.read(messageDeletionServiceProvider);
-      final result = await service.deleteMultipleForMe(
+      // Même chemin que la suppression d'un seul message (Supabase, MLS
+      // compris) : l'ancien service écrivait dans Firebase RTDB, que plus rien
+      // ne lit — les messages revenaient au rechargement.
+      final suppression = ref.read(deleteMessageProvider.notifier);
+      final deletedCount = await suppression.deleteManyForMe(
         conversationId: widget.conversationId,
         messageIds: selected.map((m) => m.id).toList(),
-        userId: currentUserId,
       );
-
-      result.fold(
-        (failure) {
-          // Afficher un message d'erreur user-friendly
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  FailureMapper.toUserFriendlyString(failure.message, context),
+      final erreur = ref.read(deleteMessageProvider).error;
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          erreur != null
+              ? SnackBar(
+                  content: Text(
+                    FailureMapper.toUserFriendlyString(
+                      erreur.toString(),
+                      context,
+                    ),
+                  ),
+                  backgroundColor:
+                      context.isDarkMode ? AppColors.errorDark : AppColors.error,
+                )
+              : SnackBar(
+                  content: Text(l10n.messagesDeletedSuccess(deletedCount)),
+                  backgroundColor: AppColors.secondary,
                 ),
-                backgroundColor:
-                    context.isDarkMode ? AppColors.errorDark : AppColors.error,
-              ),
-            );
-          }
-        },
-        (deletedCount) {
-          // Mettre à jour l'UI localement pour chaque message supprimé
-          final notifier = ref.read(
-            paginatedMessagesProvider(widget.conversationId).notifier,
-          );
-          for (final message in selected) {
-            notifier.markMessageDeletedForMe(message.id, currentUserId);
-          }
-          // Afficher confirmation
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(l10n.messagesDeletedSuccess(deletedCount)),
-                backgroundColor: AppColors.secondary,
-              ),
-            );
-          }
-        },
-      );
+        );
+      }
       _exitSelectionMode();
     }
   }

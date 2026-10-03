@@ -148,42 +148,6 @@ class MessageDeletionService {
     }
   }
 
-  /// Supprimer plusieurs messages en batch (pour moi uniquement)
-  Future<Either<Failure, int>> deleteMultipleForMe({
-    required String conversationId,
-    required List<String> messageIds,
-    required String userId,
-  }) async {
-    try {
-      int deletedCount = 0;
-      final updates = <String, dynamic>{};
-
-      for (final messageId in messageIds) {
-        // Recuperer les donnees actuelles
-        final snapshot =
-            await _database
-                .ref('messages/$conversationId/$messageId/deletedFor')
-                .get();
-        final deletedFor = _parseStringList(snapshot.value);
-
-        if (!deletedFor.contains(userId)) {
-          deletedFor.add(userId);
-          updates['messages/$conversationId/$messageId/deletedFor'] =
-              deletedFor;
-          deletedCount++;
-        }
-      }
-
-      if (updates.isNotEmpty) {
-        await _database.ref().update(updates);
-      }
-
-      return Right(deletedCount);
-    } catch (e) {
-      return Left(ServerFailure('Erreur lors de la suppression: $e'));
-    }
-  }
-
   /// Supprimer une conversation complete
   Future<Either<Failure, void>> deleteConversation({
     required String conversationId,

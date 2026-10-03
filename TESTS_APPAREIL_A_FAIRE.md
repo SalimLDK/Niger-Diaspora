@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1304 cases à cocher, 55 cochées** — 292 entrées sur 306 ont encore des cases ouvertes.
+**1307 cases à cocher, 55 cochées** — 293 entrées sur 307 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -94,7 +94,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 6 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (118)
+**P1 — fonction importante, jamais vérifiée** (119)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -182,6 +182,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⛔ « Diaspo Niger s'arrête systématiquement » sur Android 15+ (2026-09-09)](#--diaspo-niger-sarrête-systématiquement--sur-android-15-2026-09-09) · *Publication et plateformes*
 - 4 · [⚠️ Rapatriement iOS : deux dépendances **Android** changent de version majeure (2026-09-08)](#-rapatriement-ios--deux-dépendances-android-changent-de-version-majeure-2026-09-08) · *Publication et plateformes*
 - 9 · [⬜ La page de suppression de compte demande la suppression au lieu de l'exécuter (2026-09-19)](#-la-page-de-suppression-de-compte-demande-la-suppression-au-lieu-de-lexécuter-2026-09-19) · *Site web*
+- 3 · [⬜ « Supprimer pour moi » sur une sélection : les messages ne reviennent plus au rechargement (2026-10-03)](#--supprimer-pour-moi--sur-une-sélection--les-messages-ne-reviennent-plus-au-rechargement-2026-10-03) · *Messagerie*
 - 9 · [⬜ Accusés, réactions, modifications et suppressions reçus en direct, discussion en clair (2026-09-21)](#-accusés-réactions-modifications-et-suppressions-reçus-en-direct-discussion-en-clair-2026-09-21) · *Messagerie*
 - 9 · [⬜ Partager vers une discussion — groupe et 1:1 (2026-09-09)](#-partager-vers-une-discussion--groupe-et-11-2026-09-09) · *Messagerie*
 - 2 · [Accusés livré/lu séparés — sheet infos du message (2026-08-13)](#accusés-livrélu-séparés--sheet-infos-du-message-2026-08-13) · *Messagerie* · bloqué
@@ -350,7 +351,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 0 faites
-- [2. Messagerie](#2-messagerie) — 327 à faire, 31 faites
+- [2. Messagerie](#2-messagerie) — 330 à faire, 31 faites
 - [3. Groupes](#3-groupes) — 128 à faire, 0 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 126 à faire, 4 faites
 - [5. Appels](#5-appels) — 24 à faire, 1 faites
@@ -451,6 +452,26 @@ du SM A515F (compte « Sim A », non-admin, sans pays renseigné).
 # 2. Messagerie
 
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
+
+---
+
+## ⬜ « Supprimer pour moi » sur une sélection : les messages ne reviennent plus au rechargement (2026-10-03)
+
+**Priorité P1** · importance 3/5 — la suppression multiple écrivait dans Firebase RTDB, que plus rien ne lit : les messages masqués réapparaissaient.
+
+`DeleteMessageNotifier.deleteManyForMe` suit le chemin du message seul
+(Supabase, MLS compris) ; `MessageDeletionService.deleteMultipleForMe` est
+retiré. Tenu par
+`test/features/messages/suppression_multiple_pour_moi_test.dart`.
+
+À vérifier :
+
+- [ ] Sélectionner trois messages, « Supprimer pour moi » : ils
+      disparaissent, et **ne reviennent pas** en fermant puis rouvrant la
+      discussion, ni après redémarrage.
+- [ ] Même chose dans une conversation basculée en MLS.
+- [ ] Sur l'autre appareil / chez l'interlocuteur : les messages sont
+      toujours là (c'était « pour moi »).
 
 ---
 
