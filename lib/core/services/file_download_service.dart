@@ -6,6 +6,8 @@ import 'package:gal/gal.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'nom_de_fichier_sur.dart';
+
 /// Service for downloading files and saving to gallery
 class FileDownloadService {
   static final FileDownloadService _instance = FileDownloadService._internal();
@@ -15,6 +17,39 @@ class FileDownloadService {
   final Dio _dio = Dio();
 
   static const String _downloadKeyPrefix = 'media_dl_';
+
+  /// Sous-dossier des pièces jointes dans le répertoire documents. Jamais la
+  /// racine : `Hive.initFlutter()` y range ses boîtes, et un nom choisi par
+  /// l'expéditeur pouvait les écraser (voir `nom_de_fichier_sur.dart`).
+  static const String _dossierPiecesJointes = 'pieces_jointes';
+
+  /// `documents/pieces_jointes/<message>/` : un dossier par message, pour que
+  /// deux pièces jointes de même nom ne s'écrasent pas — sinon un
+  /// « contrat.pdf » reçu remplaçait, sous l'index du premier message, le
+  /// « contrat.pdf » téléchargé avant lui.
+  Future<Directory> _dossierDuMessage(String? messageId) async {
+    final documents = await getApplicationDocumentsDirectory();
+    final sous = nomDeFichierSur(
+      messageId,
+      repli: 'sans_message_${DateTime.now().microsecondsSinceEpoch}',
+    );
+    final dossier = Directory(
+      '${documents.path}/$_dossierPiecesJointes/$sous',
+    );
+    await dossier.create(recursive: true);
+    return dossier;
+  }
+
+  /// Supprime le dossier par message s'il est resté vide. Ne lève pas.
+  Future<void> _retirerDossierVide(File fichier) async {
+    try {
+      final parent = fichier.parent;
+      // Uniquement un dossier par message : jamais la racine documents, ni le
+      // dossier d'un ancien téléchargement rangé ailleurs.
+      if (!parent.parent.path.endsWith('/$_dossierPiecesJointes')) return;
+      if (await parent.list().isEmpty) await parent.delete();
+    } catch (_) {}
+  }
 
   /// Records a local file path for a message after a successful download.
   Future<void> trackDownload(String messageId, String localPath) async {
@@ -52,6 +87,7 @@ class FileDownloadService {
         try {
           final fichier = File(chemin);
           if (await fichier.exists()) await fichier.delete();
+          await _retirerDossierVide(fichier);
         } catch (e) {
           debugPrint('FileDownloadService: suppression de $chemin: $e');
         }
@@ -94,6 +130,7 @@ class FileDownloadService {
               await fichier.delete();
               supprimes++;
             }
+            await _retirerDossierVide(fichier);
           } catch (e) {
             // Fichier déjà supprimé, déplacé, ou permission refusée : l'index
             // doit disparaître quand même, sinon il pointerait dans le vide.
@@ -118,9 +155,10 @@ class FileDownloadService {
   }) async {
     try {
       // Generate file name if not provided
-      final name =
-          fileName ??
-          'niger_diaspora_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final name = nomDeFichierSur(
+        fileName,
+        repli: 'niger_diaspora_${DateTime.now().millisecondsSinceEpoch}.jpg',
+      );
 
       // Get temporary directory
       final tempDir = await getTemporaryDirectory();
@@ -136,7 +174,7 @@ class FileDownloadService {
       // deleting the temp file, and record that persistent path.
       if (messageId != null) {
         try {
-          final appDir = await getApplicationDocumentsDirectory();
+          final appDir = await _dossierDuMessage(messageId);
           final appPath = '${appDir.path}/$name';
           await File(tempPath).copy(appPath);
           await trackDownload(messageId, appPath);
@@ -167,8 +205,9 @@ class FileDownloadService {
     void Function(int, int)? onProgress,
   }) async {
     try {
-      final directory = await getApplicationDocumentsDirectory();
-      final filePath = '${directory.path}/$fileName';
+      final directory = await _dossierDuMessage(messageId);
+      final filePath =
+          '${directory.path}/${nomDeFichierSur(fileName, repli: 'piece_jointe')}';
 
       await _dio.download(url, filePath, onReceiveProgress: onProgress);
 
@@ -194,8 +233,10 @@ class FileDownloadService {
     void Function(int, int)? onProgress,
   }) async {
     try {
-      final name =
-          fileName ?? 'download_${DateTime.now().millisecondsSinceEpoch}';
+      final name = nomDeFichierSur(
+        fileName,
+        repli: 'download_${DateTime.now().millisecondsSinceEpoch}',
+      );
       final tempDir = await getTemporaryDirectory();
       final filePath = '${tempDir.path}/$name';
 

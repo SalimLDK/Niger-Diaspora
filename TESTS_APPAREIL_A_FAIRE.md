@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1271 cases à cocher, 55 cochées** — 284 entrées sur 298 ont encore des cases ouvertes.
+**1276 cases à cocher, 55 cochées** — 285 entrées sur 299 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -93,7 +93,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 6 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (112)
+**P1 — fonction importante, jamais vérifiée** (113)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -105,6 +105,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [⬜ Verrou de version minimale et multi-appareil (2026-09-15)](#-verrou-de-version-minimale-et-multi-appareil-2026-09-15) · *Comptes, session et onboarding*
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
+- 5 · [⬜ Pièces jointes téléchargées : rangées dans `pieces_jointes/<message>/`, nom nettoyé (2026-10-03)](#-pièces-jointes-téléchargées--rangées-dans-pieces_jointesmessage-nom-nettoyé-2026-10-03) · *Messagerie*
 - 6 · [⬜ Liste, discussion, « Distribué » et « Lu » : le message arrive après sa notification, la liste ne s'actualise pas (2026-09-27)](#-liste-discussion--distribué--et--lu---le-message-arrive-après-sa-notification-la-liste-ne-sactualise-pas-2026-09-27) · *Messagerie*
 - 2 · [⬜ Présence et appels : la connexion RTDB ne revient pas après l'arrière-plan (SM A515F) (2026-09-22)](#-présence-et-appels--la-connexion-rtdb-ne-revient-pas-après-larrière-plan-sm-a515f-2026-09-22) · *Messagerie*
 - 2 · [⬜ Note vocale : l'enregistrement continue sans doigt après la demande de micro (2026-09-22)](#-note-vocale--lenregistrement-continue-sans-doigt-après-la-demande-de-micro-2026-09-22) · *Messagerie*
@@ -342,7 +343,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 0 faites
-- [2. Messagerie](#2-messagerie) — 299 à faire, 31 faites
+- [2. Messagerie](#2-messagerie) — 304 à faire, 31 faites
 - [3. Groupes](#3-groupes) — 128 à faire, 0 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 121 à faire, 4 faites
 - [5. Appels](#5-appels) — 24 à faire, 1 faites
@@ -443,6 +444,37 @@ du SM A515F (compte « Sim A », non-admin, sans pays renseigné).
 # 2. Messagerie
 
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
+
+---
+
+## ⬜ Pièces jointes téléchargées : rangées dans `pieces_jointes/<message>/`, nom nettoyé (2026-10-03)
+
+**Priorité P1** · importance 4/5 — régression possible sur l'ouverture et le partage des fichiers téléchargés ; le correctif ferme une écriture de fichier arbitraire déclenchée par la simple réception d'un message.
+
+`message.fileName` est écrit par l'expéditeur, et le téléchargement
+automatique le collait tel quel derrière le répertoire documents. Un `../`
+sortait du répertoire ; un nom de boîte Hive écrasait la boîte (même
+répertoire). Désormais `FileDownloadService` écrit dans
+`documents/pieces_jointes/<messageId>/<nom nettoyé>`
+(`lib/core/services/nom_de_fichier_sur.dart`). Tenu par
+`test/core/services/nom_de_fichier_sur_test.dart`.
+
+Les fichiers téléchargés **avant** la mise à jour restent à leur ancien
+chemin, que l'index `media_dl_<id>` connaît toujours.
+
+À vérifier, Android et iOS :
+
+- [ ] Recevoir un document (PDF) avec le téléchargement auto actif : il
+      s'ouvre depuis la bulle, et le nom affiché à l'ouverture et au
+      partage est bien le nom d'origine.
+- [ ] Enregistrer une vidéo reçue (« Enregistrer ») : message de succès, et
+      la vidéo se relit hors ligne.
+- [ ] Note vocale, replay de salon audio, enregistrement du patrimoine :
+      « Télécharger », puis lecture hors ligne.
+- [ ] Un fichier téléchargé avant la mise à jour s'ouvre toujours.
+- [ ] Supprimer pour tous un message dont la pièce jointe était
+      téléchargée : le fichier disparaît (Fichiers de l'app / explorateur
+      Android), sans dossier vide laissé.
 
 ---
 
