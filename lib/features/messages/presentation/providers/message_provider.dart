@@ -40,6 +40,10 @@ import 'media_dechiffre_provider.dart';
 import '../../../../core/crypto/mls/mls_providers.dart';
 import '../../../../core/services/oubli_medias_locaux.dart';
 import '../../../../core/services/supabase_auth_bridge.dart';
+import 'package:dio/dio.dart';
+import 'package:path_provider/path_provider.dart';
+import '../../../../core/services/nom_de_fichier_sur.dart';
+import '../utils/image_locale_ou_reseau.dart';
 
 const int _pageSize = 30;
 
@@ -1380,6 +1384,57 @@ Future<void> signalerEnvoiEnEchec(
   }
 }
 
+/// Une copie EN CLAIR du média de [m], sous son nom d'origine, prête à
+/// repartir — ou `null` s'il n'y a plus rien à copier.
+///
+/// Sources, dans l'ordre : le fichier local d'un envoi (`localFilePath`), le
+/// média chiffré déchiffré par le cache, un `file://`, un téléchargement.
+/// La copie vit dans un dossier temporaire à elle : son nom est celui que
+/// le destinataire verra (le cache de déchiffrement nomme ses fichiers
+/// d'après l'identifiant du message), nettoyé par [nomDeFichierSur].
+Future<File?> fichierEnClairPourTransfert(Ref ref, MessageEntity m) async {
+  try {
+    File? source;
+    final local = m.localFilePath;
+    final url = m.fileUrl;
+    final media = m.mediaChiffre;
+    if (local != null && local.isNotEmpty && File(local).existsSync()) {
+      source = File(local);
+    } else if (media != null) {
+      final chemin = await ref.read(
+        mediaDechiffreProvider(DemandeMediaDechiffre(m.id, media)).future,
+      );
+      source = File(chemin);
+    } else if (url != null && estUrlLocale(url)) {
+      source = File(cheminDepuisUrlLocale(url));
+    }
+
+    final base = await getTemporaryDirectory();
+    final dossier = await Directory(
+      '${base.path}/transferts/${DateTime.now().microsecondsSinceEpoch}',
+    ).create(recursive: true);
+
+    if (source == null) {
+      if (url == null || !(url.startsWith('http://') || url.startsWith('https://'))) {
+        return null;
+      }
+      final nom = nomDeFichierSur(m.fileName, repli: m.id);
+      final chemin = '${dossier.path}/$nom';
+      await Dio().download(url, chemin);
+      return File(chemin);
+    }
+    if (!source.existsSync()) return null;
+    final nom = nomDeFichierSur(
+      m.fileName,
+      repli: source.uri.pathSegments.last,
+    );
+    return await source.copy('${dossier.path}/$nom');
+  } catch (e) {
+    debugPrint('transfert : copie du média impossible ($e)');
+    return null;
+  }
+}
+
 final sendMessageProvider = StateNotifierProvider<SendMessageNotifier, AsyncValue<void>>(
   (ref) => SendMessageNotifier(ref),
 );
@@ -1761,6 +1816,7 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
     required MessageType type,
     String? caption,
     MessageEntity? replyToMessage,
+    bool isForwarded = false,
   }) async {
     final currentUser = await _ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) return false;
@@ -1802,6 +1858,7 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
       },
       replyToId: replyToMessage?.id,
       replyToMessageData: replyToMessageData,
+      isForwarded: isForwarded,
     );
 
     return result.fold(
@@ -1829,6 +1886,7 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
     required List<double> waveform,
     MessageEntity? replyToMessage,
     DateTime? ecritLe,
+    bool isForwarded = false,
   }) async {
     final currentUser = await _ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) return false;
@@ -1881,6 +1939,7 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
       waveform: waveform,
       replyToId: replyToMessage?.id,
       replyToMessageData: replyToMessageData,
+      isForwarded: isForwarded,
     );
 
     return result.fold(
@@ -2141,73 +2200,56 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
           isForwarded: true,
         );
 
+      // Un média transféré repart par le chemin d'envoi normal, à partir
+      // d'une copie EN CLAIR sur l'appareil. Il recopiait l'URL dans une
+      // ligne legacy écrite directement par la source de données : un média
+      // chiffré partait donc sans sa clé (blob illisible chez le
+      // destinataire), et vers une conversation basculée en MLS, le serveur
+      // refusait l'écriture. Ré-émis ici, il est chiffré et routé selon la
+      // conversation CIBLE, comme s'il venait d'être choisi.
       case MessageType.image:
       case MessageType.video:
       case MessageType.file:
-        if (originalMessage.fileUrl == null) return false;
-        try {
-          await _ref.read(messageRemoteDataSourceProvider).sendMediaMessage(
-            conversationId: targetConversationId,
-            senderId: currentUser.id,
-            senderName: currentUser.displayName ?? 'Utilisateur',
-            senderPhotoUrl: currentUser.photoUrl,
-            fileUrl: originalMessage.fileUrl!,
-            fileName: originalMessage.fileName ?? 'file',
-            fileSize: originalMessage.fileSize ?? 0,
-            mimeType: originalMessage.mimeType ?? 'application/octet-stream',
-            type: originalMessage.type.name,
-            caption: originalMessage.content != originalMessage.fileName ? originalMessage.content : null,
-            isForwarded: true,
-          );
-          return true;
-        } catch (e) {
-          state = AsyncValue.error(e.toString(), StackTrace.current);
-          return false;
-        }
-
       case MessageType.audio:
-        if (originalMessage.fileUrl == null) return false;
-        try {
-          await _ref.read(messageRemoteDataSourceProvider).sendMediaMessage(
-            conversationId: targetConversationId,
-            senderId: currentUser.id,
-            senderName: currentUser.displayName ?? 'Utilisateur',
-            senderPhotoUrl: currentUser.photoUrl,
-            fileUrl: originalMessage.fileUrl!,
-            fileName: originalMessage.fileName ?? 'audio',
-            fileSize: originalMessage.fileSize ?? 0,
-            mimeType: originalMessage.mimeType ?? 'audio/mp4',
-            type: 'audioFile',
-            audioDuration: originalMessage.audioDuration,
-            isForwarded: true,
+      case MessageType.voiceNote:
+        final copie = await fichierEnClairPourTransfert(_ref, originalMessage);
+        if (copie == null) {
+          state = AsyncValue.error(
+            'Ce média n\'est plus disponible : impossible de le transférer.',
+            StackTrace.current,
           );
-          return true;
-        } catch (e) {
-          state = AsyncValue.error(e.toString(), StackTrace.current);
           return false;
         }
-
-      case MessageType.voiceNote:
-        if (originalMessage.fileUrl == null) return false;
-        try {
-          await _ref.read(messageRemoteDataSourceProvider).sendMediaMessage(
+        if (originalMessage.type == MessageType.voiceNote) {
+          // Pas d'effacement de la copie : c'est elle que le renvoi relira
+          // en cas d'échec, et l'envoi la retire lui-même une fois parti.
+          return sendAudio(
             conversationId: targetConversationId,
-            senderId: currentUser.id,
-            senderName: currentUser.displayName ?? 'Utilisateur',
-            senderPhotoUrl: currentUser.photoUrl,
-            fileUrl: originalMessage.fileUrl!,
-            fileName: originalMessage.fileName ?? 'voice_note.m4a',
-            fileSize: originalMessage.fileSize ?? 0,
-            mimeType: originalMessage.mimeType ?? 'audio/mp4',
-            type: 'voiceNote',
-            audioDuration: originalMessage.audioDuration,
-            audioWaveform: originalMessage.audioWaveform,
+            audioFile: copie,
+            duration: originalMessage.audioDuration ?? 0,
+            waveform: originalMessage.audioWaveform ?? const [],
             isForwarded: true,
           );
-          return true;
-        } catch (e) {
-          state = AsyncValue.error(e.toString(), StackTrace.current);
-          return false;
+        }
+        try {
+          final legende = originalMessage.content;
+          return await sendFile(
+            conversationId: targetConversationId,
+            file: copie,
+            type: originalMessage.type,
+            caption: legende.isNotEmpty &&
+                    legende != originalMessage.fileName &&
+                    legende != originalMessage.fileUrl
+                ? legende
+                : null,
+            isForwarded: true,
+          );
+        } finally {
+          // Une copie en clair n'a rien à faire sur le disque une fois
+          // chiffrée et partie.
+          try {
+            await copie.parent.delete(recursive: true);
+          } catch (_) {}
         }
 
       case MessageType.location:

@@ -659,6 +659,7 @@ class MessageRepositoryImpl implements MessageRepository {
     bool Function()? checkCancelled,
     String? replyToId,
     Map<String, dynamic>? replyToMessageData,
+    bool isForwarded = false,
   }) async {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(AppErrorMessages.networkError));
@@ -698,6 +699,7 @@ class MessageRepositoryImpl implements MessageRepository {
           checkCancelled: checkCancelled,
           replyToId: replyToId,
           replyToMessageData: replyToMessageData,
+          isForwarded: isForwarded,
         );
       }
 
@@ -818,6 +820,7 @@ class MessageRepositoryImpl implements MessageRepository {
           blurhash: blurhash,
           videoDuration: videoDuration,
           audioDuration: audioDuration,
+          isForwarded: isForwarded,
         );
         return Right(message.toEntity());
       });
@@ -847,6 +850,7 @@ class MessageRepositoryImpl implements MessageRepository {
     bool Function()? checkCancelled,
     String? replyToId,
     Map<String, dynamic>? replyToMessageData,
+    bool isForwarded = false,
   }) async {
     final resultat = await chiffrement.encryptAndUploadFile(
       file: file,
@@ -922,6 +926,7 @@ class MessageRepositoryImpl implements MessageRepository {
           senderPhotoUrl: senderPhotoUrl,
           replyToId: replyToId,
           replyToMessageData: replyToMessageData,
+          forwarded: isForwarded,
         ),
       );
       if (envoye != null) return envoye;
@@ -944,6 +949,7 @@ class MessageRepositoryImpl implements MessageRepository {
       audioDuration: audioDuration,
       videoDuration: videoDuration,
       mediaChiffre: media.toJson(),
+      isForwarded: isForwarded,
     );
     return Right(message.toEntity());
   }

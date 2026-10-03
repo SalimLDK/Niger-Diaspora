@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1290 cases à cocher, 55 cochées** — 289 entrées sur 303 ont encore des cases ouvertes.
+**1294 cases à cocher, 55 cochées** — 290 entrées sur 304 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -94,7 +94,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 6 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (115)
+**P1 — fonction importante, jamais vérifiée** (116)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -106,6 +106,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [⬜ Verrou de version minimale et multi-appareil (2026-09-15)](#-verrou-de-version-minimale-et-multi-appareil-2026-09-15) · *Comptes, session et onboarding*
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
+- 4 · [⬜ Transférer un média : il repart chiffré, routé selon la conversation cible (2026-10-03)](#-transférer-un-média--il-repart-chiffré-routé-selon-la-conversation-cible-2026-10-03) · *Messagerie*
 - 3 · [⬜ Remonter le fil : les messages plus anciens que les 30 derniers se chargent enfin (2026-10-03)](#-remonter-le-fil--les-messages-plus-anciens-que-les-30-derniers-se-chargent-enfin-2026-10-03) · *Messagerie*
 - 5 · [⬜ Pièces jointes téléchargées : rangées dans `pieces_jointes/<message>/`, nom nettoyé (2026-10-03)](#-pièces-jointes-téléchargées--rangées-dans-pieces_jointesmessage-nom-nettoyé-2026-10-03) · *Messagerie*
 - 6 · [⬜ Liste, discussion, « Distribué » et « Lu » : le message arrive après sa notification, la liste ne s'actualise pas (2026-09-27)](#-liste-discussion--distribué--et--lu---le-message-arrive-après-sa-notification-la-liste-ne-sactualise-pas-2026-09-27) · *Messagerie*
@@ -347,7 +348,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 0 faites
-- [2. Messagerie](#2-messagerie) — 313 à faire, 31 faites
+- [2. Messagerie](#2-messagerie) — 317 à faire, 31 faites
 - [3. Groupes](#3-groupes) — 128 à faire, 0 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 126 à faire, 4 faites
 - [5. Appels](#5-appels) — 24 à faire, 1 faites
@@ -448,6 +449,30 @@ du SM A515F (compte « Sim A », non-admin, sans pays renseigné).
 # 2. Messagerie
 
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
+
+---
+
+## ⬜ Transférer un média : il repart chiffré, routé selon la conversation cible (2026-10-03)
+
+**Priorité P1** · importance 4/5 — un média chiffré transféré arrivait illisible (sans sa clé), et tout transfert de média vers une conversation basculée en MLS échouait.
+
+Le transfert recopiait l'URL dans une ligne écrite directement par la
+source de données. Il repart désormais d'une copie en clair sur l'appareil
+(`fichierEnClairPourTransfert`, `message_provider.dart`), par `sendFile` /
+`sendAudio` : chiffré et routé comme un média tout juste choisi, mention
+« Transféré » comprise. Conséquence voulue : le média est **re-téléversé**
+(barre de progression, données consommées). Tenu par
+`test/features/messages/transfert_media_test.dart`.
+
+À vérifier :
+
+- [ ] Transférer une photo d'une conversation chiffrée vers une autre : elle
+      s'affiche chez le destinataire, avec « Transféré ».
+- [ ] Transférer un document, une vidéo, une note vocale vers une
+      conversation basculée en MLS : ça part, et ça se lit.
+- [ ] Le document transféré garde son nom d'origine chez le destinataire.
+- [ ] Transférer un média dont l'original a expiré : message d'erreur
+      « Ce média n'est plus disponible », pas d'échec muet.
 
 ---
 

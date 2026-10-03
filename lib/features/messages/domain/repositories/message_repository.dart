@@ -95,6 +95,7 @@ abstract class MessageRepository {
     bool Function()? checkCancelled,
     String? replyToId,
     Map<String, dynamic>? replyToMessageData,
+    bool isForwarded = false,
   });
 
   /// Créer une conversation individuelle
