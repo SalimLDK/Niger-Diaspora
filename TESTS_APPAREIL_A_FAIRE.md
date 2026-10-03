@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1285 cases à cocher, 55 cochées** — 287 entrées sur 301 ont encore des cases ouvertes.
+**1287 cases à cocher, 55 cochées** — 288 entrées sur 302 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -94,7 +94,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 6 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (114)
+**P1 — fonction importante, jamais vérifiée** (115)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -140,6 +140,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [⬜ Exclure un membre d'un groupe échouait toujours (2026-09-17)](#-exclure-un-membre-dun-groupe-échouait-toujours-2026-09-17) · *Groupes*
 - 4 · [⬜ Noms des candidats à l'invitation et à l'ajout en appel (2026-09-14)](#-noms-des-candidats-à-linvitation-et-à-lajout-en-appel-2026-09-14) · *Groupes*
 - 3 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
+- 2 · [⬜ MLS : seul l'auteur modifie son message, dans le fil comme dans la bannière (2026-10-03)](#-mls--seul-lauteur-modifie-son-message-dans-le-fil-comme-dans-la-bannière-2026-10-03) · *Chiffrement de bout en bout et clés*
 - 5 · [⬜ Pixel réinstallé : la discussion MLS avec Sim A se rouvre malgré des Welcome périmés (2026-09-21)](#-pixel-réinstallé--la-discussion-mls-avec-sim-a-se-rouvre-malgré-des-welcome-périmés-2026-09-21) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ L'app lancée sans son écran n'inscrit plus d'appareil fantôme (2026-09-16)](#-lapp-lancée-sans-son-écran-ninscrit-plus-dappareil-fantôme-2026-09-16) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ « Chiffré de bout en bout » corrigé sur 8 surfaces, dont la politique de confidentialité (2026-09-16)](#--chiffré-de-bout-en-bout--corrigé-sur-8-surfaces-dont-la-politique-de-confidentialité-2026-09-16) · *Chiffrement de bout en bout et clés*
@@ -347,7 +348,7 @@ Par domaine :
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 0 faites
 - [2. Messagerie](#2-messagerie) — 310 à faire, 31 faites
 - [3. Groupes](#3-groupes) — 128 à faire, 0 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 124 à faire, 4 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 126 à faire, 4 faites
 - [5. Appels](#5-appels) — 24 à faire, 1 faites
 - [6. Notifications et push](#6-notifications-et-push) — 115 à faire, 6 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 36 à faire, 0 faites
@@ -3800,6 +3801,28 @@ conservée plutôt que de conclure « non » à tort (sinon le titre clignote).
 # 4. Chiffrement de bout en bout et clés
 
 Signal 1:1 et groupes, repli AES, clés dérivées, sauvegarde et transfert des clés, et tout ce qui pouvait partir en clair.
+
+---
+
+## ⬜ MLS : seul l'auteur modifie son message, dans le fil comme dans la bannière (2026-10-03)
+
+**Priorité P1** · importance 4/5 — usurpation : dans une conversation chiffrée, n'importe quel membre pouvait réécrire le message d'un autre, affiché sous le nom de cet autre avec la seule mention « modifié ».
+
+Le serveur ne voit pas les éditions MLS ; aucun client ne vérifiait qui
+corrigeait quoi. Désormais `MlsGateway._appliquerEditionsEnAttente` exige que
+l'auteur du contrôle soit l'expéditeur du message visé, et
+`PileMessagesNotifiees.remplacer` en fait autant pour la bannière. Tenu par
+`mls_metadonnees_test.dart` et `notification_pile_messages_test.dart`.
+Limite : l'auteur est la colonne `sender_id`, que la policy force à
+l'appelant — un membre ne peut pas la contrefaire, le serveur si
+(authentifier l'expéditeur par MLS reste à faire).
+
+À vérifier (conversation basculée en MLS, deux appareils) :
+
+- [ ] Modifier son propre message : la correction apparaît chez l'autre,
+      dans le fil et dans la bannière si elle est encore affichée.
+- [ ] Aucune régression sur un groupe MLS : une modification par son auteur
+      s'applique chez tous les membres.
 
 ---
 

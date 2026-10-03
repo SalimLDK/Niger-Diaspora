@@ -564,6 +564,43 @@ void main() {
       expect(fil.single.content, 'corrigé par l\'autre');
     });
 
+    test('un membre ne réécrit pas le message d\'un autre', () async {
+      // m1 est d'u2 ; le contrôle vient d'u3. Il passait : le message d'u2
+      // affichait le texte d'u3, sous le nom d'u2, avec « modifié ».
+      final service = _ServiceFige([
+        MlsIncoming(_ligne('m1'), payload: _payload('m1')),
+        MlsIncoming(
+          _ligne('ctrl', kind: 'control', expediteur: 'u3'),
+          payload: MlsPayload(
+            id: 'ctrl',
+            type: 'edit',
+            sentAt: 0,
+            body: const {'targetId': 'm1', 'content': 'usurpé'},
+          ),
+        ),
+      ]);
+
+      final fil = await _passerelle(service, _MetaEspion()).messages('c1');
+
+      expect(fil.single.content, 'bonjour');
+      expect(fil.single.editedAt, isNull);
+    });
+
+    test('ma propre modification ne s\'applique pas au message d\'un autre',
+        () async {
+      final service = _ServiceFige([
+        MlsIncoming(_ligne('m1'), payload: _payload('m1')), // d'u2
+      ]);
+      final passerelle = _passerelle(service, _MetaEspion());
+      await passerelle.messages('c1');
+
+      await passerelle.modifier(
+          conversationId: 'c1', messageId: 'm1', nouveauTexte: 'usurpé');
+
+      final fil = await passerelle.messages('c1');
+      expect(fil.single.content, 'bonjour');
+    });
+
     test('un contrôle arrivé avant sa cible s\'applique quand elle paraît',
         () async {
       final service = _ServiceFige([

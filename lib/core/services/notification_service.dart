@@ -790,6 +790,10 @@ Future<void> _corrigerBanniereApresEdition(Map<String, dynamic> data) async {
 
   var cible = data['editedMessageId'] as String?;
   var texte = data['body'] as String?;
+  // En clair, le serveur a déjà vérifié l'auteur (`messages_garde_update`).
+  // En chiffré il ne voit rien : c'est ici que se vérifie que la correction
+  // vient de l'expéditeur du message corrigé.
+  String? auteur;
 
   if (data['protocol'] == 'mls') {
     final edition = await MlsNotificationPreview.edition(data);
@@ -797,6 +801,7 @@ Future<void> _corrigerBanniereApresEdition(Map<String, dynamic> data) async {
     if (edition == null) return;
     cible = edition.cible;
     texte = edition.texte;
+    auteur = data['senderId'] as String? ?? '';
   }
   if (cible == null || cible.isEmpty || texte == null) return;
 
@@ -804,6 +809,7 @@ Future<void> _corrigerBanniereApresEdition(Map<String, dynamic> data) async {
     conversationId: conversationId,
     messageId: cible,
     texte: sansPrefixeExpediteur(texte, data['senderName'] as String? ?? ''),
+    auteur: auteur,
   );
   if (pile == null || pile.isEmpty) return;
 
@@ -2051,11 +2057,13 @@ class NotificationService {
 
     var cible = data['editedMessageId'] as String?;
     var texte = data['body'] as String?;
+    String? auteur; // voir _corrigerBanniereApresEdition
     if (data['protocol'] == 'mls') {
       final edition = await MlsNotificationPreview.edition(data);
       if (edition == null) return;
       cible = edition.cible;
       texte = edition.texte;
+      auteur = data['senderId'] as String? ?? '';
     }
     if (cible == null || cible.isEmpty || texte == null) return;
 
@@ -2063,6 +2071,7 @@ class NotificationService {
       conversationId: conversationId,
       messageId: cible,
       texte: sansPrefixeExpediteur(texte, data['senderName'] as String? ?? ''),
+      auteur: auteur,
     );
   }
 

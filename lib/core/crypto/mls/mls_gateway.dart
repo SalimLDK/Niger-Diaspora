@@ -77,7 +77,11 @@ class MlsGateway {
   /// Modifications reçues dont la cible n'est pas encore dans le fil — un
   /// contrôle peut précéder le chargement du message qu'il vise. Vidée dès
   /// que la cible paraît.
-  final Map<String, ({String texte, DateTime quand})> _editions = {};
+  /// Éditions en attente de leur cible, avec leur **auteur** : une édition
+  /// ne s'applique qu'au message de celui qui l'a écrite (voir
+  /// [_appliquerEditionsEnAttente]).
+  final Map<String, ({String texte, DateTime quand, String auteur})>
+      _editions = {};
 
   /// Le drapeau est lu à chaque appel, pas au démarrage : l'ouvrir ne doit
   /// pas demander de relancer l'application.
@@ -351,7 +355,11 @@ class MlsGateway {
     final cible = payload.body['targetId'] as String?;
     final texte = payload.body['content'] as String?;
     if (cible == null || texte == null) return;
-    _editions[cible] = (texte: texte, quand: entrant.row.createdAt.toLocal());
+    _editions[cible] = (
+      texte: texte,
+      quand: entrant.row.createdAt.toLocal(),
+      auteur: entrant.row.senderId,
+    );
   }
 
   /// Applique les modifications reçues **dans le fil lui-même**, pas à la
@@ -363,6 +371,14 @@ class MlsGateway {
     for (var i = 0; i < fil.length; i++) {
       final edition = _editions.remove(fil[i].id);
       if (edition == null) continue;
+      // Seul l'auteur réécrit son message. Sans ce contrôle, n'importe quel
+      // membre pouvait faire dire autre chose au message d'un autre, sous le
+      // nom de cet autre, avec la mention « modifié » pour toute trace.
+      // L'auteur est la colonne `sender_id` de la ligne, que la policy
+      // d'insertion de `mls_messages` force à l'appelant : un membre ne peut
+      // pas la contrefaire (le serveur, lui, le pourrait — ce contrôle ne
+      // remplace pas une authentification de l'expéditeur par MLS).
+      if (edition.auteur != fil[i].senderId) continue;
       // Une modification ne ressuscite pas un message supprimé pour tous :
       // `copyWith(content:)` lui rendrait un texte.
       if (fil[i].deletedForEveryone) continue;
@@ -768,7 +784,8 @@ class MlsGateway {
     await _meta.marquerModifie(messageId);
     // Chez moi aussi : `catchUp` saute mes propres messages, le contrôle ne
     // me reviendra jamais.
-    _editions[messageId] = (texte: nouveauTexte, quand: DateTime.now());
+    _editions[messageId] =
+        (texte: nouveauTexte, quand: DateTime.now(), auteur: userId);
     final fil = _fil[conversationId];
     if (fil != null) _appliquerEditionsEnAttente(fil);
   }

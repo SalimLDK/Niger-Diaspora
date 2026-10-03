@@ -150,10 +150,16 @@ class PileMessagesNotifiees {
   /// Rend `null` si ce message n'est pas dans la pile — il n'y a alors aucune
   /// bannière à corriger, et il ne faut surtout pas en créer une : une édition
   /// ne doit jamais faire réapparaître une conversation qu'on a déjà lue.
+  ///
+  /// [auteur] : qui a écrit la correction. Donné, il doit être l'expéditeur
+  /// du message empilé, sinon rien n'est corrigé — sans quoi un membre d'une
+  /// conversation chiffrée réécrivait dans la bannière le message d'un autre.
+  /// Une entrée sans expéditeur connu est refusée elle aussi.
   static Future<List<MessageEmpile>?> remplacer({
     required String conversationId,
     required String messageId,
     required String texte,
+    String? auteur,
   }) async {
     if (messageId.isEmpty) return null;
     try {
@@ -161,6 +167,7 @@ class PileMessagesNotifiees {
       final pile = _lireDepuis(prefs, conversationId);
       final i = pile.indexWhere((m) => m.messageId == messageId);
       if (i < 0) return null;
+      if (auteur != null && pile[i].expediteurId != auteur) return null;
       if (pile[i].texte == texte) return pile;
       final ancien = pile[i];
       pile[i] = MessageEmpile(

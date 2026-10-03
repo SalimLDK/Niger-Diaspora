@@ -248,6 +248,39 @@ void main() {
       expect((await PileMessagesNotifiees.lire('c-vide')), isEmpty);
     });
 
+    test('une correction chiffrée n\'est acceptée que de l\'expéditeur',
+        () async {
+      // En MLS le serveur ne voit pas qui corrige quoi : sans ce contrôle,
+      // un membre réécrivait dans la bannière le message d'un autre.
+      await PileMessagesNotifiees.empiler(
+          conversationId: 'c1', messageId: 'm1', texte: 'rdv à 17h',
+          expediteur: 'Alice', expediteurId: 'uid-a');
+
+      expect(
+        await PileMessagesNotifiees.remplacer(
+            conversationId: 'c1', messageId: 'm1', texte: 'faux',
+            auteur: 'uid-b'),
+        isNull,
+      );
+      expect((await PileMessagesNotifiees.lire('c1')).single.texte, 'rdv à 17h');
+
+      final pile = await PileMessagesNotifiees.remplacer(
+          conversationId: 'c1', messageId: 'm1', texte: 'rdv à 18h',
+          auteur: 'uid-a');
+      expect(pile!.single.texte, 'rdv à 18h');
+    });
+
+    test('expéditeur inconnu dans la pile : une correction signée est refusée',
+        () async {
+      await PileMessagesNotifiees.empiler(
+          conversationId: 'c1', messageId: 'm1', texte: 'a', expediteur: 'A');
+      expect(
+        await PileMessagesNotifiees.remplacer(
+            conversationId: 'c1', messageId: 'm1', texte: 'b', auteur: 'uid-x'),
+        isNull,
+      );
+    });
+
     test('corriger par le même texte ne réécrit rien', () async {
       await PileMessagesNotifiees.empiler(
           conversationId: 'c1', messageId: 'm1', texte: 'idem', expediteur: 'A');
