@@ -148,6 +148,13 @@ class _MessageInputState extends State<MessageInput>
   final FocusNode _focusNode = FocusNode();
   final AudioRecordingService _recordingService = AudioRecordingService();
 
+  /// Le doigt est-il encore posé sur le micro ? `_isRecording` ne le dit
+  /// pas : il ne passe à vrai qu'APRÈS la permission et le démarrage du
+  /// micro, deux attentes. Un doigt levé pendant ce temps trouvait
+  /// `_isRecording` à faux, `onLongPressEnd` ne faisait rien — puis
+  /// l'enregistrement démarrait, et plus rien ne l'arrêtait.
+  bool _appuiMicro = false;
+
   bool _hasText = false;
   bool _isRecording = false;
   bool _showPicker = false;
@@ -384,6 +391,25 @@ class _MessageInputState extends State<MessageInput>
   }
 
   /// Le clavier bouge : redessiner pour que le panneau suive son retrait.
+  /// L'app passe en arrière-plan pendant un vocal : on l'abandonne.
+  ///
+  /// Le doigt posé sur le micro, `onLongPressEnd` peut ne jamais venir — et
+  /// rien d'autre n'arrêtait le micro, qui continuait d'écouter hors de
+  /// l'app. Verrouillé, l'enregistrement est abandonné aussi : l'envoyer
+  /// sans un dernier geste serait pire que le perdre.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed ||
+        state == AppLifecycleState.inactive) {
+      return;
+    }
+    _appuiMicro = false;
+    if (_isRecording) {
+      unawaited(_recordingService.cancelRecording());
+      _resetRecordingState();
+    }
+  }
+
   @override
   void didChangeMetrics() {
     if (mounted && (_showAttachPanel || _showPicker)) {
@@ -960,6 +986,9 @@ class _MessageInputState extends State<MessageInput>
     if (widget.onSendAudio == null) return;
 
     final hasPermission = await _recordingService.requestPermission();
+    // Relâché pendant la demande — c'est le cas ordinaire au premier usage,
+    // la boîte de permission fait lever le doigt : on ne démarre pas.
+    if (!mounted || (hasPermission && !_appuiMicro)) return;
     if (!hasPermission) {
       if (mounted) {
         final l10n = AppLocalizations.of(context)!;
@@ -974,16 +1003,23 @@ class _MessageInputState extends State<MessageInput>
     }
 
     final path = await _recordingService.startRecording();
-    if (path != null) {
-      await HapticFeedback.mediumImpact();
-      setState(() {
-        _isRecording = true;
-        _dragOffset = 0;
-        _isCancelling = false;
-        _isLocked = false;
-        _verticalDragOffset = 0;
-      });
+    if (path == null) return;
+    // Relâché, écran quitté ou app passée en arrière-plan pendant le
+    // démarrage du micro : personne n'arrêterait cet enregistrement.
+    if (!mounted || !_appuiMicro) {
+      await _recordingService.cancelRecording();
+      return;
     }
+    // `_isRecording` passe à vrai dans le même tour que le contrôle, AVANT
+    // la vibration : un relâchement pendant son attente doit déjà le voir.
+    setState(() {
+      _isRecording = true;
+      _dragOffset = 0;
+      _isCancelling = false;
+      _isLocked = false;
+      _verticalDragOffset = 0;
+    });
+    await HapticFeedback.mediumImpact();
   }
 
   Future<void> _stopRecording() async {
@@ -2259,8 +2295,12 @@ class _MessageInputState extends State<MessageInput>
           // LongPress pour démarrer l'enregistrement
           // Un appui long en modification ne doit pas lancer un vocal : le
           // bouton n'est plus un micro, il applique.
-          onLongPressStart:
-              !_hasText && _peutEnregistrer ? (_) => _startRecording() : null,
+          onLongPressStart: !_hasText && _peutEnregistrer
+              ? (_) {
+                  _appuiMicro = true;
+                  unawaited(_startRecording());
+                }
+              : null,
 
           // LongPressMoveUpdate gère le drag PENDANT l'enregistrement
           // C'est la clé : ce handler reste actif car le bouton reste dans l'arbre
@@ -2272,6 +2312,7 @@ class _MessageInputState extends State<MessageInput>
 
           // LongPressEnd gère le relâcher
           onLongPressEnd: (_) {
+            _appuiMicro = false;
             if (_isRecording) {
               _onLongPressRelease();
             }

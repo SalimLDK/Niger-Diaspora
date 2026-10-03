@@ -9,8 +9,12 @@ import 'package:record/record.dart';
 class AudioRecordingService {
   static final AudioRecordingService _instance =
       AudioRecordingService._internal();
-  factory AudioRecordingService() => _instance;
+  factory AudioRecordingService() => remplacantPourTests ?? _instance;
   AudioRecordingService._internal();
+
+  /// Remplace le singleton dans les tests, qui n'ont pas de micro.
+  @visibleForTesting
+  static AudioRecordingService? remplacantPourTests;
 
   final AudioRecorder _recorder = AudioRecorder();
   bool _isRecording = false;
