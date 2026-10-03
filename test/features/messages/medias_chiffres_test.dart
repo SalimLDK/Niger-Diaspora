@@ -186,14 +186,45 @@ void main() {
       // Chaque type apparaît deux fois : la branche « média local, envoi en
       // cours » (pas de barrière, le fichier est déjà sur disque) et la
       // branche réseau, qui doit passer par la barrière.
-      for (final cas in ['image', 'file', 'audio', 'voiceNote']) {
+      //
+      // La vidéo manquait à cette liste — et c'est ainsi qu'une vidéo
+      // chiffrée est restée lue sur son blob, illisible des deux côtés. Le
+      // bloc d'un cas s'arrête au `case` suivant : une fenêtre de longueur
+      // fixe ratait la barrière dès qu'un commentaire la précédait.
+      for (final cas in ['image', 'file', 'video', 'audio', 'voiceNote']) {
         final blocs = 'case MessageType.$cas:'.allMatches(source).toList();
         expect(blocs, isNotEmpty, reason: cas);
-        final unePasseParLaBarriere = blocs.any(
-          (b) => source.substring(b.end, b.end + 200).contains('MediaChiffreGate('),
-        );
+        final unePasseParLaBarriere = blocs.any((b) {
+          final suivant = source.indexOf('case MessageType.', b.end);
+          final fin = suivant == -1 ? source.length : suivant;
+          return source.substring(b.end, fin).contains('MediaChiffreGate(');
+        });
         expect(unePasseParLaBarriere, isTrue, reason: cas);
       }
+    });
+
+    test('la vidéo déchiffrée se lit et s\'enregistre depuis son fichier local',
+        () {
+      // `file://<chemin>` est la forme que rend la barrière. Le lecteur
+      // faisait `File(videoUrl)` sur tout ce qui n'est pas http : un chemin
+      // qui commence par `file://` n'existe pas.
+      final lecteur = _source(
+        'lib/features/messages/presentation/screens/video_player_screen.dart',
+      );
+      expect('cheminDepuisUrlLocale('.allMatches(lecteur).length, 2,
+          reason: 'lecture et enregistrement');
+
+      // « Enregistrer » depuis la bulle : téléverser l'URL distante d'une
+      // vidéo chiffrée rangeait le blob chiffré en annonçant le succès.
+      final bulle = _source(
+        'lib/features/messages/presentation/widgets/message_bubble.dart',
+      );
+      final i = bulle.indexOf('Future<void> _saveVideoToDevice(');
+      expect(i, isNot(-1));
+      expect(
+        bulle.substring(i, i + 900),
+        contains('enregistrerVideoLocaleDansGalerie('),
+      );
     });
 
     test('la galerie lit un média local ou distant sans distinction', () {

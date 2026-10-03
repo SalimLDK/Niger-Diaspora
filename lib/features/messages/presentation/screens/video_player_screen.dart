@@ -9,6 +9,7 @@ import 'package:path_provider/path_provider.dart';
 
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../utils/image_locale_ou_reseau.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 
 /// Écran de lecture vidéo plein écran (style WhatsApp)
@@ -99,7 +100,12 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
     if (widget.videoUrl.startsWith('http')) {
       _controller = VideoPlayerController.networkUrl(Uri.parse(widget.videoUrl));
     } else {
-      _controller = VideoPlayerController.file(File(widget.videoUrl));
+      // `file://<chemin>` : vidéo chiffrée, déchiffrée par MediaChiffreGate.
+      // `File('file:///…')` ne désigne pas ce chemin — il faut l'ôter.
+      final url = widget.videoUrl;
+      _controller = VideoPlayerController.file(
+        File(estUrlLocale(url) ? cheminDepuisUrlLocale(url) : url),
+      );
     }
 
     try {
@@ -197,7 +203,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen>
           throw Exception('Échec du téléchargement');
         }
       } else {
-        filePath = widget.videoUrl;
+        final url = widget.videoUrl;
+        filePath = estUrlLocale(url) ? cheminDepuisUrlLocale(url) : url;
       }
 
       // Sauvegarder dans la galerie

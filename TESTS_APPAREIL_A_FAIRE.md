@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1282 cases à cocher, 55 cochées** — 287 entrées sur 301 ont encore des cases ouvertes.
+**1285 cases à cocher, 55 cochées** — 287 entrées sur 301 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -143,7 +143,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [⬜ Pixel réinstallé : la discussion MLS avec Sim A se rouvre malgré des Welcome périmés (2026-09-21)](#-pixel-réinstallé--la-discussion-mls-avec-sim-a-se-rouvre-malgré-des-welcome-périmés-2026-09-21) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ L'app lancée sans son écran n'inscrit plus d'appareil fantôme (2026-09-16)](#-lapp-lancée-sans-son-écran-ninscrit-plus-dappareil-fantôme-2026-09-16) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ « Chiffré de bout en bout » corrigé sur 8 surfaces, dont la politique de confidentialité (2026-09-16)](#--chiffré-de-bout-en-bout--corrigé-sur-8-surfaces-dont-la-politique-de-confidentialité-2026-09-16) · *Chiffrement de bout en bout et clés*
-- 4 · [⬜ La vidéo entre dans le chiffrement (2026-09-16)](#-la-vidéo-entre-dans-le-chiffrement-2026-09-16) · *Chiffrement de bout en bout et clés*
+- 7 · [⬜ La vidéo entre dans le chiffrement (2026-09-16)](#-la-vidéo-entre-dans-le-chiffrement-2026-09-16) · *Chiffrement de bout en bout et clés*
 - 7 · [⬜ Code de sécurité d'un appareil MLS (phase 7, 2026-09-15)](#-code-de-sécurité-dun-appareil-mls-phase-7-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ Recherche, favoris et galerie d'une conversation chiffrée (2026-09-15)](#-recherche-favoris-et-galerie-dune-conversation-chiffrée-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ Registre d'appareils MLS — inscription à la connexion, KeyPackages, écran (phase 2, 2026-09-15)](#-registre-dappareils-mls--inscription-à-la-connexion-keypackages-écran-phase-2-2026-09-15) · *Chiffrement de bout en bout et clés*
@@ -347,7 +347,7 @@ Par domaine :
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 0 faites
 - [2. Messagerie](#2-messagerie) — 310 à faire, 31 faites
 - [3. Groupes](#3-groupes) — 128 à faire, 0 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 121 à faire, 4 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 124 à faire, 4 faites
 - [5. Appels](#5-appels) — 24 à faire, 1 faites
 - [6. Notifications et push](#6-notifications-et-push) — 115 à faire, 6 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 36 à faire, 0 faites
@@ -4092,9 +4092,24 @@ Couvert hors appareil par
 [video_chiffree_test.dart](test/features/messages/video_chiffree_test.dart)
 (6 cas).
 
+**2026-10-03 — la lecture n'était pas branchée.** La bulle vidéo ne passait
+pas par `MediaChiffreGate` : elle lisait le `fileUrl`, c'est-à-dire le blob
+chiffré, chez l'expéditeur comme chez le destinataire. Le lecteur plein écran
+ne savait pas non plus ouvrir `file://`, et « Enregistrer » rangeait le blob
+chiffré en annonçant le succès. Corrigé dans `message_bubble.dart` (barrière
+sous l'économiseur de données) et `video_player_screen.dart` ; tenu par
+`medias_chiffres_test.dart`, dont la liste des bulles omettait la vidéo.
+Les cases ci-dessous n'avaient donc aucune chance avant cette date.
+
 - [ ] **Envoyer une vidéo dans une conversation basculée** : elle part
       chiffrée, la bulle montre son aperçu et son badge de durée.
 - [ ] **La rouvrir** : elle se lit, depuis le fichier déchiffré local.
+- [ ] **Chez le destinataire** : roue de déchiffrement sur le flou, puis la
+      vidéo se lit en plein écran.
+- [ ] **Économiseur de données actif (données mobiles)** : rien ne se
+      télécharge avant l'appui sur la bulle.
+- [ ] **« Enregistrer »** (bulle et plein écran) : la vidéo apparaît dans
+      la galerie et **se lit** — pas un fichier illisible.
 - [ ] **Une vidéo longue, au-delà de 50 Mo** : l'envoi et la lecture tiennent
       sans que l'application soit tuée pour mémoire. C'est le cas qui
       justifiait l'exclusion.

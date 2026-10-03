@@ -29,6 +29,18 @@ Future<bool> enregistrerImageLocaleDansGalerie(String chemin) async {
   }
 }
 
+/// Même chose pour une vidéo déchiffrée : c'est le fichier local, en clair,
+/// qui va dans la galerie — jamais l'URL distante, qui est le blob chiffré.
+Future<bool> enregistrerVideoLocaleDansGalerie(String chemin) async {
+  try {
+    await Gal.putVideo(chemin, album: 'Diaspo Niger');
+    return true;
+  } catch (e) {
+    debugPrint('enregistrerVideoLocaleDansGalerie: $e');
+    return false;
+  }
+}
+
 /// Fournisseur d'image pour une URL réseau **ou** locale.
 ImageProvider imageProviderPour(String url) => estUrlLocale(url)
     ? FileImage(File(cheminDepuisUrlLocale(url)))

@@ -1980,13 +1980,21 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
                     widget.message.content.isEmpty
                 ? null
                 : widget.message.content;
+        // Économiseur de données D'ABORD, déchiffrement ensuite : une vidéo
+        // pèse lourd, et `MediaChiffreGate` la télécharge en entier pour la
+        // déchiffrer. Sans la barrière, une vidéo chiffrée était lue sur son
+        // `fileUrl` — un blob illisible —, chez l'expéditeur comme chez le
+        // destinataire. Les images, documents et sons y passaient déjà.
         return DataSaverGate(
           messageId: widget.message.id,
           isMe: widget.isMe,
           blurhash: widget.message.blurhash,
           fileSize: widget.message.fileSize,
-          builder: (context) => VideoBubble(
-          videoUrl: widget.message.fileUrl ?? '',
+          builder: (context) => MediaChiffreGate(
+          message: widget.message,
+          aspectRatio: 16 / 9,
+          builder: (context, m) => VideoBubble(
+          videoUrl: m.fileUrl ?? '',
           thumbnailUrl: widget.message.thumbnailUrl,
           duration: widget.message.videoDuration,
           caption: videoCaption,
@@ -1996,10 +2004,10 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
           messageId: widget.message.id,
           blurhash: widget.message.blurhash,
           onTap:
-              widget.message.fileUrl != null
+              m.fileUrl != null
                   ? () => VideoPlayerScreen.show(
                         context,
-                        videoUrl: widget.message.fileUrl!,
+                        videoUrl: m.fileUrl!,
                         senderName: widget.message.senderName,
                         timestamp: widget.message.createdAt,
                         caption: videoCaption,
@@ -2010,12 +2018,13 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
                   ? () => widget.onForward?.call(widget.message)
                   : null,
           onSave:
-              widget.message.fileUrl != null
-                  ? () => _saveVideoToDevice(widget.message.fileUrl!)
+              m.fileUrl != null
+                  ? () => _saveVideoToDevice(m.fileUrl!)
                   : null,
           onShare: () => _shareMessage(),
           // Appui long = menu complet (permet d'épingler une vidéo, etc.).
           onLongPress: _onLongPress,
+          ),
           ),
         );
       }
@@ -2916,19 +2925,35 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
 
   Future<void> _saveVideoToDevice(String videoUrl) async {
     final msg = widget.message;
-    final fileName =
-        msg.fileName?.isNotEmpty == true ? msg.fileName! : '${msg.id}.mp4';
-    final file = await FileDownloadService().downloadToAppDirectory(
-      videoUrl,
-      fileName: fileName,
-      messageId: msg.id,
-    );
+    final bool ok;
+    if (estUrlLocale(videoUrl)) {
+      // Vidéo chiffrée, déjà déchiffrée sur l'appareil par MediaChiffreGate.
+      // Télécharger son URL distante enregistrerait le blob chiffré — ce que
+      // faisait l'ancien code, avec « Vidéo enregistrée » à l'écran.
+      final service = FileDownloadService();
+      if (!await service.hasGalleryPermission() &&
+          !await service.requestGalleryPermission()) {
+        return;
+      }
+      ok = await enregistrerVideoLocaleDansGalerie(
+        cheminDepuisUrlLocale(videoUrl),
+      );
+    } else {
+      final fileName =
+          msg.fileName?.isNotEmpty == true ? msg.fileName! : '${msg.id}.mp4';
+      final file = await FileDownloadService().downloadToAppDirectory(
+        videoUrl,
+        fileName: fileName,
+        messageId: msg.id,
+      );
+      ok = file != null;
+    }
     if (mounted) {
       final l10n = AppLocalizations.of(context)!;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(file != null ? l10n.videoSaved : l10n.saveFailed),
-          backgroundColor: file != null ? Colors.green : Colors.red,
+          content: Text(ok ? l10n.videoSaved : l10n.saveFailed),
+          backgroundColor: ok ? Colors.green : Colors.red,
           duration: const Duration(seconds: 2),
         ),
       );
