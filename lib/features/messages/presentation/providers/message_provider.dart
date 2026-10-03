@@ -1435,6 +1435,26 @@ Future<File?> fichierEnClairPourTransfert(Ref ref, MessageEntity m) async {
   }
 }
 
+/// Une pièce jointe dont l'envoi a échoué : posée en bulle d'échec si la
+/// discussion est ouverte, et mise de côté pour « Renvoyer », le renvoi
+/// automatique et le prochain lancement.
+///
+/// L'entité porte le fichier local deux fois : `fileUrl = file://…`, la forme
+/// que toutes les bulles média savent afficher, et `localFilePath`, d'où
+/// `retryFailedMessage` le renverra.
+Future<void> pieceJointeEnEchec(
+  Ref ref,
+  String conversationId,
+  MessageEntity echec, {
+  DateTime? ecritLe,
+}) async {
+  final ecran = paginatedMessagesProvider(conversationId);
+  if (ref.exists(ecran)) {
+    ref.read(ecran.notifier).addOptimisticMessage(echec);
+  }
+  await signalerEnvoiEnEchec(ref, conversationId, echec, ecritLe: ecritLe);
+}
+
 final sendMessageProvider = StateNotifierProvider<SendMessageNotifier, AsyncValue<void>>(
   (ref) => SendMessageNotifier(ref),
 );
@@ -1732,7 +1752,6 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
           eventData: failedMessage.eventData,
           ecritLe: ecritLe,
         );
-      case MessageType.audio:
       case MessageType.voiceNote:
         // Le fichier enregistré est encore là tant que l'envoi n'a pas abouti :
         // sendAudioMessage ne le supprime qu'après un téléversement réussi.
@@ -1756,11 +1775,30 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
           StackTrace.current,
         );
         return false;
+      // Pièces jointes : repartent de leur fichier local, mis de côté par
+      // `_pieceJointeEnEchec`. Elles étaient refusées ici — et comme rien ne
+      // les mettait de côté non plus, une pièce jointe ratée disparaissait.
       case MessageType.image:
       case MessageType.file:
       case MessageType.video:
+      case MessageType.audio:
+        final chemin = failedMessage.localFilePath;
+        if (chemin != null && File(chemin).existsSync()) {
+          pagination.removeMessageOptimistically(failedMessage.id);
+          final legende = failedMessage.content;
+          return sendFile(
+            conversationId: conversationId,
+            file: File(chemin),
+            type: failedMessage.type,
+            caption: legende.isEmpty ? null : legende,
+            replyToMessage: replyToMessage,
+            isForwarded: failedMessage.isForwarded,
+            ecritLe: ecritLe,
+          );
+        }
         state = AsyncValue.error(
-          'Impossible de renvoyer ce type de message. Veuillez le renvoyer manuellement.',
+          "Impossible de renvoyer ce média : le fichier n'est plus disponible "
+          'sur cet appareil.',
           StackTrace.current,
         );
         return false;
@@ -1817,6 +1855,7 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
     String? caption,
     MessageEntity? replyToMessage,
     bool isForwarded = false,
+    DateTime? ecritLe,
   }) async {
     final currentUser = await _ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) return false;
@@ -1868,6 +1907,32 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
         } else {
           uploadNotifier.markError(failure.message);
           state = AsyncValue.error(failure.message, StackTrace.current);
+          // Annulé : c'est un choix. Raté : la bulle de progression
+          // disparaît, et rien ne la remplaçait — ni bulle en échec, ni
+          // « Renvoyer », ni file d'attente. La pièce jointe était perdue.
+          unawaited(pieceJointeEnEchec(
+            _ref,
+            conversationId,
+            MessageEntity(
+              id: 'temp_file_${DateTime.now().microsecondsSinceEpoch}',
+              senderId: currentUser.id,
+              senderName: currentUser.displayName ?? 'Utilisateur',
+              senderPhotoUrl: currentUser.photoUrl,
+              content: caption ?? '',
+              type: type,
+              status: MessageStatus.failed,
+              createdAt: DateTime.now(),
+              readBy: const [],
+              readAt: const {},
+              fileUrl: 'file://${file.path}',
+              localFilePath: file.path,
+              fileName: file.uri.pathSegments.last,
+              replyToId: replyToMessage?.id,
+              replyToMessageData: replyToMessageData,
+              isForwarded: isForwarded,
+            ),
+            ecritLe: ecritLe,
+          ));
         }
         return false;
       },
@@ -2231,26 +2296,26 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
             isForwarded: true,
           );
         }
-        try {
-          final legende = originalMessage.content;
-          return await sendFile(
-            conversationId: targetConversationId,
-            file: copie,
-            type: originalMessage.type,
-            caption: legende.isNotEmpty &&
-                    legende != originalMessage.fileName &&
-                    legende != originalMessage.fileUrl
-                ? legende
-                : null,
-            isForwarded: true,
-          );
-        } finally {
-          // Une copie en clair n'a rien à faire sur le disque une fois
-          // chiffrée et partie.
+        final legende = originalMessage.content;
+        final parti = await sendFile(
+          conversationId: targetConversationId,
+          file: copie,
+          type: originalMessage.type,
+          caption: legende.isNotEmpty &&
+                  legende != originalMessage.fileName &&
+                  legende != originalMessage.fileUrl
+              ? legende
+              : null,
+          isForwarded: true,
+        );
+        // Une copie en clair n'a rien à faire sur le disque une fois chiffrée
+        // et partie. Ratée, elle reste : c'est d'elle que le renvoi repartira.
+        if (parti) {
           try {
             await copie.parent.delete(recursive: true);
           } catch (_) {}
         }
+        return parti;
 
       case MessageType.location:
         if (originalMessage.latitude == null || originalMessage.longitude == null) return false;
