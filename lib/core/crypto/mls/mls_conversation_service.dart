@@ -101,11 +101,15 @@ class MlsConversationService {
     required Future<MlsDeviceRecord> Function() appareil,
     Future<String?> Function(String cle)? lireMemo,
     Future<void> Function(String cle, String valeur)? ecrireMemo,
+    DateTime Function()? maintenant,
   })  : _moteur = moteur,
         _delivery = delivery,
         _appareil = appareil,
         _lireMemo = lireMemo ?? _lirePrefs,
-        _ecrireMemo = ecrireMemo ?? _ecrirePrefs;
+        _ecrireMemo = ecrireMemo ?? _ecrirePrefs,
+        _maintenant = maintenant ?? DateTime.now;
+
+  final DateTime Function() _maintenant;
 
   final String userId;
   final Future<Moteur> Function() _moteur;
@@ -498,7 +502,10 @@ class MlsConversationService {
         }
         await _publierArbre(conversationId, moteur);
       }
-      final retrait = aRetirer.isEmpty || _retraitsEchoues.contains(conversationId)
+      final dernierEchec = _retraitsEchoues[conversationId];
+      final retrait = aRetirer.isEmpty ||
+              (dernierEchec != null &&
+                  _maintenant().difference(dernierEchec) < delaiAvantNouveauRetrait)
           ? null
           : await () async {
               final snap2 = await moteur.instantane(conversationId: conversationId);
@@ -514,7 +521,11 @@ class MlsConversationService {
                   aad: MlsAad.commit(conversationId: conversationId, epoch: epoch),
                 ),
               );
-              if (out == null) _retraitsEchoues.add(conversationId);
+              if (out == null) {
+                _retraitsEchoues[conversationId] = _maintenant();
+              } else {
+                _retraitsEchoues.remove(conversationId);
+              }
               return out == null ? null : (out: out, epoch: epoch);
             }();
       if (retrait != null) {
@@ -552,7 +563,19 @@ class MlsConversationService {
   /// Pour la durée du processus : réessayer à chaque envoi réclamait trois
   /// KeyPackages de plus par minute, pour un échec certain.
   final Set<String> _ajoutsEchoues = {};
-  final Set<String> _retraitsEchoues = {};
+
+  /// Dernier échec du moteur à retirer des membres, par conversation.
+  ///
+  /// C'était un ensemble « pour la durée du processus », comme les ajouts.
+  /// Mais un retrait n'est pas un ajout : ce qu'il retire peut être un
+  /// appareil RÉVOQUÉ — un téléphone volé —, qui continuait de recevoir tout
+  /// ce qui s'écrivait jusqu'au redémarrage de l'app, après un seul échec.
+  /// On réessaie donc, sans marteler : au plus une fois par
+  /// [delaiAvantNouveauRetrait].
+  final Map<String, DateTime> _retraitsEchoues = {};
+
+  @visibleForTesting
+  static const delaiAvantNouveauRetrait = Duration(minutes: 10);
 
   /// Fabrique un commit d'appartenance ; en cas d'échec **du moteur**, rend
   /// `null` au lieu de lever.

@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1317 cases à cocher, 55 cochées** — 296 entrées sur 310 ont encore des cases ouvertes.
+**1320 cases à cocher, 55 cochées** — 297 entrées sur 311 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -95,7 +95,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 6 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (121)
+**P1 — fonction importante, jamais vérifiée** (122)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -145,6 +145,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [⬜ Exclure un membre d'un groupe échouait toujours (2026-09-17)](#-exclure-un-membre-dun-groupe-échouait-toujours-2026-09-17) · *Groupes*
 - 4 · [⬜ Noms des candidats à l'invitation et à l'ajout en appel (2026-09-14)](#-noms-des-candidats-à-linvitation-et-à-lajout-en-appel-2026-09-14) · *Groupes*
 - 3 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
+- 3 · [⬜ MLS : un appareil révoqué ne publie plus, et son retrait se retente (2026-10-04)](#-mls--un-appareil-révoqué-ne-publie-plus-et-son-retrait-se-retente-2026-10-04) · *Chiffrement de bout en bout et clés*
 - 2 · [⬜ MLS : un commit publié mais pas fusionné ne désynchronise plus l'appareil (2026-10-04)](#-mls--un-commit-publié-mais-pas-fusionné-ne-désynchronise-plus-lappareil-2026-10-04) · *Chiffrement de bout en bout et clés*
 - 2 · [⬜ MLS : seul l'auteur modifie son message, dans le fil comme dans la bannière (2026-10-03)](#-mls--seul-lauteur-modifie-son-message-dans-le-fil-comme-dans-la-bannière-2026-10-03) · *Chiffrement de bout en bout et clés*
 - 5 · [⬜ Pixel réinstallé : la discussion MLS avec Sim A se rouvre malgré des Welcome périmés (2026-09-21)](#-pixel-réinstallé--la-discussion-mls-avec-sim-a-se-rouvre-malgré-des-welcome-périmés-2026-09-21) · *Chiffrement de bout en bout et clés*
@@ -356,7 +357,7 @@ Par domaine :
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 0 faites
 - [2. Messagerie](#2-messagerie) — 338 à faire, 31 faites
 - [3. Groupes](#3-groupes) — 128 à faire, 0 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 128 à faire, 4 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 131 à faire, 4 faites
 - [5. Appels](#5-appels) — 24 à faire, 1 faites
 - [6. Notifications et push](#6-notifications-et-push) — 115 à faire, 6 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 36 à faire, 0 faites
@@ -3974,6 +3975,32 @@ conservée plutôt que de conclure « non » à tort (sinon le titre clignote).
 # 4. Chiffrement de bout en bout et clés
 
 Signal 1:1 et groupes, repli AES, clés dérivées, sauvegarde et transfert des clés, et tout ce qui pouvait partir en clair.
+
+---
+
+## ⬜ MLS : un appareil révoqué ne publie plus, et son retrait se retente (2026-10-04)
+
+**Priorité P1** · importance 4/5 — sécurité : un téléphone volé puis révoqué pouvait encore publier (dont le commit externe qui le faisait rentrer dans le groupe), et un retrait raté le laissait dans l'arbre jusqu'au redémarrage de l'app.
+
+Migration `20261004110000_mls_appareil_revoque_n_ecrit_plus.sql` (banc
+`tools/rls_tests/mls_appareil_revoque_n_ecrit_plus.sql`) : les policies
+d'insertion de `mls_commits` et `mls_messages` exigent `revoked_at IS NULL`.
+Côté app, `_retraitsEchoues` n'interdit plus le retrait pour la vie du
+processus : nouvelle tentative toutes les 10 min
+(`test/core/crypto/mls_retrait_reessaye_test.dart`).
+
+Non couvert, à décider : l'envoi continue vers un groupe qui contient encore
+un appareil révoqué tant que son retrait échoue (choix disponibilité contre
+confidentialité).
+
+À vérifier (après `db push`), trois appareils : A et A' (même compte), B :
+
+- [ ] Révoquer A' depuis A (Réglages → appareils) : A' ne peut plus envoyer
+      dans aucune conversation basculée ; `mls_diagnostics` sans
+      `commit_publie_reponse_perdue` parasite.
+- [ ] Après révocation, A écrit à B : le message n'arrive pas sur A'
+      (A' a été retiré de l'arbre).
+- [ ] Témoin : A et B échangent normalement.
 
 ---
 
