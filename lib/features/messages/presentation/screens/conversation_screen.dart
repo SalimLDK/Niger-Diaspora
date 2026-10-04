@@ -24,6 +24,7 @@ import '../../domain/entities/message_entity.dart';
 import '../providers/message_provider.dart';
 import '../providers/typing_indicator_provider.dart';
 import '../providers/media_upload_provider.dart';
+import '../widgets/bandeau_chiffrement_bloque.dart';
 import '../widgets/conversation_options_modal.dart';
 import '../widgets/forward_conversation_picker.dart';
 import '../widgets/message_bubble.dart';
@@ -2432,6 +2433,11 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
                   messageConversationId: widget.conversationId,
                   onOpenMessage: _scrollToMessage,
                   // trailing: _ecoChip(context, conversation),
+                ),
+                // Chiffrement bloqué : toujours présent, vide hors blocage —
+                // même règle que le bandeau ci-dessus.
+                BandeauChiffrementBloque(
+                  conversationId: widget.conversationId,
                 ),
                 // Messages
                 Expanded(

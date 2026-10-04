@@ -16,6 +16,22 @@ import 'mls_gateway.dart';
 /// Le transport MLS : les tables, aucune cryptographie.
 final mlsDeliveryProvider = Provider<MlsDelivery>((ref) => MlsDelivery());
 
+/// `true` si le groupe chiffré de cette conversation est bloqué sur cet
+/// appareil — un commit illisible dont rien ne permet de sortir (voir
+/// `MlsConversationService.estBloquee`). Suit les changements d'état.
+final groupeMlsBloqueProvider =
+    StreamProvider.autoDispose.family<bool, String>((ref, conversationId) async* {
+  final passerelle = ref.watch(mlsGatewayProvider);
+  if (passerelle == null) {
+    yield false;
+    return;
+  }
+  yield passerelle.estBloquee(conversationId);
+  await for (final c in passerelle.blocages) {
+    if (c == conversationId) yield passerelle.estBloquee(conversationId);
+  }
+});
+
 /// La passerelle que la couche messages utilise — et la seule chose qu'elle
 /// connaisse de MLS.
 ///

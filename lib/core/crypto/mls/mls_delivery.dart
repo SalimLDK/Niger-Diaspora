@@ -400,6 +400,38 @@ class MlsDelivery {
     }
   }
 
+  /// Date de la dernière reconstruction du groupe de cette conversation
+  /// (`reconstruire_groupe_mls`, 20261004120000), `null` s'il n'y en a jamais
+  /// eu. Même règle que [groupInfo] : requête à part, tolérante à son échec —
+  /// avant la migration la colonne n'existe pas, et rien ne doit en dépendre.
+  Future<DateTime?> reconstruitLe(String conversationId) async {
+    await _auth();
+    try {
+      final row = await _client
+          .from('conversations')
+          .select('mls_rebuilt_at')
+          .eq('id', conversationId)
+          .maybeSingle();
+      final brut = row?['mls_rebuilt_at'] as String?;
+      return brut == null ? null : DateTime.parse(brut);
+    } catch (e) {
+      debugPrint('MlsDelivery: marque de reconstruction illisible ($e)');
+      return null;
+    }
+  }
+
+  /// Remet à zéro le transport MLS de la conversation (voir la migration).
+  /// Lève si le serveur refuse : non-administrateur d'un groupe, ou
+  /// reconstruction de moins de cinq minutes.
+  Future<DateTime> reconstruireGroupe(String conversationId) async {
+    await _auth();
+    final r = await _client.rpc(
+      'reconstruire_groupe_mls',
+      params: {'p_conversation_id': conversationId},
+    );
+    return DateTime.parse(r as String);
+  }
+
   Future<List<MlsCommitRow>> commitsAfter(String conversationId, int epoch) async {
     await _auth();
     final rows = await _client

@@ -8644,5 +8644,37 @@
   "updateAvailableAction": "Mettre à jour",
   "@updateAvailableAction": {
     "description": "Action du bandeau de mise a jour : ouvre la fiche du store"
+  },
+  "chiffrementBloqueTexte": "Le chiffrement de cette discussion est bloqué : les nouveaux messages ne peuvent plus être lus.",
+  "@chiffrementBloqueTexte": {
+    "description": "Bandeau « chiffrement bloqué » de la discussion (reconstruction du groupe MLS)"
+  },
+  "chiffrementBloqueReparer": "Réparer",
+  "@chiffrementBloqueReparer": {
+    "description": "Bandeau « chiffrement bloqué » de la discussion (reconstruction du groupe MLS)"
+  },
+  "chiffrementReparerTitre": "Réparer le chiffrement ?",
+  "@chiffrementReparerTitre": {
+    "description": "Bandeau « chiffrement bloqué » de la discussion (reconstruction du groupe MLS)"
+  },
+  "chiffrementReparerTexte": "La discussion repart sur un nouveau groupe chiffré, et tous les appareils des participants y sont réinvités. Les messages déjà reçus restent sur les appareils qui les ont ; ils ne pourront plus être relus ailleurs.\n\nSi un membre a provoqué le blocage, excluez-le d'abord.",
+  "@chiffrementReparerTexte": {
+    "description": "Bandeau « chiffrement bloqué » de la discussion (reconstruction du groupe MLS)"
+  },
+  "chiffrementReparerOk": "Chiffrement réparé : les participants rejoignent le nouveau groupe.",
+  "@chiffrementReparerOk": {
+    "description": "Bandeau « chiffrement bloqué » de la discussion (reconstruction du groupe MLS)"
+  },
+  "chiffrementReparerReserveAdmin": "Seul un administrateur du groupe peut réparer le chiffrement.",
+  "@chiffrementReparerReserveAdmin": {
+    "description": "Bandeau « chiffrement bloqué » de la discussion (reconstruction du groupe MLS)"
+  },
+  "chiffrementReparerTropRecent": "Le chiffrement vient d'être réparé. Réessayez dans quelques minutes.",
+  "@chiffrementReparerTropRecent": {
+    "description": "Bandeau « chiffrement bloqué » de la discussion (reconstruction du groupe MLS)"
+  },
+  "chiffrementReparerEchec": "La réparation a échoué. Réessayez plus tard.",
+  "@chiffrementReparerEchec": {
+    "description": "Bandeau « chiffrement bloqué » de la discussion (reconstruction du groupe MLS)"
   }
 }

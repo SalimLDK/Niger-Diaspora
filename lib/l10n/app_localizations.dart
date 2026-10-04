@@ -30565,6 +30565,54 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Mettre à jour'**
   String get updateAvailableAction;
+
+  /// Bandeau « chiffrement bloqué » de la discussion (reconstruction du groupe MLS)
+  ///
+  /// In fr, this message translates to:
+  /// **'Le chiffrement de cette discussion est bloqué : les nouveaux messages ne peuvent plus être lus.'**
+  String get chiffrementBloqueTexte;
+
+  /// Bandeau « chiffrement bloqué » de la discussion (reconstruction du groupe MLS)
+  ///
+  /// In fr, this message translates to:
+  /// **'Réparer'**
+  String get chiffrementBloqueReparer;
+
+  /// Bandeau « chiffrement bloqué » de la discussion (reconstruction du groupe MLS)
+  ///
+  /// In fr, this message translates to:
+  /// **'Réparer le chiffrement ?'**
+  String get chiffrementReparerTitre;
+
+  /// Bandeau « chiffrement bloqué » de la discussion (reconstruction du groupe MLS)
+  ///
+  /// In fr, this message translates to:
+  /// **'La discussion repart sur un nouveau groupe chiffré, et tous les appareils des participants y sont réinvités. Les messages déjà reçus restent sur les appareils qui les ont ; ils ne pourront plus être relus ailleurs.\n\nSi un membre a provoqué le blocage, excluez-le d\'abord.'**
+  String get chiffrementReparerTexte;
+
+  /// Bandeau « chiffrement bloqué » de la discussion (reconstruction du groupe MLS)
+  ///
+  /// In fr, this message translates to:
+  /// **'Chiffrement réparé : les participants rejoignent le nouveau groupe.'**
+  String get chiffrementReparerOk;
+
+  /// Bandeau « chiffrement bloqué » de la discussion (reconstruction du groupe MLS)
+  ///
+  /// In fr, this message translates to:
+  /// **'Seul un administrateur du groupe peut réparer le chiffrement.'**
+  String get chiffrementReparerReserveAdmin;
+
+  /// Bandeau « chiffrement bloqué » de la discussion (reconstruction du groupe MLS)
+  ///
+  /// In fr, this message translates to:
+  /// **'Le chiffrement vient d\'être réparé. Réessayez dans quelques minutes.'**
+  String get chiffrementReparerTropRecent;
+
+  /// Bandeau « chiffrement bloqué » de la discussion (reconstruction du groupe MLS)
+  ///
+  /// In fr, this message translates to:
+  /// **'La réparation a échoué. Réessayez plus tard.'**
+  String get chiffrementReparerEchec;
 }
 
 class _AppLocalizationsDelegate

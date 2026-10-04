@@ -16829,4 +16829,34 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get updateAvailableAction => 'Mettre à jour';
+
+  @override
+  String get chiffrementBloqueTexte =>
+      'Le chiffrement de cette discussion est bloqué : les nouveaux messages ne peuvent plus être lus.';
+
+  @override
+  String get chiffrementBloqueReparer => 'Réparer';
+
+  @override
+  String get chiffrementReparerTitre => 'Réparer le chiffrement ?';
+
+  @override
+  String get chiffrementReparerTexte =>
+      'La discussion repart sur un nouveau groupe chiffré, et tous les appareils des participants y sont réinvités. Les messages déjà reçus restent sur les appareils qui les ont ; ils ne pourront plus être relus ailleurs.\n\nSi un membre a provoqué le blocage, excluez-le d\'abord.';
+
+  @override
+  String get chiffrementReparerOk =>
+      'Chiffrement réparé : les participants rejoignent le nouveau groupe.';
+
+  @override
+  String get chiffrementReparerReserveAdmin =>
+      'Seul un administrateur du groupe peut réparer le chiffrement.';
+
+  @override
+  String get chiffrementReparerTropRecent =>
+      'Le chiffrement vient d\'être réparé. Réessayez dans quelques minutes.';
+
+  @override
+  String get chiffrementReparerEchec =>
+      'La réparation a échoué. Réessayez plus tard.';
 }

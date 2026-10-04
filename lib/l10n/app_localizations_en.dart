@@ -16668,4 +16668,34 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get updateAvailableAction => 'Update';
+
+  @override
+  String get chiffrementBloqueTexte =>
+      'Encryption for this conversation is stuck: new messages can no longer be read.';
+
+  @override
+  String get chiffrementBloqueReparer => 'Repair';
+
+  @override
+  String get chiffrementReparerTitre => 'Repair encryption?';
+
+  @override
+  String get chiffrementReparerTexte =>
+      'The conversation moves to a new encrypted group, and all participants\' devices are re-invited. Messages already received stay on the devices that have them; they can no longer be read anywhere else.\n\nIf a member caused the problem, remove them first.';
+
+  @override
+  String get chiffrementReparerOk =>
+      'Encryption repaired: participants are joining the new group.';
+
+  @override
+  String get chiffrementReparerReserveAdmin =>
+      'Only a group admin can repair encryption.';
+
+  @override
+  String get chiffrementReparerTropRecent =>
+      'Encryption was just repaired. Try again in a few minutes.';
+
+  @override
+  String get chiffrementReparerEchec =>
+      'Repair failed. Please try again later.';
 }

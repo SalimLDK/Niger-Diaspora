@@ -225,6 +225,7 @@ class MlsConversationService {
         continue;
       }
       await _delivery.markWelcomeConsumed(w.id);
+      await _noterReconstructionConnue(conversationId);
       return;
     }
 
@@ -284,6 +285,7 @@ class MlsConversationService {
           await _delivery.upsertConversationDevice(
               conversationId, appareil.id, 'active', epochAdded: epoch);
           await _memoriserArrivee(conversationId, epoch);
+          await _noterReconstructionConnue(conversationId);
           await _publierArbre(conversationId, moteur);
           return;
         }
@@ -315,6 +317,7 @@ class MlsConversationService {
     }
     await _delivery.marquerMlsSince(conversationId);
     await _delivery.upsertConversationDevice(conversationId, appareil.id, 'active', epochAdded: 0);
+    await _noterReconstructionConnue(conversationId);
     await _publierArbre(conversationId, moteur);
   }
 
@@ -729,6 +732,7 @@ class MlsConversationService {
   /// Rattrapage : commits d'abord (par epoch), puis messages. Rend les
   /// messages **nouveaux** depuis le dernier appel, déchiffrés ou non.
   Future<List<MlsIncoming>> catchUp(String conversationId) async {
+    await _appliquerReconstruction(conversationId);
     if (!await estMembre(conversationId)) {
       // **Lire ne crée jamais le groupe.** Créer pose `mls_since`, qui est
       // définitif : le serveur refuse le clair ensuite, et rien ne revient en
@@ -847,6 +851,94 @@ class MlsConversationService {
     await _rattraperCommits(conversationId, moteur, appareil);
     await _memoriserCurseur(conversationId, depart);
     return resultats;
+  }
+
+  // ── Groupe bloqué, et sa reconstruction ──────────────────────────────────
+
+  /// Conversations dont l'arbre ne peut plus avancer sur cet appareil : un
+  /// commit illisible sans Welcome pour s'en sortir (un membre a pu publier
+  /// des octets quelconques à l'epoch suivant — le serveur ne peut pas le
+  /// voir), ou mon propre commit orphelin. Rien ne s'en sortait seul.
+  final Set<String> _bloquees = {};
+  final StreamController<String> _blocages = StreamController.broadcast();
+
+  /// Ce groupe est-il bloqué sur cet appareil ? Voir [reparer].
+  bool estBloquee(String conversationId) => _bloquees.contains(conversationId);
+
+  /// L'identifiant d'une conversation dont l'état de blocage vient de changer.
+  Stream<String> get blocages => _blocages.stream;
+
+  void _signalerBlocage(String conversationId) {
+    if (_bloquees.add(conversationId)) _blocages.add(conversationId);
+  }
+
+  String _cleReconstruction(String conversationId) =>
+      'mls_reconstruit_${userId}_$conversationId';
+
+  /// Reconstruit le groupe de [conversationId] (migration 20261004120000) :
+  /// le serveur remet le transport MLS à zéro, cet appareil oublie son arbre,
+  /// crée le nouveau groupe et y ajoute tous les appareils actifs.
+  ///
+  /// Lève si le serveur refuse — conversation de groupe et appelant non
+  /// administrateur, ou reconstruction de moins de cinq minutes.
+  Future<void> reparer(String conversationId) async {
+    await _delivery.reconstruireGroupe(conversationId);
+    await _appliquerReconstruction(conversationId);
+    await ensureGroup(conversationId);
+    await reconcileMembership(conversationId);
+  }
+
+  /// Applique une reconstruction faite ailleurs, si cet appareil ne la
+  /// connaît pas encore : oublie l'arbre local, place le curseur à la date de
+  /// reconstruction (les messages d'avant ne se déchiffreront plus — leur
+  /// clair vit dans le cache), remet l'arrivée à 0 (les epochs repartent de
+  /// zéro), et lève le blocage. Le prochain `ensureGroup` rejoint le nouveau
+  /// groupe, par Welcome ou en le créant.
+  Future<void> _appliquerReconstruction(String conversationId) async {
+    final marque = await _delivery.reconstruitLe(conversationId);
+    if (marque == null) return;
+    final iso = marque.toUtc().toIso8601String();
+    String? connue;
+    try {
+      connue = await _lireMemo(_cleReconstruction(conversationId));
+    } catch (_) {}
+    if (connue == iso) return;
+
+    if (await estMembre(conversationId)) {
+      try {
+        final moteur = await _moteur();
+        await moteur.oublierGroupe(conversationId: conversationId);
+      } catch (_) {}
+    }
+    _curseur[conversationId] = marque;
+    try {
+      await _ecrireMemo(_cleCurseur(conversationId), iso);
+    } catch (_) {}
+    await _memoriserArrivee(conversationId, 0);
+    _retraitsEchoues.remove(conversationId);
+    _ajoutsEchoues.removeWhere((cle) => cle.startsWith('$conversationId/'));
+    try {
+      await _ecrireMemo(_cleReconstruction(conversationId), iso);
+    } catch (_) {}
+    if (_bloquees.remove(conversationId)) _blocages.add(conversationId);
+    await _delivery.diagnostic(userId, 'reconstruction_appliquee',
+        detail: {'conversation': conversationId});
+  }
+
+  /// Après une jointure réussie : la reconstruction en cours, s'il y en a
+  /// une, est celle de CE groupe. Sans ça, un appareil entré dans le nouveau
+  /// groupe sans connaître la marque (installation neuve) la prendrait pour
+  /// une reconstruction à appliquer — oublierait son groupe, rejoindrait,
+  /// oublierait, en boucle.
+  Future<void> _noterReconstructionConnue(String conversationId) async {
+    final marque = await _delivery.reconstruitLe(conversationId);
+    if (marque == null) return;
+    try {
+      await _ecrireMemo(
+        _cleReconstruction(conversationId),
+        marque.toUtc().toIso8601String(),
+      );
+    } catch (_) {}
   }
 
   /// Le curseur de cette conversation, repris du disque au premier besoin.
@@ -975,6 +1067,7 @@ class MlsConversationService {
         // de la suite muette de `commit_manquant` qui suivait.
         await _delivery.diagnostic(userId, 'propre_commit_orphelin',
             deviceId: appareil.id, detail: {'epoch': c.epoch});
+        _signalerBlocage(conversationId);
         break;
       }
       if (c.epoch != snap.epoch.toInt() + 1) {
@@ -1003,6 +1096,7 @@ class MlsConversationService {
         } else {
           await _delivery.diagnostic(userId, 'commit_illisible', deviceId: appareil.id,
               detail: {'code': code, 'epoch': c.epoch});
+          _signalerBlocage(conversationId);
         }
         break;
       }

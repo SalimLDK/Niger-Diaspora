@@ -790,6 +790,18 @@ class MlsGateway {
     if (fil != null) _appliquerEditionsEnAttente(fil);
   }
 
+  /// Le groupe chiffré de [conversationId] est-il bloqué sur cet appareil ?
+  /// Voir `MlsConversationService.estBloquee`.
+  bool estBloquee(String conversationId) => _service.estBloquee(conversationId);
+
+  /// L'identifiant d'une conversation dont l'état de blocage vient de changer.
+  Stream<String> get blocages => _service.blocages;
+
+  /// Reconstruit le groupe chiffré de [conversationId] : voir
+  /// `MlsConversationService.reparer`. Lève si le serveur refuse.
+  Future<void> reparer(String conversationId) =>
+      _service.reparer(conversationId);
+
   /// Accuse réception de tous les messages des autres dans la conversation.
   ///
   /// Conversation entière, comme le chemin d'aujourd'hui (`markAsRead` ne
