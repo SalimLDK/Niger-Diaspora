@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1307 cases à cocher, 55 cochées** — 293 entrées sur 307 ont encore des cases ouvertes.
+**1311 cases à cocher, 55 cochées** — 294 entrées sur 308 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -94,7 +94,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 6 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (119)
+**P1 — fonction importante, jamais vérifiée** (120)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -106,6 +106,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [⬜ Verrou de version minimale et multi-appareil (2026-09-15)](#-verrou-de-version-minimale-et-multi-appareil-2026-09-15) · *Comptes, session et onboarding*
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
+- 4 · [⬜ Horloge de téléphone décalée : les messages arrivent en direct et à leur place (2026-10-04)](#-horloge-de-téléphone-décalée--les-messages-arrivent-en-direct-et-à-leur-place-2026-10-04) · *Messagerie*
 - 5 · [⬜ Micro du composeur : un doigt levé trop tôt, ou l'app en arrière-plan, ne laisse plus le micro ouvert (2026-10-03)](#-micro-du-composeur--un-doigt-levé-trop-tôt-ou-lapp-en-arrière-plan-ne-laisse-plus-le-micro-ouvert-2026-10-03) · *Messagerie*
 - 5 · [⬜ Pièce jointe ratée : bulle en échec, « Renvoyer », renvoi automatique (2026-10-03)](#-pièce-jointe-ratée--bulle-en-échec--renvoyer--renvoi-automatique-2026-10-03) · *Messagerie*
 - 4 · [⬜ Transférer un média : il repart chiffré, routé selon la conversation cible (2026-10-03)](#-transférer-un-média--il-repart-chiffré-routé-selon-la-conversation-cible-2026-10-03) · *Messagerie*
@@ -351,7 +352,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 0 faites
-- [2. Messagerie](#2-messagerie) — 330 à faire, 31 faites
+- [2. Messagerie](#2-messagerie) — 334 à faire, 31 faites
 - [3. Groupes](#3-groupes) — 128 à faire, 0 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 126 à faire, 4 faites
 - [5. Appels](#5-appels) — 24 à faire, 1 faites
@@ -452,6 +453,32 @@ du SM A515F (compte « Sim A », non-admin, sans pays renseigné).
 # 2. Messagerie
 
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
+
+---
+
+## ⬜ Horloge de téléphone décalée : les messages arrivent en direct et à leur place (2026-10-04)
+
+**Priorité P1** · importance 4/5 — un message envoyé depuis un téléphone à l'heure fausse n'apparaissait pas en direct chez le destinataire, puis reparaissait « dans le passé » au rechargement. Un message écrit pendant l'ouverture de la discussion restait invisible jusqu'à la réouverture.
+
+**Dépend de la migration `20261004090000_messages_dates_par_le_serveur.sql`**
+(banc `tools/rls_tests/messages_dates_par_le_serveur.sql`) : sans elle, le
+correctif client ne fait que la moitié du chemin. Côté app, le flux temps
+réel ne compare plus de dates, rattrape dès le premier abonnement et ne
+livre (donc ne déchiffre) chaque ligne qu'une fois
+(`message_supabase_datasource.dart`, `getNewMessagesStream`). Tenu par
+`test/features/messages/temps_reel_sans_horloge_test.dart`.
+
+À vérifier (après `db push`), deux téléphones, A **réglé à la main 3 min en
+retard** (heure automatique désactivée) :
+
+- [ ] A écrit à B, discussion ouverte chez B : le message apparaît en
+      direct, en bas du fil, à l'heure réelle.
+- [ ] B ferme et rouvre : le message est toujours en bas, pas remonté dans
+      le passé.
+- [ ] Même chose avec A **3 min en avance**, et pour un sticker : pas de
+      doublon de la bulle chez A.
+- [ ] B ouvre une discussion pendant que A envoie en rafale : aucun message
+      ne manque, aucun en double, aucun « 🔐 illisible ».
 
 ---
 

@@ -1188,6 +1188,13 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     // relire toute la discussion à chaque reconnexion.
     var dernierVu = afterTimestamp;
 
+    // Identifiants déjà livrés, par le temps réel ou par le rattrapage.
+    // Depuis que le rattrapage court aussi au PREMIER `subscribed`, les deux
+    // chemins peuvent rapporter la même ligne à quelques millisecondes
+    // d'intervalle — et la déchiffrer deux fois échoue (Signal a consommé sa
+    // clé à la première). Une ligne n'est livrée, donc déchiffrée, qu'une fois.
+    final livres = <String>{};
+
     /// Relit les messages postés pendant que le canal était coupé.
     ///
     /// Postgres ne rejoue pas les INSERT manqués : sans ça, les messages
@@ -1218,6 +1225,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
         if (rows.isEmpty || controller.isClosed) return;
         final messages = <MessageModel>[];
         for (final row in rows) {
+          if (!livres.add(row['id'].toString())) continue;
           final msg = await _msgFromRowAsync(row);
           final cree = msg.createdAt;
           if (cree != null && cree.isAfter(dernierVu)) dernierVu = cree;
@@ -1241,22 +1249,36 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
             column: 'conversation_id',
             value: conversationId,
           ),
+          // Pas de filtre sur la date. Un INSERT reçu après l'abonnement est
+          // nouveau par définition ; le comparer à [afterTimestamp] mêlait
+          // deux horloges — celle du téléphone de l'expéditeur, qui datait le
+          // message, et celle du dernier message chargé. Une horloge en retard
+          // de deux minutes faisait jeter le message en direct ; il ne
+          // reparaissait qu'au rechargement, rangé dans le passé. La date est
+          // désormais posée par le serveur (20261004090000), et l'écran
+          // dédoublonne par identifiant.
           callback: (payload) async {
             final newRecord = payload.newRecord;
-            if (newRecord.isNotEmpty && !controller.isClosed) {
-              final msg = await _msgFromRowAsync(newRecord);
-              if (msg.createdAt != null &&
-                  msg.createdAt!.isAfter(afterTimestamp)) {
-                if (msg.createdAt!.isAfter(dernierVu)) {
-                  dernierVu = msg.createdAt!;
-                }
-                if (!controller.isClosed) controller.add([msg]);
-              }
-            }
+            if (newRecord.isEmpty || controller.isClosed) return;
+            if (!livres.add(newRecord['id'].toString())) return;
+            final msg = await _msgFromRowAsync(newRecord);
+            final cree = msg.createdAt;
+            if (cree != null && cree.isAfter(dernierVu)) dernierVu = cree;
+            if (!controller.isClosed) controller.add([msg]);
           },
         )
+        // Rattrapage dès le PREMIER `subscribed`, pas seulement aux reprises.
+        // Rejoindre le canal prend de 100 ms à quelques secondes après la
+        // lecture initiale : un message écrit dans cet intervalle n'était
+        // ni dans la page lue, ni livré par le temps réel — absent jusqu'à
+        // la réouverture. La requête de plus au démarrage coûte une ligne
+        // vide dans le cas ordinaire.
         .subscribe(
-          rattrapageAuRejoint(rattraper, etiquette: 'messages'),
+          rattrapageAuRejoint(
+            rattraper,
+            desLePremier: true,
+            etiquette: 'messages',
+          ),
         );
 
     controller.onCancel = () {

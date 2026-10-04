@@ -26,6 +26,13 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 /// signale l'échec ; on ne relit pas sur « pas encore terminée », sinon la
 /// requête serait doublée à chaque démarrage.
 ///
+/// [desLePremier] relit aussi au premier `subscribed`, lecture réussie ou
+/// non. Pour un flux d'**insertions** (nouveaux messages), le premier
+/// abonnement n'est pas une redite : rejoindre le canal prend de 100 ms à
+/// quelques secondes après la lecture initiale, et ce qui s'écrit dans cet
+/// intervalle n'est ni dans la page lue, ni livré par le temps réel.
+/// L'appelant doit alors dédoublonner ce que les deux chemins rapportent.
+///
 /// À passer directement à `subscribe()` :
 ///
 /// ```dart
@@ -36,13 +43,16 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 void Function(RealtimeSubscribeStatus, Object?) rattrapageAuRejoint(
   void Function() relire, {
   bool Function()? lectureInitialeEnEchec,
+  bool desLePremier = false,
   String? etiquette,
 }) {
   var dejaRejoint = false;
   return (status, error) {
     switch (status) {
       case RealtimeSubscribeStatus.subscribed:
-        if (dejaRejoint || (lectureInitialeEnEchec?.call() ?? false)) {
+        if (dejaRejoint ||
+            desLePremier ||
+            (lectureInitialeEnEchec?.call() ?? false)) {
           if (etiquette != null) {
             debugPrint('realtime: rejoint « $etiquette » → rattrapage');
           }

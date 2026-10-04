@@ -509,9 +509,14 @@ class PaginatedMessagesNotifier extends StateNotifier<MessagePaginationState> {
           isLoadingInitial: false,
         );
 
+        // Discussion vide : la borne du rattrapage était « l'horloge du
+        // téléphone moins 10 s », comparée à des dates du serveur. Un
+        // téléphone en avance la plaçait après les premiers messages. Rien
+        // n'a été chargé, donc tout ce qui existe est à prendre — à partir de
+        // l'arrivée dans le groupe s'il y en a une.
         final lastTimestamp = paginatedMessages.messages.isNotEmpty
             ? paginatedMessages.messages.last.createdAt
-            : DateTime.now().subtract(const Duration(seconds: 10));
+            : (_filterAfterDate ?? DateTime.utc(2000));
         _listenForNewMessages(lastTimestamp);
         _listenForMessageUpdates();
       },
@@ -641,19 +646,24 @@ class PaginatedMessagesNotifier extends StateNotifier<MessagePaginationState> {
 
                   // Priority 2: heuristique temporelle pour les messages sans
                   // clientMessageId des deux côtés (stickers, GIF, localisation,
-                  // anciens clients). Fenêtre élargie à 15 s pour qu'un aller-retour
-                  // lent (gros média, établissement de session Signal) fusionne
-                  // quand même l'écho au lieu de le dupliquer.
+                  // anciens clients).
+                  //
+                  // L'âge de la copie locale, mesuré à SA propre horloge — et
+                  // non plus l'écart entre sa date et celle de l'écho : l'écho
+                  // est daté par le serveur (20261004090000), la copie par le
+                  // téléphone, et un téléphone décalé de plus de quelques
+                  // secondes aurait dupliqué chaque sticker. Une minute couvre
+                  // un aller-retour lent (gros média, session Signal à établir).
                   if (optimisticIndex == -1) {
+                    final maintenant = DateTime.now();
                     optimisticIndex = existingMessages.indexWhere((m) {
                       final idMatch = m.id.startsWith('temp_');
                       final senderMatch = m.senderId == newMessage.senderId;
                       final typeMatch = m.type == newMessage.type;
-                      final timeDiff = m.createdAt
-                          .difference(newMessage.createdAt)
-                          .abs()
-                          .inSeconds;
-                      final timeMatch = timeDiff < 15;
+                      final timeMatch = maintenant
+                              .difference(m.createdAt)
+                              .abs() <
+                          const Duration(minutes: 1);
                       final contentMatch = _matchesOptimisticMessage(m, newMessage);
                       final noClientId = m.clientMessageId == null &&
                           newMessage.clientMessageId == null;

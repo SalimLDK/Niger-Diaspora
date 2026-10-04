@@ -14,6 +14,20 @@ void main() {
       expect(relectures, 0);
     });
 
+    test('desLePremier : le premier abonnement relit aussi', () {
+      // Flux d'insertions : ce qui s'écrit entre la lecture initiale et
+      // l'arrivée sur le canal n'est livré par personne d'autre.
+      var relectures = 0;
+      final rappel =
+          rattrapageAuRejoint(() => relectures++, desLePremier: true);
+
+      rappel(RealtimeSubscribeStatus.subscribed, null);
+      rappel(RealtimeSubscribeStatus.closed, null);
+      rappel(RealtimeSubscribeStatus.subscribed, null);
+
+      expect(relectures, 2);
+    });
+
     test('un rejoint après coupure déclenche le rattrapage', () {
       var relectures = 0;
       final rappel = rattrapageAuRejoint(() => relectures++);
