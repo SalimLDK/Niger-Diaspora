@@ -72,11 +72,19 @@ void main() {
     });
 
     test('un message système n\'incrémente plus la pastille de personne', () {
+      // L'incrément vit côté serveur depuis 20261004100000
+      // (`apres_envoi_message`) : il ne se perd plus entre deux envois
+      // simultanés. La règle l'a suivi.
+      final sql = _lire(
+          'supabase/migrations/20261004100000_donnees_jsonb_atomiques.sql');
+      expect(sql, contains('WHERE p.pid IS DISTINCT FROM v_uid'));
+      expect(sql, contains("COALESCE(p_apercu ->> 'lastMessageType', '')"));
+      expect(sql, contains("<> 'system'"));
       final source = _lire('lib/features/messages/data/datasources/message_supabase_datasource.dart');
       final debut = source.indexOf('Future<void> _updateConversationLastMessage(');
-      final corps = source.substring(debut, source.indexOf('// 3. Merge update', debut));
-      expect(corps, contains("final estSysteme = senderId == 'system' || type == 'system';"));
-      expect(corps, contains('if (!estSysteme && pid != senderId) {'));
+      final corps = source.substring(debut, source.indexOf('Future<', debut + 10));
+      expect(corps, contains("'lastMessageType': type"),
+          reason: 'le type part au serveur, qui reconnaît le message système');
     });
   });
 

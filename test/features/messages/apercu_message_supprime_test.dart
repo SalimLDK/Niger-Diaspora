@@ -247,15 +247,14 @@ void main() {
     });
 
     test('un message neuf efface les deux marques', () {
-      // `_updateConversationLastMessage` recopie `...current` : sans ce
-      // ménage, la liste annoncerait « Message supprimé » sous le texte du
-      // message qu'on vient d'envoyer, pour toujours.
-      final src = _source(chemin);
-      expect(
-        src.contains(
-            'cle == _kApercuSupprime || cle == _kApercuExpire'),
-        isTrue,
-      );
+      // L'après-envoi recopie `data` : sans ce ménage, la liste annoncerait
+      // « Message supprimé » sous le texte du message qu'on vient d'envoyer,
+      // pour toujours. Il se fait côté serveur depuis 20261004100000
+      // (`apres_envoi_message`), et le client y passe.
+      final sql = _source(
+          'supabase/migrations/20261004100000_donnees_jsonb_atomiques.sql');
+      expect(sql, contains("- 'lastMessageDeleted' - 'lastMessageExpired'"));
+      expect(_source(chemin), contains("rpc('apres_envoi_message'"));
     });
   });
 

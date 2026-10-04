@@ -297,46 +297,14 @@ class BackgroundReplyService {
     required String senderId,
     required String at,
   }) async {
+    // Même fonction serveur que le chemin principal (`apres_envoi_message`) :
+    // l'incrément des pastilles se fait dans l'UPDATE, il ne se perd plus
+    // quand deux envois se croisent.
     try {
-      final rows = await Supabase.instance.client
-          .from('conversations')
-          .select('data, participant_ids')
-          .eq('id', conversationId)
-          .limit(1);
-      if (rows.isEmpty) return;
-
-      final current = Map<String, dynamic>.from(
-        (rows.first['data'] as Map<String, dynamic>?) ?? {},
-      );
-      final participantIds = List<String>.from(
-        rows.first['participant_ids'] as List? ?? [],
-      );
-
-      final unreadCount = Map<String, dynamic>.from(
-        current['unreadCount'] as Map? ?? {},
-      );
-      for (final pid in participantIds) {
-        if (pid != senderId) {
-          final cur = (unreadCount[pid] as int?) ?? 0;
-          unreadCount[pid] = cur + 1;
-        }
-      }
-
-      final updated = {
-        ...current,
-        'lastMessage': lastMessage,
-        'lastMessageSenderId': senderId,
-        'lastMessageType': 'text',
-        'lastMessageStatus': 'sent',
-        'unreadCount': unreadCount,
-        'lastMessageReadBy': [senderId],
-        'lastMessageDeliveredTo': [senderId],
-      };
-
-      await Supabase.instance.client
-          .from('conversations')
-          .update({'last_message_at': at, 'data': updated})
-          .eq('id', conversationId);
+      await Supabase.instance.client.rpc('apres_envoi_message', params: {
+        'p_conversation_id': conversationId,
+        'p_apercu': {'lastMessage': lastMessage, 'lastMessageType': 'text'},
+      });
     } catch (e) {
       // Non critique - le message est déjà envoyé
       debugPrint(

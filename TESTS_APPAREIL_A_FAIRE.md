@@ -39,11 +39,11 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1311 cases à cocher, 55 cochées** — 294 entrées sur 308 ont encore des cases ouvertes.
+**1315 cases à cocher, 55 cochées** — 295 entrées sur 309 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
-**P0 — avant toute nouvelle version** (48)
+**P0 — avant toute nouvelle version** (49)
 
 - 3 · [⬜ Envoi raté après avoir quitté la discussion : le message n'est plus perdu, et la fenêtre de 24 h tient (2026-10-03)](#-envoi-raté-après-avoir-quitté-la-discussion--le-message-nest-plus-perdu-et-la-fenêtre-de-24-h-tient-2026-10-03) · *Messagerie*
 - 2 · [⬜ Temps réel après l'arrière-plan, et texte supprimé dans la liste (2026-09-21)](#-temps-réel-après-larrière-plan-et-texte-supprimé-dans-la-liste-2026-09-21) · *Messagerie*
@@ -77,6 +77,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [⬜ Le serveur ne supprime plus un chemin Storage dicté par le client (2026-09-21)](#-le-serveur-ne-supprime-plus-un-chemin-storage-dicté-par-le-client-2026-09-21) · *Publication et plateformes*
 - 5 · [⬜ Divulgation préalable de la localisation (refus Play du 2026-09-09)](#-divulgation-préalable-de-la-localisation-refus-play-du-2026-09-09) · *Publication et plateformes*
 - 3 · [⬜ Compte de test dédié : première connexion (2026-09-09)](#-compte-de-test-dédié--première-connexion-2026-09-09) · *Appareils, comptes de test et méthode*
+- 4 · [⬜ Écritures concurrentes : sourdine, pastilles, « Lu » et étoiles ne s'effacent plus (2026-10-04)](#-écritures-concurrentes--sourdine-pastilles--lu--et-étoiles-ne-seffacent-plus-2026-10-04) · *Messagerie*
 - 4 · [⬜ Écrire dans une conversation exige d'en être participant (2026-09-20)](#-écrire-dans-une-conversation-exige-den-être-participant-2026-09-20) · *Messagerie*
 - 2 · [⬜ GIF et sticker envoyés en MLS : la bulle ne montrait rien (2026-09-16)](#-gif-et-sticker-envoyés-en-mls--la-bulle-ne-montrait-rien-2026-09-16) · *Messagerie*
 - 5 · [⬜ GIFs via `gif-proxy` — clés sorties de l'APK (2026-08-27)](#-gifs-via-gif-proxy--clés-sorties-de-lapk-2026-08-27) · *Messagerie*
@@ -352,7 +353,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 0 faites
-- [2. Messagerie](#2-messagerie) — 334 à faire, 31 faites
+- [2. Messagerie](#2-messagerie) — 338 à faire, 31 faites
 - [3. Groupes](#3-groupes) — 128 à faire, 0 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 126 à faire, 4 faites
 - [5. Appels](#5-appels) — 24 à faire, 1 faites
@@ -453,6 +454,30 @@ du SM A515F (compte « Sim A », non-admin, sans pays renseigné).
 # 2. Messagerie
 
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
+
+---
+
+## ⬜ Écritures concurrentes : sourdine, pastilles, « Lu » et étoiles ne s'effacent plus (2026-10-04)
+
+**Priorité P0** · importance 4/5 — **ordre de déploiement** : la migration `20261004100000_donnees_jsonb_atomiques.sql` doit être poussée (`db push`) **AVANT** toute version de l'app qui contient ce correctif. Sans elle, sourdine, épinglage, archivage, étoiles, signalement et aperçu après envoi échouent (fonctions absentes).
+
+Le client lisait `data` entier, le modifiait, le réécrivait : une écriture
+croisée était effacée. Mesuré en local, 40 envois simultanés de 4
+participants : 8 incréments de pastille sur 30 gardés. Désormais cinq
+fonctions SQL (SECURITY INVOKER — aucun droit nouveau) font la modification
+dans l'UPDATE. Bancs : `tools/rls_tests/donnees_jsonb_atomiques.sql`,
+`test/features/messages/donnees_jsonb_atomiques_test.dart`.
+
+À vérifier (après `db push`), deux téléphones A et B dans un groupe :
+
+- [ ] B met le groupe en sourdine **pendant** que A envoie plusieurs
+      messages : la sourdine tient (pas de notification chez B).
+- [ ] A et B envoient en rafale en même temps : chez un troisième membre,
+      la pastille compte tous les messages.
+- [ ] Étoile sur un message qui vient d'être lu : la coche « Lu » ne
+      disparaît pas.
+- [ ] Épingler, archiver, désarchiver, réactiver le son : chaque geste tient
+      après fermeture et réouverture de l'app.
 
 ---
 

@@ -696,62 +696,21 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     required String type,
     required String at,
   }) async {
+    // Une seule instruction côté serveur (`apres_envoi_message`,
+    // 20261004100000) au lieu de « lire data, incrémenter unreadCount en
+    // mémoire, réécrire data » : deux envois simultanés perdaient un
+    // incrément (mesuré : 8 pastilles sur 30 pour 40 envois concurrents), et
+    // une sourdine posée pendant l'envoi disparaissait. L'expéditeur est lu
+    // dans le jeton par le serveur, `last_message_at` y prend l'heure du
+    // serveur : [senderId] et [at] ne servent plus qu'à la signature.
     try {
-      // 1. Fetch current data JSONB
-      final rows = await _supabase
-          .from('conversations')
-          .select('data, participant_ids')
-          .eq('id', convId)
-          .limit(1);
-
-      if (rows.isEmpty) return;
-
-      final current = Map<String, dynamic>.from(
-        (rows.first['data'] as Map<String, dynamic>?) ?? {},
-      );
-      final participantIds = List<String>.from(
-        rows.first['participant_ids'] as List? ?? [],
-      );
-
-      // 2. Increment unread counts for everyone except the sender
-      final unreadCount = Map<String, dynamic>.from(
-        current['unreadCount'] as Map? ?? {},
-      );
-      // Un message système (« un utilisateur a été retiré du groupe ») n'est
-      // pas du courrier : son expéditeur, `system`, n'est aucun participant,
-      // et la boucle incrémentait donc la pastille de TOUT LE MONDE — y compris
-      // de l'administrateur qui venait d'agir. Le serveur ne le compte pas non
-      // plus (`repere_de_lecture`, `marquer_lus_jusqua`).
-      final estSysteme = senderId == 'system' || type == 'system';
-      for (final pid in participantIds) {
-        if (!estSysteme && pid != senderId) {
-          final cur = (unreadCount[pid] as int?) ?? 0;
-          unreadCount[pid] = cur + 1;
-        }
-      }
-
-      // 3. Merge update — reset lastMessageReadBy to sender only
-      final updated = {
-        ...current,
-        if (text != null) 'lastMessage': text,
-        'lastMessageSenderId': senderId,
-        'lastMessageType': type,
-        'lastMessageStatus': 'sent',
-        'unreadCount': unreadCount,
-        'lastMessageReadBy': [senderId],
-        'lastMessageDeliveredTo': [senderId],
-      }..removeWhere((cle, _) =>
-          // Un message neuf efface les deux marques : celle du message
-          // supprimé comme celle du message expiré. Le `...current` les
-          // aurait recopiées telles quelles, et la liste aurait annoncé
-          // « Message supprimé » sous le texte du message qu'on vient
-          // d'envoyer.
-          cle == _kApercuSupprime || cle == _kApercuExpire);
-
-      await _supabase
-          .from('conversations')
-          .update({'last_message_at': at, 'data': updated})
-          .eq('id', convId);
+      await _supabase.rpc('apres_envoi_message', params: {
+        'p_conversation_id': convId,
+        'p_apercu': {
+          if (text != null) 'lastMessage': text,
+          'lastMessageType': type,
+        },
+      });
     } catch (e) {
       // Non-critical: message is already persisted
       debugPrint(
@@ -3215,27 +3174,14 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     required String messageId,
     required String userId,
   }) async {
+    // Bascule faite DANS l'UPDATE (`basculer_dans_liste_message`) : réécrire
+    // `data` entier pour une étoile effaçait un « Lu » arrivé entre-temps.
     try {
-      final rows = await _supabase
-          .from('messages')
-          .select('data')
-          .eq('id', messageId)
-          .limit(1);
-      if (rows.isEmpty) return;
-      final data = Map<String, dynamic>.from(
-        (rows.first['data'] as Map?) ?? {},
-      );
-      final starredBy = List<String>.from(data['starredBy'] as List? ?? []);
-      if (starredBy.contains(userId)) {
-        starredBy.remove(userId);
-      } else {
-        starredBy.add(userId);
-      }
-      data['starredBy'] = starredBy;
-      await _supabase
-          .from('messages')
-          .update({'data': data})
-          .eq('id', messageId);
+      await _supabase.rpc('basculer_dans_liste_message', params: {
+        'p_message_id': messageId,
+        'p_cle': 'starredBy',
+        'p_valeur': userId,
+      });
     } catch (e) {
       throw ServerException('toggleStarMessage error: $e');
     }
@@ -3651,36 +3597,15 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     Map<String, dynamic> partial, {
     bool merge = false,
   }) async {
+    // Fusion faite DANS l'UPDATE (`fusionner_donnees_conversation`,
+    // 20261004100000) : lire puis réécrire `data` entier effaçait toute
+    // écriture concurrente — une sourdine, un épinglage, un compteur.
     try {
-      final rows = await _supabase
-          .from('conversations')
-          .select('data')
-          .eq('id', conversationId)
-          .limit(1);
-      if (rows.isEmpty) return;
-      final current = Map<String, dynamic>.from(
-        (rows.first['data'] as Map?) ?? {},
-      );
-
-      if (merge) {
-        for (final entry in partial.entries) {
-          if (current[entry.key] is Map && entry.value is Map) {
-            current[entry.key] = {
-              ...(current[entry.key] as Map),
-              ...(entry.value as Map),
-            };
-          } else {
-            current[entry.key] = entry.value;
-          }
-        }
-      } else {
-        current.addAll(partial);
-      }
-
-      await _supabase
-          .from('conversations')
-          .update({'data': current})
-          .eq('id', conversationId);
+      await _supabase.rpc('fusionner_donnees_conversation', params: {
+        'p_conversation_id': conversationId,
+        'p_partiel': partial,
+        'p_profond': merge,
+      });
     } catch (e) {
       throw ServerException('_mergeConvData error: $e');
     }
@@ -3693,24 +3618,11 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     String childKey,
   ) async {
     try {
-      final rows = await _supabase
-          .from('conversations')
-          .select('data')
-          .eq('id', conversationId)
-          .limit(1);
-      if (rows.isEmpty) return;
-      final current = Map<String, dynamic>.from(
-        (rows.first['data'] as Map?) ?? {},
-      );
-      if (current[parentKey] is Map) {
-        final nested = Map<String, dynamic>.from(current[parentKey] as Map);
-        nested.remove(childKey);
-        current[parentKey] = nested;
-      }
-      await _supabase
-          .from('conversations')
-          .update({'data': current})
-          .eq('id', conversationId);
+      await _supabase.rpc('retirer_cle_donnees_conversation', params: {
+        'p_conversation_id': conversationId,
+        'p_parent': parentKey,
+        'p_enfant': childKey,
+      });
     } catch (e) {
       throw ServerException('_removeNestedConvDataKey error: $e');
     }
@@ -3725,35 +3637,16 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     Map<String, dynamic> partial, {
     bool appendToList = false,
   }) async {
+    // Fusion faite DANS l'UPDATE (`fusionner_donnees_message`) : réécrire
+    // `data` entier effaçait un accusé de lecture arrivé entre la lecture et
+    // l'écriture — et `messages_garde_update` l'acceptait, `readBy` étant une
+    // clé autorisée.
     try {
-      final rows = await _supabase
-          .from('messages')
-          .select('data')
-          .eq('id', messageId)
-          .limit(1);
-      if (rows.isEmpty) return;
-      final current = Map<String, dynamic>.from(
-        (rows.first['data'] as Map?) ?? {},
-      );
-
-      if (appendToList) {
-        for (final entry in partial.entries) {
-          final existing = List<dynamic>.from(
-            current[entry.key] as List? ?? [],
-          );
-          if (!existing.contains(entry.value)) {
-            existing.add(entry.value);
-          }
-          current[entry.key] = existing;
-        }
-      } else {
-        current.addAll(partial);
-      }
-
-      await _supabase
-          .from('messages')
-          .update({'data': current})
-          .eq('id', messageId);
+      await _supabase.rpc('fusionner_donnees_message', params: {
+        'p_message_id': messageId,
+        'p_partiel': partial,
+        'p_ajout_liste': appendToList,
+      });
     } catch (e) {
       throw ServerException('_mergeMsgData error: $e');
     }
