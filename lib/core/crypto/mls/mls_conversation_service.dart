@@ -753,12 +753,25 @@ class MlsConversationService {
     final moteur = await _moteur();
     final appareil = await _appareil();
     await _refuserSiRevoque(appareil);
-    await _rattraperCommits(conversationId, moteur, appareil);
 
     final resultats = <MlsIncoming>[];
     final arrivee = await _arriveeDe(conversationId);
     final depart = await _curseurDe(conversationId);
     var lignes = await _delivery.messagesAfter(conversationId, depart);
+
+    // Commits et messages ENTRELACÉS, epoch par epoch — l'ordre que le
+    // contrat de cette classe impose. Les appliquer tous avant le moindre
+    // message faisait sortir les plus anciens de la fenêtre que le moteur
+    // garde (`MAX_PAST_EPOCHS = 3`) : de retour après plus de trois commits
+    // (une arrivée dans un groupe ouvert en fait un), un membre trouvait
+    // tous les messages d'avant en `decrypt_failed`, et le curseur passait
+    // dessus — perdus. On n'avance donc que jusqu'à l'epoch du premier
+    // message à lire ; la boucle avance ensuite message par message, et le
+    // reste s'applique à la fin.
+    final premierALire =
+        lignes.where((m) => !_vus.contains(m.id)).map((m) => m.epoch).firstOrNull;
+    await _rattraperCommits(conversationId, moteur, appareil, jusqua: premierALire);
+
     for (var i = 0; i < lignes.length; i++) {
       final m = lignes[i];
       if (_vus.contains(m.id)) {
@@ -768,8 +781,8 @@ class MlsConversationService {
       var snap = await moteur.instantane(conversationId: conversationId);
       if (m.epoch > snap.epoch.toInt()) {
         // Un message d'un epoch que je n'ai pas encore : le commit est en
-        // route. Le chercher, puis reprendre.
-        await _rattraperCommits(conversationId, moteur, appareil);
+        // route. Le chercher — jusqu'à cet epoch, pas au-delà — puis reprendre.
+        await _rattraperCommits(conversationId, moteur, appareil, jusqua: m.epoch);
         snap = await moteur.instantane(conversationId: conversationId);
         if (m.epoch > snap.epoch.toInt()) {
           await _delivery.diagnostic(userId, 'epoch_futur', deviceId: appareil.id,
@@ -830,6 +843,8 @@ class MlsConversationService {
         resultats.add(MlsIncoming(m, erreur: code));
       }
     }
+    // Le reste des commits : un envoi qui suit doit partir au dernier epoch.
+    await _rattraperCommits(conversationId, moteur, appareil);
     await _memoriserCurseur(conversationId, depart);
     return resultats;
   }
@@ -913,26 +928,30 @@ class MlsConversationService {
   /// 2026-09-17 sur le Pixel : retrait et réinvitation réussis côté
   /// serveur, jamais consommés côté appareil, le commit suivant rejouant le
   /// même `GroupStateError` à l'infini.
+  /// [jusqua] : n'applique aucun commit d'epoch supérieur (voir `catchUp`).
   Future<void> _rattraperCommits(
     String conversationId,
     Moteur moteur,
-    MlsDeviceRecord appareil,
-  ) async {
-    await _traiterCommits(conversationId, moteur, appareil);
+    MlsDeviceRecord appareil, {
+    int? jusqua,
+  }) async {
+    await _traiterCommits(conversationId, moteur, appareil, jusqua: jusqua);
     if (await estMembre(conversationId)) return;
     await ensureGroup(conversationId);
-    await _traiterCommits(conversationId, moteur, appareil);
+    await _traiterCommits(conversationId, moteur, appareil, jusqua: jusqua);
   }
 
   Future<void> _traiterCommits(
     String conversationId,
     Moteur moteur,
-    MlsDeviceRecord appareil,
-  ) async {
+    MlsDeviceRecord appareil, {
+    int? jusqua,
+  }) async {
     var snap = await moteur.instantane(conversationId: conversationId);
     final commits = await _delivery.commitsAfter(conversationId, snap.epoch.toInt());
     for (final c in commits) {
       if (c.epoch == 0) continue;
+      if (jusqua != null && c.epoch > jusqua) break;
       if (c.senderDeviceId == appareil.id) {
         // Mon propre commit, au-delà de mon epoch : publié, jamais fusionné
         // — l'app a été tuée entre les deux, ou la réponse s'est perdue. Le

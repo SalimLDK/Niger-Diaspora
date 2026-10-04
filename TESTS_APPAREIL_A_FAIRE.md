@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1320 cases à cocher, 55 cochées** — 297 entrées sur 311 ont encore des cases ouvertes.
+**1323 cases à cocher, 55 cochées** — 298 entrées sur 312 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -95,7 +95,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 6 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (122)
+**P1 — fonction importante, jamais vérifiée** (123)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -145,6 +145,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [⬜ Exclure un membre d'un groupe échouait toujours (2026-09-17)](#-exclure-un-membre-dun-groupe-échouait-toujours-2026-09-17) · *Groupes*
 - 4 · [⬜ Noms des candidats à l'invitation et à l'ajout en appel (2026-09-14)](#-noms-des-candidats-à-linvitation-et-à-lajout-en-appel-2026-09-14) · *Groupes*
 - 3 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
+- 3 · [⬜ MLS : de retour après plusieurs arrivées dans le groupe, les messages d'avant se lisent (2026-10-04)](#-mls--de-retour-après-plusieurs-arrivées-dans-le-groupe-les-messages-davant-se-lisent-2026-10-04) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ MLS : un appareil révoqué ne publie plus, et son retrait se retente (2026-10-04)](#-mls--un-appareil-révoqué-ne-publie-plus-et-son-retrait-se-retente-2026-10-04) · *Chiffrement de bout en bout et clés*
 - 2 · [⬜ MLS : un commit publié mais pas fusionné ne désynchronise plus l'appareil (2026-10-04)](#-mls--un-commit-publié-mais-pas-fusionné-ne-désynchronise-plus-lappareil-2026-10-04) · *Chiffrement de bout en bout et clés*
 - 2 · [⬜ MLS : seul l'auteur modifie son message, dans le fil comme dans la bannière (2026-10-03)](#-mls--seul-lauteur-modifie-son-message-dans-le-fil-comme-dans-la-bannière-2026-10-03) · *Chiffrement de bout en bout et clés*
@@ -357,7 +358,7 @@ Par domaine :
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 0 faites
 - [2. Messagerie](#2-messagerie) — 338 à faire, 31 faites
 - [3. Groupes](#3-groupes) — 128 à faire, 0 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 131 à faire, 4 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 134 à faire, 4 faites
 - [5. Appels](#5-appels) — 24 à faire, 1 faites
 - [6. Notifications et push](#6-notifications-et-push) — 115 à faire, 6 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 36 à faire, 0 faites
@@ -3975,6 +3976,26 @@ conservée plutôt que de conclure « non » à tort (sinon le titre clignote).
 # 4. Chiffrement de bout en bout et clés
 
 Signal 1:1 et groupes, repli AES, clés dérivées, sauvegarde et transfert des clés, et tout ce qui pouvait partir en clair.
+
+---
+
+## ⬜ MLS : de retour après plusieurs arrivées dans le groupe, les messages d'avant se lisent (2026-10-04)
+
+**Priorité P1** · importance 4/5 — perte de messages : un membre revenu après plus de trois commits (une arrivée dans un groupe ouvert en fait un) trouvait tous les messages d'avant en « 🔐 illisible », définitivement.
+
+`catchUp` entrelace désormais commits et messages epoch par epoch, au lieu
+d'appliquer tous les commits d'abord : le moteur ne garde que trois epochs
+passés (`mls_conversation_service.dart`). Rien de changé côté Rust. Tenu
+par `test/core/crypto/mls_commits_entrelaces_test.dart`.
+
+À vérifier (groupe basculé, téléphone A hors ligne) :
+
+- [ ] Pendant que A est hors ligne : on écrit dans le groupe, PUIS quatre
+      nouveaux membres le rejoignent (ou quatre réinstallations).
+- [ ] A revient : les messages écrits avant les arrivées se lisent tous ;
+      aucun `decrypt_failed` dans `mls_diagnostics`.
+- [ ] A envoie ensuite : le message part et se lit chez les nouveaux
+      arrivants (dernier epoch).
 
 ---
 
