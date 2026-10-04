@@ -474,13 +474,19 @@ class MlsConversationService {
             );
       if (out != null) {
         final epoch = epochAjout;
-        await _publierOuJeter(moteur, conversationId, () => _delivery.publishCommit(
-              conversationId: conversationId,
-              epoch: epoch,
-              senderDeviceId: appareil.id,
-              commit: out.commit,
-              groupInfo: out.groupInfo,
-            ));
+        await _publierOuJeter(
+            moteur,
+            conversationId,
+            () => _delivery.publishCommit(
+                  conversationId: conversationId,
+                  epoch: epoch,
+                  senderDeviceId: appareil.id,
+                  commit: out.commit,
+                  groupInfo: out.groupInfo,
+                ),
+            epoch: epoch,
+            commit: out.commit,
+            appareil: appareil);
         await moteur.fusionnerCommitEnAttente(conversationId: conversationId);
         await _delivery.publishWelcomes(
           conversationId: conversationId,
@@ -513,12 +519,18 @@ class MlsConversationService {
             }();
       if (retrait != null) {
         final (:out, :epoch) = retrait;
-        await _publierOuJeter(moteur, conversationId, () => _delivery.publishCommit(
-              conversationId: conversationId,
-              epoch: epoch,
-              senderDeviceId: appareil.id,
-              commit: out.commit,
-            ));
+        await _publierOuJeter(
+            moteur,
+            conversationId,
+            () => _delivery.publishCommit(
+                  conversationId: conversationId,
+                  epoch: epoch,
+                  senderDeviceId: appareil.id,
+                  commit: out.commit,
+                ),
+            epoch: epoch,
+            commit: out.commit,
+            appareil: appareil);
         await moteur.fusionnerCommitEnAttente(conversationId: conversationId);
         // Sans ça, l'arbre public se périme dès qu'un membre part, et plus
         // personne ne peut rejoindre le groupe par commit externe.
@@ -578,18 +590,53 @@ class MlsConversationService {
   /// Publie un commit déjà fabriqué. Un échec autre qu'un conflict d'epoch
   /// (réseau, droits) jette le commit en attente avant de remonter : laissé
   /// en place, il ferait échouer tous les commits suivants de ce groupe.
+  ///
+  /// **Sauf si le serveur l'a bel et bien reçu.** Un délai dépassé ne dit pas
+  /// que l'écriture a échoué : la réponse peut s'être perdue après l'INSERT.
+  /// Jeter alors le commit laissait le serveur à N+1 et l'appareil à N — et
+  /// comme ses propres commits ne se rejouent pas, il ne rattrapait plus
+  /// jamais : `epoch_futur`, `commit_manquant`, pour toujours. On relit donc
+  /// le serveur avant de jeter : s'il porte notre commit à cet epoch (même
+  /// appareil, mêmes octets), la publication a réussi et l'appelant fusionne.
   Future<void> _publierOuJeter(
     Moteur moteur,
     String conversationId,
-    Future<void> Function() publier,
-  ) async {
+    Future<void> Function() publier, {
+    required int epoch,
+    required Uint8List commit,
+    required MlsDeviceRecord appareil,
+  }) async {
     try {
       await publier();
     } on EpochConflict {
       rethrow;
-    } catch (_) {
+    } catch (e) {
+      if (await _dejaPublie(conversationId, epoch, commit, appareil)) {
+        await _delivery.diagnostic(userId, 'commit_publie_reponse_perdue',
+            deviceId: appareil.id, detail: {'epoch': epoch, 'code': _code(e)});
+        return;
+      }
       await _jeterSansLever(moteur, conversationId);
       rethrow;
+    }
+  }
+
+  /// Le serveur porte-t-il CE commit, de cet appareil, à cet epoch ? `false`
+  /// si on ne peut pas le savoir (relecture impossible à son tour).
+  Future<bool> _dejaPublie(
+    String conversationId,
+    int epoch,
+    Uint8List commit,
+    MlsDeviceRecord appareil,
+  ) async {
+    try {
+      final rangs = await _delivery.commitsAfter(conversationId, epoch - 1);
+      return rangs.any((c) =>
+          c.epoch == epoch &&
+          c.senderDeviceId == appareil.id &&
+          listEquals(c.commit, commit));
+    } catch (_) {
+      return false;
     }
   }
 
@@ -862,7 +909,32 @@ class MlsConversationService {
     var snap = await moteur.instantane(conversationId: conversationId);
     final commits = await _delivery.commitsAfter(conversationId, snap.epoch.toInt());
     for (final c in commits) {
-      if (c.epoch == 0 || c.senderDeviceId == appareil.id) continue;
+      if (c.epoch == 0) continue;
+      if (c.senderDeviceId == appareil.id) {
+        // Mon propre commit, au-delà de mon epoch : publié, jamais fusionné
+        // — l'app a été tuée entre les deux, ou la réponse s'est perdue. Le
+        // sauter (ce qui se faisait) laissait l'appareil à N pour toujours :
+        // MLS ne rejoue pas ses propres commits. Il est encore en attente
+        // dans l'état du moteur, persisté avec le groupe : on le fusionne.
+        if (c.epoch != snap.epoch.toInt() + 1) continue;
+        try {
+          await moteur.fusionnerCommitEnAttente(conversationId: conversationId);
+        } catch (_) {
+          // Vérifié juste après, par l'epoch.
+        }
+        snap = await moteur.instantane(conversationId: conversationId);
+        if (snap.epoch.toInt() == c.epoch) {
+          await _delivery.diagnostic(userId, 'propre_commit_fusionne_au_rattrapage',
+              deviceId: appareil.id, detail: {'epoch': c.epoch});
+          continue;
+        }
+        // Plus rien en attente : le commit a été jeté localement alors que le
+        // serveur l'avait. Rien ne permet de le rejouer ; le dire, au lieu
+        // de la suite muette de `commit_manquant` qui suivait.
+        await _delivery.diagnostic(userId, 'propre_commit_orphelin',
+            deviceId: appareil.id, detail: {'epoch': c.epoch});
+        break;
+      }
       if (c.epoch != snap.epoch.toInt() + 1) {
         // Trou dans la séquence : un commit manque, ne pas sauter.
         await _delivery.diagnostic(userId, 'commit_manquant', deviceId: appareil.id,

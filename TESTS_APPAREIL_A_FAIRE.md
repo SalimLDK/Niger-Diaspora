@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1315 cases à cocher, 55 cochées** — 295 entrées sur 309 ont encore des cases ouvertes.
+**1317 cases à cocher, 55 cochées** — 296 entrées sur 310 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -95,7 +95,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 6 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (120)
+**P1 — fonction importante, jamais vérifiée** (121)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -145,6 +145,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [⬜ Exclure un membre d'un groupe échouait toujours (2026-09-17)](#-exclure-un-membre-dun-groupe-échouait-toujours-2026-09-17) · *Groupes*
 - 4 · [⬜ Noms des candidats à l'invitation et à l'ajout en appel (2026-09-14)](#-noms-des-candidats-à-linvitation-et-à-lajout-en-appel-2026-09-14) · *Groupes*
 - 3 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
+- 2 · [⬜ MLS : un commit publié mais pas fusionné ne désynchronise plus l'appareil (2026-10-04)](#-mls--un-commit-publié-mais-pas-fusionné-ne-désynchronise-plus-lappareil-2026-10-04) · *Chiffrement de bout en bout et clés*
 - 2 · [⬜ MLS : seul l'auteur modifie son message, dans le fil comme dans la bannière (2026-10-03)](#-mls--seul-lauteur-modifie-son-message-dans-le-fil-comme-dans-la-bannière-2026-10-03) · *Chiffrement de bout en bout et clés*
 - 5 · [⬜ Pixel réinstallé : la discussion MLS avec Sim A se rouvre malgré des Welcome périmés (2026-09-21)](#-pixel-réinstallé--la-discussion-mls-avec-sim-a-se-rouvre-malgré-des-welcome-périmés-2026-09-21) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ L'app lancée sans son écran n'inscrit plus d'appareil fantôme (2026-09-16)](#-lapp-lancée-sans-son-écran-ninscrit-plus-dappareil-fantôme-2026-09-16) · *Chiffrement de bout en bout et clés*
@@ -355,7 +356,7 @@ Par domaine :
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 0 faites
 - [2. Messagerie](#2-messagerie) — 338 à faire, 31 faites
 - [3. Groupes](#3-groupes) — 128 à faire, 0 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 126 à faire, 4 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 128 à faire, 4 faites
 - [5. Appels](#5-appels) — 24 à faire, 1 faites
 - [6. Notifications et push](#6-notifications-et-push) — 115 à faire, 6 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 36 à faire, 0 faites
@@ -3973,6 +3974,27 @@ conservée plutôt que de conclure « non » à tort (sinon le titre clignote).
 # 4. Chiffrement de bout en bout et clés
 
 Signal 1:1 et groupes, repli AES, clés dérivées, sauvegarde et transfert des clés, et tout ce qui pouvait partir en clair.
+
+---
+
+## ⬜ MLS : un commit publié mais pas fusionné ne désynchronise plus l'appareil (2026-10-04)
+
+**Priorité P1** · importance 4/5 — un appareil dont la réponse de publication s'était perdue (ou tué juste après) restait à l'epoch N quand le serveur était à N+1, et ne déchiffrait plus rien dans ce groupe, pour toujours.
+
+`_publierOuJeter` relit le serveur avant de jeter un commit sur une erreur
+ambiguë ; `_traiterCommits` fusionne son propre commit en attente au lieu
+de le sauter, et dit `propre_commit_orphelin` s'il n'y a plus rien à
+fusionner (`mls_conversation_service.dart`). Tenu par
+`test/core/crypto/mls_propre_commit_perdu_test.dart`.
+
+À vérifier (conversation basculée, deux téléphones A et B) :
+
+- [ ] Sur A, lancer un ajout/retrait d'appareil (nouvelle installation chez
+      B) puis **tuer l'app A** aussitôt ; relancer : A et B échangent
+      toujours, `mls_diagnostics` montre
+      `propre_commit_fusionne_au_rattrapage` et aucun `commit_manquant`.
+- [ ] Réseau très instable (bascule avion pendant l'envoi) : après retour
+      du réseau, plus aucun `epoch_futur` en boucle pour A.
 
 ---
 
