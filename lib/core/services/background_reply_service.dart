@@ -282,7 +282,7 @@ class BackgroundReplyService {
       conversationId: conversationId,
       lastMessage: content,
       senderId: senderId,
-      at: now,
+      messageId: msgId,
     );
   }
 
@@ -295,14 +295,16 @@ class BackgroundReplyService {
     required String conversationId,
     required String lastMessage,
     required String senderId,
-    required String at,
+    required String messageId,
   }) async {
     // Même fonction serveur que le chemin principal (`apres_envoi_message`) :
     // l'incrément des pastilles se fait dans l'UPDATE, il ne se perd plus
-    // quand deux envois se croisent.
+    // quand deux envois se croisent, et `last_message_at` recopie la date du
+    // message [messageId].
     try {
       await Supabase.instance.client.rpc('apres_envoi_message', params: {
         'p_conversation_id': conversationId,
+        'p_message_id': messageId,
         'p_apercu': {'lastMessage': lastMessage, 'lastMessageType': 'text'},
       });
     } catch (e) {

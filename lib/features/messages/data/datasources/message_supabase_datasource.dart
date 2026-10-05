@@ -694,18 +694,25 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     required String? text,
     required String senderId,
     required String type,
-    required String at,
+    required String messageId,
   }) async {
     // Une seule instruction côté serveur (`apres_envoi_message`,
     // 20261004100000) au lieu de « lire data, incrémenter unreadCount en
     // mémoire, réécrire data » : deux envois simultanés perdaient un
     // incrément (mesuré : 8 pastilles sur 30 pour 40 envois concurrents), et
     // une sourdine posée pendant l'envoi disparaissait. L'expéditeur est lu
-    // dans le jeton par le serveur, `last_message_at` y prend l'heure du
-    // serveur : [senderId] et [at] ne servent plus qu'à la signature.
+    // dans le jeton par le serveur : [senderId] ne sert plus qu'à la
+    // signature.
+    //
+    // [messageId] : `last_message_at` recopie le `created_at` DE CE MESSAGE
+    // (20261005090000). C'est à cette égalité que « supprimer pour tout le
+    // monde » et la purge des éphémères reconnaissent le dernier message ;
+    // deux `now()` de deux requêtes ne sont jamais égaux, et l'aperçu en
+    // clair d'un message supprimé restait affiché dans la liste.
     try {
       await _supabase.rpc('apres_envoi_message', params: {
         'p_conversation_id': convId,
+        'p_message_id': messageId,
         'p_apercu': {
           if (text != null) 'lastMessage': text,
           'lastMessageType': type,
@@ -1515,7 +1522,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
         text: displayText,
         senderId: senderId,
         type: 'text',
-        at: now,
+        messageId: msgId,
       );
 
       // Always return plaintext to the sender's local state — les charges
@@ -1631,7 +1638,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
         text: lastMsg,
         senderId: senderId,
         type: type,
-        at: now,
+        messageId: msgId,
       );
 
       return MessageModel.fromJson({
@@ -1747,7 +1754,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
         text: '\u{1F399}\u{FE0F} Message vocal',
         senderId: senderId,
         type: 'voiceNote',
-        at: now,
+        messageId: msgId,
       );
 
       // Le fichier temporaire de l'enregistreur n'a plus de raison d'être une
@@ -1841,7 +1848,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
         text: '📍 Position partagée',
         senderId: senderId,
         type: 'location',
-        at: now,
+        messageId: msgId,
       );
 
       return MessageModel.fromJson({
@@ -1897,7 +1904,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
         text: '📊 $question',
         senderId: senderId,
         type: 'poll',
-        at: now,
+        messageId: msgId,
       );
 
       return MessageModel.fromJson({
@@ -1966,7 +1973,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
         text: '🎭 Sticker',
         senderId: senderId,
         type: 'sticker',
-        at: now,
+        messageId: msgId,
       );
 
       return MessageModel.fromJson({
@@ -2020,7 +2027,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
         text: content,
         senderId: 'system',
         type: 'system',
-        at: now,
+        messageId: msgId,
       );
 
       return MessageModel.fromJson({
@@ -3039,9 +3046,9 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
   /// « ne pas faire échouer » n'est pas « ne rien dire ». La fuite devient
   /// visible dans Crashlytics au lieu de n'exister nulle part.
   ///
-  /// `last_message_at` vient du même `now` que le `created_at` du message
-  /// (cf. [_updateConversationLastMessage], appelé avec `at: now`) : leur
-  /// égalité identifie le dernier message sans dépendre de `last_message_id`,
+  /// `last_message_at` est recopié du `created_at` du message par
+  /// `apres_envoi_message` (cf. [_updateConversationLastMessage], 20261005090000) :
+  /// leur égalité identifie le dernier message sans dépendre de `last_message_id`,
   /// que ce chemin d'écriture ne renseigne pas. C'est le critère qu'emploie
   /// déjà `purger_messages_expires()`.
   Future<void> _viderApercuSiDernier(

@@ -113,7 +113,7 @@ class CallMessageService {
         convId,
         text: messageContent,
         senderId: currentUserId,
-        at: now,
+        messageId: msgId,
       );
 
       debugPrint('appel: Supabase conversation updated');
@@ -202,12 +202,14 @@ class CallMessageService {
     String conversationId, {
     required String text,
     required String senderId,
-    required String at,
+    required String messageId,
   }) async {
     // Même fonction serveur que le chemin principal (`apres_envoi_message`) :
-    // pastilles incrémentées dans l'UPDATE, expéditeur lu dans le jeton.
+    // pastilles incrémentées dans l'UPDATE, expéditeur lu dans le jeton,
+    // `last_message_at` recopié du message [messageId].
     await Supabase.instance.client.rpc('apres_envoi_message', params: {
       'p_conversation_id': conversationId,
+      'p_message_id': messageId,
       'p_apercu': {'lastMessage': text, 'lastMessageType': 'call'},
     });
   }

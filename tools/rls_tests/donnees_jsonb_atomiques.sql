@@ -6,7 +6,9 @@
 -- Condition : 0 cas en ÉCHEC. Tout est dans un `BEGIN … ROLLBACK`.
 --
 -- AVANT `db push` : remplacer la ligne seule `-- @@MIGRATION@@` par le contenu
--- de la migration. APRÈS, lancé tel quel, le banc prouve l'état vivant.
+-- de la migration — puis, à la suite, de 20261005090000, qui redéfinit
+-- `apres_envoi_message` (identifiant du message en plus). APRÈS, lancé tel
+-- quel, le banc prouve l'état vivant.
 --
 -- Sans la migration, le banc s'interrompt au premier appel (fonction
 -- inexistante) : il ne peut pas passer à tort. Avec : 11 OK, en local.
@@ -35,7 +37,9 @@ INSERT INTO ctx VALUES
   ('tiers',  'banc-jsonb-tiers'),
   ('conv',   'banc-jsonb-' || gen_random_uuid()::text),
   ('etr',    'banc-jsonb-etr-' || gen_random_uuid()::text),
-  ('msg',    'banc-jsonb-m-' || gen_random_uuid()::text);
+  ('msg',    'banc-jsonb-m-' || gen_random_uuid()::text),
+  ('msg_moi','banc-jsonb-mm-' || gen_random_uuid()::text),
+  ('msg_etr','banc-jsonb-me-' || gen_random_uuid()::text);
 
 INSERT INTO public.conversations (id, type, participant_ids, created_by, data)
 SELECT c.v, 'individual',
@@ -61,6 +65,15 @@ SELECT m.v, (SELECT v FROM ctx WHERE k='conv'), (SELECT v FROM ctx WHERE k='autr
        'text', '{"content":"banc","readBy":["banc-jsonb-autre"]}'::jsonb
   FROM ctx m WHERE m.k = 'msg';
 
+-- Les messages que « moi » vient d'envoyer, dont l'après-envoi recopie la
+-- date (20261005090000) — dont un, fabriqué, dans la conversation d'autrui.
+INSERT INTO public.messages (id, conversation_id, sender_id, type, data)
+SELECT (SELECT v FROM ctx WHERE k='msg_moi'), (SELECT v FROM ctx WHERE k='conv'),
+       'banc-jsonb-moi', 'text', '{"content":"salut"}'::jsonb;
+INSERT INTO public.messages (id, conversation_id, sender_id, type, data)
+SELECT (SELECT v FROM ctx WHERE k='msg_etr'), (SELECT v FROM ctx WHERE k='etr'),
+       'banc-jsonb-moi', 'text', '{"content":"pirate"}'::jsonb;
+
 -- @@MIGRATION@@
 
 SET LOCAL request.jwt.claims =
@@ -72,7 +85,7 @@ SET LOCAL ROLE authenticated;
 DO $$
 DECLARE ok boolean; d jsonb;
 BEGIN
-  ok := apres_envoi_message((SELECT v FROM ctx WHERE k='conv'), '{"lastMessage":"salut","lastMessageType":"text"}');
+  ok := apres_envoi_message((SELECT v FROM ctx WHERE k='conv'), (SELECT v FROM ctx WHERE k='msg_moi'), '{"lastMessage":"salut","lastMessageType":"text"}');
   SELECT data INTO d FROM conversations WHERE id = (SELECT v FROM ctx WHERE k='conv');
   INSERT INTO resultat VALUES (1, 'apres_envoi : pastilles, aperçu, sourdine gardée',
     'ok, autre=3, moi absent, mutedBy gardé, lastMessageDeleted retiré',
@@ -184,9 +197,13 @@ END $$;
 DO $$
 DECLARE ok boolean;
 BEGIN
-  ok := apres_envoi_message((SELECT v FROM ctx WHERE k='etr'), '{"lastMessage":"pirate"}');
+  ok := apres_envoi_message((SELECT v FROM ctx WHERE k='etr'), (SELECT v FROM ctx WHERE k='msg_etr'), '{"lastMessage":"pirate"}');
   INSERT INTO resultat VALUES (10, 'apres_envoi sur la conversation d''autrui : rien', 'false',
     ok::text, CASE WHEN NOT ok THEN 'OK' ELSE 'ÉCHEC' END);
+EXCEPTION WHEN no_data_found THEN
+  -- Le message n'est pas lisible par « moi » (RLS) : refus, c'est l'attendu.
+  INSERT INTO resultat VALUES (10, 'apres_envoi sur la conversation d''autrui : rien', 'false',
+    'refusé P0002', 'OK');
 END $$;
 
 -- 11. Un message système n'incrémente aucune pastille.
@@ -194,7 +211,7 @@ DO $$
 DECLARE avant jsonb; apres jsonb;
 BEGIN
   SELECT data->'unreadCount' INTO avant FROM conversations WHERE id = (SELECT v FROM ctx WHERE k='conv');
-  PERFORM apres_envoi_message((SELECT v FROM ctx WHERE k='conv'), '{"lastMessageType":"system"}');
+  PERFORM apres_envoi_message((SELECT v FROM ctx WHERE k='conv'), (SELECT v FROM ctx WHERE k='msg_moi'), '{"lastMessageType":"system"}');
   SELECT data->'unreadCount' INTO apres FROM conversations WHERE id = (SELECT v FROM ctx WHERE k='conv');
   INSERT INTO resultat VALUES (11, 'message système : aucune pastille ne bouge', avant::text,
     apres::text, CASE WHEN avant = apres THEN 'OK' ELSE 'ÉCHEC' END);

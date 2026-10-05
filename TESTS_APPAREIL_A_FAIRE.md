@@ -39,11 +39,11 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1329 cases à cocher, 55 cochées** — 299 entrées sur 313 ont encore des cases ouvertes.
+**1332 cases à cocher, 55 cochées** — 300 entrées sur 314 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
-**P0 — avant toute nouvelle version** (49)
+**P0 — avant toute nouvelle version** (50)
 
 - 3 · [⬜ Envoi raté après avoir quitté la discussion : le message n'est plus perdu, et la fenêtre de 24 h tient (2026-10-03)](#-envoi-raté-après-avoir-quitté-la-discussion--le-message-nest-plus-perdu-et-la-fenêtre-de-24-h-tient-2026-10-03) · *Messagerie*
 - 2 · [⬜ Temps réel après l'arrière-plan, et texte supprimé dans la liste (2026-09-21)](#-temps-réel-après-larrière-plan-et-texte-supprimé-dans-la-liste-2026-09-21) · *Messagerie*
@@ -77,6 +77,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [⬜ Le serveur ne supprime plus un chemin Storage dicté par le client (2026-09-21)](#-le-serveur-ne-supprime-plus-un-chemin-storage-dicté-par-le-client-2026-09-21) · *Publication et plateformes*
 - 5 · [⬜ Divulgation préalable de la localisation (refus Play du 2026-09-09)](#-divulgation-préalable-de-la-localisation-refus-play-du-2026-09-09) · *Publication et plateformes*
 - 3 · [⬜ Compte de test dédié : première connexion (2026-09-09)](#-compte-de-test-dédié--première-connexion-2026-09-09) · *Appareils, comptes de test et méthode*
+- 3 · [⬜ Aperçu d'un message supprimé ou expiré : vidé de la liste des discussions (2026-10-05)](#-aperçu-dun-message-supprimé-ou-expiré--vidé-de-la-liste-des-discussions-2026-10-05) · *Messagerie*
 - 4 · [⬜ Écritures concurrentes : sourdine, pastilles, « Lu » et étoiles ne s'effacent plus (2026-10-04)](#-écritures-concurrentes--sourdine-pastilles--lu--et-étoiles-ne-seffacent-plus-2026-10-04) · *Messagerie*
 - 4 · [⬜ Écrire dans une conversation exige d'en être participant (2026-09-20)](#-écrire-dans-une-conversation-exige-den-être-participant-2026-09-20) · *Messagerie*
 - 2 · [⬜ GIF et sticker envoyés en MLS : la bulle ne montrait rien (2026-09-16)](#-gif-et-sticker-envoyés-en-mls--la-bulle-ne-montrait-rien-2026-09-16) · *Messagerie*
@@ -357,7 +358,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 0 faites
-- [2. Messagerie](#2-messagerie) — 338 à faire, 31 faites
+- [2. Messagerie](#2-messagerie) — 341 à faire, 31 faites
 - [3. Groupes](#3-groupes) — 128 à faire, 0 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 140 à faire, 4 faites
 - [5. Appels](#5-appels) — 24 à faire, 1 faites
@@ -458,6 +459,31 @@ du SM A515F (compte « Sim A », non-admin, sans pays renseigné).
 # 2. Messagerie
 
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
+
+---
+
+## ⬜ Aperçu d'un message supprimé ou expiré : vidé de la liste des discussions (2026-10-05)
+
+**Priorité P0** · importance 4/5 — **ordre de déploiement** : la migration `20261005090000_apercu_date_du_message.sql` doit être poussée **juste après** `20261004100000` et **AVANT** l'app qui contient ce correctif : elle remplace `apres_envoi_message` par une version à trois arguments, que seule cette app appelle. Sans elle, l'aperçu et les pastilles ne se mettent plus à jour après un envoi.
+
+Régression des correctifs du 2026-10-04 (dates posées par le serveur, puis
+après-envoi atomique) : `last_message_at` et `created_at` venaient de deux
+`now()` de deux requêtes, jamais égaux. Or c'est à leur égalité que
+« supprimer pour tout le monde » et la purge des éphémères reconnaissent le
+dernier message : **le texte en clair restait dans la liste**, sous la bulle
+« Message supprimé ». Désormais l'après-envoi recopie la date du message.
+Bancs : `tools/rls_tests/apercu_date_du_message.sql` (6 OK en local),
+`test/features/messages/apercu_date_du_message_test.dart`.
+
+À vérifier (après `db push`), deux téléphones A et B :
+
+- [ ] A envoie « secret », puis le supprime pour tout le monde : chez A
+      **et** chez B, la liste des discussions affiche « Message supprimé »,
+      plus « secret ».
+- [ ] Discussion éphémère (minuteur court) : à l'expiration du dernier
+      message, la liste affiche « Message expiré », plus le texte.
+- [ ] Envoi normal, réponse depuis la notification, fin d'appel : l'aperçu
+      et la pastille de B se mettent à jour à chaque fois.
 
 ---
 
