@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1345 cases à cocher, 55 cochées** — 303 entrées sur 317 ont encore des cases ouvertes.
+**1348 cases à cocher, 55 cochées** — 304 entrées sur 318 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -96,7 +96,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 6 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (126)
+**P1 — fonction importante, jamais vérifiée** (127)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -162,6 +162,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [⬜ Cartes de partage chiffrées au repos (2026-09-09)](#-cartes-de-partage-chiffrées-au-repos-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
 - 4 · [Messages de groupe qui redeviennent indéchiffrables après réouverture (2026-08-13)](#messages-de-groupe-qui-redeviennent-indéchiffrables-après-réouverture-2026-08-13) · *Chiffrement de bout en bout et clés* · bloqué
 - 4 · [⬜ Appel entrant : le nom et la photo de l'appelant viennent de la base (2026-09-21)](#-appel-entrant--le-nom-et-la-photo-de-lappelant-viennent-de-la-base-2026-09-21) · *Appels*
+- 3 · [⬜ Message en clair supprimé ou expiré : bannière retirée, texte effacé des notifications (2026-10-05)](#-message-en-clair-supprimé-ou-expiré--bannière-retirée-texte-effacé-des-notifications-2026-10-05) · *Notifications et push*
 - 4 · [⬜ Push de message : nom de l'expéditeur fiable, expéditeur bloqué silencieux (2026-10-05)](#-push-de-message--nom-de-lexpéditeur-fiable-expéditeur-bloqué-silencieux-2026-10-05) · *Notifications et push*
 - 2 · [⬜ Quota de notifications : dix messages suffisent à faire taire le reste (2026-09-22)](#-quota-de-notifications--dix-messages-suffisent-à-faire-taire-le-reste-2026-09-22) · *Notifications et push*
 - 4 · [⬜ Notifications entre comptes : le serveur rédige le texte et filtre les données (2026-09-21)](#-notifications-entre-comptes--le-serveur-rédige-le-texte-et-filtre-les-données-2026-09-21) · *Notifications et push*
@@ -365,7 +366,7 @@ Par domaine :
 - [3. Groupes](#3-groupes) — 128 à faire, 0 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 140 à faire, 4 faites
 - [5. Appels](#5-appels) — 24 à faire, 1 faites
-- [6. Notifications et push](#6-notifications-et-push) — 119 à faire, 6 faites
+- [6. Notifications et push](#6-notifications-et-push) — 122 à faire, 6 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 36 à faire, 0 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 63 à faire, 0 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 101 à faire, 0 faites
@@ -5651,6 +5652,28 @@ en solo.
 # 6. Notifications et push
 
 Chaîne FCM, aperçus, réponse rapide, écran Notifications.
+
+---
+
+## ⬜ Message en clair supprimé ou expiré : bannière retirée, texte effacé des notifications (2026-10-05)
+
+**Priorité P1** · importance 4/5 — migration `20261005140000_notification_suit_le_message_clair_supprime.sql`, indépendante de l'app (le client traite déjà `messageDeleted` pour MLS, sans regarder le transport).
+
+Pour une conversation **non chiffrée** (MLS l'a depuis le 2026-09-21) :
+supprimer pour tous ne faisait que marquer la notification lue. Son texte
+restait dans l'écran Notifications et dans la bannière du volet. Désormais un
+signal `messageDeleted` retire la ligne de la bannière, et la notification
+garde « Message supprimé » à la place du texte. Banc :
+`tools/rls_tests/notification_suit_le_message_clair_supprime.sql` (4 OK en
+local ; 2 ÉCHEC avec la version actuelle).
+
+À vérifier (après `db push`), A et B, discussion **non chiffrée** :
+
+- [ ] B app fermée ; A envoie « secret » puis le supprime pour tous : la
+      bannière de B ne montre plus « secret » (retirée, ou la ligne
+      précédente seule).
+- [ ] Écran Notifications de B : l'entrée dit « Message supprimé ».
+- [ ] Même chose à l'expiration d'un message éphémère.
 
 ---
 
