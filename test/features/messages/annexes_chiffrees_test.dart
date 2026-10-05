@@ -199,13 +199,14 @@ void main() {
       );
       // Un format périmé laissé à côté du neuf serait lu en premier par
       // `decrypt` : le message deviendrait illisible sans rien signaler.
-      for (final perime in [
-        "data.remove('e2eePayloads')",
-        "data.remove('e2eePayload')",
-        "data.remove('senderKeyPayload')",
-      ]) {
-        expect(corps.contains(perime), isTrue, reason: '$perime manquant');
-      }
+      // `modifier_donnees_message` retire `p_retirer` AVANT de fusionner
+      // (tools/rls_tests/donnees_jsonb_atomiques_suite.sql, cas 6).
+      expect(
+        corps.contains(
+            "'p_retirer': ['e2eePayloads', 'e2eePayload', 'senderKeyPayload']"),
+        isTrue,
+        reason: 'un format périmé reste à côté du neuf',
+      );
       expect(
         corps.contains("'content': oldContent"),
         isFalse,

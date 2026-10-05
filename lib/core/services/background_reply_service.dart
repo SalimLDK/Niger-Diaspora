@@ -340,34 +340,15 @@ class BackgroundReplyService {
         debugPrint('BackgroundReplyService: mark_messages_as_read RPC error: $e');
       }
 
-      final rows = await Supabase.instance.client
-          .from('conversations')
-          .select('data')
-          .eq('id', conversationId)
-          .limit(1);
-      final current = Map<String, dynamic>.from(
-        (rows.isNotEmpty ? rows.first['data'] as Map<String, dynamic>? : null) ??
-            {},
-      );
-      final readBy = List<String>.from(
-        current['lastMessageReadBy'] as List? ?? [],
-      );
-      if (!readBy.contains(userId)) readBy.add(userId);
-
-      final unreadCount = Map<String, dynamic>.from(
-        current['unreadCount'] as Map? ?? {},
-      )..[userId] = 0;
-
-      final updated = {
-        ...current,
-        'unreadCount': unreadCount,
-        'lastMessageReadBy': readBy,
-      };
-
-      await Supabase.instance.client
-          .from('conversations')
-          .update({'data': updated})
-          .eq('id', conversationId);
+      // Même instruction que `MessageSupabaseDataSource.markAsRead` : relire
+      // `data` puis le réécrire effaçait un message arrivé entre les deux.
+      await Supabase.instance.client.rpc('modifier_donnees_conversation', params: {
+        'p_conversation_id': conversationId,
+        'p_fusion': {
+          'unreadCount': {userId: 0},
+        },
+        'p_ajouts': {'lastMessageReadBy': userId},
+      });
       return true;
     } catch (e) {
       debugPrint('BackgroundReplyService: markAsRead error: $e');

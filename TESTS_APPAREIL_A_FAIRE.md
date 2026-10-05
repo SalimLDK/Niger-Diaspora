@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1332 cases à cocher, 55 cochées** — 300 entrées sur 314 ont encore des cases ouvertes.
+**1336 cases à cocher, 55 cochées** — 301 entrées sur 315 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -96,7 +96,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 6 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (124)
+**P1 — fonction importante, jamais vérifiée** (125)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -189,6 +189,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⛔ « Diaspo Niger s'arrête systématiquement » sur Android 15+ (2026-09-09)](#--diaspo-niger-sarrête-systématiquement--sur-android-15-2026-09-09) · *Publication et plateformes*
 - 4 · [⚠️ Rapatriement iOS : deux dépendances **Android** changent de version majeure (2026-09-08)](#-rapatriement-ios--deux-dépendances-android-changent-de-version-majeure-2026-09-08) · *Publication et plateformes*
 - 9 · [⬜ La page de suppression de compte demande la suppression au lieu de l'exécuter (2026-09-19)](#-la-page-de-suppression-de-compte-demande-la-suppression-au-lieu-de-lexécuter-2026-09-19) · *Site web*
+- 4 · [⬜ Lu, livré, supprimer pour tous, modifier : plus d'écriture effacée (2026-10-05)](#-lu-livré-supprimer-pour-tous-modifier--plus-décriture-effacée-2026-10-05) · *Messagerie*
 - 3 · [⬜ « Supprimer pour moi » sur une sélection : les messages ne reviennent plus au rechargement (2026-10-03)](#--supprimer-pour-moi--sur-une-sélection--les-messages-ne-reviennent-plus-au-rechargement-2026-10-03) · *Messagerie*
 - 9 · [⬜ Accusés, réactions, modifications et suppressions reçus en direct, discussion en clair (2026-09-21)](#-accusés-réactions-modifications-et-suppressions-reçus-en-direct-discussion-en-clair-2026-09-21) · *Messagerie*
 - 9 · [⬜ Partager vers une discussion — groupe et 1:1 (2026-09-09)](#-partager-vers-une-discussion--groupe-et-11-2026-09-09) · *Messagerie*
@@ -358,7 +359,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 0 faites
-- [2. Messagerie](#2-messagerie) — 341 à faire, 31 faites
+- [2. Messagerie](#2-messagerie) — 345 à faire, 31 faites
 - [3. Groupes](#3-groupes) — 128 à faire, 0 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 140 à faire, 4 faites
 - [5. Appels](#5-appels) — 24 à faire, 1 faites
@@ -459,6 +460,33 @@ du SM A515F (compte « Sim A », non-admin, sans pays renseigné).
 # 2. Messagerie
 
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
+
+---
+
+## ⬜ Lu, livré, supprimer pour tous, modifier : plus d'écriture effacée (2026-10-05)
+
+**Priorité P1** · importance 3/5 — **ordre de déploiement** : la migration `20261005100000_donnees_jsonb_atomiques_suite.sql` doit être poussée **AVANT** l'app qui contient ce correctif. Sans elle, « marquer comme lu », « supprimer pour tout le monde », « modifier » et « signaler le groupe » échouent (fonctions absentes).
+
+Suite de « Écritures concurrentes : sourdine, pastilles, « Lu » et étoiles ne
+s'effacent plus » : les derniers « lire `data`, modifier, réécrire » passent
+par trois fonctions SQL (SECURITY INVOKER). Les replis d'avant les migrations
+de septembre (réactions, nommer/retirer admin, exclure) sont retirés : ils
+réécrivaient `data` entier, et `db push` applique ces migrations avant
+celles dont l'app dépend déjà. Bancs :
+`tools/rls_tests/donnees_jsonb_atomiques_suite.sql` (9 OK en local),
+`test/features/messages/donnees_jsonb_atomiques_test.dart`.
+
+À vérifier (après `db push`), deux téléphones A et B :
+
+- [ ] B ouvre la discussion **pendant** que A envoie en rafale : à la
+      sortie, la pastille de B compte les messages arrivés après
+      l'ouverture, et les coches bleues de A s'affichent.
+- [ ] A modifie un message que B vient de lire, puis B y réagit : le texte
+      modifié, le « Lu » et la réaction tiennent tous trois.
+- [ ] A supprime pour tout le monde son dernier message : la bulle et
+      l'aperçu de la liste disent « Message supprimé » chez les deux.
+- [ ] Réagir, nommer un admin, retirer un admin, exclure un membre : chaque
+      geste aboutit (plus de repli, une erreur s'afficherait).
 
 ---
 

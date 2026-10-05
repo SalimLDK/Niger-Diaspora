@@ -249,26 +249,16 @@ class MessageDeletionService {
     String conversationId,
     String userId,
   ) async {
-    // Fetch current data JSONB, merge deletedBy entry, and write back
-    final rows = await _supabase
-        .from('conversations')
-        .select('data')
-        .eq('id', conversationId)
-        .limit(1);
-
-    if (rows.isEmpty) return;
-
-    final current =
-        Map<String, dynamic>.from((rows.first['data'] as Map?) ?? {});
-    final deletedBy =
-        Map<String, dynamic>.from(current['deletedBy'] as Map? ?? {});
-    deletedBy[userId] = DateTime.now().toUtc().toIso8601String();
-    current['deletedBy'] = deletedBy;
-
-    await _supabase
-        .from('conversations')
-        .update({'data': current})
-        .eq('id', conversationId);
+    // Fusion faite DANS l'UPDATE (`fusionner_donnees_conversation`,
+    // 20261004100000) : relire `data` puis le réécrire effaçait une écriture
+    // croisée — un message reçu, la suppression d'un autre participant.
+    await _supabase.rpc('fusionner_donnees_conversation', params: {
+      'p_conversation_id': conversationId,
+      'p_partiel': {
+        'deletedBy': {userId: DateTime.now().toUtc().toIso8601String()},
+      },
+      'p_profond': true,
+    });
   }
 
   /// Parser une liste de strings depuis une valeur dynamique

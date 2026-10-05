@@ -73,8 +73,11 @@ const _kChampMediaChiffre = 'mediaChiffre';
 /// retire l'autre ; un message qui arrive ensuite retire les deux. Une marque
 /// oubliée sous un aperçu neuf ferait dire « Message supprimé » à une
 /// conversation vivante, pour toujours.
-const _kApercuSupprime = 'lastMessageDeleted';
-const _kApercuExpire = 'lastMessageExpired';
+///
+/// `lastMessageDeleted` et `lastMessageExpired` ne s'écrivent plus d'ici :
+/// les trois écrivains sont des fonctions SQL, chacune en une instruction —
+/// `vider_apercu_si_dernier` (20261005100000), `purger_messages_expires` et
+/// `apres_envoi_message` (qui retire les deux).
 
 /// Forme du repli AES stocké : « iv:ct », ou « `v<n>:iv:ct` » avec une clé
 /// dérivée. Filet pour le cas où le déchiffrement n'a pas eu lieu (service
@@ -2516,27 +2519,14 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
         params: {'p_conversation_id': conversationId, 'p_user_id': userId},
       );
 
-      // Also update lastMessageDeliveredTo on the conversation
-      final rows = await _supabase
-          .from('conversations')
-          .select('data')
-          .eq('id', conversationId)
-          .limit(1);
-      final current = Map<String, dynamic>.from(
-        (rows.isNotEmpty
-                ? rows.first['data'] as Map<String, dynamic>?
-                : null) ??
-            {},
-      );
-      final deliveredTo = List<String>.from(
-        current['lastMessageDeliveredTo'] as List? ?? [],
-      );
-      if (!deliveredTo.contains(userId)) {
-        deliveredTo.add(userId);
-        await _mergeConvData(conversationId, {
-          'lastMessageDeliveredTo': deliveredTo,
-        }, merge: true);
-      }
+      // Et l'aperçu de la conversation, dans la même instruction que la
+      // lecture (`modifier_donnees_conversation`, 20261005100000) : relire
+      // la liste pour y ajouter [userId] effaçait un autre destinataire
+      // livré au même moment.
+      await _supabase.rpc('modifier_donnees_conversation', params: {
+        'p_conversation_id': conversationId,
+        'p_ajouts': {'lastMessageDeliveredTo': userId},
+      });
     } catch (e) {
       // Non-critical: delivery tracking best-effort
       debugPrint('markAsDelivered error: $e');
@@ -2574,29 +2564,17 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
       ),
     );
 
+    // Une instruction (`modifier_donnees_conversation`, 20261005100000) :
+    // relire `lastMessageReadBy` pour y ajouter [userId] puis réécrire
+    // effaçait un lecteur — ou un message — arrivé entre les deux.
     try {
-      // Fetch current lastMessageReadBy to append userId
-      final rows = await _supabase
-          .from('conversations')
-          .select('data')
-          .eq('id', conversationId)
-          .limit(1);
-
-      final current = Map<String, dynamic>.from(
-        (rows.isNotEmpty
-                ? rows.first['data'] as Map<String, dynamic>?
-                : null) ??
-            {},
-      );
-      final readBy = List<String>.from(
-        current['lastMessageReadBy'] as List? ?? [],
-      );
-      if (!readBy.contains(userId)) readBy.add(userId);
-
-      await _mergeConvData(conversationId, {
-        'unreadCount': {userId: 0},
-        'lastMessageReadBy': readBy,
-      }, merge: true);
+      await _supabase.rpc('modifier_donnees_conversation', params: {
+        'p_conversation_id': conversationId,
+        'p_fusion': {
+          'unreadCount': {userId: 0},
+        },
+        'p_ajouts': {'lastMessageReadBy': userId},
+      });
     } catch (e) {
       throw ServerException('markAsRead error: $e');
     }
@@ -2775,9 +2753,10 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
   //    `conversations_sync_group_removal` ne voyait aucun départ. La RPC
   //    supprime aussi la ligne `group_members`.
   //
-  // Le chemin direct reste en repli sur `PGRST202` (fonction absente) : entre
-  // la livraison de l'app et `supabase db push`, mieux vaut une exclusion sans
-  // notice qu'un écran cassé. À retirer une fois la migration appliquée.
+  // Plus de repli sur `PGRST202` (fonction absente) : il réécrivait
+  // `participant_ids` et `data` en « lire, modifier, réécrire ». La migration
+  // 20260917013200 précède 20261004100000, dont l'app dépend déjà — `db push`
+  // les applique dans l'ordre : l'absence n'est plus une étape de déploiement.
   //
   // Banc serveur : `tools/rls_tests/notices_de_groupe.sql`.
 
@@ -2792,15 +2771,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
         params: {'p_conversation_id': conversationId, 'p_user_id': userId},
       );
     } on PostgrestException catch (e) {
-      if (e.code != 'PGRST202') {
-        throw ServerException('promoteToAdmin error: ${e.message}');
-      }
-      await _majAdminIdsSansRpc(
-        conversationId: conversationId,
-        userId: userId,
-        ajouter: true,
-        action: 'promoteToAdmin',
-      );
+      throw ServerException('promoteToAdmin error: ${e.message}');
     } catch (e) {
       if (e is ServerException) rethrow;
       throw ServerException('promoteToAdmin error: $e');
@@ -2818,55 +2789,10 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
         params: {'p_conversation_id': conversationId, 'p_user_id': userId},
       );
     } on PostgrestException catch (e) {
-      if (e.code != 'PGRST202') {
-        throw ServerException('demoteFromAdmin error: ${e.message}');
-      }
-      await _majAdminIdsSansRpc(
-        conversationId: conversationId,
-        userId: userId,
-        ajouter: false,
-        action: 'demoteFromAdmin',
-      );
+      throw ServerException('demoteFromAdmin error: ${e.message}');
     } catch (e) {
       if (e is ServerException) rethrow;
       throw ServerException('demoteFromAdmin error: $e');
-    }
-  }
-
-  /// Repli de `promoteToAdmin` / `demoteFromAdmin` tant que la migration
-  /// `20260917013200` n'est pas appliquée. N'écrit que `data.adminIds` : le
-  /// badge de la fiche des membres et `is_group_admin()`, qui lisent
-  /// `group_members.role`, ne bougent pas — c'est précisément le défaut que la
-  /// RPC corrige. À retirer avec le `catch` qui l'appelle.
-  Future<void> _majAdminIdsSansRpc({
-    required String conversationId,
-    required String userId,
-    required bool ajouter,
-    required String action,
-  }) async {
-    try {
-      final rows = await _supabase
-          .from('conversations')
-          .select('data')
-          .eq('id', conversationId)
-          .limit(1);
-      if (rows.isEmpty) return;
-      final data = Map<String, dynamic>.from(
-        (rows.first['data'] as Map?) ?? {},
-      );
-      final adminIds = List<String>.from(data['adminIds'] as List? ?? []);
-      if (ajouter) {
-        if (!adminIds.contains(userId)) adminIds.add(userId);
-      } else {
-        adminIds.remove(userId);
-      }
-      data['adminIds'] = adminIds;
-      await _supabase
-          .from('conversations')
-          .update({'data': data})
-          .eq('id', conversationId);
-    } catch (e) {
-      throw ServerException('$action error: $e');
     }
   }
 
@@ -2894,59 +2820,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
         params: {'p_conversation_id': conversationId, 'p_user_id': userId},
       );
     } on PostgrestException catch (e) {
-      if (e.code != 'PGRST202') {
-        throw ServerException('removeUserFromGroup error: ${e.message}');
-      }
-      await _retraitSansRpc(conversationId: conversationId, userId: userId);
-    } catch (e) {
-      if (e is ServerException) rethrow;
-      throw ServerException('removeUserFromGroup error: $e');
-    }
-  }
-
-  /// Repli de `removeUserFromGroup` tant que la migration `20260917013200`
-  /// n'est pas appliquée : aucune notice, et un membre absent de
-  /// `participant_ids` reste dans `group_members`. À retirer avec le `catch`
-  /// qui l'appelle. Banc : `tools/rls_tests/retrait_membre_groupe.sql`.
-  ///
-  /// Lève plutôt que de réussir à vide : une conversation illisible ou une mise
-  /// à jour qui ne touche aucune ligne ne sont pas un retrait.
-  Future<void> _retraitSansRpc({
-    required String conversationId,
-    required String userId,
-  }) async {
-    try {
-      final rows = await _supabase
-          .from('conversations')
-          .select('participant_ids, data')
-          .eq('id', conversationId)
-          .limit(1);
-      if (rows.isEmpty) {
-        throw ServerException(
-          'removeUserFromGroup : conversation introuvable ou illisible',
-        );
-      }
-
-      final ids = List<String>.from(
-        rows.first['participant_ids'] as List? ?? [],
-      );
-      ids.remove(userId);
-
-      final data = Map<String, dynamic>.from(
-        (rows.first['data'] as Map?) ?? {},
-      );
-      final adminIds = List<String>.from(data['adminIds'] as List? ?? []);
-      adminIds.remove(userId);
-      data['adminIds'] = adminIds;
-
-      final modifiees = await _supabase
-          .from('conversations')
-          .update({'participant_ids': ids, 'data': data})
-          .eq('id', conversationId)
-          .select('id');
-      if (modifiees.isEmpty) {
-        throw ServerException('removeUserFromGroup : aucune ligne modifiée');
-      }
+      throw ServerException('removeUserFromGroup error: ${e.message}');
     } catch (e) {
       if (e is ServerException) rethrow;
       throw ServerException('removeUserFromGroup error: $e');
@@ -2980,35 +2854,32 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     try {
       final now = DateTime.now().toUtc().toIso8601String();
 
-      final rows = await _supabase
-          .from('messages')
-          .select('data, created_at')
-          .eq('id', messageId)
-          .limit(1);
-      if (rows.isEmpty) return;
-      final data = Map<String, dynamic>.from(
-        (rows.first['data'] as Map?) ?? {},
-      );
-      data['deletedForEveryone'] = true;
-      data['deletedAt'] = now;
-      data['content'] = '';
-      data.remove('fileUrl');
-      data.remove('thumbnailUrl');
-      // Une carte de partage survivait à « supprimer pour tout le monde » :
-      // le contenu partait, l'aperçu — titre, extrait, image, URL cible —
-      // restait en base. La forme chiffrée comme les anciennes en clair.
-      data.remove(_kAnnexesChiffrees);
-      // La clé d'un média chiffré part avec lui : le blob Storage restant
-      // devient définitivement illisible.
-      data.remove(_kMediaChiffre);
-      for (final champ in _kChampsAnnexes) {
-        data.remove(champ);
-      }
-
-      await _supabase
-          .from('messages')
-          .update({'is_deleted': true, 'data': data})
-          .eq('id', messageId);
+      // Une instruction (`modifier_donnees_message`, 20261005100000) : relire
+      // `data` pour le réécrire vidé effaçait un « Lu » ou une réaction
+      // arrivés entre les deux. Rend `null` si aucune ligne n'a bougé.
+      final supprime = await _supabase.rpc('modifier_donnees_message', params: {
+        'p_message_id': messageId,
+        'p_fusion': {
+          'deletedForEveryone': true,
+          'deletedAt': now,
+          'content': '',
+        },
+        'p_retirer': [
+          'fileUrl',
+          'thumbnailUrl',
+          // Une carte de partage survivait à « supprimer pour tout le
+          // monde » : le contenu partait, l'aperçu — titre, extrait, image,
+          // URL cible — restait en base. La forme chiffrée comme les
+          // anciennes en clair.
+          _kAnnexesChiffrees,
+          // La clé d'un média chiffré part avec lui : le blob Storage
+          // restant devient définitivement illisible.
+          _kMediaChiffre,
+          ..._kChampsAnnexes,
+        ],
+        'p_supprime': true,
+      });
+      if (supprime == null) return;
 
       // Retire l'épingle éventuelle : sans ça le bandeau garde une entrée
       // fantôme (« Appuyez pour voir ») vers un message qui n'existe plus.
@@ -3022,7 +2893,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
       // Et l'aperçu de la liste des discussions, qui porte le même texte en
       // clair. Sans lui, la bulle dit « Message supprimé » pendant que son
       // contenu reste parfaitement lisible une ligne plus haut.
-      await _viderApercuSiDernier(conversationId, rows.first['created_at']);
+      await _viderApercuSiDernier(conversationId, messageId);
     } catch (e) {
       throw ServerException('deleteMessageForEveryone error: $e');
     }
@@ -3046,44 +2917,21 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
   /// « ne pas faire échouer » n'est pas « ne rien dire ». La fuite devient
   /// visible dans Crashlytics au lieu de n'exister nulle part.
   ///
-  /// `last_message_at` est recopié du `created_at` du message par
-  /// `apres_envoi_message` (cf. [_updateConversationLastMessage], 20261005090000) :
-  /// leur égalité identifie le dernier message sans dépendre de `last_message_id`,
-  /// que ce chemin d'écriture ne renseigne pas. C'est le critère qu'emploie
-  /// déjà `purger_messages_expires()`.
+  /// `vider_apercu_si_dernier` (20261005100000) fait la comparaison et
+  /// l'écriture dans une seule instruction, au critère de
+  /// `purger_messages_expires()` : `last_message_at`, recopié du `created_at`
+  /// du message par `apres_envoi_message` (20261005090000), égale celui du
+  /// message supprimé. Relire puis réécrire `data` effaçait une sourdine ou
+  /// un message arrivés entre les deux.
   Future<void> _viderApercuSiDernier(
     String conversationId,
-    dynamic creeLe,
+    String messageId,
   ) async {
     try {
-      final quand = DateTime.tryParse(creeLe?.toString() ?? '');
-      if (quand == null) return;
-
-      final rows = await _supabase
-          .from('conversations')
-          .select('data, last_message_at')
-          .eq('id', conversationId)
-          .limit(1);
-      if (rows.isEmpty) return;
-
-      final dernier = DateTime.tryParse(
-        rows.first['last_message_at']?.toString() ?? '',
-      );
-      if (dernier == null || !dernier.toUtc().isAtSameMomentAs(quand.toUtc())) {
-        return;
-      }
-
-      final data = Map<String, dynamic>.from(
-        (rows.first['data'] as Map?) ?? {},
-      );
-      data['lastMessage'] = '';
-      data[_kApercuSupprime] = true;
-      data.remove(_kApercuExpire);
-
-      await _supabase
-          .from('conversations')
-          .update({'data': data})
-          .eq('id', conversationId);
+      await _supabase.rpc('vider_apercu_si_dernier', params: {
+        'p_conversation_id': conversationId,
+        'p_message_id': messageId,
+      });
     } catch (e) {
       signalerEchecSilencieux(e, contexte: 'apercu du message supprime');
     }
@@ -3122,7 +2970,8 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
   /// moment de l'UPDATE et notifie l'auteur. L'ancienne écriture relisait
   /// `data` en entier puis le réécrivait : un accusé de lecture ou la réaction
   /// d'un autre membre posés entre les deux étaient écrasés, et aucune
-  /// notification ne partait.
+  /// notification ne partait. Elle a quitté aussi le repli sur `PGRST202` :
+  /// 20260912220000 précède 20261004100000, dont l'app dépend déjà.
   Future<void> _setReaction({
     required String messageId,
     required String userId,
@@ -3131,48 +2980,10 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
       throw ServerException('setReaction: not authenticated');
     }
-    try {
-      await _supabase.rpc(
-        'set_message_reaction',
-        params: {'p_message_id': messageId, 'p_emoji': emoji},
-      );
-    } on PostgrestException catch (e) {
-      // Fonction pas encore déployée : l'ancienne écriture, faute de mieux.
-      if (e.code != 'PGRST202') rethrow;
-      await _setReactionLegacy(
-        messageId: messageId,
-        userId: userId,
-        emoji: emoji,
-      );
-    }
-  }
-
-  /// Repli tant que la migration `20260912220000` n'est pas appliquée.
-  /// À retirer ensuite : c'est l'écriture qui perd des mises à jour.
-  Future<void> _setReactionLegacy({
-    required String messageId,
-    required String userId,
-    required String? emoji,
-  }) async {
-    final rows = await _supabase
-        .from('messages')
-        .select('data')
-        .eq('id', messageId)
-        .limit(1);
-    if (rows.isEmpty) return;
-    final data = Map<String, dynamic>.from(
-      (rows.first['data'] as Map?) ?? {},
+    await _supabase.rpc(
+      'set_message_reaction',
+      params: {'p_message_id': messageId, 'p_emoji': emoji},
     );
-    final reactions = Map<String, dynamic>.from(
-      data['reactions'] as Map? ?? {},
-    );
-    if (emoji == null) {
-      reactions.remove(userId);
-    } else {
-      reactions[userId] = emoji;
-    }
-    data['reactions'] = reactions;
-    await _supabase.from('messages').update({'data': data}).eq('id', messageId);
   }
 
   @override
@@ -3211,7 +3022,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
 
       final rows = await _supabase
           .from('messages')
-          .select('data, sender_id')
+          .select('sender_id')
           .eq('id', messageId)
           .limit(1);
       // Aucune ligne : ce message n'est PAS dans `messages`. C'est le cas d'un
@@ -3247,22 +3058,10 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
           'message chiffré ? aiguillage MLS manqué [$bascule]',
         );
       }
-      final data = Map<String, dynamic>.from(
-        (rows.first['data'] as Map?) ?? {},
-      );
       // Le message modifié est forcément celui de son auteur (`canEdit` le
       // vérifie côté appelant) : sa ligne porte donc l'identifiant dont la
       // résolution du destinataire a besoin.
       final senderId = (rows.first['sender_id'] as String?) ?? '';
-
-      // L'historique ne garde plus le texte d'avant. Il reposait en clair à
-      // côté d'un contenu chiffré, et **rien ne l'affiche** : aucun écran ne
-      // lit `editHistory`, seul le modèle le transporte. On garde la trace du
-      // passage — combien de modifications, et quand — sans le contenu.
-      final editHistory = List<Map<String, dynamic>>.from(
-        data['editHistory'] as List? ?? [],
-      );
-      editHistory.add({'editedAt': now});
 
       // Rechiffrer par le chemin de l'envoi. Sans ça, `data['content']`
       // repartait en clair : modifier un message annulait son chiffrement, et
@@ -3276,22 +3075,27 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
         selfNote: cible.selfNote,
       );
 
-      // Purger les charges de la version précédente AVANT d'appliquer les
-      // nouvelles : `decrypt` reconnaît les formats dans un ordre fixe, et un
-      // `senderKeyPayload` périmé resté à côté d'un `e2eePayloads` neuf serait
-      // lu en premier — le message deviendrait illisible sans rien signaler.
-      data.remove('e2eePayloads');
-      data.remove('e2eePayload');
-      data.remove('senderKeyPayload');
-      data.addAll(cryptoFields);
-
-      data['editedAt'] = now;
-      data['editHistory'] = editHistory;
-
-      await _supabase
-          .from('messages')
-          .update({'data': data})
-          .eq('id', messageId);
+      // Une instruction (`modifier_donnees_message`, 20261005100000) :
+      // réécrire `data` entier après le rechiffrement effaçait un « Lu », une
+      // réaction ou une étoile posés pendant ce temps.
+      await _supabase.rpc('modifier_donnees_message', params: {
+        'p_message_id': messageId,
+        // Purger les charges de la version précédente AVANT d'appliquer les
+        // nouvelles (la fonction retire, puis fusionne) : `decrypt` reconnaît
+        // les formats dans un ordre fixe, et un `senderKeyPayload` périmé
+        // resté à côté d'un `e2eePayloads` neuf serait lu en premier — le
+        // message deviendrait illisible sans rien signaler.
+        'p_retirer': ['e2eePayloads', 'e2eePayload', 'senderKeyPayload'],
+        'p_fusion': {...cryptoFields, 'editedAt': now},
+        // L'historique ne garde plus le texte d'avant. Il reposait en clair à
+        // côté d'un contenu chiffré, et **rien ne l'affiche** : aucun écran
+        // ne lit `editHistory`, seul le modèle le transporte. On garde la
+        // trace du passage — combien de modifications, et quand — sans le
+        // contenu.
+        'p_ajouts': {
+          'editHistory': {'editedAt': now},
+        },
+      });
     } catch (e) {
       throw ServerException('editMessage error: $e');
     }
@@ -3314,22 +3118,10 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     required String reason,
   }) async {
     try {
-      final rows = await _supabase
-          .from('conversations')
-          .select('data')
-          .eq('id', conversationId)
-          .limit(1);
-      if (rows.isEmpty) return;
-      final data = Map<String, dynamic>.from(
-        (rows.first['data'] as Map?) ?? {},
-      );
-      final reportedBy = List<String>.from(data['reportedBy'] as List? ?? []);
-      if (!reportedBy.contains(userId)) reportedBy.add(userId);
-      data['reportedBy'] = reportedBy;
-      await _supabase
-          .from('conversations')
-          .update({'data': data})
-          .eq('id', conversationId);
+      await _supabase.rpc('modifier_donnees_conversation', params: {
+        'p_conversation_id': conversationId,
+        'p_ajouts': {'reportedBy': userId},
+      });
     } catch (e) {
       throw ServerException('reportGroup error: $e');
     }

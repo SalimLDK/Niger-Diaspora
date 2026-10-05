@@ -121,4 +121,68 @@ void main() {
       'p_valeur': 'u1',
     });
   });
+
+  // ── Suite : 20261005100000 ─────────────────────────────────────────────
+
+  Iterable<http.Request> lecturesDe(String table) => requetes.where(
+      (r) => r.method == 'GET' && r.url.path.endsWith('/rest/v1/$table'));
+
+  Map<String, dynamic> appelA(String fonction) => jsonDecode(requetes
+      .singleWhere((r) => r.url.path.endsWith('/rpc/$fonction'))
+      .body) as Map<String, dynamic>;
+
+  test('lu : pastille et lecteur en une instruction', () async {
+    await source.markAsRead(conversationId: 'c1', userId: 'u1');
+
+    expect(appelA('modifier_donnees_conversation'), {
+      'p_conversation_id': 'c1',
+      'p_fusion': {
+        'unreadCount': {'u1': 0},
+      },
+      'p_ajouts': {'lastMessageReadBy': 'u1'},
+    });
+    expect(lecturesDe('conversations'), isEmpty,
+        reason: 'plus de lecture de data avant l\'écriture');
+  });
+
+  test('livré : destinataire ajouté en une instruction', () async {
+    await source.markAsDelivered(conversationId: 'c1', userId: 'u1');
+
+    expect(appelA('modifier_donnees_conversation'), {
+      'p_conversation_id': 'c1',
+      'p_ajouts': {'lastMessageDeliveredTo': 'u1'},
+    });
+    expect(lecturesDe('conversations'), isEmpty);
+  });
+
+  test('signaler le groupe : ajout à la liste côté serveur', () async {
+    await source.reportGroup(conversationId: 'c1', userId: 'u1', reason: 'x');
+
+    expect(appelA('modifier_donnees_conversation'), {
+      'p_conversation_id': 'c1',
+      'p_ajouts': {'reportedBy': 'u1'},
+    });
+    expect(lecturesDe('conversations'), isEmpty);
+  });
+
+  test('supprimer pour tout le monde : message puis aperçu, sans relecture',
+      () async {
+    await source.deleteMessageForEveryone(conversationId: 'c1', messageId: 'm1');
+
+    final message = appelA('modifier_donnees_message');
+    expect(message['p_message_id'], 'm1');
+    expect(message['p_supprime'], isTrue);
+    expect(message['p_fusion'],
+        allOf(containsPair('deletedForEveryone', true), containsPair('content', '')));
+    expect(message['p_retirer'], containsAll(['fileUrl', 'thumbnailUrl']));
+
+    expect(appelA('vider_apercu_si_dernier'), {
+      'p_conversation_id': 'c1',
+      'p_message_id': 'm1',
+    });
+    expect(lecturesDe('messages'), isEmpty);
+    expect(lecturesDe('conversations'), isEmpty);
+    expect(requetes.where((r) => r.method == 'PATCH'), isEmpty,
+        reason: 'plus de réécriture de data entier');
+  });
 }

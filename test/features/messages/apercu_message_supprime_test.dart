@@ -230,20 +230,30 @@ void main() {
     const chemin =
         'lib/features/messages/data/datasources/message_supabase_datasource.dart';
 
+    // Depuis 20261005100000, comparaison et écriture se font dans une seule
+    // instruction serveur (`vider_apercu_si_dernier`) : relire puis réécrire
+    // `data` effaçait une sourdine ou un message arrivés entre les deux.
+    const sqlSuite =
+        'supabase/migrations/20261005100000_donnees_jsonb_atomiques_suite.sql';
+
     test('la suppression pour tous touche aussi la conversation', () {
       final src = _source(chemin);
-      expect(src.contains('_viderApercuSiDernier'), isTrue);
-      // Il lui faut le `created_at` du message : c'est son égalité avec
-      // `last_message_at` qui dit « c'était le dernier ».
-      expect(src.contains("select('data, created_at')"), isTrue);
-      expect(src.contains("select('data, last_message_at')"), isTrue);
+      expect(src.contains('_viderApercuSiDernier(conversationId, messageId)'),
+          isTrue);
+      expect(src.contains("rpc('vider_apercu_si_dernier'"), isTrue);
+      // C'est l'égalité de `last_message_at` avec le `created_at` du
+      // message qui dit « c'était le dernier » — et seulement s'il est
+      // supprimé, sans quoi un participant viderait l'aperçu d'un autre.
+      final sql = _source(sqlSuite);
+      expect(sql, contains('AND c.last_message_at = m.created_at'));
+      expect(sql, contains('AND m.is_deleted'));
     });
 
     test('elle pose la marque « supprimé » et retire l\'autre', () {
-      final src = _source(chemin);
-      expect(src.contains("data['lastMessage'] = '';"), isTrue);
-      expect(src.contains('data[_kApercuSupprime] = true;'), isTrue);
-      expect(src.contains('data.remove(_kApercuExpire);'), isTrue);
+      final sql = _source(sqlSuite);
+      expect(sql, contains("- 'lastMessageExpired'"));
+      expect(sql,
+          contains("jsonb_build_object('lastMessage', '', 'lastMessageDeleted', true)"));
     });
 
     test('un message neuf efface les deux marques', () {

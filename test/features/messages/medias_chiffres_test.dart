@@ -159,7 +159,13 @@ void main() {
     });
 
     test('« supprimer pour tous » emporte la clé', () {
-      expect(source, contains('data.remove(_kMediaChiffre);'));
+      final debut = source.indexOf('Future<void> deleteMessageForEveryone(');
+      expect(debut, greaterThan(-1));
+      final retraits = source.substring(
+        source.indexOf("'p_retirer': [", debut),
+        source.indexOf('],', source.indexOf("'p_retirer': [", debut)),
+      );
+      expect(retraits, contains('_kMediaChiffre,'));
     });
   });
 

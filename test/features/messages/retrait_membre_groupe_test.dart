@@ -63,13 +63,7 @@ void main() {
   );
 
   /// [rpc] : ce que rend l'appel de fonction (par défaut `true`).
-  /// [lignesConversation] : ce que rend la lecture de la conversation (repli).
-  /// [miseAJour] : ce que rend le PATCH (repli).
-  MessageSupabaseDataSource source({
-    (Object, int)? rpc,
-    List<Map<String, dynamic>>? lignesConversation,
-    (Object, int)? miseAJour,
-  }) {
+  MessageSupabaseDataSource source({(Object, int)? rpc}) {
     (Object, int) repondre(http.Request requete) {
       final chemin = requete.url.path;
       if (chemin.contains('/rest/v1/rpc/')) return rpc ?? (true, 200);
@@ -81,32 +75,6 @@ void main() {
           "conversation passée au chiffrement de bout en bout : mettez "
               "l'application à jour",
         );
-      }
-      if (chemin.endsWith('/rest/v1/conversations') &&
-          requete.method == 'GET') {
-        return (
-          lignesConversation ??
-              [
-                {
-                  'participant_ids': [admin, membre],
-                  'data': {
-                    'adminIds': [admin, membre],
-                    'name': 'Groupe',
-                  },
-                },
-              ],
-          200,
-        );
-      }
-      if (chemin.endsWith('/rest/v1/conversations') &&
-          requete.method == 'PATCH') {
-        return miseAJour ??
-            (
-              [
-                {'id': conv},
-              ],
-              200,
-            );
       }
       return ({'message': 'inattendu : ${requete.method} $chemin'}, 500);
     }
@@ -215,64 +183,18 @@ void main() {
       expect(requetes.where((r) => r.method == 'PATCH'), isEmpty);
     });
 
-    group('repli tant que la migration n\'est pas appliquée', () {
-      test('le retrait a lieu quand même, sans notice', () async {
-        await source(rpc: fonctionAbsente)
-            .removeUserFromGroup(conversationId: conv, userId: membre);
-
-        final patchs = requetes.where((r) => r.method == 'PATCH').toList();
-        expect(patchs, hasLength(1));
-        expect(patchs.single.url.path, endsWith('/rest/v1/conversations'));
-        expect(patchs.single.url.queryParameters['id'], 'eq.$conv');
-
-        final corps = jsonDecode(patchs.single.body) as Map<String, dynamic>;
-        expect(corps['participant_ids'], [admin]);
-        final data = corps['data'] as Map<String, dynamic>;
-        expect(data['adminIds'], [admin]);
-        expect(
-          data['name'],
-          'Groupe',
-          reason: 'le reste de `data` est conservé',
-        );
-
-        expect(
-          requetes.where((r) => r.url.path.endsWith('/rest/v1/messages')),
-          isEmpty,
-        );
-      });
-
-      test('une mise à jour qui ne touche aucune ligne est un échec', () async {
-        // RLS qui filtre la ligne : PostgREST répond 200 avec un tableau vide.
-        // L'écran aurait annoncé « Membre retiré » pour un retrait qui n'a pas
-        // eu lieu.
-        await expectLater(
-          source(rpc: fonctionAbsente, miseAJour: (<Object>[], 200))
-              .removeUserFromGroup(conversationId: conv, userId: membre),
-          throwsA(
-            isA<ServerException>().having(
-              (e) => e.message,
-              'message',
-              contains('aucune ligne modifiée'),
-            ),
-          ),
-        );
-      });
-
-      test('une conversation illisible est un échec, pas un succès muet',
-          () async {
-        await expectLater(
-          source(rpc: fonctionAbsente, lignesConversation: const [])
-              .removeUserFromGroup(conversationId: conv, userId: membre),
-          throwsA(
-            isA<ServerException>().having(
-              (e) => e.message,
-              'message',
-              contains('introuvable'),
-            ),
-          ),
-        );
-        expect(requetes.where((r) => r.method == 'PATCH'), isEmpty);
-      });
+    test('fonction absente : erreur, plus de repli par écriture directe',
+        () async {
+      // Le repli relisait `participant_ids` et `data` puis réécrivait les
+      // deux : un départ ou une sourdine croisés s'effaçaient. 20260917013200
+      // précède 20261004100000, dont l'app dépend déjà.
+      await expectLater(
+        source(rpc: fonctionAbsente)
+            .removeUserFromGroup(conversationId: conv, userId: membre),
+        throwsA(isA<ServerException>()),
+      );
+      expect(requetes.where((r) => r.method == 'PATCH'), isEmpty);
+      expect(requetes.where((r) => r.method == 'GET'), isEmpty);
     });
   });
 
@@ -318,28 +240,22 @@ void main() {
       expect(requetes.where((r) => r.method == 'PATCH'), isEmpty);
     });
 
-    test('en repli, seule `data.adminIds` bouge', () async {
-      // Le défaut connu de ce chemin, gardé le temps du déploiement : le badge
-      // de la fiche des membres et `is_group_admin()` lisent
-      // `group_members.role`, que le client ne peut pas écrire correctement.
-      await source(rpc: fonctionAbsente)
-          .promoteToAdmin(conversationId: conv, userId: 'nouveau');
-
-      final patchs = requetes.where((r) => r.method == 'PATCH').toList();
-      expect(patchs, hasLength(1));
-      final corps = jsonDecode(patchs.single.body) as Map<String, dynamic>;
-      expect(corps.keys, ['data']);
-      expect((corps['data'] as Map)['adminIds'], [admin, membre, 'nouveau']);
-    });
-
-    test('en repli, rétrograder retire des adminIds', () async {
-      await source(rpc: fonctionAbsente)
-          .demoteFromAdmin(conversationId: conv, userId: membre);
-
-      final patchs = requetes.where((r) => r.method == 'PATCH').toList();
-      expect(patchs, hasLength(1));
-      final corps = jsonDecode(patchs.single.body) as Map<String, dynamic>;
-      expect((corps['data'] as Map)['adminIds'], [admin]);
+    test('fonction absente : erreur, plus de repli sur `data.adminIds`',
+        () async {
+      // Le repli n'écrivait que `adminIds` (ni badge, ni `is_group_admin()`),
+      // en « lire, modifier, réécrire » — une écriture croisée s'effaçait.
+      // 20260917013200 précède 20261004100000, dont l'app dépend déjà :
+      // l'absence de la fonction n'est plus une étape de déploiement.
+      for (final geste in [
+        () => source(rpc: fonctionAbsente)
+            .promoteToAdmin(conversationId: conv, userId: membre),
+        () => source(rpc: fonctionAbsente)
+            .demoteFromAdmin(conversationId: conv, userId: membre),
+      ]) {
+        await expectLater(geste(), throwsA(isA<ServerException>()));
+      }
+      expect(requetes.where((r) => r.method == 'PATCH'), isEmpty);
+      expect(requetes.where((r) => r.method == 'GET'), isEmpty);
     });
   });
 }
