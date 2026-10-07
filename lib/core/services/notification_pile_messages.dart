@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'crypto/scelle_local.dart';
+
 /// Un message déjà annoncé, gardé le temps d'en annoncer un suivant.
 @immutable
 class MessageEmpile {
@@ -117,7 +119,7 @@ class PileMessagesNotifiees {
     );
     try {
       final prefs = await SharedPreferences.getInstance();
-      final pile = _lireDepuis(prefs, conversationId);
+      final pile = await _lireDepuis(prefs, conversationId);
       if (messageId.isNotEmpty &&
           pile.any((m) => m.messageId == messageId)) {
         return pile;
@@ -129,10 +131,7 @@ class PileMessagesNotifiees {
       while (pile.length > maxParConversation) {
         pile.removeAt(0);
       }
-      await prefs.setString(
-        cleDe(conversationId),
-        jsonEncode([for (final m in pile) m.versJson()]),
-      );
+      await _ecrire(prefs, conversationId, pile);
       final index = prefs.getStringList(_cleIndex) ?? <String>[];
       if (!index.contains(conversationId)) {
         await prefs.setStringList(_cleIndex, [...index, conversationId]);
@@ -164,7 +163,7 @@ class PileMessagesNotifiees {
     if (messageId.isEmpty) return null;
     try {
       final prefs = await SharedPreferences.getInstance();
-      final pile = _lireDepuis(prefs, conversationId);
+      final pile = await _lireDepuis(prefs, conversationId);
       final i = pile.indexWhere((m) => m.messageId == messageId);
       if (i < 0) return null;
       if (auteur != null && pile[i].expediteurId != auteur) return null;
@@ -180,10 +179,7 @@ class PileMessagesNotifiees {
         // faute a été corrigée.
         quand: ancien.quand,
       );
-      await prefs.setString(
-        cleDe(conversationId),
-        jsonEncode([for (final m in pile) m.versJson()]),
-      );
+      await _ecrire(prefs, conversationId, pile);
       return pile;
     } catch (e) {
       debugPrint('PileMessagesNotifiees: correction impossible ($e)');
@@ -205,17 +201,14 @@ class PileMessagesNotifiees {
     if (messageId.isEmpty) return null;
     try {
       final prefs = await SharedPreferences.getInstance();
-      final pile = _lireDepuis(prefs, conversationId);
+      final pile = await _lireDepuis(prefs, conversationId);
       final avant = pile.length;
       pile.removeWhere((m) => m.messageId == messageId);
       if (pile.length == avant) return null;
       if (pile.isEmpty) {
         await vider(conversationId);
       } else {
-        await prefs.setString(
-          cleDe(conversationId),
-          jsonEncode([for (final m in pile) m.versJson()]),
-        );
+        await _ecrire(prefs, conversationId, pile);
       }
       return pile;
     } catch (e) {
@@ -228,7 +221,7 @@ class PileMessagesNotifiees {
   static Future<List<MessageEmpile>> lire(String conversationId) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      return _lireDepuis(prefs, conversationId);
+      return await _lireDepuis(prefs, conversationId);
     } catch (_) {
       return const [];
     }
@@ -261,7 +254,7 @@ class PileMessagesNotifiees {
       final index = prefs.getStringList(_cleIndex) ?? <String>[];
       return [
         for (final c in index)
-          if (_lireDepuis(prefs, c).isNotEmpty) c,
+          if ((await _lireDepuis(prefs, c)).isNotEmpty) c,
       ];
     } catch (_) {
       return const [];
@@ -281,11 +274,30 @@ class PileMessagesNotifiees {
     }
   }
 
-  static List<MessageEmpile> _lireDepuis(
+  /// La pile est SCELLÉE avant d'entrer dans `SharedPreferences`, qui part
+  /// dans la sauvegarde du téléphone (voir [ScelleLocal]) : 24 h de textes de
+  /// messages, chiffrés de bout en bout compris, n'ont pas à la suivre.
+  static Future<void> _ecrire(
     SharedPreferences prefs,
     String conversationId,
-  ) {
-    final brut = prefs.getString(cleDe(conversationId));
+    List<MessageEmpile> pile,
+  ) async {
+    await prefs.setString(
+      cleDe(conversationId),
+      await ScelleLocal.sceller(
+        jsonEncode([for (final m in pile) m.versJson()]),
+      ),
+    );
+  }
+
+  static Future<List<MessageEmpile>> _lireDepuis(
+    SharedPreferences prefs,
+    String conversationId,
+  ) async {
+    // Une pile d'avant le scellé se lit encore (et se réécrit scellée) ; un
+    // scellé illisible — sauvegarde d'un autre appareil — vaut pile vide.
+    final brut =
+        await ScelleLocal.desceller(prefs.getString(cleDe(conversationId)));
     if (brut == null || brut.isEmpty) return [];
     try {
       final limite = DateTime.now().subtract(duree);

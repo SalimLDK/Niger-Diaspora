@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1350 cases à cocher, 55 cochées** — 305 entrées sur 319 ont encore des cases ouvertes.
+**1355 cases à cocher, 55 cochées** — 306 entrées sur 320 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -96,7 +96,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 6 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (127)
+**P1 — fonction importante, jamais vérifiée** (128)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -146,6 +146,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [⬜ Exclure un membre d'un groupe échouait toujours (2026-09-17)](#-exclure-un-membre-dun-groupe-échouait-toujours-2026-09-17) · *Groupes*
 - 4 · [⬜ Noms des candidats à l'invitation et à l'ajout en appel (2026-09-14)](#-noms-des-candidats-à-linvitation-et-à-lajout-en-appel-2026-09-14) · *Groupes*
 - 3 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
+- 5 · [⬜ Sauvegarde du téléphone : bannières, aperçus MLS et réponses en attente scellés (2026-10-07)](#-sauvegarde-du-téléphone--bannières-aperçus-mls-et-réponses-en-attente-scellés-2026-10-07) · *Chiffrement de bout en bout et clés*
 - 6 · [⬜ MLS : groupe bloqué — bandeau d'alerte et « Réparer » (2026-10-04)](#-mls--groupe-bloqué--bandeau-dalerte-et--réparer--2026-10-04) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ MLS : de retour après plusieurs arrivées dans le groupe, les messages d'avant se lisent (2026-10-04)](#-mls--de-retour-après-plusieurs-arrivées-dans-le-groupe-les-messages-davant-se-lisent-2026-10-04) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ MLS : un appareil révoqué ne publie plus, et son retrait se retente (2026-10-04)](#-mls--un-appareil-révoqué-ne-publie-plus-et-son-retrait-se-retente-2026-10-04) · *Chiffrement de bout en bout et clés*
@@ -365,7 +366,7 @@ Par domaine :
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 0 faites
 - [2. Messagerie](#2-messagerie) — 352 à faire, 31 faites
 - [3. Groupes](#3-groupes) — 128 à faire, 0 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 140 à faire, 4 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 145 à faire, 4 faites
 - [5. Appels](#5-appels) — 24 à faire, 1 faites
 - [6. Notifications et push](#6-notifications-et-push) — 122 à faire, 6 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 36 à faire, 0 faites
@@ -4078,6 +4079,36 @@ conservée plutôt que de conclure « non » à tort (sinon le titre clignote).
 # 4. Chiffrement de bout en bout et clés
 
 Signal 1:1 et groupes, repli AES, clés dérivées, sauvegarde et transfert des clés, et tout ce qui pouvait partir en clair.
+
+---
+
+## ⬜ Sauvegarde du téléphone : bannières, aperçus MLS et réponses en attente scellés (2026-10-07)
+
+**Priorité P1** · importance 4/5 — app seule.
+
+`SharedPreferences` part dans la sauvegarde Google (et iCloud). Il gardait
+en clair la pile des bannières (24 h de textes, messages chiffrés
+compris), les aperçus MLS déchiffrés et la file des réponses depuis la
+notification. Ils sont désormais scellés (AES-GCM, clé du Keystore /
+Trousseau « cet appareil seulement » — `lib/core/services/crypto/scelle_local.dart`).
+Les deux fichiers de `flutter_secure_storage` sortent de la sauvegarde
+(`regles_sauvegarde.xml`, `regles_extraction_donnees.xml`). Tests :
+`test/core/services/scelle_local_test.dart`.
+
+À vérifier (build de cette version) :
+
+- [ ] App fermée, recevoir plusieurs messages (dont un MLS) : la bannière
+      empile les textes comme avant, aperçu MLS compris.
+- [ ] Répondre depuis la notification en mode avion, puis rétablir le
+      réseau et ouvrir l'app : la réponse part.
+- [ ] Mise à jour depuis la version précédente avec une bannière déjà
+      posée : le message suivant s'y empile sans perdre l'ancien.
+- [ ] `adb shell run-as <paquet> cat shared_prefs/FlutterSharedPreferences.xml` :
+      aucune valeur `notif_pile_*` ni `mls_apercu_*` ne contient de texte
+      lisible (préfixe `sl1:`).
+- [ ] Sauvegarde puis restauration sur un autre téléphone (ou
+      `bmgr backupnow` + réinstallation) : l'app démarre, aucune ancienne
+      bannière ne réapparaît.
 
 ---
 

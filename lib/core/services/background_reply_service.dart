@@ -7,6 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 
 import '../constants/app_config.dart';
+import 'crypto/scelle_local.dart';
 import 'encryption_service.dart';
 import 'supabase_auth_bridge.dart';
 
@@ -363,14 +364,22 @@ class BackgroundReplyService {
     required SharedPreferences prefs,
     required BackgroundPendingMessage message,
   }) async {
-    final queue = _getQueue(prefs);
+    final queue = await _getQueue(prefs);
     queue.add(message);
     await _saveQueue(prefs, queue);
   }
 
-  /// Récupère la queue depuis SharedPreferences
-  static List<BackgroundPendingMessage> _getQueue(SharedPreferences prefs) {
-    final data = prefs.getString(_pendingMessagesKey);
+  /// Récupère la queue depuis SharedPreferences.
+  ///
+  /// Scellée ([ScelleLocal]) : ce sont des réponses pas encore envoyées, en
+  /// clair, et `SharedPreferences` part dans la sauvegarde du téléphone. Une
+  /// file d'avant le scellé se lit encore ; un scellé illisible (sauvegarde
+  /// d'un autre appareil) vaut file vide.
+  static Future<List<BackgroundPendingMessage>> _getQueue(
+    SharedPreferences prefs,
+  ) async {
+    final data =
+        await ScelleLocal.desceller(prefs.getString(_pendingMessagesKey));
     if (data == null || data.isEmpty) return [];
 
     try {
@@ -392,13 +401,16 @@ class BackgroundReplyService {
     List<BackgroundPendingMessage> queue,
   ) async {
     final jsonList = queue.map((m) => m.toJson()).toList();
-    await prefs.setString(_pendingMessagesKey, jsonEncode(jsonList));
+    await prefs.setString(
+      _pendingMessagesKey,
+      await ScelleLocal.sceller(jsonEncode(jsonList)),
+    );
   }
 
   /// Récupère les messages en attente (appelé depuis l'app au démarrage)
   static Future<List<BackgroundPendingMessage>> getPendingMessages() async {
     final prefs = await SharedPreferences.getInstance();
-    return _getQueue(prefs);
+    return await _getQueue(prefs);
   }
 
   /// Traite les messages en attente (appelé quand online, ex. au démarrage
@@ -407,7 +419,7 @@ class BackgroundReplyService {
   static Future<void> processPendingMessages() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final queue = _getQueue(prefs);
+      final queue = await _getQueue(prefs);
 
       if (queue.isEmpty) return;
 
@@ -471,7 +483,7 @@ class BackgroundReplyService {
   static Future<void> cleanOldMessages() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final queue = _getQueue(prefs);
+      final queue = await _getQueue(prefs);
 
       final cutoff = DateTime.now().subtract(const Duration(hours: 24));
       final filtered = queue.where((m) => m.createdAt.isAfter(cutoff)).toList();
@@ -487,6 +499,6 @@ class BackgroundReplyService {
   /// Obtient le nombre de messages en attente
   static Future<int> getPendingCount() async {
     final prefs = await SharedPreferences.getInstance();
-    return _getQueue(prefs).length;
+    return (await _getQueue(prefs)).length;
   }
 }

@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../src/rust/api/mls.dart' as rust;
+import '../../services/crypto/scelle_local.dart';
 import 'mls_chemin_base.dart';
 import 'mls_payload_codec.dart';
 import 'mls_rust_init.dart';
@@ -160,7 +161,7 @@ class MlsNotificationPreview {
   /// Aperçu déjà déchiffré pour ce message, s'il a été posé par l'isolate.
   static Future<String?> apercuCache(String messageId) async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('$_prefixeApercu$messageId');
+    return ScelleLocal.desceller(prefs.getString('$_prefixeApercu$messageId'));
   }
 
   /// À appeler à la déconnexion : ce cache porte du texte en clair.
@@ -219,6 +220,11 @@ class MlsNotificationPreview {
         await prefs.remove(cle);
       }
     }
-    await prefs.setString('$_prefixeApercu$messageId', texte);
+    // Scellé : `SharedPreferences` part dans la sauvegarde du téléphone, et
+    // ce texte est le clair d'un message chiffré de bout en bout.
+    await prefs.setString(
+      '$_prefixeApercu$messageId',
+      await ScelleLocal.sceller(texte),
+    );
   }
 }

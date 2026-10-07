@@ -31,6 +31,16 @@
 
   Relevé le 2026-09-21 : seul mls/ était exclu, le clair partait avec le reste.
 
+  FlutterSecureStorage.xml et FlutterSecureKeyStorage.xml (domaine sharedpref)
+  sont les deux fichiers de flutter_secure_storage. Leurs valeurs sont
+  chiffrées sous une clé du Keystore, qui ne quitte jamais l'appareil :
+  restaurées ailleurs, elles sont illisibles, et chaque lecture lève au lieu
+  de laisser naître une clé neuve. Rien n'y est donc restaurable. Exclus
+  depuis le 2026-10-07, avec le scellé des préférences (ScelleLocal) : la
+  pile des bannières, les aperçus MLS déchiffrés et la file des réponses
+  depuis la notification restent dans shared_prefs, mais chiffrés sous une
+  clé de ce stockage, donc illisibles dans une sauvegarde.
+
   Le reste de l'app continue d'être sauvegardé (préférences comprises).
 
   ATTENTION : pas de tiret double dans ce commentaire, XML l'interdit. Le
@@ -40,4 +50,6 @@
     <exclude domain="file" path="mls/" />
     <exclude domain="file" path="medias_dechiffres/" />
     <exclude domain="root" path="app_flutter/" />
+    <exclude domain="sharedpref" path="FlutterSecureStorage.xml" />
+    <exclude domain="sharedpref" path="FlutterSecureKeyStorage.xml" />
 </full-backup-content>
