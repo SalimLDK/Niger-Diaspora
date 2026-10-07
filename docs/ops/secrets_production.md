@@ -176,8 +176,12 @@ avant.
 fonctions. Corriger le fichier **avant** de déployer, sinon les valeurs fautives
 sont reconduites.
 
-Ne jamais ajouter `--force` : cela supprimerait `sendMessagePush`, encore
-appelée par les APK déjà installés.
+Ne jamais ajouter `--force` : il supprime sans demander toute fonction
+déployée absente du dépôt. Une suppression se fait nommément, fonction par
+fonction (`firebase functions:delete <nom> --region <région>`). Depuis le
+2026-10-07, `onMessageCreated` et `sendMessagePush` sont retirées du dépôt
+et doivent l'être ainsi en production (voir `functions/index.js`, « PUSH DES
+MESSAGES »).
 
 ## Vérification après coup
 

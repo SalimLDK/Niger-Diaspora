@@ -125,80 +125,6 @@ exports.getTurnCredentials = functions.https.onCall(async (data, context) => {
 });
 // ============================================================================
 
-/**
- * Checks if a message is E2EE encrypted (cannot be decrypted server-side).
- * E2EE messages have e2eeVersion field in the message data.
- *
- * @param {object} messageData - The message data from RTDB
- * @returns {boolean} - True if message is E2EE encrypted
- */
-function isE2EEMessage(messageData) {
-    if (!messageData) return false;
-    // New format: explicit encryptionLevel field
-    if (messageData.encryptionLevel === "e2ee") return true;
-    // New format: multi-device payloads map
-    if (messageData.e2eePayloads !== undefined) return true;
-    // Legacy format: single-device payload (kept for backward compat)
-    if (messageData.e2eePayload !== undefined) return true;
-    // Very old format: e2eeVersion field
-    if (messageData.e2eeVersion !== undefined) return true;
-    return false;
-}
-
-/**
- * Gets a generic preview for E2EE messages based on message type.
- * Since we cannot decrypt E2EE messages server-side, we show a generic preview.
- *
- * @param {string} messageType - The type of message (text, image, video, etc.)
- * @returns {string} - A generic preview string
- */
-function getE2EEMessagePreview(messageType) {
-    switch (messageType) {
-        case "image":
-            return "📸 Photo";
-        case "video":
-            return "🎥 Vidéo";
-        case "audio":
-            return "🎙️ Message vocal";
-        case "file":
-            return "📄 Document";
-        case "call":
-            return "📞 Appel";
-        case "location":
-            return "📍 Position partagée";
-        default:
-            // For E2EE text messages, we cannot show the content
-            return "🔒 Nouveau message";
-    }
-}
-
-/**
- * Safely gets message preview for notifications.
- * Handles both legacy AES encryption and new E2EE messages.
- *
- * @param {object} message - The full message object
- * @param {string} encryptedContent - The encrypted content string
- * @returns {string} - The decrypted preview or generic E2EE preview
- */
-function getMessagePreview(message, encryptedContent) {
-    // Check if this is an E2EE message
-    if (isE2EEMessage(message)) {
-        return getE2EEMessagePreview(message.type || "text");
-    }
-
-    // Legacy encryption - can be decrypted server-side
-    try {
-        const decrypted = decryptText(encryptedContent);
-        if (decrypted && decrypted.length > 100) {
-            return decrypted.substring(0, 100) + "...";
-        }
-        return decrypted || "Nouveau message";
-    } catch (error) {
-        console.warn("Failed to decrypt message:", error.message);
-        return "Nouveau message";
-    }
-}
-
 // ============================================================================
 // PLAY INTEGRITY API VERIFICATION
 // ============================================================================
@@ -363,8 +289,8 @@ exports.verifyPlayIntegrity = functions.https.onCall(async (data, context) => {
  * Triggered when a new document is created in the 'notifications' collection.
  * Sends a push notification to the user's devices.
  *
- * NOTE: This function does NOT send notifications for type "message"
- * because onMessageCreated already handles those directly.
+ * NOTE: This function does NOT send notifications for type "message" :
+ * le push des messages passe par Supabase (`send-push`).
  */
 exports.sendNotificationOnCreate = functions.firestore
     .document("notifications/{notificationId}")
@@ -378,9 +304,8 @@ exports.sendNotificationOnCreate = functions.firestore
             return null;
         }
 
-        // Skip message notifications - they are handled by onMessageCreated
+        // Les messages sont poussés par Supabase (`send-push`), pas ici.
         if (notificationType === "message") {
-            // console.log("Skipping message notification - handled by onMessageCreated");
             return null;
         }
 
@@ -500,423 +425,37 @@ exports.sendNotificationOnCreate = functions.firestore
         }
     });
 
-/**
- * Triggered when a new message is created in Firebase Realtime Database.
- * Sends push notifications to all participants except the sender.
- *
- * Path: messages/{conversationId}/{messageId}
- *
- * IMPORTANT: The database is in europe-west1, so the function must be in the same region
- */
-/**
- * Coeur de l'envoi des notifications push d'un nouveau message.
- *
- * Extrait du declencheur RTDB `onMessageCreated`, ou il avait ete replie :
- * le callable `sendMessagePush` doit executer exactement la meme logique, et
- * la dupliquer aurait fait vivre 350 lignes en double.
- *
- * `callerUid` n'est renseigne que par le callable — c'est ce qui declenche le
- * controle de participation.
- */
-async function handleNewMessagePush(message, conversationId, messageId, callerUid = null) {
-
-        // console.log(`New message created in conversation ${conversationId}`);
-
-        try {
-            // Conversation lue dans Supabase (les conversations ont migré depuis
-            // Firestore). Sans ça, la fonction sortait toujours en amont.
-            const conv = await getConversation(conversationId);
-            if (!conv) {
-                // console.log(`Conversation ${conversationId} not found in Supabase`);
-                return null;
-            }
-
-            // Appel via callable : l'appelant doit etre participant (anti-spam).
-            // Ce controle vient de la version d'origine de `handleNewMessagePush` :
-            // sans lui, `sendMessagePush` laisserait pousser vers une conversation
-            // dont on ne fait pas partie.
-            if (callerUid && !(conv.participantIds || []).includes(callerUid)) {
-                console.warn(`sendMessagePush: ${callerUid} n'est pas participant de ${conversationId}`);
-                return null;
-            }
-
-            // Objet compat pour les usages aval (conversation.name/imageUrl/groupId).
-            const conversation = {
-                name: conv.name,
-                imageUrl: conv.imageUrl,
-                groupId: conv.groupId,
-            };
-            const senderId = message.senderId;
-            const participantIds = conv.participantIds;
-            const mutedBy = conv.mutedBy;
-            const conversationType = conv.type;
-
-            // Helper function to check if user is currently muted
-            const isUserMuted = (userId) => {
-                const muteValue = mutedBy[userId];
-                if (!muteValue) return false;
-                if (muteValue === true || muteValue === "forever") return true;
-                // Check if it's a timestamp and if it's expired
-                const expiration = new Date(muteValue);
-                if (isNaN(expiration.getTime())) return true; // Invalid date = treat as forever
-                return expiration > new Date(); // Muted if expiration is in the future
-            };
-
-            // Get recipients (exclude sender)
-            const recipients = participantIds.filter((id) => id !== senderId);
-
-            if (recipients.length === 0) {
-                // console.log("No recipients to notify");
-                return null;
-            }
-
-            // Fetch groupé (1 requête) : expéditeur + destinataires + mentionnés.
-            const mentionedIds = (message.mentionedUsers || [])
-                .map((m) => m && m.id)
-                .filter(Boolean);
-            const usersMap = await getUsersForPush([
-                senderId,
-                ...recipients,
-                ...mentionedIds,
-            ]);
-
-            // Nom + photo de l'expéditeur (depuis Supabase).
-            const senderInfo = usersMap.get(senderId) || {};
-            const senderName = senderInfo.displayName || "Un utilisateur";
-            const senderPhotoUrl = senderInfo.avatarUrl || "";
-
-            // Prepare notification content based on message type
-            const messageType = message.type || "text";
-            let messagePreview;
-
-            // Check if this is an E2EE message (cannot decrypt server-side)
-            if (isE2EEMessage(message)) {
-                messagePreview = getE2EEMessagePreview(messageType);
-            } else {
-                // Legacy encryption handling
-                switch (messageType) {
-                    case "image":
-                        messagePreview = "📸 Photo";
-                        break;
-                    case "video":
-                        messagePreview = "🎥 Vidéo";
-                        break;
-                    case "audio":
-                        messagePreview = "🎙️ Message vocal";
-                        break;
-                    case "file":
-                        messagePreview = `📄 ${message.fileName || "Document"}`;
-                        break;
-                    case "location":
-                        messagePreview = "📍 Position partagée";
-                        break;
-                    default:
-                        // Decrypt text messages before displaying in notification
-                        messagePreview = getMessagePreview(message, message.content || "");
-                }
-            }
-
-            // Determine notification title and body
-            let title, body;
-            if (conversationType === "group") {
-                title = conversation.name || "Groupe";
-                body = `${senderName}: ${messagePreview}`;
-            } else {
-                title = senderName;
-                body = messagePreview;
-            }
-
-            // Collect tokens from recipients, grouped by showMessagePreview preference
-            const tokensWithPreview = [];
-            const tokensWithoutPreview = [];
-            const tokenOwnersWithPreview = [];
-            const tokenOwnersWithoutPreview = [];
-
-            for (const recipientId of recipients) {
-                if (isUserMuted(recipientId)) {
-                    // console.log(`User ${recipientId} has muted this conversation`);
-                    continue;
-                }
-
-                const info = usersMap.get(recipientId);
-                if (info) {
-                    const tokens = info.fcmTokens;
-                    const notificationsEnabled = info.notificationsEnabled;
-                    const showMessagePreview = info.showMessagePreview;
-
-                    // Messages système : la préférence dédiée (notifySystemMessages)
-                    // n'a pas de colonne Supabase → on garde le défaut historique
-                    // (désactivé) et on ne pousse pas les messages système.
-                    if (messageType === "system") {
-                        continue;
-                    }
-
-                    if (notificationsEnabled && tokens.length > 0) {
-                        if (showMessagePreview) {
-                            tokensWithPreview.push(...tokens);
-                            tokens.forEach(() => tokenOwnersWithPreview.push(recipientId));
-                        } else {
-                            tokensWithoutPreview.push(...tokens);
-                            tokens.forEach(() => tokenOwnersWithoutPreview.push(recipientId));
-                        }
-                    }
-                }
-            }
-
-            const allTokens = [...tokensWithPreview, ...tokensWithoutPreview];
-            const allTokenOwners = [...tokenOwnersWithPreview, ...tokenOwnersWithoutPreview];
-
-            if (allTokens.length === 0) {
-                // console.log("No valid tokens to send notification");
-                return null;
-            }
-
-            // Store notification in Firestore for each recipient (for notification history)
-            const notificationPromises = [];
-            for (const recipientId of recipients) {
-                if (isUserMuted(recipientId)) continue;
-
-                notificationPromises.push(
-                    admin.firestore().collection("notifications").add({
-                        userId: recipientId,
-                        title: title,
-                        body: body,
-                        type: "message",
-                        targetId: conversationId,
-                        senderId: senderId,
-                        senderPhotoUrl: senderPhotoUrl,
-                        data: {
-                            conversationId,
-                            messageId,
-                            senderId,
-                        },
-                        isRead: false,
-                        createdAt: admin.firestore.FieldValue.serverTimestamp(),
-                    })
-                );
-            }
-            await Promise.all(notificationPromises);
-            // console.log(`Stored ${notificationPromises.length} notifications in Firestore`);
-
-            // Prepare E2EE-specific data for client-side decryption
-            const isE2EE = isE2EEMessage(message);
-            const e2eeData = isE2EE ? {
-                isE2EE: "true",
-                messageType: messageType,
-                // Include encrypted content for client-side decryption (foreground only)
-                encryptedPreview: message.content || "",
-                senderName: senderName,
-                conversationType: conversationType || "individual",
-            } : {};
-
-            // Prepare conversation data for navigation
-            const conversationData = {
-                conversationType: conversationType || "individual",
-                conversationTitle: conversationType === "group" ? (conversation.name || "Groupe") : senderName,
-                conversationPhotoUrl: conversationType === "group" ? (conversation.imageUrl || "") : senderPhotoUrl,
-                groupId: conversationType === "group" ? (conversation.groupId || "") : "",
-            };
-
-            // Send push notifications - separate batches for privacy preferences
-            let totalSuccessCount = 0;
-            const invalidTokens = [];
-
-            // Helper function to send notifications to a batch
-            const sendBatch = async (tokens, tokenOwners, showPreview) => {
-                if (tokens.length === 0) return;
-
-                // For users without preview, use generic message
-                const notifTitle = showPreview ? title : senderName;
-                const notifBody = showPreview ? body : "Nouveau message";
-
-                const response = await admin.messaging().sendEachForMulticast({
-                    tokens: tokens,
-                    notification: { title: notifTitle, body: notifBody },
-                    data: {
-                        type: "message",
-                        title: notifTitle,
-                        body: notifBody,
-                        conversationId,
-                        messageId,
-                        senderId,
-                        senderName: senderName,
-                        senderPhotoUrl: senderPhotoUrl,
-                        click_action: "FLUTTER_NOTIFICATION_CLICK",
-                        showMessagePreview: showPreview ? "true" : "false",
-                        ...e2eeData,
-                        ...conversationData,
-                    },
-                    android: {
-                        priority: "high",
-                        notification: {
-                            channelId: "messages",
-                            sound: "default",
-                            tag: `msg_${conversationId}`, // Android notification grouping per conversation
-                        },
-                    },
-                    apns: {
-                        headers: {
-                            "apns-collapse-id": conversationId, // Group notifications per conversation
-                            "apns-push-type": "alert",
-                        },
-                        payload: {
-                            aps: {
-                                sound: "default",
-                                badge: 1,
-                                "thread-id": conversationId, // iOS thread grouping per conversation
-                                "content-available": 1, // Wake app in background for sync
-                            },
-                        },
-                    },
-                });
-
-                totalSuccessCount += response.successCount;
-
-                // Collect invalid tokens
-                if (response.failureCount > 0) {
-                    response.responses.forEach((resp, idx) => {
-                        if (!resp.success && (resp.error?.code === "messaging/invalid-registration-token" || resp.error?.code === "messaging/registration-token-not-registered")) {
-                            invalidTokens.push({ token: tokens[idx], userId: tokenOwners[idx] });
-                        }
-                    });
-                }
-            };
-
-            // Send to users with preview enabled (full content)
-            await sendBatch(tokensWithPreview, tokenOwnersWithPreview, true);
-
-            // Send to users without preview (generic message)
-            await sendBatch(tokensWithoutPreview, tokenOwnersWithoutPreview, false);
-
-            // ── Mention notifications ──────────────────────────────────────
-            // For group conversations only: increment unreadMentions counter
-            // and send a targeted notification to each mentioned user.
-            const mentionedUsers = message.mentionedUsers || [];
-            if (mentionedUsers.length > 0 && conversationType === "group") {
-                for (const mentioned of mentionedUsers) {
-                    if (!mentioned.id || mentioned.id === senderId) continue;
-
-                    // Increment unreadMentions (best-effort ; la conversation a
-                    // migré vers Supabase, cette écriture Firestore est morte —
-                    // .catch pour ne pas interrompre l'envoi des pushes).
-                    await admin.firestore()
-                        .collection("conversations")
-                        .doc(conversationId)
-                        .update({
-                            [`unreadMentions.${mentioned.id}`]: admin.firestore.FieldValue.increment(1),
-                        })
-                        .catch(() => {/* conversation absente de Firestore : ignore */});
-
-                    // Store notification document in Firestore (visible in Notifications screen)
-                    await admin.firestore().collection("notifications").add({
-                        userId: mentioned.id,
-                        title: conversation.name || "Groupe",
-                        body: `${senderName} vous a mentionné`,
-                        type: "mention",
-                        targetId: conversationId,
-                        senderId: senderId,
-                        senderPhotoUrl: senderPhotoUrl,
-                        isRead: false,
-                        createdAt: admin.firestore.FieldValue.serverTimestamp(),
-                    }).catch(() => {/* ignore storage errors */});
-
-                    // Send a targeted FCM notification (tokens depuis Supabase)
-                    const mentionedInfo = usersMap.get(mentioned.id);
-                    const mentionTokens = mentionedInfo ? mentionedInfo.fcmTokens : [];
-                    if (mentionTokens.length === 0) continue;
-
-                    const mentionTitle = conversation.name || "Groupe";
-                    const mentionBody = `${senderName} vous a mentionné: ${messagePreview}`;
-
-                    await admin.messaging().sendEachForMulticast({
-                        tokens: mentionTokens,
-                        notification: { title: mentionTitle, body: mentionBody },
-                        data: {
-                            type: "mention",
-                            conversationId,
-                            messageId,
-                            senderId,
-                            senderName,
-                            conversationType: "group",
-                            click_action: "FLUTTER_NOTIFICATION_CLICK",
-                        },
-                        android: {
-                            priority: "high",
-                            notification: { channelId: "messages", sound: "default" },
-                        },
-                    }).catch(() => {/* ignore mention notification errors */});
-                }
-            }
-            // ── End mention notifications ──────────────────────────────────
-
-            // console.log(`Successfully sent ${totalSuccessCount}/${allTokens.length} push notifications`);
-
-            // Clean up invalid tokens
-            if (invalidTokens.length > 0) {
-                // console.log(`Removing ${invalidTokens.length} invalid tokens`);
-                const updates = {};
-                invalidTokens.forEach(({ token, userId }) => {
-                    if (!updates[userId]) updates[userId] = [];
-                    updates[userId].push(token);
-                });
-
-                await Promise.all(
-                    Object.entries(updates).map(([userId, tokens]) =>
-                        removeFcmTokens(userId, tokens)
-                    )
-                );
-            }
-
-            return { success: true, sentCount: totalSuccessCount };
-        } catch (error) {
-            console.error("Error sending message notification:", error);
-            return null;
-        }
-}
-
-exports.onMessageCreated = functions
-    .region("europe-west1")
-    .database.instance("diaspo-niger-default-rtdb")
-    .ref("/messages/{conversationId}/{messageId}")
-    .onCreate(async (snapshot, context) => {
-        const message = snapshot.val();
-        const conversationId = context.params.conversationId;
-        const messageId = context.params.messageId;
-        return handleNewMessagePush(message, conversationId, messageId);
-    });
-
-exports.sendMessagePush = functions
-    .region("europe-west1")
-    .https.onCall(async (data, context) => {
-        if (!context.auth) {
-            throw new functions.https.HttpsError("unauthenticated", "Authentification requise");
-        }
-        const conversationId = data && data.conversationId;
-        const messageId = data && data.messageId;
-        const message = data && data.message;
-        if (!conversationId || !messageId || !message || typeof message !== "object") {
-            throw new functions.https.HttpsError(
-                "invalid-argument",
-                "conversationId, messageId et message sont requis",
-            );
-        }
-        // Anti-usurpation : le senderId doit être l'utilisateur authentifié.
-        if (message.senderId !== context.auth.uid) {
-            throw new functions.https.HttpsError("permission-denied", "senderId invalide");
-        }
-        return handleNewMessagePush(
-            message,
-            String(conversationId),
-            String(messageId),
-            context.auth.uid,
-        );
-    });
+// ============================================================================
+// PUSH DES MESSAGES : `onMessageCreated` et `sendMessagePush` RETIRÉES
+// ============================================================================
+//
+// Le 2026-10-07. Les deux envoyaient un push dont le CORPS venait de
+// l'appelant (`message.content`) : le callable le prenait dans sa requête, le
+// déclencheur dans un nœud RTDB `messages/<conversation>/<message>` que
+// n'importe quel participant peut écrire — et les règles RTDB laissent
+// s'inscrire soi-même participant. Rien n'en restait dans la discussion,
+// aucun blocage n'était respecté, aucun quota : un canal d'hameçonnage sous
+// l'icône de l'app (audit du 2026-10-03, P1).
+//
+// Ni l'un ni l'autre ne servait plus :
+//   · l'app écrit ses messages dans Supabase, et c'est le déclencheur
+//     `notify_recipients_on_message_insert` → `notifications` → Edge
+//     Function `send-push` qui pousse — texte et nom posés par le serveur ;
+//   · `sendMessagePush` n'a jamais été appelée par du code commité : sa
+//     source n'a vécu que dans un stash du 2026-07-20 (voir
+//     TESTS_APPAREIL_FAITS.md, « Deux fonctions tournaient en production
+//     sans source dans le dépôt »).
+//
+// À SUPPRIMER AUSSI EN PRODUCTION — `firebase deploy` refuse de le faire en
+// non-interactif (voir docs/ops/secrets_production.md) :
+//   firebase functions:delete onMessageCreated sendMessagePush --region europe-west1
 
 /**
  * Conservee UNIQUEMENT parce qu'elle tourne encore en production : elle avait
  * ete retiree du depot par `1bb0cca` sans etre supprimee cote Firebase, et
  * plus personne ne pouvait la relire. Elle est desactivee depuis longtemps
- * (`return null` en tete) — `onMessageCreated` fait le travail.
+ * (`return null` en tete). Le push des messages passe aujourd'hui par
+ * Supabase (`send-push`).
  *
  * Recuperee telle quelle depuis `1bb0cca^:functions/index.js`.
  */

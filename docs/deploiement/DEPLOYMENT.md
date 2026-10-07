@@ -176,7 +176,7 @@ L'application supporte 40+ devises avec conversion automatique via [exchangerate
 | Fonction | Déclencheur | Description |
 |----------|-------------|-------------|
 | `sendNotificationOnCreate` | Firestore `notifications/{id}` | Envoie des push notifications |
-| `onMessageCreated` | Realtime DB `messages/{convId}/{msgId}` | Notifications de messages |
+| ~~`onMessageCreated`~~ | ~~Realtime DB `messages/{convId}/{msgId}`~~ | Retirée le 2026-10-07 : le push des messages passe par Supabase (`send-push`) |
 | `sendEventReminders` | Scheduled (hourly) | Rappels d'événements (24h avant) |
 | `createStripePaymentIntent` | Firestore `payment_intents/{id}` | Crée un PaymentIntent Stripe |
 | `stripeWebhook` | HTTP | Reçoit les webhooks Stripe |

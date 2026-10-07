@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1360 cases à cocher, 55 cochées** — 308 entrées sur 322 ont encore des cases ouvertes.
+**1362 cases à cocher, 55 cochées** — 309 entrées sur 323 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -96,7 +96,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 6 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (129)
+**P1 — fonction importante, jamais vérifiée** (130)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -164,6 +164,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [⬜ Cartes de partage chiffrées au repos (2026-09-09)](#-cartes-de-partage-chiffrées-au-repos-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
 - 4 · [Messages de groupe qui redeviennent indéchiffrables après réouverture (2026-08-13)](#messages-de-groupe-qui-redeviennent-indéchiffrables-après-réouverture-2026-08-13) · *Chiffrement de bout en bout et clés* · bloqué
 - 4 · [⬜ Appel entrant : le nom et la photo de l'appelant viennent de la base (2026-09-21)](#-appel-entrant--le-nom-et-la-photo-de-lappelant-viennent-de-la-base-2026-09-21) · *Appels*
+- 2 · [⬜ `onMessageCreated` et `sendMessagePush` retirées : à supprimer en production (2026-10-07)](#-onmessagecreated-et-sendmessagepush-retirées--à-supprimer-en-production-2026-10-07) · *Notifications et push*
 - 3 · [⬜ Message en clair supprimé ou expiré : bannière retirée, texte effacé des notifications (2026-10-05)](#-message-en-clair-supprimé-ou-expiré--bannière-retirée-texte-effacé-des-notifications-2026-10-05) · *Notifications et push*
 - 4 · [⬜ Push de message : nom de l'expéditeur fiable, expéditeur bloqué silencieux (2026-10-05)](#-push-de-message--nom-de-lexpéditeur-fiable-expéditeur-bloqué-silencieux-2026-10-05) · *Notifications et push*
 - 2 · [⬜ Quota de notifications : dix messages suffisent à faire taire le reste (2026-09-22)](#-quota-de-notifications--dix-messages-suffisent-à-faire-taire-le-reste-2026-09-22) · *Notifications et push*
@@ -370,7 +371,7 @@ Par domaine :
 - [3. Groupes](#3-groupes) — 128 à faire, 0 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 148 à faire, 4 faites
 - [5. Appels](#5-appels) — 24 à faire, 1 faites
-- [6. Notifications et push](#6-notifications-et-push) — 122 à faire, 6 faites
+- [6. Notifications et push](#6-notifications-et-push) — 124 à faire, 6 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 36 à faire, 0 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 63 à faire, 0 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 101 à faire, 0 faites
@@ -5754,6 +5755,29 @@ en solo.
 # 6. Notifications et push
 
 Chaîne FCM, aperçus, réponse rapide, écran Notifications.
+
+---
+
+## ⬜ `onMessageCreated` et `sendMessagePush` retirées : à supprimer en production (2026-10-07)
+
+**Priorité P1** · importance 4/5 — Cloud Functions ; l'app n'est pas touchée.
+
+Les deux poussaient un texte **fourni par l'appelant** (requête du callable,
+ou nœud RTDB `messages/…` qu'un participant peut écrire) : hameçonnage
+sous l'icône de l'app, sans trace, sans blocage, sans quota. Le push des
+messages passe par Supabase (`send-push`) ; `sendMessagePush` n'a jamais
+été appelée par du code commité. Retirées de `functions/index.js`.
+
+À faire depuis ton poste (le déploiement global refuse de supprimer en
+non-interactif) :
+
+```bash
+firebase functions:delete onMessageCreated sendMessagePush --region europe-west1
+```
+
+- [ ] Après la suppression : A écrit à B (discussion chiffrée, puis non
+      chiffrée), app de B fermée — la notification arrive comme avant.
+- [ ] `firebase functions:list` ne montre plus ni l'une ni l'autre.
 
 ---
 
