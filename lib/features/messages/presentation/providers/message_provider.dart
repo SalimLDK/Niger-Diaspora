@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import '../../../../core/errors/journal_echecs.dart';
 import '../../../../core/services/e2ee/message_crypto_service.dart';
 import '../../../../core/services/e2ee/models/e2ee_models.dart';
 import 'group_encryption_status_provider.dart';
@@ -625,7 +626,12 @@ class PaginatedMessagesNotifier extends StateNotifier<MessagePaginationState> {
         .listen((either) {
           if (!mounted) return;
           either.fold(
-            (failure) {},
+            // Un message temps réel illisible : le flux continue, mais
+            // l'échec ne disparaît plus dans un rappel vide.
+            (failure) => signalerEchecSilencieux(
+              failure.message,
+              contexte: 'temps reel nouveaux messages',
+            ),
             (newMessages) {
               if (!mounted) return;
               if (newMessages.isNotEmpty) {
@@ -725,7 +731,10 @@ class PaginatedMessagesNotifier extends StateNotifier<MessagePaginationState> {
         .listen((either) {
           if (!mounted) return;
           either.fold(
-            (failure) {},
+            (failure) => signalerEchecSilencieux(
+              failure.message,
+              contexte: 'temps reel mises a jour',
+            ),
             (updatedMessage) {
               if (!mounted) return;
               final existingMessages = List<MessageEntity>.from(state.messages);

@@ -1815,7 +1815,7 @@ class MessageRepositoryImpl implements MessageRepository {
           conversationId: conversationId,
           afterTimestamp: afterTimestamp,
         )
-        .map((messages) {
+        .map<Either<Failure, List<MessageEntity>>>((messages) {
           // `cacheMessages` fusionne par id, et la nouvelle version l'emporte :
           // sans ce soin, l'écho d'un message qu'on vient d'envoyer écrasait
           // dans le cache le texte clair par son placeholder. Le rechargement
@@ -1834,11 +1834,9 @@ class MessageRepositoryImpl implements MessageRepository {
             ),
           );
         })
-        .handleError((error) {
-          return Left<Failure, List<MessageEntity>>(
-            ServerFailure(error.toString()),
-          );
-        });
+        // `handleError` ignore la valeur de retour de son rappel : le `Left`
+        // d'ici n'était jamais émis, l'erreur était avalée. Voir [_echecEmis].
+        .transform(_echecEmis<List<MessageEntity>>());
 
     // Le temps réel n'écoutait que `messages`. Depuis la bascule MLS, les
     // messages vivants sont dans `mls_messages` : dans une conversation
@@ -1901,14 +1899,13 @@ class MessageRepositoryImpl implements MessageRepository {
   }) {
     return remoteDataSource
         .getMessageUpdatesStream(conversationId: conversationId)
-        .map((message) {
+        .map<Either<Failure, MessageEntity>>((message) {
           final entite = message.toEntity();
           _signalerSupprimes([entite]);
           return Right<Failure, MessageEntity>(entite);
         })
-        .handleError((error) {
-          return Left<Failure, MessageEntity>(ServerFailure(error.toString()));
-        });
+        // Même défaut que `getNewMessagesStream` : voir [_echecEmis].
+        .transform(_echecEmis<MessageEntity>());
   }
 
   void resetPagination() {
@@ -2950,8 +2947,8 @@ class MessageRepositoryImpl implements MessageRepository {
 
 /// Transforme une erreur de flux en `Left(ServerFailure)` **réellement émis**.
 ///
-/// Les trois flux de ce fichier (liste des discussions, discussion, messages)
-/// se terminaient par :
+/// Les cinq flux de ce fichier (liste des discussions, discussion, messages,
+/// nouveaux messages, mises à jour) se terminaient par :
 ///
 /// ```dart
 /// .handleError((error) { return Left(ServerFailure(error.toString())); });

@@ -867,7 +867,14 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     // Real-time updates — regroupés : un seul message réécrit la ligne
     // plusieurs fois (aperçu, accusé, lecture), inutile de tout relire à
     // chaque fois.
-    final ch = _channel('conversations:$userId');
+    // Suffixe unique, comme `new_msgs` et `msg_updates` : sous un nom fixe,
+    // `_channel` rendait le canal d'un abonnement encore vivant — le second
+    // `subscribe` levait « tried to subscribe multiple times », et l'`onCancel`
+    // du premier désabonnait le canal du second, resté muet. Le sujet d'un
+    // canal de changements Postgres est local : rien n'impose qu'il soit
+    // partagé (contrairement à `typing:`, salon de présence commun).
+    final channelName = 'conversations:$userId:${_channelSeq++}';
+    final ch = _channel(channelName);
     ch
         .onPostgresChanges(
           event: PostgresChangeEvent.all,
@@ -888,7 +895,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
       filet?.cancel();
       unawaited(attenteSession?.cancel());
       unawaited(ch.unsubscribe());
-      _channels.remove('conversations:$userId');
+      _channels.remove(channelName);
     };
 
     return controller.stream;
@@ -920,7 +927,9 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
 
     unawaited(fetch());
 
-    final ch = _channel('conversation:$conversationId');
+    // Suffixe unique : voir `getConversations`.
+    final channelName = 'conversation:$conversationId:${_channelSeq++}';
+    final ch = _channel(channelName);
     ch
         .onPostgresChanges(
           event: PostgresChangeEvent.all,
@@ -943,7 +952,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
 
     controller.onCancel = () {
       unawaited(ch.unsubscribe());
-      _channels.remove('conversation:$conversationId');
+      _channels.remove(channelName);
     };
 
     return controller.stream;
@@ -1047,7 +1056,9 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
 
     unawaited(fetch());
 
-    final ch = _channel('msg_requests:$userId');
+    // Suffixe unique : voir `getConversations`.
+    final channelName = 'msg_requests:$userId:${_channelSeq++}';
+    final ch = _channel(channelName);
     ch
         .onPostgresChanges(
           event: PostgresChangeEvent.all,
@@ -1065,7 +1076,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
 
     controller.onCancel = () {
       unawaited(ch.unsubscribe());
-      _channels.remove('msg_requests:$userId');
+      _channels.remove(channelName);
     };
 
     return controller.stream;
@@ -1194,11 +1205,21 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
         if (rows.isEmpty || controller.isClosed) return;
         final messages = <MessageModel>[];
         for (final row in rows) {
-          if (!livres.add(row['id'].toString())) continue;
-          final msg = await _msgFromRowAsync(row);
-          final cree = msg.createdAt;
-          if (cree != null && cree.isAfter(dernierVu)) dernierVu = cree;
-          messages.add(msg);
+          final id = row['id'].toString();
+          if (!livres.add(id)) continue;
+          // Ligne par ligne : une ligne illisible abandonnait tout le lot —
+          // et les lignes déjà notées « livrées » ne l'étaient jamais.
+          try {
+            final msg = await _msgFromRowAsync(row);
+            final cree = msg.createdAt;
+            if (cree != null && cree.isAfter(dernierVu)) dernierVu = cree;
+            messages.add(msg);
+          } catch (e) {
+            livres.remove(id);
+            if (!controller.isClosed) {
+              controller.addError(ServerException('rattrapage $id : $e'));
+            }
+          }
         }
         if (!controller.isClosed && messages.isNotEmpty) {
           controller.add(messages);
@@ -1229,11 +1250,23 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
           callback: (payload) async {
             final newRecord = payload.newRecord;
             if (newRecord.isEmpty || controller.isClosed) return;
-            if (!livres.add(newRecord['id'].toString())) return;
-            final msg = await _msgFromRowAsync(newRecord);
-            final cree = msg.createdAt;
-            if (cree != null && cree.isAfter(dernierVu)) dernierVu = cree;
-            if (!controller.isClosed) controller.add([msg]);
+            final id = newRecord['id'].toString();
+            if (!livres.add(id)) return;
+            // Un rappel asynchrone qui lève perd son exception dans la zone :
+            // le message, déjà noté « livré », ne revenait plus jamais — ni
+            // par le temps réel, ni par le rattrapage. Il redevient
+            // rattrapable, et l'échec remonte dans le flux.
+            try {
+              final msg = await _msgFromRowAsync(newRecord);
+              final cree = msg.createdAt;
+              if (cree != null && cree.isAfter(dernierVu)) dernierVu = cree;
+              if (!controller.isClosed) controller.add([msg]);
+            } catch (e) {
+              livres.remove(id);
+              if (!controller.isClosed) {
+                controller.addError(ServerException('temps réel $id : $e'));
+              }
+            }
           },
         )
         // Rattrapage dès le PREMIER `subscribed`, pas seulement aux reprises.
@@ -1260,7 +1293,11 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
 
   @override
   Stream<void> mlsNouveauxMessages(String conversationId) {
-    final channelName = 'mls_new:$conversationId';
+    // Suffixe unique : la même discussion ouverte deux fois dans la pile de
+    // navigation (discussion → profil → « Envoyer un message ») faisait
+    // lever la seconde ouverture — plus de temps réel chiffré sur l'écran du
+    // dessus. Voir `getConversations`.
+    final channelName = 'mls_new:$conversationId:${_channelSeq++}';
     final ch = _channel(channelName);
     final controller = StreamController<void>.broadcast();
 

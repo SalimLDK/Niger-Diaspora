@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1355 cases à cocher, 55 cochées** — 306 entrées sur 320 ont encore des cases ouvertes.
+**1357 cases à cocher, 55 cochées** — 307 entrées sur 321 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -227,7 +227,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (92)
+**P2 — fonction secondaire ou cas limite** (93)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -238,6 +238,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [Reprise du design (2026-08-03, suite) — Éco, accueil, carte, discussion](#reprise-du-design-2026-08-03-suite--éco-accueil-carte-discussion) · *Design, thème, langue et mise en page* · bloqué
 - 5 · [Bascule design_v2 → production, famille 4 : messagerie, groupes, recherche, profil (2026-08-03)](#bascule-design_v2--production-famille-4--messagerie-groupes-recherche-profil-2026-08-03) · *Design, thème, langue et mise en page*
 - 7 · [⬜ Site web entièrement refait sur cahier des charges (2026-09-08)](#-site-web-entièrement-refait-sur-cahier-des-charges-2026-09-08) · *Site web*
+- 2 · [⬜ Temps réel : même discussion ouverte deux fois, et messages illisibles qui ne disparaissent plus (2026-10-07)](#-temps-réel--même-discussion-ouverte-deux-fois-et-messages-illisibles-qui-ne-disparaissent-plus-2026-10-07) · *Messagerie*
 - 2 · [⬜ Galerie de médias : « charger plus » ne repasse plus les mêmes médias (2026-10-07)](#-galerie-de-médias---charger-plus--ne-repasse-plus-les-mêmes-médias-2026-10-07) · *Messagerie*
 - 5 · [⬜ Réactions, « Lu », favoris : chacun ne touche qu'à sa propre entrée (2026-10-05)](#-réactions--lu--favoris--chacun-ne-touche-quà-sa-propre-entrée-2026-10-05) · *Messagerie*
 - 3 · [⬜ Carte d'aperçu de lien : montrée seulement pour un lien du texte, ouverte après confirmation (2026-10-03)](#-carte-daperçu-de-lien--montrée-seulement-pour-un-lien-du-texte-ouverte-après-confirmation-2026-10-03) · *Messagerie*
@@ -364,7 +365,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 0 faites
-- [2. Messagerie](#2-messagerie) — 352 à faire, 31 faites
+- [2. Messagerie](#2-messagerie) — 354 à faire, 31 faites
 - [3. Groupes](#3-groupes) — 128 à faire, 0 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 145 à faire, 4 faites
 - [5. Appels](#5-appels) — 24 à faire, 1 faites
@@ -465,6 +466,28 @@ du SM A515F (compte « Sim A », non-admin, sans pays renseigné).
 # 2. Messagerie
 
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
+
+---
+
+## ⬜ Temps réel : même discussion ouverte deux fois, et messages illisibles qui ne disparaissent plus (2026-10-07)
+
+**Priorité P2** · importance 3/5 — app seule.
+
+Quatre canaux temps réel avaient un nom fixe : ouvrir deux fois le même
+flux faisait lever le second (« tried to subscribe multiple times ») et le
+premier, en partant, coupait le canal de l'autre. Et un message reçu en
+direct mais impossible à décoder disparaissait sans trace (noté « livré »
+avant le décodage). Tests : `canaux_temps_reel_uniques_test.dart`,
+`flux_sans_erreur_avalee_test.dart`.
+
+À vérifier, A et B, discussion **chiffrée** puis **non chiffrée** :
+
+- [ ] B ouvre la discussion avec A, puis le profil de A, puis « Envoyer un
+      message » (la même discussion par-dessus) : A écrit, le message
+      arrive en direct sur l'écran du dessus ; retour arrière, il est aussi
+      sur celui du dessous.
+- [ ] Liste des discussions ouverte, puis ouverture d'une discussion et
+      retour : un message reçu met encore la liste à jour en direct.
 
 ---
 
