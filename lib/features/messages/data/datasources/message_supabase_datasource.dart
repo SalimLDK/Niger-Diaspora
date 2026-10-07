@@ -3245,17 +3245,35 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     required String conversationId,
     int limit = 50,
     String? beforeMessageId,
+    DateTime? beforeCreatedAt,
   }) async {
+    // Même curseur `(created_at, id)` que `getMessagesPaginated`. Avant,
+    // [beforeMessageId] n'était lu nulle part : « charger plus » renvoyait
+    // les mêmes médias, la galerie les ajoutait en double et `hasMore`
+    // restait vrai — une boucle sans fin de doublons au défilement.
+    if (beforeMessageId != null && beforeCreatedAt == null) {
+      throw ArgumentError(
+        'getMediaMessages : curseur incomplet, beforeCreatedAt requis '
+        'avec beforeMessageId',
+      );
+    }
     try {
       var query = _supabase
           .from('messages')
           .select()
           .eq('conversation_id', conversationId)
           .inFilter('type', ['image', 'video', 'file'])
-          .order('created_at', ascending: false)
-          .limit(limit);
+          // Filtré ici plutôt qu'après coup : une page amputée de ses médias
+          // sans URL passerait pour la dernière.
+          .not('data->>fileUrl', 'is', null);
+      if (beforeMessageId != null) {
+        query = query.or(filtreAvantCurseur(beforeCreatedAt!, beforeMessageId));
+      }
 
-      final rows = await query;
+      final rows = await query
+          .order('created_at', ascending: false)
+          .order('id', ascending: false)
+          .limit(limit);
       return rows.map(_msgFromRow).where((m) => m.fileUrl != null).toList();
     } catch (e) {
       throw ServerException('getMediaMessages error: $e');

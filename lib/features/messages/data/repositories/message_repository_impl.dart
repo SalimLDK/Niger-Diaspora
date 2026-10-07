@@ -2206,6 +2206,7 @@ class MessageRepositoryImpl implements MessageRepository {
     required String conversationId,
     int limit = 50,
     String? beforeMessageId,
+    DateTime? beforeCreatedAt,
   }) async {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(AppErrorMessages.networkError));
@@ -2216,10 +2217,27 @@ class MessageRepositoryImpl implements MessageRepository {
         conversationId: conversationId,
         limit: limit,
         beforeMessageId: beforeMessageId,
+        beforeCreatedAt: beforeCreatedAt,
       );
       final trouves = <String, MessageEntity>{
         for (final m in messages) m.id: m.toEntity(),
       };
+
+      // La fenêtre de CETTE page : du curseur (exclu) jusqu'au plus ancien
+      // média du serveur — sans borne basse si c'est la dernière page. Les
+      // médias du cache n'entrent que dans leur fenêtre : sans elle, chaque
+      // page les reprenait tous (doublons), et un média chiffré plus ancien
+      // que la page devenait son curseur, faisant sauter les médias du
+      // serveur compris entre les deux.
+      final derniere = messages.length < limit;
+      final borneBasse = derniere
+          ? null
+          : messages
+              .map((m) => m.toEntity().createdAt)
+              .reduce((a, b) => a.isBefore(b) ? a : b);
+      bool dansLaPage(MessageEntity e) =>
+          (beforeCreatedAt == null || e.createdAt.isBefore(beforeCreatedAt)) &&
+          (borneBasse == null || !e.createdAt.isBefore(borneBasse));
 
       // Troisième occurrence du même défaut : la galerie d'une conversation
       // basculée ne montrait que les médias d'AVANT la bascule. Le descripteur
@@ -2238,7 +2256,9 @@ class MessageRepositoryImpl implements MessageRepository {
             final estMedia = e.type == MessageType.image ||
                 e.type == MessageType.video ||
                 e.type == MessageType.file;
-            if (estMedia && (e.fileUrl?.isNotEmpty ?? false)) {
+            if (estMedia &&
+                (e.fileUrl?.isNotEmpty ?? false) &&
+                dansLaPage(e)) {
               trouves[e.id] = e;
             }
           } catch (_) {

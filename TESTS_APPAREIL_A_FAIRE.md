@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1348 cases à cocher, 55 cochées** — 304 entrées sur 318 ont encore des cases ouvertes.
+**1350 cases à cocher, 55 cochées** — 305 entrées sur 319 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -226,7 +226,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (91)
+**P2 — fonction secondaire ou cas limite** (92)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -237,6 +237,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [Reprise du design (2026-08-03, suite) — Éco, accueil, carte, discussion](#reprise-du-design-2026-08-03-suite--éco-accueil-carte-discussion) · *Design, thème, langue et mise en page* · bloqué
 - 5 · [Bascule design_v2 → production, famille 4 : messagerie, groupes, recherche, profil (2026-08-03)](#bascule-design_v2--production-famille-4--messagerie-groupes-recherche-profil-2026-08-03) · *Design, thème, langue et mise en page*
 - 7 · [⬜ Site web entièrement refait sur cahier des charges (2026-09-08)](#-site-web-entièrement-refait-sur-cahier-des-charges-2026-09-08) · *Site web*
+- 2 · [⬜ Galerie de médias : « charger plus » ne repasse plus les mêmes médias (2026-10-07)](#-galerie-de-médias---charger-plus--ne-repasse-plus-les-mêmes-médias-2026-10-07) · *Messagerie*
 - 5 · [⬜ Réactions, « Lu », favoris : chacun ne touche qu'à sa propre entrée (2026-10-05)](#-réactions--lu--favoris--chacun-ne-touche-quà-sa-propre-entrée-2026-10-05) · *Messagerie*
 - 3 · [⬜ Carte d'aperçu de lien : montrée seulement pour un lien du texte, ouverte après confirmation (2026-10-03)](#-carte-daperçu-de-lien--montrée-seulement-pour-un-lien-du-texte-ouverte-après-confirmation-2026-10-03) · *Messagerie*
 - 3 · [⬜ Le séparateur « N messages non lus » part quand tout est lu (2026-09-17)](#-le-séparateur--n-messages-non-lus--part-quand-tout-est-lu-2026-09-17) · *Messagerie*
@@ -362,7 +363,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 0 faites
-- [2. Messagerie](#2-messagerie) — 350 à faire, 31 faites
+- [2. Messagerie](#2-messagerie) — 352 à faire, 31 faites
 - [3. Groupes](#3-groupes) — 128 à faire, 0 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 140 à faire, 4 faites
 - [5. Appels](#5-appels) — 24 à faire, 1 faites
@@ -463,6 +464,27 @@ du SM A515F (compte « Sim A », non-admin, sans pays renseigné).
 # 2. Messagerie
 
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
+
+---
+
+## ⬜ Galerie de médias : « charger plus » ne repasse plus les mêmes médias (2026-10-07)
+
+**Priorité P2** · importance 3/5 — app seule, aucune migration.
+
+Le curseur de la galerie (`beforeMessageId`) n'était lu nulle part : au-delà
+de 50 médias, chaque défilement rajoutait les 50 mêmes, sans fin. Curseur
+`(created_at, id)` désormais, comme pour les messages ; dans une discussion
+chiffrée, les médias du cache n'entrent que dans leur page. Vérifié contre
+PostgREST local. Tests : `test/features/messages/galerie_par_curseur_test.dart`,
+`lectures_conversation_chiffree_test.dart` (groupe galerie).
+
+À vérifier, une discussion avec **plus de 50** photos/vidéos/fichiers
+(`media_gallery_screen.dart`) :
+
+- [ ] Défiler jusqu'en bas : de nouveaux médias arrivent, plus anciens,
+      aucun en double, et le chargement s'arrête au plus ancien.
+- [ ] Même chose dans une discussion chiffrée (MLS) avec des médias envoyés
+      avant et après la bascule.
 
 ---
 

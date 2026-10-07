@@ -82,6 +82,7 @@ class _SourceAvecHistorique implements MessageRemoteDataSource {
     required String conversationId,
     int limit = 50,
     String? beforeMessageId,
+    DateTime? beforeCreatedAt,
   }) async {
     appels++;
     return resultats;
@@ -364,6 +365,52 @@ void main() {
       ).getMediaMessages(conversationId: 'c1');
 
       expect(res.getOrElse(() => []).map((m) => m.id), ['img']);
+    });
+
+    // La galerie se pagine (curseur `(created_at, id)`) : un média du cache
+    // n'entre que dans la page dont il tombe dans la fenêtre. Sans cela,
+    // chaque page reprenait tout le cache, et un média chiffré plus ancien
+    // que la page en devenait le curseur — sautant les médias du serveur
+    // compris entre les deux.
+    test('page pleine : seuls les médias du cache de sa fenêtre', () async {
+      final res = await _depot(
+        source: _SourceAvecHistorique([
+          _m('s1', 'photo', t0.add(const Duration(hours: 10)),
+              type: 'image', fileUrl: 'https://x/s1'),
+          _m('s2', 'photo', t0.add(const Duration(hours: 5)),
+              type: 'image', fileUrl: 'https://x/s2'),
+        ]),
+        cache: _CacheAvecFil([
+          _m('dedans', 'photo', t0.add(const Duration(hours: 7)),
+              type: 'image', fileUrl: 'https://x/c1.enc'),
+          _m('plus-ancien', 'photo', t0.add(const Duration(hours: 1)),
+              type: 'image', fileUrl: 'https://x/c2.enc'),
+        ]),
+        passerelle: _passerelle(basculee: true),
+      ).getMediaMessages(conversationId: 'c1', limit: 2);
+
+      expect(res.getOrElse(() => []).map((m) => m.id), ['s1', 'dedans', 's2']);
+    });
+
+    test('dernière page : le reste du cache, rien de la page d\'avant',
+        () async {
+      final res = await _depot(
+        source: _SourceAvecHistorique([]),
+        cache: _CacheAvecFil([
+          _m('dedans', 'photo', t0.add(const Duration(hours: 7)),
+              type: 'image', fileUrl: 'https://x/c1.enc'),
+          _m('plus-ancien', 'photo', t0.add(const Duration(hours: 1)),
+              type: 'image', fileUrl: 'https://x/c2.enc'),
+        ]),
+        passerelle: _passerelle(basculee: true),
+      ).getMediaMessages(
+        conversationId: 'c1',
+        limit: 2,
+        beforeMessageId: 's2',
+        beforeCreatedAt: t0.add(const Duration(hours: 5)),
+      );
+
+      expect(res.getOrElse(() => []).map((m) => m.id), ['plus-ancien']);
     });
 
     test('un média sans URL reste dehors, comme côté serveur', () async {

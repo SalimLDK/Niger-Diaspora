@@ -223,6 +223,7 @@ abstract class MessageRepository {
     required String conversationId,
     int limit = 50,
     String? beforeMessageId,
+    DateTime? beforeCreatedAt,
   });
 
   /// Trouver l'ID de la conversation avec un utilisateur donné

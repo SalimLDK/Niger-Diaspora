@@ -254,6 +254,7 @@ abstract class MessageRemoteDataSource {
     required String conversationId,
     int limit = 50,
     String? beforeMessageId,
+    DateTime? beforeCreatedAt,
   });
 
   /// Trouver une conversation de groupe par nom
@@ -2324,6 +2325,7 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
     required String conversationId,
     int limit = 50,
     String? beforeMessageId,
+    DateTime? beforeCreatedAt,
   }) async {
     try {
       // Increase limit multiplier to catch media deeper in history

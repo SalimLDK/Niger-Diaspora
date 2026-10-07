@@ -17,6 +17,10 @@ class MediaGalleryState {
   final bool isLoading;
   final bool hasMore;
   final String? lastMessageId;
+
+  /// Date du plus ancien média chargé : avec [lastMessageId], le curseur
+  /// `(created_at, id)` de la page suivante.
+  final DateTime? lastCreatedAt;
   final String? error;
 
   const MediaGalleryState({
@@ -26,6 +30,7 @@ class MediaGalleryState {
     this.isLoading = false,
     this.hasMore = true,
     this.lastMessageId,
+    this.lastCreatedAt,
     this.error,
   });
 
@@ -36,6 +41,7 @@ class MediaGalleryState {
     bool? isLoading,
     bool? hasMore,
     String? lastMessageId,
+    DateTime? lastCreatedAt,
     String? error,
   }) {
     return MediaGalleryState(
@@ -45,6 +51,7 @@ class MediaGalleryState {
       isLoading: isLoading ?? this.isLoading,
       hasMore: hasMore ?? this.hasMore,
       lastMessageId: lastMessageId ?? this.lastMessageId,
+      lastCreatedAt: lastCreatedAt ?? this.lastCreatedAt,
       error: error,
     );
   }
@@ -94,6 +101,7 @@ class ConversationMedia extends _$ConversationMedia {
             files: files,
             hasMore: messages.length >= _pageSize,
             lastMessageId: messages.isNotEmpty ? messages.last.id : null,
+            lastCreatedAt: messages.isNotEmpty ? messages.last.createdAt : null,
             isLoading: false,
           );
         },
@@ -113,13 +121,25 @@ class ConversationMedia extends _$ConversationMedia {
             conversationId: conversationId,
             limit: _pageSize,
             beforeMessageId: state.lastMessageId,
+            beforeCreatedAt: state.lastCreatedAt,
           );
 
       result.fold(
         (failure) {
           state = state.copyWith(isLoading: false, error: failure.message);
         },
-        (messages) {
+        (page) {
+          // Un média déjà affiché ne revient pas : la page suivante part du
+          // curseur, mais un ex-aequo de date ou une entrée du cache peut se
+          // présenter deux fois.
+          final dejaVus = {
+            for (final m in [...state.images, ...state.videos, ...state.files])
+              m.id,
+          };
+          final messages = [
+            for (final m in page)
+              if (!dejaVus.contains(m.id)) m,
+          ];
           final newImages = messages
               .where((m) => m.type == MessageType.image)
               .toList();
@@ -134,8 +154,14 @@ class ConversationMedia extends _$ConversationMedia {
             images: [...state.images, ...newImages],
             videos: [...state.videos, ...newVideos],
             files: [...state.files, ...newFiles],
-            hasMore: messages.length >= _pageSize,
-            lastMessageId: messages.isNotEmpty ? messages.last.id : null,
+            // Une page sans aucun média neuf est la dernière, quoi qu'en dise
+            // sa taille : sinon « charger plus » tournerait sur place.
+            hasMore: page.length >= _pageSize && messages.isNotEmpty,
+            lastMessageId:
+                messages.isNotEmpty ? messages.last.id : state.lastMessageId,
+            lastCreatedAt: messages.isNotEmpty
+                ? messages.last.createdAt
+                : state.lastCreatedAt,
             isLoading: false,
           );
         },
