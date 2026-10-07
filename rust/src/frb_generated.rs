@@ -1174,9 +1174,11 @@ impl SseDecode for crate::api::mls::MembreDto {
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         let mut var_leafIndex = <u32>::sse_decode(deserializer);
         let mut var_identity = <String>::sse_decode(deserializer);
+        let mut var_signatureKey = <Vec<u8>>::sse_decode(deserializer);
         return crate::api::mls::MembreDto {
             leaf_index: var_leafIndex,
             identity: var_identity,
+            signature_key: var_signatureKey,
         };
     }
 }
@@ -1384,6 +1386,7 @@ impl flutter_rust_bridge::IntoDart for crate::api::mls::MembreDto {
         [
             self.leaf_index.into_into_dart().into_dart(),
             self.identity.into_into_dart().into_dart(),
+            self.signature_key.into_into_dart().into_dart(),
         ]
         .into_dart()
     }
@@ -1519,6 +1522,7 @@ impl SseEncode for crate::api::mls::MembreDto {
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         <u32>::sse_encode(self.leaf_index, serializer);
         <String>::sse_encode(self.identity, serializer);
+        <Vec<u8>>::sse_encode(self.signature_key, serializer);
     }
 }
 

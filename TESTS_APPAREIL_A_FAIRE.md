@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1357 cases à cocher, 55 cochées** — 307 entrées sur 321 ont encore des cases ouvertes.
+**1360 cases à cocher, 55 cochées** — 308 entrées sur 322 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -96,7 +96,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 6 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (128)
+**P1 — fonction importante, jamais vérifiée** (129)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -146,6 +146,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [⬜ Exclure un membre d'un groupe échouait toujours (2026-09-17)](#-exclure-un-membre-dun-groupe-échouait-toujours-2026-09-17) · *Groupes*
 - 4 · [⬜ Noms des candidats à l'invitation et à l'ajout en appel (2026-09-14)](#-noms-des-candidats-à-linvitation-et-à-lajout-en-appel-2026-09-14) · *Groupes*
 - 3 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
+- 3 · [⬜ MLS : une feuille du groupe doit porter la clé de l'appareil qu'elle prétend être (2026-10-07)](#-mls--une-feuille-du-groupe-doit-porter-la-clé-de-lappareil-quelle-prétend-être-2026-10-07) · *Chiffrement de bout en bout et clés*
 - 5 · [⬜ Sauvegarde du téléphone : bannières, aperçus MLS et réponses en attente scellés (2026-10-07)](#-sauvegarde-du-téléphone--bannières-aperçus-mls-et-réponses-en-attente-scellés-2026-10-07) · *Chiffrement de bout en bout et clés*
 - 6 · [⬜ MLS : groupe bloqué — bandeau d'alerte et « Réparer » (2026-10-04)](#-mls--groupe-bloqué--bandeau-dalerte-et--réparer--2026-10-04) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ MLS : de retour après plusieurs arrivées dans le groupe, les messages d'avant se lisent (2026-10-04)](#-mls--de-retour-après-plusieurs-arrivées-dans-le-groupe-les-messages-davant-se-lisent-2026-10-04) · *Chiffrement de bout en bout et clés*
@@ -367,7 +368,7 @@ Par domaine :
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 0 faites
 - [2. Messagerie](#2-messagerie) — 354 à faire, 31 faites
 - [3. Groupes](#3-groupes) — 128 à faire, 0 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 145 à faire, 4 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 148 à faire, 4 faites
 - [5. Appels](#5-appels) — 24 à faire, 1 faites
 - [6. Notifications et push](#6-notifications-et-push) — 122 à faire, 6 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 36 à faire, 0 faites
@@ -4102,6 +4103,31 @@ conservée plutôt que de conclure « non » à tort (sinon le titre clignote).
 # 4. Chiffrement de bout en bout et clés
 
 Signal 1:1 et groupes, repli AES, clés dérivées, sauvegarde et transfert des clés, et tout ce qui pouvait partir en clair.
+
+---
+
+## ⬜ MLS : une feuille du groupe doit porter la clé de l'appareil qu'elle prétend être (2026-10-07)
+
+**Priorité P1** · importance 4/5 — app + crate Rust (`rust/src/engine.rs`, liaisons régénérées) : **build complet nécessaire** (cargokit recompile le crate).
+
+L'identité d'une feuille MLS n'est qu'une chaîne déclarée (`uid:stable_id`).
+La réconciliation comparait les feuilles au registre par cette seule
+chaîne : une feuille au nom de Bob mais avec une autre clé passait pour
+Bob, et son code de sécurité restait « vérifié ». Le moteur expose
+désormais la clé de signature de chaque feuille ; une feuille dont la clé
+n'est pas celle du registre est retirée (diagnostic
+`feuille_cle_etrangere`). Banc Rust : `les_feuilles_portent_la_cle_de_leur_appareil` ;
+tests : `test/core/crypto/mls_feuilles_et_registre_test.dart`.
+
+À vérifier (build de cette version, deux téléphones A et B) :
+
+- [ ] Discussion chiffrée 1:1 et de groupe : envoi et réception
+      inchangés, aucun `feuille_cle_etrangere` dans `mls_diagnostics`.
+- [ ] B réinstalle l'app : après sa réinscription, A envoie — B est
+      réintégré et lit le message (son ancienne feuille sort, la nouvelle
+      entre).
+- [ ] Code de sécurité de B affiché chez A (Réglages → Appareils) : même
+      code qu'avant cette version pour un appareil non réinstallé.
 
 ---
 

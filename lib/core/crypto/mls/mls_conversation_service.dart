@@ -436,17 +436,31 @@ class MlsConversationService {
           detail: {'conversation': conversationId, 'combien': muets});
     }
     final snap = await moteur.instantane(conversationId: conversationId);
-    final membres = {for (final m in snap.membres) m.identity: m.leafIndex};
-    final identitesActives = {for (final d in actifs) d.mlsIdentity: d};
+    final (:fiables, :aRetirer, :usurpatrices) = trierFeuilles(
+      membres: snap.membres,
+      actifs: actifs,
+      moi: appareil,
+    );
+    for (final u in usurpatrices) {
+      // Une feuille qui porte l'identité d'un appareil connu, mais pas SA clé.
+      // L'identité d'un `BasicCredential` n'est qu'une chaîne déclarée : un
+      // participant — ou le serveur — pouvait faire entrer une feuille au nom
+      // de Bob, et le code de sécurité de Bob, calculé sur la clé du
+      // registre, restait « vérifié ». Elle est retirée comme un appareil
+      // inconnu, et le diagnostic le dit.
+      await _delivery.diagnostic(userId, 'feuille_cle_etrangere',
+          deviceId: appareil.id,
+          detail: {
+            'conversation': conversationId,
+            'identite': u.identity,
+            'feuille': u.leafIndex,
+          });
+    }
 
     final aAjouter = actifs
-        .where((d) => !membres.containsKey(d.mlsIdentity))
+        .where((d) => !fiables.contains(d.mlsIdentity))
         .where((d) => !_ajoutsEchoues.contains('$conversationId/${d.id}'))
         .toList();
-    final aRetirer = <int>[
-      for (final e in membres.entries)
-        if (!identitesActives.containsKey(e.key) && e.key != appareil.mlsIdentity) e.value,
-    ];
     if (aAjouter.isEmpty && aRetirer.isEmpty) return;
 
     // Ajouts : un KeyPackage réclamé par appareil ; sans paquet, en attente.
@@ -559,6 +573,74 @@ class MlsConversationService {
       if (tentative >= 2) rethrow;
       return reconcileMembership(conversationId, tentative: tentative + 1);
     }
+  }
+
+  /// Range les feuilles du groupe au regard du registre d'appareils.
+  ///
+  /// - [fiables] : les identités dont une feuille porte bien la clé publiée
+  ///   au registre (ou dont le registre n'a pas de clé — une ligne trop
+  ///   ancienne : rien à comparer, donc rien à conclure) ;
+  /// - [aRetirer] : les feuilles à sortir du groupe — appareil plus actif,
+  ///   ou clé qui n'est pas celle du registre ;
+  /// - [usurpatrices] : parmi elles, celles qui portent l'identité d'un
+  ///   appareil ACTIF avec une autre clé.
+  ///
+  /// Feuille par feuille, jamais par une table indexée sur l'identité : deux
+  /// feuilles de même identité — la vraie et l'usurpatrice — s'y écrasaient,
+  /// et l'une des deux devenait invisible.
+  ///
+  /// La feuille de cet appareil n'est jamais retirée (on ne se retire pas
+  /// soi-même par un commit). À MON identité, une feuille d'une autre clé
+  /// n'est retirée que si une autre feuille porte bien la mienne : seule à
+  /// mon nom, c'est moi — et c'est ma fiche de registre qui serait périmée.
+  @visibleForTesting
+  static ({
+    Set<String> fiables,
+    List<int> aRetirer,
+    List<MembreDto> usurpatrices,
+  }) trierFeuilles({
+    required List<MembreDto> membres,
+    required List<MlsDeviceRecord> actifs,
+    required MlsDeviceRecord moi,
+  }) {
+    final cleDe = <String, Uint8List>{
+      for (final d in actifs) d.mlsIdentity: d.signatureKey,
+      moi.mlsIdentity: moi.signatureKey,
+    };
+    final fiables = <String>{};
+    final aRetirer = <int>[];
+    final usurpatrices = <MembreDto>[];
+    final miennesFiables = membres.any((m) =>
+        m.identity == moi.mlsIdentity &&
+        moi.signatureKey.isNotEmpty &&
+        _memesOctets(moi.signatureKey, m.signatureKey));
+    for (final m in membres) {
+      if (m.identity == moi.mlsIdentity && !miennesFiables) {
+        fiables.add(m.identity);
+        continue;
+      }
+      final attendue = cleDe[m.identity];
+      if (attendue == null) {
+        aRetirer.add(m.leafIndex);
+        continue;
+      }
+      final comparable = attendue.isNotEmpty && m.signatureKey.isNotEmpty;
+      if (!comparable || _memesOctets(attendue, m.signatureKey)) {
+        fiables.add(m.identity);
+      } else {
+        aRetirer.add(m.leafIndex);
+        usurpatrices.add(m);
+      }
+    }
+    return (fiables: fiables, aRetirer: aRetirer, usurpatrices: usurpatrices);
+  }
+
+  static bool _memesOctets(Uint8List a, Uint8List b) {
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
   }
 
   /// Appareils dont l'ajout a échoué dans le moteur, par conversation

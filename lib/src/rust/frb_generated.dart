@@ -688,9 +688,10 @@ return raw as Uint8List; }
 
 @protected MembreDto dco_decode_membre_dto(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
 final arr = raw as List<dynamic>;
-                if (arr.length != 2) throw Exception('unexpected arr length: expect 2 but see ${arr.length}');
+                if (arr.length != 3) throw Exception('unexpected arr length: expect 3 but see ${arr.length}');
                 return MembreDto(leafIndex: dco_decode_u_32(arr[0]),
-identity: dco_decode_String(arr[1]),); }
+identity: dco_decode_String(arr[1]),
+signatureKey: dco_decode_list_prim_u_8_strict(arr[2]),); }
 
 @protected Uint8List? dco_decode_opt_list_prim_u_8_strict(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
 return raw == null ? null : dco_decode_list_prim_u_8_strict(raw); }
@@ -790,7 +791,8 @@ var len_ = sse_decode_i_32(deserializer);
 @protected MembreDto sse_decode_membre_dto(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
 var var_leafIndex = sse_decode_u_32(deserializer);
 var var_identity = sse_decode_String(deserializer);
-return MembreDto(leafIndex: var_leafIndex, identity: var_identity); }
+var var_signatureKey = sse_decode_list_prim_u_8_strict(deserializer);
+return MembreDto(leafIndex: var_leafIndex, identity: var_identity, signatureKey: var_signatureKey); }
 
 @protected Uint8List? sse_decode_opt_list_prim_u_8_strict(SseDeserializer deserializer){ // Codec=Sse (Serialization based), see doc to use other codecs
 
@@ -886,6 +888,7 @@ sse_encode_i_32(self.length, serializer);
 @protected void sse_encode_membre_dto(MembreDto self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
 sse_encode_u_32(self.leafIndex, serializer);
 sse_encode_String(self.identity, serializer);
+sse_encode_list_prim_u_8_strict(self.signatureKey, serializer);
  }
 
 @protected void sse_encode_opt_list_prim_u_8_strict(Uint8List? self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs

@@ -164,8 +164,8 @@ class _Moteur implements Moteur {
   Future<InstantaneDto> instantane({required String conversationId}) async {
     final e = epoch;
     if (e == null) throw StateError('group_unknown');
-    return InstantaneDto(epoch: BigInt.from(e), membres: const [
-      MembreDto(leafIndex: 0, identity: 'u1:stable-1'),
+    return InstantaneDto(epoch: BigInt.from(e), membres: [
+      MembreDto(leafIndex: 0, identity: 'u1:stable-1', signatureKey: Uint8List(0)),
     ]);
   }
 

@@ -69,9 +69,9 @@ class _Moteur implements Moteur {
   @override
   Future<InstantaneDto> instantane({required String conversationId}) async =>
       InstantaneDto(epoch: BigInt.from(epoch), membres: [
-        const MembreDto(leafIndex: 0, identity: 'u1:stable-1'),
+        MembreDto(leafIndex: 0, identity: 'u1:stable-1', signatureKey: Uint8List(0)),
         // Le téléphone révoqué : plus parmi les appareils actifs.
-        if (!retire) const MembreDto(leafIndex: 1, identity: 'u1:telephone-vole'),
+        if (!retire) MembreDto(leafIndex: 1, identity: 'u1:telephone-vole', signatureKey: Uint8List(0)),
       ]);
 
   @override

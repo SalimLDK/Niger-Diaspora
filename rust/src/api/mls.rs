@@ -28,6 +28,8 @@ unsafe impl Sync for Moteur {}
 pub struct MembreDto {
     pub leaf_index: u32,
     pub identity: String,
+    /// Clé publique de signature de la feuille (voir `MemberInfo`).
+    pub signature_key: Vec<u8>,
 }
 
 #[derive(Debug, Clone)]
@@ -90,6 +92,7 @@ fn instantane(s: crate::engine::GroupSnapshot) -> InstantaneDto {
             .map(|m| MembreDto {
                 leaf_index: m.leaf_index,
                 identity: String::from_utf8_lossy(&m.identity).into_owned(),
+                signature_key: m.signature_key,
             })
             .collect(),
     }

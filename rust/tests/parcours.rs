@@ -38,6 +38,25 @@ fn alice_et_bob(conv: &str) -> (MlsEngine, MlsEngine) {
     (alice, bob)
 }
 
+/// Chaque feuille porte la clé de signature de SON appareil : c'est ce que
+/// l'app compare au registre pour démasquer une feuille qui emprunte
+/// l'identité d'un autre (le `BasicCredential` n'est qu'une chaîne).
+#[test]
+fn les_feuilles_portent_la_cle_de_leur_appareil() {
+    let conv = "conv-cles-feuilles";
+    let (mut alice, mut bob) = alice_et_bob(conv);
+    let cle_alice = alice.public_signature_key().to_vec();
+    let cle_bob = bob.public_signature_key().to_vec();
+    assert_ne!(cle_alice, cle_bob);
+
+    for snap in [alice.snapshot(conv).unwrap(), bob.snapshot(conv).unwrap()] {
+        for m in &snap.members {
+            let attendue = if m.identity.starts_with(b"alice:") { &cle_alice } else { &cle_bob };
+            assert_eq!(&m.signature_key, attendue);
+        }
+    }
+}
+
 #[test]
 fn parcours_nominal_1_a_1() {
     let conv = "conv-nominal";

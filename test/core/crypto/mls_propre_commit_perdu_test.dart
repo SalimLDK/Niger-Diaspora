@@ -129,8 +129,8 @@ class _Moteur implements Moteur {
   @override
   Future<InstantaneDto> instantane({required String conversationId}) async =>
       InstantaneDto(epoch: BigInt.from(epoch), membres: [
-        const MembreDto(leafIndex: 0, identity: 'u1:stable-1'),
-        if (fantome) const MembreDto(leafIndex: 1, identity: 'u1:ancienne-install'),
+        MembreDto(leafIndex: 0, identity: 'u1:stable-1', signatureKey: Uint8List(0)),
+        if (fantome) MembreDto(leafIndex: 1, identity: 'u1:ancienne-install', signatureKey: Uint8List(0)),
       ]);
 
   @override

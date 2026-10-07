@@ -63,6 +63,12 @@ pub struct GroupSnapshot {
 pub struct MemberInfo {
     pub leaf_index: u32,
     pub identity: Vec<u8>,
+    /// La clé publique de signature portée par la FEUILLE — celle avec
+    /// laquelle MLS valide ce que ce membre émet. L'identité d'un
+    /// `BasicCredential` n'est qu'une chaîne déclarée : seule cette clé,
+    /// comparée à celle du registre d'appareils, dit que la feuille est bien
+    /// l'appareil qu'elle prétend être.
+    pub signature_key: Vec<u8>,
 }
 
 #[derive(Debug)]
@@ -142,6 +148,7 @@ fn snapshot_of(group: &MlsGroup) -> GroupSnapshot {
                 identity: BasicCredential::try_from(m.credential)
                     .map(|c| c.identity().to_vec())
                     .unwrap_or_default(),
+                signature_key: m.signature_key,
             })
             .collect(),
     }

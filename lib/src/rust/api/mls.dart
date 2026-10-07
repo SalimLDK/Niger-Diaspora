@@ -150,15 +150,17 @@ final List<MembreDto> membres;
 class MembreDto  {
                 final int leafIndex;
 final String identity;
+/// Clé publique de signature de la feuille (voir `MemberInfo`).
+final Uint8List signatureKey;
 
-                const MembreDto({required this.leafIndex ,required this.identity ,});
+                const MembreDto({required this.leafIndex ,required this.identity ,required this.signatureKey ,});
 
 
 
 
 
         @override
-        int get hashCode => leafIndex.hashCode^identity.hashCode;
+        int get hashCode => leafIndex.hashCode^identity.hashCode^signatureKey.hashCode;
 
 
 
@@ -167,7 +169,7 @@ final String identity;
             identical(this, other) ||
             other is MembreDto &&
                 runtimeType == other.runtimeType
-                && leafIndex == other.leafIndex&& identity == other.identity;
+                && leafIndex == other.leafIndex&& identity == other.identity&& signatureKey == other.signatureKey;
 
             }
             
