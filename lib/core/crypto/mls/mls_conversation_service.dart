@@ -80,6 +80,27 @@ class MlsAppareilRevoque implements Exception {
   String toString() => 'MlsAppareilRevoque($deviceId)';
 }
 
+/// L'envoi est suspendu : une feuille qui doit quitter le groupe y est
+/// encore — un appareil RÉVOQUÉ (téléphone volé) ou une feuille à clé
+/// étrangère —, et son retrait vient d'échouer.
+///
+/// **Le choix, et pourquoi.** Chiffrer quand même enverrait le message à
+/// celui-là même qu'on a voulu exclure : c'est précisément ce qu'une
+/// révocation doit empêcher. Mais suspendre ne doit pas être une impasse :
+/// le retrait est retenté à chaque envoi (sans le délai de
+/// `delaiAvantNouveauRetrait`), la discussion affiche le bandeau « chiffrement
+/// bloqué » dont « Réparer » reconstruit le groupe avec les seuls appareils
+/// actifs, et le message reste en échec, prêt à renvoyer. Une simple
+/// ancienne installation (inactive, non révoquée) ne suspend rien : ce n'est
+/// pas une menace, et bloquer pour elle rendrait la messagerie fragile.
+class MlsEnvoiSuspendu implements Exception {
+  final String conversationId;
+  const MlsEnvoiSuspendu(this.conversationId);
+
+  @override
+  String toString() => 'MlsEnvoiSuspendu($conversationId)';
+}
+
 /// Orchestration MLS d'une conversation : le seul service que la couche
 /// messages appellera (plan MLS § 7.3).
 ///
@@ -457,11 +478,32 @@ class MlsConversationService {
           });
     }
 
+    // Les feuilles qui ne doivent PAS recevoir le prochain message : les
+    // usurpatrices, et les appareils révoqués. Une erreur de lecture du
+    // registre ne suspend rien — on ne bloque pas sur un doute réseau.
+    final revoquees = <String>{};
+    try {
+      revoquees.addAll(await _delivery.identitesRevoquees(participants));
+    } catch (e) {
+      await _delivery.diagnostic(userId, 'revoques_illisibles',
+          deviceId: appareil.id,
+          detail: {'conversation': conversationId, 'code': _code(e)});
+    }
+    final dangereuses = <int>{
+      for (final u in usurpatrices) u.leafIndex,
+      for (final m in snap.membres)
+        if (revoquees.contains(m.identity) && m.identity != appareil.mlsIdentity)
+          m.leafIndex,
+    };
+
     final aAjouter = actifs
         .where((d) => !fiables.contains(d.mlsIdentity))
         .where((d) => !_ajoutsEchoues.contains('$conversationId/${d.id}'))
         .toList();
-    if (aAjouter.isEmpty && aRetirer.isEmpty) return;
+    if (aAjouter.isEmpty && aRetirer.isEmpty) {
+      _leverSuspension(conversationId);
+      return;
+    }
 
     // Ajouts : un KeyPackage réclamé par appareil ; sans paquet, en attente.
     final paquets = <Uint8List>[];
@@ -520,8 +562,11 @@ class MlsConversationService {
         await _publierArbre(conversationId, moteur);
       }
       final dernierEchec = _retraitsEchoues[conversationId];
+      // Le délai ne vaut pas pour une feuille dangereuse : c'est l'envoi
+      // qu'elle suspend, il faut retenter à chaque fois.
       final retrait = aRetirer.isEmpty ||
               (dernierEchec != null &&
+                  dangereuses.isEmpty &&
                   _maintenant().difference(dernierEchec) < delaiAvantNouveauRetrait)
           ? null
           : await () async {
@@ -564,6 +609,14 @@ class MlsConversationService {
         // personne ne peut rejoindre le groupe par commit externe.
         await _publierArbre(conversationId, moteur);
       }
+      if (dangereuses.isNotEmpty && retrait == null) {
+        _suspendre(conversationId);
+        await _delivery.diagnostic(userId, 'envoi_suspendu',
+            deviceId: appareil.id,
+            detail: {'conversation': conversationId, 'feuilles': dangereuses.length});
+        throw MlsEnvoiSuspendu(conversationId);
+      }
+      _leverSuspension(conversationId);
     } on EpochConflict catch (e) {
       // Quelqu'un a commité avant moi : je jette le mien, je traite le sien,
       // et je recommence une fois — il a peut-être fait le même ajout.
@@ -944,8 +997,26 @@ class MlsConversationService {
   final Set<String> _bloquees = {};
   final StreamController<String> _blocages = StreamController.broadcast();
 
-  /// Ce groupe est-il bloqué sur cet appareil ? Voir [reparer].
-  bool estBloquee(String conversationId) => _bloquees.contains(conversationId);
+  /// Conversations dont l'envoi est suspendu ([MlsEnvoiSuspendu]). Séparées
+  /// de [_bloquees] : un retrait réussi lève la suspension, il ne doit pas
+  /// lever pour autant un blocage d'une autre cause.
+  final Set<String> _suspendues = {};
+
+  void _suspendre(String conversationId) {
+    final avant = estBloquee(conversationId);
+    _suspendues.add(conversationId);
+    if (!avant) _blocages.add(conversationId);
+  }
+
+  void _leverSuspension(String conversationId) {
+    if (!_suspendues.remove(conversationId)) return;
+    if (!estBloquee(conversationId)) _blocages.add(conversationId);
+  }
+
+  /// Ce groupe est-il bloqué sur cet appareil — arbre qui ne peut plus
+  /// avancer, ou envoi suspendu ? Voir [reparer].
+  bool estBloquee(String conversationId) =>
+      _bloquees.contains(conversationId) || _suspendues.contains(conversationId);
 
   /// L'identifiant d'une conversation dont l'état de blocage vient de changer.
   Stream<String> get blocages => _blocages.stream;
@@ -1002,7 +1073,12 @@ class MlsConversationService {
     try {
       await _ecrireMemo(_cleReconstruction(conversationId), iso);
     } catch (_) {}
-    if (_bloquees.remove(conversationId)) _blocages.add(conversationId);
+    // Le nouveau groupe ne contient que les appareils actifs : blocage et
+    // suspension tombent ensemble.
+    final etait = estBloquee(conversationId);
+    _bloquees.remove(conversationId);
+    _suspendues.remove(conversationId);
+    if (etait) _blocages.add(conversationId);
     await _delivery.diagnostic(userId, 'reconstruction_appliquee',
         detail: {'conversation': conversationId});
   }

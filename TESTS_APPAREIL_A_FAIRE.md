@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1362 cases à cocher, 55 cochées** — 309 entrées sur 323 ont encore des cases ouvertes.
+**1365 cases à cocher, 55 cochées** — 310 entrées sur 324 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -96,7 +96,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 6 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (130)
+**P1 — fonction importante, jamais vérifiée** (131)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -146,6 +146,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [⬜ Exclure un membre d'un groupe échouait toujours (2026-09-17)](#-exclure-un-membre-dun-groupe-échouait-toujours-2026-09-17) · *Groupes*
 - 4 · [⬜ Noms des candidats à l'invitation et à l'ajout en appel (2026-09-14)](#-noms-des-candidats-à-linvitation-et-à-lajout-en-appel-2026-09-14) · *Groupes*
 - 3 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
+- 3 · [⬜ Appareil révoqué encore dans le groupe : l'envoi est suspendu, « Réparer » en sort (2026-10-07)](#-appareil-révoqué-encore-dans-le-groupe--lenvoi-est-suspendu--réparer--en-sort-2026-10-07) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ MLS : une feuille du groupe doit porter la clé de l'appareil qu'elle prétend être (2026-10-07)](#-mls--une-feuille-du-groupe-doit-porter-la-clé-de-lappareil-quelle-prétend-être-2026-10-07) · *Chiffrement de bout en bout et clés*
 - 5 · [⬜ Sauvegarde du téléphone : bannières, aperçus MLS et réponses en attente scellés (2026-10-07)](#-sauvegarde-du-téléphone--bannières-aperçus-mls-et-réponses-en-attente-scellés-2026-10-07) · *Chiffrement de bout en bout et clés*
 - 6 · [⬜ MLS : groupe bloqué — bandeau d'alerte et « Réparer » (2026-10-04)](#-mls--groupe-bloqué--bandeau-dalerte-et--réparer--2026-10-04) · *Chiffrement de bout en bout et clés*
@@ -369,7 +370,7 @@ Par domaine :
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 0 faites
 - [2. Messagerie](#2-messagerie) — 354 à faire, 31 faites
 - [3. Groupes](#3-groupes) — 128 à faire, 0 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 148 à faire, 4 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 151 à faire, 4 faites
 - [5. Appels](#5-appels) — 24 à faire, 1 faites
 - [6. Notifications et push](#6-notifications-et-push) — 124 à faire, 6 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 36 à faire, 0 faites
@@ -4104,6 +4105,29 @@ conservée plutôt que de conclure « non » à tort (sinon le titre clignote).
 # 4. Chiffrement de bout en bout et clés
 
 Signal 1:1 et groupes, repli AES, clés dérivées, sauvegarde et transfert des clés, et tout ce qui pouvait partir en clair.
+
+---
+
+## ⬜ Appareil révoqué encore dans le groupe : l'envoi est suspendu, « Réparer » en sort (2026-10-07)
+
+**Priorité P1** · importance 4/5 — app seule.
+
+Si le retrait d'un appareil **révoqué** (ou d'une feuille à clé étrangère)
+échoue, le message n'est plus chiffré pour lui : l'envoi est suspendu, le
+bandeau « chiffrement bloqué » s'affiche, le retrait est retenté à chaque
+envoi, et « Réparer » reconstruit le groupe. Une ancienne installation
+simplement inactive ne bloque rien. Tests :
+`test/core/crypto/mls_envoi_suspendu_test.dart`.
+
+À vérifier (A et B, discussion chiffrée ; B a deux appareils B1, B2) :
+
+- [ ] B révoque B2 depuis B1 (Réglages → Appareils) ; A envoie : le message
+      part, B2 sort du groupe (`conversation_devices`), B1 le lit.
+- [ ] Cas nominal sans révocation : aucun bandeau, aucun `envoi_suspendu`
+      dans `mls_diagnostics`.
+- [ ] (Si on sait provoquer l'échec du retrait.) Bandeau affiché chez A,
+      message en échec ; « Réparer » (A admin ou 1:1) : le groupe repart
+      sans B2 et le renvoi passe.
 
 ---
 

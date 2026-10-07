@@ -279,6 +279,26 @@ class MlsDelivery {
         .toList();
   }
 
+  /// Les identités MLS des appareils RÉVOQUÉS de ces comptes.
+  ///
+  /// Ce qui distingue, parmi les feuilles à retirer d'un groupe, un téléphone
+  /// volé (révoqué par son propriétaire) d'une simple ancienne installation :
+  /// tant qu'un appareil révoqué reste dans l'arbre, l'envoi est suspendu
+  /// (`MlsEnvoiSuspendu`).
+  Future<Set<String>> identitesRevoquees(List<String> userIds) async {
+    if (userIds.isEmpty) return const {};
+    await _auth();
+    final rows = await _client
+        .from('mls_devices')
+        .select('mls_identity')
+        .inFilter('user_id', userIds)
+        .not('revoked_at', 'is', null);
+    return {
+      for (final r in (rows as List).cast<Map<String, dynamic>>())
+        if (r['mls_identity'] is String) r['mls_identity'] as String,
+    };
+  }
+
   /// Vrai si [userId] a déjà eu un appareil dans le groupe de cette
   /// conversation — actif ou non, révoqué ou non : c'est la place qu'il y
   /// occupait qui compte, pas l'appareil qui l'occupait.
