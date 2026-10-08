@@ -1,4 +1,3 @@
-import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
@@ -7,11 +6,7 @@ import 'supabase_auth_bridge.dart';
 
 /// Service pour créer automatiquement des messages d'appel dans les conversations
 class CallMessageService {
-  final FirebaseDatabase _database;
-
-  CallMessageService({
-    FirebaseDatabase? database,
-  }) : _database = database ?? FirebaseDatabase.instance;
+  CallMessageService();
 
   /// Crée un message d'appel dans la conversation entre deux utilisateurs
   ///
@@ -57,10 +52,13 @@ class CallMessageService {
       }
       debugPrint('appel: conversationId = $convId');
 
-      // S'assurer que les participants existent dans RTDB pour les permissions
-      final participantIds = groupParticipantIds ?? [callerId, calleeId];
-      await _ensureParticipantsInRTDB(convId, participantIds);
-      debugPrint('appel: Participants ensured in RTDB');
+      // CODE INUTILISÉ — mis en commentaire le 2026-10-08, à supprimer.
+      // Les participants n'étaient écrits dans RTDB que « pour les
+      // permissions » de `messages/`, que plus rien n'écrit : le message
+      // d'appel part dans Supabase. Les règles cibles ferment ce nœud
+      // (database.rules.strict-cible.json, banc conversations_rtdb_fermees).
+      // final participantIds = groupParticipantIds ?? [callerId, calleeId];
+      // await _ensureParticipantsInRTDB(convId, participantIds);
 
       // Créer le message d'appel
       final messageContent = _getCallMessageContent(
@@ -214,29 +212,30 @@ class CallMessageService {
     });
   }
 
-  /// S'assure que les participants existent dans RTDB pour les permissions d'écriture
-  Future<void> _ensureParticipantsInRTDB(
-    String conversationId,
-    List<String> participantIds,
-  ) async {
-    try {
-      final participantsRef = _database
-          .ref()
-          .child('conversations')
-          .child(conversationId)
-          .child('participants');
-
-      // Écrire tous les participants
-      final Map<String, bool> participantsMap = {
-        for (final id in participantIds) id: true,
-      };
-      await participantsRef.update(participantsMap);
-      debugPrint('appel: Participants written to RTDB: $participantIds');
-    } catch (e) {
-      debugPrint('appel: ERROR _ensureParticipantsInRTDB - $e');
-      // Continue anyway - maybe participants already exist
-    }
-  }
+  // CODE INUTILISÉ — mis en commentaire le 2026-10-08, à supprimer (voir plus haut).
+  // /// S'assure que les participants existent dans RTDB pour les permissions d'écriture
+  // Future<void> _ensureParticipantsInRTDB(
+  //   String conversationId,
+  //   List<String> participantIds,
+  // ) async {
+  //   try {
+  //     final participantsRef = _database
+  //         .ref()
+  //         .child('conversations')
+  //         .child(conversationId)
+  //         .child('participants');
+  //
+  //     // Écrire tous les participants
+  //     final Map<String, bool> participantsMap = {
+  //       for (final id in participantIds) id: true,
+  //     };
+  //     await participantsRef.update(participantsMap);
+  //     debugPrint('appel: Participants written to RTDB: $participantIds');
+  //   } catch (e) {
+  //     debugPrint('appel: ERROR _ensureParticipantsInRTDB - $e');
+  //     // Continue anyway - maybe participants already exist
+  //   }
+  // }
 
   /// Génère le contenu du message d'appel selon le type et le statut
   String _getCallMessageContent(

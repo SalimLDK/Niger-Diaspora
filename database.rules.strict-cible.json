@@ -16,7 +16,7 @@
             "$conversationId": {
                 "participants": {
                     ".read": "auth != null && data.hasChild(auth.uid)",
-                    ".write": "auth != null && (!data.exists() || data.hasChild(auth.uid))"
+                    ".write": "false"
                 }
             }
         },
@@ -27,8 +27,8 @@
                     "expiresAt",
                     "mediaExpiresAt"
                 ],
-                ".read": "auth != null && root.child('conversations').child($conversationId).child('participants').hasChild(auth.uid)",
-                ".write": "auth != null && root.child('conversations').child($conversationId).child('participants').hasChild(auth.uid)",
+                ".read": "false",
+                ".write": "false",
                 "$messageId": {
                     ".validate": "newData.hasChildren(['senderId', 'type', 'createdAt'])",
                     "content": {
@@ -69,9 +69,9 @@
         },
         "typing": {
             "$conversationId": {
-                ".read": "auth != null && root.child('conversations').child($conversationId).child('participants').hasChild(auth.uid)",
+                ".read": "false",
                 "$userId": {
-                    ".write": "auth != null && auth.uid === $userId && root.child('conversations').child($conversationId).child('participants').hasChild(auth.uid)",
+                    ".write": "false",
                     ".validate": "newData.isBoolean()"
                 }
             }

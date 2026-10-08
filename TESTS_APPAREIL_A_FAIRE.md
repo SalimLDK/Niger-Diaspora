@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1373 cases à cocher, 55 cochées** — 314 entrées sur 328 ont encore des cases ouvertes.
+**1376 cases à cocher, 55 cochées** — 315 entrées sur 329 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -96,7 +96,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 6 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (132)
+**P1 — fonction importante, jamais vérifiée** (133)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -189,6 +189,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [⬜ Photo de profil : on choisit son cadrage (2026-09-14)](#-photo-de-profil--on-choisit-son-cadrage-2026-09-14) · *Accueil, profil et réglages*
 - 6 · [⬜ Champ ville : recherche dans le référentiel (2026-09-13)](#-champ-ville--recherche-dans-le-référentiel-2026-09-13) · *Accueil, profil et réglages*
 - 7 · [Bascule en anglais — ~1 600 chaînes branchées, rien vu à l'écran (2026-08-06)](#bascule-en-anglais--1-600-chaînes-branchées-rien-vu-à-lécran-2026-08-06) · *Design, thème, langue et mise en page* · bloqué
+- 3 · [⬜ RTDB : conversations, messages et frappe fermés — cible à déployer (2026-10-08)](#-rtdb--conversations-messages-et-frappe-fermés--cible-à-déployer-2026-10-08) · *Backend, sécurité et observabilité*
 - 3 · [⬜ Les echecs attrapes remontent enfin a Crashlytics (2026-09-14)](#-les-echecs-attrapes-remontent-enfin-a-crashlytics-2026-09-14) · *Backend, sécurité et observabilité*
 - 5 · [⬜ Balayage des invariants de données — 2 anomalies en production (2026-09-14)](#-balayage-des-invariants-de-données--2-anomalies-en-production-2026-09-14) · *Backend, sécurité et observabilité* · bloqué
 - 1 · [Storage — énumération des médias coupée (2026-08-04, DÉPLOYÉ)](#storage--énumération-des-médias-coupée-2026-08-04-déployé) · *Backend, sécurité et observabilité*
@@ -383,7 +384,7 @@ Par domaine :
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 62 à faire, 0 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 58 à faire, 5 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 108 à faire, 5 faites
-- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 65 à faire, 2 faites
+- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 68 à faire, 2 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 46 à faire, 1 faites
 - [15. Site web](#15-site-web) — 23 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 19 à faire, 0 faites
@@ -9971,6 +9972,37 @@ parce qu'il change un **comportement**, pas seulement un habillage :
 # 13. Backend, sécurité et observabilité
 
 Supabase et Firebase côté serveur, accès anon, stockage, journaux, Crashlytics, back-office.
+
+---
+
+## ⬜ RTDB : conversations, messages et frappe fermés — cible à déployer (2026-10-08)
+
+**Priorité P1** · importance 4/5 — règles RTDB : **`database.rules.strict-cible.json`, pas encore déployé**.
+
+`conversations/<id>/participants` acceptait une écriture dès que le nœud
+n'existait pas — le cas de presque toutes les conversations depuis la
+migration vers Supabase. N'importe quel compte s'y inscrivait, puis écrivait
+`messages/<id>` et `typing/<id>`. Plus rien de vivant ne s'en sert : la
+cible les ferme. Mesuré sur l'émulateur le 2026-10-08 :
+`tools/rules_tests/conversations_rtdb_fermees.mjs` — règles déployées :
+4 accès ouverts ; cible : **fermée** ; `signalisation_appels.mjs` sur la
+cible : **Parcours nominal : INTACT** (identique à la référence).
+
+Procédure (CLAUDE.md, « Règles RTDB ») :
+
+1. `MSYS_NO_PATHCONV=1 firebase database:get "/.settings/rules"` — vérifier
+   que la production est bien `database.rules.json` (la cible n'en diffère
+   que par ces trois nœuds).
+2. Émulateur + les deux bancs ci-dessus sur la cible.
+3. Copier la cible dans `database.rules.json`, puis
+   `firebase deploy --only database`.
+
+- [ ] Après déploiement : appel 1:1 et de groupe, émis et reçus — la
+      fiche d'appel apparaît dans la discussion.
+- [ ] Discussion ouverte : « en train d'écrire » s'affiche toujours (il
+      passe par Supabase, pas par RTDB).
+- [ ] Recherche (onglet Rechercher) : une discussion se retrouve par son
+      nom — elle passait par une collection Firestore vide.
 
 ---
 
