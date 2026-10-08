@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1370 cases à cocher, 55 cochées** — 313 entrées sur 327 ont encore des cases ouvertes.
+**1373 cases à cocher, 55 cochées** — 314 entrées sur 328 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -231,7 +231,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (94)
+**P2 — fonction secondaire ou cas limite** (95)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -265,6 +265,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⬜ Fiche « Membres » d'un groupe : « Erreur de chargement » (2026-09-09)](#-fiche--membres--dun-groupe---erreur-de-chargement--2026-09-09) · *Groupes*
 - 3 · [Créer un sondage était impossible pour tout le monde (2026-08-23)](#créer-un-sondage-était-impossible-pour-tout-le-monde-2026-08-23) · *Groupes*
 - 3 · [Mentions de groupe : vérifié sur SM A515F (2026-08-23)](#mentions-de-groupe--vérifié-sur-sm-a515f-2026-08-23) · *Groupes*
+- 3 · [⬜ Registre MLS servi aux seuls interlocuteurs ; KeyPackages réclamables par eux seuls (2026-10-08)](#-registre-mls-servi-aux-seuls-interlocuteurs--keypackages-réclamables-par-eux-seuls-2026-10-08) · *Chiffrement de bout en bout et clés*
 - 2 · [⬜ MLS : un groupe rejoint (Welcome ou arbre public) est contrôlé avant d'être accepté (2026-10-08)](#-mls--un-groupe-rejoint-welcome-ou-arbre-public-est-contrôlé-avant-dêtre-accepté-2026-10-08) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ « Appareils enregistrés » et « Sauvegarde des clés » ne montrent plus Signal à un compte passé à MLS (2026-09-16)](#--appareils-enregistrés--et--sauvegarde-des-clés--ne-montrent-plus-signal-à-un-compte-passé-à-mls-2026-09-16) · *Chiffrement de bout en bout et clés*
 - 6 · [⬜ Les deux bandeaux de clés retirés : ils promettaient faux (2026-09-16)](#-les-deux-bandeaux-de-clés-retirés--ils-promettaient-faux-2026-09-16) · *Chiffrement de bout en bout et clés*
@@ -373,7 +374,7 @@ Par domaine :
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 0 faites
 - [2. Messagerie](#2-messagerie) — 354 à faire, 31 faites
 - [3. Groupes](#3-groupes) — 128 à faire, 0 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 156 à faire, 4 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 159 à faire, 4 faites
 - [5. Appels](#5-appels) — 24 à faire, 1 faites
 - [6. Notifications et push](#6-notifications-et-push) — 124 à faire, 6 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 36 à faire, 0 faites
@@ -4108,6 +4109,26 @@ conservée plutôt que de conclure « non » à tort (sinon le titre clignote).
 # 4. Chiffrement de bout en bout et clés
 
 Signal 1:1 et groupes, repli AES, clés dérivées, sauvegarde et transfert des clés, et tout ce qui pouvait partir en clair.
+
+---
+
+## ⬜ Registre MLS servi aux seuls interlocuteurs ; KeyPackages réclamables par eux seuls (2026-10-08)
+
+**Priorité P2** · importance 3/5 — migration `20261008090000_mls_registre_entre_interlocuteurs.sql`, indépendante de l'app.
+
+Tout compte connecté lisait les appareils de tous (noms, `last_seen_at`) et
+pouvait épuiser les KeyPackages de n'importe qui. Désormais : appareils
+visibles par qui partage une conversation, réclamation refusée sinon.
+Banc : `tools/rls_tests/mls_registre_entre_interlocuteurs.sql` (7 OK en
+local ; 3 ÉCHEC avec les policies actuelles).
+
+À vérifier (après `db push`) :
+
+- [ ] Nouvelle discussion 1:1 chiffrée entre deux comptes qui ne s'étaient
+      jamais écrit : le premier message part et se lit.
+- [ ] Ajout d'un membre à un groupe chiffré : il lit les messages suivants.
+- [ ] Réglages → Appareils : la liste des siens s'affiche ; le code de
+      sécurité d'un contact (discussion commune) aussi.
 
 ---
 
