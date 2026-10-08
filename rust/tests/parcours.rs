@@ -6,7 +6,10 @@
 
 use std::path::PathBuf;
 
-use diaspo_mls::{preview_without_state, MlsEngine, MlsError, Processed};
+use diaspo_mls::{
+    balayer_copies_orphelines, preview_without_state, MlsEngine, MlsError, Processed,
+    AGE_COPIE_ORPHELINE,
+};
 
 fn base(nom: &str) -> PathBuf {
     let dir = std::env::temp_dir().join(format!("diaspo_mls_spike_{}", std::process::id()));
@@ -282,7 +285,7 @@ fn l_apercu_ne_consomme_pas_le_cliquet() {
     //    encore pouvoir le lire. C'est tout l'enjeu.
     let mut bob2 = MlsEngine::open(&chemin_bob, "bob", "b1").unwrap();
     match bob2.process_incoming(conv, &ct, &a).unwrap() {
-        Processed::Application { clair: clair, .. } => assert_eq!(clair, "message qui arrive".as_bytes()),
+        Processed::Application { clair, .. } => assert_eq!(clair, "message qui arrive".as_bytes()),
         _ => panic!("attendu un message applicatif"),
     }
 
@@ -290,7 +293,7 @@ fn l_apercu_ne_consomme_pas_le_cliquet() {
     let a2 = aad(conv, "m2", "a1");
     let ct2 = alice.encrypt(conv, "et la suite".as_bytes(), &a2).unwrap();
     match bob2.process_incoming(conv, &ct2, &a2).unwrap() {
-        Processed::Application { clair: clair, .. } => assert_eq!(clair, "et la suite".as_bytes()),
+        Processed::Application { clair, .. } => assert_eq!(clair, "et la suite".as_bytes()),
         _ => panic!("attendu un message applicatif"),
     }
 
@@ -320,4 +323,39 @@ fn l_emetteur_est_celui_que_mls_authentifie() {
         }
         autre => panic!("attendu un message applicatif, obtenu {autre:?}"),
     }
+}
+
+/// Une copie d'aperçu orpheline — processus tué entre `VACUUM INTO` et le
+/// nettoyage — est une base complète figée à un epoch passé : elle garde des
+/// secrets que le cliquet devait effacer. Elle est balayée dès qu'elle a
+/// passé l'âge d'un aperçu en cours ; une copie fraîche (un aperçu qui tourne
+/// dans l'autre isolate) est laissée.
+#[test]
+fn les_copies_d_apercu_orphelines_sont_balayees() {
+    let chemin = base("balayage");
+    let dossier = chemin.parent().unwrap();
+    let tronc = chemin.file_stem().unwrap().to_string_lossy().into_owned();
+    let vieille = dossier.join(format!("{tronc}.apercu-1-1.sqlite"));
+    let vieux_wal = dossier.join(format!("{tronc}.apercu-1-1.sqlite-wal"));
+    let fraiche = dossier.join(format!("{tronc}.apercu-2-2.sqlite"));
+    let voisine = dossier.join("autre.apercu-3-3.sqlite");
+    for f in [&vieille, &vieux_wal, &fraiche, &voisine] {
+        std::fs::write(f, b"secrets").unwrap();
+    }
+    let il_y_a_longtemps = std::time::SystemTime::now() - AGE_COPIE_ORPHELINE * 2;
+    for f in [&vieille, &vieux_wal, &voisine] {
+        std::fs::File::options().write(true).open(f).unwrap().set_modified(il_y_a_longtemps).unwrap();
+    }
+
+    // L'ouverture du moteur balaie.
+    let _moteur = MlsEngine::open(&chemin, "zoe", "z1").unwrap();
+
+    assert!(!vieille.exists(), "la copie orpheline doit partir");
+    assert!(!vieux_wal.exists(), "son journal aussi");
+    assert!(fraiche.exists(), "un aperçu en cours ne doit pas perdre sa copie");
+    assert!(voisine.exists(), "la copie d'une autre base n'est pas la nôtre");
+
+    balayer_copies_orphelines(&chemin, std::time::Duration::ZERO);
+    assert!(!fraiche.exists());
+    let _ = std::fs::remove_file(&voisine);
 }

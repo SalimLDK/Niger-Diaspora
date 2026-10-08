@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1369 cases à cocher, 55 cochées** — 312 entrées sur 326 ont encore des cases ouvertes.
+**1370 cases à cocher, 55 cochées** — 313 entrées sur 327 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -328,7 +328,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [✅ Bulle de chargement d'une vidéo pendant l'upload (2026-08-30)](#-bulle-de-chargement-dune-vidéo-pendant-lupload-2026-08-30) · *Messagerie*
 - 21 · [Refonte Fil & Discussion — Priorité basse — cosmétique, faible risque](#refonte-fil--discussion--priorité-basse--cosmétique-faible-risque) · *Fil, stories, salons audio et podcasts*
 
-**P3 — confort, cosmétique, fonction en pause** (36)
+**P3 — confort, cosmétique, fonction en pause** (37)
 
 - 3 · [⬜ Polices embarquées : plus de téléchargement au premier affichage (2026-09-11)](#-polices-embarquées--plus-de-téléchargement-au-premier-affichage-2026-09-11) · *Design, thème, langue et mise en page* · bloqué
 - 2 · [⬜ Icône du lanceur repeinte en vert (2026-09-07)](#-icône-du-lanceur-repeinte-en-vert-2026-09-07) · *Design, thème, langue et mise en page*
@@ -345,6 +345,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ Squelette de chargement de la messagerie (2026-09-15)](#-squelette-de-chargement-de-la-messagerie-2026-09-15) · *Messagerie*
 - 7 · [⬜ Une couleur par pièce jointe dans le « + » (2026-09-14)](#-une-couleur-par-pièce-jointe-dans-le----2026-09-14) · *Messagerie*
 - 6 · [Discussion — ÉCO rejoint la ligne épinglée (fiche 6b, 2026-08-05)](#discussion--éco-rejoint-la-ligne-épinglée-fiche-6b-2026-08-05) · *Messagerie*
+- 1 · [⬜ MLS : plus de copie de la base laissée sur le disque par l'aperçu de notification (2026-10-08)](#-mls--plus-de-copie-de-la-base-laissée-sur-le-disque-par-laperçu-de-notification-2026-10-08) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ Les appels de GROUPE restaient lançables alors que le 1-à-1 était en pause (2026-09-14)](#-les-appels-de-groupe-restaient-lançables-alors-que-le-1-à-1-était-en-pause-2026-09-14) · *Appels*
 - 1 · [La bulle d'appel elle-même n'apparaissait jamais dans la conversation (2026-08-14)](#la-bulle-dappel-elle-même-napparaissait-jamais-dans-la-conversation-2026-08-14) · *Appels* · bloqué
 - 7 · [Appels 1-à-1 (correctifs du 2026-08-03)](#appels-1-à-1-correctifs-du-2026-08-03) · *Appels* · bloqué
@@ -372,7 +373,7 @@ Par domaine :
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 0 faites
 - [2. Messagerie](#2-messagerie) — 354 à faire, 31 faites
 - [3. Groupes](#3-groupes) — 128 à faire, 0 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 155 à faire, 4 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 156 à faire, 4 faites
 - [5. Appels](#5-appels) — 24 à faire, 1 faites
 - [6. Notifications et push](#6-notifications-et-push) — 124 à faire, 6 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 36 à faire, 0 faites
@@ -4107,6 +4108,22 @@ conservée plutôt que de conclure « non » à tort (sinon le titre clignote).
 # 4. Chiffrement de bout en bout et clés
 
 Signal 1:1 et groupes, repli AES, clés dérivées, sauvegarde et transfert des clés, et tout ce qui pouvait partir en clair.
+
+---
+
+## ⬜ MLS : plus de copie de la base laissée sur le disque par l'aperçu de notification (2026-10-08)
+
+**Priorité P3** · importance 2/5 — crate Rust : **build complet nécessaire**.
+
+L'aperçu déchiffre sur une copie jetable de la base MLS. Si Android tuait
+l'isolate entre la copie et son effacement, la copie — tous les secrets
+d'un epoch passé — restait pour toujours. Effacée désormais même sur une
+panique, et les orphelines de plus d'une minute sont balayées à
+l'ouverture du moteur. Banc Rust : `les_copies_d_apercu_orphelines_sont_balayees`.
+
+- [ ] Après une rafale de notifications MLS app fermée, puis ouverture de
+      l'app : `adb shell run-as <paquet> ls files/mls/` ne montre aucun
+      fichier `*.apercu-*`.
 
 ---
 

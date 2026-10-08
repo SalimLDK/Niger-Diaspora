@@ -9,5 +9,8 @@ pub mod ffi;
 mod frb_generated;
 pub mod provider;
 
-pub use engine::{preview_without_state, CommitOut, GroupSnapshot, MlsEngine, MlsError, Processed};
+pub use engine::{
+    balayer_copies_orphelines, preview_without_state, CommitOut, GroupSnapshot, MlsEngine, MlsError,
+    Processed, AGE_COPIE_ORPHELINE,
+};
 

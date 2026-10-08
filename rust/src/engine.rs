@@ -203,17 +203,18 @@ pub fn preview_without_state(
         .duration_since(std::time::UNIX_EPOCH)
         .map(|d| d.as_nanos())
         .unwrap_or(0);
-    let copie = db_path.with_extension(format!("apercu-{}-{}.sqlite", std::process::id(), horodatage));
-    let nettoyer = |chemin: &Path| {
-        for suffixe in ["", "-wal", "-shm"] {
-            let mut nom = chemin.as_os_str().to_os_string();
-            nom.push(suffixe);
-            let _ = std::fs::remove_file(PathBuf::from(nom));
-        }
-    };
-    nettoyer(&copie);
+    // Les copies qu'un aperçu précédent n'a pas pu effacer — processus tué
+    // par Android entre `VACUUM INTO` et le nettoyage.
+    balayer_copies_orphelines(db_path, AGE_COPIE_ORPHELINE);
 
-    let resultat = (|| -> Result<Vec<u8>, MlsError> {
+    let copie = db_path.with_extension(format!("{PREFIXE_COPIE}{}-{}.sqlite", std::process::id(), horodatage));
+    supprimer_base(&copie);
+    // Effacée en sortant de la portée, y compris sur une panique : une copie
+    // laissée sur le disque garde tous les secrets de l'epoch où elle a été
+    // prise — la confidentialité persistante ne tient plus.
+    let _garde = CopieJetable(copie.clone());
+
+    (|| -> Result<Vec<u8>, MlsError> {
         {
             // Lecture seule de la base qui fait foi : `VACUUM INTO` n'écrit
             // que dans la cible, et les lecteurs ne bloquent pas en WAL.
@@ -225,16 +226,66 @@ pub fn preview_without_state(
             Processed::Application { clair, .. } => Ok(clair),
             _ => Err(MlsError::NotApplicationMessage),
         }
-    })();
+    })()
+}
 
-    nettoyer(&copie);
-    resultat
+/// Infixe des copies jetables de l'aperçu : `<base>.apercu-<pid>-<ns>.sqlite`.
+const PREFIXE_COPIE: &str = "apercu-";
+
+/// Au-delà, une copie n'appartient plus à aucun aperçu en cours (copier et
+/// déchiffrer prend moins d'une seconde) : c'est une orpheline.
+pub const AGE_COPIE_ORPHELINE: std::time::Duration = std::time::Duration::from_secs(60);
+
+fn supprimer_base(chemin: &Path) {
+    for suffixe in ["", "-wal", "-shm"] {
+        let mut nom = chemin.as_os_str().to_os_string();
+        nom.push(suffixe);
+        let _ = std::fs::remove_file(PathBuf::from(nom));
+    }
+}
+
+struct CopieJetable(PathBuf);
+
+impl Drop for CopieJetable {
+    fn drop(&mut self) {
+        supprimer_base(&self.0);
+    }
+}
+
+/// Efface les copies d'aperçu de [db_path] plus vieilles que [age_min].
+///
+/// Une copie orpheline est une base MLS complète figée à un epoch passé :
+/// clé de signature, secrets d'epoch. Tant qu'elle reste sur le disque, un
+/// message de cet epoch reste déchiffrable par qui lit le fichier — ce que
+/// le cliquet de MLS est censé interdire. Ne lève jamais.
+pub fn balayer_copies_orphelines(db_path: &Path, age_min: std::time::Duration) {
+    let (Some(dossier), Some(tronc)) = (db_path.parent(), db_path.file_stem()) else {
+        return;
+    };
+    let prefixe = format!("{}.{PREFIXE_COPIE}", tronc.to_string_lossy());
+    let Ok(entrees) = std::fs::read_dir(dossier) else { return };
+    let maintenant = std::time::SystemTime::now();
+    for entree in entrees.flatten() {
+        let nom = entree.file_name().to_string_lossy().into_owned();
+        if !nom.starts_with(&prefixe) {
+            continue;
+        }
+        let vieille = entree
+            .metadata()
+            .and_then(|m| m.modified())
+            .map(|t| maintenant.duration_since(t).unwrap_or_default() >= age_min)
+            .unwrap_or(true);
+        if vieille {
+            let _ = std::fs::remove_file(entree.path());
+        }
+    }
 }
 
 impl MlsEngine {
     /// Ouvre le moteur ; crée l'identité de l'appareil au premier appel,
     /// la recharge ensuite. Idempotent.
     pub fn open(db_path: &Path, user_id: &str, device_id: &str) -> Result<Self, MlsError> {
+        balayer_copies_orphelines(db_path, AGE_COPIE_ORPHELINE);
         let provider = DiaspoProvider::open(db_path)?;
         let meta = Connection::open(db_path)?;
         // Une INSTALLATION par (compte, appareil) : l'identité MLS porte un
