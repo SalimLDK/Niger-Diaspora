@@ -10,6 +10,7 @@ import '../../../groups/data/models/group_model.dart';
 import '../../../friends/data/datasources/friend_remote_datasource.dart';
 import '../../../friends/data/models/friend_model.dart';
 import '../../../messages/data/datasources/message_remote_datasource.dart';
+import '../../../messages/data/datasources/message_supabase_datasource.dart';
 import '../../../messages/data/models/conversation_model.dart';
 import '../models/search_result_model.dart';
 
@@ -87,7 +88,10 @@ class SearchRemoteDataSourceImpl implements SearchRemoteDataSource {
         // collection Firestore `groups` est vide depuis la migration.
         _groupDataSource = groupDataSource ?? GroupSupabaseDataSource(),
         _friendDataSource = friendDataSource ?? FriendRemoteDataSourceImpl(),
-        _messageDataSource = messageDataSource ?? MessageRemoteDataSourceImpl();
+        // Supabase, comme le reste de la messagerie : l'ancienne source
+        // cherchait dans la collection Firestore `conversations`, vide depuis
+        // la migration — la recherche de discussions ne trouvait jamais rien.
+        _messageDataSource = messageDataSource ?? MessageSupabaseDataSource();
 
   @override
   Future<SearchResultModel> searchAll({
