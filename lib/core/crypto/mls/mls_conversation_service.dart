@@ -628,6 +628,12 @@ class MlsConversationService {
     }
   }
 
+  /// L'émetteur authentifié par MLS ([emetteur], `uid:stable_id`) est-il
+  /// bien l'auteur inscrit sur la ligne ([auteur], un uid) ?
+  @visibleForTesting
+  static bool emetteurConforme(String emetteur, String auteur) =>
+      auteur.isNotEmpty && emetteur.startsWith('$auteur:');
+
   /// Range les feuilles du groupe au regard du registre d'appareils.
   ///
   /// - [fiables] : les identités dont une feuille porte bien la clé publiée
@@ -970,7 +976,20 @@ class MlsConversationService {
           aadAttendu: aad,
         );
         switch (entrant) {
-          case EntrantDto_Application(:final clair):
+          case EntrantDto_Application(:final clair, :final emetteur):
+            // L'auteur affiché est celui de la LIGNE, inscrit par le serveur ;
+            // l'émetteur, celui que MLS a authentifié. L'AAD ne les lie pas :
+            // elle est choisie par l'émetteur. Un serveur complice d'un membre
+            // pouvait publier sous le nom de Bob un message de ce membre dont
+            // l'AAD désignait l'appareil de Bob — accepté, et affiché comme
+            // écrit par Bob. Ce qui ne concorde pas ne s'affiche pas.
+            if (!emetteurConforme(emetteur, m.senderId)) {
+              await _delivery.diagnostic(userId, 'auteur_usurpe',
+                  deviceId: appareil.id,
+                  detail: {'conversation': conversationId, 'epoch': m.epoch});
+              resultats.add(MlsIncoming(m, erreur: 'auteur_usurpe'));
+              break;
+            }
             resultats.add(MlsIncoming(m, payload: MlsPayload.decode(clair)));
           default:
             resultats.add(MlsIncoming(m, erreur: 'not_application_message'));

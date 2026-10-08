@@ -70,14 +70,14 @@ fn parcours_nominal_1_a_1() {
     assert!(!ct.windows(9).any(|w| w == b"Salut Bob"), "le ciphertext contient le clair");
 
     match bob.process_incoming(conv, &ct, &aad1).unwrap() {
-        Processed::Application(bytes) => assert_eq!(bytes, b"Salut Bob"),
+        Processed::Application { clair: bytes, .. } => assert_eq!(bytes, b"Salut Bob"),
         _ => panic!("attendu un message applicatif"),
     }
 
     let aad2 = aad(conv, "m2", "b1");
     let ct2 = bob.encrypt(conv, b"Salut Alice", &aad2).unwrap();
     match alice.process_incoming(conv, &ct2, &aad2).unwrap() {
-        Processed::Application(bytes) => assert_eq!(bytes, b"Salut Alice"),
+        Processed::Application { clair: bytes, .. } => assert_eq!(bytes, b"Salut Alice"),
         _ => panic!("attendu un message applicatif"),
     }
 }
@@ -125,7 +125,7 @@ fn message_d_un_epoch_passe_reste_lisible() {
     }
 
     match bob.process_incoming(conv, &ct_avant, &a).unwrap() {
-        Processed::Application(bytes) => assert_eq!(bytes, "émis avant le commit".as_bytes()),
+        Processed::Application { clair: bytes, .. } => assert_eq!(bytes, "émis avant le commit".as_bytes()),
         _ => panic!("attendu un message applicatif"),
     }
 }
@@ -168,7 +168,7 @@ fn moteur_ferme_et_rouvert_conserve_le_groupe() {
     let a = aad(conv, "m-apres", "a1");
     let ct = alice2.encrypt(conv, "toujours là".as_bytes(), &a).unwrap();
     match bob.process_incoming(conv, &ct, &a).unwrap() {
-        Processed::Application(bytes) => assert_eq!(bytes, "toujours là".as_bytes()),
+        Processed::Application { clair: bytes, .. } => assert_eq!(bytes, "toujours là".as_bytes()),
         _ => panic!("attendu un message applicatif"),
     }
 }
@@ -200,7 +200,7 @@ fn jointure_externe_par_group_info() {
     let a = aad(conv, "m1", "c1");
     let ct = charlie.encrypt(conv, "bonjour à tous".as_bytes(), &a).unwrap();
     match alice.process_incoming(conv, &ct, &a).unwrap() {
-        Processed::Application(bytes) => assert_eq!(bytes, "bonjour à tous".as_bytes()),
+        Processed::Application { clair: bytes, .. } => assert_eq!(bytes, "bonjour à tous".as_bytes()),
         _ => panic!("attendu un message applicatif"),
     }
 }
@@ -246,7 +246,7 @@ fn chronometre_reouverture_a_froid() {
     let ouverture = depart.elapsed();
     let dechiffre = bob2.process_incoming(conv, &ct, &a).unwrap();
     let total = depart.elapsed();
-    assert!(matches!(dechiffre, Processed::Application(ref b) if b == b"chrono"));
+    assert!(matches!(dechiffre, Processed::Application { clair: ref b, .. } if b == b"chrono"));
     eprintln!(
         "CHRONO ouverture {:?} — ouverture + déchiffrement {:?}",
         ouverture, total
@@ -282,7 +282,7 @@ fn l_apercu_ne_consomme_pas_le_cliquet() {
     //    encore pouvoir le lire. C'est tout l'enjeu.
     let mut bob2 = MlsEngine::open(&chemin_bob, "bob", "b1").unwrap();
     match bob2.process_incoming(conv, &ct, &a).unwrap() {
-        Processed::Application(clair) => assert_eq!(clair, "message qui arrive".as_bytes()),
+        Processed::Application { clair: clair, .. } => assert_eq!(clair, "message qui arrive".as_bytes()),
         _ => panic!("attendu un message applicatif"),
     }
 
@@ -290,7 +290,7 @@ fn l_apercu_ne_consomme_pas_le_cliquet() {
     let a2 = aad(conv, "m2", "a1");
     let ct2 = alice.encrypt(conv, "et la suite".as_bytes(), &a2).unwrap();
     match bob2.process_incoming(conv, &ct2, &a2).unwrap() {
-        Processed::Application(clair) => assert_eq!(clair, "et la suite".as_bytes()),
+        Processed::Application { clair: clair, .. } => assert_eq!(clair, "et la suite".as_bytes()),
         _ => panic!("attendu un message applicatif"),
     }
 
@@ -303,4 +303,21 @@ fn l_apercu_ne_consomme_pas_le_cliquet() {
         .filter(|nom| nom.contains("apercu-"))
         .collect();
     assert!(restes.is_empty(), "copies jetables laissées derrière : {restes:?}");
+}
+
+/// L'émetteur rendu est celui que MLS a authentifié, quoi que dise l'AAD :
+/// c'est sur lui que l'app confronte l'auteur inscrit par le serveur.
+#[test]
+fn l_emetteur_est_celui_que_mls_authentifie() {
+    let conv = "conv-emetteur";
+    let (mut alice, mut bob) = alice_et_bob(conv);
+    // Alice déclare dans son AAD l'appareil de Bob : l'AAD est à son choix.
+    let aad_mensonger = aad(conv, "m-usurpe", "b1");
+    let chiffre = alice.encrypt(conv, b"je suis Bob", &aad_mensonger).unwrap();
+    match bob.process_incoming(conv, &chiffre, &aad_mensonger).unwrap() {
+        Processed::Application { emetteur, .. } => {
+            assert!(emetteur.starts_with(b"alice:"), "émetteur : {:?}", String::from_utf8_lossy(&emetteur));
+        }
+        autre => panic!("attendu un message applicatif, obtenu {autre:?}"),
+    }
 }

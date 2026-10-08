@@ -19,21 +19,21 @@ final _privateConstructorUsedError = UnsupportedError(
 mixin _$EntrantDto {
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(Uint8List clair) application,
+    required TResult Function(Uint8List clair, String emetteur) application,
     required TResult Function(InstantaneDto instantane) commit,
     required TResult Function() proposition,
     required TResult Function() ignore,
   }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(Uint8List clair)? application,
+    TResult? Function(Uint8List clair, String emetteur)? application,
     TResult? Function(InstantaneDto instantane)? commit,
     TResult? Function()? proposition,
     TResult? Function()? ignore,
   }) => throw _privateConstructorUsedError;
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(Uint8List clair)? application,
+    TResult Function(Uint8List clair, String emetteur)? application,
     TResult Function(InstantaneDto instantane)? commit,
     TResult Function()? proposition,
     TResult Function()? ignore,
@@ -92,7 +92,7 @@ abstract class _$$EntrantDto_ApplicationImplCopyWith<$Res> {
     $Res Function(_$EntrantDto_ApplicationImpl) then,
   ) = __$$EntrantDto_ApplicationImplCopyWithImpl<$Res>;
   @useResult
-  $Res call({Uint8List clair});
+  $Res call({Uint8List clair, String emetteur});
 }
 
 /// @nodoc
@@ -108,7 +108,7 @@ class __$$EntrantDto_ApplicationImplCopyWithImpl<$Res>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? clair = null}) {
+  $Res call({Object? clair = null, Object? emetteur = null}) {
     return _then(
       _$EntrantDto_ApplicationImpl(
         clair:
@@ -116,6 +116,11 @@ class __$$EntrantDto_ApplicationImplCopyWithImpl<$Res>
                 ? _value.clair
                 : clair // ignore: cast_nullable_to_non_nullable
                     as Uint8List,
+        emetteur:
+            null == emetteur
+                ? _value.emetteur
+                : emetteur // ignore: cast_nullable_to_non_nullable
+                    as String,
       ),
     );
   }
@@ -124,14 +129,19 @@ class __$$EntrantDto_ApplicationImplCopyWithImpl<$Res>
 /// @nodoc
 
 class _$EntrantDto_ApplicationImpl extends EntrantDto_Application {
-  const _$EntrantDto_ApplicationImpl({required this.clair}) : super._();
+  const _$EntrantDto_ApplicationImpl({
+    required this.clair,
+    required this.emetteur,
+  }) : super._();
 
   @override
   final Uint8List clair;
+  @override
+  final String emetteur;
 
   @override
   String toString() {
-    return 'EntrantDto.application(clair: $clair)';
+    return 'EntrantDto.application(clair: $clair, emetteur: $emetteur)';
   }
 
   @override
@@ -139,12 +149,16 @@ class _$EntrantDto_ApplicationImpl extends EntrantDto_Application {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$EntrantDto_ApplicationImpl &&
-            const DeepCollectionEquality().equals(other.clair, clair));
+            const DeepCollectionEquality().equals(other.clair, clair) &&
+            (identical(other.emetteur, emetteur) || other.emetteur == emetteur));
   }
 
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, const DeepCollectionEquality().hash(clair));
+  int get hashCode => Object.hash(
+    runtimeType,
+    const DeepCollectionEquality().hash(clair),
+    emetteur,
+  );
 
   /// Create a copy of EntrantDto
   /// with the given fields replaced by the non-null parameter values.
@@ -161,36 +175,36 @@ class _$EntrantDto_ApplicationImpl extends EntrantDto_Application {
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(Uint8List clair) application,
+    required TResult Function(Uint8List clair, String emetteur) application,
     required TResult Function(InstantaneDto instantane) commit,
     required TResult Function() proposition,
     required TResult Function() ignore,
   }) {
-    return application(clair);
+    return application(clair, emetteur);
   }
 
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(Uint8List clair)? application,
+    TResult? Function(Uint8List clair, String emetteur)? application,
     TResult? Function(InstantaneDto instantane)? commit,
     TResult? Function()? proposition,
     TResult? Function()? ignore,
   }) {
-    return application?.call(clair);
+    return application?.call(clair, emetteur);
   }
 
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(Uint8List clair)? application,
+    TResult Function(Uint8List clair, String emetteur)? application,
     TResult Function(InstantaneDto instantane)? commit,
     TResult Function()? proposition,
     TResult Function()? ignore,
     required TResult orElse(),
   }) {
     if (application != null) {
-      return application(clair);
+      return application(clair, emetteur);
     }
     return orElse();
   }
@@ -234,11 +248,14 @@ class _$EntrantDto_ApplicationImpl extends EntrantDto_Application {
 }
 
 abstract class EntrantDto_Application extends EntrantDto {
-  const factory EntrantDto_Application({required final Uint8List clair}) =
-      _$EntrantDto_ApplicationImpl;
+  const factory EntrantDto_Application({
+    required final Uint8List clair,
+    required final String emetteur,
+  }) = _$EntrantDto_ApplicationImpl;
   const EntrantDto_Application._() : super._();
 
   Uint8List get clair;
+  String get emetteur;
 
   /// Create a copy of EntrantDto
   /// with the given fields replaced by the non-null parameter values.
@@ -322,7 +339,7 @@ class _$EntrantDto_CommitImpl extends EntrantDto_Commit {
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(Uint8List clair) application,
+    required TResult Function(Uint8List clair, String emetteur) application,
     required TResult Function(InstantaneDto instantane) commit,
     required TResult Function() proposition,
     required TResult Function() ignore,
@@ -333,7 +350,7 @@ class _$EntrantDto_CommitImpl extends EntrantDto_Commit {
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(Uint8List clair)? application,
+    TResult? Function(Uint8List clair, String emetteur)? application,
     TResult? Function(InstantaneDto instantane)? commit,
     TResult? Function()? proposition,
     TResult? Function()? ignore,
@@ -344,7 +361,7 @@ class _$EntrantDto_CommitImpl extends EntrantDto_Commit {
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(Uint8List clair)? application,
+    TResult Function(Uint8List clair, String emetteur)? application,
     TResult Function(InstantaneDto instantane)? commit,
     TResult Function()? proposition,
     TResult Function()? ignore,
@@ -452,7 +469,7 @@ class _$EntrantDto_PropositionImpl extends EntrantDto_Proposition {
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(Uint8List clair) application,
+    required TResult Function(Uint8List clair, String emetteur) application,
     required TResult Function(InstantaneDto instantane) commit,
     required TResult Function() proposition,
     required TResult Function() ignore,
@@ -463,7 +480,7 @@ class _$EntrantDto_PropositionImpl extends EntrantDto_Proposition {
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(Uint8List clair)? application,
+    TResult? Function(Uint8List clair, String emetteur)? application,
     TResult? Function(InstantaneDto instantane)? commit,
     TResult? Function()? proposition,
     TResult? Function()? ignore,
@@ -474,7 +491,7 @@ class _$EntrantDto_PropositionImpl extends EntrantDto_Proposition {
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(Uint8List clair)? application,
+    TResult Function(Uint8List clair, String emetteur)? application,
     TResult Function(InstantaneDto instantane)? commit,
     TResult Function()? proposition,
     TResult Function()? ignore,
@@ -572,7 +589,7 @@ class _$EntrantDto_IgnoreImpl extends EntrantDto_Ignore {
   @override
   @optionalTypeArgs
   TResult when<TResult extends Object?>({
-    required TResult Function(Uint8List clair) application,
+    required TResult Function(Uint8List clair, String emetteur) application,
     required TResult Function(InstantaneDto instantane) commit,
     required TResult Function() proposition,
     required TResult Function() ignore,
@@ -583,7 +600,7 @@ class _$EntrantDto_IgnoreImpl extends EntrantDto_Ignore {
   @override
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>({
-    TResult? Function(Uint8List clair)? application,
+    TResult? Function(Uint8List clair, String emetteur)? application,
     TResult? Function(InstantaneDto instantane)? commit,
     TResult? Function()? proposition,
     TResult? Function()? ignore,
@@ -594,7 +611,7 @@ class _$EntrantDto_IgnoreImpl extends EntrantDto_Ignore {
   @override
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>({
-    TResult Function(Uint8List clair)? application,
+    TResult Function(Uint8List clair, String emetteur)? application,
     TResult Function(InstantaneDto instantane)? commit,
     TResult Function()? proposition,
     TResult Function()? ignore,

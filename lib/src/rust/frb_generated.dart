@@ -655,7 +655,7 @@ groupInfo: dco_decode_opt_list_prim_u_8_strict(arr[2]),); }
 
 @protected EntrantDto dco_decode_entrant_dto(dynamic raw){ // Codec=Dco (DartCObject based), see doc to use other codecs
 switch (raw[0]) {
-                case 0: return EntrantDto_Application(clair: dco_decode_list_prim_u_8_strict(raw[1]),);
+                case 0: return EntrantDto_Application(clair: dco_decode_list_prim_u_8_strict(raw[1]),emetteur: dco_decode_String(raw[2]),);
 case 1: return EntrantDto_Commit(instantane: dco_decode_box_autoadd_instantane_dto(raw[1]),);
 case 2: return EntrantDto_Proposition();
 case 3: return EntrantDto_Ignore();
@@ -747,7 +747,8 @@ return CommitDto(commit: var_commit, welcome: var_welcome, groupInfo: var_groupI
 
             var tag_ = sse_decode_i_32(deserializer);
             switch (tag_) { case 0: var var_clair = sse_decode_list_prim_u_8_strict(deserializer);
-return EntrantDto_Application(clair: var_clair);case 1: var var_instantane = sse_decode_box_autoadd_instantane_dto(deserializer);
+var var_emetteur = sse_decode_String(deserializer);
+return EntrantDto_Application(clair: var_clair, emetteur: var_emetteur);case 1: var var_instantane = sse_decode_box_autoadd_instantane_dto(deserializer);
 return EntrantDto_Commit(instantane: var_instantane);case 2: return EntrantDto_Proposition();case 3: return EntrantDto_Ignore(); default: throw UnimplementedError(''); }
              }
 
@@ -852,7 +853,8 @@ sse_encode_opt_list_prim_u_8_strict(self.groupInfo, serializer);
  }
 
 @protected void sse_encode_entrant_dto(EntrantDto self, SseSerializer serializer){ // Codec=Sse (Serialization based), see doc to use other codecs
-switch (self) { case EntrantDto_Application(clair: final clair): sse_encode_i_32(0, serializer); sse_encode_list_prim_u_8_strict(clair, serializer);
+switch (self) { case EntrantDto_Application(clair: final clair,emetteur: final emetteur): sse_encode_i_32(0, serializer); sse_encode_list_prim_u_8_strict(clair, serializer);
+sse_encode_String(emetteur, serializer);
 case EntrantDto_Commit(instantane: final instantane): sse_encode_i_32(1, serializer); sse_encode_box_autoadd_instantane_dto(instantane, serializer);
 case EntrantDto_Proposition(): sse_encode_i_32(2, serializer); case EntrantDto_Ignore(): sse_encode_i_32(3, serializer);   } }
 

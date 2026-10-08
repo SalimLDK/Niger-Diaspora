@@ -80,7 +80,13 @@ pub struct CommitOut {
 
 #[derive(Debug)]
 pub enum Processed {
-    Application(Vec<u8>),
+    /// Un message applicatif, et l'identité MLS AUTHENTIFIÉE de son émetteur
+    /// (`uid:stable_id`, tirée de la credential que MLS a vérifiée). C'est
+    /// elle, et non l'auteur que le serveur inscrit sur la ligne, qui dit qui
+    /// a écrit : l'AAD est choisie par l'émetteur, et un serveur complice
+    /// pouvait publier sous le nom d'un autre un message dont l'AAD le
+    /// désignait.
+    Application { clair: Vec<u8>, emetteur: Vec<u8> },
     Commit(GroupSnapshot),
     Proposal,
     Ignored,
@@ -216,7 +222,7 @@ pub fn preview_without_state(
         }
         let mut jetable = MlsEngine::open(&copie, user_id, device_id)?;
         match jetable.process_incoming(conversation_id, message, aad)? {
-            Processed::Application(clair) => Ok(clair),
+            Processed::Application { clair, .. } => Ok(clair),
             _ => Err(MlsError::NotApplicationMessage),
         }
     })();
@@ -478,10 +484,14 @@ impl MlsEngine {
         if processed.aad() != expected_aad {
             return Err(MlsError::AadMismatch);
         }
+        let emetteur = BasicCredential::try_from(processed.credential().clone())
+            .map(|c| c.identity().to_vec())
+            .unwrap_or_default();
         match processed.into_content() {
-            ProcessedMessageContent::ApplicationMessage(app) => {
-                Ok(Processed::Application(app.into_bytes()))
-            }
+            ProcessedMessageContent::ApplicationMessage(app) => Ok(Processed::Application {
+                clair: app.into_bytes(),
+                emetteur,
+            }),
             ProcessedMessageContent::StagedCommitMessage(staged) => {
                 group.merge_staged_commit(&self.provider, *staged).map_err(code)?;
                 Ok(Processed::Commit(snapshot_of(group)))

@@ -47,7 +47,9 @@ pub struct CommitDto {
 
 #[derive(Debug, Clone)]
 pub enum EntrantDto {
-    Application { clair: Vec<u8> },
+    /// [emetteur] : l'identité MLS authentifiée de l'émetteur
+    /// (`uid:stable_id`) — à confronter à l'auteur inscrit sur la ligne.
+    Application { clair: Vec<u8>, emetteur: String },
     Commit { instantane: InstantaneDto },
     Proposition,
     Ignore,
@@ -197,7 +199,10 @@ impl Moteur {
             .process_incoming(&conversation_id, &message, &aad_attendu)
             .map_err(code)?
         {
-            Processed::Application(clair) => EntrantDto::Application { clair },
+            Processed::Application { clair, emetteur } => EntrantDto::Application {
+                clair,
+                emetteur: String::from_utf8_lossy(&emetteur).into_owned(),
+            },
             Processed::Commit(s) => EntrantDto::Commit { instantane: instantane(s) },
             Processed::Proposal => EntrantDto::Proposition,
             Processed::Ignored => EntrantDto::Ignore,

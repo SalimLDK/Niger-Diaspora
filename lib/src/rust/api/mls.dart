@@ -113,7 +113,9 @@ final Uint8List? groupInfo;
                 sealed class EntrantDto with _$EntrantDto  {
                     const EntrantDto._();
 
-                     const factory EntrantDto.application({   required Uint8List clair , }) = EntrantDto_Application;
+                     /// [emetteur] : l'identité MLS authentifiée de l'émetteur
+/// (`uid:stable_id`) — à confronter à l'auteur inscrit sur la ligne.
+const factory EntrantDto.application({   required Uint8List clair ,  required String emetteur , }) = EntrantDto_Application;
  const factory EntrantDto.commit({   required InstantaneDto instantane , }) = EntrantDto_Commit;
  const factory EntrantDto.proposition() = EntrantDto_Proposition;
  const factory EntrantDto.ignore() = EntrantDto_Ignore;

@@ -1088,7 +1088,11 @@ impl SseDecode for crate::api::mls::EntrantDto {
         match tag_ {
             0 => {
                 let mut var_clair = <Vec<u8>>::sse_decode(deserializer);
-                return crate::api::mls::EntrantDto::Application { clair: var_clair };
+                let mut var_emetteur = <String>::sse_decode(deserializer);
+                return crate::api::mls::EntrantDto::Application {
+                    clair: var_clair,
+                    emetteur: var_emetteur,
+                };
             }
             1 => {
                 let mut var_instantane = <crate::api::mls::InstantaneDto>::sse_decode(deserializer);
@@ -1337,9 +1341,12 @@ impl flutter_rust_bridge::IntoIntoDart<crate::api::mls::CommitDto> for crate::ap
 impl flutter_rust_bridge::IntoDart for crate::api::mls::EntrantDto {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         match self {
-            crate::api::mls::EntrantDto::Application { clair } => {
-                [0.into_dart(), clair.into_into_dart().into_dart()].into_dart()
-            }
+            crate::api::mls::EntrantDto::Application { clair, emetteur } => [
+                0.into_dart(),
+                clair.into_into_dart().into_dart(),
+                emetteur.into_into_dart().into_dart(),
+            ]
+            .into_dart(),
             crate::api::mls::EntrantDto::Commit { instantane } => {
                 [1.into_dart(), instantane.into_into_dart().into_dart()].into_dart()
             }
@@ -1448,9 +1455,10 @@ impl SseEncode for crate::api::mls::EntrantDto {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
         match self {
-            crate::api::mls::EntrantDto::Application { clair } => {
+            crate::api::mls::EntrantDto::Application { clair, emetteur } => {
                 <i32>::sse_encode(0, serializer);
                 <Vec<u8>>::sse_encode(clair, serializer);
+                <String>::sse_encode(emetteur, serializer);
             }
             crate::api::mls::EntrantDto::Commit { instantane } => {
                 <i32>::sse_encode(1, serializer);

@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1365 cases à cocher, 55 cochées** — 310 entrées sur 324 ont encore des cases ouvertes.
+**1367 cases à cocher, 55 cochées** — 311 entrées sur 325 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -96,7 +96,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 6 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (131)
+**P1 — fonction importante, jamais vérifiée** (132)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -146,6 +146,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [⬜ Exclure un membre d'un groupe échouait toujours (2026-09-17)](#-exclure-un-membre-dun-groupe-échouait-toujours-2026-09-17) · *Groupes*
 - 4 · [⬜ Noms des candidats à l'invitation et à l'ajout en appel (2026-09-14)](#-noms-des-candidats-à-linvitation-et-à-lajout-en-appel-2026-09-14) · *Groupes*
 - 3 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
+- 2 · [⬜ MLS : l'auteur affiché est celui que MLS a authentifié (2026-10-08)](#-mls--lauteur-affiché-est-celui-que-mls-a-authentifié-2026-10-08) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ Appareil révoqué encore dans le groupe : l'envoi est suspendu, « Réparer » en sort (2026-10-07)](#-appareil-révoqué-encore-dans-le-groupe--lenvoi-est-suspendu--réparer--en-sort-2026-10-07) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ MLS : une feuille du groupe doit porter la clé de l'appareil qu'elle prétend être (2026-10-07)](#-mls--une-feuille-du-groupe-doit-porter-la-clé-de-lappareil-quelle-prétend-être-2026-10-07) · *Chiffrement de bout en bout et clés*
 - 5 · [⬜ Sauvegarde du téléphone : bannières, aperçus MLS et réponses en attente scellés (2026-10-07)](#-sauvegarde-du-téléphone--bannières-aperçus-mls-et-réponses-en-attente-scellés-2026-10-07) · *Chiffrement de bout en bout et clés*
@@ -370,7 +371,7 @@ Par domaine :
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 0 faites
 - [2. Messagerie](#2-messagerie) — 354 à faire, 31 faites
 - [3. Groupes](#3-groupes) — 128 à faire, 0 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 151 à faire, 4 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 153 à faire, 4 faites
 - [5. Appels](#5-appels) — 24 à faire, 1 faites
 - [6. Notifications et push](#6-notifications-et-push) — 124 à faire, 6 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 36 à faire, 0 faites
@@ -4105,6 +4106,25 @@ conservée plutôt que de conclure « non » à tort (sinon le titre clignote).
 # 4. Chiffrement de bout en bout et clés
 
 Signal 1:1 et groupes, repli AES, clés dérivées, sauvegarde et transfert des clés, et tout ce qui pouvait partir en clair.
+
+---
+
+## ⬜ MLS : l'auteur affiché est celui que MLS a authentifié (2026-10-08)
+
+**Priorité P1** · importance 4/5 — app + crate Rust (liaisons régénérées) : **build complet nécessaire**.
+
+L'auteur d'un message chiffré venait de la ligne inscrite par le serveur ;
+l'AAD, composée par l'émetteur, ne l'en empêchait pas. Le moteur rend
+désormais l'identité MLS vérifiée de l'émetteur, et un message dont elle ne
+concorde pas avec la ligne ne s'affiche pas (diagnostic `auteur_usurpe`).
+Banc Rust : `l_emetteur_est_celui_que_mls_authentifie` ; tests :
+`test/core/crypto/mls_auteur_authentifie_test.dart`.
+
+À vérifier (build de cette version, A et B, 1:1 puis groupe chiffrés) :
+
+- [ ] Messages, modifications, suppressions et réactions s'affichent comme
+      avant, avec le bon auteur.
+- [ ] Aucun `auteur_usurpe` dans `mls_diagnostics` en usage normal.
 
 ---
 
