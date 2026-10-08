@@ -239,6 +239,19 @@ class MlsConversationService {
       try {
         final snap =
             await moteur.traiterWelcome(conversationId: conversationId, welcome: w.welcome);
+        // N'importe quel participant peut déposer un Welcome pour cet
+        // appareil (policy « emis par un participant ») : un groupe fabriqué
+        // de toutes pièces s'ouvrirait aussi bien qu'un vrai. Il est
+        // contrôlé avant d'être accepté — voir [_groupeSuspect].
+        final motif = await _groupeSuspect(conversationId, snap);
+        if (motif != null) {
+          await moteur.oublierGroupe(conversationId: conversationId);
+          await _delivery.diagnostic(userId, 'welcome_suspect',
+              deviceId: appareil.id, detail: {'motif': motif, 'epoch': w.epoch});
+          // Consommé : il serait sinon rouvert, et refusé, à chaque passage.
+          await _delivery.markWelcomeConsumed(w.id);
+          continue;
+        }
         await _memoriserArrivee(conversationId, snap.epoch.toInt());
       } catch (e) {
         await _delivery.diagnostic(userId, 'welcome_illisible',
@@ -275,7 +288,20 @@ class MlsConversationService {
           // sous le numéro suivant du serveur, c'est ouvrir une branche que
           // personne ne pourra suivre — et le 2026-09-16 c'est arrivé. Ne
           // rien publier.
-          final obtenu = (await moteur.instantane(conversationId: conversationId)).epoch.toInt();
+          final apres = await moteur.instantane(conversationId: conversationId);
+          final obtenu = apres.epoch.toInt();
+          // L'arbre public est écrit par les participants : un faux
+          // `mls_group_info` ferait entrer cet appareil dans un groupe
+          // fabriqué. Contrôlé avant de publier quoi que ce soit — et
+          // l'epoch d'arrivée est hors de la chaîne du serveur par
+          // construction (+1), d'où `epochMax`.
+          final motif = await _groupeSuspect(conversationId, apres, epochMax: epoch);
+          if (motif != null) {
+            await moteur.oublierGroupe(conversationId: conversationId);
+            await _delivery.diagnostic(userId, 'arbre_suspect',
+                deviceId: appareil.id, detail: {'motif': motif, 'epoch': epoch});
+            break;
+          }
           if (obtenu != epoch) {
             await moteur.oublierGroupe(conversationId: conversationId);
             if (essai < 3) {
@@ -626,6 +652,58 @@ class MlsConversationService {
       if (tentative >= 2) rethrow;
       return reconcileMembership(conversationId, tentative: tentative + 1);
     }
+  }
+
+  /// Pourquoi le groupe qu'on vient de rejoindre n'est pas digne de
+  /// confiance — ou `null` s'il l'est.
+  ///
+  /// M8 de l'audit : un Welcome peut être déposé par n'importe quel
+  /// participant, et l'arbre public (`mls_group_info`) est écrit par eux. Un
+  /// groupe fabriqué s'ouvre aussi bien qu'un vrai. Ce contrôle ne prouve pas
+  /// que c'est LE groupe de la conversation — il faudrait pour cela suivre
+  /// toute la chaîne d'epochs depuis la création —, mais il ferme ce qu'un
+  /// faux groupe apporte à un attaquant :
+  /// - `cle_etrangere` : une feuille à l'identité d'un appareil actif, mais
+  ///   pas à sa clé — quelqu'un s'y fait passer pour un autre ;
+  /// - `epoch_hors_chaine` : un epoch au-delà de celui du serveur.
+  /// Ne sont PAS des motifs : une ancienne installation (identité sans
+  /// appareil actif), ni le compte d'un participant qui vient de partir — la
+  /// réconciliation ajoute avant de retirer, et le Welcome d'un arrivant
+  /// porte légitimement la feuille d'un partant pas encore sortie. Les
+  /// refuser rejetterait de vrais Welcome.
+  Future<String?> _groupeSuspect(
+    String conversationId,
+    InstantaneDto snap, {
+    int? epochMax,
+  }) async {
+    // Une lecture qui échoue ne refuse rien : on ne bloque pas une jointure
+    // sur un doute réseau (même règle que la liste des révoqués). Ce qui n'a
+    // pas pu être contrôlé est journalisé.
+    var actifs = const <MlsDeviceRecord>[];
+    try {
+      actifs = await _delivery.appareilsActifsParIdentite(
+        snap.membres.map((m) => m.identity).toSet().toList(),
+      );
+    } catch (e) {
+      await _delivery.diagnostic(userId, 'groupe_non_controle',
+          detail: {'conversation': conversationId, 'code': _code(e)});
+    }
+    final cleDe = {for (final d in actifs) d.mlsIdentity: d.signatureKey};
+    for (final m in snap.membres) {
+      final attendue = cleDe[m.identity];
+      if (attendue == null || attendue.isEmpty || m.signatureKey.isEmpty) continue;
+      if (!_memesOctets(attendue, m.signatureKey)) return 'cle_etrangere';
+    }
+    int? serveur = epochMax;
+    if (serveur == null) {
+      try {
+        serveur = await _delivery.currentEpoch(conversationId);
+      } catch (_) {
+        // Illisible : pas de contrôle d'epoch, voir plus haut.
+      }
+    }
+    if (serveur != null && snap.epoch.toInt() > serveur) return 'epoch_hors_chaine';
+    return null;
   }
 
   /// L'émetteur authentifié par MLS ([emetteur], `uid:stable_id`) est-il

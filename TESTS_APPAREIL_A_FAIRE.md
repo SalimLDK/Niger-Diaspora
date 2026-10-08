@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1367 cases à cocher, 55 cochées** — 311 entrées sur 325 ont encore des cases ouvertes.
+**1369 cases à cocher, 55 cochées** — 312 entrées sur 326 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -231,7 +231,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (93)
+**P2 — fonction secondaire ou cas limite** (94)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -265,6 +265,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⬜ Fiche « Membres » d'un groupe : « Erreur de chargement » (2026-09-09)](#-fiche--membres--dun-groupe---erreur-de-chargement--2026-09-09) · *Groupes*
 - 3 · [Créer un sondage était impossible pour tout le monde (2026-08-23)](#créer-un-sondage-était-impossible-pour-tout-le-monde-2026-08-23) · *Groupes*
 - 3 · [Mentions de groupe : vérifié sur SM A515F (2026-08-23)](#mentions-de-groupe--vérifié-sur-sm-a515f-2026-08-23) · *Groupes*
+- 2 · [⬜ MLS : un groupe rejoint (Welcome ou arbre public) est contrôlé avant d'être accepté (2026-10-08)](#-mls--un-groupe-rejoint-welcome-ou-arbre-public-est-contrôlé-avant-dêtre-accepté-2026-10-08) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ « Appareils enregistrés » et « Sauvegarde des clés » ne montrent plus Signal à un compte passé à MLS (2026-09-16)](#--appareils-enregistrés--et--sauvegarde-des-clés--ne-montrent-plus-signal-à-un-compte-passé-à-mls-2026-09-16) · *Chiffrement de bout en bout et clés*
 - 6 · [⬜ Les deux bandeaux de clés retirés : ils promettaient faux (2026-09-16)](#-les-deux-bandeaux-de-clés-retirés--ils-promettaient-faux-2026-09-16) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ L'expéditeur MLS datait lui-même ses propres messages (2026-09-15)](#-lexpéditeur-mls-datait-lui-même-ses-propres-messages-2026-09-15) · *Chiffrement de bout en bout et clés*
@@ -371,7 +372,7 @@ Par domaine :
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 0 faites
 - [2. Messagerie](#2-messagerie) — 354 à faire, 31 faites
 - [3. Groupes](#3-groupes) — 128 à faire, 0 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 153 à faire, 4 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 155 à faire, 4 faites
 - [5. Appels](#5-appels) — 24 à faire, 1 faites
 - [6. Notifications et push](#6-notifications-et-push) — 124 à faire, 6 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 36 à faire, 0 faites
@@ -4106,6 +4107,26 @@ conservée plutôt que de conclure « non » à tort (sinon le titre clignote).
 # 4. Chiffrement de bout en bout et clés
 
 Signal 1:1 et groupes, repli AES, clés dérivées, sauvegarde et transfert des clés, et tout ce qui pouvait partir en clair.
+
+---
+
+## ⬜ MLS : un groupe rejoint (Welcome ou arbre public) est contrôlé avant d'être accepté (2026-10-08)
+
+**Priorité P2** · importance 3/5 — app seule.
+
+N'importe quel participant pouvait déposer un Welcome, ou réécrire l'arbre
+public, et faire entrer un appareil dans un groupe fabriqué. Le groupe
+rejoint est désormais refusé (oublié, Welcome consommé, diagnostic
+`welcome_suspect` / `arbre_suspect`) si une feuille se fait passer pour un
+appareil actif ou si son epoch dépasse la chaîne du serveur. Tests :
+`test/core/crypto/mls_groupe_injecte_test.dart`.
+
+À vérifier (A, B, C dans un groupe chiffré) :
+
+- [ ] C rejoint le groupe (invité, puis groupe de ville par jointure
+      externe) : il lit les messages ; aucun `welcome_suspect` ni
+      `arbre_suspect` dans `mls_diagnostics`.
+- [ ] B quitte le groupe, puis A invite D aussitôt : D rejoint normalement.
 
 ---
 

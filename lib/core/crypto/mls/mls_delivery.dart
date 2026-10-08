@@ -279,6 +279,25 @@ class MlsDelivery {
         .toList();
   }
 
+  /// Les appareils ACTIFS qui portent ces identités MLS — en une requête,
+  /// quel que soit le nombre de membres (un groupe de ville en compte des
+  /// centaines). Sert à contrôler un groupe qu'on vient de rejoindre.
+  Future<List<MlsDeviceRecord>> appareilsActifsParIdentite(
+    List<String> identites,
+  ) async {
+    if (identites.isEmpty) return const [];
+    await _auth();
+    final rows = await _client
+        .from('mls_devices')
+        .select()
+        .inFilter('mls_identity', identites)
+        .isFilter('revoked_at', null);
+    return (rows as List)
+        .cast<Map<String, dynamic>>()
+        .map((r) => MlsDeviceRecord.fromRow(r))
+        .toList();
+  }
+
   /// Les identités MLS des appareils RÉVOQUÉS de ces comptes.
   ///
   /// Ce qui distingue, parmi les feuilles à retirer d'un groupe, un téléphone
