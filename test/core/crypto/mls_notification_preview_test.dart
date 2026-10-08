@@ -118,9 +118,13 @@ void main() {
       final i = source.indexOf('pub fn preview_without_state');
       expect(i, greaterThan(-1));
       final corps = source.substring(i, source.indexOf('impl MlsEngine {', i));
-      // La copie est produite par VACUUM INTO (cohérente en WAL) puis jetée.
+      // La copie est produite par VACUUM INTO (cohérente en WAL) puis jetée —
+      // par un garde dont le Drop court même sur une panique, et les copies
+      // orphelines d'un processus tué sont balayées
+      // (banc Rust `les_copies_d_apercu_orphelines_sont_balayees`).
       expect(corps, contains('VACUUM INTO'));
-      expect(corps, contains('nettoyer(&copie)'));
+      expect(corps, contains('CopieJetable(copie'));
+      expect(corps, contains('balayer_copies_orphelines('));
     });
 
     test('tout échec retombe sur le repli, sans faire tomber la notification', () {
