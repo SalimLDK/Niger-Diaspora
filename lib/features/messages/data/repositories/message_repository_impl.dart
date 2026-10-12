@@ -665,7 +665,7 @@ class MessageRepositoryImpl implements MessageRepository {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
-    try {
+    return _garde(() async {
       final fileName = file.path.split('/').last;
 
       // C4 : pièces jointes chiffrées — images, documents, audio. Pas la
@@ -824,12 +824,7 @@ class MessageRepositoryImpl implements MessageRepository {
         );
         return Right(message.toEntity());
       });
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+    });
   }
 
   /// Envoi d'une pièce jointe chiffrée (C4, tranche 1).
@@ -1384,18 +1379,13 @@ class MessageRepositoryImpl implements MessageRepository {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
-    try {
+    return _garde(() async {
       final conversation = await remoteDataSource.createIndividualConversation(
         currentUserId: currentUserId,
         otherUserId: otherUserId,
       );
       return Right(conversation.toEntity());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+    });
   }
 
   @override
@@ -1410,7 +1400,7 @@ class MessageRepositoryImpl implements MessageRepository {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
-    try {
+    return _garde(() async {
       final conversation = await remoteDataSource.createGroupConversation(
         creatorId: creatorId,
         participantIds: participantIds,
@@ -1419,12 +1409,7 @@ class MessageRepositoryImpl implements MessageRepository {
         groupId: groupId,
       );
       return Right(conversation.toEntity());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+    });
   }
 
   @override
@@ -1475,7 +1460,7 @@ class MessageRepositoryImpl implements MessageRepository {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
-    try {
+    return _garde(() async {
       final passerelle = await _passerellePour(conversationId);
       if (passerelle != null) {
         await passerelle.marquerLus(conversationId);
@@ -1485,12 +1470,7 @@ class MessageRepositoryImpl implements MessageRepository {
         userId: userId,
       );
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+    });
   }
 
   @override
@@ -1501,18 +1481,13 @@ class MessageRepositoryImpl implements MessageRepository {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
-    try {
+    return _garde(() async {
       await remoteDataSource.clearUnreadMentions(
         conversationId: conversationId,
         userId: userId,
       );
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+    });
   }
 
   @override
@@ -1521,7 +1496,7 @@ class MessageRepositoryImpl implements MessageRepository {
     required String userId,
     bool forEveryone = false,
   }) async {
-    try {
+    return _garde(() async {
       if (await networkInfo.isConnected) {
         await remoteDataSource.deleteConversation(
           conversationId: conversationId,
@@ -1534,12 +1509,7 @@ class MessageRepositoryImpl implements MessageRepository {
         // but could implement local marking if needed.
         return const Left(NetworkFailure('Non disponible hors connexion'));
       }
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+    });
   }
 
   @override
@@ -1550,17 +1520,12 @@ class MessageRepositoryImpl implements MessageRepository {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
-    try {
+    return _garde(() async {
       final conversation = await remoteDataSource.getConversationById(
         conversationId,
       );
       return Right(conversation?.toEntity());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+    });
   }
 
   @override
@@ -1572,18 +1537,13 @@ class MessageRepositoryImpl implements MessageRepository {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
-    try {
+    return _garde(() async {
       await remoteDataSource.restoreConversationForUser(
         conversationId: conversationId,
         userId: userId,
       );
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+    });
   }
 
   @override
@@ -1596,7 +1556,7 @@ class MessageRepositoryImpl implements MessageRepository {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
-    try {
+    return _garde(() async {
       // D'abord chercher une conversation existante
       final existing = await remoteDataSource.findIndividualConversation(
         userId1: currentUserId,
@@ -1626,12 +1586,7 @@ class MessageRepositoryImpl implements MessageRepository {
         otherUserId: otherUserId,
       );
       return Right(conversation.toEntity());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+    });
   }
 
   @override
@@ -1642,17 +1597,12 @@ class MessageRepositoryImpl implements MessageRepository {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
-    try {
+    return _garde(() async {
       final conversation = await remoteDataSource.getOrCreateSelfConversation(
         userId: userId,
       );
       return Right(conversation.toEntity());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+    });
   }
 
   @override
@@ -1929,7 +1879,7 @@ class MessageRepositoryImpl implements MessageRepository {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
-    try {
+    return _garde(() async {
       // C4 : note vocale chiffrée avant le téléversement.
       //
       // **Le drapeau ne décide que des conversations encore en clair.** Dans
@@ -2012,12 +1962,7 @@ class MessageRepositoryImpl implements MessageRepository {
         mediaChiffre: mediaChiffre,
       );
       return Right(message.toEntity());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+    });
   }
 
   @override
@@ -2036,7 +1981,7 @@ class MessageRepositoryImpl implements MessageRepository {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
-    try {
+    return _garde(() async {
       // La position est une donnée sensible que le legacy écrivait en clair
       // (latitude, longitude et adresse, relevés en production le
       // 2026-09-14) : elle entre ici dans le payload chiffré.
@@ -2074,12 +2019,7 @@ class MessageRepositoryImpl implements MessageRepository {
         replyToMessageData: replyToMessageData,
       );
       return Right(message.toEntity());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+    });
   }
 
   @override
@@ -2095,7 +2035,7 @@ class MessageRepositoryImpl implements MessageRepository {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
-    try {
+    return _garde(() async {
       // Le sondage vit en Postgres et le restera : voter demande un arbitre,
       // et l'anonymat des votants est une garantie serveur (plan § 6.3). Le
       // message ne porte donc que son identifiant et sa question — cette
@@ -2125,12 +2065,7 @@ class MessageRepositoryImpl implements MessageRepository {
         question: question,
       );
       return Right(message.toEntity());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+    });
   }
 
   @override
@@ -2150,7 +2085,7 @@ class MessageRepositoryImpl implements MessageRepository {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
-    try {
+    return _garde(() async {
       final passerelle = await _passerellePour(conversationId);
       if (passerelle != null) {
         final envoye = await _tenterEnvoiMls(
@@ -2190,12 +2125,7 @@ class MessageRepositoryImpl implements MessageRepository {
         replyToMessageData: replyToMessageData,
       );
       return Right(message.toEntity());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+    });
   }
 
   @override
@@ -2209,7 +2139,7 @@ class MessageRepositoryImpl implements MessageRepository {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
-    try {
+    return _garde(() async {
       final messages = await remoteDataSource.getMediaMessages(
         conversationId: conversationId,
         limit: limit,
@@ -2267,12 +2197,7 @@ class MessageRepositoryImpl implements MessageRepository {
       final resultats = trouves.values.toList()
         ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
       return Right(resultats);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+    });
   }
 
   @override
@@ -2280,18 +2205,13 @@ class MessageRepositoryImpl implements MessageRepository {
     required String currentUserId,
     required String otherUserId,
   }) async {
-    try {
+    return _garde(() async {
       final conversation = await remoteDataSource.findIndividualConversation(
         userId1: currentUserId,
         userId2: otherUserId,
       );
       return Right(conversation?.id);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+    });
   }
 
   @override
@@ -2299,18 +2219,13 @@ class MessageRepositoryImpl implements MessageRepository {
     required String groupName,
     required String userId,
   }) async {
-    try {
+    return _garde(() async {
       final conversation = await remoteDataSource.findGroupConversationByName(
         groupName: groupName,
         userId: userId,
       );
       return Right(conversation?.id);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+    });
   }
 
   @override
@@ -2318,16 +2233,11 @@ class MessageRepositoryImpl implements MessageRepository {
     required String groupId,
     required String userId,
   }) async {
-    try {
+    return _garde(() async {
       final conversation = await remoteDataSource
           .findGroupConversationByGroupId(groupId: groupId, userId: userId);
       return Right(conversation?.id);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+    });
   }
 
   @override
@@ -2336,7 +2246,7 @@ class MessageRepositoryImpl implements MessageRepository {
     required String messageId,
     required String userId,
   }) async {
-    try {
+    return _garde(() async {
       final passerelle = await _passerelleMessage(conversationId, messageId);
       if (passerelle != null) {
         await passerelle.supprimerPourMoi(messageId);
@@ -2348,12 +2258,7 @@ class MessageRepositoryImpl implements MessageRepository {
         userId: userId,
       );
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+    });
   }
 
   @override
@@ -2361,7 +2266,7 @@ class MessageRepositoryImpl implements MessageRepository {
     required String conversationId,
     required String messageId,
   }) async {
-    try {
+    return _garde(() async {
       final passerelle = await _passerelleMessage(conversationId, messageId);
       if (passerelle != null) {
         await passerelle.supprimerPourTous(messageId);
@@ -2375,12 +2280,7 @@ class MessageRepositoryImpl implements MessageRepository {
       );
       oublierMedias?.call([messageId]);
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+    });
   }
 
   @override
@@ -2392,18 +2292,13 @@ class MessageRepositoryImpl implements MessageRepository {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
-    try {
+    return _garde(() async {
       await remoteDataSource.archiveConversation(
         conversationId: conversationId,
         userId: userId,
       );
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+    });
   }
 
   @override
@@ -2415,18 +2310,13 @@ class MessageRepositoryImpl implements MessageRepository {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
-    try {
+    return _garde(() async {
       await remoteDataSource.unarchiveConversation(
         conversationId: conversationId,
         userId: userId,
       );
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+    });
   }
 
   @override
@@ -2439,19 +2329,14 @@ class MessageRepositoryImpl implements MessageRepository {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
-    try {
+    return _garde(() async {
       await remoteDataSource.muteConversation(
         conversationId: conversationId,
         userId: userId,
         duration: duration,
       );
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+    });
   }
 
   @override
@@ -2463,18 +2348,13 @@ class MessageRepositoryImpl implements MessageRepository {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
-    try {
+    return _garde(() async {
       await remoteDataSource.unmuteConversation(
         conversationId: conversationId,
         userId: userId,
       );
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+    });
   }
 
   @override
@@ -2486,18 +2366,13 @@ class MessageRepositoryImpl implements MessageRepository {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
-    try {
+    return _garde(() async {
       await remoteDataSource.pinConversation(
         conversationId: conversationId,
         userId: userId,
       );
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+    });
   }
 
   @override
@@ -2509,18 +2384,13 @@ class MessageRepositoryImpl implements MessageRepository {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
-    try {
+    return _garde(() async {
       await remoteDataSource.unpinConversation(
         conversationId: conversationId,
         userId: userId,
       );
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+    });
   }
 
   @override
@@ -2529,7 +2399,7 @@ class MessageRepositoryImpl implements MessageRepository {
     required String messageId,
     required String userId,
   }) async {
-    try {
+    return _garde(() async {
       final passerelle = await _passerelleMessage(conversationId, messageId);
       bool? etoile;
       if (passerelle != null) {
@@ -2555,12 +2425,7 @@ class MessageRepositoryImpl implements MessageRepository {
         }
       });
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+    });
   }
 
   @override
@@ -2571,7 +2436,7 @@ class MessageRepositoryImpl implements MessageRepository {
     required String emoji,
     required bool retirer,
   }) async {
-    try {
+    return _garde(() async {
       final passerelle = await _passerelleMessage(conversationId, messageId);
       if (passerelle != null) {
         if (retirer) {
@@ -2609,12 +2474,7 @@ class MessageRepositoryImpl implements MessageRepository {
         }
       });
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+    });
   }
 
   @override
@@ -2622,7 +2482,7 @@ class MessageRepositoryImpl implements MessageRepository {
     required String conversationId,
     required String userId,
   }) async {
-    try {
+    return _garde(() async {
       final models = await remoteDataSource.getStarredMessages(
         conversationId: conversationId,
         userId: userId,
@@ -2655,12 +2515,7 @@ class MessageRepositoryImpl implements MessageRepository {
       final resultats = trouves.values.toList()
         ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
       return Right(resultats);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+    });
   }
 
   @override
@@ -2668,7 +2523,7 @@ class MessageRepositoryImpl implements MessageRepository {
     required String conversationId,
     required String query,
   }) async {
-    try {
+    return _garde(() async {
       final models = await remoteDataSource.searchMessagesInConversation(
         conversationId: conversationId,
         query: query,
@@ -2706,12 +2561,7 @@ class MessageRepositoryImpl implements MessageRepository {
       final resultats = trouves.values.toList()
         ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
       return Right(resultats);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+    });
   }
 
   @override
@@ -2789,18 +2639,13 @@ class MessageRepositoryImpl implements MessageRepository {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
-    try {
+    return _garde(() async {
       await remoteDataSource.setAutoDeleteSettings(
         conversationId: conversationId,
         durationSeconds: durationSeconds,
       );
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+    });
   }
 
   /// Synchroniser les messages de maniere incrementale (sync differentielle)
@@ -2942,6 +2787,23 @@ class MessageRepositoryImpl implements MessageRepository {
     } catch (e) {
       return Left(ServerFailure('Erreur lors de la creation de la demande: $e'));
     }
+  }
+}
+
+/// Le filet commun des opérations du dépôt : une [ServerException] devient
+/// son message, toute autre erreur est journalisée et rendue sous le message
+/// générique. Une trentaine de méthodes répétaient ces six lignes à
+/// l'identique (audit du 2026-10-03, dette du dépôt).
+Future<Either<Failure, T>> _garde<T>(
+  Future<Either<Failure, T>> Function() corps,
+) async {
+  try {
+    return await corps();
+  } on ServerException catch (e) {
+    return Left(ServerFailure(e.message));
+  } catch (e) {
+    dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
+    return Left(ServerFailure(AppErrorMessages.unexpectedError));
   }
 }
 
