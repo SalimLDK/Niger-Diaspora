@@ -11,8 +11,8 @@ import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:video_compress/video_compress.dart';
 
 import '../../../../core/errors/classification_erreurs.dart';
-import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
+import '../../../../core/errors/garde_appel.dart';
 import '../../../../core/network/network_info.dart';
 import '../../../../core/services/audio_playback_service.dart';
 import '../../../../core/services/blurhash_service.dart';
@@ -579,7 +579,7 @@ class MessageRepositoryImpl implements MessageRepository {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
-    try {
+    return garderAppel(() async {
       // Envoi chiffré de bout en bout, quand cette conversation est passée à
       // MLS (ou que le drapeau vient de l'y faire passer). Une conversation
       // DÉJÀ basculée n'a pas de chemin de retour : si MLS échoue, l'envoi
@@ -636,14 +636,10 @@ class MessageRepositoryImpl implements MessageRepository {
       );
 
       return Right(message.toEntity());
-    } on E2EEException catch (e) {
-      return Left(E2EEFailure(e.message));
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+      return ServerFailure(AppErrorMessages.unexpectedError);
+    }, rejouerSiJwtExpire: false);
   }
 
   @override
@@ -664,7 +660,7 @@ class MessageRepositoryImpl implements MessageRepository {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
-    try {
+    return garderAppel(() async {
       final fileName = file.path.split('/').last;
 
       // C4 : pièces jointes chiffrées — images, documents, audio. Pas la
@@ -821,12 +817,10 @@ class MessageRepositoryImpl implements MessageRepository {
         );
         return Right(message.toEntity());
       });
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+      return ServerFailure(AppErrorMessages.unexpectedError);
+    }, rejouerSiJwtExpire: false);
   }
 
   /// Envoi d'une pièce jointe chiffrée (C4, tranche 1).
@@ -848,104 +842,109 @@ class MessageRepositoryImpl implements MessageRepository {
     String? replyToId,
     Map<String, dynamic>? replyToMessageData,
   }) async {
-    final resultat = await chiffrement.encryptAndUploadFile(
-      file: file,
-      conversationId: conversationId,
-      senderId: senderId,
-      mediaType: switch (type) {
-        MessageType.image => MediaType.image,
-        MessageType.audio => MediaType.audio,
-        MessageType.video => MediaType.video,
-        _ => MediaType.document,
-      },
-      onProgress: onProgress,
-      checkCancelled: checkCancelled,
-    );
-    if (checkCancelled?.call() == true) {
-      return const Left(ServerFailure('Envoi annulé'));
-    }
-
-    // Vignette et duree se calculent sur le fichier EN CLAIR, avant qu'il ne
-    // parte chiffre. Sans elles, une video chiffree arriverait sans apercu ni
-    // badge de duree, et se lirait comme un defaut d'affichage.
-    String? blurhash;
-    if (type == MessageType.image) {
-      blurhash = await blurhashService.generateFromImage(file);
-    } else if (type == MessageType.video) {
-      blurhash = await blurhashService.generateFromVideo(file);
-    }
-    int? audioDuration;
-    if (type == MessageType.audio) {
-      audioDuration = await AudioPlaybackService.getDurationFromFile(file.path);
-    }
-    int? videoDuration;
-    if (type == MessageType.video) {
-      videoDuration = await _getVideoDurationSeconds(file.path);
-    }
-    final dbType = type == MessageType.audio ? 'audioFile' : type.name;
-
-    final media = MediaChiffre(
-      storagePath: resultat.storagePath,
-      encryptedUrl: resultat.encryptedUrl,
-      fileKeyBase64: resultat.fileKeyBase64,
-      ivBase64: resultat.ivBase64,
-      fileName: resultat.originalFileName,
-      mimeType: resultat.mimeType,
-      size: resultat.originalSize,
-    );
-
-    // Conversation chiffrée : la clé du fichier entre dans le payload MLS
-    // (plan § 9) au lieu du blob `encAnnexes`, que le serveur sait ouvrir
-    // puisqu'il détient la racine dont la clé de conversation est dérivée.
-    // C'est ce qui achève le chiffrement des pièces jointes commencé en C4.
-    final passerelle = await _passerellePour(conversationId);
-    if (passerelle != null) {
-      final envoye = await _tenterEnvoiMls(
-        passerelle,
-        conversationId,
-        () => passerelle.envoyer(
-          conversationId: conversationId,
-          type: dbType == 'audioFile' ? 'audio' : dbType,
-          body: MlsGateway.corpsMedia(
-            legende: caption,
-            storagePath: resultat.storagePath,
-            fileName: resultat.originalFileName,
-            mimeType: resultat.mimeType,
-            fileSize: resultat.originalSize,
-            fileKey: resultat.fileKeyBase64,
-            fileNonce: resultat.ivBase64,
-            blurhash: blurhash,
-            duration: audioDuration,
-            dureeVideo: videoDuration,
-          ),
-          senderName: senderName,
-          senderPhotoUrl: senderPhotoUrl,
-          replyToId: replyToId,
-          replyToMessageData: replyToMessageData,
-        ),
+    // Pas de rejeu : le fichier est déjà chiffré et téléversé, et un envoi
+    // MLS fait avancer le ratchet avant le serveur. La session est quand
+    // même re-mintée pour l'appel suivant.
+    return garderAppel(() async {
+      final resultat = await chiffrement.encryptAndUploadFile(
+        file: file,
+        conversationId: conversationId,
+        senderId: senderId,
+        mediaType: switch (type) {
+          MessageType.image => MediaType.image,
+          MessageType.audio => MediaType.audio,
+          MessageType.video => MediaType.video,
+          _ => MediaType.document,
+        },
+        onProgress: onProgress,
+        checkCancelled: checkCancelled,
       );
-      if (envoye != null) return envoye;
-    }
+      if (checkCancelled?.call() == true) {
+        return const Left(ServerFailure('Envoi annulé'));
+      }
 
-    final message = await remoteDataSource.sendMediaMessage(
-      conversationId: conversationId,
-      senderId: senderId,
-      senderName: senderName,
-      senderPhotoUrl: senderPhotoUrl,
-      fileUrl: resultat.encryptedUrl,
-      fileName: resultat.originalFileName,
-      fileSize: resultat.originalSize,
-      mimeType: resultat.mimeType,
-      type: dbType,
-      caption: caption,
-      replyToId: replyToId,
-      replyToMessageData: replyToMessageData,
-      blurhash: blurhash,
-      audioDuration: audioDuration,
-      videoDuration: videoDuration,
-      mediaChiffre: media.toJson(),
-    );
-    return Right(message.toEntity());
+      // Vignette et duree se calculent sur le fichier EN CLAIR, avant qu'il ne
+      // parte chiffre. Sans elles, une video chiffree arriverait sans apercu ni
+      // badge de duree, et se lirait comme un defaut d'affichage.
+      String? blurhash;
+      if (type == MessageType.image) {
+        blurhash = await blurhashService.generateFromImage(file);
+      } else if (type == MessageType.video) {
+        blurhash = await blurhashService.generateFromVideo(file);
+      }
+      int? audioDuration;
+      if (type == MessageType.audio) {
+        audioDuration = await AudioPlaybackService.getDurationFromFile(file.path);
+      }
+      int? videoDuration;
+      if (type == MessageType.video) {
+        videoDuration = await _getVideoDurationSeconds(file.path);
+      }
+      final dbType = type == MessageType.audio ? 'audioFile' : type.name;
+
+      final media = MediaChiffre(
+        storagePath: resultat.storagePath,
+        encryptedUrl: resultat.encryptedUrl,
+        fileKeyBase64: resultat.fileKeyBase64,
+        ivBase64: resultat.ivBase64,
+        fileName: resultat.originalFileName,
+        mimeType: resultat.mimeType,
+        size: resultat.originalSize,
+      );
+
+      // Conversation chiffrée : la clé du fichier entre dans le payload MLS
+      // (plan § 9) au lieu du blob `encAnnexes`, que le serveur sait ouvrir
+      // puisqu'il détient la racine dont la clé de conversation est dérivée.
+      // C'est ce qui achève le chiffrement des pièces jointes commencé en C4.
+      final passerelle = await _passerellePour(conversationId);
+      if (passerelle != null) {
+        final envoye = await _tenterEnvoiMls(
+          passerelle,
+          conversationId,
+          () => passerelle.envoyer(
+            conversationId: conversationId,
+            type: dbType == 'audioFile' ? 'audio' : dbType,
+            body: MlsGateway.corpsMedia(
+              legende: caption,
+              storagePath: resultat.storagePath,
+              fileName: resultat.originalFileName,
+              mimeType: resultat.mimeType,
+              fileSize: resultat.originalSize,
+              fileKey: resultat.fileKeyBase64,
+              fileNonce: resultat.ivBase64,
+              blurhash: blurhash,
+              duration: audioDuration,
+              dureeVideo: videoDuration,
+            ),
+            senderName: senderName,
+            senderPhotoUrl: senderPhotoUrl,
+            replyToId: replyToId,
+            replyToMessageData: replyToMessageData,
+          ),
+        );
+        if (envoye != null) return envoye;
+      }
+
+      final message = await remoteDataSource.sendMediaMessage(
+        conversationId: conversationId,
+        senderId: senderId,
+        senderName: senderName,
+        senderPhotoUrl: senderPhotoUrl,
+        fileUrl: resultat.encryptedUrl,
+        fileName: resultat.originalFileName,
+        fileSize: resultat.originalSize,
+        mimeType: resultat.mimeType,
+        type: dbType,
+        caption: caption,
+        replyToId: replyToId,
+        replyToMessageData: replyToMessageData,
+        blurhash: blurhash,
+        audioDuration: audioDuration,
+        videoDuration: videoDuration,
+        mediaChiffre: media.toJson(),
+      );
+      return Right(message.toEntity());
+    }, rejouerSiJwtExpire: false);
   }
 
   /// La passerelle MLS si — et seulement si — cette conversation doit
@@ -1378,18 +1377,16 @@ class MessageRepositoryImpl implements MessageRepository {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
-    try {
+    return garderAppel(() async {
       final conversation = await remoteDataSource.createIndividualConversation(
         currentUserId: currentUserId,
         otherUserId: otherUserId,
       );
       return Right(conversation.toEntity());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+      return ServerFailure(AppErrorMessages.unexpectedError);
+    }, rejouerSiJwtExpire: false);
   }
 
   @override
@@ -1404,7 +1401,7 @@ class MessageRepositoryImpl implements MessageRepository {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
-    try {
+    return garderAppel(() async {
       final conversation = await remoteDataSource.createGroupConversation(
         creatorId: creatorId,
         participantIds: participantIds,
@@ -1413,12 +1410,10 @@ class MessageRepositoryImpl implements MessageRepository {
         groupId: groupId,
       );
       return Right(conversation.toEntity());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+      return ServerFailure(AppErrorMessages.unexpectedError);
+    }, rejouerSiJwtExpire: false);
   }
 
   @override
@@ -1426,15 +1421,15 @@ class MessageRepositoryImpl implements MessageRepository {
     required String conversationId,
     required String messageId,
   }) async {
-    try {
+    return garderAppel(() async {
       final model = await remoteDataSource.getMessageById(
         conversationId: conversationId,
         messageId: messageId,
       );
       return Right(model?.toEntity());
-    } catch (e) {
-      return Left(ServerFailure('Erreur chargement message: ${e.toString()}'));
-    }
+    }, sinon: (e) {
+      return ServerFailure('Erreur chargement message: ${e.toString()}');
+    }, rejouerSiJwtExpire: false);
   }
 
   @override
@@ -1442,7 +1437,7 @@ class MessageRepositoryImpl implements MessageRepository {
     required String conversationId,
     required String userId,
   }) async {
-    try {
+    return garderAppel(() async {
       // Une conversation basculée n'a plus de ligne dans `messages` : son
       // reçu vit dans `mls_message_receipts`. Les deux sont appelés tant que
       // l'historique legacy est là — chacun ne touche que ses propres lignes.
@@ -1455,9 +1450,9 @@ class MessageRepositoryImpl implements MessageRepository {
         userId: userId,
       );
       return const Right(null);
-    } catch (e) {
-      return Left(ServerFailure('Erreur livraison: ${e.toString()}'));
-    }
+    }, sinon: (e) {
+      return ServerFailure('Erreur livraison: ${e.toString()}');
+    }, rejouerSiJwtExpire: false);
   }
 
   @override
@@ -1469,7 +1464,7 @@ class MessageRepositoryImpl implements MessageRepository {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
-    try {
+    return garderAppel(() async {
       final passerelle = await _passerellePour(conversationId);
       if (passerelle != null) {
         await passerelle.marquerLus(conversationId);
@@ -1479,12 +1474,10 @@ class MessageRepositoryImpl implements MessageRepository {
         userId: userId,
       );
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+      return ServerFailure(AppErrorMessages.unexpectedError);
+    }, rejouerSiJwtExpire: false);
   }
 
   @override
@@ -1495,18 +1488,16 @@ class MessageRepositoryImpl implements MessageRepository {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
-    try {
+    return garderAppel(() async {
       await remoteDataSource.clearUnreadMentions(
         conversationId: conversationId,
         userId: userId,
       );
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+      return ServerFailure(AppErrorMessages.unexpectedError);
+    }, rejouerSiJwtExpire: false);
   }
 
   @override
@@ -1515,7 +1506,7 @@ class MessageRepositoryImpl implements MessageRepository {
     required String userId,
     bool forEveryone = false,
   }) async {
-    try {
+    return garderAppel(() async {
       if (await networkInfo.isConnected) {
         await remoteDataSource.deleteConversation(
           conversationId: conversationId,
@@ -1528,12 +1519,10 @@ class MessageRepositoryImpl implements MessageRepository {
         // but could implement local marking if needed.
         return const Left(NetworkFailure('Non disponible hors connexion'));
       }
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+      return ServerFailure(AppErrorMessages.unexpectedError);
+    }, rejouerSiJwtExpire: false);
   }
 
   @override
@@ -1544,17 +1533,15 @@ class MessageRepositoryImpl implements MessageRepository {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
-    try {
+    return garderAppel(() async {
       final conversation = await remoteDataSource.getConversationById(
         conversationId,
       );
       return Right(conversation?.toEntity());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+      return ServerFailure(AppErrorMessages.unexpectedError);
+    }, rejouerSiJwtExpire: false);
   }
 
   @override
@@ -1566,18 +1553,16 @@ class MessageRepositoryImpl implements MessageRepository {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
-    try {
+    return garderAppel(() async {
       await remoteDataSource.restoreConversationForUser(
         conversationId: conversationId,
         userId: userId,
       );
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+      return ServerFailure(AppErrorMessages.unexpectedError);
+    }, rejouerSiJwtExpire: false);
   }
 
   @override
@@ -1590,7 +1575,7 @@ class MessageRepositoryImpl implements MessageRepository {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
-    try {
+    return garderAppel(() async {
       // D'abord chercher une conversation existante
       final existing = await remoteDataSource.findIndividualConversation(
         userId1: currentUserId,
@@ -1620,12 +1605,10 @@ class MessageRepositoryImpl implements MessageRepository {
         otherUserId: otherUserId,
       );
       return Right(conversation.toEntity());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+      return ServerFailure(AppErrorMessages.unexpectedError);
+    }, rejouerSiJwtExpire: false);
   }
 
   @override
@@ -1636,17 +1619,15 @@ class MessageRepositoryImpl implements MessageRepository {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
-    try {
+    return garderAppel(() async {
       final conversation = await remoteDataSource.getOrCreateSelfConversation(
         userId: userId,
       );
       return Right(conversation.toEntity());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+      return ServerFailure(AppErrorMessages.unexpectedError);
+    }, rejouerSiJwtExpire: false);
   }
 
   @override
@@ -1663,7 +1644,7 @@ class MessageRepositoryImpl implements MessageRepository {
     // debugPrint('📡 Repository: isConnected = $isConnected');
 
     if (isConnected) {
-      try {
+      return garderAppel(() async {
         // debugPrint('🌐 Repository: Fetching from remote data source...');
         // Fetch limit+1 to detect whether a next page exists without generating
         // a spurious empty page when the result count equals the page size.
@@ -1704,17 +1685,14 @@ class MessageRepositoryImpl implements MessageRepository {
                 entities.isNotEmpty ? entities.first.createdAt : null,
           ),
         );
-      } on ServerException catch (e) {
-        // debugPrint('❌ Repository: ServerException - ${e.message}');
-        return Left(ServerFailure(e.message));
-      } catch (e) {
+      }, sinon: (e) {
         // debugPrint('❌ Repository: Unexpected error - ${e.toString()}');
         dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-        return Left(ServerFailure(AppErrorMessages.unexpectedError));
-      }
+        return ServerFailure(AppErrorMessages.unexpectedError);
+      }, rejouerSiJwtExpire: false);
     } else {
       // Offline mode - load from cache
-      try {
+      return garderAppel(() async {
         final cachedMessages = cacheService.getCachedMessages(
           conversationId,
           limit: limit,
@@ -1741,9 +1719,9 @@ class MessageRepositoryImpl implements MessageRepository {
                 entities.isNotEmpty ? entities.first.createdAt : null,
           ),
         );
-      } catch (e) {
-        return Left(CacheFailure('Erreur lecture cache: ${e.toString()}'));
-      }
+      }, sinon: (e) {
+        return CacheFailure('Erreur lecture cache: ${e.toString()}');
+      }, rejouerSiJwtExpire: false);
     }
   }
 
@@ -1918,7 +1896,7 @@ class MessageRepositoryImpl implements MessageRepository {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
-    try {
+    return garderAppel(() async {
       // C4 : note vocale chiffrée avant le téléversement.
       //
       // **Le drapeau ne décide que des conversations encore en clair.** Dans
@@ -2001,12 +1979,10 @@ class MessageRepositoryImpl implements MessageRepository {
         mediaChiffre: mediaChiffre,
       );
       return Right(message.toEntity());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+      return ServerFailure(AppErrorMessages.unexpectedError);
+    }, rejouerSiJwtExpire: false);
   }
 
   @override
@@ -2025,7 +2001,7 @@ class MessageRepositoryImpl implements MessageRepository {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
-    try {
+    return garderAppel(() async {
       // La position est une donnée sensible que le legacy écrivait en clair
       // (latitude, longitude et adresse, relevés en production le
       // 2026-09-14) : elle entre ici dans le payload chiffré.
@@ -2063,12 +2039,10 @@ class MessageRepositoryImpl implements MessageRepository {
         replyToMessageData: replyToMessageData,
       );
       return Right(message.toEntity());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+      return ServerFailure(AppErrorMessages.unexpectedError);
+    }, rejouerSiJwtExpire: false);
   }
 
   @override
@@ -2084,7 +2058,7 @@ class MessageRepositoryImpl implements MessageRepository {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
-    try {
+    return garderAppel(() async {
       // Le sondage vit en Postgres et le restera : voter demande un arbitre,
       // et l'anonymat des votants est une garantie serveur (plan § 6.3). Le
       // message ne porte donc que son identifiant et sa question — cette
@@ -2114,12 +2088,10 @@ class MessageRepositoryImpl implements MessageRepository {
         question: question,
       );
       return Right(message.toEntity());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+      return ServerFailure(AppErrorMessages.unexpectedError);
+    }, rejouerSiJwtExpire: false);
   }
 
   @override
@@ -2139,7 +2111,7 @@ class MessageRepositoryImpl implements MessageRepository {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
-    try {
+    return garderAppel(() async {
       final passerelle = await _passerellePour(conversationId);
       if (passerelle != null) {
         final envoye = await _tenterEnvoiMls(
@@ -2179,12 +2151,10 @@ class MessageRepositoryImpl implements MessageRepository {
         replyToMessageData: replyToMessageData,
       );
       return Right(message.toEntity());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+      return ServerFailure(AppErrorMessages.unexpectedError);
+    }, rejouerSiJwtExpire: false);
   }
 
   @override
@@ -2197,7 +2167,7 @@ class MessageRepositoryImpl implements MessageRepository {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
-    try {
+    return garderAppel(() async {
       final messages = await remoteDataSource.getMediaMessages(
         conversationId: conversationId,
         limit: limit,
@@ -2236,12 +2206,10 @@ class MessageRepositoryImpl implements MessageRepository {
       final resultats = trouves.values.toList()
         ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
       return Right(resultats);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+      return ServerFailure(AppErrorMessages.unexpectedError);
+    }, rejouerSiJwtExpire: false);
   }
 
   @override
@@ -2249,18 +2217,16 @@ class MessageRepositoryImpl implements MessageRepository {
     required String currentUserId,
     required String otherUserId,
   }) async {
-    try {
+    return garderAppel(() async {
       final conversation = await remoteDataSource.findIndividualConversation(
         userId1: currentUserId,
         userId2: otherUserId,
       );
       return Right(conversation?.id);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+      return ServerFailure(AppErrorMessages.unexpectedError);
+    }, rejouerSiJwtExpire: false);
   }
 
   @override
@@ -2268,18 +2234,16 @@ class MessageRepositoryImpl implements MessageRepository {
     required String groupName,
     required String userId,
   }) async {
-    try {
+    return garderAppel(() async {
       final conversation = await remoteDataSource.findGroupConversationByName(
         groupName: groupName,
         userId: userId,
       );
       return Right(conversation?.id);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+      return ServerFailure(AppErrorMessages.unexpectedError);
+    }, rejouerSiJwtExpire: false);
   }
 
   @override
@@ -2287,16 +2251,14 @@ class MessageRepositoryImpl implements MessageRepository {
     required String groupId,
     required String userId,
   }) async {
-    try {
+    return garderAppel(() async {
       final conversation = await remoteDataSource
           .findGroupConversationByGroupId(groupId: groupId, userId: userId);
       return Right(conversation?.id);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+      return ServerFailure(AppErrorMessages.unexpectedError);
+    }, rejouerSiJwtExpire: false);
   }
 
   @override
@@ -2305,7 +2267,7 @@ class MessageRepositoryImpl implements MessageRepository {
     required String messageId,
     required String userId,
   }) async {
-    try {
+    return garderAppel(() async {
       final passerelle = await _passerelleMessage(conversationId, messageId);
       if (passerelle != null) {
         await passerelle.supprimerPourMoi(messageId);
@@ -2317,12 +2279,10 @@ class MessageRepositoryImpl implements MessageRepository {
         userId: userId,
       );
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+      return ServerFailure(AppErrorMessages.unexpectedError);
+    }, rejouerSiJwtExpire: false);
   }
 
   @override
@@ -2330,7 +2290,7 @@ class MessageRepositoryImpl implements MessageRepository {
     required String conversationId,
     required String messageId,
   }) async {
-    try {
+    return garderAppel(() async {
       final passerelle = await _passerelleMessage(conversationId, messageId);
       if (passerelle != null) {
         await passerelle.supprimerPourTous(messageId);
@@ -2344,12 +2304,10 @@ class MessageRepositoryImpl implements MessageRepository {
       );
       oublierMedias?.call([messageId]);
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+      return ServerFailure(AppErrorMessages.unexpectedError);
+    }, rejouerSiJwtExpire: false);
   }
 
   @override
@@ -2361,18 +2319,16 @@ class MessageRepositoryImpl implements MessageRepository {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
-    try {
+    return garderAppel(() async {
       await remoteDataSource.archiveConversation(
         conversationId: conversationId,
         userId: userId,
       );
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+      return ServerFailure(AppErrorMessages.unexpectedError);
+    }, rejouerSiJwtExpire: false);
   }
 
   @override
@@ -2384,18 +2340,16 @@ class MessageRepositoryImpl implements MessageRepository {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
-    try {
+    return garderAppel(() async {
       await remoteDataSource.unarchiveConversation(
         conversationId: conversationId,
         userId: userId,
       );
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+      return ServerFailure(AppErrorMessages.unexpectedError);
+    }, rejouerSiJwtExpire: false);
   }
 
   @override
@@ -2408,19 +2362,17 @@ class MessageRepositoryImpl implements MessageRepository {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
-    try {
+    return garderAppel(() async {
       await remoteDataSource.muteConversation(
         conversationId: conversationId,
         userId: userId,
         duration: duration,
       );
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+      return ServerFailure(AppErrorMessages.unexpectedError);
+    }, rejouerSiJwtExpire: false);
   }
 
   @override
@@ -2432,18 +2384,16 @@ class MessageRepositoryImpl implements MessageRepository {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
-    try {
+    return garderAppel(() async {
       await remoteDataSource.unmuteConversation(
         conversationId: conversationId,
         userId: userId,
       );
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+      return ServerFailure(AppErrorMessages.unexpectedError);
+    }, rejouerSiJwtExpire: false);
   }
 
   @override
@@ -2455,18 +2405,16 @@ class MessageRepositoryImpl implements MessageRepository {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
-    try {
+    return garderAppel(() async {
       await remoteDataSource.pinConversation(
         conversationId: conversationId,
         userId: userId,
       );
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+      return ServerFailure(AppErrorMessages.unexpectedError);
+    }, rejouerSiJwtExpire: false);
   }
 
   @override
@@ -2478,18 +2426,16 @@ class MessageRepositoryImpl implements MessageRepository {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
-    try {
+    return garderAppel(() async {
       await remoteDataSource.unpinConversation(
         conversationId: conversationId,
         userId: userId,
       );
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+      return ServerFailure(AppErrorMessages.unexpectedError);
+    }, rejouerSiJwtExpire: false);
   }
 
   @override
@@ -2498,7 +2444,7 @@ class MessageRepositoryImpl implements MessageRepository {
     required String messageId,
     required String userId,
   }) async {
-    try {
+    return garderAppel(() async {
       final passerelle = await _passerelleMessage(conversationId, messageId);
       bool? etoile;
       if (passerelle != null) {
@@ -2524,12 +2470,10 @@ class MessageRepositoryImpl implements MessageRepository {
         }
       });
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+      return ServerFailure(AppErrorMessages.unexpectedError);
+    }, rejouerSiJwtExpire: false);
   }
 
   @override
@@ -2540,7 +2484,7 @@ class MessageRepositoryImpl implements MessageRepository {
     required String emoji,
     required bool retirer,
   }) async {
-    try {
+    return garderAppel(() async {
       final passerelle = await _passerelleMessage(conversationId, messageId);
       if (passerelle != null) {
         if (retirer) {
@@ -2578,12 +2522,10 @@ class MessageRepositoryImpl implements MessageRepository {
         }
       });
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+      return ServerFailure(AppErrorMessages.unexpectedError);
+    }, rejouerSiJwtExpire: false);
   }
 
   @override
@@ -2591,7 +2533,7 @@ class MessageRepositoryImpl implements MessageRepository {
     required String conversationId,
     required String userId,
   }) async {
-    try {
+    return garderAppel(() async {
       final models = await remoteDataSource.getStarredMessages(
         conversationId: conversationId,
         userId: userId,
@@ -2624,12 +2566,10 @@ class MessageRepositoryImpl implements MessageRepository {
       final resultats = trouves.values.toList()
         ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
       return Right(resultats);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+      return ServerFailure(AppErrorMessages.unexpectedError);
+    }, rejouerSiJwtExpire: false);
   }
 
   @override
@@ -2637,7 +2577,7 @@ class MessageRepositoryImpl implements MessageRepository {
     required String conversationId,
     required String query,
   }) async {
-    try {
+    return garderAppel(() async {
       final models = await remoteDataSource.searchMessagesInConversation(
         conversationId: conversationId,
         query: query,
@@ -2675,12 +2615,10 @@ class MessageRepositoryImpl implements MessageRepository {
       final resultats = trouves.values.toList()
         ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
       return Right(resultats);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+      return ServerFailure(AppErrorMessages.unexpectedError);
+    }, rejouerSiJwtExpire: false);
   }
 
   @override
@@ -2694,7 +2632,7 @@ class MessageRepositoryImpl implements MessageRepository {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
-    try {
+    return garderAppel(() async {
       // Le nouveau texte d'un message chiffré doit repartir chiffré, dans un
       // message de contrôle — rien ne l'émet encore. La passerelle lève, et
       // l'écran affiche une erreur : laisser passer écrirait dans `messages`,
@@ -2735,18 +2673,16 @@ class MessageRepositoryImpl implements MessageRepository {
       _rejouerLaListe();
 
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       // La garde d'entrée ne voit pas tout (portail captif, réseau qui tombe
       // pendant l'envoi) : une coupure doit se dire coupure, pas « erreur
       // inattendue ».
       if (estPanneReseau(e)) {
-        return Left(NetworkFailure(AppErrorMessages.networkError));
+        return NetworkFailure(AppErrorMessages.networkError);
       }
       dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+      return ServerFailure(AppErrorMessages.unexpectedError);
+    }, rejouerSiJwtExpire: false);
   }
 
   @override
@@ -2758,25 +2694,23 @@ class MessageRepositoryImpl implements MessageRepository {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
-    try {
+    return garderAppel(() async {
       await remoteDataSource.setAutoDeleteSettings(
         conversationId: conversationId,
         durationSeconds: durationSeconds,
       );
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       dev.log('Erreur inattendue', name: 'message_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+      return ServerFailure(AppErrorMessages.unexpectedError);
+    }, rejouerSiJwtExpire: false);
   }
 
   /// Synchroniser les messages de maniere incrementale (sync differentielle)
   Future<Either<Failure, List<MessageEntity>>> syncMessagesIncremental({
     required String conversationId,
   }) async {
-    try {
+    return garderAppel(() async {
       // 1. Obtenir le dernier timestamp du cache
       final cachedMessages = cacheService.getCachedMessages(conversationId);
 
@@ -2828,11 +2762,9 @@ class MessageRepositoryImpl implements MessageRepository {
               .toList();
 
       return Right(entities);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure('Erreur de synchronisation: $e'));
-    }
+    }, sinon: (e) {
+      return ServerFailure('Erreur de synchronisation: $e');
+    }, rejouerSiJwtExpire: false);
   }
 
   // ============ MESSAGE REQUESTS (Zone Tampon) ============
@@ -2858,18 +2790,16 @@ class MessageRepositoryImpl implements MessageRepository {
     required String conversationId,
     required String recipientId,
   }) async {
-    try {
+    return garderAppel(() async {
       await remoteDataSource.updateRequestStatus(
         conversationId: conversationId,
         status: 'accepted',
         recipientId: recipientId,
       );
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure('Erreur lors de l\'acceptation: $e'));
-    }
+    }, sinon: (e) {
+      return ServerFailure('Erreur lors de l\'acceptation: $e');
+    }, rejouerSiJwtExpire: false);
   }
 
   @override
@@ -2877,18 +2807,16 @@ class MessageRepositoryImpl implements MessageRepository {
     required String conversationId,
     required String recipientId,
   }) async {
-    try {
+    return garderAppel(() async {
       await remoteDataSource.updateRequestStatus(
         conversationId: conversationId,
         status: 'declined',
         recipientId: recipientId,
       );
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure('Erreur lors du refus: $e'));
-    }
+    }, sinon: (e) {
+      return ServerFailure('Erreur lors du refus: $e');
+    }, rejouerSiJwtExpire: false);
   }
 
   @override
@@ -2900,17 +2828,15 @@ class MessageRepositoryImpl implements MessageRepository {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
-    try {
+    return garderAppel(() async {
       final model = await remoteDataSource.createIndividualConversationAsRequest(
         currentUserId: currentUserId,
         otherUserId: otherUserId,
       );
       return Right(model.toEntity());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure('Erreur lors de la creation de la demande: $e'));
-    }
+    }, sinon: (e) {
+      return ServerFailure('Erreur lors de la creation de la demande: $e');
+    }, rejouerSiJwtExpire: false);
   }
 }
 

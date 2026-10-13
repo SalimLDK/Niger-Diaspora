@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/services/logger_service.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
+import '../../../../core/errors/garde_appel.dart';
 import '../../../../core/network/network_info.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../domain/entities/profile_entity.dart';
@@ -30,14 +31,10 @@ class ProfileRepositoryImpl implements ProfileRepository {
     //   return Left(NetworkFailure(AppErrorMessages.networkError));
     // }
 
-    try {
+    return garderAppel(() async {
       final profile = await remoteDataSource.getProfile(userId);
       return Right(profile.toEntity());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+    }, sinon: (e) => ServerFailure(e.toString()));
   }
 
   @override
@@ -58,7 +55,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
-    try {
+    return garderAppel(() async {
       // 1. Get current profile to check if location changed
       ProfileModel? oldProfile;
       try {
@@ -108,9 +105,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
       }
 
       return Right(updatedProfile.toEntity());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    }
+    });
   }
 
   @override
@@ -122,12 +117,10 @@ class ProfileRepositoryImpl implements ProfileRepository {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
-    try {
+    return garderAppel(() async {
       final url = await remoteDataSource.uploadProfilePhoto(userId, filePath);
       return Right(url);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    }
+    });
   }
 
   @override
@@ -140,7 +133,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
-    try {
+    return garderAppel(() async {
       await remoteDataSource.updateLocation(userId, latitude, longitude);
 
       // Check for nearby members (5km)
@@ -197,9 +190,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
       }
 
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    }
+    });
   }
 
   @override
@@ -212,16 +203,14 @@ class ProfileRepositoryImpl implements ProfileRepository {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
-    try {
+    return garderAppel(() async {
       final profiles = await remoteDataSource.getNearbyProfiles(
         latitude,
         longitude,
         radiusKm,
       );
       return Right(profiles.map((p) => p.toEntity()).toList());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    }
+    });
   }
 
   @override
@@ -232,12 +221,10 @@ class ProfileRepositoryImpl implements ProfileRepository {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
-    try {
+    return garderAppel(() async {
       final profiles = await remoteDataSource.searchProfiles(query);
       return Right(profiles.map((p) => p.toEntity()).toList());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    }
+    });
   }
 
   @override
@@ -289,12 +276,10 @@ class ProfileRepositoryImpl implements ProfileRepository {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
-    try {
+    return garderAppel(() async {
       await remoteDataSource.updateOnlineStatus(userId, isOnline, lastSeen);
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    }
+    });
   }
 
   @override
@@ -306,12 +291,10 @@ class ProfileRepositoryImpl implements ProfileRepository {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
 
-    try {
+    return garderAppel(() async {
       await remoteDataSource.updateOnlineStatusVisibility(userId, showStatus);
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    }
+    });
   }
 
   @override

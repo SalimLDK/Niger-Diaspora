@@ -10,7 +10,15 @@ abstract class Failure extends Equatable {
 }
 
 class ServerFailure extends Failure {
-  const ServerFailure(super.message);
+  /// Ce que le serveur a dit, quand il l'a dit : SQLSTATE (`42501`, `23514`),
+  /// code PostgREST (`PGRST303`) ou statut HTTP (`522`). Posé par
+  /// `garderAppel` ; nul pour les échecs décrits en clair par le projet.
+  final String? code;
+
+  const ServerFailure(super.message, {this.code});
+
+  @override
+  List<Object> get props => [message, code ?? ''];
 }
 
 class CacheFailure extends Failure {

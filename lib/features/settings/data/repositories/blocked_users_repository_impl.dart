@@ -1,6 +1,6 @@
 import 'package:dartz/dartz.dart';
-import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
+import '../../../../core/errors/garde_appel.dart';
 import '../../domain/entities/blocked_user_entity.dart';
 import '../../domain/repositories/blocked_users_repository.dart';
 import '../datasources/blocked_users_datasource.dart';
@@ -35,7 +35,7 @@ class BlockedUsersRepositoryImpl implements BlockedUsersRepository {
     String targetDisplayName,
     String? targetPhotoUrl,
   ) async {
-    try {
+    return garderAppel(() async {
       await dataSource.blockUser(
         currentUserId,
         targetUserId,
@@ -43,11 +43,7 @@ class BlockedUsersRepositoryImpl implements BlockedUsersRepository {
         targetPhotoUrl,
       );
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+    }, sinon: (e) => ServerFailure(e.toString()));
   }
 
   @override
@@ -55,14 +51,10 @@ class BlockedUsersRepositoryImpl implements BlockedUsersRepository {
     String currentUserId,
     String targetUserId,
   ) async {
-    try {
+    return garderAppel(() async {
       await dataSource.unblockUser(currentUserId, targetUserId);
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+    }, sinon: (e) => ServerFailure(e.toString()));
   }
 
   @override
@@ -70,16 +62,12 @@ class BlockedUsersRepositoryImpl implements BlockedUsersRepository {
     String currentUserId,
     String targetUserId,
   ) async {
-    try {
+    return garderAppel(() async {
       final blocked = await dataSource.checkBlockStatus(
         currentUserId,
         targetUserId,
       );
       return Right(blocked);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+    }, sinon: (e) => ServerFailure(e.toString()));
   }
 }

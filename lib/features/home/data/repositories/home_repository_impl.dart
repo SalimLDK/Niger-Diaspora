@@ -2,7 +2,7 @@ import 'package:diaspo_niger/core/errors/app_error_messages.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter/foundation.dart';
 import '../../../../core/errors/failures.dart';
-import '../../../../core/errors/exceptions.dart';
+import '../../../../core/errors/garde_appel.dart';
 import '../../../../core/services/cache_service.dart';
 import '../../../../core/services/connectivity_service.dart';
 import '../../domain/entities/home_content.dart';
@@ -32,52 +32,58 @@ class HomeRepositoryImpl implements HomeRepository {
     int nearbyMembersLimit = 10,
     int upcomingEventsLimit = 5,
   }) async {
-    try {
-      final isConnected = await connectivityService.isConnected();
+    return garderAppel(() async {
+      try {
+        final isConnected = await connectivityService.isConnected();
 
-      if (isConnected) {
-        // Récupérer depuis le serveur
-        final result = await remoteDataSource.getHomeContent(
-          userId: userId,
-          latitude: latitude,
-          longitude: longitude,
-          nearbyMembersLimit: nearbyMembersLimit,
-          upcomingEventsLimit: upcomingEventsLimit,
-        );
+        if (isConnected) {
+          // Récupérer depuis le serveur
+          final result = await remoteDataSource.getHomeContent(
+            userId: userId,
+            latitude: latitude,
+            longitude: longitude,
+            nearbyMembersLimit: nearbyMembersLimit,
+            upcomingEventsLimit: upcomingEventsLimit,
+          );
 
-        // Mettre en cache
-        await _cacheHomeContent(result);
+          // Mettre en cache
+          await _cacheHomeContent(result);
 
-        return Right(result.toEntity());
-      } else {
-        // Mode offline - récupérer depuis le cache
+          return Right(result.toEntity());
+        } else {
+          // Mode offline - récupérer depuis le cache
+          final cached = _getCachedHomeContent();
+          if (cached != null) {
+            return Right(cached.toEntity());
+          }
+          return Left(NetworkFailure(AppErrorMessages.networkError));
+        }
+      } catch (e) {
+        // Une panne serveur — `ServerException` de la datasource, ou la
+        // `PostgrestException` qui la contournait jusqu'ici — se replie sur
+        // le cache. Les autres familles suivent la garde sans détour.
+        if (failurePourException(e) is! ServerFailure) rethrow;
+        debugPrint('HomeRepository: Server error: $e');
+
+        // Essayer le cache en cas d'erreur serveur
         final cached = _getCachedHomeContent();
         if (cached != null) {
           return Right(cached.toEntity());
         }
-        return Left(NetworkFailure(AppErrorMessages.networkError));
-      }
-    } on ServerException catch (e) {
-      debugPrint('HomeRepository: Server error: $e');
 
-      // Essayer le cache en cas d'erreur serveur
-      final cached = _getCachedHomeContent();
-      if (cached != null) {
-        return Right(cached.toEntity());
+        rethrow;
       }
-
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       debugPrint('HomeRepository: Unexpected error: $e');
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+      return ServerFailure(AppErrorMessages.unexpectedError);
+    });
   }
 
   @override
   Future<Either<Failure, HomeStats>> getHomeStats({
     required String userId,
   }) async {
-    try {
+    return garderAppel(() async {
       final isConnected = await connectivityService.isConnected();
 
       if (isConnected) {
@@ -91,10 +97,10 @@ class HomeRepositoryImpl implements HomeRepository {
         }
         return Left(NetworkFailure(AppErrorMessages.networkError));
       }
-    } catch (e) {
+    }, sinon: (e) {
       debugPrint('HomeRepository: Error getting stats: $e');
-      return const Left(ServerFailure('Erreur lors de la récupération des statistiques'));
-    }
+      return const ServerFailure('Erreur lors de la récupération des statistiques');
+    });
   }
 
   @override
@@ -105,7 +111,7 @@ class HomeRepositoryImpl implements HomeRepository {
     double radiusKm = 50,
     int limit = 20,
   }) async {
-    try {
+    return garderAppel(() async {
       final isConnected = await connectivityService.isConnected();
 
       if (!isConnected) {
@@ -126,10 +132,10 @@ class HomeRepositoryImpl implements HomeRepository {
       );
 
       return Right(result.map((m) => m.toEntity()).toList());
-    } catch (e) {
+    }, sinon: (e) {
       debugPrint('HomeRepository: Error getting nearby members: $e');
-      return const Left(ServerFailure('Erreur lors de la récupération des membres proches'));
-    }
+      return const ServerFailure('Erreur lors de la récupération des membres proches');
+    });
   }
 
   @override
@@ -137,7 +143,7 @@ class HomeRepositoryImpl implements HomeRepository {
     required String userId,
     int limit = 10,
   }) async {
-    try {
+    return garderAppel(() async {
       final isConnected = await connectivityService.isConnected();
 
       if (!isConnected) {
@@ -154,10 +160,10 @@ class HomeRepositoryImpl implements HomeRepository {
       );
 
       return Right(result.map((e) => e.toEntity()).toList());
-    } catch (e) {
+    }, sinon: (e) {
       debugPrint('HomeRepository: Error getting upcoming events: $e');
-      return const Left(ServerFailure('Erreur lors de la récupération des événements'));
-    }
+      return const ServerFailure('Erreur lors de la récupération des événements');
+    });
   }
 
   @override
@@ -167,7 +173,7 @@ class HomeRepositoryImpl implements HomeRepository {
     double? longitude,
   }) async {
     // Force refresh depuis le serveur
-    try {
+    return garderAppel(() async {
       final result = await remoteDataSource.getHomeContent(
         userId: userId,
         latitude: latitude,
@@ -176,12 +182,10 @@ class HomeRepositoryImpl implements HomeRepository {
 
       await _cacheHomeContent(result);
       return Right(result.toEntity());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       debugPrint('HomeRepository: Error refreshing content: $e');
-      return const Left(ServerFailure('Erreur lors du rafraîchissement'));
-    }
+      return const ServerFailure('Erreur lors du rafraîchissement');
+    });
   }
 
   /// Met en cache le contenu Home

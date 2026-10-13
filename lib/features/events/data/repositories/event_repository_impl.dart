@@ -1,8 +1,8 @@
 import 'package:diaspo_niger/core/errors/app_error_messages.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:dartz/dartz.dart';
-import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
+import '../../../../core/errors/garde_appel.dart';
 import '../../../../core/network/network_info.dart';
 import '../../../../core/services/cache_service.dart';
 import '../../../../core/services/notification_service.dart';
@@ -43,12 +43,10 @@ class EventRepositoryImpl implements EventRepository {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
-    try {
+    return garderAppel(() async {
       final events = await remoteDataSource.getEvents();
       return Right(events.map((e) => e.toEntity()).toList());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    }
+    });
   }
 
   @override
@@ -56,12 +54,10 @@ class EventRepositoryImpl implements EventRepository {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
-    try {
+    return garderAppel(() async {
       final events = await remoteDataSource.getUpcomingEvents();
       return Right(events.map((e) => e.toEntity()).toList());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    }
+    });
   }
 
   @override
@@ -71,12 +67,10 @@ class EventRepositoryImpl implements EventRepository {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
-    try {
+    return garderAppel(() async {
       final events = await remoteDataSource.getEventsByCategory(category.name);
       return Right(events.map((e) => e.toEntity()).toList());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    }
+    });
   }
 
   @override
@@ -86,12 +80,10 @@ class EventRepositoryImpl implements EventRepository {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
-    try {
+    return garderAppel(() async {
       final events = await remoteDataSource.getEventsByGroup(groupId);
       return Right(events.map((e) => e.toEntity()).toList());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    }
+    });
   }
 
   @override
@@ -99,12 +91,10 @@ class EventRepositoryImpl implements EventRepository {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
-    try {
+    return garderAppel(() async {
       final event = await remoteDataSource.getEventById(eventId);
       return Right(event.toEntity());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    }
+    });
   }
 
   @override
@@ -115,16 +105,14 @@ class EventRepositoryImpl implements EventRepository {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
-    try {
+    return garderAppel(() async {
       final eventModel = EventModel.fromEntity(event);
       final created = await remoteDataSource.createEvent(
         eventModel,
         visibility: visibility?.name,
       );
       return Right(created.toEntity());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    }
+    });
   }
 
   @override
@@ -132,7 +120,7 @@ class EventRepositoryImpl implements EventRepository {
     String eventId,
     EventAudience audience,
   ) async {
-    try {
+    return garderAppel(() async {
       await remoteDataSource.setEventAudience(
         eventId: eventId,
         visibility: audience.visibility.name,
@@ -140,20 +128,16 @@ class EventRepositoryImpl implements EventRepository {
         userIds: audience.people.keys.toList(),
       );
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    }
+    });
   }
 
   @override
   Future<Either<Failure, EventAudience>> getEventAudience(
     String eventId,
   ) async {
-    try {
+    return garderAppel(() async {
       return Right(await remoteDataSource.getEventAudience(eventId));
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    }
+    });
   }
 
   @override
@@ -161,13 +145,11 @@ class EventRepositoryImpl implements EventRepository {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
-    try {
+    return garderAppel(() async {
       final eventModel = EventModel.fromEntity(event);
       final updated = await remoteDataSource.updateEvent(eventModel);
       return Right(updated.toEntity());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    }
+    });
   }
 
   @override
@@ -175,12 +157,10 @@ class EventRepositoryImpl implements EventRepository {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
-    try {
+    return garderAppel(() async {
       await remoteDataSource.deleteEvent(eventId);
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    }
+    });
   }
 
   @override
@@ -191,7 +171,7 @@ class EventRepositoryImpl implements EventRepository {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
-    try {
+    return garderAppel(() async {
       // Get event details to know who to notify
       final event = await remoteDataSource.getEventById(eventId);
 
@@ -239,9 +219,7 @@ class EventRepositoryImpl implements EventRepository {
       }
 
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    }
+    });
   }
 
   @override
@@ -252,12 +230,10 @@ class EventRepositoryImpl implements EventRepository {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
-    try {
+    return garderAppel(() async {
       await remoteDataSource.cancelAttendance(eventId, userId);
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    }
+    });
   }
 
   @override
@@ -265,12 +241,10 @@ class EventRepositoryImpl implements EventRepository {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
-    try {
+    return garderAppel(() async {
       final events = await remoteDataSource.getMyEvents(userId);
       return Right(events.map((e) => e.toEntity()).toList());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    }
+    });
   }
 
   @override
@@ -280,12 +254,10 @@ class EventRepositoryImpl implements EventRepository {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
-    try {
+    return garderAppel(() async {
       final events = await remoteDataSource.getAttendingEvents(userId);
       return Right(events.map((e) => e.toEntity()).toList());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    }
+    });
   }
 
   @override
@@ -293,12 +265,10 @@ class EventRepositoryImpl implements EventRepository {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
-    try {
+    return garderAppel(() async {
       final events = await remoteDataSource.getPastEvents();
       return Right(events.map((e) => e.toEntity()).toList());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    }
+    });
   }
 
   @override
@@ -309,12 +279,10 @@ class EventRepositoryImpl implements EventRepository {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
-    try {
+    return garderAppel(() async {
       final url = await remoteDataSource.uploadEventPoster(eventId, imagePath);
       return Right(url);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    }
+    });
   }
 
   @override
@@ -325,12 +293,10 @@ class EventRepositoryImpl implements EventRepository {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
-    try {
+    return garderAppel(() async {
       await remoteDataSource.deleteEventPoster(eventId, imageUrl);
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    }
+    });
   }
 
   @override
@@ -341,12 +307,10 @@ class EventRepositoryImpl implements EventRepository {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
-    try {
+    return garderAppel(() async {
       final url = await remoteDataSource.uploadRecapPhoto(eventId, imagePath);
       return Right(url);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    }
+    });
   }
 
   @override
@@ -358,11 +322,9 @@ class EventRepositoryImpl implements EventRepository {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
-    try {
+    return garderAppel(() async {
       await remoteDataSource.updateEventRecap(eventId, photoUrls, description);
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    }
+    });
   }
 }

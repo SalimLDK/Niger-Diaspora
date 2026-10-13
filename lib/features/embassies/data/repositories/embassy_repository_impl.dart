@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import '../../../../core/errors/failures.dart';
+import '../../../../core/errors/garde_appel.dart';
 import '../../../../core/network/network_info.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../datasources/embassy_remote_datasource.dart';
@@ -21,13 +22,11 @@ class EmbassyRepositoryImpl implements EmbassyRepository {
   @override
   Future<Either<Failure, List<EmbassyEntity>>> getEmbassies() async {
     if (await networkInfo.isConnected) {
-      try {
+      return garderAppel(() async {
         final remoteEmbassies = await remoteDataSource.getEmbassies();
         await localDataSource.cacheEmbassies(remoteEmbassies);
         return Right(remoteEmbassies.map((e) => e.toEntity()).toList());
-      } on ServerException catch (e) {
-        return Left(ServerFailure(e.message));
-      }
+      });
     } else {
       try {
         final localEmbassies = await localDataSource.getLastEmbassies();

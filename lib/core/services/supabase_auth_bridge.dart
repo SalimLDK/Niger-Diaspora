@@ -312,6 +312,45 @@ class SupabaseAuthBridge {
     return hasValidSession;
   }
 
+  /// Le serveur vient de répondre `PGRST303` « JWT expired » : la session est
+  /// morte, quoi qu'en dise [hasValidSession].
+  ///
+  /// Pourquoi [ensureAuthenticated] n'a pas suffi — fiche Crashlytics du
+  /// 2026-10-13, 5 événements d'un seul usager les 5 et 6/10, depuis trois
+  /// écrans (`getEventById`, `getBusinesses`, le flux des notifications),
+  /// sur la 1.2.2+31 qui a pourtant l'observateur de cycle de vie
+  /// (`fbaef385`). Non reproduit sur appareil ; lecture du code :
+  ///
+  /// - le renouvellement proactif est un `Timer` ([_scheduleRenewal]) : en
+  ///   arrière-plan, Android coupe le réseau avant les minuteurs (économiseur
+  ///   du SM A515F constaté le 22/09), l'échange échoue, [_scheduleRetry]
+  ///   recule de 5 à 80 s puis **abandonne** au sixième échec, et la
+  ///   [PolitiqueDeReprise] pose une fenêtre de calme de **5 minutes** ;
+  /// - pendant cette fenêtre, [syncWithFirebase] est un **no-op** :
+  ///   [ensureAuthenticated] rend `false`… que les datasources ignorent
+  ///   (`await ensureAuthenticated();` sans lire le résultat). La lecture part
+  ///   avec le jeton périmé, PostgREST répond `PGRST303`, et chaque écran
+  ///   ouvert pendant la fenêtre ajoute le sien — d'où la rafale ;
+  /// - l'écoute du réseau ne rattrape pas ce cas : la connectivité n'a pas
+  ///   changé, c'est l'app qui est revenue, et le retour au premier plan n'a
+  ///   droit qu'à **une** tentative ([reprendreApresRetourReseau]) — si elle
+  ///   rate (réseau pas encore rétabli à la seconde où l'écran s'allume), la
+  ///   fenêtre de calme repart pour 5 minutes.
+  ///
+  /// Ici on force **une** tentative, sans passer par [hasValidSession] — qui
+  /// est précisément ce qui s'est trompé, l'horloge de l'appareil pouvant
+  /// aussi retarder sur celle du serveur — et on dit si une session valide
+  /// est en place. Un échange déjà en cours est partagé ([_inFlightSync]),
+  /// pas doublé. Appelé par `garderAppel` (`lib/core/errors`), qui rejoue
+  /// ensuite l'appel une fois.
+  Future<bool> resynchroniserApresJwtExpire() async {
+    final user = firebase_auth.FirebaseAuth.instance.currentUser;
+    if (user == null) return false;
+    _reprise.autoriserUneTentative();
+    await syncWithFirebase(user);
+    return hasValidSession;
+  }
+
   /// Variante bornée d'[ensureAuthenticated], pour les lectures qui ne
   /// doivent jamais rester bloquées.
   ///

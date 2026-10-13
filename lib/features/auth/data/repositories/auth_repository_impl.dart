@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:developer' as dev;
 import 'package:diaspo_niger/core/errors/app_error_messages.dart';
 import 'package:dartz/dartz.dart';
-import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
+import '../../../../core/errors/garde_appel.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../core/services/supabase_auth_bridge.dart';
 import '../../domain/entities/account_deletion_status.dart';
@@ -21,7 +21,7 @@ class AuthRepositoryImpl implements AuthRepository {
     required String email,
     required String password,
   }) async {
-    try {
+    return garderAppel(() async {
       final userModel = await remoteDataSource.signInWithEmail(
         email: email,
         password: password,
@@ -35,17 +35,15 @@ class AuthRepositoryImpl implements AuthRepository {
       );
 
       return Right(userModel.toEntity());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       dev.log('Erreur inattendue', name: 'auth_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+      return ServerFailure(AppErrorMessages.unexpectedError);
+    });
   }
 
   @override
   Future<Either<Failure, UserEntity>> signInWithGoogle() async {
-    try {
+    return garderAppel(() async {
       final userModel = await remoteDataSource.signInWithGoogle();
 
       // Save FCM token
@@ -56,17 +54,15 @@ class AuthRepositoryImpl implements AuthRepository {
       );
 
       return Right(userModel.toEntity());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       dev.log('Erreur inattendue', name: 'auth_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+      return ServerFailure(AppErrorMessages.unexpectedError);
+    });
   }
 
   @override
   Future<Either<Failure, UserEntity>> signInWithApple() async {
-    try {
+    return garderAppel(() async {
       final userModel = await remoteDataSource.signInWithApple();
 
       await NotificationService().saveTokenForUser(
@@ -76,12 +72,10 @@ class AuthRepositoryImpl implements AuthRepository {
       );
 
       return Right(userModel.toEntity());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       dev.log('Erreur inattendue', name: 'auth_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+      return ServerFailure(AppErrorMessages.unexpectedError);
+    });
   }
 
   @override
@@ -90,7 +84,7 @@ class AuthRepositoryImpl implements AuthRepository {
     required String password,
     required String displayName,
   }) async {
-    try {
+    return garderAppel(() async {
       final userModel = await remoteDataSource.signUp(
         email: email,
         password: password,
@@ -105,12 +99,10 @@ class AuthRepositoryImpl implements AuthRepository {
       );
 
       return Right(userModel.toEntity());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       dev.log('Erreur inattendue', name: 'auth_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+      return ServerFailure(AppErrorMessages.unexpectedError);
+    });
   }
 
   /// Rend la main des que la personne est reellement deconnectee, c'est-a-dire
@@ -153,14 +145,14 @@ class AuthRepositoryImpl implements AuthRepository {
       }
     }
 
-    try {
+    final deconnexion = await garderAppel<void>(() async {
       await remoteDataSource.signOut();
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+      return const Right(null);
+    }, sinon: (e) {
       dev.log('Erreur inattendue', name: 'auth_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+      return ServerFailure(AppErrorMessages.unexpectedError);
+    });
+    if (deconnexion.isLeft()) return deconnexion;
 
     unawaited(_menageApresDeconnexion(userId));
     return const Right(null);
@@ -189,70 +181,57 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<Either<Failure, DateTime>> requestAccountDeletion() async {
-    try {
+    return garderAppel(() async {
       return Right(await remoteDataSource.requestAccountDeletion());
-    } on AuthException catch (e) {
-      // Porte le code (`requires-recent-login`) jusqu a la presentation.
-      return Left(AuthFailure(e.message, code: e.code));
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       dev.log('Erreur inattendue', name: 'auth_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+      return ServerFailure(AppErrorMessages.unexpectedError);
+    });
   }
 
   @override
   Future<Either<Failure, void>> cancelAccountDeletion() async {
-    try {
+    return garderAppel(() async {
       await remoteDataSource.cancelAccountDeletion();
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       dev.log('Erreur inattendue', name: 'auth_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+      return ServerFailure(AppErrorMessages.unexpectedError);
+    });
   }
 
   @override
   Future<Either<Failure, AccountDeletionStatus?>> accountDeletionStatus() async {
-    try {
+    return garderAppel(() async {
       return Right(await remoteDataSource.fetchAccountDeletionStatus());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       dev.log('Erreur inattendue', name: 'auth_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+      return ServerFailure(AppErrorMessages.unexpectedError);
+    });
   }
 
   @override
   Future<Either<Failure, void>> reauthenticateWithPassword(
     String password,
   ) async {
-    try {
+    return garderAppel(() async {
       await remoteDataSource.reauthenticateWithPassword(password);
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       dev.log('Erreur inattendue', name: 'auth_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+      return ServerFailure(AppErrorMessages.unexpectedError);
+    });
   }
 
   @override
   Future<Either<Failure, UserEntity?>> getCurrentUser() async {
-    try {
+    return garderAppel(() async {
       final userModel = await remoteDataSource.getCurrentUser();
       return Right(userModel?.toEntity());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       dev.log('Erreur inattendue', name: 'auth_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+      return ServerFailure(AppErrorMessages.unexpectedError);
+    });
   }
 
   @override
@@ -285,14 +264,12 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<Either<Failure, void>> sendPasswordResetEmail(String email) async {
-    try {
+    return garderAppel(() async {
       await remoteDataSource.sendPasswordResetEmail(email);
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       dev.log('Erreur inattendue', name: 'auth_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+      return ServerFailure(AppErrorMessages.unexpectedError);
+    });
   }
 }

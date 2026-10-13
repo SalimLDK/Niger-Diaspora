@@ -1,7 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../../core/errors/failures.dart';
-import '../../../../core/errors/exceptions.dart';
+import '../../../../core/errors/garde_appel.dart';
 import '../../domain/repositories/onboarding_repository.dart';
 import '../datasources/onboarding_local_datasource.dart';
 import '../datasources/onboarding_remote_datasource.dart';
@@ -34,7 +34,7 @@ class OnboardingRepositoryImpl implements OnboardingRepository {
     required Future<bool?> Function() distant,
     required Future<void> Function(String uid) memoriser,
   }) async {
-    try {
+    return garderAppel(() async {
       final user = _firebaseAuth.currentUser;
       if (user == null) {
         return Left(ServerFailure('Lecture de $nom sans utilisateur connecte'));
@@ -54,11 +54,7 @@ class OnboardingRepositoryImpl implements OnboardingRepository {
       // puisque le local court-circuite le distant deux lignes plus haut.
       if (valeur) await memoriser(user.uid);
       return Right(valeur);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+    }, sinon: (e) => ServerFailure(e.toString()));
   }
 
   @override
@@ -71,7 +67,7 @@ class OnboardingRepositoryImpl implements OnboardingRepository {
 
   @override
   Future<Either<Failure, void>> markOnboardingComplete() async {
-    try {
+    return garderAppel(() async {
       final user = _firebaseAuth.currentUser;
 
       // Update remote always if possible
@@ -86,12 +82,7 @@ class OnboardingRepositoryImpl implements OnboardingRepository {
       await Future.wait([localFuture, remoteFuture]);
 
       return const Right(null);
-    } on ServerException catch (e) {
-      // Even if remote fails, local is updated
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+    }, sinon: (e) => ServerFailure(e.toString()));
   }
 
   @override
@@ -104,7 +95,7 @@ class OnboardingRepositoryImpl implements OnboardingRepository {
 
   @override
   Future<Either<Failure, void>> markCoachMarksComplete() async {
-    try {
+    return garderAppel(() async {
       final user = _firebaseAuth.currentUser;
 
       // Update remote always if possible
@@ -119,12 +110,7 @@ class OnboardingRepositoryImpl implements OnboardingRepository {
       await Future.wait([localFuture, remoteFuture]);
 
       return const Right(null);
-    } on ServerException catch (e) {
-      // Even if remote fails, local is updated
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+    }, sinon: (e) => ServerFailure(e.toString()));
   }
 
   @override
@@ -137,7 +123,7 @@ class OnboardingRepositoryImpl implements OnboardingRepository {
 
   @override
   Future<Either<Failure, void>> markConsentGiven() async {
-    try {
+    return garderAppel(() async {
       final user = _firebaseAuth.currentUser;
 
       final remoteFuture = _remoteDataSource.setConsentGiven();
@@ -150,11 +136,7 @@ class OnboardingRepositoryImpl implements OnboardingRepository {
       await Future.wait([localFuture, remoteFuture]);
 
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+    }, sinon: (e) => ServerFailure(e.toString()));
   }
 
   @override
@@ -167,7 +149,7 @@ class OnboardingRepositoryImpl implements OnboardingRepository {
 
   @override
   Future<Either<Failure, void>> markProfileConfigComplete() async {
-    try {
+    return garderAppel(() async {
       final user = _firebaseAuth.currentUser;
 
       final remoteFuture = _remoteDataSource.setProfileConfigComplete();
@@ -180,10 +162,6 @@ class OnboardingRepositoryImpl implements OnboardingRepository {
       await Future.wait([localFuture, remoteFuture]);
 
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+    }, sinon: (e) => ServerFailure(e.toString()));
   }
 }

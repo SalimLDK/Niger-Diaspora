@@ -3,6 +3,7 @@ import 'package:dartz/dartz.dart';
 import 'package:flutter/foundation.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
+import '../../../../core/errors/garde_appel.dart';
 import '../../../../core/network/network_info.dart';
 import '../../../../core/services/cache_service.dart';
 import '../../../messages/domain/repositories/message_repository.dart';
@@ -47,20 +48,18 @@ class GroupRepositoryImpl implements GroupRepository {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
-    try {
+    return garderAppel(() async {
       final groups = await remoteDataSource.getGroups();
       return Right(groups.map((g) => g.toEntity()).toList());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       // Tout le reste — PostgrestException, erreur de session, décodage —
       // s'échappait de ce `catch` limité à ServerException : le Future
       // remontait en exception, `result.fold` n'était jamais atteint, et
       // l'écran gardait son état précédent sans rien dire. C'est ainsi que
       // « Découvrir » annonçait « Aucun groupe public » avec trois groupes
       // publics en base, et que « Créer le groupe » restait sans effet.
-      return Left(ServerFailure(e.toString()));
-    }
+      return ServerFailure(e.toString());
+    });
   }
 
   @override
@@ -70,20 +69,18 @@ class GroupRepositoryImpl implements GroupRepository {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
-    try {
+    return garderAppel(() async {
       final groups = await remoteDataSource.getGroupsByCategory(category.name);
       return Right(groups.map((g) => g.toEntity()).toList());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       // Tout le reste — PostgrestException, erreur de session, décodage —
       // s'échappait de ce `catch` limité à ServerException : le Future
       // remontait en exception, `result.fold` n'était jamais atteint, et
       // l'écran gardait son état précédent sans rien dire. C'est ainsi que
       // « Découvrir » annonçait « Aucun groupe public » avec trois groupes
       // publics en base, et que « Créer le groupe » restait sans effet.
-      return Left(ServerFailure(e.toString()));
-    }
+      return ServerFailure(e.toString());
+    });
   }
 
   @override
@@ -91,20 +88,18 @@ class GroupRepositoryImpl implements GroupRepository {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
-    try {
+    return garderAppel(() async {
       final group = await remoteDataSource.getGroupById(groupId);
       return Right(group.toEntity());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       // Tout le reste — PostgrestException, erreur de session, décodage —
       // s'échappait de ce `catch` limité à ServerException : le Future
       // remontait en exception, `result.fold` n'était jamais atteint, et
       // l'écran gardait son état précédent sans rien dire. C'est ainsi que
       // « Découvrir » annonçait « Aucun groupe public » avec trois groupes
       // publics en base, et que « Créer le groupe » restait sans effet.
-      return Left(ServerFailure(e.toString()));
-    }
+      return ServerFailure(e.toString());
+    });
   }
 
   @override
@@ -134,7 +129,7 @@ class GroupRepositoryImpl implements GroupRepository {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
-    try {
+    return garderAppel(() async {
       final groupModel = GroupModel.fromEntity(group);
       final created = await remoteDataSource.createGroup(groupModel);
 
@@ -155,14 +150,12 @@ class GroupRepositoryImpl implements GroupRepository {
       }
 
       return Right(created.toEntity());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       // Un PostgrestException (RLS, RPC absente…) n'est pas une
       // ServerException : sans ce filet, il traversait le dépôt, le notifier
       // et l'écran, et le bouton restait muet.
-      return Left(ServerFailure('$e'));
-    }
+      return ServerFailure('$e');
+    });
   }
 
   @override
@@ -170,21 +163,19 @@ class GroupRepositoryImpl implements GroupRepository {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
-    try {
+    return garderAppel(() async {
       final groupModel = GroupModel.fromEntity(group);
       final updated = await remoteDataSource.updateGroup(groupModel);
       return Right(updated.toEntity());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       // Tout le reste — PostgrestException, erreur de session, décodage —
       // s'échappait de ce `catch` limité à ServerException : le Future
       // remontait en exception, `result.fold` n'était jamais atteint, et
       // l'écran gardait son état précédent sans rien dire. C'est ainsi que
       // « Découvrir » annonçait « Aucun groupe public » avec trois groupes
       // publics en base, et que « Créer le groupe » restait sans effet.
-      return Left(ServerFailure(e.toString()));
-    }
+      return ServerFailure(e.toString());
+    });
   }
 
   @override
@@ -192,21 +183,19 @@ class GroupRepositoryImpl implements GroupRepository {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
-    try {
+    return garderAppel(() async {
       await remoteDataSource.deleteGroup(groupId);
 
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       // Tout le reste — PostgrestException, erreur de session, décodage —
       // s'échappait de ce `catch` limité à ServerException : le Future
       // remontait en exception, `result.fold` n'était jamais atteint, et
       // l'écran gardait son état précédent sans rien dire. C'est ainsi que
       // « Découvrir » annonçait « Aucun groupe public » avec trois groupes
       // publics en base, et que « Créer le groupe » restait sans effet.
-      return Left(ServerFailure(e.toString()));
-    }
+      return ServerFailure(e.toString());
+    });
   }
 
   @override
@@ -214,7 +203,7 @@ class GroupRepositoryImpl implements GroupRepository {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
-    try {
+    return garderAppel(() async {
       await remoteDataSource.joinGroup(groupId, userId);
 
       // Ajoute immédiatement userId aux participants de la conversation du
@@ -228,17 +217,15 @@ class GroupRepositoryImpl implements GroupRepository {
       );
 
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       // Tout le reste — PostgrestException, erreur de session, décodage —
       // s'échappait de ce `catch` limité à ServerException : le Future
       // remontait en exception, `result.fold` n'était jamais atteint, et
       // l'écran gardait son état précédent sans rien dire. C'est ainsi que
       // « Découvrir » annonçait « Aucun groupe public » avec trois groupes
       // publics en base, et que « Créer le groupe » restait sans effet.
-      return Left(ServerFailure(e.toString()));
-    }
+      return ServerFailure(e.toString());
+    });
   }
 
   @override
@@ -249,21 +236,19 @@ class GroupRepositoryImpl implements GroupRepository {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
-    try {
+    return garderAppel(() async {
       await remoteDataSource.leaveGroup(groupId, userId);
 
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       // Tout le reste — PostgrestException, erreur de session, décodage —
       // s'échappait de ce `catch` limité à ServerException : le Future
       // remontait en exception, `result.fold` n'était jamais atteint, et
       // l'écran gardait son état précédent sans rien dire. C'est ainsi que
       // « Découvrir » annonçait « Aucun groupe public » avec trois groupes
       // publics en base, et que « Créer le groupe » restait sans effet.
-      return Left(ServerFailure(e.toString()));
-    }
+      return ServerFailure(e.toString());
+    });
   }
 
   @override
@@ -274,20 +259,18 @@ class GroupRepositoryImpl implements GroupRepository {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
-    try {
+    return garderAppel(() async {
       await remoteDataSource.removeMember(groupId, userId);
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       // Tout le reste — PostgrestException, erreur de session, décodage —
       // s'échappait de ce `catch` limité à ServerException : le Future
       // remontait en exception, `result.fold` n'était jamais atteint, et
       // l'écran gardait son état précédent sans rien dire. C'est ainsi que
       // « Découvrir » annonçait « Aucun groupe public » avec trois groupes
       // publics en base, et que « Créer le groupe » restait sans effet.
-      return Left(ServerFailure(e.toString()));
-    }
+      return ServerFailure(e.toString());
+    });
   }
 
   @override
@@ -295,20 +278,18 @@ class GroupRepositoryImpl implements GroupRepository {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
-    try {
+    return garderAppel(() async {
       final groups = await remoteDataSource.getMyGroups(userId);
       return Right(groups.map((g) => g.toEntity()).toList());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       // Tout le reste — PostgrestException, erreur de session, décodage —
       // s'échappait de ce `catch` limité à ServerException : le Future
       // remontait en exception, `result.fold` n'était jamais atteint, et
       // l'écran gardait son état précédent sans rien dire. C'est ainsi que
       // « Découvrir » annonçait « Aucun groupe public » avec trois groupes
       // publics en base, et que « Créer le groupe » restait sans effet.
-      return Left(ServerFailure(e.toString()));
-    }
+      return ServerFailure(e.toString());
+    });
   }
 
   @override
@@ -324,20 +305,18 @@ class GroupRepositoryImpl implements GroupRepository {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
-    try {
+    return garderAppel(() async {
       final groups = await remoteDataSource.searchGroups(query);
       return Right(groups.map((g) => g.toEntity()).toList());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       // Tout le reste — PostgrestException, erreur de session, décodage —
       // s'échappait de ce `catch` limité à ServerException : le Future
       // remontait en exception, `result.fold` n'était jamais atteint, et
       // l'écran gardait son état précédent sans rien dire. C'est ainsi que
       // « Découvrir » annonçait « Aucun groupe public » avec trois groupes
       // publics en base, et que « Créer le groupe » restait sans effet.
-      return Left(ServerFailure(e.toString()));
-    }
+      return ServerFailure(e.toString());
+    });
   }
 
   // Join Requests
@@ -354,7 +333,7 @@ class GroupRepositoryImpl implements GroupRepository {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
-    try {
+    return garderAppel(() async {
       await requestDataSource.requestToJoinGroup(
         groupId: groupId,
         groupName: groupName,
@@ -365,17 +344,15 @@ class GroupRepositoryImpl implements GroupRepository {
         message: message,
       );
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       // Tout le reste — PostgrestException, erreur de session, décodage —
       // s'échappait de ce `catch` limité à ServerException : le Future
       // remontait en exception, `result.fold` n'était jamais atteint, et
       // l'écran gardait son état précédent sans rien dire. C'est ainsi que
       // « Découvrir » annonçait « Aucun groupe public » avec trois groupes
       // publics en base, et que « Créer le groupe » restait sans effet.
-      return Left(ServerFailure(e.toString()));
-    }
+      return ServerFailure(e.toString());
+    });
   }
 
   @override
@@ -383,20 +360,18 @@ class GroupRepositoryImpl implements GroupRepository {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
-    try {
+    return garderAppel(() async {
       await requestDataSource.approveJoinRequest(requestId);
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       // Tout le reste — PostgrestException, erreur de session, décodage —
       // s'échappait de ce `catch` limité à ServerException : le Future
       // remontait en exception, `result.fold` n'était jamais atteint, et
       // l'écran gardait son état précédent sans rien dire. C'est ainsi que
       // « Découvrir » annonçait « Aucun groupe public » avec trois groupes
       // publics en base, et que « Créer le groupe » restait sans effet.
-      return Left(ServerFailure(e.toString()));
-    }
+      return ServerFailure(e.toString());
+    });
   }
 
   @override
@@ -404,20 +379,18 @@ class GroupRepositoryImpl implements GroupRepository {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
-    try {
+    return garderAppel(() async {
       await requestDataSource.rejectJoinRequest(requestId);
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       // Tout le reste — PostgrestException, erreur de session, décodage —
       // s'échappait de ce `catch` limité à ServerException : le Future
       // remontait en exception, `result.fold` n'était jamais atteint, et
       // l'écran gardait son état précédent sans rien dire. C'est ainsi que
       // « Découvrir » annonçait « Aucun groupe public » avec trois groupes
       // publics en base, et que « Créer le groupe » restait sans effet.
-      return Left(ServerFailure(e.toString()));
-    }
+      return ServerFailure(e.toString());
+    });
   }
 
   @override
@@ -470,16 +443,12 @@ class GroupRepositoryImpl implements GroupRepository {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
-    try {
+    return garderAppel(() async {
       final model = await remoteDataSource.ensureOfficialGroup(
         countryCode: countryCode,
         countryName: countryName,
       );
       return Right(model.toEntity());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+    }, sinon: (e) => ServerFailure(e.toString()));
   }
 }

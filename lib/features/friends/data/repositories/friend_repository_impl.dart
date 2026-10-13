@@ -1,6 +1,6 @@
 import 'package:dartz/dartz.dart';
-import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
+import '../../../../core/errors/garde_appel.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../domain/entities/friend_entity.dart';
 import '../../domain/entities/friend_request_entity.dart';
@@ -21,7 +21,7 @@ class FriendRepositoryImpl implements FriendRepository {
     required String receiverName,
     String? receiverPhotoUrl,
   }) async {
-    try {
+    return garderAppel(() async {
       await dataSource.sendFriendRequest(
         senderId: senderId,
         senderName: senderName,
@@ -46,16 +46,12 @@ class FriendRepositoryImpl implements FriendRepository {
       );
 
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+    }, sinon: (e) => ServerFailure(e.toString()));
   }
 
   @override
   Future<Either<Failure, void>> acceptFriendRequest(String requestId) async {
-    try {
+    return garderAppel(() async {
       // Get request details before accepting to know who to notify
       final requestDoc = await dataSource.getRequestById(requestId);
 
@@ -76,35 +72,23 @@ class FriendRepositoryImpl implements FriendRepository {
       );
 
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+    }, sinon: (e) => ServerFailure(e.toString()));
   }
 
   @override
   Future<Either<Failure, void>> declineFriendRequest(String requestId) async {
-    try {
+    return garderAppel(() async {
       await dataSource.declineFriendRequest(requestId);
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+    }, sinon: (e) => ServerFailure(e.toString()));
   }
 
   @override
   Future<Either<Failure, void>> cancelFriendRequest(String requestId) async {
-    try {
+    return garderAppel(() async {
       await dataSource.cancelFriendRequest(requestId);
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+    }, sinon: (e) => ServerFailure(e.toString()));
   }
 
   @override
@@ -148,14 +132,10 @@ class FriendRepositoryImpl implements FriendRepository {
     String userId1,
     String userId2,
   ) async {
-    try {
+    return garderAppel(() async {
       final status = await dataSource.getFriendshipStatus(userId1, userId2);
       return Right(status);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+    }, sinon: (e) => ServerFailure(e.toString()));
   }
 
   @override
@@ -179,14 +159,10 @@ class FriendRepositoryImpl implements FriendRepository {
     String userId,
     String friendId,
   ) async {
-    try {
+    return garderAppel(() async {
       await dataSource.removeFriend(userId, friendId);
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+    }, sinon: (e) => ServerFailure(e.toString()));
   }
 
   @override
@@ -194,14 +170,10 @@ class FriendRepositoryImpl implements FriendRepository {
     String userId1,
     String userId2,
   ) async {
-    try {
+    return garderAppel(() async {
       final result = await dataSource.areFriends(userId1, userId2);
       return Right(result);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+    }, sinon: (e) => ServerFailure(e.toString()));
   }
 
   @override
@@ -209,13 +181,9 @@ class FriendRepositoryImpl implements FriendRepository {
     String userId,
     String query,
   ) async {
-    try {
+    return garderAppel(() async {
       final models = await dataSource.searchFriends(userId, query);
       return Right(models.map((m) => m.toEntity()).toList());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+    }, sinon: (e) => ServerFailure(e.toString()));
   }
 }

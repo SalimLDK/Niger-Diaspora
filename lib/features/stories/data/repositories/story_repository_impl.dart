@@ -1,7 +1,7 @@
 import 'package:dartz/dartz.dart';
 
-import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
+import '../../../../core/errors/garde_appel.dart';
 import '../../domain/entities/story_entity.dart';
 import '../../domain/repositories/story_repository.dart';
 import '../datasources/story_supabase_datasource.dart';
@@ -15,7 +15,7 @@ class StoryRepositoryImpl implements StoryRepository {
   Future<Either<Failure, List<AuthorStories>>> getActiveStories(
     String currentUserId,
   ) async {
-    try {
+    return garderAppel(() async {
       final models = await _dataSource.getActiveStories(currentUserId);
       // Borne des 24 h réappliquée à la réception : l'horloge du serveur et
       // celle du téléphone diffèrent, et une story ne doit pas survivre à
@@ -44,11 +44,7 @@ class StoryRepositoryImpl implements StoryRepository {
       }).toList();
 
       return Right(grouped);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+    }, sinon: (e) => ServerFailure(e.toString()));
   }
 
   @override
@@ -61,7 +57,7 @@ class StoryRepositoryImpl implements StoryRepository {
     int? videoDurationSeconds,
     StoryAudience audience = StoryAudience.everyone,
   }) async {
-    try {
+    return garderAppel(() async {
       final model = await _dataSource.createStory(
         authorId: authorId,
         authorName: authorName,
@@ -72,36 +68,24 @@ class StoryRepositoryImpl implements StoryRepository {
         audience: audience,
       );
       return Right(model.toEntity());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+    }, sinon: (e) => ServerFailure(e.toString()));
   }
 
   @override
   Future<Either<Failure, void>> deleteStory(String storyId) async {
-    try {
+    return garderAppel(() async {
       await _dataSource.deleteStory(storyId);
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+    }, sinon: (e) => ServerFailure(e.toString()));
   }
 
   @override
   Future<Either<Failure, List<StoryListMember>>> getListMembers(
     String ownerId,
   ) async {
-    try {
+    return garderAppel(() async {
       return Right(await _dataSource.getListMembers(ownerId));
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+    }, sinon: (e) => ServerFailure(e.toString()));
   }
 
   @override
@@ -110,14 +94,10 @@ class StoryRepositoryImpl implements StoryRepository {
     String memberId,
     StoryListKind? kind,
   ) async {
-    try {
+    return garderAppel(() async {
       await _dataSource.setListMember(ownerId, memberId, kind);
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+    }, sinon: (e) => ServerFailure(e.toString()));
   }
 
   @override
@@ -125,40 +105,30 @@ class StoryRepositoryImpl implements StoryRepository {
     String storyId,
     String viewerId,
   ) async {
-    try {
+    return garderAppel(() async {
       await _dataSource.markViewed(storyId, viewerId);
       return const Right(null);
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+    }, sinon: (e) => ServerFailure(e.toString()));
   }
 
   @override
   Future<Either<Failure, List<StoryViewerEntity>>> getViewers(
     String storyId,
   ) async {
-    try {
+    return garderAppel(() async {
       final viewers = await _dataSource.getViewers(storyId);
       return Right(viewers);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+    }, sinon: (e) => ServerFailure(e.toString()));
   }
 
   @override
   Future<Either<Failure, List<StoryReactionEntity>>> getReactions(
     String storyId,
   ) async {
-    try {
+    return garderAppel(() async {
       final reactions = await _dataSource.getReactions(storyId);
       return Right(reactions);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+    }, sinon: (e) => ServerFailure(e.toString()));
   }
 
   @override
@@ -167,14 +137,10 @@ class StoryRepositoryImpl implements StoryRepository {
     String userId,
     String emoji,
   ) async {
-    try {
+    return garderAppel(() async {
       await _dataSource.setReaction(storyId, userId, emoji);
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+    }, sinon: (e) => ServerFailure(e.toString()));
   }
 
   @override
@@ -182,11 +148,9 @@ class StoryRepositoryImpl implements StoryRepository {
     String storyId,
     String userId,
   ) async {
-    try {
+    return garderAppel(() async {
       await _dataSource.removeReaction(storyId, userId);
       return const Right(null);
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+    }, sinon: (e) => ServerFailure(e.toString()));
   }
 }

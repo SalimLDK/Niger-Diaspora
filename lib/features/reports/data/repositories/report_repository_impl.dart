@@ -2,8 +2,8 @@ import 'dart:developer' as dev;
 import 'package:diaspo_niger/core/errors/app_error_messages.dart';
 import 'package:dartz/dartz.dart';
 
-import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
+import '../../../../core/errors/garde_appel.dart';
 import '../../domain/entities/report_entity.dart';
 import '../../domain/repositories/report_repository.dart';
 import '../datasources/report_remote_datasource.dart';
@@ -29,7 +29,7 @@ class ReportRepositoryImpl implements ReportRepository {
     ContentSnapshot? contentSnapshot,
     String? reportedUserId,
   }) async {
-    try {
+    return garderAppel(() async {
       final report = await remoteDataSource.submitReport(
         reporterId: reporterId,
         reporterName: reporterName,
@@ -47,12 +47,10 @@ class ReportRepositoryImpl implements ReportRepository {
         reportedUserId: reportedUserId,
       );
       return Right(report.toEntity());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       dev.log('Erreur inattendue', name: 'report_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+      return ServerFailure(AppErrorMessages.unexpectedError);
+    });
   }
 
   @override
@@ -62,7 +60,7 @@ class ReportRepositoryImpl implements ReportRepository {
     required String resolution,
     required bool contentRemoved,
   }) async {
-    try {
+    return garderAppel(() async {
       await remoteDataSource.notifyReportedUser(
         reportId: reportId,
         reportedUserId: reportedUserId,
@@ -70,12 +68,10 @@ class ReportRepositoryImpl implements ReportRepository {
         contentRemoved: contentRemoved,
       );
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       dev.log('Erreur inattendue', name: 'report_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+      return ServerFailure(AppErrorMessages.unexpectedError);
+    });
   }
 
   @override
@@ -93,15 +89,13 @@ class ReportRepositoryImpl implements ReportRepository {
 
   @override
   Future<Either<Failure, ReportEntity?>> getReportById(String reportId) async {
-    try {
+    return garderAppel(() async {
       final report = await remoteDataSource.getReportById(reportId);
       return Right(report?.toEntity());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       dev.log('Erreur inattendue', name: 'report_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+      return ServerFailure(AppErrorMessages.unexpectedError);
+    });
   }
 
   @override
@@ -110,19 +104,17 @@ class ReportRepositoryImpl implements ReportRepository {
     required ReportTargetType targetType,
     required String targetId,
   }) async {
-    try {
+    return garderAppel(() async {
       final hasReported = await remoteDataSource.hasAlreadyReported(
         reporterId: reporterId,
         targetType: targetType,
         targetId: targetId,
       );
       return Right(hasReported);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       dev.log('Erreur inattendue', name: 'report_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+      return ServerFailure(AppErrorMessages.unexpectedError);
+    });
   }
 
   @override
@@ -148,28 +140,24 @@ class ReportRepositoryImpl implements ReportRepository {
   Future<Either<Failure, List<ReportEntity>>> getPendingReports({
     int limit = 50,
   }) async {
-    try {
+    return garderAppel(() async {
       final reports = await remoteDataSource.getPendingReports(limit: limit);
       return Right(reports.map((r) => r.toEntity()).toList());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       dev.log('Erreur inattendue', name: 'report_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+      return ServerFailure(AppErrorMessages.unexpectedError);
+    });
   }
 
   @override
   Future<Either<Failure, int>> getPendingReportsCount() async {
-    try {
+    return garderAppel(() async {
       final count = await remoteDataSource.getPendingReportsCount();
       return Right(count);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       dev.log('Erreur inattendue', name: 'report_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+      return ServerFailure(AppErrorMessages.unexpectedError);
+    });
   }
 
   @override
@@ -181,7 +169,7 @@ class ReportRepositoryImpl implements ReportRepository {
     String? adminNote,
     String? resolution,
   }) async {
-    try {
+    return garderAppel(() async {
       await remoteDataSource.updateReportStatus(
         reportId: reportId,
         status: status,
@@ -191,12 +179,10 @@ class ReportRepositoryImpl implements ReportRepository {
         resolution: resolution,
       );
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       dev.log('Erreur inattendue', name: 'report_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+      return ServerFailure(AppErrorMessages.unexpectedError);
+    });
   }
 
   @override
@@ -242,7 +228,7 @@ class ReportRepositoryImpl implements ReportRepository {
     required String reviewerName,
     String? conversationId,
   }) async {
-    try {
+    return garderAppel(() async {
       // Supprimer le contenu
       await remoteDataSource.deleteReportedContent(
         targetType: targetType,
@@ -260,24 +246,20 @@ class ReportRepositoryImpl implements ReportRepository {
       );
 
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       dev.log('Erreur inattendue', name: 'report_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+      return ServerFailure(AppErrorMessages.unexpectedError);
+    });
   }
 
   @override
   Future<Either<Failure, ReportStatistics>> getReportStatistics() async {
-    try {
+    return garderAppel(() async {
       final stats = await remoteDataSource.getReportStatistics();
       return Right(stats);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       dev.log('Erreur inattendue', name: 'report_repository_impl', error: e);
-      return Left(ServerFailure(AppErrorMessages.unexpectedError));
-    }
+      return ServerFailure(AppErrorMessages.unexpectedError);
+    });
   }
 }

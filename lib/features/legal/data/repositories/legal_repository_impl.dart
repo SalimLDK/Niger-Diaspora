@@ -2,7 +2,7 @@ import 'package:diaspo_niger/core/errors/app_error_messages.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter/foundation.dart';
 import '../../../../core/errors/failures.dart';
-import '../../../../core/errors/exceptions.dart';
+import '../../../../core/errors/garde_appel.dart';
 import '../../../../core/services/connectivity_service.dart';
 import '../../domain/entities/legal_entity.dart';
 import '../../domain/repositories/legal_repository.dart';
@@ -36,7 +36,7 @@ class LegalRepositoryImpl implements LegalRepository {
 
   @override
   Future<Either<Failure, LegalContent>> getLegalContent(LegalContentType type) async {
-    try {
+    return garderAppel(() async {
       final LegalContentModel model;
 
       switch (type) {
@@ -52,21 +52,15 @@ class LegalRepositoryImpl implements LegalRepository {
       }
 
       return Right(_mapModelToEntity(model));
-    } on ServerException catch (e) {
-      debugPrint('LegalRepository: Server error: $e');
-      return Left(ServerFailure(e.message));
-    } on CacheException catch (e) {
-      debugPrint('LegalRepository: Cache error: $e');
-      return Left(CacheFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       debugPrint('LegalRepository: Unexpected error: $e');
-      return const Left(ServerFailure('Erreur lors du chargement du contenu légal'));
-    }
+      return const ServerFailure('Erreur lors du chargement du contenu légal');
+    });
   }
 
   @override
   Future<Either<Failure, List<LegalContent>>> getAllLegalContent() async {
-    try {
+    return garderAppel(() async {
       final results = await Future.wait([
         remoteDataSource.getTerms(),
         remoteDataSource.getPrivacyPolicy(),
@@ -75,18 +69,15 @@ class LegalRepositoryImpl implements LegalRepository {
 
       final contents = results.map((model) => _mapModelToEntity(model)).toList();
       return Right(contents);
-    } on ServerException catch (e) {
-      debugPrint('LegalRepository: Server error: $e');
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       debugPrint('LegalRepository: Unexpected error: $e');
-      return const Left(ServerFailure('Erreur lors du chargement des contenus légaux'));
-    }
+      return const ServerFailure('Erreur lors du chargement des contenus légaux');
+    });
   }
 
   @override
   Future<Either<Failure, LegalAcceptance?>> getUserAcceptance(String userId) async {
-    try {
+    return garderAppel(() async {
       final acceptance = await remoteDataSource.getUserAcceptance(userId);
 
       if (acceptance == null) {
@@ -94,13 +85,10 @@ class LegalRepositoryImpl implements LegalRepository {
       }
 
       return Right(_mapAcceptanceModelToEntity(acceptance));
-    } on ServerException catch (e) {
-      debugPrint('LegalRepository: Server error: $e');
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       debugPrint('LegalRepository: Unexpected error: $e');
-      return const Left(ServerFailure('Erreur lors de la récupération de l\'acceptation'));
-    }
+      return const ServerFailure('Erreur lors de la récupération de l\'acceptation');
+    });
   }
 
   @override
@@ -108,7 +96,7 @@ class LegalRepositoryImpl implements LegalRepository {
     required String userId,
     required LegalAcceptance acceptance,
   }) async {
-    try {
+    return garderAppel(() async {
       final isConnected = await connectivityService.isConnected();
 
       if (!isConnected) {
@@ -123,18 +111,15 @@ class LegalRepositoryImpl implements LegalRepository {
 
       await remoteDataSource.saveUserAcceptance(userId, model);
       return const Right(null);
-    } on ServerException catch (e) {
-      debugPrint('LegalRepository: Server error: $e');
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       debugPrint('LegalRepository: Unexpected error: $e');
-      return const Left(ServerFailure('Erreur lors de la sauvegarde de l\'acceptation'));
-    }
+      return const ServerFailure('Erreur lors de la sauvegarde de l\'acceptation');
+    });
   }
 
   @override
   Future<Either<Failure, LegalAcceptanceStatus>> checkAcceptanceStatus(String userId) async {
-    try {
+    return garderAppel(() async {
       final acceptance = await remoteDataSource.getUserAcceptance(userId);
 
       if (acceptance == null) {
@@ -148,34 +133,28 @@ class LegalRepositoryImpl implements LegalRepository {
       }
 
       return const Right(LegalAcceptanceStatus.upToDate);
-    } on ServerException catch (e) {
-      debugPrint('LegalRepository: Server error: $e');
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       debugPrint('LegalRepository: Unexpected error: $e');
-      return const Left(ServerFailure('Erreur lors de la vérification du statut'));
-    }
+      return const ServerFailure('Erreur lors de la vérification du statut');
+    });
   }
 
   @override
   Future<Either<Failure, bool>> needsAcceptance(String userId) async {
-    try {
+    return garderAppel(() async {
       final result = await remoteDataSource.needsAcceptance(userId);
       return Right(result);
-    } on ServerException catch (e) {
-      debugPrint('LegalRepository: Server error: $e');
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       debugPrint('LegalRepository: Unexpected error: $e');
-      return const Left(ServerFailure('Erreur lors de la vérification'));
-    }
+      return const ServerFailure('Erreur lors de la vérification');
+    });
   }
 
   @override
   Future<Either<Failure, List<LegalAcceptance>>> getAcceptanceHistory(String userId) async {
     // Cette fonctionnalité nécessiterait un stockage historique
     // Pour l'instant, retourner juste l'acceptation actuelle si elle existe
-    try {
+    return garderAppel(() async {
       final acceptance = await remoteDataSource.getUserAcceptance(userId);
 
       if (acceptance == null) {
@@ -183,13 +162,10 @@ class LegalRepositoryImpl implements LegalRepository {
       }
 
       return Right([_mapAcceptanceModelToEntity(acceptance)]);
-    } on ServerException catch (e) {
-      debugPrint('LegalRepository: Server error: $e');
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       debugPrint('LegalRepository: Unexpected error: $e');
-      return const Left(ServerFailure('Erreur lors de la récupération de l\'historique'));
-    }
+      return const ServerFailure('Erreur lors de la récupération de l\'historique');
+    });
   }
 
   /// Convertit un modèle de contenu légal en entité

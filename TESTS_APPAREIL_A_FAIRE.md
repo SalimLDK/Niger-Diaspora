@@ -9217,6 +9217,34 @@ parce qu'il change un **comportement**, pas seulement un habillage :
 Supabase et Firebase côté serveur, accès anon, stockage, journaux, Crashlytics, back-office.
 
 ---
+## ⬜ Une erreur Supabase ne fait plus planter l'app : message à l'écran, JWT expiré retenté (2026-10-13)
+
+**Priorité P1** · importance 4/5 — fiche Crashlytics `PostgrestBuilder._parseResponse` : 36 « plantages » sur 90 jours, 9 usagers, tous des `PostgrestException` que dix-sept dépôts laissaient passer (ils n'attrapaient que `ServerException`). L'usager ne voyait rien — écran figé, bouton muet — et la console comptait un plantage.
+
+Corrigé à la lecture, sans mesure sur appareil :
+
+- `garderAppel` (`lib/core/errors/garde_appel.dart`) borde chaque méthode de
+  dépôt : toute exception de la couche données ressort en `Failure`, message
+  lisible et code conservé (`ServerFailure.code`). Tenu par
+  `test/core/errors/depots_sous_garde_test.dart`, qui balaie les dépôts.
+- `PGRST303` « JWT expired » : la session est re-mintée de force
+  (`SupabaseAuthBridge.resynchroniserApresJwtExpire`) et l'appel rejoué une
+  fois — sauf en messagerie, où rien n'est rejoué. Cause lue dans le code :
+  pendant la fenêtre de calme de `PolitiqueDeReprise` (jusqu'à 5 min après six
+  échanges ratés en arrière-plan), `ensureAuthenticated()` rendait `false` et
+  les datasources l'ignoraient.
+- 502/503/504 et 520–524 (« error code: 522 », passerelle Cloudflare) partent
+  en non-fatal dans Crashlytics (`classification_erreurs.dart`).
+
+À vérifier, **en économiseur de batterie** (le cas du A515F) :
+
+- [ ] HOME plus d'une heure, puis rouvrir sur Événements ou Entreprises : la liste se charge, sans message d'erreur ni plantage ; `adb logcat -s flutter | grep SupabaseAuthBridge` montre un « session sync OK » et au plus une re-synchro.
+- [ ] Même scénario, ouvrir une fiche événement depuis une notification : la fiche s'affiche (avant : `getEventById` plantait en silence, l'écran restait en chargement).
+- [ ] Créer un commerce avec un téléphone que la base refuse (contrainte `23514`) : un message s'affiche et l'écran reste utilisable (avant : bouton muet, plantage compté).
+- [ ] Crashlytics après une journée de la version suivante : plus aucun événement FATAL `PostgrestException` ; les éventuels 5xx apparaissent en non-fatal.
+
+---
+
 
 ## ⬜ `users` : un compte connecté lit e-mail, position et jetons d'autrui (2026-09-21)
 

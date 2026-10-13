@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:dartz/dartz.dart';
-import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
+import '../../../../core/errors/garde_appel.dart';
 import '../../domain/entities/poll_entity.dart';
 import '../../domain/repositories/poll_repository.dart';
 import '../datasources/poll_remote_datasource.dart';
@@ -26,7 +26,7 @@ class PollRepositoryImpl implements PollRepository {
     DateTime? endsAt,
     String? userId,
   }) async {
-    try {
+    return garderAppel(() async {
       final poll = await remoteDataSource.createPoll(
         contextType: _contextTypeValue(contextType),
         contextId: contextId,
@@ -38,11 +38,7 @@ class PollRepositoryImpl implements PollRepository {
         userId: userId,
       );
       return Right(poll.toEntity());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+    }, sinon: (e) => ServerFailure(e.toString()));
   }
 
   @override
@@ -50,15 +46,11 @@ class PollRepositoryImpl implements PollRepository {
     String pollId, {
     String? currentUserId,
   }) async {
-    try {
+    return garderAppel(() async {
       final poll =
           await remoteDataSource.getPoll(pollId, currentUserId: currentUserId);
       return Right(poll.toEntity());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+    }, sinon: (e) => ServerFailure(e.toString()));
   }
 
   @override
@@ -67,18 +59,14 @@ class PollRepositoryImpl implements PollRepository {
     String contextId, {
     String? currentUserId,
   }) async {
-    try {
+    return garderAppel(() async {
       final polls = await remoteDataSource.getPollsByContext(
         _contextTypeValue(contextType),
         contextId,
         currentUserId: currentUserId,
       );
       return Right(polls.map((p) => p.toEntity()).toList());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+    }, sinon: (e) => ServerFailure(e.toString()));
   }
 
   @override
@@ -108,21 +96,17 @@ class PollRepositoryImpl implements PollRepository {
     List<String> optionIds, {
     String? userId,
   }) async {
-    try {
+    return garderAppel(() async {
       await remoteDataSource.vote(pollId, optionIds, userId: userId);
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+    }, sinon: (e) => ServerFailure(e.toString()));
   }
 
   @override
   Future<Either<Failure, Map<String, List<PollVoterEntity>>>> getPollVoters(
     String pollId,
   ) async {
-    try {
+    return garderAppel(() async {
       final parOption = await remoteDataSource.getPollVoters(pollId);
       return Right(parOption.map(
         (optionId, rows) => MapEntry(
@@ -136,22 +120,14 @@ class PollRepositoryImpl implements PollRepository {
               .toList(),
         ),
       ));
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+    }, sinon: (e) => ServerFailure(e.toString()));
   }
 
   @override
   Future<Either<Failure, void>> deletePoll(String pollId) async {
-    try {
+    return garderAppel(() async {
       await remoteDataSource.deletePoll(pollId);
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+    }, sinon: (e) => ServerFailure(e.toString()));
   }
 }

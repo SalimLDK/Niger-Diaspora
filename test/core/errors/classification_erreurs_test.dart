@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' show PostgrestException;
 
 import 'package:diaspo_niger/core/errors/classification_erreurs.dart';
+import 'package:diaspo_niger/core/errors/exceptions.dart';
 
 /// Fige les libellés d'erreur **réellement vus dans la console Crashlytics**
 /// le 2026-09-10, avec leur volume. Ce ne sont pas des exemples inventés : la
@@ -42,7 +44,93 @@ void main() {
     });
   });
 
+  group('passerelles — vues en production, classées non-fatales', () {
+    test('522 Cloudflare sur getNearbyProfiles (13/10, SM-N976U)', () {
+      expect(
+        estPanneReseau(
+          const PostgrestException(message: 'error code: 522', code: '522'),
+        ),
+        isTrue,
+      );
+    });
+
+    test('503 pendant une maintenance Supabase', () {
+      expect(
+        estPanneReseau(
+          const PostgrestException(
+            message: '<html>Service Unavailable</html>',
+            code: '503',
+          ),
+        ),
+        isTrue,
+      );
+    });
+
+    test('502 et 504, 520 à 524', () {
+      for (final code in const ['502', '504', '520', '521', '523', '524']) {
+        expect(
+          estPanneReseau(PostgrestException(message: 'x', code: code)),
+          isTrue,
+          reason: 'code $code',
+        );
+      }
+    });
+
+    test('le corps Cloudflare suffit, même sans code', () {
+      expect(
+        estPanneReseau(const PostgrestException(message: 'error code: 521')),
+        isTrue,
+      );
+    });
+
+    test('ré-emballée en ServerException, le libellé la trahit encore', () {
+      expect(
+        estPanneReseau(
+          ServerException('Lecture de l\'annuaire refusée : error code: 522'),
+        ),
+        isTrue,
+      );
+    });
+  });
+
   group('ce qui doit RESTER fatal', () {
+    test('contrainte 23514 à la création d\'un commerce (11 évts le 11/10)', () {
+      // Une contrainte violée est un défaut de l'app — le formulaire a laissé
+      // passer une valeur que la base refuse — pas une panne d'environnement.
+      expect(
+        estPanneReseau(
+          const PostgrestException(
+            message:
+                'new row for relation "businesses" violates check constraint '
+                '"businesses_phone_check"',
+            code: '23514',
+          ),
+        ),
+        isFalse,
+      );
+    });
+
+    test('JWT expiré : affaire de session, pas de réseau', () {
+      expect(
+        estPanneReseau(
+          const PostgrestException(message: 'JWT expired', code: 'PGRST303'),
+        ),
+        isFalse,
+      );
+    });
+
+    test('un 500 vient de l\'origine, pas de la passerelle', () {
+      expect(
+        estPanneReseau(
+          const PostgrestException(
+            message: 'Internal Server Error',
+            code: '500',
+          ),
+        ),
+        isFalse,
+      );
+    });
+
     test('un vrai défaut de code', () {
       expect(
         estPanneReseau(

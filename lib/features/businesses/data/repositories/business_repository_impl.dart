@@ -1,8 +1,8 @@
 import 'package:diaspo_niger/core/errors/app_error_messages.dart';
 import 'package:dartz/dartz.dart';
 import 'package:uuid/uuid.dart';
-import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
+import '../../../../core/errors/garde_appel.dart';
 import '../../../../core/network/network_info.dart';
 import '../../domain/entities/business_entity.dart';
 import '../../domain/entities/business_boost_entity.dart';
@@ -30,15 +30,13 @@ class BusinessRepositoryImpl implements BusinessRepository {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
-    try {
+    return garderAppel(() async {
       final businesses = await remoteDataSource.getBusinesses(
         featuredFirst: featuredFirst,
         limit: limit,
       );
       return Right(businesses.map((b) => b.toEntity()).toList());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    }
+    });
   }
 
   @override
@@ -48,14 +46,12 @@ class BusinessRepositoryImpl implements BusinessRepository {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
-    try {
+    return garderAppel(() async {
       final businesses = await remoteDataSource.getBusinessesByCategory(
         category.name,
       );
       return Right(businesses.map((b) => b.toEntity()).toList());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    }
+    });
   }
 
   @override
@@ -65,12 +61,10 @@ class BusinessRepositoryImpl implements BusinessRepository {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
-    try {
+    return garderAppel(() async {
       final businesses = await remoteDataSource.searchBusinesses(query);
       return Right(businesses.map((b) => b.toEntity()).toList());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    }
+    });
   }
 
   @override
@@ -82,16 +76,14 @@ class BusinessRepositoryImpl implements BusinessRepository {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
-    try {
+    return garderAppel(() async {
       final businesses = await remoteDataSource.getNearbyBusinesses(
         latitude,
         longitude,
         radiusKm,
       );
       return Right(businesses.map((b) => b.toEntity()).toList());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    }
+    });
   }
 
   @override
@@ -102,15 +94,13 @@ class BusinessRepositoryImpl implements BusinessRepository {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
-    try {
+    return garderAppel(() async {
       final businesses = await remoteDataSource.getBusinessesByLocation(
         country: country,
         city: city,
       );
       return Right(businesses.map((b) => b.toEntity()).toList());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    }
+    });
   }
 
   @override
@@ -118,12 +108,10 @@ class BusinessRepositoryImpl implements BusinessRepository {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
-    try {
+    return garderAppel(() async {
       final business = await remoteDataSource.getBusinessById(id);
       return Right(business.toEntity());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    }
+    });
   }
 
   @override
@@ -131,12 +119,10 @@ class BusinessRepositoryImpl implements BusinessRepository {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
-    try {
+    return garderAppel(() async {
       final business = await remoteDataSource.getMyBusiness(ownerId);
       return Right(business?.toEntity());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    }
+    });
   }
 
   @override
@@ -146,12 +132,10 @@ class BusinessRepositoryImpl implements BusinessRepository {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
-    try {
+    return garderAppel(() async {
       final businesses = await remoteDataSource.getMyBusinesses(ownerId);
       return Right(businesses.map((b) => b.toEntity()).toList());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    }
+    });
   }
 
   @override
@@ -161,13 +145,11 @@ class BusinessRepositoryImpl implements BusinessRepository {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
-    try {
+    return garderAppel(() async {
       final businessModel = BusinessModel.fromEntity(business);
       final created = await remoteDataSource.createBusiness(businessModel);
       return Right(created.toEntity());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    }
+    });
   }
 
   @override
@@ -177,13 +159,11 @@ class BusinessRepositoryImpl implements BusinessRepository {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
-    try {
+    return garderAppel(() async {
       final businessModel = BusinessModel.fromEntity(business);
       final updated = await remoteDataSource.updateBusiness(businessModel);
       return Right(updated.toEntity());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    }
+    });
   }
 
   @override
@@ -191,12 +171,10 @@ class BusinessRepositoryImpl implements BusinessRepository {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
-    try {
+    return garderAppel(() async {
       await remoteDataSource.deleteBusiness(id);
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    }
+    });
   }
 
   @override
@@ -204,12 +182,14 @@ class BusinessRepositoryImpl implements BusinessRepository {
     if (!await networkInfo.isConnected) {
       return const Right(null); // Silently fail if offline
     }
-    try {
+    // Un compteur de vues raté ne remonte jamais à l'écran — mais il ne doit
+    // pas non plus le faire planter, ce qu'une PostgrestException faisait ici
+    // en passant à côté du `on ServerException`.
+    await garderAppel<void>(() async {
       await remoteDataSource.incrementViewCount(businessId);
       return const Right(null);
-    } on ServerException {
-      return const Right(null); // Silently fail
-    }
+    });
+    return const Right(null); // Silently fail
   }
 
   @override
@@ -222,7 +202,7 @@ class BusinessRepositoryImpl implements BusinessRepository {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
-    try {
+    return garderAppel(() async {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
         return const Left(ServerFailure('Utilisateur doit être connecté'));
@@ -284,9 +264,7 @@ class BusinessRepositoryImpl implements BusinessRepository {
 
       final created = await remoteDataSource.createBoost(boostModel);
       return Right(created.toEntity());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    }
+    });
   }
 
   @override
@@ -296,12 +274,10 @@ class BusinessRepositoryImpl implements BusinessRepository {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
-    try {
+    return garderAppel(() async {
       final boosts = await remoteDataSource.getBoostHistory(businessId);
       return Right(boosts.map((b) => b.toEntity()).toList());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    }
+    });
   }
 
   @override
@@ -311,11 +287,9 @@ class BusinessRepositoryImpl implements BusinessRepository {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
-    try {
+    return garderAppel(() async {
       final boost = await remoteDataSource.getActiveBoost(businessId);
       return Right(boost?.toEntity());
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message));
-    }
+    });
   }
 }

@@ -2,7 +2,7 @@ import 'package:diaspo_niger/core/errors/app_error_messages.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter/foundation.dart';
 import '../../../../core/errors/failures.dart';
-import '../../../../core/errors/exceptions.dart';
+import '../../../../core/errors/garde_appel.dart';
 import '../../../../core/services/connectivity_service.dart';
 import '../../../profile/data/models/profile_model.dart';
 import '../../../groups/domain/entities/group_entity.dart';
@@ -28,7 +28,7 @@ class SearchRepositoryImpl implements SearchRepository {
     required String? userId,
     int limit = 20,
   }) async {
-    try {
+    return garderAppel(() async {
       final isConnected = await connectivityService.isConnected();
 
       if (!isConnected) {
@@ -50,13 +50,10 @@ class SearchRepositoryImpl implements SearchRepository {
       }
 
       return Right(result.toEntity());
-    } on ServerException catch (e) {
-      debugPrint('SearchRepository: Server error: $e');
-      return Left(ServerFailure(e.message));
-    } catch (e) {
+    }, sinon: (e) {
       debugPrint('SearchRepository: Unexpected error: $e');
-      return const Left(ServerFailure('Erreur lors de la recherche'));
-    }
+      return const ServerFailure('Erreur lors de la recherche');
+    });
   }
 
   @override
@@ -64,7 +61,7 @@ class SearchRepositoryImpl implements SearchRepository {
     required String query,
     int limit = 20,
   }) async {
-    try {
+    return garderAppel(() async {
       final isConnected = await connectivityService.isConnected();
 
       if (!isConnected) {
@@ -77,10 +74,10 @@ class SearchRepositoryImpl implements SearchRepository {
       );
 
       return Right(result);
-    } catch (e) {
+    }, sinon: (e) {
       debugPrint('SearchRepository: Error searching profiles: $e');
-      return const Left(ServerFailure('Erreur lors de la recherche de profils'));
-    }
+      return const ServerFailure('Erreur lors de la recherche de profils');
+    });
   }
 
   @override
@@ -88,7 +85,7 @@ class SearchRepositoryImpl implements SearchRepository {
     required String query,
     int limit = 20,
   }) async {
-    try {
+    return garderAppel(() async {
       final isConnected = await connectivityService.isConnected();
 
       if (!isConnected) {
@@ -101,10 +98,10 @@ class SearchRepositoryImpl implements SearchRepository {
       );
 
       return Right(result.map((g) => g.toEntity()).toList());
-    } catch (e) {
+    }, sinon: (e) {
       debugPrint('SearchRepository: Error searching groups: $e');
-      return const Left(ServerFailure('Erreur lors de la recherche de groupes'));
-    }
+      return const ServerFailure('Erreur lors de la recherche de groupes');
+    });
   }
 
   @override
@@ -113,7 +110,7 @@ class SearchRepositoryImpl implements SearchRepository {
     required String query,
     int limit = 20,
   }) async {
-    try {
+    return garderAppel(() async {
       final isConnected = await connectivityService.isConnected();
 
       if (!isConnected) {
@@ -127,10 +124,10 @@ class SearchRepositoryImpl implements SearchRepository {
       );
 
       return Right(result.map((f) => f.toEntity()).toList());
-    } catch (e) {
+    }, sinon: (e) {
       debugPrint('SearchRepository: Error searching friends: $e');
-      return const Left(ServerFailure('Erreur lors de la recherche d\'amis'));
-    }
+      return const ServerFailure('Erreur lors de la recherche d\'amis');
+    });
   }
 
   @override
@@ -139,7 +136,7 @@ class SearchRepositoryImpl implements SearchRepository {
     required String query,
     int limit = 20,
   }) async {
-    try {
+    return garderAppel(() async {
       final isConnected = await connectivityService.isConnected();
 
       if (!isConnected) {
@@ -153,10 +150,10 @@ class SearchRepositoryImpl implements SearchRepository {
       );
 
       return Right(result.map((c) => c.toEntity()).toList());
-    } catch (e) {
+    }, sinon: (e) {
       debugPrint('SearchRepository: Error searching conversations: $e');
-      return const Left(ServerFailure('Erreur lors de la recherche de conversations'));
-    }
+      return const ServerFailure('Erreur lors de la recherche de conversations');
+    });
   }
 
   @override
@@ -164,16 +161,16 @@ class SearchRepositoryImpl implements SearchRepository {
     required String userId,
     int limit = 10,
   }) async {
-    try {
+    return garderAppel(() async {
       final result = await remoteDataSource.getRecentSearches(
         userId: userId,
         limit: limit,
       );
       return Right(result);
-    } catch (e) {
+    }, sinon: (e) {
       debugPrint('SearchRepository: Error getting recent searches: $e');
-      return const Left(CacheFailure('Erreur lors de la récupération des recherches récentes'));
-    }
+      return const CacheFailure('Erreur lors de la récupération des recherches récentes');
+    });
   }
 
   @override
@@ -181,13 +178,13 @@ class SearchRepositoryImpl implements SearchRepository {
     required String userId,
     required String query,
   }) async {
-    try {
+    return garderAppel(() async {
       await remoteDataSource.saveRecentSearch(userId: userId, query: query);
       return const Right(null);
-    } catch (e) {
+    }, sinon: (e) {
       debugPrint('SearchRepository: Error saving recent search: $e');
-      return const Left(CacheFailure('Erreur lors de la sauvegarde de la recherche'));
-    }
+      return const CacheFailure('Erreur lors de la sauvegarde de la recherche');
+    });
   }
 
   @override
@@ -195,25 +192,25 @@ class SearchRepositoryImpl implements SearchRepository {
     required String userId,
     required String query,
   }) async {
-    try {
+    return garderAppel(() async {
       await remoteDataSource.removeRecentSearch(userId: userId, query: query);
       return const Right(null);
-    } catch (e) {
+    }, sinon: (e) {
       debugPrint('SearchRepository: Error removing recent search: $e');
-      return const Left(CacheFailure('Erreur lors de la suppression de la recherche'));
-    }
+      return const CacheFailure('Erreur lors de la suppression de la recherche');
+    });
   }
 
   @override
   Future<Either<Failure, void>> clearRecentSearches({
     required String userId,
   }) async {
-    try {
+    return garderAppel(() async {
       await remoteDataSource.clearRecentSearches(userId: userId);
       return const Right(null);
-    } catch (e) {
+    }, sinon: (e) {
       debugPrint('SearchRepository: Error clearing recent searches: $e');
-      return const Left(CacheFailure('Erreur lors de la suppression des recherches'));
-    }
+      return const CacheFailure('Erreur lors de la suppression des recherches');
+    });
   }
 }
