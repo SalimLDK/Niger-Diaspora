@@ -13,6 +13,7 @@ import '../../../../core/services/image_upload_service.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:diaspo_niger/core/theme/design_kit.dart';
+import '../../../../shared/widgets/colonne_defilante.dart';
 
 class EditGroupScreen extends ConsumerStatefulWidget {
   final GroupEntity group;
@@ -242,7 +243,7 @@ class _EditGroupScreenState extends ConsumerState<EditGroupScreen> {
       ),
       body: Form(
         key: _formKey,
-        child: ListView(
+        child: ColonneDefilante(
           padding: const EdgeInsets.all(20),
           children: [
             // Photo de groupe

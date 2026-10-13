@@ -10,6 +10,7 @@ import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../domain/entities/payment_account_entity.dart';
 import '../providers/payment_account_provider.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
+import 'package:diaspo_niger/shared/widgets/colonne_defilante.dart';
 import 'package:diaspo_niger/core/errors/message_erreur.dart';
 import 'package:diaspo_niger/core/theme/design_kit.dart';
 
@@ -148,7 +149,7 @@ class _AddPaymentAccountScreenState
         title: DesignTitle(l10n.addPaymentAccount, size: 22)),
       body: Form(
         key: _formKey,
-        child: ListView(
+        child: ColonneDefilante(
           padding: const EdgeInsets.all(16),
           children: [
             // Step 1: Type selection

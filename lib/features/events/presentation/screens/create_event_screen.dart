@@ -19,6 +19,7 @@ import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../core/services/analytics_service.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import 'package:diaspo_niger/shared/widgets/dashed_border_painter.dart';
+import 'package:diaspo_niger/shared/widgets/colonne_defilante.dart';
 import 'package:diaspo_niger/core/errors/error_handler.dart';
 import 'package:diaspo_niger/core/theme/design_kit.dart';
 import '../../../messages/presentation/providers/media_gallery_provider.dart'
@@ -671,7 +672,7 @@ class _CreateEventScreenState extends ConsumerState<CreateEventScreen> {
         ),
         body: Form(
           key: _formKey,
-          child: ListView(
+          child: ColonneDefilante(
             padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
             children: [
               _buildPosterZone(l10n),

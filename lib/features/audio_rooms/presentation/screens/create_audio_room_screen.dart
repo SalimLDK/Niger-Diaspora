@@ -11,6 +11,7 @@ import '../../domain/monetization_rates.dart';
 import '../providers/audio_room_provider.dart';
 import '../widgets/content_pickers.dart';
 import 'package:diaspo_niger/core/theme/design_kit.dart';
+import '../../../../shared/widgets/colonne_defilante.dart';
 
 /// /audio-rooms/create — full room creation form.
 class CreateAudioRoomScreen extends ConsumerStatefulWidget {
@@ -129,7 +130,7 @@ class _CreateAudioRoomScreenState
       appBar: _ArHeader(title: l10n.audioRoomOpenRoom),
       body: Form(
         key: _formKey,
-        child: ListView(
+        child: ColonneDefilante(
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 120),
           children: [
             // § 1 — Titre

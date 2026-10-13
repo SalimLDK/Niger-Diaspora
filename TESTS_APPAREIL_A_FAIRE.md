@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1271 cases à cocher, 55 cochées** — 284 entrées sur 298 ont encore des cases ouvertes.
+**1276 cases à cocher, 55 cochées** — 285 entrées sur 299 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -93,7 +93,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 6 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (112)
+**P1 — fonction importante, jamais vérifiée** (113)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -164,6 +164,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [⬜ Définition des photos envoyées : plafond levé, double encodage supprimé (2026-09-14)](#-définition-des-photos-envoyées--plafond-levé-double-encodage-supprimé-2026-09-14) · *Fil, stories, salons audio et podcasts*
 - 8 · [⬜ Stories : ajouter, supprimer, audience, listes, 24 h (2026-09-12)](#-stories--ajouter-supprimer-audience-listes-24-h-2026-09-12) · *Fil, stories, salons audio et podcasts* · bloqué
 - 7 · [⬜ Publications : audience Public / Abonnés / Amis / Moi uniquement (2026-09-12)](#-publications--audience-public--abonnés--amis--moi-uniquement-2026-09-12) · *Fil, stories, salons audio et podcasts* · bloqué
+- 5 · [⬜ Formulaires défilants : un champ obligatoire hors écran ne part plus vide, et la création d'entreprise dit quand elle échoue (2026-10-13)](#-formulaires-défilants--un-champ-obligatoire-hors-écran-ne-part-plus-vide-et-la-création-dentreprise-dit-quand-elle-échoue-2026-10-13) · *Ambassades, démarches, carte, entreprises et événements*
 - 10 · [Carte — délai d'affichage des membres autour (2026-08-04)](#carte--délai-daffichage-des-membres-autour-2026-08-04) · *Ambassades, démarches, carte, entreprises et événements*
 - 7 · [⬜ Photo de profil : on choisit son cadrage (2026-09-14)](#-photo-de-profil--on-choisit-son-cadrage-2026-09-14) · *Accueil, profil et réglages*
 - 6 · [⬜ Champ ville : recherche dans le référentiel (2026-09-13)](#-champ-ville--recherche-dans-le-référentiel-2026-09-13) · *Accueil, profil et réglages*
@@ -350,7 +351,7 @@ Par domaine :
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 36 à faire, 0 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 63 à faire, 0 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 101 à faire, 0 faites
-- [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 62 à faire, 0 faites
+- [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 67 à faire, 0 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 58 à faire, 5 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 108 à faire, 5 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 65 à faire, 2 faites
@@ -7244,6 +7245,62 @@ sur une voix réellement captée par le SFU.
 # 10. Ambassades, démarches, carte, entreprises et événements
 
 Annuaires, démarches consulaires, carte des membres et des postes, événements.
+
+---
+
+## ⬜ Formulaires défilants : un champ obligatoire hors écran ne part plus vide, et la création d'entreprise dit quand elle échoue (2026-10-13)
+
+**Priorité P1** · importance 4/5 — Deux usagers (Xiaomi 220233L2G, Tecno
+KM4) ont tapé onze fois « Créer l'entreprise » le 11/10 sur 1.2.2 (31) avec
+une description vide : la base refusait (`businesses_description_non_vide`,
+code 23514), l'écran ne disait rien, et chaque tap partait en fatale dans
+Crashlytics (fiche « PostgrestBuilder._parseResponse »). Le validateur
+existait depuis le 20/07 — mais le `Form` posait ses champs dans un
+`ListView`, qui démonte ce qui est hors écran : un champ jamais touché,
+défilé à plus de 250 px, n'était plus inscrit au `Form`, et `validate()`
+passait sans le voir. Le premier usager est remonté, a vu le champ vide et
+l'a rempli 46 s plus tard ; le second a abandonné. Treize écrans partageaient
+la structure.
+
+Corrigé : `ColonneDefilante` (`lib/shared/widgets/colonne_defilante.dart`,
+`SingleChildScrollView` + `Column`) remplace le `ListView` sous les treize
+`Form` — entreprises, événements ×3, groupes ×2, boutique, podcasts ×2,
+salon audio, compte de paiement, bénéficiaire — et l'édition du profil passe
+de `SliverList` à `SliverToBoxAdapter` + `Column`. Dans
+`create_business_screen.dart`, `_submit` attrape enfin ce que le dépôt
+laisse passer (`PostgrestException` : contrainte, JWT expiré, passerelle
+5xx) et l'affiche par `messageErreurContextuel(l10n.creationError, e)`.
+Vérifié par `test/shared/colonne_defilante_test.dart` : mécanisme avec
+témoin du défaut, écran réel en fenêtre courte, garde de structure sur tout
+`lib/features`.
+
+Ce que le test ne voit pas : le rendu ne devrait pas bouger (même largeur
+serrée, mêmes marges), mais ces treize écrans n'ont jamais été regardés
+avec un `SingleChildScrollView`, ni avec le clavier ouvert.
+
+- [ ] **Créer une entreprise, description vide** — remplir le nom, défiler
+  tout en bas, « Créer l'entreprise » : rien ne part, et en remontant le
+  champ Description porte « La description est requise ». Même chose nom
+  vide / description remplie.
+- [ ] **Message quand l'écriture échoue** — provoquer un refus côté base
+  (le dépôt teste le réseau avant d'écrire, couper le Wi-Fi ne suffit pas :
+  il faut une `PostgrestException`, par exemple en révoquant temporairement
+  l'INSERT sur `businesses` pour `authenticated`) : le snackbar « Erreur
+  lors de la création. … » apparaît et le bouton redevient actif.
+- [ ] **Les douze autres formulaires, défilement et clavier** — pour chacun
+  (créer/modifier un événement, récap d'événement, créer/modifier un groupe,
+  créer un produit, créer un podcast, enregistrer un épisode, ouvrir un
+  salon audio, ajouter un compte de paiement, ajouter un bénéficiaire) :
+  défiler jusqu'en bas, ouvrir le clavier sur le dernier champ — le champ
+  reste visible au-dessus du clavier, le bouton du bas reste atteignable,
+  la marge basse (120 px pour le salon audio) est intacte.
+- [ ] **Modifier le profil** — les sections `_buildAnimatedSection`
+  s'animaient à l'entrée dans la fenêtre ; elles s'animent maintenant toutes
+  au premier affichage. Vérifier qu'aucune n'arrive vide ou figée en bas de
+  page, et que le défilement (`BouncingScrollPhysics`, barre épinglée) est
+  inchangé.
+- [ ] **Thème sombre** — un formulaire au hasard : fond et champs identiques
+  à avant.
 
 ---
 

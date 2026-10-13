@@ -12,6 +12,7 @@ import '../../../../core/theme/adaptive_colors.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:diaspo_niger/core/errors/message_erreur.dart';
 import 'package:diaspo_niger/core/theme/design_kit.dart';
+import '../../../../shared/widgets/colonne_defilante.dart';
 
 class EventRecapScreen extends ConsumerStatefulWidget {
   final EventEntity event;
@@ -199,7 +200,7 @@ class _EventRecapScreenState extends ConsumerState<EventRecapScreen> {
       ),
       body: Form(
         key: _formKey,
-        child: ListView(
+        child: ColonneDefilante(
           padding: const EdgeInsets.all(20),
           children: [
             // Info card

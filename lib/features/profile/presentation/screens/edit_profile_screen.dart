@@ -744,8 +744,14 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
               // Contenu du formulaire
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(20, 20, 20, 40),
-                sliver: SliverList(
-                  delegate: SliverChildListDelegate([
+                // Pas de SliverList : il ne monte que ce qui tient dans la
+                // fenêtre, et un champ obligatoire défilé hors écran échappe
+                // alors à `validate()` — même défaut que `ListView` sous un
+                // Form, voir `ColonneDefilante`.
+                sliver: SliverToBoxAdapter(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
                     // §20a : formulaire à plat, dans l'ordre de la fiche.
                     // Plus d'en-tête de section ni d'icône de préfixe : un
                     // libellé, un champ. Les champs que la fiche ne montre
@@ -987,7 +993,8 @@ class _EditProfileScreenState extends ConsumerState<EditProfileScreen>
                         ],
                       ),
                     ),
-                  ]),
+                    ],
+                  ),
                 ),
               ),
             ],

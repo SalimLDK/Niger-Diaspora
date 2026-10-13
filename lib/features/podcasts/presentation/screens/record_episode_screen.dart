@@ -14,6 +14,7 @@ import '../../../../l10n/app_localizations.dart';
 import '../../domain/entities/podcast_episode_entity.dart';
 import '../providers/podcast_provider.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
+import 'package:diaspo_niger/shared/widgets/colonne_defilante.dart';
 import 'package:diaspo_niger/core/errors/error_handler.dart';
 import 'package:diaspo_niger/core/theme/design_kit.dart';
 
@@ -511,7 +512,7 @@ class _RecordEpisodeScreenState extends ConsumerState<RecordEpisodeScreen> {
       ),
       body: Form(
         key: _formKey,
-        child: ListView(
+        child: ColonneDefilante(
           padding: const EdgeInsets.all(16),
           children: [
             // Media mode selector

@@ -8,6 +8,7 @@ import '../providers/transfer_provider.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:diaspo_niger/core/errors/message_erreur.dart';
 import 'package:diaspo_niger/core/theme/design_kit.dart';
+import '../../../../shared/widgets/colonne_defilante.dart';
 
 class AddRecipientScreen extends ConsumerStatefulWidget {
   final RecipientEntity? existingRecipient;
@@ -127,7 +128,7 @@ class _AddRecipientScreenState extends ConsumerState<AddRecipientScreen> {
       ),
       body: Form(
         key: _formKey,
-        child: ListView(
+        child: ColonneDefilante(
           padding: const EdgeInsets.all(16),
           children: [
             _buildPersonalInfoSection(),

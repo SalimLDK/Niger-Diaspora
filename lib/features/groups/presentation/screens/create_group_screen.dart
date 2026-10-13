@@ -18,6 +18,7 @@ import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../core/services/analytics_service.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:diaspo_niger/core/theme/design_kit.dart';
+import '../../../../shared/widgets/colonne_defilante.dart';
 
 class CreateGroupScreen extends ConsumerStatefulWidget {
   /// Nom pré-rempli, venant du « Créer « X » » de la recherche sans résultat.
@@ -250,7 +251,7 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
       ),
       body: Form(
         key: _formKey,
-        child: ListView(
+        child: ColonneDefilante(
           padding: const EdgeInsets.all(20),
           children: [
             // Photo de groupe

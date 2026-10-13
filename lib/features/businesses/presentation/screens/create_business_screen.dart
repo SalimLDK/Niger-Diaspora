@@ -11,10 +11,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/services/image_upload_service.dart';
 import '../../../../shared/widgets/app_icon.dart';
+import '../../../../shared/widgets/colonne_defilante.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../messages/presentation/widgets/location_picker_modal.dart';
 import '../../domain/entities/business_entity.dart';
 import '../providers/business_provider.dart';
+import 'package:diaspo_niger/core/errors/message_erreur.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 /// Création d'une entreprise, et édition de la même fiche quand
@@ -306,6 +308,19 @@ class _CreateBusinessScreenState extends ConsumerState<CreateBusinessScreen> {
           SnackBar(content: Text(l10n.creationError)),
         );
       }
+    } catch (e) {
+      // Le dépôt n'attrape que `ServerException` : une `PostgrestException`
+      // (contrainte 23514, JWT expiré PGRST303, passerelle 5xx) arrivait
+      // ici sans `catch`. Aucun message, `_isLoading` retombait, l'usager
+      // retapait — et chaque tap partait en fatale dans Crashlytics
+      // (11 plantages le 2026-10-11 pour une description vide).
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(messageErreurContextuel(l10n.creationError, e)),
+          ),
+        );
+      }
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -360,7 +375,7 @@ class _CreateBusinessScreenState extends ConsumerState<CreateBusinessScreen> {
       ),
       body: Form(
         key: _formKey,
-        child: ListView(
+        child: ColonneDefilante(
           padding: const EdgeInsets.all(16),
           children: [
             // Images
