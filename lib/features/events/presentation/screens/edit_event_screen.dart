@@ -16,6 +16,7 @@ import '../widgets/event_audience_picker.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import 'package:diaspo_niger/core/errors/message_erreur.dart';
 import 'package:diaspo_niger/core/theme/design_kit.dart';
+import '../../../../shared/widgets/colonne_defilante.dart';
 
 class EditEventScreen extends ConsumerStatefulWidget {
   final EventEntity event;
@@ -479,7 +480,7 @@ class _EditEventScreenState extends ConsumerState<EditEventScreen> {
       ),
       body: Form(
         key: _formKey,
-        child: ListView(
+        child: ColonneDefilante(
           padding: const EdgeInsets.all(20),
           children: [
             // Titre

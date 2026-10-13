@@ -16,6 +16,7 @@ import '../providers/marketplace_provider.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:diaspo_niger/core/errors/message_erreur.dart';
 import 'package:diaspo_niger/core/theme/design_kit.dart';
+import '../../../../shared/widgets/colonne_defilante.dart';
 
 class CreateProductScreen extends ConsumerStatefulWidget {
   final ProductEntity? product; // For editing
@@ -547,7 +548,7 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
       ),
       body: Form(
         key: _formKey,
-        child: ListView(
+        child: ColonneDefilante(
           padding: const EdgeInsets.all(16),
           children: [
             // Images
