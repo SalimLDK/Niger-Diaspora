@@ -1,0 +1,4 @@
+# Les scripts shell doivent rester en LF : core.autocrlf=true les rendrait en
+# CRLF au checkout Windows, et Bash tombe des la premiere ligne (`` colle a
+# `pipefail`). Pose le 2026-10-14 avec tools/build_admin_web.sh, premier .sh du depot.
+*.sh text eol=lf
