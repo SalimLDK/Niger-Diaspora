@@ -8,6 +8,7 @@ import 'package:flutter_web_plugins/url_strategy.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../firebase_options.dart';
+import 'cle_site_recaptcha.dart';
 import 'presentation/admin_app.dart';
 
 void main() async {
@@ -28,11 +29,13 @@ void main() async {
   // Initialize Firebase
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  // Activate Firebase App Check with reCAPTCHA v3 for web
+  // Activate Firebase App Check with reCAPTCHA v3 for web.
+  // La clé vient de `--dart-define=ADMIN_RECAPTCHA_SITE_KEY` (repli : la clé
+  // du projet, voir cle_site_recaptcha.dart). Le domaine servi doit figurer
+  // dans les domaines autorisés de cette clé (console reCAPTCHA), sinon App
+  // Check échoue en silence : docs/deploiement/HEBERGEMENT_ADMIN.md.
   await FirebaseAppCheck.instance.activate(
-    webProvider: ReCaptchaV3Provider(
-      '6Ldy7TwsAAAAAI6jQWNmV-I2lkEn31yGG8iRNxTi',
-    ),
+    webProvider: ReCaptchaV3Provider(cleSiteRecaptchaAdmin),
   );
 
   // Supabase, avant runApp : les notifiers du panneau et le pont
