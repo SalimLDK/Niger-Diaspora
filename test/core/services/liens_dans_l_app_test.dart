@@ -1,8 +1,8 @@
-import 'dart:io';
-
 import 'package:diaspo_niger/core/services/deep_link_service.dart';
 import 'package:diaspo_niger/core/services/qr_code_parser.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../../helpers/source_bibliotheque.dart';
 
 /// Un lien Diaspo Niger lu dans une discussion doit s'ouvrir dans l'app.
 ///
@@ -81,7 +81,7 @@ void main() {
   group('les deux lecteurs de liens d\'une discussion passent par routeInterne',
       () {
     String lire(String chemin) =>
-        File(chemin).readAsStringSync().replaceAll('\r\n', '\n');
+        sourceBibliotheque(chemin).replaceAll('\r\n', '\n');
 
     test('carte d\'aperçu', () {
       final source = lire(
