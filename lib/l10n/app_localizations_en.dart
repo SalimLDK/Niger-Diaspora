@@ -6938,7 +6938,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get adminPriceHint => 'Ex: 1, 2, 5, 10, 20';
 
   @override
-  String get adminComplete => 'Complete';
+  String get adminComplete => 'Mark as completed';
 
   @override
   String get adminSearchUserPlaceholder => 'Search for a user...';
@@ -14502,10 +14502,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get adminMarkCompleteConfirm =>
-      'Are you sure you want to mark this transaction as completed?';
+      'Mark this transaction as completed? Nothing is checked with the payment provider: it will show as successful to the user, even if no money ever moved.';
 
   @override
-  String get adminTransactionCompleted => 'Transaction completed';
+  String get adminTransactionCompleted => 'Transaction marked as completed';
 
   @override
   String get adminRefundReasonLabel => 'Refund reason:';

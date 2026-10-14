@@ -1,11 +1,13 @@
 import 'dart:async';
 
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:equatable/equatable.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../../core/errors/message_erreur.dart';
 import '../../../../core/services/currency_service.dart';
 import '../../../../core/services/session_service.dart';
 import '../../../auth/data/models/user_model.dart';
@@ -22,6 +24,7 @@ import '../../../marketplace/data/models/product_model.dart';
 import '../../../marketplace/domain/entities/product_entity.dart';
 import '../../../transfers/data/models/transaction_model.dart';
 import '../../../transfers/domain/entities/transaction_entity.dart';
+import 'refus_callable.dart';
 
 // ---------------------------------------------------------------------------
 // Supabase client accessor
@@ -312,6 +315,11 @@ final adminDashboardNotifierProvider =
     );
 
 class AdminDashboardNotifier extends Notifier<AdminDashboardState> {
+  /// Referme le bandeau d'erreur d'un écran qui a encore sa liste.
+  /// `copyWith` efface `error` dès qu'on ne le repasse pas — c'est le seul
+  /// champ ainsi —, donc n'importe quel chargement l'efface aussi.
+  void effacerErreur() => state = state.copyWith(error: null);
+
   @override
   AdminDashboardState build() {
     return const AdminDashboardState();
@@ -525,6 +533,11 @@ final adminBusinessNotifierProvider =
     );
 
 class AdminBusinessNotifier extends Notifier<AdminBusinessState> {
+  /// Referme le bandeau d'erreur d'un écran qui a encore sa liste.
+  /// `copyWith` efface `error` dès qu'on ne le repasse pas — c'est le seul
+  /// champ ainsi —, donc n'importe quel chargement l'efface aussi.
+  void effacerErreur() => state = state.copyWith(error: null);
+
   @override
   AdminBusinessState build() {
     return const AdminBusinessState();
@@ -774,6 +787,11 @@ final adminContentNotifierProvider =
     );
 
 class AdminContentNotifier extends Notifier<AdminContentState> {
+  /// Referme le bandeau d'erreur d'un écran qui a encore sa liste.
+  /// `copyWith` efface `error` dès qu'on ne le repasse pas — c'est le seul
+  /// champ ainsi —, donc n'importe quel chargement l'efface aussi.
+  void effacerErreur() => state = state.copyWith(error: null);
+
   @override
   AdminContentState build() {
     return const AdminContentState();
@@ -1119,6 +1137,11 @@ final adminReportsNotifierProvider =
     );
 
 class AdminReportsNotifier extends Notifier<AdminReportsState> {
+  /// Referme le bandeau d'erreur d'un écran qui a encore sa liste.
+  /// `copyWith` efface `error` dès qu'on ne le repasse pas — c'est le seul
+  /// champ ainsi —, donc n'importe quel chargement l'efface aussi.
+  void effacerErreur() => state = state.copyWith(error: null);
+
   @override
   AdminReportsState build() {
     return const AdminReportsState();
@@ -1460,6 +1483,11 @@ final adminMarketplaceNotifierProvider =
     );
 
 class AdminMarketplaceNotifier extends Notifier<AdminMarketplaceState> {
+  /// Referme le bandeau d'erreur d'un écran qui a encore sa liste.
+  /// `copyWith` efface `error` dès qu'on ne le repasse pas — c'est le seul
+  /// champ ainsi —, donc n'importe quel chargement l'efface aussi.
+  void effacerErreur() => state = state.copyWith(error: null);
+
   @override
   AdminMarketplaceState build() {
     return const AdminMarketplaceState();
@@ -1655,6 +1683,34 @@ class AdminMarketplaceNotifier extends Notifier<AdminMarketplaceState> {
 // USER MANAGEMENT (Extended)
 // ============================================================================
 
+/// Arguments de la callable `setUserBanned` (`functions/bannissement.js`) :
+/// `{uid, banned: true, reason}` pour bannir, `{uid, banned: false}` pour
+/// débannir. Pas de `reason` au débannissement — le serveur remet
+/// `ban_reason` à null lui-même — ni d'identité de l'admin : il la lit dans
+/// le jeton de l'appel. Pure, pour être testée sans Firebase
+/// (`test/features/admin/bannissement_callable_test.dart`).
+Map<String, dynamic> argumentsSetUserBanned(
+  String uid, {
+  required bool banned,
+  String? reason,
+}) => {
+  'uid': uid,
+  'banned': banned,
+  if (banned) 'reason': reason ?? '',
+};
+
+/// Ce que la réponse `{uid, banned, action, journalise}` de `setUserBanned`
+/// dit au panneau : null si tout est fait, sinon le motif à montrer. Le
+/// serveur ne lève pas quand seul le journal a été refusé (le ban, lui, est
+/// posé) : le panneau le dit et rend faux, comme pour toute autre action
+/// non journalisée. Une réponse d'une autre forme n'est pas un succès.
+String? motifReponseSetUserBanned(dynamic reponse, {required bool banned}) {
+  if (reponse is Map && reponse['journalise'] == true) return null;
+  final action = banned ? 'ban_user' : 'unban_user';
+  return 'Action « $action » effectuée, mais non journalisée dans '
+      'admin_audit_logs.';
+}
+
 class AdminUsersState extends Equatable {
   final List<UserEntity> users;
   final List<UserEntity> bannedUsers;
@@ -1696,6 +1752,11 @@ final adminUsersNotifierProvider =
     );
 
 class AdminUsersNotifier extends Notifier<AdminUsersState> {
+  /// Referme le bandeau d'erreur d'un écran qui a encore sa liste.
+  /// `copyWith` efface `error` dès qu'on ne le repasse pas — c'est le seul
+  /// champ ainsi —, donc n'importe quel chargement l'efface aussi.
+  void effacerErreur() => state = state.copyWith(error: null);
+
   @override
   AdminUsersState build() {
     return const AdminUsersState();
@@ -1729,91 +1790,54 @@ class AdminUsersNotifier extends Notifier<AdminUsersState> {
     }
   }
 
-  Future<bool> banUser(
-    String userId,
-    String reason, {
-    required String adminId,
-    String? adminName,
-  }) async {
-    try {
-      final updated = await _supabase
-          .from('users')
-          .update({
-            'is_banned': true,
-            'ban_reason': reason,
-            'banned_at': DateTime.now().toUtc().toIso8601String(),
-          })
-          .eq('id', userId)
-          .select('id');
-      if ((updated as List).isEmpty) {
-        state = state.copyWith(error: 'Utilisateur non banni : $_aucuneLigne');
-        return false;
-      }
+  /// Bannit [userId] par la Cloud Function `setUserBanned`
+  /// (`functions/bannissement.js`), plus par deux `update` Supabase directs.
+  ///
+  /// Le serveur fait tout, dans cet ordre : Postgres (`is_banned`,
+  /// `ban_reason`, `banned_at`, `banned_by`, sentinelle `session_id` lue par
+  /// `SessionService.prefixeBanni`), puis `updateUser({disabled: true})` et
+  /// `revokeRefreshTokens` — ce que le panneau ne pouvait pas faire : un
+  /// compte banni par le client seul gardait un jeton Firebase valide (audit
+  /// du 2026-10-14, § 7.2) —, puis le journal `admin_audit_logs` par la clé
+  /// de service. L'identité de l'admin vient de son jeton : rien à passer.
+  ///
+  /// Un refus arrive en [FirebaseFunctionsException] avec un message en
+  /// français (rôle insuffisant, soi-même, un superAdmin, un admin visé par
+  /// un contentMod, compte introuvable) : il est posé dans `state.error` et
+  /// la méthode rend faux — l'écran n'annonce alors aucun succès.
+  Future<bool> banUser(String userId, String reason) =>
+      _appelerSetUserBanned(userId, banned: true, reason: reason);
 
-      // Ceinture et bretelles : `is_banned` ci-dessus suffit a faire sortir
-      // l'appareil (SessionService.doitEjecterSurDecisionAdmin le lit), la
-      // sentinelle couvre le cas ou cette seconde ecriture serait la seule
-      // a passer.
-      final newSessionId =
-          '${SessionService.prefixeBanni}${DateTime.now().millisecondsSinceEpoch}';
-      await _supabase
-          .from('users')
-          .update({'session_id': newSessionId})
-          .eq('id', userId);
+  /// Débannit [userId] par `setUserBanned` : Postgres remis à zéro
+  /// (`is_banned`, `ban_reason`, `banned_at`, `banned_by`, `session_id`) et
+  /// compte Firebase réactivé. Voir [banUser].
+  Future<bool> unbanUser(String userId) =>
+      _appelerSetUserBanned(userId, banned: false);
 
-      final echecJournal = await AdminAuditHelper.log(
-        adminId: adminId,
-        adminName: adminName,
-        action: 'ban_user',
-        targetType: 'user',
-        targetId: userId,
-        details: {'reason': reason},
-      );
-
-      await fetchAllUsers();
-      if (echecJournal != null) {
-        state = state.copyWith(error: echecJournal);
-        return false;
-      }
-      return true;
-    } catch (e) {
-      state = state.copyWith(error: e.toString());
-      return false;
-    }
-  }
-
-  Future<bool> unbanUser(
+  Future<bool> _appelerSetUserBanned(
     String userId, {
-    required String adminId,
-    String? adminName,
+    required bool banned,
+    String? reason,
   }) async {
     try {
-      final updated = await _supabase
-          .from('users')
-          .update({'is_banned': false, 'ban_reason': null, 'banned_at': null})
-          .eq('id', userId)
-          .select('id');
-      if ((updated as List).isEmpty) {
-        state = state.copyWith(error: 'Utilisateur non débanni : $_aucuneLigne');
-        return false;
-      }
-
-      final echecJournal = await AdminAuditHelper.log(
-        adminId: adminId,
-        adminName: adminName,
-        action: 'unban_user',
-        targetType: 'user',
-        targetId: userId,
-      );
-
+      final reponse = await FirebaseFunctions.instance
+          .httpsCallable('setUserBanned')
+          .call<dynamic>(
+            argumentsSetUserBanned(userId, banned: banned, reason: reason),
+          );
+      // Le serveur a écrit : la liste doit le refléter, journal refusé ou non.
       await fetchAllUsers();
-      if (echecJournal != null) {
-        state = state.copyWith(error: echecJournal);
+      final motif = motifReponseSetUserBanned(reponse.data, banned: banned);
+      if (motif != null) {
+        state = state.copyWith(error: motif);
         return false;
       }
       return true;
+    } on FirebaseFunctionsException catch (e) {
+      state = state.copyWith(error: messageRefusCallable(e));
+      return false;
     } catch (e) {
-      state = state.copyWith(error: e.toString());
+      state = state.copyWith(error: messageErreurUsager(e));
       return false;
     }
   }
@@ -1984,6 +2008,11 @@ final adminTransactionsNotifierProvider =
     );
 
 class AdminTransactionsNotifier extends Notifier<AdminTransactionsState> {
+  /// Referme le bandeau d'erreur d'un écran qui a encore sa liste.
+  /// `copyWith` efface `error` dès qu'on ne le repasse pas — c'est le seul
+  /// champ ainsi —, donc n'importe quel chargement l'efface aussi.
+  void effacerErreur() => state = state.copyWith(error: null);
+
   @override
   AdminTransactionsState build() {
     return const AdminTransactionsState();

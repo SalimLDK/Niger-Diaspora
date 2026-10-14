@@ -12893,7 +12893,7 @@ abstract class AppLocalizations {
   /// No description provided for @adminComplete.
   ///
   /// In fr, this message translates to:
-  /// **'Compléter'**
+  /// **'Marquer complétée'**
   String get adminComplete;
 
   /// No description provided for @adminSearchUserPlaceholder.
@@ -26861,13 +26861,13 @@ abstract class AppLocalizations {
   /// No description provided for @adminMarkCompleteConfirm.
   ///
   /// In fr, this message translates to:
-  /// **'Êtes-vous sûr de vouloir marquer cette transaction comme complétée ?'**
+  /// **'Marquer cette transaction complétée ? Rien n\'est vérifié auprès du prestataire de paiement : elle apparaîtra comme réussie pour l\'utilisateur, même si l\'argent n\'est jamais parti.'**
   String get adminMarkCompleteConfirm;
 
   /// No description provided for @adminTransactionCompleted.
   ///
   /// In fr, this message translates to:
-  /// **'Transaction complétée'**
+  /// **'Transaction marquée complétée'**
   String get adminTransactionCompleted;
 
   /// No description provided for @adminRefundReasonLabel.

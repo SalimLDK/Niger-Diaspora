@@ -7015,7 +7015,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get adminPriceHint => 'Ex: 1, 2, 5, 10, 20';
 
   @override
-  String get adminComplete => 'Compléter';
+  String get adminComplete => 'Marquer complétée';
 
   @override
   String get adminSearchUserPlaceholder => 'Rechercher un utilisateur...';
@@ -14646,10 +14646,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get adminMarkCompleteConfirm =>
-      'Êtes-vous sûr de vouloir marquer cette transaction comme complétée ?';
+      'Marquer cette transaction complétée ? Rien n\'est vérifié auprès du prestataire de paiement : elle apparaîtra comme réussie pour l\'utilisateur, même si l\'argent n\'est jamais parti.';
 
   @override
-  String get adminTransactionCompleted => 'Transaction complétée';
+  String get adminTransactionCompleted => 'Transaction marquée complétée';
 
   @override
   String get adminRefundReasonLabel => 'Raison du remboursement:';

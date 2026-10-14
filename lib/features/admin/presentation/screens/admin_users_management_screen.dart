@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../auth/domain/entities/user_entity.dart';
 import '../providers/admin_provider.dart';
+import '../widgets/admin_bandeau_erreur.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:diaspo_niger/core/theme/design_kit.dart';
 
@@ -98,14 +99,29 @@ class _AdminUsersManagementScreenState
         Expanded(
           child: state.isLoading
               ? _buildLoadingState()
-              : state.error != null
+              : state.error != null && state.users.isEmpty
                   ? _buildErrorState(state.error!)
-                  : TabBarView(
-                      controller: _tabController,
+                  : Column(
                       children: [
-                        _buildUsersList(_filterUsers(state.users)),
-                        _buildUsersList(_filterUsers(state.admins)),
-                        _buildUsersList(_filterUsers(state.bannedUsers)),
+                        // Une erreur posée après une action (zéro ligne,
+                        // journal refusé) ne doit pas effacer la liste.
+                        if (state.error != null)
+                          AdminBandeauErreur(
+                            message: state.error!,
+                            onFermer: ref
+                                .read(adminUsersNotifierProvider.notifier)
+                                .effacerErreur,
+                          ),
+                        Expanded(
+                          child: TabBarView(
+                            controller: _tabController,
+                            children: [
+                              _buildUsersList(_filterUsers(state.users)),
+                              _buildUsersList(_filterUsers(state.admins)),
+                              _buildUsersList(_filterUsers(state.bannedUsers)),
+                            ],
+                          ),
+                        ),
                       ],
                     ),
         ),
@@ -505,14 +521,14 @@ class _AdminUsersManagementScreenState
       case 'ban':
         final reason = await _showTextDialog('Bannir l\'utilisateur', l10n.adminBanReasonLabel);
         if (reason != null && reason.isNotEmpty) {
-          final ok = await notifier.banUser(user.id, reason, adminId: currentAdmin.id, adminName: currentAdmin.name);
+          final ok = await notifier.banUser(user.id, reason);
           _montrerBilan(ok, l10n.adminUserBanned);
         }
         break;
       case 'unban':
         final confirm = await _showConfirmation('Débannir l\'utilisateur', l10n.adminUnbanConfirm);
         if (confirm == true) {
-          final ok = await notifier.unbanUser(user.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
+          final ok = await notifier.unbanUser(user.id);
           _montrerBilan(ok, l10n.adminUserUnbanned);
         }
         break;
