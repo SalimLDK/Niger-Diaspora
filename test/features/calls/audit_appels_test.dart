@@ -110,4 +110,16 @@ void main() {
     expect(source, isNot(contains('isE2EEEnabled: true')));
     expect(source, isNot(contains('enableE2EE: true')));
   });
+
+  test('app ouverte : pas de sonnerie d\'une personne bloquée, nom du profil', () {
+    final c = corps(lire(provider), 'Future<void> _sonnerSiLegitime(CallEntity call) async {');
+    final blocage = c.indexOf('checkBlockStatus(moi.id, call.callerId)');
+    final profil = c.indexOf('userStreamProvider(call.callerId)');
+    final sonnerie = c.indexOf('_showNativeCallUI(');
+    expect(blocage, isNot(-1));
+    expect(profil, isNot(-1));
+    expect(blocage, lessThan(sonnerie));
+    expect(profil, lessThan(sonnerie));
+    expect(c, contains('callerName: nom,'));
+  });
 }

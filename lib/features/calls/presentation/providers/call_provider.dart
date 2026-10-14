@@ -12,6 +12,7 @@ import '../../../../core/services/call_message_service.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../core/services/native_call_service.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../../settings/presentation/providers/blocked_users_provider.dart';
 import '../../data/datasources/call_remote_datasource.dart';
 import '../../data/repositories/call_repository_impl.dart';
@@ -89,23 +90,24 @@ final callHistoryProvider = StreamProvider<List<CallEntity>>((ref) async* {
       );
 });
 
-/// Clear call history for current user
-final clearCallHistoryProvider = FutureProvider.family<bool, List<String>>((
-  ref,
-  callIds,
-) async {
-  final repository = ref.read(callRepositoryProvider);
-
-  for (final callId in callIds) {
-    final result = await repository.deleteCall(callId);
-    if (result.isLeft()) {
-      return false;
-    }
-  }
-
-  ref.invalidate(callHistoryProvider);
-  return true;
-});
+// CODE INUTILISÉ — mis en commentaire le 2026-10-14 : aucun lecteur.
+// /// Clear call history for current user
+// final clearCallHistoryProvider = FutureProvider.family<bool, List<String>>((
+//   ref,
+//   callIds,
+// ) async {
+//   final repository = ref.read(callRepositoryProvider);
+//
+//   for (final callId in callIds) {
+//     final result = await repository.deleteCall(callId);
+//     if (result.isLeft()) {
+//       return false;
+//     }
+//   }
+//
+//   ref.invalidate(callHistoryProvider);
+//   return true;
+// });
 
 /// Status of a video upgrade request
 enum VideoUpgradeStatus {
@@ -1486,14 +1488,57 @@ class CallNotificationHandler extends Notifier<void> {
   }
 
   void _handleIncomingCall(CallEntity call) {
-    // Show native call UI (CallKit on iOS, full-screen notification on Android)
-    unawaited(_showNativeCallUI(
-      callId: call.id,
-      callerName: call.callerName,
-      callerPhotoUrl: call.callerPhotoUrl,
-      isVideo: call.type == CallType.video,
-    ).catchError((e) {
+    unawaited(_sonnerSiLegitime(call).catchError((e) {
       debugPrint('CallNotificationHandler: _showNativeCallUI a échoué: $e');
     }));
+  }
+
+  /// Fait sonner un appel reçu app ouverte — après les mêmes contrôles que le
+  /// push (`onCallCreated`), qui les fait déjà côté serveur.
+  ///
+  /// Ce chemin-ci lisait `callerName` / `callerPhotoUrl` tels que l'appelant
+  /// les a écrits dans `calls/<id>`, et ne regardait pas le blocage : n'importe
+  /// qui faisait sonner plein écran une app ouverte sous le nom de son choix
+  /// (« Service Sécurité »), et une personne bloquée sonnait quand même.
+  Future<void> _sonnerSiLegitime(CallEntity call) async {
+    final moi = ref.read(currentUserProvider).valueOrNull;
+    if (moi != null) {
+      final blocage = await ref
+          .read(blockedUsersRepositoryProvider)
+          .checkBlockStatus(moi.id, call.callerId);
+      final bloque = blocage.fold((_) => false, (b) => b);
+      if (bloque) {
+        debugPrint('CallNotificationHandler: appel d\'une personne bloquée, ignoré');
+        return;
+      }
+    }
+
+    // L'identité vient du profil de `callerId`, pas du document d'appel.
+    // Profil illisible (réseau) : repli sur le document, faute de mieux.
+    var nom = call.callerName;
+    var photo = call.callerPhotoUrl;
+    try {
+      final profil = await ref
+          .read(userStreamProvider(call.callerId).future)
+          .timeout(const Duration(seconds: 3));
+      if (profil != null) {
+        final vraiNom = profil.displayName?.trim();
+        if (vraiNom != null && vraiNom.isNotEmpty) nom = vraiNom;
+        photo = profil.photoUrl;
+      }
+    } catch (e) {
+      debugPrint('CallNotificationHandler: profil de l\'appelant illisible: $e');
+    }
+
+    // L'appel a pu être pris, refusé ou annulé pendant ces lectures.
+    if (ref.read(incomingCallProvider)?.id != call.id) return;
+
+    // Show native call UI (CallKit on iOS, full-screen notification on Android)
+    await _showNativeCallUI(
+      callId: call.id,
+      callerName: nom,
+      callerPhotoUrl: photo,
+      isVideo: call.type == CallType.video,
+    );
   }
 }
