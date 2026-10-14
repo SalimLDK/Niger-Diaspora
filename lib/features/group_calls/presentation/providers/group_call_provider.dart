@@ -972,32 +972,35 @@ class CurrentGroupCallNotifier extends Notifier<GroupCallState> {
   }
 }
 
-/// Provider to check if user is currently in a group call
-final isInGroupCallProvider = Provider<bool>((ref) {
-  final session = ref.watch(currentGroupCallProvider);
-  return session.call != null && session.isConnected;
-});
+// CODE INUTILISÉ — mis en commentaire le 2026-10-14 : aucun lecteur.
+// /// Provider to check if user is currently in a group call
+// final isInGroupCallProvider = Provider<bool>((ref) {
+//   final session = ref.watch(currentGroupCallProvider);
+//   return session.call != null && session.isConnected;
+// });
 
-/// Provider to get the current group call ID
-final currentGroupCallIdProvider = Provider<String?>((ref) {
-  final session = ref.watch(currentGroupCallProvider);
-  return session.call?.id;
-});
+// CODE INUTILISÉ — mis en commentaire le 2026-10-14 : aucun lecteur.
+// /// Provider to get the current group call ID
+// final currentGroupCallIdProvider = Provider<String?>((ref) {
+//   final session = ref.watch(currentGroupCallProvider);
+//   return session.call?.id;
+// });
 
-/// Provider for active group calls (that the user can join)
-final activeGroupCallsProvider = StreamProvider<List<GroupCallEntity>>((ref) {
-  final currentUser = ref.watch(currentUserProvider).valueOrNull;
-  if (currentUser == null) return Stream.value([]);
-
-  return FirebaseFirestore.instance
-      .collection('group_calls')
-      .where('status', isEqualTo: 'active')
-      .where('participantIds', arrayContains: currentUser.id)
-      .snapshots()
-      .map(
-        (snapshot) =>
-            snapshot.docs
-                .map((doc) => GroupCallModel.fromFirestore(doc).toEntity())
-                .toList(),
-      );
-});
+// CODE INUTILISÉ — mis en commentaire le 2026-10-14 : aucun lecteur.
+// /// Provider for active group calls (that the user can join)
+// final activeGroupCallsProvider = StreamProvider<List<GroupCallEntity>>((ref) {
+//   final currentUser = ref.watch(currentUserProvider).valueOrNull;
+//   if (currentUser == null) return Stream.value([]);
+//
+//   return FirebaseFirestore.instance
+//       .collection('group_calls')
+//       .where('status', isEqualTo: 'active')
+//       .where('participantIds', arrayContains: currentUser.id)
+//       .snapshots()
+//       .map(
+//         (snapshot) =>
+//             snapshot.docs
+//                 .map((doc) => GroupCallModel.fromFirestore(doc).toEntity())
+//                 .toList(),
+//       );
+// });

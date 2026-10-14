@@ -6197,116 +6197,117 @@ exports.cleanupStaleGroupCalls = functions.pubsub
         }
     });
 
-/**
- * HTTP endpoint to manually trigger call cleanup (for testing/debugging).
- * Only accessible by admins.
- */
-exports.manualCallCleanup = functions.https.onCall(async (data, context) => {
-    // Require authentication
-    if (!context.auth) {
-        throw new functions.https.HttpsError(
-            "unauthenticated",
-            "Must be authenticated to trigger cleanup"
-        );
-    }
-
-    // Check if user is admin
-    const userDoc = await admin.firestore()
-        .collection("users")
-        .doc(context.auth.uid)
-        .get();
-
-    if (!userDoc.exists || !userDoc.data().adminRole || userDoc.data().adminRole === "none") {
-        throw new functions.https.HttpsError(
-            "permission-denied",
-            "Only admins can trigger manual cleanup"
-        );
-    }
-
-    const db = admin.firestore();
-    const rtdb = admin.database();
-    const now = Date.now();
-
-    const RINGING_TIMEOUT = 45 * 1000;
-    const CONNECTING_TIMEOUT = 60 * 1000;
-
-    // Option to force cleanup ALL active calls regardless of age
-    const forceAll = data && data.forceAll === true;
-
-    let cleanedCount = 0;
-
-    try {
-        const activeStatuses = ['ringing', 'connecting', 'connected', 'reconnecting', 'onHold'];
-        const callsSnapshot = await db.collection('calls')
-            .where('status', 'in', activeStatuses)
-            .get();
-
-        console.log(`Manual cleanup: Found ${callsSnapshot.size} active calls, forceAll=${forceAll}`);
-
-        for (const doc of callsSnapshot.docs) {
-            const call = doc.data();
-            const callId = doc.id;
-
-            let shouldCleanup = forceAll; // If forceAll, always cleanup
-            let newStatus = 'ended';
-            let endReason = forceAll ? 'admin_force_cleanup' : '';
-
-            if (!forceAll) {
-                let createdAtMs;
-                if (call.createdAt && call.createdAt.toDate) {
-                    createdAtMs = call.createdAt.toDate().getTime();
-                } else if (call.createdAt && typeof call.createdAt === 'string') {
-                    createdAtMs = new Date(call.createdAt).getTime();
-                } else {
-                    continue;
-                }
-
-                const callAge = now - createdAtMs;
-
-                if (call.status === 'ringing' && callAge > RINGING_TIMEOUT) {
-                    shouldCleanup = true;
-                    newStatus = 'missed';
-                    endReason = 'no_answer_timeout';
-                } else if (call.status === 'connecting' && callAge > CONNECTING_TIMEOUT) {
-                    shouldCleanup = true;
-                    newStatus = 'ended';
-                    endReason = 'connection_timeout';
-                }
-            }
-
-            if (shouldCleanup) {
-                console.log(`Manual cleanup: Cleaning call ${callId} (status: ${call.status})`);
-
-                await doc.ref.update({
-                    status: newStatus,
-                    endedAt: admin.firestore.FieldValue.serverTimestamp(),
-                    endReason: endReason,
-                });
-
-                try {
-                    await rtdb.ref(`calls/${callId}`).remove();
-                } catch (e) {
-                    // Ignore RTDB errors
-                }
-
-                cleanedCount++;
-            }
-        }
-
-        console.log(`Manual cleanup complete: ${cleanedCount}/${callsSnapshot.size} cleaned`);
-
-        return {
-            success: true,
-            cleaned: cleanedCount,
-            total: callsSnapshot.size,
-        };
-    } catch (error) {
-        throw new functions.https.HttpsError(
-            "internal",
-            `Cleanup failed: ${error.message}`
-        );
-    }
-});
+// CODE INUTILISÉ — mis en commentaire le 2026-10-14 : aucun appelant (doublon d'administration de cleanupStaleCalls). Au déploiement, accepter sa suppression.
+// /**
+//  * HTTP endpoint to manually trigger call cleanup (for testing/debugging).
+//  * Only accessible by admins.
+//  */
+// exports.manualCallCleanup = functions.https.onCall(async (data, context) => {
+//     // Require authentication
+//     if (!context.auth) {
+//         throw new functions.https.HttpsError(
+//             "unauthenticated",
+//             "Must be authenticated to trigger cleanup"
+//         );
+//     }
+//
+//     // Check if user is admin
+//     const userDoc = await admin.firestore()
+//         .collection("users")
+//         .doc(context.auth.uid)
+//         .get();
+//
+//     if (!userDoc.exists || !userDoc.data().adminRole || userDoc.data().adminRole === "none") {
+//         throw new functions.https.HttpsError(
+//             "permission-denied",
+//             "Only admins can trigger manual cleanup"
+//         );
+//     }
+//
+//     const db = admin.firestore();
+//     const rtdb = admin.database();
+//     const now = Date.now();
+//
+//     const RINGING_TIMEOUT = 45 * 1000;
+//     const CONNECTING_TIMEOUT = 60 * 1000;
+//
+//     // Option to force cleanup ALL active calls regardless of age
+//     const forceAll = data && data.forceAll === true;
+//
+//     let cleanedCount = 0;
+//
+//     try {
+//         const activeStatuses = ['ringing', 'connecting', 'connected', 'reconnecting', 'onHold'];
+//         const callsSnapshot = await db.collection('calls')
+//             .where('status', 'in', activeStatuses)
+//             .get();
+//
+//         console.log(`Manual cleanup: Found ${callsSnapshot.size} active calls, forceAll=${forceAll}`);
+//
+//         for (const doc of callsSnapshot.docs) {
+//             const call = doc.data();
+//             const callId = doc.id;
+//
+//             let shouldCleanup = forceAll; // If forceAll, always cleanup
+//             let newStatus = 'ended';
+//             let endReason = forceAll ? 'admin_force_cleanup' : '';
+//
+//             if (!forceAll) {
+//                 let createdAtMs;
+//                 if (call.createdAt && call.createdAt.toDate) {
+//                     createdAtMs = call.createdAt.toDate().getTime();
+//                 } else if (call.createdAt && typeof call.createdAt === 'string') {
+//                     createdAtMs = new Date(call.createdAt).getTime();
+//                 } else {
+//                     continue;
+//                 }
+//
+//                 const callAge = now - createdAtMs;
+//
+//                 if (call.status === 'ringing' && callAge > RINGING_TIMEOUT) {
+//                     shouldCleanup = true;
+//                     newStatus = 'missed';
+//                     endReason = 'no_answer_timeout';
+//                 } else if (call.status === 'connecting' && callAge > CONNECTING_TIMEOUT) {
+//                     shouldCleanup = true;
+//                     newStatus = 'ended';
+//                     endReason = 'connection_timeout';
+//                 }
+//             }
+//
+//             if (shouldCleanup) {
+//                 console.log(`Manual cleanup: Cleaning call ${callId} (status: ${call.status})`);
+//
+//                 await doc.ref.update({
+//                     status: newStatus,
+//                     endedAt: admin.firestore.FieldValue.serverTimestamp(),
+//                     endReason: endReason,
+//                 });
+//
+//                 try {
+//                     await rtdb.ref(`calls/${callId}`).remove();
+//                 } catch (e) {
+//                     // Ignore RTDB errors
+//                 }
+//
+//                 cleanedCount++;
+//             }
+//         }
+//
+//         console.log(`Manual cleanup complete: ${cleanedCount}/${callsSnapshot.size} cleaned`);
+//
+//         return {
+//             success: true,
+//             cleaned: cleanedCount,
+//             total: callsSnapshot.size,
+//         };
+//     } catch (error) {
+//         throw new functions.https.HttpsError(
+//             "internal",
+//             `Cleanup failed: ${error.message}`
+//         );
+//     }
+// });
 
 // ============================================================================
 // MARKETPLACE: ESCROW RELEASE, REFUNDS, TIMEOUTS, AND CARD CREDIT STUB
