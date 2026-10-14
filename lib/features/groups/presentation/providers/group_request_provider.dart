@@ -6,6 +6,9 @@ import '../../data/datasources/group_request_datasource.dart';
 import '../../data/datasources/group_request_supabase_datasource.dart';
 import '../../domain/entities/group_request_entity.dart';
 import '../../domain/entities/group_invite_entity.dart';
+// Préfixé : `myGroupRequestsProvider` existe ici ET là, et c'est celui de
+// group_provider que regarde l'écran de détail du groupe.
+import 'group_provider.dart' as ecran;
 
 part 'group_request_provider.g.dart';
 
@@ -80,6 +83,10 @@ class GroupRequestNotifier extends _$GroupRequestNotifier {
       );
       state = const AsyncValue.data(null);
       ref.invalidate(myGroupRequestsProvider);
+      // La copie invalidée juste au-dessus n'est regardée par personne :
+      // le bouton « Demande envoyée » de l'écran de détail lit celle de
+      // group_provider, qui ne se rafraîchissait qu'au gré du temps réel.
+      ref.invalidate(ecran.myGroupRequestsProvider(currentUser.id));
       return true;
     } catch (e) {
       state = AsyncValue.error(e.toString(), StackTrace.current);

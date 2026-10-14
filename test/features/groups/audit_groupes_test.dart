@@ -86,6 +86,50 @@ void main() {
       expect(corps, isNot(contains('auth.currentUser?.id')));
     });
 
+    test('les flux de demandes et d\'invitations attendent la session', () {
+      final source = lire(
+        'lib/features/groups/data/datasources/'
+        'group_request_supabase_datasource.dart',
+      );
+      for (final signature in [
+        'getPendingRequests(String groupId) async* {',
+        'getMyGroupRequests(String userId) async* {',
+        'getReceivedInvites(String userId) async* {',
+        'getSentInvites(String groupId) async* {',
+      ]) {
+        final debut = source.indexOf(signature);
+        expect(debut, isNot(-1), reason: signature);
+        final corps = source.substring(debut, source.indexOf('\n  }\n', debut));
+        expect(
+          corps.indexOf('ensureAuthenticated()'),
+          lessThan(corps.indexOf('yield*')),
+          reason: signature,
+        );
+      }
+    });
+
+    test('accepter une invitation : l\'adhésion avant le statut', () {
+      final source = lire(
+        'lib/features/groups/data/datasources/'
+        'group_request_supabase_datasource.dart',
+      );
+      final debut = source.indexOf('Future<void> acceptGroupInvite(');
+      final corps = source.substring(debut, source.indexOf('\n  }\n', debut));
+      expect(
+        corps.indexOf("from('group_members')"),
+        lessThan(corps.indexOf("'status': 'accepted'")),
+      );
+    });
+
+    test('la liste des groupes signale l\'échec d\'une adhésion', () {
+      final source = lire(
+        'lib/features/groups/presentation/screens/groups_screen.dart',
+      );
+      final debut = source.indexOf('Future<void> _joinGroup(');
+      final corps = source.substring(debut, source.indexOf('\n  }\n', debut));
+      expect(corps, contains('messageErreurUsager('));
+    });
+
     test('updateGroup rend le groupe avec son appartenance', () {
       final source = lire(
         'lib/features/groups/data/datasources/group_supabase_datasource.dart',

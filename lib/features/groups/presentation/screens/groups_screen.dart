@@ -10,6 +10,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/profile_options.dart';
 import '../../../../core/models/country.dart';
 import '../../../../core/errors/failure_mapper.dart';
+import '../../../../core/errors/message_erreur.dart';
 import '../../../../core/providers/connectivity_provider.dart';
 import '../../../../core/responsive/responsive_service.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
@@ -637,6 +638,12 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
           ),
         );
       }
+    } else if (mounted) {
+      // Comme sur la fiche du groupe : sans message, un refus se lit comme un
+      // bouton « Rejoindre » mort.
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(messageErreurUsager(null))),
+      );
     }
   }
 
@@ -682,8 +689,10 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
           ).showSnackBar(SnackBar(content: Text(l10n.groupLeft)));
         }
       } else if (mounted) {
+        // Pas « le créateur doit transmettre la propriété » : ce message
+        // tombait sur n'importe quel échec (réseau, refus), créateur ou non.
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.creatorMustTransferOwnership)),
+          SnackBar(content: Text(messageErreurUsager(null))),
         );
       }
     }

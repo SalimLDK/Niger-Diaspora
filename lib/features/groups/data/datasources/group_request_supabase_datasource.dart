@@ -102,8 +102,12 @@ class GroupRequestSupabaseDataSource implements GroupRequestDataSource {
   }
 
   @override
-  Stream<List<GroupRequestModel>> getPendingRequests(String groupId) {
-    return _supabase
+  Stream<List<GroupRequestModel>> getPendingRequests(String groupId) async* {
+    // Session d'abord, comme les flux de group_supabase_datasource : abonné
+    // en anonyme, le premier instantané sort vide (RLS) et le reste tant
+    // qu'aucune ligne ne change : demandes et invitations semblaient absentes.
+    await SupabaseAuthBridge.instance.ensureAuthenticated();
+    yield* _supabase
         .from('group_requests')
         .stream(primaryKey: ['id'])
         .eq('group_id', groupId)
@@ -116,8 +120,9 @@ class GroupRequestSupabaseDataSource implements GroupRequestDataSource {
   }
 
   @override
-  Stream<List<GroupRequestModel>> getMyGroupRequests(String userId) {
-    return _supabase
+  Stream<List<GroupRequestModel>> getMyGroupRequests(String userId) async* {
+    await SupabaseAuthBridge.instance.ensureAuthenticated();
+    yield* _supabase
         .from('group_requests')
         .stream(primaryKey: ['id'])
         .eq('requester_id', userId)
@@ -221,8 +226,9 @@ class GroupRequestSupabaseDataSource implements GroupRequestDataSource {
   }
 
   @override
-  Stream<List<GroupInviteModel>> getReceivedInvites(String userId) {
-    return _supabase
+  Stream<List<GroupInviteModel>> getReceivedInvites(String userId) async* {
+    await SupabaseAuthBridge.instance.ensureAuthenticated();
+    yield* _supabase
         .from('group_invites')
         .stream(primaryKey: ['id'])
         .eq('invitee_id', userId)
@@ -235,8 +241,9 @@ class GroupRequestSupabaseDataSource implements GroupRequestDataSource {
   }
 
   @override
-  Stream<List<GroupInviteModel>> getSentInvites(String groupId) {
-    return _supabase
+  Stream<List<GroupInviteModel>> getSentInvites(String groupId) async* {
+    await SupabaseAuthBridge.instance.ensureAuthenticated();
+    yield* _supabase
         .from('group_invites')
         .stream(primaryKey: ['id'])
         .eq('group_id', groupId)
