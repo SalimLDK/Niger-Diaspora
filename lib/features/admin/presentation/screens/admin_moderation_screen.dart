@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../widgets/admin_bandeau_erreur.dart';
 import 'package:diaspo_niger/core/theme/admin_colors.dart';
 import '../../../events/domain/entities/event_entity.dart';
 import '../../../groups/domain/entities/group_entity.dart';
@@ -101,13 +102,30 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
         Expanded(
           child: state.isLoading
               ? _buildLoadingState()
-              : state.error != null
+              : state.error != null &&
+                      state.events.isEmpty &&
+                      state.groups.isEmpty
                   ? _buildErrorState(state.error!)
-                  : TabBarView(
-                      controller: _tabController,
+                  : Column(
                       children: [
-                        _buildEventsList(state.events),
-                        _buildGroupsList(state.groups),
+                        // Une erreur posée après une action (zéro ligne,
+                        // journal refusé) ne doit pas effacer la liste.
+                        if (state.error != null)
+                          AdminBandeauErreur(
+                            message: state.error!,
+                            onFermer: ref
+                                .read(adminContentNotifierProvider.notifier)
+                                .effacerErreur,
+                          ),
+                        Expanded(
+                          child: TabBarView(
+                            controller: _tabController,
+                            children: [
+                              _buildEventsList(state.events),
+                              _buildGroupsList(state.groups),
+                            ],
+                          ),
+                        ),
                       ],
                     ),
         ),

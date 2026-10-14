@@ -312,6 +312,11 @@ final adminDashboardNotifierProvider =
     );
 
 class AdminDashboardNotifier extends Notifier<AdminDashboardState> {
+  /// Referme le bandeau d'erreur d'un écran qui a encore sa liste.
+  /// `copyWith` efface `error` dès qu'on ne le repasse pas — c'est le seul
+  /// champ ainsi —, donc n'importe quel chargement l'efface aussi.
+  void effacerErreur() => state = state.copyWith(error: null);
+
   @override
   AdminDashboardState build() {
     return const AdminDashboardState();
@@ -525,6 +530,11 @@ final adminBusinessNotifierProvider =
     );
 
 class AdminBusinessNotifier extends Notifier<AdminBusinessState> {
+  /// Referme le bandeau d'erreur d'un écran qui a encore sa liste.
+  /// `copyWith` efface `error` dès qu'on ne le repasse pas — c'est le seul
+  /// champ ainsi —, donc n'importe quel chargement l'efface aussi.
+  void effacerErreur() => state = state.copyWith(error: null);
+
   @override
   AdminBusinessState build() {
     return const AdminBusinessState();
@@ -774,6 +784,11 @@ final adminContentNotifierProvider =
     );
 
 class AdminContentNotifier extends Notifier<AdminContentState> {
+  /// Referme le bandeau d'erreur d'un écran qui a encore sa liste.
+  /// `copyWith` efface `error` dès qu'on ne le repasse pas — c'est le seul
+  /// champ ainsi —, donc n'importe quel chargement l'efface aussi.
+  void effacerErreur() => state = state.copyWith(error: null);
+
   @override
   AdminContentState build() {
     return const AdminContentState();
@@ -1119,6 +1134,11 @@ final adminReportsNotifierProvider =
     );
 
 class AdminReportsNotifier extends Notifier<AdminReportsState> {
+  /// Referme le bandeau d'erreur d'un écran qui a encore sa liste.
+  /// `copyWith` efface `error` dès qu'on ne le repasse pas — c'est le seul
+  /// champ ainsi —, donc n'importe quel chargement l'efface aussi.
+  void effacerErreur() => state = state.copyWith(error: null);
+
   @override
   AdminReportsState build() {
     return const AdminReportsState();
@@ -1460,6 +1480,11 @@ final adminMarketplaceNotifierProvider =
     );
 
 class AdminMarketplaceNotifier extends Notifier<AdminMarketplaceState> {
+  /// Referme le bandeau d'erreur d'un écran qui a encore sa liste.
+  /// `copyWith` efface `error` dès qu'on ne le repasse pas — c'est le seul
+  /// champ ainsi —, donc n'importe quel chargement l'efface aussi.
+  void effacerErreur() => state = state.copyWith(error: null);
+
   @override
   AdminMarketplaceState build() {
     return const AdminMarketplaceState();
@@ -1696,6 +1721,11 @@ final adminUsersNotifierProvider =
     );
 
 class AdminUsersNotifier extends Notifier<AdminUsersState> {
+  /// Referme le bandeau d'erreur d'un écran qui a encore sa liste.
+  /// `copyWith` efface `error` dès qu'on ne le repasse pas — c'est le seul
+  /// champ ainsi —, donc n'importe quel chargement l'efface aussi.
+  void effacerErreur() => state = state.copyWith(error: null);
+
   @override
   AdminUsersState build() {
     return const AdminUsersState();
@@ -1984,6 +2014,11 @@ final adminTransactionsNotifierProvider =
     );
 
 class AdminTransactionsNotifier extends Notifier<AdminTransactionsState> {
+  /// Referme le bandeau d'erreur d'un écran qui a encore sa liste.
+  /// `copyWith` efface `error` dès qu'on ne le repasse pas — c'est le seul
+  /// champ ainsi —, donc n'importe quel chargement l'efface aussi.
+  void effacerErreur() => state = state.copyWith(error: null);
+
   @override
   AdminTransactionsState build() {
     return const AdminTransactionsState();

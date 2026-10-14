@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../providers/admin_provider.dart';
 import '../providers/permission_provider.dart';
+import '../widgets/admin_bandeau_erreur.dart';
 import '../../domain/enums/admin_enums.dart';
 import '../../domain/constants/role_permissions.dart';
 import 'admin_embassy_verification_screen.dart';
@@ -526,7 +527,11 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
       return _buildLoadingState();
     }
 
-    if (state.error != null) {
+    // Page d'erreur pleine seulement quand rien n'a jamais été chargé ; une
+    // erreur posée après une action (« forcer la déconnexion » journalisée en
+    // échec) s'affiche en bandeau au-dessus des chiffres, pas à leur place.
+    final rienDeCharge = state.totalUsers == 0 && state.recentUsers.isEmpty;
+    if (state.error != null && rienDeCharge) {
       return _buildErrorState(state.error!);
     }
 
@@ -534,6 +539,13 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (state.error != null)
+            AdminBandeauErreur(
+              message: state.error!,
+              onFermer: ref
+                  .read(adminDashboardNotifierProvider.notifier)
+                  .effacerErreur,
+            ),
           _buildPageHeader(
             title: l10n.adminDashboardTitle,
             subtitle: 'Bienvenue dans le panneau d\'administration DiaspoNiger',
