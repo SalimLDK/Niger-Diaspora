@@ -28,7 +28,10 @@ Sept constats structurent tout le reste, par ordre de gravité.
    chemins de promotion divergent : l'écran Utilisateurs n'écrit que
    `is_admin` (sans `admin_role`, sans Firestore), l'écran Rôles écrit les trois
    mais ne trouve que les comptes qui ont encore un document Firestore —
-   8 sur 54 au 2026-09-16 (§ 2).
+   8 connus au 2026-09-16, pour 303 lignes Postgres aujourd'hui. **Mesuré en
+   production : un compte a `is_admin = true` sans `admin_role`** — tous les
+   pouvoirs RLS, invisible comme admin dans l'app. À nommer et trancher
+   (requête au § 2).
 3. **Le panneau regarde une base, l'app écrit dans l'autre.** Les
    signalements des utilisateurs partent dans **Firestore** ; la file de
    modération lit **Supabase**, qui ne reçoit que les signalements d'avis
@@ -37,7 +40,8 @@ Sept constats structurent tout le reste, par ordre de gravité.
    construction (§ 3).
 4. **La piste d'audit n'a jamais rien enregistré.** Les actions du panneau
    écrivent `admin_audit_logs` côté Supabase — table sous RLS **sans aucune
-   policy** (mesuré le 2026-09-20), insertion refusée, erreur avalée. Les
+   policy** (mesuré le 2026-09-20, reconfirmé le 2026-10-14), insertion
+   refusée, erreur avalée. Les
    changements de rôle écrivent `admin_audit_logs` côté Firestore — règle
    `allow write: if false`, erreur avalée. Idem `admin_notifications` : la
    « notification globale » n'a aucun consommateur, nulle part (§ 3, § 4).
@@ -89,9 +93,10 @@ Function un *custom claim* que les trois moteurs de règles lisent.
 - **Colonnes** : un script a extrait les colonnes de chaque table depuis les
   `CREATE TABLE`/`ALTER TABLE` des migrations, pour les comparer à celles que
   le provider écrit. Résultat à lire avec la dérive de schéma en tête (§ 4).
-- **Production** : non mesurée (§ 9). Les faits de production cités viennent
-  de `docs/deploiement/AUDIT_PRE_PROD_2026-09-20.md` et des mémoires de
-  session, avec leur date.
+- **Production** : schéma, helpers, déclencheurs, comptes admin et état RLS
+  lus le 2026-10-14 par la requête du § 9, lancée par Salim. Les autres faits
+  de production viennent de `docs/deploiement/AUDIT_PRE_PROD_2026-09-20.md`
+  et des mémoires de session, avec leur date.
 
 ## 1. Le back-office n'est pas livrable tel quel
 
@@ -170,13 +175,32 @@ Ce que ça produit concrètement :
   Administrateur qui n'en est pas un. `demoteFromAdmin` (`:1640-1664`) fait
   l'inverse : `is_admin: false` en laissant `admin_role` — le compte perd la
   RLS mais garde la connexion au panneau et l'exemption de maintenance.
+
+  **Mesuré en production le 2026-10-14 : cet admin fantôme existe.** Sur
+  303 lignes `users`, deux portent un drapeau admin : une avec
+  `is_admin = true` et `admin_role = 'superAdmin'` (cohérente), et **une avec
+  `is_admin = true` et `admin_role` nul**. Ce second compte a aujourd'hui
+  tous les pouvoirs RLS (`is_admin()` ne lit que le booléen : réécrire toute
+  colonne de tout utilisateur, bannir, vérifier, booster, supprimer
+  entreprises et événements, lire `profils_admin`), sans apparaître admin
+  nulle part dans l'app. La requête de vérification ne remonte pas les
+  identifiants, volontairement ; pour le nommer et trancher :
+
+  ```sql
+  select id, display_name, email, created_at, updated_at
+    from public.users where is_admin and admin_role is null;
+  ```
+
+  Puis, selon la réponse, `admin_role = 'superAdmin'` (ou un rôle) s'il est
+  légitime, `is_admin = false` sinon — depuis le SQL Editor, le déclencheur
+  laissant passer sans session applicative.
 - **L'écran Rôles ne trouve que les comptes d'avant la migration.**
   `searchUserByEmail` (`:264-281`) et `assignRole` (`:146-153`, « Utilisateur
   non trouvé » si le document Firestore manque) ne lisent que Firestore. Au
-  2026-09-16, 8 comptes sur 54 avaient encore un document `users` Firestore ;
-  plus rien n'en crée. Pour les 46 autres, promouvoir est impossible par
-  l'écran prévu — et possible par l'écran Utilisateurs, avec le résultat
-  ci-dessus.
+  2026-09-16, 8 comptes avaient encore un document `users` Firestore ; plus
+  rien n'en crée, et Postgres compte **303** lignes `users` au 2026-10-14.
+  Pour tous les autres, promouvoir est impossible par l'écran prévu — et
+  possible par l'écran Utilisateurs, avec le résultat ci-dessus.
 - **Un admin amorcé en SQL n'a rien côté Firebase.** La procédure
   (`docs/ops/AMORCAGE_ADMIN.md`) demande d'écrire les trois registres à la
   main. Sans document Firestore, `getAdminRole()` échoue sur `.data` d'un
@@ -193,7 +217,7 @@ Ce que ça produit concrètement :
 
 | Section du panneau | Ce que le panneau lit/écrit | Ce que l'app écrit | Effet |
 |---|---|---|---|
-| Signalements (`admin_provider.dart:1032-1260`) | Supabase `reports` | **Firestore** `reports` (`report_remote_datasource.dart:85-91`, `FirebaseCollections.reports`) | la file ne voit que les signalements d'avis d'entreprise (`avis_signaler`, seul écrivain Supabase). Les signalements d'utilisateurs, messages, groupes, événements, produits, conversations n'arrivent **nulle part** côté admin : les providers Firestore de `report_provider.dart` n'ont aucun consommateur hors du module. Le badge « signalements en attente » (`loadDashboardStats`, `:343-349`) compte Supabase. |
+| Signalements (`admin_provider.dart:1032-1260`) | Supabase `reports` | **Firestore** `reports` (`report_remote_datasource.dart:85-91`, `FirebaseCollections.reports`) | la file ne voit que les signalements d'avis d'entreprise (`avis_signaler`, seul écrivain Supabase). Les signalements d'utilisateurs, messages, groupes, événements, produits, conversations n'arrivent **nulle part** côté admin : les providers Firestore de `report_provider.dart` n'ont aucun consommateur hors du module. Le badge « signalements en attente » (`loadDashboardStats`, `:343-349`) compte Supabase. **Mesuré le 2026-10-14 : `reports` a 0 ligne en production.** |
 | Marketplace (`:1312-1460`) | Supabase `products`, `orders` | **Firestore** (`marketplace_remote_datasource.dart:46-49`) | tables Supabase vides (mesuré le 2026-09-21 par la migration `orders_ecriture_fermee`) ; section aveugle. Drapeau `marketplace` fermé en prod, donc sans victime aujourd'hui. |
 | Transactions (`:1815-1980`) | Supabase `transactions` | **Firestore** (`transfer_remote_datasource.dart:38`) | idem ; « Rembourser » ne touche qu'une table vide, et de toute façon ne déclenche aucun remboursement Stripe (voir § 8). |
 | Notification globale (`:2237-2330`) | insère `admin_notifications` | — | **aucun consommateur** : ni déclencheur SQL, ni edge function, ni Cloud Function ne lit cette table (`grep` sur `supabase/`, `functions/`, `lib/` : seules références, le panneau lui-même). « Notification envoyée avec succès » n'envoie rien. |
@@ -201,37 +225,44 @@ Ce que ça produit concrètement :
 | Activité d'un utilisateur (`:1721-1740`), journal d'erreurs (`:2571-2596`) | `activity_logs`, `error_logs` | **personne n'écrit** ces tables (aucun `.from('activity_logs')`/`error_logs` hors du panneau, rien dans `functions/` ni `supabase/functions/`) | toujours vides, sans message. |
 | Entreprises, événements, groupes, ambassades, support | Supabase | Supabase | **cohérent** — les seules sections qui regardent la bonne base. |
 
-## 4. Ce que les migrations ne définissent pas (et ce que la prod a quand même)
+## 4. Ce que les migrations ne définissent pas, et ce que la production a
 
 Le script d'extraction donne, pour chaque colonne que le panneau écrit, si une
-migration du dépôt la crée. Lecture obligatoire avec la dérive en tête : des
+migration du dépôt la crée. La réponse est « non » pour une trentaine d'entre
+elles — et la production, **mesurée le 2026-10-14** (Salim a lancé la requête
+du § 9), les a presque toutes. La dérive est donc réelle et systémique : des
 tables et colonnes ont été créées hors dépôt, et des migrations postérieures
 les supposent (`orders_ecriture_fermee` pose un `GRANT UPDATE` sur six
 colonnes de litige qu'aucune migration ne crée ; `avis_signaler` insère
 `reporter_name`, `target_name`, `content_snapshot` dans `reports`, dont le
-`CREATE TABLE` n'a que huit colonnes et un `CHECK` sur `target_type` qui
-n'admet pas `business_review`).
+`CREATE TABLE` n'a que huit colonnes). Une base reconstruite depuis
+`supabase/migrations/` ne ressemblerait pas à la production.
 
-| Table | Colonnes écrites par le panneau, absentes de toute migration | Si absentes en prod |
+| Table | Colonnes écrites par le panneau, absentes de toute migration | Mesuré en production |
 |---|---|---|
-| `users` | `banned_at`, `verified_at` (`is_banned`, `ban_reason`, `session_id` : citées par des migrations récentes, donc présentes) | `banUser` et `verifyProfile` échouent en PGRST204 — **le bannissement ne s'applique pas** — et l'écran affiche quand même « Utilisateur banni » / « Profil vérifié » (§ 5) |
-| `reports` | `admin_note`, `action_taken`, `reviewed_by`, `reviewed_at`, `reported_user_notified`, `reported_user_id` | résoudre ou classer un signalement échoue en PGRST204 |
-| `transactions` | `refund_reason`, `refunded_by`, `refunded_at`, `completed_by`, `completed_at`, `failed_by`, `exchange_rate`, `amount_in_xof`, `fee`, `total_charged` | les trois actions échouent ; les montants lus sont nuls |
-| `orders` | `has_dispute`, `dispute_resolution`, `dispute_note`, `dispute_resolved_by`, `dispute_resolved_at` | couvertes par le `GRANT` du 21/09 : présentes en prod, à confirmer |
-| `events` (lecture) | `attendee_ids`, `poster_urls`, `organizer_name`, `recap_*` | nuls, l'écran s'en accommode |
-| `businesses` | `is_boosted`, `boost_expires_at` | citées par trois migrations : présentes en prod |
+| `users` | `is_banned`, `ban_reason`, `banned_at`, `session_id`, `verified_at` | **présentes sauf `verified_at`** (et `banned_by` existe, que le panneau n'écrit pas). `verifyProfile`/`revokeVerification` échouent donc en PGRST204, pendant que l'écran affiche « Profil vérifié » (§ 5). `banUser` passe. |
+| `reports` | `admin_note`, `action_taken`, `reviewed_by`, `reviewed_at`, `reported_user_id`, `reported_user_notified`, `reporter_name`, `target_name`, `conversation_id`, `content_snapshot` | **toutes présentes** ; 2 policies. La table compte **0 ligne** (§ 3). |
+| `transactions` | `exchange_rate`, `amount_in_xof`, `fee`, `total_charged`, `completed_at`, `refund_reason`, `refunded_by`, `refunded_at`, `completed_by`, `failed_by` | **toutes présentes** — mais seulement 2 policies (select et insert à soi) : aucune UPDATE, les trois actions font zéro ligne (§ 6.3). |
+| `orders` | `has_dispute`, `dispute_resolution`, `dispute_note`, `dispute_resolved_by`, `dispute_resolved_at` | **présentes** ; 3 policies. |
+| `events` (lecture) | `attendee_ids`, `poster_urls`, `organizer_name`, `organizer_photo_url`, `recap_*` | présentes sauf `attendee_ids` (nul, mappé en liste vide). |
+| `businesses` | `is_boosted`, `boost_expires_at`, `images`, `tags`, `services`, `opening_hours`, `view_count` | **toutes présentes**. |
+| `groups`, `products` | `admin_ids`, `member_ids`, `group_location`, `creator_name`, `origin_region`, `tags` ; `condition`, `view_count`, `tags` | **toutes présentes**. |
 
-Et les trois tables propres au panneau — `admin_audit_logs`,
-`admin_notifications`, `activity_logs` — n'ont **aucun `CREATE TABLE`** dans
-le dépôt. L'audit pré-prod du 2026-09-20 les a trouvées en production, **sous
-RLS sans aucune policy** : lecture vide, insertion refusée (42501), sans
-erreur visible. Aucune migration depuis ne leur a ajouté de policy. C'est la
-preuve que la piste d'audit du panneau n'a jamais rien enregistré, et que
-`fetchSentNotifications` a toujours rendu une liste vide.
+Les quatre tables propres au panneau n'ont **aucun `CREATE TABLE`** dans le
+dépôt et existent toutes en production, avec exactement les colonnes que le
+provider attend :
 
-`error_logs` n'apparaît nulle part : ni migration, ni audit — probablement
-absente, auquel cas la section « journal d'erreurs » rend PGRST205, affiché
-tel quel.
+| Table | RLS | Policies | Conséquence |
+|---|---|---|---|
+| `admin_audit_logs` | active | **0** | insertion refusée (42501), avalée par `AdminAuditHelper` ; lecture vide. **La piste d'audit du panneau n'a jamais rien enregistré.** |
+| `admin_notifications` | active | **0** | insertion refusée, erreur affichée cette fois ; `fetchSentNotifications` toujours vide. |
+| `activity_logs` | active | **0** | vide pour tout client, sans message — et personne n'y écrit de toute façon. |
+| `error_logs` | active | 2 | existe (contrairement à ce que le dépôt laissait croire) ; policies non lues ; aucun écrivain dans `lib/`, `functions/` ni `supabase/functions/`. |
+
+Les deux helpers `is_admin()` et `is_super_admin()` déployés sont
+byte-identiques aux définitions finales du dépôt (§ 6.A), et
+`users_guard_admin_flags` est bien posé sur `users`. Aucune des quatorze
+tables n'a `FORCE ROW LEVEL SECURITY`.
 
 ## 5. Un refus du serveur passe pour un succès
 
@@ -463,21 +494,25 @@ vérifier l'existence (prise de contrôle d'un appel de groupe par son nom), et
 | `admin_login_screen.dart` | Pas de second facteur pour les comptes admin ; un mot de passe hameçonné vaut le panneau entier. Firebase Auth sait l'imposer (MFA TOTP/SMS) ; rien ne le fait. | moyen |
 | `admin_settings_screen.dart` (taux de change, frais) | Les taux de change utilisés par `transfer_provider.dart` et `currency_provider.dart` sont saisis à la main dans `app_config/settings`. Pas un bug : un fait à connaître avant de rouvrir les transferts. | info |
 
-## 9. Ce que je n'ai pas pu vérifier
+## 9. Ce qui a été mesuré en production, et ce qui ne l'est pas
 
-- **Le schéma réel de Postgres.** `supabase db query --linked` m'a été refusé
-  (lecture de production). La requête est prête et ne fait que lire :
+- **Le schéma réel de Postgres a été lu** le 2026-10-14 par Salim (la
+  lecture m'était refusée), avec la requête versionnée à côté de ce
+  rapport :
 
   ```bash
   supabase db query --linked -f docs/deploiement/audit_admin_2026-10-14_verif_prod.sql
   ```
 
-  Elle rend, en un seul JSON : les colonnes réelles des 17 tables que le
-  panneau touche, le corps actuel de `is_admin()` et `is_super_admin()`, la
-  présence de `profils_admin`, le nombre de comptes par couple
-  (`is_admin`, `admin_role`) — donc les incohérences du § 2 —, les
-  déclencheurs de `users`, le nombre de lignes de `reports`, et l'état RLS
-  (actif / forcé) des tables admin. Elle tranche le § 4 en une lecture.
+  Elle rend en un JSON les colonnes réelles des 17 tables que le panneau
+  touche, le corps déployé de `is_admin()` et `is_super_admin()`, les comptes
+  par couple (`is_admin`, `admin_role`), les déclencheurs de `users`, le
+  volume de `reports` et l'état RLS des tables admin. Les résultats sont
+  intégrés aux § 2, § 3, § 4 et § 6. À relancer après toute remédiation.
+- **L'identité de l'admin fantôme** (§ 2) : la requête ne remonte pas
+  d'identifiant ; la requête nominative est donnée au § 2.
+- **Le contenu des 2 policies d'`error_logs`** et des 4 de `groups` (dont
+  `groups_delete`, absente des migrations) : comptés, pas lus.
 - **Le contenu de RTDB `/superAdmins` et `/admins`** en production (§ 7.4).
 - **Les variables d'environnement effectivement déployées** sur Cloud
   Functions, et l'application d'App Check à Firestore/RTDB/Storage (réglage
