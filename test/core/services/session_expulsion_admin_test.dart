@@ -49,9 +49,10 @@ void main() {
     });
 
     test('`is_banned` seul éjecte, sans sentinelle', () {
-      // `banUser` fait DEUX écritures : `is_banned` d'abord, la sentinelle
-      // ensuite. Si la seconde échoue — ou si quelqu'un bannit directement en
-      // base — le compte doit sortir quand même.
+      // `setUserBanned` (functions/bannissement.js) pose `is_banned` et la
+      // sentinelle dans la même écriture ; mais quelqu'un peut bannir
+      // directement en base, sans sentinelle — le compte doit sortir quand
+      // même.
       expect(
         SessionService.doitEjecterSurDecisionAdmin(
           sessionDistante: 'b0a1c2d3-0000-4000-8000-000000000000',
@@ -132,8 +133,14 @@ void main() {
     // Le compilateur relie déjà les deux côtés (la console lit les constantes
     // ici). Ce test garde la porte : réintroduire un littéral côté console,
     // c'est refaire la panne, et rien d'autre ne le signalerait.
+    //
+    // Depuis le 2026-10-14, la sentinelle de bannissement n'est plus écrite
+    // par la console mais par la Cloud Function `setUserBanned`
+    // (functions/bannissement.js) — en JavaScript, hors de portée du
+    // compilateur Dart : là, seul ce test relie encore les deux moitiés.
     const console =
         'lib/features/admin/presentation/providers/admin_provider.dart';
+    const serveur = 'functions/bannissement.js';
 
     test('la console n\'écrit plus de sentinelle en littéral', () {
       final source = File(console).readAsStringSync();
@@ -153,10 +160,28 @@ void main() {
       }
     });
 
-    test('la console emprunte bien les constantes', () {
+    test("la console emprunte la constante d'expulsion, et n'écrit plus le ban",
+        () {
       final source = File(console).readAsStringSync();
-      expect(source.contains('SessionService.prefixeForceLogout'), isTrue);
-      expect(source.contains('SessionService.prefixeBanni'), isTrue);
+      expect(source.contains('\${SessionService.prefixeForceLogout}'), isTrue);
+      expect(
+        source.contains('\${SessionService.prefixeBanni}'),
+        isFalse,
+        reason: 'Le bannissement est serveur (setUserBanned) : la console '
+            "n'écrit plus la sentinelle, elle appelle la callable.",
+      );
+    });
+
+    test("le serveur écrit la sentinelle de bannissement que l'app lit", () {
+      final source = File(serveur).readAsStringSync();
+      final constante = RegExp(r'const PREFIXE_SESSION_BANNIE = "([^"]*)";')
+          .firstMatch(source);
+      expect(
+        constante,
+        isNotNull,
+        reason: 'PREFIXE_SESSION_BANNIE introuvable dans $serveur',
+      );
+      expect(constante!.group(1), SessionService.prefixeBanni);
     });
   });
 }

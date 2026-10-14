@@ -30,10 +30,11 @@ class SessionService {
   static SessionService get instance => _instance;
 
   /// Sentinelles écrites dans `public.users.session_id` par la console admin
-  /// (`AdminProvider.forceLogoutUser` et `banUser`). Exposées ici parce que
-  /// c'est le seul endroit qui les *lit* : les garder en littéral des deux
-  /// côtés, c'est laisser un renommage couper le fil sans rien casser à la
-  /// compilation.
+  /// (`AdminProvider.forceLogoutUser`) et par la Cloud Function
+  /// `setUserBanned` (`functions/bannissement.js`, `PREFIXE_SESSION_BANNIE`,
+  /// même littéral). Exposées ici parce que c'est le seul endroit qui les
+  /// *lit* : les garder en littéral des deux côtés, c'est laisser un
+  /// renommage couper le fil sans rien casser à la compilation.
   static const String prefixeForceLogout = 'force_logout_';
   static const String prefixeBanni = 'banned_';
 
@@ -223,7 +224,8 @@ class SessionService {
   /// voir venir une décision administrative.
   ///
   /// **Pourquoi Supabase et pas Firestore.** `AdminProvider.forceLogoutUser`
-  /// et `banUser` écrivent `session_id` dans `public.users` ; l'écouteur
+  /// et le bannissement (`setUserBanned`, côté serveur depuis le 2026-10-14)
+  /// écrivent `session_id` dans `public.users` ; l'écouteur
   /// historique, lui, regarde Firestore `users/<uid>`. Les deux actions
   /// n'éjectaient donc personne, en silence, et l'audit enregistrait un
   /// succès (constaté le 2026-09-16). Faire écrire l'admin dans Firestore
@@ -256,7 +258,8 @@ class SessionService {
 
     // Effacer la sentinelle laissée par une expulsion précédente. Sans ça,
     // `force_logout_…` resterait dans la colonne pour toujours — personne ne
-    // la réécrit, `unbanUser` non plus — et la lecture initiale ci-dessous
+    // la réécrit (débannir, par `setUserBanned`, remet `session_id` à null,
+    // mais un compte expulsé n'est pas banni) — et la lecture initiale ci-dessous
     // ressortirait le compte à CHAQUE connexion, définitivement.
     //
     // Une suspension, elle, tient : elle est portée par `is_banned`, que ceci
