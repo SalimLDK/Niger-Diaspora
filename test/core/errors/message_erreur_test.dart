@@ -67,6 +67,21 @@ void main() {
       );
     });
 
+    test('passerelle 5xx (« error code: 522 », 13/10, SM-N976U) : réseau', () {
+      // Cloudflare n'a pas joint l'origine Supabase : la passerelle, pas
+      // l'app — même classement que `classification_erreurs.dart` et que le
+      // `NetworkFailure` que rend `garderAppel`.
+      for (final texte in const [
+        'error code: 522',
+        'NetworkFailure(error code: 503 (code 503))',
+        'Lecture de l\'annuaire refusée : error code: 521',
+      ]) {
+        final message = messageErreurUsager(texte);
+        expect(message, contains('réseau'), reason: texte);
+        expect(message, isNot(contains('5')), reason: texte);
+      }
+    });
+
     test('le reste : réessayer est le seul conseil honnête', () {
       expect(
         messageErreurUsager(Exception('boom')),

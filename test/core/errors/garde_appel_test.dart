@@ -6,6 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart' as supabase
 import 'package:diaspo_niger/core/errors/exceptions.dart';
 import 'package:diaspo_niger/core/errors/failures.dart';
 import 'package:diaspo_niger/core/errors/garde_appel.dart';
+import 'package:diaspo_niger/core/errors/message_erreur.dart';
 
 /// Les trois formes de la fiche Crashlytics du 2026-10-13 — contrainte
 /// `23514`, « JWT expired » `PGRST303`, « error code: 522 » — doivent sortir
@@ -64,8 +65,8 @@ void main() {
       expect(echec.message, contains('23514'));
     });
 
-    test('522 Cloudflare : le message porte déjà le code, pas de doublon',
-        () async {
+    test('522 Cloudflare (13/10, SM-N976U) : la passerelle est une panne '
+        'de réseau, pas une ServerFailure', () async {
       final echec = echecDe(
         await leve(
           const supabase.PostgrestException(
@@ -74,8 +75,40 @@ void main() {
           ),
         ),
       );
-      expect((echec as ServerFailure).code, '522');
+      expect(echec, isA<NetworkFailure>());
+      // Le message porte déjà le code : pas de doublon.
       expect(echec.message, 'error code: 522');
+    });
+
+    test('502, 503, 504 et 520 à 524 : NetworkFailure, code dans le message',
+        () async {
+      for (final code in const ['502', '503', '504', '520', '521', '523', '524']) {
+        final echec = echecDe(
+          await leve(supabase.PostgrestException(message: 'x', code: code)),
+        );
+        expect(echec, isA<NetworkFailure>(), reason: 'code $code');
+        expect(echec.message, contains(code), reason: 'code $code');
+      }
+    });
+
+    test('le corps Cloudflare suffit, même sans code', () async {
+      final echec = echecDe(
+        await leve(const supabase.PostgrestException(message: 'error code: 521')),
+      );
+      expect(echec, isA<NetworkFailure>());
+    });
+
+    test('un 500 vient de l\'origine : ServerFailure, code conservé', () async {
+      final echec = echecDe(
+        await leve(
+          const supabase.PostgrestException(
+            message: 'Internal Server Error',
+            code: '500',
+          ),
+        ),
+      );
+      expect(echec, isA<ServerFailure>());
+      expect((echec as ServerFailure).code, '500');
     });
 
     test('une page HTML en guise de message est bornée et mise sur une ligne',
@@ -84,6 +117,7 @@ void main() {
       final echec = echecDe(
         await leve(supabase.PostgrestException(message: page, code: '503')),
       );
+      expect(echec, isA<NetworkFailure>());
       expect(echec.message.length, lessThan(320));
       expect(echec.message, isNot(contains('\n')));
       expect(echec.message, endsWith('(code 503)'));
@@ -124,6 +158,82 @@ void main() {
     test('un succès passe tel quel', () async {
       final r = await garderAppel<int>(() async => const Right(7));
       expect(r.fold((l) => fail('$l'), (d) => d), 7);
+    });
+  });
+
+  group('le texte du serveur n\'atteint jamais l\'écran tel quel', () {
+    // PostgREST recopie parfois la requête dans son message : l'hôte du
+    // projet et l'identifiant du compte y figurent. Le Failure garde ce texte
+    // (borné) pour classer la panne et la journaliser ; ce que l'usager lit
+    // sort de `messageErreurUsager`, à qui les notifiers passent
+    // `failure.message`. Même liste d'interdits que message_erreur_test.dart.
+    const interdits = [
+      'supabase.co',
+      'vQZE49dTdyRtLwSG6lMIbhAqoFG2',
+      'rest/v1',
+      'uri=',
+      'PostgrestException',
+    ];
+
+    void rienDeBrut(String affiche, List<String> enPlus) {
+      for (final interdit in [...interdits, ...enPlus]) {
+        expect(
+          affiche.toLowerCase(),
+          isNot(contains(interdit.toLowerCase())),
+          reason: '« $interdit » ne doit pas atteindre l\'écran',
+        );
+      }
+    }
+
+    test('refus de droits 42501 : classé « droits », ni URL ni uid', () async {
+      final echec = echecDe(
+        await leve(
+          const supabase.PostgrestException(
+            message: 'permission denied for table users '
+                '(uri=https://zyrfkcjjrhddpfxcgezo.supabase.co/rest/v1/users'
+                '?select=%2A&id=eq.vQZE49dTdyRtLwSG6lMIbhAqoFG2)',
+            code: '42501',
+          ),
+        ),
+      );
+      // Le texte est bien là pour le journal et le classement…
+      expect(echec.message, contains('42501'));
+      // …mais pas à l'écran.
+      final affiche = messageErreurUsager(echec.message);
+      expect(affiche, contains('droits'));
+      rienDeBrut(affiche, const ['42501', 'permission denied']);
+    });
+
+    test('522 : l\'usager lit une panne de connexion, pas « error code »',
+        () async {
+      final echec = echecDe(
+        await leve(
+          const supabase.PostgrestException(
+            message: 'error code: 522',
+            code: '522',
+          ),
+        ),
+      );
+      final affiche = messageErreurUsager(echec.message);
+      expect(affiche, contains('réseau'));
+      rienDeBrut(affiche, const ['522', 'error code']);
+    });
+
+    test('23514 : le conseil de réessayer, sans la contrainte ni la table',
+        () async {
+      final echec = echecDe(
+        await leve(
+          const supabase.PostgrestException(
+            message:
+                'new row for relation "businesses" violates check constraint '
+                '"businesses_description_non_vide"',
+            code: '23514',
+          ),
+        ),
+      );
+      final affiche = messageErreurUsager(echec.message);
+      expect(affiche, contains('Réessayez'));
+      rienDeBrut(affiche, const ['23514', 'businesses', 'constraint']);
     });
   });
 

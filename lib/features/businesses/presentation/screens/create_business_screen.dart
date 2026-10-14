@@ -309,11 +309,13 @@ class _CreateBusinessScreenState extends ConsumerState<CreateBusinessScreen> {
         );
       }
     } catch (e) {
-      // Le dépôt n'attrape que `ServerException` : une `PostgrestException`
-      // (contrainte 23514, JWT expiré PGRST303, passerelle 5xx) arrivait
-      // ici sans `catch`. Aucun message, `_isLoading` retombait, l'usager
-      // retapait — et chaque tap partait en fatale dans Crashlytics
-      // (11 plantages le 2026-10-11 pour une description vide).
+      // Jusqu'au 2026-10-13 le dépôt n'attrapait que `ServerException` : une
+      // `PostgrestException` (contrainte 23514, JWT expiré PGRST303,
+      // passerelle 5xx) arrivait ici sans `catch`. Aucun message, `_isLoading`
+      // retombait, l'usager retapait — et chaque tap partait en fatale dans
+      // Crashlytics (11 plantages le 2026-10-11 pour une description vide).
+      // Le dépôt rend depuis un `Failure` (`garderAppel`) ; ce filet reste
+      // pour l'inconnu.
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
