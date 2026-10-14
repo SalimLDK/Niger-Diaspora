@@ -484,7 +484,13 @@ class GroupSupabaseDataSource implements GroupRemoteDataSource {
 
     // The RPC returns only the groups table row — member_ids/admin_ids are not
     // aggregated. Patch them with the creator since the RPC inserts them as 'owner'.
-    final userId = _supabase.auth.currentUser?.id;
+    //
+    // `creator_id` de la ligne, posé par le serveur (`firebase_uid()`), et non
+    // `auth.currentUser.id` : celui-ci est l'uuid Supabase, que rien d'autre
+    // n'emploie. Le créateur ne figurait pas parmi les membres de son propre
+    // groupe dans « Mes groupes », et la discussion créée dans la foulée
+    // recevait cet uuid comme participant fantôme.
+    final userId = row['creator_id'] as String?;
     final patchedRow = Map<String, dynamic>.from(row);
     if (userId != null) {
       patchedRow['member_ids'] = [userId];
@@ -513,7 +519,13 @@ class GroupSupabaseDataSource implements GroupRemoteDataSource {
         .eq('id', group.id)
         .select()
         .single();
-    return GroupModel.fromJson(_mapGroup(data));
+    // Avec l'appartenance, comme toute autre lecture : décodée seule, la ligne
+    // rendait un groupe à 0 membre, que « Mes groupes » mettait à la place du
+    // bon jusqu'au prochain rechargement.
+    final membership = await _membershipFor([group.id]);
+    return GroupModel.fromJson(
+      _mapGroup(_withMembership(Map<String, dynamic>.from(data), membership)),
+    );
   }
 
   @override

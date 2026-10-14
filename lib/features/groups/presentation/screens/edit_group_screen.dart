@@ -128,6 +128,11 @@ class _EditGroupScreenState extends ConsumerState<EditGroupScreen> {
             .where((t) => t.isNotEmpty)
             .toList();
 
+    // Tout ce que ce formulaire n'édite pas est repris du groupe tel quel.
+    // Construit de zéro, l'entité retombait sur ses valeurs par défaut, et
+    // `updateGroup` les écrivait : chaque enregistrement remettait les
+    // permissions à « tous les membres » (sondages compris, que le serveur
+    // lit dans `groups.permissions`) et vidait la liste des modérateurs.
     final updatedGroup = GroupEntity(
       id: widget.group.id,
       name: _nameController.text.trim(),
@@ -142,9 +147,15 @@ class _EditGroupScreenState extends ConsumerState<EditGroupScreen> {
               : null,
       tags: tags,
       adminIds: widget.group.adminIds,
+      moderatorIds: widget.group.moderatorIds,
       memberIds: widget.group.memberIds,
+      memberJoinedAt: widget.group.memberJoinedAt,
       imageUrl: imageUrl,
       createdAt: widget.group.createdAt,
+      country: widget.group.country,
+      originRegion: widget.group.originRegion,
+      permissions: widget.group.permissions,
+      isOfficial: widget.group.isOfficial,
     );
 
     final success = await ref

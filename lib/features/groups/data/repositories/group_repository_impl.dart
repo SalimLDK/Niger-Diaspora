@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:diaspo_niger/core/errors/app_error_messages.dart';
 import 'package:dartz/dartz.dart';
 import 'package:flutter/foundation.dart';
@@ -118,12 +120,7 @@ class GroupRepositoryImpl implements GroupRepository {
             }
             return Right(groupModel.toEntity());
           })
-          .handleError((error) {
-            if (error is ServerException) {
-              return Left(ServerFailure(error.message));
-            }
-            return Left(ServerFailure(error.toString()));
-          });
+          .transform(_echecEmis());
     } catch (e) {
       return Stream.value(Left(ServerFailure(e.toString())));
     }
@@ -430,12 +427,7 @@ class GroupRepositoryImpl implements GroupRepository {
           .map<Either<Failure, List<GroupRequestEntity>>>((models) {
             return Right(models.map((m) => m.toEntity()).toList());
           })
-          .handleError((error) {
-            if (error is ServerException) {
-              return Left(ServerFailure(error.message));
-            }
-            return Left(ServerFailure(error.toString()));
-          });
+          .transform(_echecEmis());
     } catch (e) {
       return Stream.value(Left(ServerFailure(e.toString())));
     }
@@ -451,12 +443,7 @@ class GroupRepositoryImpl implements GroupRepository {
           .map<Either<Failure, List<GroupRequestEntity>>>((models) {
             return Right(models.map((m) => m.toEntity()).toList());
           })
-          .handleError((error) {
-            if (error is ServerException) {
-              return Left(ServerFailure(error.message));
-            }
-            return Left(ServerFailure(error.toString()));
-          });
+          .transform(_echecEmis());
     } catch (e) {
       return Stream.value(Left(ServerFailure(e.toString())));
     }
@@ -482,4 +469,25 @@ class GroupRepositoryImpl implements GroupRepository {
       return Left(ServerFailure(e.toString()));
     }
   }
+}
+
+/// Fait d'une erreur du flux un `Left` émis.
+///
+/// `Stream.handleError` jette la valeur que rend son rappel : l'erreur
+/// disparaissait du flux, et l'écran restait sur son dernier état — ou en
+/// chargement infini, ou sur « Aucune demande en attente » alors que la
+/// lecture avait échoué. Même filet que dans le dépôt des messages.
+StreamTransformer<Either<Failure, T>, Either<Failure, T>> _echecEmis<T>() {
+  return StreamTransformer<Either<Failure, T>, Either<Failure, T>>.fromHandlers(
+    handleData: (donnee, sink) => sink.add(donnee),
+    handleError: (erreur, trace, sink) {
+      sink.add(
+        Left<Failure, T>(
+          ServerFailure(
+            erreur is ServerException ? erreur.message : erreur.toString(),
+          ),
+        ),
+      );
+    },
+  );
 }

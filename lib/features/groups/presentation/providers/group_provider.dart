@@ -343,16 +343,25 @@ class MyGroupsNotifier extends _$MyGroupsNotifier {
 @riverpod
 Stream<GroupEntity?> groupStream(Ref ref, String groupId) {
   final repository = ref.watch(groupRepositoryProvider);
+  // Un échec remonte en erreur : `null` voulait dire « groupe introuvable »,
+  // et l'écran de détail garde sa dernière valeur sur une erreur.
   return repository.getGroupStream(groupId).map((either) {
-    return either.fold((failure) => null, (group) => group);
+    return either.fold(
+      (failure) => throw Exception(failure.message),
+      (group) => group,
+    );
   });
 }
 
 @riverpod
 Stream<List<GroupRequestEntity>> groupPendingRequests(Ref ref, String groupId) {
   final repository = ref.watch(groupRepositoryProvider);
+  // Un échec remonte en erreur, pas en « aucune demande en attente ».
   return repository.getPendingRequests(groupId).map((either) {
-    return either.fold((failure) => [], (requests) => requests);
+    return either.fold(
+      (failure) => throw Exception(failure.message),
+      (requests) => requests,
+    );
   });
 }
 
@@ -360,7 +369,10 @@ Stream<List<GroupRequestEntity>> groupPendingRequests(Ref ref, String groupId) {
 Stream<List<GroupRequestEntity>> myGroupRequests(Ref ref, String userId) {
   final repository = ref.watch(groupRepositoryProvider);
   return repository.getMyGroupRequests(userId).map((either) {
-    return either.fold((failure) => [], (requests) => requests);
+    return either.fold(
+      (failure) => throw Exception(failure.message),
+      (requests) => requests,
+    );
   });
 }
 
