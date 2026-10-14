@@ -23,9 +23,9 @@ rules_version = '2';
 // Fermer ne casse donc rien d'existant ; rouvrir sera une décision explicite.
 //
 // La LECTURE reste ouverte à qui y a droit, et les blocs d'administration ne
-// changent pas. `orders` n'est pas touchée : elle a un vrai chemin client
-// (`marketplace_remote_datasource.dart:49`) et demande un traitement par
-// champs, pas une fermeture.
+// changent pas. `orders` a d'abord été laissée hors de cette fermeture (vrai
+// chemin client, `marketplace_remote_datasource.dart:49`), puis fermée le
+// même jour (1bb6e729) : rationale au bloc `orders`, plus bas.
 //
 // Banc : tools/rules_tests/paiements_fermes.mjs
 // ═══════════════════════════════════════════════════════════════════════════
