@@ -12557,7 +12557,7 @@ abstract class AppLocalizations {
   /// No description provided for @adminRefund.
   ///
   /// In fr, this message translates to:
-  /// **'Rembourser'**
+  /// **'Marquer remboursée'**
   String get adminRefund;
 
   /// No description provided for @adminGroupsTab.
@@ -26879,7 +26879,7 @@ abstract class AppLocalizations {
   /// No description provided for @adminTransactionRefunded.
   ///
   /// In fr, this message translates to:
-  /// **'Transaction remboursée'**
+  /// **'Transaction marquée remboursée'**
   String get adminTransactionRefunded;
 
   /// No description provided for @adminUnknownAdmin.

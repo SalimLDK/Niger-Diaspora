@@ -646,9 +646,17 @@ class _AdminTransactionsScreenState
                 _showSnackBar(l10n.adminNotConnected);
                 return;
               }
+              // « Rembourser » promettait un remboursement qui n'a pas lieu :
+              // refundTransaction pose `status = 'refunded'` et rien d'autre,
+              // aucun appel Stripe n'existe dans le dépôt (audit du
+              // 2026-10-14, § 8). Le libellé et la ligne d'aide le disent.
               final reason = await _showTextDialog(
-                'Rembourser la transaction',
+                'Marquer la transaction remboursée',
                 l10n.adminRefundReasonLabel,
+                aide:
+                    "Aucun remboursement n'est déclenché ici : seul le statut "
+                    'passe à « remboursée ». Le remboursement réel se fait '
+                    'chez le prestataire de paiement, à part.',
               );
               if (reason != null && reason.isNotEmpty) {
                 final ok = await notifier.refundTransaction(transaction.id, reason, adminId: currentAdmin.id, adminName: currentAdmin.name);
@@ -899,23 +907,39 @@ class _AdminTransactionsScreenState
     );
   }
 
-  Future<String?> _showTextDialog(String title, String label) {
+  /// [aide] : une ligne au-dessus du champ, pour dire ce que l'action fait
+  /// — et surtout ce qu'elle ne fait pas.
+  Future<String?> _showTextDialog(String title, String label, {String? aide}) {
     final controller = TextEditingController();
+    final champ = TextField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: label,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+      maxLines: 3,
+    );
     return showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(title),
-        content: TextField(
-          controller: controller,
-          decoration: InputDecoration(
-            labelText: label,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
-          maxLines: 3,
-        ),
+        content: aide == null
+            ? champ
+            : Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    aide,
+                    style: const TextStyle(color: AdminColors.text2),
+                  ),
+                  const SizedBox(height: 16),
+                  champ,
+                ],
+              ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
