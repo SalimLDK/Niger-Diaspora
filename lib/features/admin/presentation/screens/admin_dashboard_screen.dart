@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../providers/admin_provider.dart';
 import '../providers/permission_provider.dart';
+import '../widgets/admin_bandeau_erreur.dart';
 import '../../domain/enums/admin_enums.dart';
 import '../../domain/constants/role_permissions.dart';
 import 'admin_embassy_verification_screen.dart';
@@ -100,9 +101,9 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
         icon: const AppIcon(AppIcon.people),
         selectedIcon: const AppIcon(AppIcon.people),
         requiredPermission: AdminPermission.viewUsers,
-        contentBuilder: (_, __) =>
-            AdminUsersManagementScreen(onGererRoles: _ouvrirRoles),
-        badgeCount: (state) => state.pendingReports,
+        contentBuilder: (_, __) => AdminUsersManagementScreen(
+          onGererRoles: () => _ouvrirDestination('roles'),
+        ),
       ),
       _NavDestination(
         id: 'businesses',
@@ -127,6 +128,9 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
         selectedIcon: const Icon(Icons.report),
         requiredPermission: AdminPermission.viewReports,
         contentBuilder: (_, __) => const AdminReportsScreen(),
+        // Le badge des signalements en attente était posé sur l'entrée
+        // Utilisateurs (audit du 2026-10-14, § 8).
+        badgeCount: (state) => state.pendingReports,
       ),
       _NavDestination(
         id: 'marketplace',
@@ -219,18 +223,19 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
     }).toList();
   }
 
-  /// Mène à l'écran Rôles depuis le menu d'un utilisateur. L'index se cherche
-  /// dans la liste filtrée par rôle ; si la destination n'y est pas (réservée
-  /// au super-administrateur), on le dit au lieu de sauter sur un autre écran
-  /// — c'est le défaut des actions rapides de l'aperçu, qui posent des index
-  /// en dur dans cette même liste (audit du 2026-10-14, § 8).
-  void _ouvrirRoles() {
+  /// Mène à une destination par son `id`, jamais par un index. La liste est
+  /// filtrée par rôle : un index en dur n'est juste que pour un superAdmin —
+  /// un contentMod qui touchait « Voir les signalements » ouvrait l'audit, et
+  /// « Envoyer une notification » sortait de la liste et retombait sur
+  /// l'aperçu (audit du 2026-10-14, § 8). Si la destination n'est pas
+  /// accessible à ce rôle, on le dit au lieu de sauter sur un autre écran.
+  void _ouvrirDestination(String id) {
     final destinations = _getFilteredDestinations(ref.read(adminRoleProvider));
-    final index = destinations.indexWhere((d) => d.id == 'roles');
+    final index = destinations.indexWhere((d) => d.id == id);
     if (index < 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("L'écran Rôles est réservé au super-administrateur."),
+          content: Text("Cet écran n'est pas accessible avec votre rôle."),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -526,7 +531,11 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
       return _buildLoadingState();
     }
 
-    if (state.error != null) {
+    // Page d'erreur pleine seulement quand rien n'a jamais été chargé ; une
+    // erreur posée après une action (« forcer la déconnexion » journalisée en
+    // échec) s'affiche en bandeau au-dessus des chiffres, pas à leur place.
+    final rienDeCharge = state.totalUsers == 0 && state.recentUsers.isEmpty;
+    if (state.error != null && rienDeCharge) {
       return _buildErrorState(state.error!);
     }
 
@@ -534,6 +543,13 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (state.error != null)
+            AdminBandeauErreur(
+              message: state.error!,
+              onFermer: ref
+                  .read(adminDashboardNotifierProvider.notifier)
+                  .effacerErreur,
+            ),
           _buildPageHeader(
             title: l10n.adminDashboardTitle,
             subtitle: 'Bienvenue dans le panneau d\'administration DiaspoNiger',
@@ -615,43 +631,43 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
                 label: l10n.adminViewReports,
                 icon: const Icon(Icons.report_rounded, color: AdminColors.statusRed, size: 20),
                 color: AdminColors.statusRed,
-                onTap: () => setState(() => _selectedIndex = 4),
+                onTap: () => _ouvrirDestination('reports'),
               ),
               _buildQuickAction(
                 label: l10n.adminManageUsers,
                 icon: const AppIcon(AppIcon.people, color: AdminColors.actionBlue, size: 20),
                 color: AdminColors.actionBlue,
-                onTap: () => setState(() => _selectedIndex = 1),
+                onTap: () => _ouvrirDestination('users'),
               ),
               _buildQuickAction(
                 label: l10n.adminSendNotification,
                 icon: const Icon(Icons.notifications_rounded, color: AdminColors.statusAmber, size: 20),
                 color: AdminColors.statusAmber,
-                onTap: () => setState(() => _selectedIndex = 9),
+                onTap: () => _ouvrirDestination('notifications'),
               ),
               _buildQuickAction(
                 label: l10n.adminViewAnalytics,
                 icon: const Icon(Icons.analytics_rounded, color: AdminColors.statusGreen, size: 20),
                 color: AdminColors.statusGreen,
-                onTap: () => setState(() => _selectedIndex = 8),
+                onTap: () => _ouvrirDestination('analytics'),
               ),
               _buildQuickAction(
                 label: l10n.adminConfiguration,
                 icon: const Icon(Icons.settings_rounded, color: AdminColors.statusGray, size: 20),
                 color: AdminColors.statusGray,
-                onTap: () => setState(() => _selectedIndex = 10),
+                onTap: () => _ouvrirDestination('settings'),
               ),
               _buildQuickAction(
                 label: l10n.adminFeatureFlags,
                 icon: const Icon(Icons.toggle_on_rounded, color: AdminColors.statusPurple, size: 20),
                 color: AdminColors.statusPurple,
-                onTap: () => setState(() => _selectedIndex = 11),
+                onTap: () => _ouvrirDestination('features'),
               ),
               _buildQuickAction(
                 label: l10n.adminAuditHistory,
                 icon: const Icon(Icons.history_rounded, color: AdminColors.statusGray, size: 20),
                 color: AdminColors.statusGray,
-                onTap: () => setState(() => _selectedIndex = 12),
+                onTap: () => _ouvrirDestination('audit'),
               ),
             ],
           ),

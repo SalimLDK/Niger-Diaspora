@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../widgets/admin_bandeau_erreur.dart';
 import 'package:diaspo_niger/core/theme/admin_colors.dart';
 import '../../../marketplace/domain/entities/product_entity.dart';
 import '../providers/admin_provider.dart';
@@ -112,14 +113,32 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
         Expanded(
           child: state.isLoading
               ? _buildLoadingState()
-              : state.error != null
+              : state.error != null &&
+                      state.products.isEmpty &&
+                      state.orders.isEmpty &&
+                      state.disputes.isEmpty
                   ? _buildErrorState(state.error!)
-                  : TabBarView(
-                      controller: _tabController,
+                  : Column(
                       children: [
-                        _buildProductsList(state.products),
-                        _buildOrdersList(state.orders),
-                        _buildDisputesList(state.disputes),
+                        // Une erreur posée après une action (zéro ligne,
+                        // journal refusé) ne doit pas effacer la liste.
+                        if (state.error != null)
+                          AdminBandeauErreur(
+                            message: state.error!,
+                            onFermer: ref
+                                .read(adminMarketplaceNotifierProvider.notifier)
+                                .effacerErreur,
+                          ),
+                        Expanded(
+                          child: TabBarView(
+                            controller: _tabController,
+                            children: [
+                              _buildProductsList(state.products),
+                              _buildOrdersList(state.orders),
+                              _buildDisputesList(state.disputes),
+                            ],
+                          ),
+                        ),
                       ],
                     ),
         ),

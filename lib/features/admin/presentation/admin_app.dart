@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'screens/admin_dashboard_screen.dart';
 import 'screens/admin_login_screen.dart';
+import 'widgets/garde_tableau_de_bord.dart';
 
 class AdminApp extends ConsumerWidget {
   const AdminApp({super.key});
@@ -36,7 +37,12 @@ class AdminApp extends ConsumerWidget {
       initialRoute: '/login',
       routes: {
         '/login': (context) => const AdminLoginScreen(),
-        '/dashboard': (context) => const AdminDashboardScreen(),
+        // Sans garde, `/dashboard` tapé dans la barre d'adresse rendait le
+        // panneau sans connexion (audit du 2026-10-14, § 8).
+        '/dashboard': (context) => const GardeTableauDeBord(
+          tableauDeBord: AdminDashboardScreen(),
+          connexion: AdminLoginScreen(),
+        ),
       },
     );
   }

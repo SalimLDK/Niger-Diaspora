@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:diaspo_niger/core/theme/admin_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../widgets/admin_bandeau_erreur.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/admin_provider.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
@@ -157,16 +158,31 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
         Expanded(
           child: state.isLoading
               ? _buildLoadingState()
-              : state.error != null
+              : state.error != null && state.reports.isEmpty
                   ? _buildErrorState(state.error!)
-                  : TabBarView(
-                      controller: _tabController,
+                  : Column(
                       children: [
-                        _buildReportsList(_filterReports(state.pendingReports)),
-                        _buildReportsList(
-                          _filterReports(state.reports.where((r) => r.status != 'pending').toList()),
+                        // Une erreur posée après une action (zéro ligne,
+                        // journal refusé) ne doit pas effacer la liste.
+                        if (state.error != null)
+                          AdminBandeauErreur(
+                            message: state.error!,
+                            onFermer: ref
+                                .read(adminReportsNotifierProvider.notifier)
+                                .effacerErreur,
+                          ),
+                        Expanded(
+                          child: TabBarView(
+                            controller: _tabController,
+                            children: [
+                              _buildReportsList(_filterReports(state.pendingReports)),
+                              _buildReportsList(
+                                _filterReports(state.reports.where((r) => r.status != 'pending').toList()),
+                              ),
+                              _buildReportsList(_filterReports(state.reports)),
+                            ],
+                          ),
                         ),
-                        _buildReportsList(_filterReports(state.reports)),
                       ],
                     ),
         ),

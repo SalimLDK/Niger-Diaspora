@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../widgets/admin_bandeau_erreur.dart';
 import 'package:diaspo_niger/core/theme/admin_colors.dart';
 import '../../../transfers/domain/entities/transaction_entity.dart';
 import '../providers/admin_provider.dart';
@@ -114,9 +115,21 @@ class _AdminTransactionsScreenState
       },
       body: state.isLoading
           ? _buildLoadingState()
-          : state.error != null
+          : state.error != null && state.transactions.isEmpty
               ? _buildErrorState(state.error!)
-              : TabBarView(
+              : Column(
+                  children: [
+                    // Une erreur posée après une action (zéro ligne, journal
+                    // refusé) ne doit pas effacer la liste.
+                    if (state.error != null)
+                      AdminBandeauErreur(
+                        message: state.error!,
+                        onFermer: ref
+                            .read(adminTransactionsNotifierProvider.notifier)
+                            .effacerErreur,
+                      ),
+                    Expanded(
+                      child: TabBarView(
                   controller: _tabController,
                   children: [
                     _buildTransactionsList(state.transactions),
@@ -126,6 +139,9 @@ class _AdminTransactionsScreenState
                       state.transactions
                           .where((t) => t.status == TransactionStatus.completed)
                           .toList(),
+                    ),
+                  ],
+                      ),
                     ),
                   ],
                 ),

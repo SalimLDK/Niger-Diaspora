@@ -4,6 +4,7 @@ import 'package:diaspo_niger/core/theme/admin_colors.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../widgets/admin_bandeau_erreur.dart';
 import '../providers/admin_provider.dart';
 import '../../../businesses/domain/entities/business_entity.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
@@ -110,31 +111,54 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
 
         // Content
         Expanded(
-          child:
-              state.isLoading
-                  ? const Center(
-                    child: CircularProgressIndicator(color: _primaryColor),
-                  )
-                  : state.error != null
-                  ? Center(
-                    child: Text(
-                      'Erreur: ${state.error}',
-                      style: const TextStyle(color: AdminColors.statusRed),
-                    ),
-                  )
-                  : filteredList.isEmpty
-                  ? const Center(
-                    child: Text(
-                      'Aucun commerce trouvé',
-                      style: TextStyle(color: _textSecondary, fontSize: 16),
-                    ),
-                  )
-                  : ListView.builder(
-                    itemCount: filteredList.length,
-                    itemBuilder: (context, index) {
-                      return _buildBusinessCard(filteredList[index]);
-                    },
-                  ),
+          child: Column(
+            children: [
+              // Une erreur posée après une action (zéro ligne, journal
+              // refusé) ne doit pas effacer la liste : page pleine seulement
+              // quand il n'y a rien d'autre à montrer.
+              if (state.error != null && state.businesses.isNotEmpty)
+                AdminBandeauErreur(
+                  message: state.error!,
+                  onFermer: ref
+                      .read(adminBusinessNotifierProvider.notifier)
+                      .effacerErreur,
+                ),
+              Expanded(
+                child:
+                    state.isLoading
+                        ? const Center(
+                          child: CircularProgressIndicator(
+                            color: _primaryColor,
+                          ),
+                        )
+                        : state.error != null && state.businesses.isEmpty
+                        ? Center(
+                          child: Text(
+                            'Erreur: ${state.error}',
+                            style: const TextStyle(
+                              color: AdminColors.statusRed,
+                            ),
+                          ),
+                        )
+                        : filteredList.isEmpty
+                        ? const Center(
+                          child: Text(
+                            'Aucun commerce trouvé',
+                            style: TextStyle(
+                              color: _textSecondary,
+                              fontSize: 16,
+                            ),
+                          ),
+                        )
+                        : ListView.builder(
+                          itemCount: filteredList.length,
+                          itemBuilder: (context, index) {
+                            return _buildBusinessCard(filteredList[index]);
+                          },
+                        ),
+              ),
+            ],
+          ),
         ),
       ],
     );

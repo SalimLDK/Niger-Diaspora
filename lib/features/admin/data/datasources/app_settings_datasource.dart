@@ -28,23 +28,35 @@ class AppSettingsDataSourceImpl implements AppSettingsDataSource {
   DocumentReference get _settingsDoc =>
       _firestore.collection(_collection).doc(_documentId);
 
+  /// Une lecture qui échoue **lève** ; les défauts ne sont rendus que pour un
+  /// document absent.
+  ///
+  /// Avant, toute erreur — refus de permission compris — rendait les défauts
+  /// de [AppSettingsModel] comme s'ils venaient du serveur. L'écran Réglages
+  /// les affichait, et « Enregistrer » écrasait la section serveur avec eux
+  /// (`set(merge)` section par section). Et la porte des routes sous drapeau
+  /// (`decisionPorte`, `lib/core/router/porte_drapeaux.dart`) a une issue
+  /// « drapeaux illisibles » qu'elle ne voyait jamais : elle décidait sur des
+  /// défauts pris pour des valeurs lues (audit du 2026-10-14, § 5). Côté
+  /// app, tous les consommateurs passent par `valueOrNull`, `hasError` ou
+  /// `whenData` : un `AsyncError` leur donne les mêmes défauts qu'avant.
   @override
   Future<AppSettingsModel> getSettings() async {
-    try {
-      final doc = await _settingsDoc.get();
-
-      if (!doc.exists) {
-        // Create default settings if they don't exist
-        final defaults = AppSettingsModel();
-        await _settingsDoc.set(defaults.toJson());
-        return defaults;
-      }
-
+    final doc = await _settingsDoc.get();
+    if (doc.exists) {
       return AppSettingsModel.fromFirestore(doc);
-    } catch (e) {
-      // Return defaults on error
-      return AppSettingsModel();
     }
+
+    // Aucun document : des défauts, qu'on tente de poser pour la suite — en
+    // best-effort, l'app grand public n'a pas le droit d'écrire ici
+    // (`firestore.rules` : app_config en écriture superAdmin seulement).
+    final defaults = AppSettingsModel();
+    try {
+      await _settingsDoc.set(defaults.toJson());
+    } catch (_) {
+      // Refusé pour un non-superAdmin : les défauts suffisent.
+    }
+    return defaults;
   }
 
   @override
