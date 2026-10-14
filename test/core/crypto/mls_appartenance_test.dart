@@ -1,9 +1,10 @@
-import 'dart:io';
 
 import 'package:diaspo_niger/core/crypto/mls/mls_conversation_service.dart';
 import 'package:diaspo_niger/core/crypto/mls/mls_delivery.dart';
 import 'package:diaspo_niger/core/crypto/mls/mls_gateway.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../../helpers/source_bibliotheque.dart';
 
 /// Ce que ces tests protègent (plan MLS § 5.4, phase 8)
 /// ----------------------------------------------------
@@ -78,7 +79,7 @@ MlsGateway _passerelle(
     );
 
 String _source(String chemin) =>
-    File(chemin).readAsStringSync().replaceAll('\r\n', '\n');
+    sourceBibliotheque(chemin).replaceAll('\r\n', '\n');
 
 void main() {
   group('appartenanceChangee', () {

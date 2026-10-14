@@ -13,6 +13,8 @@ import 'package:diaspo_niger/core/services/cache_service.dart';
 import 'package:diaspo_niger/features/messages/data/datasources/message_remote_datasource.dart';
 import 'package:diaspo_niger/features/messages/data/repositories/message_repository_impl.dart';
 
+import '../../helpers/source_bibliotheque.dart';
+
 class _Source implements MessageRemoteDataSource {
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -223,9 +225,9 @@ void main() {
   });
 
   test('« Infos du message » formate ses dates dans la langue de l\'app', () {
-    final src = File(
+    final src = sourceBibliotheque(
       'lib/features/messages/presentation/widgets/message_info_sheet.dart',
-    ).readAsStringSync();
+    );
     // Sans locale, intl écrivait « Sep 22, 2026 » à un usager francophone.
     expect(RegExp(r'DateFormat\.yMMMd\(\)').hasMatch(src), isFalse);
     expect(RegExp(r'DateFormat\.yMMMd\((locale|l10n\.localeName)\)')

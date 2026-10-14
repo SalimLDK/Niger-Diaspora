@@ -1,9 +1,10 @@
-import 'dart:io';
 
 import 'package:diaspo_niger/core/crypto/mls/mls_message_mapper.dart';
 import 'package:diaspo_niger/core/crypto/mls/mls_source_merger.dart';
 import 'package:diaspo_niger/features/messages/domain/entities/message_entity.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../../helpers/source_bibliotheque.dart';
 
 /// Ce que ces tests protègent (plan MLS § 2.3, phase 5)
 /// ----------------------------------------------------
@@ -103,7 +104,7 @@ void main() {
 
   group('câblage — inerte tant que rien ne l’active', () {
     String source(String c) =>
-        File(c).readAsStringSync().replaceAll('\r\n', '\n');
+        sourceBibliotheque(c).replaceAll('\r\n', '\n');
 
     test('sans passerelle injectée, le repository se comporte comme avant', () {
       final repo = source('lib/features/messages/data/repositories/message_repository_impl.dart');

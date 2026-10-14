@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:diaspo_niger/core/crypto/mls/mls_conversation_service.dart';
@@ -11,6 +10,8 @@ import 'package:diaspo_niger/features/messages/data/repositories/message_reposit
 import 'package:diaspo_niger/features/messages/domain/entities/conversation_entity.dart';
 import 'package:diaspo_niger/features/messages/domain/entities/message_entity.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../../helpers/source_bibliotheque.dart';
 
 /// Ce que ces tests protègent (plan MLS § 4, décision J)
 /// -----------------------------------------------------
@@ -198,7 +199,7 @@ MlsGateway _passerelle(
     );
 
 String _source(String chemin) =>
-    File(chemin).readAsStringSync().replaceAll('\r\n', '\n');
+    sourceBibliotheque(chemin).replaceAll('\r\n', '\n');
 
 void main() {
   group('Le fil recolle ses métadonnées', () {

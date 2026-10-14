@@ -12,6 +12,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../helpers/source_bibliotheque.dart';
+
 /// Transférer un média.
 ///
 /// Le transfert recopiait `fileUrl` dans une ligne legacy écrite directement
@@ -198,9 +200,9 @@ void main() {
 
   test('le transfert ne réécrit plus directement par la source de données',
       () {
-    final source = File(
+    final source = sourceBibliotheque(
       'lib/features/messages/presentation/providers/message_provider.dart',
-    ).readAsStringSync();
+    );
     final debut = source.indexOf('Future<bool> forwardMessage(');
     final fin = source.indexOf('case MessageType.location:', debut);
     final medias = source.substring(debut, fin);

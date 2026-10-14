@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -12,6 +11,8 @@ import 'package:diaspo_niger/features/messages/presentation/widgets/messages_ske
 import 'package:diaspo_niger/features/profile/domain/entities/profile_entity.dart';
 import 'package:diaspo_niger/features/profile/presentation/providers/profile_provider.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
+
+import '../../helpers/source_bibliotheque.dart';
 
 /// Ce que la liste des discussions montrait pendant qu'elle chargeait.
 ///
@@ -133,9 +134,7 @@ void main() {
     // `apercu_message_supprime_test.dart`. Ce qui manquait, et qui se voyait
     // à l'écran, c'est qu'il ne soit **pas appelé** sur le chemin du cache.
     test('getCachedConversations applique la reconstruction', () {
-      final source = File(
-        'lib/features/messages/data/repositories/message_repository_impl.dart',
-      ).readAsStringSync().replaceAll('\r\n', '\n');
+      final source = sourceBibliotheque('lib/features/messages/data/repositories/message_repository_impl.dart').replaceAll('\r\n', '\n');
 
       final debut = source.indexOf(
         'Either<Failure, List<ConversationEntity>> getCachedConversations() {',

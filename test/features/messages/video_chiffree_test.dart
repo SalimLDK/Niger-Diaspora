@@ -1,7 +1,8 @@
-import 'dart:io';
 
 import 'package:diaspo_niger/core/crypto/mls/mls_gateway.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../../helpers/source_bibliotheque.dart';
 
 /// Ce que ces tests protègent (plan MLS § 9, décision C4)
 /// ------------------------------------------------------
@@ -25,7 +26,7 @@ import 'package:flutter_test/flutter_test.dart';
 /// Storage et une conversation réelle — rien qu'un test unitaire puisse tenir.
 
 String _lire(String chemin) =>
-    File(chemin).readAsStringSync().replaceAll('\r\n', '\n');
+    sourceBibliotheque(chemin).replaceAll('\r\n', '\n');
 
 void main() {
   const depot =
