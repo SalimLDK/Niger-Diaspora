@@ -94,48 +94,54 @@ class GroupRequestNotifier extends _$GroupRequestNotifier {
     }
   }
 
-  Future<bool> approveRequest(String requestId) async {
-    state = const AsyncValue.loading();
+  // CODE INUTILISÉ — mis en commentaire le 2026-10-14 : aucun appelant
+  // (l'écran des demandes passe par groupRepositoryProvider).
+  // Future<bool> approveRequest(String requestId) async {
+  //   state = const AsyncValue.loading();
+  //
+  //   try {
+  //     final dataSource = ref.read(groupRequestDataSourceProvider);
+  //     await dataSource.approveJoinRequest(requestId);
+  //     state = const AsyncValue.data(null);
+  //     return true;
+  //   } catch (e) {
+  //     state = AsyncValue.error(e.toString(), StackTrace.current);
+  //     return false;
+  //   }
+  // }
 
-    try {
-      final dataSource = ref.read(groupRequestDataSourceProvider);
-      await dataSource.approveJoinRequest(requestId);
-      state = const AsyncValue.data(null);
-      return true;
-    } catch (e) {
-      state = AsyncValue.error(e.toString(), StackTrace.current);
-      return false;
-    }
-  }
+  // CODE INUTILISÉ — mis en commentaire le 2026-10-14 : aucun appelant
+  // (l'écran des demandes passe par groupRepositoryProvider).
+  // Future<bool> rejectRequest(String requestId) async {
+  //   state = const AsyncValue.loading();
+  //
+  //   try {
+  //     final dataSource = ref.read(groupRequestDataSourceProvider);
+  //     await dataSource.rejectJoinRequest(requestId);
+  //     state = const AsyncValue.data(null);
+  //     return true;
+  //   } catch (e) {
+  //     state = AsyncValue.error(e.toString(), StackTrace.current);
+  //     return false;
+  //   }
+  // }
 
-  Future<bool> rejectRequest(String requestId) async {
-    state = const AsyncValue.loading();
-
-    try {
-      final dataSource = ref.read(groupRequestDataSourceProvider);
-      await dataSource.rejectJoinRequest(requestId);
-      state = const AsyncValue.data(null);
-      return true;
-    } catch (e) {
-      state = AsyncValue.error(e.toString(), StackTrace.current);
-      return false;
-    }
-  }
-
-  Future<bool> cancelRequest(String requestId) async {
-    state = const AsyncValue.loading();
-
-    try {
-      final dataSource = ref.read(groupRequestDataSourceProvider);
-      await dataSource.cancelJoinRequest(requestId);
-      state = const AsyncValue.data(null);
-      ref.invalidate(myGroupRequestsProvider);
-      return true;
-    } catch (e) {
-      state = AsyncValue.error(e.toString(), StackTrace.current);
-      return false;
-    }
-  }
+  // CODE INUTILISÉ — mis en commentaire le 2026-10-14 : aucun appelant
+  // (l'écran des demandes passe par groupRepositoryProvider).
+  // Future<bool> cancelRequest(String requestId) async {
+  //   state = const AsyncValue.loading();
+  //
+  //   try {
+  //     final dataSource = ref.read(groupRequestDataSourceProvider);
+  //     await dataSource.cancelJoinRequest(requestId);
+  //     state = const AsyncValue.data(null);
+  //     ref.invalidate(myGroupRequestsProvider);
+  //     return true;
+  //   } catch (e) {
+  //     state = AsyncValue.error(e.toString(), StackTrace.current);
+  //     return false;
+  //   }
+  // }
 }
 
 // ==================== GROUP INVITES ====================
@@ -257,18 +263,19 @@ class GroupInviteNotifier extends _$GroupInviteNotifier {
     }
   }
 
-  Future<bool> cancelInvite(String inviteId, String groupId) async {
-    state = const AsyncValue.loading();
-
-    try {
-      final dataSource = ref.read(groupRequestDataSourceProvider);
-      await dataSource.cancelGroupInvite(inviteId);
-      state = const AsyncValue.data(null);
-      ref.invalidate(groupSentInvitesProvider(groupId));
-      return true;
-    } catch (e) {
-      state = AsyncValue.error(e.toString(), StackTrace.current);
-      return false;
-    }
-  }
+  // CODE INUTILISÉ — mis en commentaire le 2026-10-14 : aucun appelant.
+  // Future<bool> cancelInvite(String inviteId, String groupId) async {
+  //   state = const AsyncValue.loading();
+  //
+  //   try {
+  //     final dataSource = ref.read(groupRequestDataSourceProvider);
+  //     await dataSource.cancelGroupInvite(inviteId);
+  //     state = const AsyncValue.data(null);
+  //     ref.invalidate(groupSentInvitesProvider(groupId));
+  //     return true;
+  //   } catch (e) {
+  //     state = AsyncValue.error(e.toString(), StackTrace.current);
+  //     return false;
+  //   }
+  // }
 }

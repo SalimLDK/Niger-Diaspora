@@ -137,16 +137,17 @@ class GroupsNotifier extends _$GroupsNotifier {
     });
   }
 
-  Future<void> loadGroupsByCategory(GroupCategory category) async {
-    state = const AsyncValue.loading();
-    final repository = ref.read(groupRepositoryProvider);
-    final result = await repository.getGroupsByCategory(category);
-    result.fold(
-      (failure) =>
-          state = AsyncValue.error(failure.message, StackTrace.current),
-      (groups) => state = AsyncValue.data(groups),
-    );
-  }
+  // CODE INUTILISÉ — mis en commentaire le 2026-10-14 : aucun appelant.
+  // Future<void> loadGroupsByCategory(GroupCategory category) async {
+  //   state = const AsyncValue.loading();
+  //   final repository = ref.read(groupRepositoryProvider);
+  //   final result = await repository.getGroupsByCategory(category);
+  //   result.fold(
+  //     (failure) =>
+  //         state = AsyncValue.error(failure.message, StackTrace.current),
+  //     (groups) => state = AsyncValue.data(groups),
+  //   );
+  // }
 
   Future<void> refresh() async {
     await loadGroups();
