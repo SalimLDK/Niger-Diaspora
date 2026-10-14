@@ -479,7 +479,153 @@ async function completeAccountDeletion(uid) {
   return res.json();
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Registre admin (lu et écrit par la callable `setAdminRole`, roles_admin.js).
+// Postgres `users.admin_role` est la SOURCE du rôle ; `is_admin` l'accompagne
+// toujours — c'est leur divergence qui a produit l'admin fantôme du 14/10.
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Le compte tel que le registre admin le voit : les deux colonnes de rôle, et
+ * l'identité pour le journal.
+ *
+ * `null` = ligne absente. Une base qui ne répond pas LÈVE : l'appelant ne
+ * doit jamais confondre « injoignable » et « pas de rôle » — le premier est
+ * `unavailable`, le second un refus.
+ *
+ * @param {string} uid Firebase UID (users.id TEXT)
+ * @returns {Promise<null|{id:string,email:string|null,displayName:string|null,
+ *   isAdmin:boolean,adminRole:string|null}>}
+ */
+async function getAdminAccount(uid) {
+  if (!isConfigured()) throw new Error("Supabase non configuré");
+  if (!FORME_ID_COMPTE.test(String(uid))) return null;
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/users?id=eq.${encodeURIComponent(uid)}` +
+      `&select=id,email,display_name,is_admin,admin_role&limit=1`,
+    { headers: authHeaders() },
+  );
+  if (!res.ok) {
+    throw new Error(`Supabase getAdminAccount ${res.status}: ${await res.text()}`);
+  }
+  const rows = await res.json();
+  const row = Array.isArray(rows) ? rows[0] : null;
+  if (!row) return null;
+  return {
+    id: row.id,
+    email: row.email ?? null,
+    displayName: row.display_name ?? null,
+    isAdmin: row.is_admin === true,
+    adminRole: row.admin_role ?? null,
+  };
+}
+
+/**
+ * Nombre de superAdmins au sens de `is_super_admin()` : les DEUX colonnes.
+ * Lève si la base ne répond pas.
+ * @returns {Promise<number>}
+ */
+async function countSuperAdmins() {
+  if (!isConfigured()) throw new Error("Supabase non configuré");
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/users?select=id&is_admin=eq.true&admin_role=eq.superAdmin`,
+    { headers: authHeaders() },
+  );
+  if (!res.ok) {
+    throw new Error(`Supabase countSuperAdmins ${res.status}: ${await res.text()}`);
+  }
+  const rows = await res.json();
+  return Array.isArray(rows) ? rows.length : 0;
+}
+
+/**
+ * Pose `is_admin` ET `admin_role` d'un coup. `role = null` révoque.
+ *
+ * La clé de service passe le déclencheur `users_guard_admin_flags`
+ * (`firebase_uid()` est NULL sans session applicative) : c'est le chemin
+ * prévu par la migration 20260803150000 pour l'amorçage, et désormais pour
+ * TOUTE écriture du rôle — l'app n'écrit plus ces colonnes elle-même.
+ *
+ * @param {string} uid
+ * @param {string|null} role
+ * @returns {Promise<boolean>} vrai si une ligne a été touchée ; faux si le
+ *   compte n'existe pas. Lève si la base refuse.
+ */
+async function setAdminFlags(uid, role) {
+  if (!isConfigured()) throw new Error("Supabase non configuré");
+  if (!FORME_ID_COMPTE.test(String(uid))) return false;
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/users?id=eq.${encodeURIComponent(uid)}&select=id`,
+    {
+      method: "PATCH",
+      headers: authHeaders({
+        "Content-Type": "application/json",
+        // `return=representation` : PostgREST rend les lignes touchées, donc
+        // `[]` quand le filtre ne trouve personne — un PATCH sur un compte
+        // absent répond 200 et ne dit rien d'autre.
+        Prefer: "return=representation",
+      }),
+      body: JSON.stringify({ is_admin: role !== null, admin_role: role }),
+    },
+  );
+  if (!res.ok) {
+    throw new Error(`Supabase setAdminFlags ${res.status}: ${await res.text()}`);
+  }
+  const rows = await res.json();
+  return Array.isArray(rows) && rows.length > 0;
+}
+
+/**
+ * Une ligne dans `admin_audit_logs`, par la clé de service.
+ *
+ * La table existe en production sous RLS sans aucune policy (audit du 14/10,
+ * § 4) : le client ne peut pas y écrire, et n'a jamais pu. Seul le serveur
+ * journalise — un journal que l'acteur écrit lui-même n'en est pas un.
+ *
+ * Mêmes colonnes que le panneau lit (`admin_provider.dart`, `fetchAuditLogs`).
+ *
+ * @param {{adminId:string,adminName?:string|null,action:string,
+ *   targetType:string,targetId?:string|null,details?:object}} entree
+ * @returns {Promise<boolean>} vrai si insérée. Ne lève jamais : un journal
+ *   refusé se dit dans les logs, il n'annule pas l'action journalisée.
+ */
+async function insertAdminAuditLog(entree) {
+  if (!isConfigured()) {
+    console.error("Supabase non configuré : audit admin non journalisé");
+    return false;
+  }
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/admin_audit_logs`, {
+      method: "POST",
+      headers: authHeaders({
+        "Content-Type": "application/json",
+        Prefer: "return=minimal",
+      }),
+      body: JSON.stringify({
+        admin_id: entree.adminId,
+        admin_name: entree.adminName ?? null,
+        action: entree.action,
+        target_type: entree.targetType,
+        target_id: entree.targetId ?? null,
+        details: entree.details ?? {},
+      }),
+    });
+    if (!res.ok) {
+      console.error(`Supabase admin_audit_logs ${res.status}: ${await res.text()}`);
+      return false;
+    }
+    return true;
+  } catch (e) {
+    console.error(`Supabase admin_audit_logs : ${e && e.message}`);
+    return false;
+  }
+}
+
 module.exports = {
+  getAdminAccount,
+  countSuperAdmins,
+  setAdminFlags,
+  insertAdminAuditLog,
   claimDueAccountDeletions,
   completeAccountDeletion,
   setFriendship,
