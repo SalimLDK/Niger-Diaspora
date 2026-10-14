@@ -3771,6 +3771,7 @@ exports.onSupportMessageCreated = functions.firestore
 // ============================================================================
 
 const { AccessToken, EgressClient, RoomServiceClient } = require("livekit-server-sdk");
+const { droitLiveKit, RefusLiveKit } = require("./livekit_acces");
 
 /**
  * Generate a LiveKit access token for group video/audio calls.
@@ -3800,9 +3801,9 @@ exports.getLiveKitToken = functions.https.onCall(async (data, context) => {
         );
     }
 
-    const { roomName, participantName } = data;
+    const { roomName, participantName } = data || {};
 
-    if (!roomName || typeof roomName !== "string") {
+    if (!roomName || typeof roomName !== "string" || roomName.length > 200) {
         throw new functions.https.HttpsError(
             "invalid-argument",
             "Room name is required and must be a string"
@@ -3828,47 +3829,52 @@ exports.getLiveKitToken = functions.https.onCall(async (data, context) => {
         );
     }
 
+    // Qui a droit à quelle salle : voir functions/livekit_acces.js (2026-10-14).
+    const uid = context.auth.uid;
+    const db = admin.firestore();
+    let grant;
     try {
-        // Create access token
+        grant = await droitLiveKit({
+            roomName,
+            uid,
+            lireAppelDeGroupe: async (id) => {
+                const snap = await db.collection("group_calls").doc(id).get();
+                return snap.exists ? { id: snap.id, data: snap.data() } : null;
+            },
+            podcastEnDirect: async (salle) => {
+                const episodes = await db.collection("podcastEpisodes")
+                    .where("livekitRoomName", "==", salle)
+                    .where("isLive", "==", true)
+                    .limit(1)
+                    .get();
+                return !episodes.empty;
+            },
+        });
+    } catch (error) {
+        if (error instanceof RefusLiveKit) {
+            throw new functions.https.HttpsError(error.code, error.message);
+        }
+        throw error;
+    }
+
+    try {
         const at = new AccessToken(apiKey, apiSecret, {
-            identity: context.auth.uid,
-            name: participantName,
+            identity: uid,
+            name: participantName.slice(0, 64),
             // Token expires in 6 hours (enough for long calls)
             ttl: "6h",
         });
-
-
-    // Security: verify caller is a participant in the group call.
-    // Deny by default — if no matching room doc is found, reject the request.
-    const callDoc = await admin.firestore().collection("group_calls").where("roomName", "==", roomName).limit(1).get();
-    if (callDoc.empty) {
-        throw new functions.https.HttpsError("not-found", "No active group call found for this room");
-    }
-    const callData = callDoc.docs[0].data();
-    const participantIds = callData.participantIds || [];
-    if (!participantIds.includes(context.auth.uid) && callData.hostId !== context.auth.uid) {
-        throw new functions.https.HttpsError("permission-denied", "You are not a participant in this call");
-    }
-
-        // Grant permissions for the room
-        at.addGrant({
-            room: roomName,
-            roomJoin: true,
-            canPublish: true,
-            canPublishData: true,
-            canSubscribe: true,
-            canUpdateOwnMetadata: true,
-        });
+        at.addGrant(grant);
 
         // Generate JWT token
         const token = await at.toJwt();
 
-        console.log(`LiveKit token generated for user ${context.auth.uid} in room ${roomName}`);
+        console.log(`LiveKit token generated for user ${uid} in room ${grant.room}`);
 
         return {
             token: token,
-            roomName: roomName,
-            identity: context.auth.uid,
+            roomName: grant.room,
+            identity: uid,
         };
     } catch (error) {
         console.error("Error generating LiveKit token:", error);
@@ -3879,59 +3885,68 @@ exports.getLiveKitToken = functions.https.onCall(async (data, context) => {
     }
 });
 
-/**
- * Create a LiveKit room with specific configuration.
- *
- * This can be used to pre-create rooms with specific settings
- * before participants join.
- */
-exports.createLiveKitRoom = functions.https.onCall(async (data, context) => {
-    // Require authentication
-    if (!context.auth) {
-        throw new functions.https.HttpsError(
-            "unauthenticated",
-            "User must be authenticated"
-        );
-    }
-
-    const { roomName, maxParticipants = 50, emptyTimeout = 300 } = data;
-
-    if (!roomName || typeof roomName !== "string") {
-        throw new functions.https.HttpsError(
-            "invalid-argument",
-            "Room name is required"
-        );
-    }
-
-    // Store room info in Firestore for tracking
-    const db = admin.firestore();
-
-    try {
-        await db.collection("group_calls").doc(roomName).set({
-            roomName: roomName,
-            hostId: context.auth.uid,
-            maxParticipants: maxParticipants,
-            emptyTimeout: emptyTimeout,
-            status: "waiting",
-            mode: "sfu",
-            createdAt: admin.firestore.FieldValue.serverTimestamp(),
-            participantIds: [context.auth.uid],
-        });
-
-        console.log(`LiveKit room ${roomName} created by ${context.auth.uid}`);
-
-        return {
-            success: true,
-            roomName: roomName,
-        };
-    } catch (error) {
-        console.error("Error creating LiveKit room:", error);
-        throw new functions.https.HttpsError(
-            "internal",
-            "Failed to create room"
-        );
-    }
-});
+// ═══════════════════════════════════════════════════════════════════════════
+// CODE INUTILISÉ ET DANGEREUX — mis en commentaire le 2026-10-14.
+//
+// `createLiveKitRoom` : aucun client ne l'appelle. Elle écrivait
+// `group_calls/{roomName}` sans vérifier qu'il existait déjà ni à qui il
+// appartenait — n'importe quel compte écrasait un appel de groupe en cours
+// et s'en faisait l'hôte. Au déploiement, Firebase proposera de supprimer la
+// fonction : accepter.
+// ═══════════════════════════════════════════════════════════════════════════
+// /**
+//  * Create a LiveKit room with specific configuration.
+//  *
+//  * This can be used to pre-create rooms with specific settings
+//  * before participants join.
+//  */
+// exports.createLiveKitRoom = functions.https.onCall(async (data, context) => {
+//     // Require authentication
+//     if (!context.auth) {
+//         throw new functions.https.HttpsError(
+//             "unauthenticated",
+//             "User must be authenticated"
+//         );
+//     }
+//
+//     const { roomName, maxParticipants = 50, emptyTimeout = 300 } = data;
+//
+//     if (!roomName || typeof roomName !== "string") {
+//         throw new functions.https.HttpsError(
+//             "invalid-argument",
+//             "Room name is required"
+//         );
+//     }
+//
+//     // Store room info in Firestore for tracking
+//     const db = admin.firestore();
+//
+//     try {
+//         await db.collection("group_calls").doc(roomName).set({
+//             roomName: roomName,
+//             hostId: context.auth.uid,
+//             maxParticipants: maxParticipants,
+//             emptyTimeout: emptyTimeout,
+//             status: "waiting",
+//             mode: "sfu",
+//             createdAt: admin.firestore.FieldValue.serverTimestamp(),
+//             participantIds: [context.auth.uid],
+//         });
+//
+//         console.log(`LiveKit room ${roomName} created by ${context.auth.uid}`);
+//
+//         return {
+//             success: true,
+//             roomName: roomName,
+//         };
+//     } catch (error) {
+//         console.error("Error creating LiveKit room:", error);
+//         throw new functions.https.HttpsError(
+//             "internal",
+//             "Failed to create room"
+//         );
+//     }
+// });
 
 // ============================================================================
 // PARTNER PAYMENT PROCESSING (Mynita, Wave, Bank)
@@ -7014,6 +7029,11 @@ exports.getAudioRoomLiveKitToken = functions.https.onCall(async (data, context) 
     }
     const roomData = roomDoc.data();
     const uid = context.auth.uid;
+    // Une personne bloquée du salon n'y entre plus par le transport audio non
+    // plus (2026-10-14) : la vérification n'existait que côté application.
+    if ((roomData.blockedUserIds || []).includes(uid)) {
+        throw new functions.https.HttpsError("permission-denied", "You are not allowed in this room");
+    }
     const isAllowed =
         roomData.hostId === uid ||
         (roomData.coHostIds || []).includes(uid) ||
