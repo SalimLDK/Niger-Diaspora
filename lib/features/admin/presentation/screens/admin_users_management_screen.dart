@@ -521,14 +521,14 @@ class _AdminUsersManagementScreenState
       case 'ban':
         final reason = await _showTextDialog('Bannir l\'utilisateur', l10n.adminBanReasonLabel);
         if (reason != null && reason.isNotEmpty) {
-          final ok = await notifier.banUser(user.id, reason, adminId: currentAdmin.id, adminName: currentAdmin.name);
+          final ok = await notifier.banUser(user.id, reason);
           _montrerBilan(ok, l10n.adminUserBanned);
         }
         break;
       case 'unban':
         final confirm = await _showConfirmation('Débannir l\'utilisateur', l10n.adminUnbanConfirm);
         if (confirm == true) {
-          final ok = await notifier.unbanUser(user.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
+          final ok = await notifier.unbanUser(user.id);
           _montrerBilan(ok, l10n.adminUserUnbanned);
         }
         break;

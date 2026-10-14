@@ -8,6 +8,7 @@ import '../../../../core/errors/message_erreur.dart';
 import '../../../../core/services/supabase_auth_bridge.dart';
 import '../../domain/enums/admin_enums.dart';
 import 'permission_provider.dart';
+import 'refus_callable.dart';
 
 part 'role_management_provider.freezed.dart';
 part 'role_management_provider.g.dart';
@@ -73,28 +74,6 @@ class RoleManagementState with _$RoleManagementState {
     String? error,
     String? successMessage,
   }) = _RoleManagementState;
-}
-
-/// Codes de refus dont le message vient de `functions/roles_admin.js` — en
-/// français, sans identifiant ni URL — et peut donc être montré tel quel.
-/// Tout autre code passe par [messageErreurUsager], qui ne divulgue rien.
-const Set<String> _codesAvecMessageAffichable = {
-  'permission-denied',
-  'not-found',
-  'failed-precondition',
-  'invalid-argument',
-  'unavailable',
-  'internal',
-};
-
-String _messageRefusCallable(FirebaseFunctionsException e) {
-  final message = e.message;
-  if (_codesAvecMessageAffichable.contains(e.code) &&
-      message != null &&
-      message.trim().isNotEmpty) {
-    return message;
-  }
-  return messageErreurUsager(e);
 }
 
 /// Provider pour gérer les rôles admin (SuperAdmin uniquement)
@@ -201,7 +180,7 @@ class RoleManagementNotifier extends _$RoleManagementNotifier {
     } on FirebaseFunctionsException catch (e) {
       state = state.copyWith(
         isLoading: false,
-        error: _messageRefusCallable(e),
+        error: messageRefusCallable(e),
       );
       return false;
     } catch (e) {
