@@ -5,6 +5,7 @@ import '../../../../core/constants/profile_options.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/models/country.dart';
 import '../../../../core/services/supabase_auth_bridge.dart';
+import '../../../../core/utils/realtime_rattrapage.dart';
 import '../models/group_model.dart';
 import '../models/group_pinned_item_model.dart';
 import 'group_remote_datasource.dart';
@@ -279,10 +280,21 @@ class GroupSupabaseDataSource implements GroupRemoteDataSource {
     RealtimeChannel? channel;
     var cancelled = false;
 
+    // Numéro de la relecture la plus récente qui ait publié. Deux événements
+    // rapprochés (une adhésion puis un départ) lancent deux relectures
+    // concurrentes : si la première répondait la dernière, l'écran restait
+    // sur l'état d'avant le départ. Une réponse plus ancienne que la dernière
+    // publiée est jetée.
+    var demandees = 0;
+    var publiee = 0;
+
     Future<void> refetch() async {
       if (controller.isClosed) return;
+      final numero = ++demandees;
       try {
         final model = await _fetchGroupOrNull(groupId);
+        if (numero < publiee) return;
+        publiee = numero;
         if (!controller.isClosed) controller.add(model);
       } catch (_) {
         // Voir le contrat ci-dessus : on garde la dernière valeur émise.
@@ -326,7 +338,17 @@ class GroupSupabaseDataSource implements GroupRemoteDataSource {
           ),
           callback: (_) => refetch(),
         );
-      channel!.subscribe();
+      // Relecture à chaque (re)jonction du canal : après une coupure, rien de
+      // ce qui a changé entre-temps n'est rejoué. Dès la première aussi : ce
+      // qui change entre la lecture initiale et l'abonnement effectif n'est
+      // ni dans l'une ni livré par l'autre.
+      channel!.subscribe(
+        rattrapageAuRejoint(
+          () => unawaited(refetch()),
+          desLePremier: true,
+          etiquette: 'groupe',
+        ),
+      );
     }
 
     controller.onListen = () {
@@ -383,7 +405,15 @@ class GroupSupabaseDataSource implements GroupRemoteDataSource {
             if (!controller.isClosed) controller.add(null);
           },
         );
-      channel!.subscribe();
+      // Après une coupure, un signal : l'appelant relit « Mes groupes ».
+      channel!.subscribe(
+        rattrapageAuRejoint(
+          () {
+            if (!controller.isClosed) controller.add(null);
+          },
+          etiquette: 'mes_groupes',
+        ),
+      );
     }
 
     controller.onListen = () {

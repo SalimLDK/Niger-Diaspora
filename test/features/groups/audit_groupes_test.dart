@@ -149,6 +149,19 @@ void main() {
       expect(source, contains("rpc('basculer_moderateur_du_groupe'"));
     });
 
+    test('flux du groupe : réponse périmée jetée, rattrapage au rejoint', () {
+      final source = lire(
+        'lib/features/groups/data/datasources/group_supabase_datasource.dart',
+      );
+      final debut = source.indexOf('Stream<GroupModel?> getGroupStream(');
+      final corps = source.substring(debut, source.indexOf('\n  }\n', debut));
+      expect(corps, contains('if (numero < publiee) return;'));
+      expect(corps, contains('rattrapageAuRejoint('));
+      final d2 = source.indexOf('Stream<void> watchMyMemberships(');
+      final corps2 = source.substring(d2, source.indexOf('\n  }\n', d2));
+      expect(corps2, contains('rattrapageAuRejoint('));
+    });
+
     test('updateGroup rend le groupe avec son appartenance', () {
       final source = lire(
         'lib/features/groups/data/datasources/group_supabase_datasource.dart',
