@@ -1471,10 +1471,14 @@ class _GroupOverflowMenu extends ConsumerWidget {
         : 0;
 
     // Le créateur ne peut partir que s'il reste un autre administrateur :
-    // sinon le groupe se retrouverait sans personne pour l'administrer.
+    // sinon le groupe se retrouverait sans personne pour l'administrer. Même
+    // chose pour tout dernier administrateur tant qu'il reste des membres —
+    // le serveur le refuse (20261014140000), le menu ne le propose donc pas.
     final me = ref.watch(currentUserProvider).valueOrNull?.id;
     final otherAdmins = group.adminIds.where((id) => id != me).toList();
-    final canLeave = !isCreator || otherAdmins.isNotEmpty;
+    final autresMembres = group.memberIds.any((id) => id != me);
+    final canLeave = (!isCreator || otherAdmins.isNotEmpty) &&
+        !(isAdmin && otherAdmins.isEmpty && autresMembres);
 
     return PopupMenuButton<String>(
       icon: Badge(

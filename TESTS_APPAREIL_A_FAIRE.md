@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1392 cases à cocher, 55 cochées** — 320 entrées sur 334 ont encore des cases ouvertes.
+**1394 cases à cocher, 55 cochées** — 321 entrées sur 335 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -334,7 +334,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [✅ Bulle de chargement d'une vidéo pendant l'upload (2026-08-30)](#-bulle-de-chargement-dune-vidéo-pendant-lupload-2026-08-30) · *Messagerie*
 - 21 · [Refonte Fil & Discussion — Priorité basse — cosmétique, faible risque](#refonte-fil--discussion--priorité-basse--cosmétique-faible-risque) · *Fil, stories, salons audio et podcasts*
 
-**P3 — confort, cosmétique, fonction en pause** (38)
+**P3 — confort, cosmétique, fonction en pause** (39)
 
 - 3 · [⬜ Polices embarquées : plus de téléchargement au premier affichage (2026-09-11)](#-polices-embarquées--plus-de-téléchargement-au-premier-affichage-2026-09-11) · *Design, thème, langue et mise en page* · bloqué
 - 2 · [⬜ Icône du lanceur repeinte en vert (2026-09-07)](#-icône-du-lanceur-repeinte-en-vert-2026-09-07) · *Design, thème, langue et mise en page*
@@ -352,6 +352,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ Squelette de chargement de la messagerie (2026-09-15)](#-squelette-de-chargement-de-la-messagerie-2026-09-15) · *Messagerie*
 - 7 · [⬜ Une couleur par pièce jointe dans le « + » (2026-09-14)](#-une-couleur-par-pièce-jointe-dans-le----2026-09-14) · *Messagerie*
 - 6 · [Discussion — ÉCO rejoint la ligne épinglée (fiche 6b, 2026-08-05)](#discussion--éco-rejoint-la-ligne-épinglée-fiche-6b-2026-08-05) · *Messagerie*
+- 2 · [⬜ Le dernier administrateur ne quitte plus un groupe qui a des membres (2026-10-14)](#-le-dernier-administrateur-ne-quitte-plus-un-groupe-qui-a-des-membres-2026-10-14) · *Groupes*
 - 1 · [⬜ MLS : plus de copie de la base laissée sur le disque par l'aperçu de notification (2026-10-08)](#-mls--plus-de-copie-de-la-base-laissée-sur-le-disque-par-laperçu-de-notification-2026-10-08) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ Les appels de GROUPE restaient lançables alors que le 1-à-1 était en pause (2026-09-14)](#-les-appels-de-groupe-restaient-lançables-alors-que-le-1-à-1-était-en-pause-2026-09-14) · *Appels*
 - 1 · [La bulle d'appel elle-même n'apparaissait jamais dans la conversation (2026-08-14)](#la-bulle-dappel-elle-même-napparaissait-jamais-dans-la-conversation-2026-08-14) · *Appels* · bloqué
@@ -379,7 +380,7 @@ Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 0 faites
 - [2. Messagerie](#2-messagerie) — 359 à faire, 31 faites
-- [3. Groupes](#3-groupes) — 139 à faire, 0 faites
+- [3. Groupes](#3-groupes) — 141 à faire, 0 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 159 à faire, 4 faites
 - [5. Appels](#5-appels) — 24 à faire, 1 faites
 - [6. Notifications et push](#6-notifications-et-push) — 124 à faire, 6 faites
@@ -3169,6 +3170,20 @@ le même écran (1-à-1, groupe, « Mes notes ») : tester au moins deux d'entre
 # 3. Groupes
 
 Création, invitations, adhésion, membres, modération, sondages et mentions de groupe.
+
+---
+
+## ⬜ Le dernier administrateur ne quitte plus un groupe qui a des membres (2026-10-14)
+
+**Priorité P3** · importance 2/5 — app + migration `20261014140000` poussée.
+
+La règle n'existait que dans le menu, et pour le seul créateur. Le serveur la
+pose désormais pour tout dernier administrateur. Banc :
+`tools/rls_tests/dernier_admin_ne_part_pas.sql`.
+
+- [ ] Seul admin d'un groupe avec d'autres membres : « Quitter le groupe »
+      n'est pas proposé. Nommer un autre admin : il le devient.
+- [ ] Un simple membre quitte toujours le groupe.
 
 ---
 
