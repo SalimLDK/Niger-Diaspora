@@ -502,7 +502,7 @@ async function getAdminAccount(uid) {
   if (!FORME_ID_COMPTE.test(String(uid))) return null;
   const res = await fetch(
     `${SUPABASE_URL}/rest/v1/users?id=eq.${encodeURIComponent(uid)}` +
-      `&select=id,email,display_name,is_admin,admin_role&limit=1`,
+      `&select=id,email,display_name,is_admin,admin_role,is_banned&limit=1`,
     { headers: authHeaders() },
   );
   if (!res.ok) {
@@ -517,6 +517,7 @@ async function getAdminAccount(uid) {
     displayName: row.display_name ?? null,
     isAdmin: row.is_admin === true,
     adminRole: row.admin_role ?? null,
+    isBanned: row.is_banned === true,
   };
 }
 
@@ -576,6 +577,47 @@ async function setAdminFlags(uid, role) {
 }
 
 /**
+ * Pose l'état de bannissement d'un compte : les colonnes que le panneau
+ * écrivait depuis le client (`admin_provider.dart`, `banUser`/`unbanUser`),
+ * plus `banned_by` — présente en production, jamais remplie.
+ *
+ * `sessionId` est la sentinelle `banned_<ms>` que `SessionService` lit par
+ * temps réel sur sa propre ligne pour éjecter l'appareil : c'est ce que les
+ * builds déjà installés comprennent. Au débannissement elle est remise à
+ * NULL — l'appareil suivant démarre une session neuve.
+ *
+ * @param {string} uid
+ * @param {{banned:boolean,reason:string|null,by:string|null,sessionId:string|null}} etat
+ * @returns {Promise<boolean>} vrai si une ligne a été touchée. Lève si refusé.
+ */
+async function setBanFlags(uid, etat) {
+  if (!isConfigured()) throw new Error("Supabase non configuré");
+  if (!FORME_ID_COMPTE.test(String(uid))) return false;
+  const res = await fetch(
+    `${SUPABASE_URL}/rest/v1/users?id=eq.${encodeURIComponent(uid)}&select=id`,
+    {
+      method: "PATCH",
+      headers: authHeaders({
+        "Content-Type": "application/json",
+        Prefer: "return=representation",
+      }),
+      body: JSON.stringify({
+        is_banned: etat.banned === true,
+        ban_reason: etat.banned ? etat.reason : null,
+        banned_at: etat.banned ? new Date().toISOString() : null,
+        banned_by: etat.banned ? etat.by : null,
+        session_id: etat.sessionId,
+      }),
+    },
+  );
+  if (!res.ok) {
+    throw new Error(`Supabase setBanFlags ${res.status}: ${await res.text()}`);
+  }
+  const rows = await res.json();
+  return Array.isArray(rows) && rows.length > 0;
+}
+
+/**
  * Une ligne dans `admin_audit_logs`, par la clé de service.
  *
  * La table existe en production sous RLS sans aucune policy (audit du 14/10,
@@ -625,6 +667,7 @@ module.exports = {
   getAdminAccount,
   countSuperAdmins,
   setAdminFlags,
+  setBanFlags,
   insertAdminAuditLog,
   claimDueAccountDeletions,
   completeAccountDeletion,

@@ -11,6 +11,7 @@ const { peutSupprimerConversationPourTous } = require("./autorisations");
 const { preparerAppelEntrant, nomAppele, uidValide } = require("./appels");
 const partners = require("./partners");
 const { creerCallableSetAdminRole } = require("./roles_admin");
+const { creerCallableSetUserBanned } = require("./bannissement");
 // Tokens/profils/conversations : lus dans Supabase, PAS dans Firestore.
 const {
   getFcmTokens,
@@ -27,6 +28,7 @@ const {
   getAdminAccount,
   countSuperAdmins,
   setAdminFlags,
+  setBanFlags,
   insertAdminAuditLog,
   isConfigured: isSupabaseConfigured,
 } = require("./supabase");
@@ -7902,5 +7904,24 @@ exports.setAdminRole = creerCallableSetAdminRole(functions, {
         const ref = admin.database().ref(`admins/${uid}`);
         return present ? ref.set(true) : ref.remove();
     },
+    journaliser: insertAdminAuditLog,
+});
+
+// ============================================================================
+// BANNISSEMENT — setUserBanned
+// ============================================================================
+//
+// Le bannissement appliqué par le serveur : Postgres (ce que les builds
+// installés lisent pour s'éjecter), puis Firebase Auth désactivé et jetons
+// révoqués — un compte banni n'obtient plus aucun jeton, les règles n'ont
+// rien à lire. Logique et refus dans bannissement.js (`npm test`).
+//
+// Appel client : `httpsCallable('setUserBanned')` avec
+// `{ uid, banned: true, reason }` ou `{ uid, banned: false }`.
+exports.setUserBanned = creerCallableSetUserBanned(functions, {
+    lireCompte: getAdminAccount,
+    ecrireBan: setBanFlags,
+    desactiverCompte: (uid, disabled) => admin.auth().updateUser(uid, { disabled }),
+    revoquerJetons: (uid) => admin.auth().revokeRefreshTokens(uid),
     journaliser: insertAdminAuditLog,
 });
