@@ -2462,7 +2462,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
       // `conversations.group_id` étant TEXT, la conversation existante se
       // retrouve directement, sans cast et sans RPC.
       if (!_isUuid(groupId)) {
-        return _findLegacyGroupConversation(groupId);
+        return await _findLegacyGroupConversation(groupId);
       }
 
       // RPC SECURITY DEFINER : localise la conversation du groupe SANS filtrer
@@ -2482,7 +2482,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
       // groupe dont l'appartenance vit encore côté Firestore. Dernier filet
       // avant création : si l'appelant est déjà participant d'une conversation
       // de ce groupe, on la réutilise au lieu d'en ajouter une en double.
-      if (convId == null) return _findLegacyGroupConversation(groupId);
+      if (convId == null) return await _findLegacyGroupConversation(groupId);
 
       final rows = await _supabase
           .from('conversations')

@@ -1234,7 +1234,7 @@ class PaginatedMessagesNotifier extends StateNotifier<MessagePaginationState> {
             newContent: newContent,
             oldContent: oldContent,
           );
-      return resultat.fold(
+      return resultat.fold<ResultatModification>(
         // Le `Failure` remonte intact : réseau, refus serveur et échec de la
         // passerelle MLS portent chacun leur phrase. L'ancien code les
         // transformait tous en `false`, et l'écran les annonçait « délai de
