@@ -479,26 +479,28 @@ class BackgroundReplyService {
     }
   }
 
-  /// Nettoie les messages trop anciens (> 24h)
-  static Future<void> cleanOldMessages() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final queue = await _getQueue(prefs);
+  // CODE INUTILISÉ — mis en commentaire le 2026-10-14 (audit des notifications) : jamais appelé.
+  // /// Nettoie les messages trop anciens (> 24h)
+  // static Future<void> cleanOldMessages() async {
+  //   try {
+  //     final prefs = await SharedPreferences.getInstance();
+  //     final queue = await _getQueue(prefs);
+  //
+  //     final cutoff = DateTime.now().subtract(const Duration(hours: 24));
+  //     final filtered = queue.where((m) => m.createdAt.isAfter(cutoff)).toList();
+  //
+  //     if (filtered.length != queue.length) {
+  //       await _saveQueue(prefs, filtered);
+  //     }
+  //   } catch (e) {
+  //     // Ignorer les erreurs
+  //   }
+  // }
 
-      final cutoff = DateTime.now().subtract(const Duration(hours: 24));
-      final filtered = queue.where((m) => m.createdAt.isAfter(cutoff)).toList();
-
-      if (filtered.length != queue.length) {
-        await _saveQueue(prefs, filtered);
-      }
-    } catch (e) {
-      // Ignorer les erreurs
-    }
-  }
-
-  /// Obtient le nombre de messages en attente
-  static Future<int> getPendingCount() async {
-    final prefs = await SharedPreferences.getInstance();
-    return (await _getQueue(prefs)).length;
-  }
+  // CODE INUTILISÉ — mis en commentaire le 2026-10-14 (audit des notifications) : jamais appelé.
+  // /// Obtient le nombre de messages en attente
+  // static Future<int> getPendingCount() async {
+  //   final prefs = await SharedPreferences.getInstance();
+  //   return (await _getQueue(prefs)).length;
+  // }
 }

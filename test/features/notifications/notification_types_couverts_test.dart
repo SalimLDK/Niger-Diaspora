@@ -209,7 +209,10 @@ void main() {
       expect(i, greaterThan(-1));
       // Ils doivent tomber dans la branche du fil, pas dans celle qui ouvre la
       // fiche de la notification.
-      expect(ecran.substring(i, i + 260), contains("context.push('/feed/"));
+      // `pousserVersCible` : l'identifiant est validé avant de servir de
+      // segment de route (audit des notifications, 2026-10-14).
+      expect(ecran.substring(i, i + 260),
+          contains("pousserVersCible(context, '/feed'"));
     });
   });
 }

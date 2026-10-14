@@ -234,7 +234,10 @@ void main() {
           'lib/features/notifications/presentation/screens/notifications_screen.dart');
       final i = ecran.indexOf('case NotificationType.messageMention:');
       expect(i, greaterThan(-1));
-      expect(ecran.substring(i, i + 220), contains("context.push('/messages/"));
+      // `pousserVersCible` : l'identifiant est validé avant de servir de
+      // segment de route (audit des notifications, 2026-10-14).
+      expect(ecran.substring(i, i + 220),
+          contains("pousserVersCible(context, '/messages'"));
     });
 
     test('elle suit la bascule « Messages »', () {

@@ -32,22 +32,23 @@ import 'supabase_auth_bridge.dart';
 import '../crypto/mls/mls_notification_preview.dart';
 import '../crypto/mls/mls_partage_extension_ios.dart';
 
-/// Représente un message pour le style MessagingStyle (comme WhatsApp)
-class NotificationMessage {
-  final String text;
-  final DateTime timestamp;
-  final Person? sender;
-
-  NotificationMessage({
-    required this.text,
-    required this.timestamp,
-    this.sender,
-  });
-
-  Message toMessage() {
-    return Message(text, timestamp, sender);
-  }
-}
+// CODE INUTILISÉ — mis en commentaire le 2026-10-14 (audit des notifications) : jamais appelé.
+// /// Représente un message pour le style MessagingStyle (comme WhatsApp)
+// class NotificationMessage {
+//   final String text;
+//   final DateTime timestamp;
+//   final Person? sender;
+//
+//   NotificationMessage({
+//     required this.text,
+//     required this.timestamp,
+//     this.sender,
+//   });
+//
+//   Message toMessage() {
+//     return Message(text, timestamp, sender);
+//   }
+// }
 
 /// Représente une notification active pour le groupement style WhatsApp
 class ActiveNotification {
@@ -1103,6 +1104,22 @@ class NotificationService {
       _handleNotificationTap(initialMessage);
     }
 
+    // … ou depuis une bannière posée PAR L'APP (repli Android, bannière de
+    // messagerie reconstruite en arrière-plan). `getInitialMessage` ne connaît
+    // que celles du SDK Firebase, et `onDidReceiveNotificationResponse` ne
+    // se déclenche pas sur un démarrage à froid : toucher une de ces
+    // bannières, app tuée, ouvrait l'accueil au lieu de la conversation.
+    try {
+      final lancement =
+          await _localNotifications.getNotificationAppLaunchDetails();
+      final reponse = lancement?.notificationResponse;
+      if (lancement?.didNotificationLaunchApp == true && reponse != null) {
+        _handleNotificationResponse(reponse);
+      }
+    } catch (e) {
+      debugPrint('NotificationService: lancement par notification illisible: $e');
+    }
+
     // Nettoyer les anciens fichiers d'avatar en arrière-plan
     unawaited(cleanupOldAvatarCache());
   }
@@ -1124,9 +1141,19 @@ class NotificationService {
       requestBadgePermission: false,
       requestSoundPermission: false,
       notificationCategories: [
+        // Les actions suivent `kNotificationQuickActionsEnabled`, comme sur
+        // Android. Elles restaient enregistrées ici sans condition : iOS
+        // proposait « Répondre » sur toute bannière de message, et la réponse
+        // partait par `BackgroundReplyService` — chiffrement AES hérité,
+        // aperçu `lastMessage` écrit en clair, et refus pur et simple du
+        // serveur dans une conversation passée au chiffrement de bout en bout
+        // (`messages_refuse_conversation_mls`) : le texte tapé était perdu
+        // sans un mot. La catégorie reste, pour `hiddenPreviewShowTitle`.
         DarwinNotificationCategory(
           'message_category',
-          actions: <DarwinNotificationAction>[
+          actions: !kNotificationQuickActionsEnabled
+              ? const <DarwinNotificationAction>[]
+              : <DarwinNotificationAction>[
             DarwinNotificationAction.text(
               kReplyActionId,
               _getLocalizedString('reply'),
@@ -1825,7 +1852,11 @@ class NotificationService {
   }
 
   /// Save token to Supabase
-  Future<void> _saveTokenToDatabase(String token, {String? userId}) async {
+  Future<void> _saveTokenToDatabase(
+    String token, {
+    String? userId,
+    bool rotationFaite = false,
+  }) async {
     final uid = userId ?? _lastKnownUserId;
     if (uid == null) return;
     try {
@@ -1843,9 +1874,40 @@ class NotificationService {
         'ajouter_jeton_push',
         params: {'p_jeton': token},
       );
+    } on PostgrestException catch (e) {
+      // 23505 : ce jeton est encore rattaché à un AUTRE compte — une
+      // déconnexion faite hors ligne n'a pas pu le retirer. Le serveur ne le
+      // cède plus (un compte s'appropriait ainsi le téléphone d'autrui) :
+      // on en demande un neuf à Firebase, une seule fois. Le nouveau jeton
+      // arrive par `onTokenRefresh`, qui rappelle cette méthode.
+      if (e.code == '23505' && !rotationFaite) {
+        await _fairTournerLeJeton();
+        final neuf = _fcmToken;
+        if (neuf != null && neuf != token) {
+          await _saveTokenToDatabase(neuf, userId: uid, rotationFaite: true);
+        }
+      } else {
+        debugPrint('Error saving FCM token to database: ${e.code}');
+      }
     } catch (e) {
       debugPrint('Error saving FCM token to database: $e');
     }
+  }
+
+  /// Abandonne le jeton FCM courant et en obtient un neuf.
+  ///
+  /// À la déconnexion, et quand le serveur refuse le jeton parce qu'un autre
+  /// compte le détient encore. Un jeton supprimé ne reçoit plus rien : même
+  /// resté en base sur l'ancien compte, il ne fait plus sonner ce téléphone,
+  /// et `send-push` le retirera à son premier envoi (UNREGISTERED).
+  Future<void> _fairTournerLeJeton() async {
+    try {
+      await _messaging.deleteToken();
+    } catch (e) {
+      debugPrint('NotificationService: deleteToken a échoué: $e');
+    }
+    _fcmToken = null;
+    await _getToken();
   }
 
   /// Remove FCM token when user logs out
@@ -1889,6 +1951,16 @@ class NotificationService {
     } catch (e) {
       debugPrint('Error removing FCM token from database: $e');
     }
+    // Le jeton est attaché à l'installation, pas au compte : sans rotation,
+    // le compte suivant sur ce téléphone hériterait du même, et si le retrait
+    // ci-dessus a échoué (hors ligne), le serveur le refuserait au nouveau
+    // compte tout en continuant d'y envoyer ceux de l'ancien.
+    try {
+      await _messaging.deleteToken();
+    } catch (e) {
+      debugPrint('NotificationService: deleteToken a échoué: $e');
+    }
+    _fcmToken = null;
   }
 
   /// Save VoIP push token for iOS (for CallKit incoming calls)
@@ -2819,30 +2891,32 @@ class NotificationService {
     }
   }
 
-  /// Efface le cache des groupes actifs (à appeler quand l'app est ouverte)
-  void clearActiveGroups() {
-    _activeGroups.clear();
-  }
+  // CODE INUTILISÉ — mis en commentaire le 2026-10-14 (audit des notifications) : jamais appelé.
+  // /// Efface le cache des groupes actifs (à appeler quand l'app est ouverte)
+  // void clearActiveGroups() {
+  //   _activeGroups.clear();
+  // }
 
-  /// Efface tous les caches (avatars, persons, groupes)
-  Future<void> clearAllCaches() async {
-    _activeGroups.clear();
-    _personCache.clear();
-    // Cette pile porte du texte de message en clair : elle ne survit pas à une
-    // déconnexion, au même titre que le cache d'aperçus MLS.
-    await PileMessagesNotifiees.viderTout();
-
-    // Supprimer les fichiers d'avatar cachés
-    for (final path in _avatarPathCache.values) {
-      try {
-        final file = File(path);
-        if (await file.exists()) {
-          await file.delete();
-        }
-      } catch (_) {}
-    }
-    _avatarPathCache.clear();
-  }
+  // CODE INUTILISÉ — mis en commentaire le 2026-10-14 (audit des notifications) : jamais appelé.
+  // /// Efface tous les caches (avatars, persons, groupes)
+  // Future<void> clearAllCaches() async {
+  //   _activeGroups.clear();
+  //   _personCache.clear();
+  //   // Cette pile porte du texte de message en clair : elle ne survit pas à une
+  //   // déconnexion, au même titre que le cache d'aperçus MLS.
+  //   await PileMessagesNotifiees.viderTout();
+  //
+  //   // Supprimer les fichiers d'avatar cachés
+  //   for (final path in _avatarPathCache.values) {
+  //     try {
+  //       final file = File(path);
+  //       if (await file.exists()) {
+  //         await file.delete();
+  //       }
+  //     } catch (_) {}
+  //   }
+  //   _avatarPathCache.clear();
+  // }
 
   /// Nettoie les fichiers d'avatar obsolètes (plus de 24h)
   Future<void> cleanupOldAvatarCache() async {
@@ -3239,9 +3313,11 @@ class NotificationService {
         // notification reste bloquée sur son indicateur d'envoi côté Android
         // puisque personne n'appelle jamais sendReply/markAsRead ni ne
         // referme la notification. Vécu sur SM A515F le 2026-08-13.
+        // La longueur, pas le texte : ce journal part aussi en version
+        // publiée, et ce que l'utilisateur a tapé n'a rien à y faire.
         debugPrint(
           'NotificationService: action "$actionId" non traitée — '
-          'conversationId=$conversationId input="${input ?? ''}"',
+          'conversationId=$conversationId saisie=${input?.length ?? 0} car.',
         );
       } catch (e) {
         debugPrint('NotificationService: erreur parsing payload notification: $e');
@@ -3369,36 +3445,37 @@ class NotificationService {
     );
   }
 
-  /// Show a simple local notification (for message failures, etc.)
-  Future<void> showSimpleNotification({
-    required int id,
-    required String title,
-    required String body,
-    String? payload,
-  }) async {
-    await _localNotifications.show(
-      id,
-      title,
-      body,
-      const NotificationDetails(
-        android: AndroidNotificationDetails(
-          'general_channel',
-          'General Notifications',
-          channelDescription: 'Notifications generales de l\'application',
-          importance: Importance.high,
-          priority: Priority.high,
-          icon: '@drawable/ic_stat_notification',
-          color: AppColors.notificationAccent,
-        ),
-        iOS: DarwinNotificationDetails(
-          presentAlert: true,
-          presentBadge: true,
-          presentSound: true,
-        ),
-      ),
-      payload: payload,
-    );
-  }
+  // CODE INUTILISÉ — mis en commentaire le 2026-10-14 (audit des notifications) : jamais appelé.
+  // /// Show a simple local notification (for message failures, etc.)
+  // Future<void> showSimpleNotification({
+  //   required int id,
+  //   required String title,
+  //   required String body,
+  //   String? payload,
+  // }) async {
+  //   await _localNotifications.show(
+  //     id,
+  //     title,
+  //     body,
+  //     const NotificationDetails(
+  //       android: AndroidNotificationDetails(
+  //         'general_channel',
+  //         'General Notifications',
+  //         channelDescription: 'Notifications generales de l\'application',
+  //         importance: Importance.high,
+  //         priority: Priority.high,
+  //         icon: '@drawable/ic_stat_notification',
+  //         color: AppColors.notificationAccent,
+  //       ),
+  //       iOS: DarwinNotificationDetails(
+  //         presentAlert: true,
+  //         presentBadge: true,
+  //         presentSound: true,
+  //       ),
+  //     ),
+  //     payload: payload,
+  //   );
+  // }
 
   /// Abonnement à un topic FCM.
   ///
@@ -3432,19 +3509,20 @@ class NotificationService {
 
   // ================== APP ICON BADGE MANAGEMENT ==================
 
-  /// Clear the app icon badge (cross-platform)
-  /// Call this when the user opens the app or marks all messages as read.
-  Future<void> clearAppBadge() async {
-    try {
-      // Check if badge is supported on this device
-      final isSupported = await AppBadgePlus.isSupported();
-      if (isSupported) {
-        await AppBadgePlus.updateBadge(0);
-      }
-    } catch (e) {
-      // Silently fail - badge is not critical
-    }
-  }
+  // CODE INUTILISÉ — mis en commentaire le 2026-10-14 (audit des notifications) : jamais appelé.
+  // /// Clear the app icon badge (cross-platform)
+  // /// Call this when the user opens the app or marks all messages as read.
+  // Future<void> clearAppBadge() async {
+  //   try {
+  //     // Check if badge is supported on this device
+  //     final isSupported = await AppBadgePlus.isSupported();
+  //     if (isSupported) {
+  //       await AppBadgePlus.updateBadge(0);
+  //     }
+  //   } catch (e) {
+  //     // Silently fail - badge is not critical
+  //   }
+  // }
 
   /// Update the app icon badge count (cross-platform)
   /// Call this to set a specific badge count (e.g., total unread messages).

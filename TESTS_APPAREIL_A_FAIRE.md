@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1403 cases à cocher, 55 cochées** — 323 entrées sur 337 ont encore des cases ouvertes.
+**1411 cases à cocher, 55 cochées** — 324 entrées sur 338 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -96,7 +96,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 6 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (135)
+**P1 — fonction importante, jamais vérifiée** (136)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -168,6 +168,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [Messages de groupe qui redeviennent indéchiffrables après réouverture (2026-08-13)](#messages-de-groupe-qui-redeviennent-indéchiffrables-après-réouverture-2026-08-13) · *Chiffrement de bout en bout et clés* · bloqué
 - 5 · [⬜ Appel 1:1 : décrocher ne raccroche plus, refuser un second appel ne coupe plus le premier (2026-10-14)](#-appel-11--décrocher-ne-raccroche-plus-refuser-un-second-appel-ne-coupe-plus-le-premier-2026-10-14) · *Appels*
 - 4 · [⬜ Appel entrant : le nom et la photo de l'appelant viennent de la base (2026-09-21)](#-appel-entrant--le-nom-et-la-photo-de-lappelant-viennent-de-la-base-2026-09-21) · *Appels*
+- 8 · [⬜ Audit des notifications : jeton push d'un seul compte, toucher validé, pas de « Répondre » iOS (2026-10-14)](#-audit-des-notifications--jeton-push-dun-seul-compte-toucher-validé-pas-de--répondre--ios-2026-10-14) · *Notifications et push*
 - 2 · [⬜ `onMessageCreated` et `sendMessagePush` retirées : à supprimer en production (2026-10-07)](#-onmessagecreated-et-sendmessagepush-retirées--à-supprimer-en-production-2026-10-07) · *Notifications et push*
 - 3 · [⬜ Message en clair supprimé ou expiré : bannière retirée, texte effacé des notifications (2026-10-05)](#-message-en-clair-supprimé-ou-expiré--bannière-retirée-texte-effacé-des-notifications-2026-10-05) · *Notifications et push*
 - 4 · [⬜ Push de message : nom de l'expéditeur fiable, expéditeur bloqué silencieux (2026-10-05)](#-push-de-message--nom-de-lexpéditeur-fiable-expéditeur-bloqué-silencieux-2026-10-05) · *Notifications et push*
@@ -385,7 +386,7 @@ Par domaine :
 - [3. Groupes](#3-groupes) — 141 à faire, 0 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 159 à faire, 4 faites
 - [5. Appels](#5-appels) — 33 à faire, 1 faites
-- [6. Notifications et push](#6-notifications-et-push) — 124 à faire, 6 faites
+- [6. Notifications et push](#6-notifications-et-push) — 132 à faire, 6 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 36 à faire, 0 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 63 à faire, 0 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 101 à faire, 0 faites
@@ -6027,6 +6028,47 @@ en solo.
 # 6. Notifications et push
 
 Chaîne FCM, aperçus, réponse rapide, écran Notifications.
+
+---
+
+## ⬜ Audit des notifications : jeton push d'un seul compte, toucher validé, pas de « Répondre » iOS (2026-10-14)
+
+**Priorité P1** · importance 4/5 — un changement de compte sur un même téléphone, ou un toucher sur une notification du fil, qui ne marche plus.
+
+Fichiers : `lib/core/services/notification_service.dart`
+(`_saveTokenToDatabase`, `_fairTournerLeJeton`, `removeTokenForUser`,
+catégorie iOS `message_category`, `getNotificationAppLaunchDetails`),
+`lib/app.dart` (`_navigateToNotificationTarget`),
+`lib/core/utils/segment_de_route.dart`. Serveur : migration
+`20261014170000_jeton_push_un_seul_compte.sql` — un jeton déjà tenu par un
+autre compte est refusé (23505) ; le client en demande alors un neuf.
+
+- [ ] **Changement de compte** : A connecté reçoit un push ; A se déconnecte,
+      B se connecte sur le même téléphone. B reçoit ses push, et un message
+      envoyé à A n'arrive PLUS sur ce téléphone.
+- [ ] **Déconnexion hors ligne** : mode avion, A se déconnecte ; réseau
+      rétabli, B se connecte. B reçoit ses push (rotation du jeton après le
+      23505), et plus aucun push de A n'arrive.
+- [ ] **Multi-appareil** : A connecté sur deux téléphones — les deux reçoivent
+      ses push (le premier enregistré n'est pas évincé par le second).
+- [ ] **iOS** : appui long sur une bannière de message — plus de bouton
+      « Répondre » ni « Marquer comme lu » (réponses rapides coupées).
+- [ ] **Android, app tuée** : toucher une bannière de message posée en
+      arrière-plan (repli OEM / bannière empilée) ouvre la conversation, pas
+      l'accueil.
+- [ ] **Fil** : toucher le push « X a aimé votre publication » / « vous a
+      mentionné(e) » / « a mentionné <groupe> » ouvre la publication (avant :
+      un détail de notification vide).
+- [ ] **Groupe mentionné** : une publication qui cite un groupe dont
+      l'auteur est membre prévient ses membres, sous le vrai nom du groupe ;
+      citer un groupe dont on n'est pas membre ne prévient personne
+      (migration `20261014180000_publication_mentions_serveur.sql`).
+- [ ] **Après déploiement des Cloud Functions** : `onNewPostCreated` et
+      `notifyLocalEventCreated` sont mises en commentaire (déclenchables par
+      n'importe quel compte, texte libre poussé à une liste choisie).
+      `firebase functions:delete onNewPostCreated notifyLocalEventCreated`
+      (région par défaut : ni l'une ni l'autre ne déclare `.region(…)`),
+      puis `firebase functions:list` ne les montre plus.
 
 ---
 

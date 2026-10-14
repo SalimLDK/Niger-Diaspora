@@ -16,6 +16,7 @@ import '../providers/notification_provider.dart';
 import '../../../../core/services/notification_service.dart';
 import 'dart:convert';
 import 'package:diaspo_niger/core/theme/design_kit.dart';
+import 'package:diaspo_niger/core/utils/segment_de_route.dart';
 
 class NotificationDetailScreen extends ConsumerWidget {
   final String notificationId;
@@ -328,7 +329,7 @@ class NotificationDetailScreen extends ConsumerWidget {
       case NotificationType.messageEdited:
       case NotificationType.messageDeleted:
         if (notification.targetId != null) {
-          unawaited(context.push('/messages/${notification.targetId}'));
+          pousserVersCible(context, '/messages', notification.targetId);
         }
         break;
       case NotificationType.groupInvite:
@@ -338,21 +339,21 @@ class NotificationDetailScreen extends ConsumerWidget {
       case NotificationType.officialGroupLeave:
       case NotificationType.cityGroupInvite:
         if (notification.targetId != null) {
-          unawaited(context.push('/groups/${notification.targetId}'));
+          pousserVersCible(context, '/groups', notification.targetId);
         }
         break;
       case NotificationType.eventReminder:
       case NotificationType.eventUpdate:
       case NotificationType.eventAttendance:
         if (notification.targetId != null) {
-          unawaited(context.push('/events/${notification.targetId}'));
+          pousserVersCible(context, '/events', notification.targetId);
         }
         break;
       case NotificationType.friendRequest:
       case NotificationType.friendRequestAccepted:
       case NotificationType.friendAccepted:
         if (notification.targetId != null) {
-          unawaited(context.push('/profile/${notification.targetId}'));
+          pousserVersCible(context, '/profile', notification.targetId);
         }
         break;
       case NotificationType.order:
@@ -374,7 +375,7 @@ class NotificationDetailScreen extends ConsumerWidget {
       case NotificationType.postLiked:
       case NotificationType.postReposted:
         if (notification.targetId != null) {
-          unawaited(context.push('/feed/${notification.targetId}'));
+          pousserVersCible(context, '/feed', notification.targetId);
         }
         break;
       case NotificationType.reportResolved:

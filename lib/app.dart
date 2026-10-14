@@ -19,6 +19,7 @@ import 'core/providers/app_settings_provider.dart';
 import 'core/providers/lecture_a_l_arrivee_provider.dart';
 import 'features/calls/presentation/providers/call_provider.dart';
 import 'shared/widgets/reconnection_summary.dart';
+import 'core/utils/segment_de_route.dart';
 
 class NigerDiasporaApp extends ConsumerStatefulWidget {
   const NigerDiasporaApp({super.key});
@@ -92,7 +93,12 @@ class _NigerDiasporaAppState extends ConsumerState<NigerDiasporaApp> {
         // Message notifications - use conversationId from data
         case 'message':
         case 'messageReaction':
-          final conversationId = data['conversationId'] as String? ?? targetId;
+          final conversationId =
+              segmentDeRoute(data['conversationId'] as String? ?? targetId);
+          if (conversationId == null) {
+            route = '/notifications';
+            break;
+          }
           route = '/messages/$conversationId';
           // Ce que la notification sait déjà, passé en raccourci d'affichage.
           //
@@ -123,12 +129,15 @@ class _NigerDiasporaAppState extends ConsumerState<NigerDiasporaApp> {
 
         // Friend notifications - go to profile
         case 'friendRequest':
-          final senderId = data['senderId'] as String? ?? targetId;
-          route = '/profile/$senderId';
+          final senderId =
+              segmentDeRoute(data['senderId'] as String? ?? targetId);
+          route = senderId == null ? '/notifications' : '/profile/$senderId';
           break;
         case 'friendAccepted':
-          final receiverId = data['receiverId'] as String? ?? targetId;
-          route = '/profile/$receiverId';
+          final receiverId =
+              segmentDeRoute(data['receiverId'] as String? ?? targetId);
+          route =
+              receiverId == null ? '/notifications' : '/profile/$receiverId';
           break;
 
         // Event notifications - use eventId from data
@@ -136,8 +145,8 @@ class _NigerDiasporaAppState extends ConsumerState<NigerDiasporaApp> {
         case 'eventAttendance':
         case 'localEvent':
         case 'eventUpdate':
-          final eventId = data['eventId'] as String? ?? targetId;
-          route = '/events/$eventId';
+          final eventId = segmentDeRoute(data['eventId'] as String? ?? targetId);
+          route = eventId == null ? '/notifications' : '/events/$eventId';
           break;
 
         // Order notifications - go to orders screen
@@ -160,8 +169,8 @@ class _NigerDiasporaAppState extends ConsumerState<NigerDiasporaApp> {
         case 'officialGroupLeave':
         // Trois profils dans la ville : rejoindre, depuis la fiche du groupe.
         case 'cityGroupInvite':
-          final groupId = data['groupId'] as String? ?? targetId;
-          route = '/groups/$groupId';
+          final groupId = segmentDeRoute(data['groupId'] as String? ?? targetId);
+          route = groupId == null ? '/notifications' : '/groups/$groupId';
           break;
 
         // Proximity notification - go to map
@@ -169,11 +178,27 @@ class _NigerDiasporaAppState extends ConsumerState<NigerDiasporaApp> {
           route = '/map';
           break;
 
-        // Default: go to notifications list
+        // Le fil : la publication elle-même. Ces types tombaient dans le cas
+        // par défaut, qui poussait `/notifications/<id de la publication>` —
+        // l'écran de détail d'une notification, cherchant une notification
+        // de cet identifiant, n'en trouvait aucune.
+        case 'new_post':
+        case 'mentioned':
+        case 'group_mention':
+        case 'postLiked':
+        case 'post_liked':
+        case 'postCommented':
+        case 'commentReply':
+        case 'postReposted':
+          final postId = segmentDeRoute(data['postId'] as String? ?? targetId);
+          route = postId == null ? '/notifications' : '/feed/$postId';
+          break;
+
+        // Par défaut : la liste. `targetId` n'est pas l'identifiant d'une
+        // notification (le push ne le porte pas) : `/notifications/<targetId>`
+        // ouvrait un détail vide.
         default:
-          route = targetId.isNotEmpty
-              ? '/notifications/$targetId'
-              : '/notifications';
+          route = '/notifications';
       }
 
       // debugPrint('Pushing route: $route');

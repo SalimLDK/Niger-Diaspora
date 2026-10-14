@@ -20,6 +20,7 @@ import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../events/presentation/providers/event_provider.dart';
 import '../../../friends/domain/entities/friend_request_entity.dart';
 import '../../../friends/presentation/providers/friend_provider.dart';
+import 'package:diaspo_niger/core/utils/segment_de_route.dart';
 
 /// Trois filtres (refonte 12c) : Tout / Non lues / Mentions. « Mentions »
 /// regroupe les notifications qui vous concernent personnellement (demandes
@@ -496,7 +497,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
       case NotificationType.messageEdited:
       case NotificationType.messageDeleted:
         if (notification.targetId != null) {
-          unawaited(context.push('/messages/${notification.targetId}'));
+          pousserVersCible(context, '/messages', notification.targetId);
         }
         break;
       case NotificationType.groupInvite:
@@ -506,21 +507,21 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
       case NotificationType.officialGroupLeave:
       case NotificationType.cityGroupInvite:
         if (notification.targetId != null) {
-          unawaited(context.push('/groups/${notification.targetId}'));
+          pousserVersCible(context, '/groups', notification.targetId);
         }
         break;
       case NotificationType.eventReminder:
       case NotificationType.eventUpdate:
       case NotificationType.eventAttendance:
         if (notification.targetId != null) {
-          unawaited(context.push('/events/${notification.targetId}'));
+          pousserVersCible(context, '/events', notification.targetId);
         }
         break;
       case NotificationType.friendRequest:
       case NotificationType.friendRequestAccepted:
       case NotificationType.friendAccepted:
         if (notification.targetId != null) {
-          unawaited(context.push('/profile/${notification.targetId}'));
+          pousserVersCible(context, '/profile', notification.targetId);
         }
         break;
       case NotificationType.order:
@@ -545,7 +546,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
       case NotificationType.postLiked:
       case NotificationType.postReposted:
         if (notification.targetId != null) {
-          unawaited(context.push('/feed/${notification.targetId}'));
+          pousserVersCible(context, '/feed', notification.targetId);
         } else {
           unawaited(context.push('/notifications/${notification.id}'));
         }
