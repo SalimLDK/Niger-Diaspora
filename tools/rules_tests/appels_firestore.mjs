@@ -17,6 +17,14 @@
 // (call_repository_impl.dart:37, call_remote_datasource.dart:148, :224,
 // :273-282, :296, :311) : c'est la condition de déploiement, un appel qui ne
 // se crée plus ou ne se raccroche plus serait pire que le trou.
+//
+// Cas 15-29 (2026-10-14, audit des appels) : un appel terminé ne se rouvre
+// pas et rien ne revient à « sonne » (la bascule en boucle renvoyait des
+// notifications « a refusé » et faisait re-sonner une app ouverte) ; dans un
+// appel de groupe, un participant ne change la liste que pour lui-même ; la
+// sous-collection `participants` lit ses droits sur l'appel parent. Contre
+// les règles d'avant, 9 cas tombent — dont le 28, une lecture LÉGITIME de la
+// liste, que l'ancienne règle refusait toujours.
 
 import { createRequire } from "node:module";
 import { readFileSync } from "node:fs";
@@ -119,6 +127,62 @@ await cas(13, "réécrire les noms affichés après coup", "refusé",
 await posé(`f-${RUN}`);
 await cas(14, "un tiers change le statut", "refusé",
     () => updateDoc(doc(tiers, "calls", `f-${RUN}`), { status: "ended" }));
+
+// ── 2026-10-14 : un appel terminé ne se rouvre pas ─────────────────────────
+await posé(`g-${RUN}`, { status: "declined" });
+await cas(15, "l'appelé refait passer un refus « en cours » (renotifierait l'appelant)", "refusé",
+    () => updateDoc(doc(autre, "calls", `g-${RUN}`), { status: "connecting" }));
+
+await posé(`h-${RUN}`, { status: "connected" });
+await cas(16, "l'appelant remet l'appel en sonnerie", "refusé",
+    () => updateDoc(doc(moi, "calls", `h-${RUN}`), { status: "ringing" }));
+
+await posé(`i-${RUN}`, { status: "ended" });
+await cas(17, "décrochage tardif d'un appel terminé", "refusé",
+    () => updateDoc(doc(autre, "calls", `i-${RUN}`), { status: "connecting", answeredAt: serverTimestamp() }));
+
+await posé(`j-${RUN}`, { status: "connected" });
+await cas(18, "NOMINAL — passage en reconnexion", "accepté",
+    () => updateDoc(doc(autre, "calls", `j-${RUN}`), { status: "reconnecting" }));
+
+// ── 2026-10-14 : appels de groupe ─────────────────────────────────────────
+// MOI hôte, AUTRE invité ; TIERS étranger.
+const groupe = async (id, surcharge = {}) => env.withSecurityRulesDisabled((ctx) =>
+    setDoc(doc(ctx.firestore(), "group_calls", id), {
+        hostId: MOI, participantIds: [MOI, AUTRE], participantCount: 1,
+        status: "active", ...surcharge,
+    }));
+const { arrayUnion, arrayRemove, increment, getDocs } = require_("firebase/firestore");
+
+await groupe(`ga-${RUN}`);
+await cas(19, "NOMINAL — l'invité rejoint (arrayUnion de soi, +1)", "accepté",
+    () => updateDoc(doc(autre, "group_calls", `ga-${RUN}`), {
+        participantIds: arrayUnion(AUTRE), participantCount: increment(1) }));
+await cas(20, "l'invité fait entrer un étranger dans la liste", "refusé",
+    () => updateDoc(doc(autre, "group_calls", `ga-${RUN}`), { participantIds: arrayUnion(TIERS) }));
+await cas(21, "l'invité retire l'hôte de la liste", "refusé",
+    () => updateDoc(doc(autre, "group_calls", `ga-${RUN}`), { participantIds: arrayRemove(MOI) }));
+await cas(22, "l'invité gonfle le compteur", "refusé",
+    () => updateDoc(doc(autre, "group_calls", `ga-${RUN}`), { participantCount: 999 }));
+await cas(23, "NOMINAL — l'hôte ajoute un participant", "accepté",
+    () => updateDoc(doc(moi, "group_calls", `ga-${RUN}`), { participantIds: arrayUnion(TIERS) }));
+
+await groupe(`gb-${RUN}`);
+await cas(24, "NOMINAL — l'invité part (arrayRemove de soi, -1)", "accepté",
+    () => updateDoc(doc(autre, "group_calls", `gb-${RUN}`), {
+        participantIds: arrayRemove(AUTRE), participantCount: increment(-1) }));
+
+await groupe(`gc-${RUN}`);
+await cas(25, "un étranger s'inscrit dans la sous-collection participants", "refusé",
+    () => setDoc(doc(tiers, "group_calls", `gc-${RUN}`, "participants", TIERS), { role: "participant" }));
+await cas(26, "l'invité s'inscrit comme hôte", "refusé",
+    () => setDoc(doc(autre, "group_calls", `gc-${RUN}`, "participants", AUTRE), { role: "host" }));
+await cas(27, "NOMINAL — l'invité s'inscrit", "accepté",
+    () => setDoc(doc(autre, "group_calls", `gc-${RUN}`, "participants", AUTRE), { role: "participant" }));
+await cas(28, "NOMINAL — un participant lit la liste", "accepté",
+    () => getDocs(collection(autre, "group_calls", `gc-${RUN}`, "participants")));
+await cas(29, "un étranger lit la liste", "refusé",
+    () => getDocs(collection(tiers, "group_calls", `gc-${RUN}`, "participants")));
 
 await env.cleanup();
 

@@ -931,7 +931,17 @@ service cloud.firestore {
         resource.data.callerId == request.auth.uid ||
         resource.data.calleeId == request.auth.uid
       ) && request.resource.data.diff(resource.data).affectedKeys()
-             .hasOnly(['status', 'answeredAt', 'endedAt', 'endReason', 'durationSeconds']);
+             .hasOnly(['status', 'answeredAt', 'endedAt', 'endReason', 'durationSeconds'])
+        // ── 2026-10-14 ───────────────────────────────────────────────────
+        // Un appel terminé ne se rouvre pas, et rien ne revient à « sonne ».
+        // Faire basculer le statut en boucle (refusé → en cours → refusé…)
+        // renvoyait à l'appelant une notification « a refusé votre appel » à
+        // chaque passage, et remettre `ringing` faisait re-sonner une app
+        // ouverte. Un décrochage tardif réécrivait aussi `ended` en
+        // `connecting`.
+        && (!(resource.data.status in ['ended', 'declined', 'missed', 'busy', 'error', 'converted_to_group'])
+            || request.resource.data.status == resource.data.status)
+        && (request.resource.data.status != 'ringing' || resource.data.status == 'ringing');
       // Both participants can delete call records
       allow delete: if isAuthenticated() && (
         resource.data.callerId == request.auth.uid ||
@@ -969,7 +979,20 @@ service cloud.firestore {
         // Participants can update certain fields (join/leave, own status)
         (request.auth.uid in resource.data.participantIds &&
          request.resource.data.diff(resource.data).affectedKeys()
-           .hasOnly(['participantIds', 'participantCount', 'updatedAt']))
+           .hasOnly(['participantIds', 'participantCount', 'updatedAt'])
+         // ── 2026-10-14 ─────────────────────────────────────────────────
+         // Un participant ne change la liste que pour LUI : s'y ajouter
+         // (arrayUnion à l'arrivée) ou s'en retirer (arrayRemove au départ).
+         // Il pouvait y mettre n'importe qui — qui recevait alors un jeton
+         // LiveKit et lisait l'appel — ou en ôter tous les autres.
+         && request.resource.data.get('participantIds', []).toSet()
+              .difference(resource.data.get('participantIds', []).toSet())
+              .union(resource.data.get('participantIds', []).toSet()
+                .difference(request.resource.data.get('participantIds', []).toSet()))
+              .hasOnly([request.auth.uid])
+         // Et le compteur ne bouge que d'une unité à la fois.
+         && request.resource.data.get('participantCount', 0)
+              - resource.data.get('participantCount', 0) in [-1, 0, 1])
       );
 
       // Only host can delete (end) the call
@@ -988,25 +1011,35 @@ service cloud.firestore {
       }
 
       // Participants subcollection - detailed participant info
+      //
+      // ── 2026-10-14 ───────────────────────────────────────────────────────
+      // Les droits se lisent sur l'APPEL parent. Ils étaient lus sur le
+      // document participant lui-même (`resource.data.hostId`), qui n'en a
+      // pas : n'importe quel compte s'inscrivait dans n'importe quel appel
+      // (rôle `host` compris, battement de son choix — l'appel n'était alors
+      // jamais nettoyé), et la lecture de la liste était toujours refusée.
+      function appelParent() {
+        return get(/databases/$(database)/documents/group_calls/$(callId)).data;
+      }
+      function estHoteDeLAppel() {
+        return appelParent().hostId == request.auth.uid;
+      }
+      function estDeLAppel() {
+        return estHoteDeLAppel()
+          || request.auth.uid in appelParent().get('participantIds', []);
+      }
       match /participants/{participantId} {
-        allow read: if isAuthenticated() && (
-          resource.data.hostId == request.auth.uid ||
-          request.auth.uid in resource.data.participantIds
-        );
-        // Users can add themselves, host can add anyone
-        allow create: if isAuthenticated() && (
-          participantId == request.auth.uid ||
-          resource.data.hostId == request.auth.uid
-        );
-        // Users can update their own data, host can update anyone
-        allow update: if isAuthenticated() && (
-          participantId == request.auth.uid ||
-          resource.data.hostId == request.auth.uid
+        allow read: if isAuthenticated() && estDeLAppel();
+        // Soi-même, si l'on est de l'appel ; jamais le rôle d'hôte, sauf l'hôte.
+        allow create, update: if isAuthenticated() && estDeLAppel() && (
+          (participantId == request.auth.uid
+            && (request.resource.data.get('role', 'participant') != 'host'
+                || estHoteDeLAppel()))
+          || estHoteDeLAppel()
         );
         // Users can remove themselves, host can remove anyone
         allow delete: if isAuthenticated() && (
-          participantId == request.auth.uid ||
-          resource.data.hostId == request.auth.uid
+          participantId == request.auth.uid || estHoteDeLAppel()
         );
       }
     }

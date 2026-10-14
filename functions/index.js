@@ -5971,14 +5971,23 @@ exports.cleanupStaleCalls = functions.pubsub
                 const callId = doc.id;
 
                 try {
-                    // Parse createdAt timestamp
-                    let createdAtMs;
-                    if (call.createdAt && call.createdAt.toDate) {
-                        createdAtMs = call.createdAt.toDate().getTime();
-                    } else if (call.createdAt && typeof call.createdAt === 'string') {
-                        createdAtMs = new Date(call.createdAt).getTime();
-                    } else {
-                        console.log(`Call ${callId}: Invalid createdAt, skipping`);
+                    // Âge de l'appel : l'horodatage de création que Firestore
+                    // pose lui-même (`createTime`), pas le champ `createdAt`
+                    // écrit par le client (2026-10-14). Un appel forgé avec
+                    // `createdAt: "9999-01-01"`, ou sans `createdAt`, n'était
+                    // jamais marqué manqué : la victime restait « occupée »
+                    // pour tous ses correspondants, et son app ouverte sonnait
+                    // sans fin.
+                    let createdAtMs = doc.createTime ? doc.createTime.toMillis() : NaN;
+                    if (!Number.isFinite(createdAtMs)) {
+                        if (call.createdAt && call.createdAt.toDate) {
+                            createdAtMs = call.createdAt.toDate().getTime();
+                        } else if (call.createdAt && typeof call.createdAt === 'string') {
+                            createdAtMs = new Date(call.createdAt).getTime();
+                        }
+                    }
+                    if (!Number.isFinite(createdAtMs)) {
+                        console.log(`Call ${callId}: no usable creation time, skipping`);
                         continue;
                     }
 
