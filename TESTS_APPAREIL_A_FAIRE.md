@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1381 cases à cocher, 55 cochées** — 316 entrées sur 330 ont encore des cases ouvertes.
+**1384 cases à cocher, 55 cochées** — 317 entrées sur 331 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -96,7 +96,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 6 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (133)
+**P1 — fonction importante, jamais vérifiée** (134)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -142,6 +142,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [✅ L'identité du correspondant revient seule après une coupure — corrigé, vérifié SM A515F (2026-09-14)](#-lidentité-du-correspondant-revient-seule-après-une-coupure--corrigé-vérifié-sm-a515f-2026-09-14) · *Messagerie*
 - 3 · [⬜ Nom et avatar du correspondant dans la liste des discussions (2026-09-13)](#-nom-et-avatar-du-correspondant-dans-la-liste-des-discussions-2026-09-13) · *Messagerie*
 - 2 · [⬜ Réactions : double tap, cœur rouge, notification, mise à jour (2026-09-12)](#-réactions--double-tap-cœur-rouge-notification-mise-à-jour-2026-09-12) · *Messagerie*
+- 3 · [⬜ Discussion de groupe : un étranger ne peut plus s'en fabriquer une pour vider le groupe (2026-10-14)](#-discussion-de-groupe--un-étranger-ne-peut-plus-sen-fabriquer-une-pour-vider-le-groupe-2026-10-14) · *Groupes*
 - 14 · [⬜ Gérer les membres d'un groupe : notices dans le fil, et deux listes d'admins réconciliées (2026-09-17)](#-gérer-les-membres-dun-groupe--notices-dans-le-fil-et-deux-listes-dadmins-réconciliées-2026-09-17) · *Groupes*
 - 4 · [⬜ Exclure un membre d'un groupe échouait toujours (2026-09-17)](#-exclure-un-membre-dun-groupe-échouait-toujours-2026-09-17) · *Groupes*
 - 4 · [⬜ Noms des candidats à l'invitation et à l'ajout en appel (2026-09-14)](#-noms-des-candidats-à-linvitation-et-à-lajout-en-appel-2026-09-14) · *Groupes*
@@ -375,7 +376,7 @@ Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 0 faites
 - [2. Messagerie](#2-messagerie) — 359 à faire, 31 faites
-- [3. Groupes](#3-groupes) — 128 à faire, 0 faites
+- [3. Groupes](#3-groupes) — 131 à faire, 0 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 159 à faire, 4 faites
 - [5. Appels](#5-appels) — 24 à faire, 1 faites
 - [6. Notifications et push](#6-notifications-et-push) — 124 à faire, 6 faites
@@ -3165,6 +3166,27 @@ le même écran (1-à-1, groupe, « Mes notes ») : tester au moins deux d'entre
 # 3. Groupes
 
 Création, invitations, adhésion, membres, modération, sondages et mentions de groupe.
+
+---
+
+## ⬜ Discussion de groupe : un étranger ne peut plus s'en fabriquer une pour vider le groupe (2026-10-14)
+
+**Priorité P1** · importance 4/5 — app + migration `20261014090000` poussée.
+
+Un compte quelconque pouvait créer une conversation rattachée à un groupe en
+s'y disant admin, puis en retirer les participants : le serveur supprimait
+alors le propriétaire et les membres du groupe. La création d'une discussion
+de groupe est désormais réservée aux membres, et ses participants comme ses
+admins sont ramenés à ceux du groupe. Banc : `tools/rls_tests/
+conversation_de_groupe_fabriquee.sql`. À vérifier que rien de légitime n'a
+cassé :
+
+- [ ] Un **simple membre** ouvre pour la première fois la discussion d'un
+      groupe qui n'en avait pas : elle s'ouvre, il peut écrire.
+- [ ] Le **créateur** d'un nouveau groupe ouvre sa discussion : il y est
+      admin (exclure, nommer admin fonctionnent depuis la liste des membres).
+- [ ] Un admin de groupe exclut un membre : la personne sort du groupe et de
+      la discussion.
 
 ---
 
