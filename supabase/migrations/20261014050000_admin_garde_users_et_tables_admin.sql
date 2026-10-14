@@ -66,6 +66,9 @@
 -- qu'un arrêt à mi-chemin ne retire rien à l'app : GRANT avant REVOKE sur la
 -- fonction ; sur les tables du panneau, un REVOKE sans GRANT ne ferme qu'un
 -- accès qui n'a jamais marché.
+--
+-- APPLIQUÉE le 2026-10-14. Le banc relancé tel quel sur l'état vivant rend
+-- 28/28 ; le compte de test en ressort non banni, les tables du panneau vides.
 
 SET lock_timeout = '5s';
 
