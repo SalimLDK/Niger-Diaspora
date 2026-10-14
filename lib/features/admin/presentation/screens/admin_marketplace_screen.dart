@@ -804,12 +804,12 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
 
     switch (action) {
       case 'enable':
-        await notifier.toggleProductAvailability(product.id, true, adminId: currentAdmin.id, adminName: currentAdmin.name);
-        _showSnackBar(l10n.adminProductActivated);
+        final ok = await notifier.toggleProductAvailability(product.id, true, adminId: currentAdmin.id, adminName: currentAdmin.name);
+        _montrerBilan(ok, l10n.adminProductActivated);
         break;
       case 'disable':
-        await notifier.toggleProductAvailability(product.id, false, adminId: currentAdmin.id, adminName: currentAdmin.name);
-        _showSnackBar(l10n.adminProductDeactivated);
+        final ok = await notifier.toggleProductAvailability(product.id, false, adminId: currentAdmin.id, adminName: currentAdmin.name);
+        _montrerBilan(ok, l10n.adminProductDeactivated);
         break;
       case 'delete':
         final confirm = await _showConfirmation(
@@ -817,8 +817,8 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
           l10n.adminDeleteProductConfirm,
         );
         if (confirm == true) {
-          await notifier.deleteProduct(product.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
-          _showSnackBar(l10n.adminProductDeleted);
+          final ok = await notifier.deleteProduct(product.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
+          _montrerBilan(ok, l10n.adminProductDeleted);
         }
         break;
     }
@@ -833,14 +833,14 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
 
     final note = await _showTextDialog(l10n.adminResolveDisputeTitle, l10n.adminProcessReportPrompt);
     if (note != null) {
-      await ref.read(adminMarketplaceNotifierProvider.notifier).resolveDispute(
+      final ok = await ref.read(adminMarketplaceNotifierProvider.notifier).resolveDispute(
         dispute['id'],
         resolution,
         note,
         adminId: currentAdmin.id,
         adminName: currentAdmin.name,
       );
-      _showSnackBar(l10n.adminDisputeResolved);
+      _montrerBilan(ok, l10n.adminDisputeResolved);
     }
   }
 
@@ -896,10 +896,27 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
     );
   }
 
-  void _showSnackBar(String message) {
+  /// Le libellé de succès ne s'affiche que si le notifier a rendu vrai ;
+  /// sinon son `state.error` (zéro ligne sous RLS, journal d'audit refusé…).
+  /// Avant, le succès s'affichait quoi qu'il arrive (audit du 2026-10-14,
+  /// § 5).
+  void _montrerBilan(bool ok, String succes) {
+    if (!mounted) return;
+    if (ok) {
+      _showSnackBar(succes);
+      return;
+    }
+    _showSnackBar(
+      ref.read(adminMarketplaceNotifierProvider).error ?? l10n.loadingError,
+      isError: true,
+    );
+  }
+
+  void _showSnackBar(String message, {bool isError = false}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
+        backgroundColor: isError ? AdminColors.statusRed : null,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),

@@ -3086,7 +3086,7 @@
   "@adminDisputesTab": {"placeholders": {"count": {"type": "int"}}},
   "adminBuyer": "Buyer",
   "adminSeller": "Seller",
-  "adminRefund": "Refund",
+  "adminRefund": "Mark as refunded",
 
   "adminGroupsTab": "Groups ({count})",
   "@adminGroupsTab": {"placeholders": {"count": {"type": "int"}}},
@@ -5913,7 +5913,7 @@
   "adminMarkCompleteConfirm": "Are you sure you want to mark this transaction as completed?",
   "adminTransactionCompleted": "Transaction completed",
   "adminRefundReasonLabel": "Refund reason:",
-  "adminTransactionRefunded": "Transaction refunded",
+  "adminTransactionRefunded": "Transaction marked as refunded",
   "adminUnknownAdmin": "Unknown admin",
   "adminUnknownDate": "Unknown date",
   "adminEventByOrganizer": "Event by {id}",

@@ -610,8 +610,8 @@ class _AdminTransactionsScreenState
                 'Raison de l\'échec:',
               );
               if (reason != null && reason.isNotEmpty) {
-                await notifier.markAsFailed(transaction.id, reason, adminId: currentAdmin.id, adminName: currentAdmin.name);
-                _showSnackBar(l10n.adminTransactionFailed);
+                final ok = await notifier.markAsFailed(transaction.id, reason, adminId: currentAdmin.id, adminName: currentAdmin.name);
+                _montrerBilan(ok, l10n.adminTransactionFailed);
               }
             },
           ),
@@ -630,8 +630,8 @@ class _AdminTransactionsScreenState
                 l10n.adminMarkCompleteConfirm,
               );
               if (confirm == true) {
-                await notifier.markAsCompleted(transaction.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
-                _showSnackBar(l10n.adminTransactionCompleted);
+                final ok = await notifier.markAsCompleted(transaction.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
+                _montrerBilan(ok, l10n.adminTransactionCompleted);
               }
             },
           ),
@@ -646,13 +646,21 @@ class _AdminTransactionsScreenState
                 _showSnackBar(l10n.adminNotConnected);
                 return;
               }
+              // « Rembourser » promettait un remboursement qui n'a pas lieu :
+              // refundTransaction pose `status = 'refunded'` et rien d'autre,
+              // aucun appel Stripe n'existe dans le dépôt (audit du
+              // 2026-10-14, § 8). Le libellé et la ligne d'aide le disent.
               final reason = await _showTextDialog(
-                'Rembourser la transaction',
+                'Marquer la transaction remboursée',
                 l10n.adminRefundReasonLabel,
+                aide:
+                    "Aucun remboursement n'est déclenché ici : seul le statut "
+                    'passe à « remboursée ». Le remboursement réel se fait '
+                    'chez le prestataire de paiement, à part.',
               );
               if (reason != null && reason.isNotEmpty) {
-                await notifier.refundTransaction(transaction.id, reason, adminId: currentAdmin.id, adminName: currentAdmin.name);
-                _showSnackBar(l10n.adminTransactionRefunded);
+                final ok = await notifier.refundTransaction(transaction.id, reason, adminId: currentAdmin.id, adminName: currentAdmin.name);
+                _montrerBilan(ok, l10n.adminTransactionRefunded);
               }
             },
           ),
@@ -899,23 +907,39 @@ class _AdminTransactionsScreenState
     );
   }
 
-  Future<String?> _showTextDialog(String title, String label) {
+  /// [aide] : une ligne au-dessus du champ, pour dire ce que l'action fait
+  /// — et surtout ce qu'elle ne fait pas.
+  Future<String?> _showTextDialog(String title, String label, {String? aide}) {
     final controller = TextEditingController();
+    final champ = TextField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: label,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+      maxLines: 3,
+    );
     return showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(title),
-        content: TextField(
-          controller: controller,
-          decoration: InputDecoration(
-            labelText: label,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
-          maxLines: 3,
-        ),
+        content: aide == null
+            ? champ
+            : Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    aide,
+                    style: const TextStyle(color: AdminColors.text2),
+                  ),
+                  const SizedBox(height: 16),
+                  champ,
+                ],
+              ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -934,10 +958,28 @@ class _AdminTransactionsScreenState
     );
   }
 
-  void _showSnackBar(String message) {
+  /// Le libellé de succès ne s'affiche que si le notifier a rendu vrai ;
+  /// sinon son `state.error` (zéro ligne sous RLS, journal d'audit refusé…).
+  /// Avant, le succès s'affichait quoi qu'il arrive — et côté Postgres,
+  /// rembourser, compléter ou échouer une transaction n'a aucune policy
+  /// admin : zéro ligne à chaque fois (audit du 2026-10-14, § 5).
+  void _montrerBilan(bool ok, String succes) {
+    if (!mounted) return;
+    if (ok) {
+      _showSnackBar(succes);
+      return;
+    }
+    _showSnackBar(
+      ref.read(adminTransactionsNotifierProvider).error ?? l10n.loadingError,
+      isError: true,
+    );
+  }
+
+  void _showSnackBar(String message, {bool isError = false}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
+        backgroundColor: isError ? AdminColors.statusRed : null,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),

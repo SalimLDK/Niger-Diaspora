@@ -4,6 +4,7 @@ import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import 'package:diaspo_niger/core/theme/admin_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
 import '../providers/admin_provider.dart';
 import '../providers/permission_provider.dart';
 import '../../domain/enums/admin_enums.dart';
@@ -99,7 +100,8 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
         icon: const AppIcon(AppIcon.people),
         selectedIcon: const AppIcon(AppIcon.people),
         requiredPermission: AdminPermission.viewUsers,
-        contentBuilder: (_, __) => const AdminUsersManagementScreen(),
+        contentBuilder: (_, __) =>
+            AdminUsersManagementScreen(onGererRoles: _ouvrirRoles),
         badgeCount: (state) => state.pendingReports,
       ),
       _NavDestination(
@@ -217,6 +219,60 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
     }).toList();
   }
 
+  /// Mène à l'écran Rôles depuis le menu d'un utilisateur. L'index se cherche
+  /// dans la liste filtrée par rôle ; si la destination n'y est pas (réservée
+  /// au super-administrateur), on le dit au lieu de sauter sur un autre écran
+  /// — c'est le défaut des actions rapides de l'aperçu, qui posent des index
+  /// en dur dans cette même liste (audit du 2026-10-14, § 8).
+  void _ouvrirRoles() {
+    final destinations = _getFilteredDestinations(ref.read(adminRoleProvider));
+    final index = destinations.indexWhere((d) => d.id == 'roles');
+    if (index < 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("L'écran Rôles est réservé au super-administrateur."),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+    setState(() => _selectedIndex = index);
+  }
+
+  /// « Déconnexion » ne faisait que `pushReplacementNamed('/login')` : la
+  /// session Firebase restait ouverte, et un retour arrière ou `/dashboard`
+  /// tapé dans la barre d'adresse rendait le panneau — sur un poste partagé,
+  /// à n'importe qui (audit du 2026-10-14, § 8). La session se ferme
+  /// d'abord ; l'écran de connexion ne s'affiche qu'après un `Right`, et un
+  /// `Left` se dit, puisque la session est alors toujours ouverte.
+  Future<void> _seDeconnecter() async {
+    String? echec;
+    try {
+      echec = (await ref.read(authRepositoryProvider).signOut()).fold(
+        (failure) => failure.message,
+        (_) => null,
+      );
+    } catch (e) {
+      // `signOut` ne lève pas en principe ; si cela arrive, la session est
+      // aussi peu fermée que sur un `Left`.
+      echec = e.toString();
+    }
+    if (!mounted) return;
+    if (echec != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "La session n'a pas pu être fermée : $echec. Réessayez.",
+          ),
+          backgroundColor: AdminColors.statusRed,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+    unawaited(Navigator.of(context).pushReplacementNamed('/login'));
+  }
+
   Widget _buildOverviewWidget() {
     final state = ref.watch(adminDashboardNotifierProvider);
     return _buildOverview(state);
@@ -326,9 +382,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
         _buildAppBarButton(
           icon: const Icon(Icons.logout_rounded, color: AdminColors.statusRed, size: 20),
           tooltip: l10n.adminLogout,
-          onPressed: () {
-            unawaited(Navigator.of(context).pushReplacementNamed('/login'));
-          },
+          onPressed: () => unawaited(_seDeconnecter()),
           isDestructive: true,
         ),
         const SizedBox(width: 16),

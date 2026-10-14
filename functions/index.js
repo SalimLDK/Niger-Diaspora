@@ -10,7 +10,7 @@ const { cheminStorageSur } = require("./chemins_storage");
 const { peutSupprimerConversationPourTous } = require("./autorisations");
 const { preparerAppelEntrant, nomAppele, uidValide } = require("./appels");
 const partners = require("./partners");
-const { creerCallableSetAdminRole } = require("./roles_admin");
+const { creerCallableSetAdminRole, ROLES_ADMIN } = require("./roles_admin");
 const { creerCallableSetUserBanned } = require("./bannissement");
 // Tokens/profils/conversations : lus dans Supabase, PAS dans Firestore.
 const {
@@ -3777,9 +3777,9 @@ exports.seedLegalContent = functions.https.onCall(async (data, context) => {
         );
     }
 
-    // Check if user is admin
-    const userDoc = await admin.firestore().collection("users").doc(context.auth.uid).get();
-    if (!userDoc.exists || !userDoc.data().adminRole || userDoc.data().adminRole === "none") {
+    // Le rôle se lit dans le jeton (claim posé par setAdminRole), plus dans
+    // un document Firestore que plus rien ne tient à jour.
+    if (!ROLES_ADMIN.includes(context.auth.token && context.auth.token.adminRole)) {
         throw new functions.https.HttpsError(
             "permission-denied",
             "Only admins can seed legal content"
@@ -6654,13 +6654,9 @@ exports.manualCallCleanup = functions.https.onCall(async (data, context) => {
         );
     }
 
-    // Check if user is admin
-    const userDoc = await admin.firestore()
-        .collection("users")
-        .doc(context.auth.uid)
-        .get();
-
-    if (!userDoc.exists || !userDoc.data().adminRole || userDoc.data().adminRole === "none") {
+    // Le rôle se lit dans le jeton (claim posé par setAdminRole), plus dans
+    // un document Firestore que plus rien ne tient à jour.
+    if (!ROLES_ADMIN.includes(context.auth.token && context.auth.token.adminRole)) {
         throw new functions.https.HttpsError(
             "permission-denied",
             "Only admins can trigger manual cleanup"

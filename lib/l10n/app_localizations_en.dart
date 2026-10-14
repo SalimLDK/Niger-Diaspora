@@ -6760,7 +6760,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get adminSeller => 'Seller';
 
   @override
-  String get adminRefund => 'Refund';
+  String get adminRefund => 'Mark as refunded';
 
   @override
   String adminGroupsTab(int count) {
@@ -14511,7 +14511,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get adminRefundReasonLabel => 'Refund reason:';
 
   @override
-  String get adminTransactionRefunded => 'Transaction refunded';
+  String get adminTransactionRefunded => 'Transaction marked as refunded';
 
   @override
   String get adminUnknownAdmin => 'Unknown admin';
