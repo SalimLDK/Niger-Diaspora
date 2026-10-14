@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../helpers/source_bibliotheque.dart';
+
 /// Un filtre qui ne ramène rien n'est pas une messagerie vide (§9e).
 ///
 /// `_buildConversationList` branchait sur `filtered.isEmpty` — la liste
@@ -32,7 +34,7 @@ void main() {
 
   setUpAll(() {
     expect(ecran.existsSync(), isTrue, reason: 'écran introuvable');
-    source = ecran.readAsStringSync();
+    source = sourceBibliotheque(ecran.path);
   });
 
   test('un filtre sans résultat a son propre état vide', () {

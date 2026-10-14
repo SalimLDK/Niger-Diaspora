@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1380 cases à cocher, 55 cochées** — 316 entrées sur 330 ont encore des cases ouvertes.
+**1381 cases à cocher, 55 cochées** — 316 entrées sur 330 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -343,7 +343,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⬜ Écran de démarrage repeint en vert (2026-09-07)](#-écran-de-démarrage-repeint-en-vert-2026-09-07) · *Design, thème, langue et mise en page*
 - 5 · [Guide de style — alignement des jetons (2026-08-03)](#guide-de-style--alignement-des-jetons-2026-08-03) · *Design, thème, langue et mise en page*
 - 3 · [⬜ Les ~920 `debugPrint` restants neutralisés en release (2026-09-09)](#-les-920-debugprint-restants-neutralisés-en-release-2026-09-09) · *Backend, sécurité et observabilité* · bloqué
-- 4 · [⬜ Écran de conversation, bulles et zone de saisie après leur découpage en fichiers (2026-10-14)](#-écran-de-conversation-bulles-et-zone-de-saisie-après-leur-découpage-en-fichiers-2026-10-14) · *Messagerie*
+- 5 · [⬜ Liste, écran de conversation, bulles et saisie après leur découpage en fichiers (2026-10-14)](#-liste-écran-de-conversation-bulles-et-saisie-après-leur-découpage-en-fichiers-2026-10-14) · *Messagerie*
 - 2 · [⬜ Fiches de partage : libellés sur une ligne, vrais logos, bouton (2026-09-20)](#-fiches-de-partage--libellés-sur-une-ligne-vrais-logos-bouton-2026-09-20) · *Messagerie*
 - 6 · [⬜ Squelette de chargement de la messagerie (2026-09-15)](#-squelette-de-chargement-de-la-messagerie-2026-09-15) · *Messagerie*
 - 7 · [⬜ Une couleur par pièce jointe dans le « + » (2026-09-14)](#-une-couleur-par-pièce-jointe-dans-le----2026-09-14) · *Messagerie*
@@ -374,7 +374,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 0 faites
-- [2. Messagerie](#2-messagerie) — 358 à faire, 31 faites
+- [2. Messagerie](#2-messagerie) — 359 à faire, 31 faites
 - [3. Groupes](#3-groupes) — 128 à faire, 0 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 159 à faire, 4 faites
 - [5. Appels](#5-appels) — 24 à faire, 1 faites
@@ -478,17 +478,19 @@ Discussions : bulles, composeur, médias, épingles, réactions, accusés, reche
 
 ---
 
-## ⬜ Écran de conversation, bulles et zone de saisie après leur découpage en fichiers (2026-10-14)
+## ⬜ Liste, écran de conversation, bulles et saisie après leur découpage en fichiers (2026-10-14)
 
 **Priorité P3** · importance 2/5 — app seule.
 
-`conversation_screen.dart`, `message_bubble.dart` et `message_input.dart` ont
-été découpés en parties (`conversation_screen_*.dart`, `message_bubble_*.dart`,
-`message_input_*.dart`) : les
+`messages_screen.dart`, `conversation_screen.dart`, `message_bubble.dart` et
+`message_input.dart` ont été découpés en parties (`*_liste.dart`,
+`conversation_screen_*.dart`, `message_bubble_*.dart`, `message_input_*.dart`) : les
 méthodes de l'état vivent dans des extensions privées. Aucune ligne de code
 n'a changé et toute la suite passe, mais rien n'a été regardé à l'écran.
 Un tour rapide suffit :
 
+- [ ] Liste des discussions : filtres (tous, non lus, groupes, archives) et
+      leur état vide, recherche, appui long → options, notes personnelles.
 - [ ] Ouvrir une discussion : bulles reçues et envoyées, citation, lien
       cliquable, accusés de lecture, séparateur « non lus ».
 - [ ] Appui long sur une bulle : réactions et feuille d'options ; copier,
