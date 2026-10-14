@@ -228,6 +228,14 @@ class _AdminSettingsScreenState extends ConsumerState<AdminSettingsScreen>
                     error,
                     style: TextStyle(color: AdminColors.statusRed),
                   ),
+                  const SizedBox(height: 12),
+                  // Une lecture refusée se voit ici au lieu de passer pour
+                  // des réglages ; le notifier ne réessaie jamais seul.
+                  TextButton.icon(
+                    onPressed: () => ref.invalidate(appSettingsNotifierProvider),
+                    icon: const Icon(Icons.refresh_rounded, size: 18),
+                    label: const Text('Réessayer'),
+                  ),
                 ],
               ),
             ),
