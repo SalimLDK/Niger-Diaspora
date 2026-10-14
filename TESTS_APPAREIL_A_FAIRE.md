@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1384 cases à cocher, 55 cochées** — 317 entrées sur 331 ont encore des cases ouvertes.
+**1386 cases à cocher, 55 cochées** — 318 entrées sur 332 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -233,7 +233,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (95)
+**P2 — fonction secondaire ou cas limite** (96)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -261,6 +261,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [Composeur — largeur de la pilule et « + » en clair (2026-08-05)](#composeur--largeur-de-la-pilule-et----en-clair-2026-08-05) · *Messagerie*
 - 2 · [Recherche messagerie — le clavier demandait deux taps (§9b, 2026-08-04)](#recherche-messagerie--le-clavier-demandait-deux-taps-9b-2026-08-04) · *Messagerie*
 - 4 · [Zone de saisie des messages — barre multi-ligne (2026-08-04)](#zone-de-saisie-des-messages--barre-multi-ligne-2026-08-04) · *Messagerie*
+- 2 · [⬜ Groupe privé : l'invitation fait entrer une fois, l'exclusion tient (2026-10-14)](#-groupe-privé--linvitation-fait-entrer-une-fois-lexclusion-tient-2026-10-14) · *Groupes*
 - 5 · [⬜ Groupes : non-lus depuis l'arrivée, messages système, « Lu » par tous (2026-09-17)](#-groupes--non-lus-depuis-larrivée-messages-système--lu--par-tous-2026-09-17) · *Groupes*
 - 5 · [⬜ Groupe privé : un nouveau membre ne voit plus ce qui précède son arrivée (2026-09-16)](#-groupe-privé--un-nouveau-membre-ne-voit-plus-ce-qui-précède-son-arrivée-2026-09-16) · *Groupes*
 - 5 · [⬜ Quitter l'ancien groupe officiel : proposé après 6 mois, jamais imposé (2026-09-13)](#-quitter-lancien-groupe-officiel--proposé-après-6-mois-jamais-imposé-2026-09-13) · *Groupes* · bloqué
@@ -376,7 +377,7 @@ Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 0 faites
 - [2. Messagerie](#2-messagerie) — 359 à faire, 31 faites
-- [3. Groupes](#3-groupes) — 131 à faire, 0 faites
+- [3. Groupes](#3-groupes) — 133 à faire, 0 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 159 à faire, 4 faites
 - [5. Appels](#5-appels) — 24 à faire, 1 faites
 - [6. Notifications et push](#6-notifications-et-push) — 124 à faire, 6 faites
@@ -3166,6 +3167,22 @@ le même écran (1-à-1, groupe, « Mes notes ») : tester au moins deux d'entre
 # 3. Groupes
 
 Création, invitations, adhésion, membres, modération, sondages et mentions de groupe.
+
+---
+
+## ⬜ Groupe privé : l'invitation fait entrer une fois, l'exclusion tient (2026-10-14)
+
+**Priorité P2** · importance 3/5 — app + migration `20261014110000` poussée.
+
+L'invitation acceptée restait valable pour toujours : une personne exclue (ou
+partie) d'un groupe privé pouvait s'y réinscrire seule. Elle est désormais
+consommée quand l'appartenance prend fin. Et l'app écrit l'adhésion AVANT de
+marquer l'invitation acceptée. Banc : `tools/rls_tests/
+invitation_consommee_au_depart.sql`.
+
+- [ ] A invite B dans un groupe privé ; B accepte depuis « Invitations » :
+      B est membre, l'invitation disparaît de sa liste.
+- [ ] A exclut B, puis le réinvite : B accepte et revient.
 
 ---
 

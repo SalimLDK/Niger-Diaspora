@@ -170,21 +170,28 @@ class GroupRequestSupabaseDataSource implements GroupRequestDataSource {
       final groupId = row['group_id'] as String;
       final inviteeId = row['invitee_id'] as String;
 
-      await _supabase.from('group_invites').update({
-        'status': 'accepted',
-        'responded_at': DateTime.now().toUtc().toIso8601String(),
-      }).eq('id', inviteId);
-
       // Appartenance ecrite dans `group_members`, comme `joinGroup` : c'est la
       // seule source lue au chargement, et le trigger de comptage y est
       // accroche. L'ecriture precedente dans `groups.member_ids` n'ajoutait
       // personne. Pas de fonction SECURITY DEFINER ici : l'invite s'inscrit
       // lui-meme, ce que la policy `group_members_own` autorise deja.
+      //
+      // L'adhesion AVANT le statut. Dans l'autre ordre, une coupure entre les
+      // deux appels laissait l'invitation 'accepted' — sortie de la liste des
+      // invitations en attente — sans que la personne soit membre : pour un
+      // groupe prive, plus aucun bouton ne la faisait entrer. Dans cet ordre,
+      // la meme coupure laisse un membre dont l'invitation reste affichee ;
+      // l'accepter de nouveau est sans effet (upsert).
       await _supabase.from('group_members').upsert({
         'group_id': groupId,
         'user_id': inviteeId,
         'role': 'member',
       }, onConflict: 'group_id,user_id',);
+
+      await _supabase.from('group_invites').update({
+        'status': 'accepted',
+        'responded_at': DateTime.now().toUtc().toIso8601String(),
+      }).eq('id', inviteId);
     } catch (e) {
       throw ServerException(e.toString());
     }
