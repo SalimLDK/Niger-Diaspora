@@ -1267,6 +1267,15 @@ class AdminReportsNotifier extends Notifier<AdminReportsState> {
     }
   }
 
+  /// Supprime le contenu visé par un signalement, et ne le dit que si une
+  /// ligne a réellement disparu.
+  ///
+  /// Avant : `_getTableForType` rendait `null` en silence pour `user`,
+  /// `conversation`, `post`, `comment` et `audio_room`, le `delete` partait
+  /// sans `.select()` (zéro ligne sous RLS, aucune erreur), la fonction
+  /// rendait vrai dans les deux cas et l'auteur recevait « Contenu supprimé »
+  /// pour un contenu toujours en ligne (audit du 2026-10-14, § 8). La
+  /// notification ne part plus qu'après une suppression effective.
   Future<bool> deleteReportedContent(
     String targetType,
     String targetId, {
@@ -1277,18 +1286,39 @@ class AdminReportsNotifier extends Notifier<AdminReportsState> {
     bool notifyUser = true,
   }) async {
     try {
-      final table = _getTableForType(targetType);
-      if (table != null) {
-        await _supabase.from(table).delete().eq('id', targetId);
-
-        await AdminAuditHelper.log(
-          adminId: adminId,
-          adminName: adminName,
-          action: 'delete_content',
-          targetType: targetType,
-          targetId: targetId,
+      final table = _tablesSupprimables[targetType];
+      if (table == null) {
+        final motif =
+            _motifsNonSupprimables[targetType] ??
+            'type de contenu inconnu du panneau';
+        state = state.copyWith(
+          error: 'Suppression impossible pour « $targetType » : $motif.',
         );
+        return false;
       }
+
+      final deleted = await _supabase
+          .from(table)
+          .delete()
+          .eq('id', targetId)
+          .select('id');
+      if ((deleted as List).isEmpty) {
+        state = state.copyWith(
+          error: targetType == 'message'
+              ? 'Message non supprimé : $_aucuneLigne — un message chiffré '
+                    '(MLS) vit dans `mls_messages`, hors de portée du panneau'
+              : 'Contenu non supprimé ($targetType) : $_aucuneLigne',
+        );
+        return false;
+      }
+
+      await AdminAuditHelper.log(
+        adminId: adminId,
+        adminName: adminName,
+        action: 'delete_content',
+        targetType: targetType,
+        targetId: targetId,
+      );
 
       if (notifyUser && reportedUserId != null && reportId != null) {
         await _notifyReportedUser(
@@ -1306,26 +1336,35 @@ class AdminReportsNotifier extends Notifier<AdminReportsState> {
     }
   }
 
-  String? _getTableForType(String type) {
-    switch (type) {
-      case 'message':
-        return 'messages';
-      case 'event':
-        return 'events';
-      case 'group':
-        return 'groups';
-      case 'business':
-        return 'businesses';
-      // Posé par `avis_signaler` ; la policy de retrait laisse l'admin
-      // supprimer, et le déclencheur d'agrégat recalcule la note de la fiche.
-      case 'business_review':
-        return 'business_reviews';
-      case 'product':
-        return 'products';
-      default:
-        return null;
-    }
-  }
+  /// Types de contenu que le panneau sait effacer, et la table de chacun.
+  /// `message` vise `messages` : un message chiffré (MLS) vit dans
+  /// `mls_messages` et n'y sera pas trouvé — la fonction rend alors faux au
+  /// lieu de mentir.
+  static const Map<String, String> _tablesSupprimables = {
+    'message': 'messages',
+    'event': 'events',
+    'group': 'groups',
+    'business': 'businesses',
+    // Posé par `avis_signaler` ; la policy de retrait laisse l'admin
+    // supprimer, et le déclencheur d'agrégat recalcule la note de la fiche.
+    'business_review': 'business_reviews',
+    'product': 'products',
+  };
+
+  /// Types signalables sans table effaçable depuis le panneau, avec le motif
+  /// rendu à l'écran : tous ceux de `ReportTargetType` et du CHECK de
+  /// `reports.target_type` qui ne sont pas dans `_tablesSupprimables`.
+  static const Map<String, String> _motifsNonSupprimables = {
+    'user':
+        "un compte se bannit depuis l'écran Utilisateurs, il ne se "
+        "supprime pas d'ici",
+    'conversation':
+        'une conversation appartient à ses participants ; signalez ses '
+        'messages un par un',
+    'post': 'aucune table « posts » côté Supabase',
+    'comment': 'aucune table « comments » côté Supabase',
+    'audio_room': 'aucune table « audio_rooms » côté Supabase',
+  };
 }
 
 // ============================================================================

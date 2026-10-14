@@ -1293,7 +1293,8 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
     );
 
     if (confirm == true) {
-      await ref.read(adminReportsNotifierProvider.notifier).deleteReportedContent(
+      final notifier = ref.read(adminReportsNotifierProvider.notifier);
+      final supprime = await notifier.deleteReportedContent(
         report.targetType,
         report.targetId,
         adminId: currentAdmin.id,
@@ -1301,7 +1302,16 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
         reportId: report.id,
         reportedUserId: report.reportedUserId,
       );
-      await ref.read(adminReportsNotifierProvider.notifier).resolveReport(
+      if (!supprime) {
+        // Rien n'a disparu (type sans table, refus RLS, cible introuvable) :
+        // ne pas clore le signalement en « contenu supprimé », ni l'annoncer.
+        _showSnackBar(
+          ref.read(adminReportsNotifierProvider).error ?? l10n.deleteError,
+          isError: true,
+        );
+        return;
+      }
+      await notifier.resolveReport(
         report.id,
         l10n.adminContentDeleted,
         'content_deleted',
