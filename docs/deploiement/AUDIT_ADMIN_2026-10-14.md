@@ -549,6 +549,23 @@ Dans l'ordre où chaque étape rend la suivante possible.
    `REVOKE TRUNCATE, REFERENCES, TRIGGER FROM authenticated` sur les sept
    tables du § 6.6, et `REVOKE EXECUTE … FROM anon` sur
    `get_or_create_official_group`.
+
+   **Fait le 2026-10-14, côté Postgres** — migration
+   `20261014050000_admin_garde_users_et_tables_admin.sql`, banc
+   `tools/rls_tests/admin_garde_users_et_tables_admin.sql` (28 cas) : la garde
+   `users_garde_privileges` (ban, badge ; `admin_role`, ban et badge forcés à
+   la création), `users.verified_at`, les policies et `REVOKE`/`GRANT` des
+   trois tables du panneau, `REVOKE EXECUTE … FROM PUBLIC, anon` sur
+   `get_or_create_official_group`, les droits par défaut retirés sur les sept
+   tables. Trouvé en l'écrivant : `admin_audit_logs.admin_id` et
+   `admin_notifications.sent_by` étaient de type `uuid` alors que le panneau
+   envoie l'uid Firebase — l'INSERT tombait en 22P02 avant même la RLS ; la
+   migration les passe en `text` (tables vides). Mesuré en production AVANT
+   (20 cas en échec : le banni se débannit, le compte se vérifie, un compte
+   naît `superAdmin`, `anon` lit `events` et `groups`) et APRÈS en répétition
+   annulée (28/28). À appliquer par `supabase db push`, puis relancer le banc
+   tel quel. Reste du point : le ban appliqué côté serveur (policy
+   restrictive, `auth-firebase-exchange`, `disabled` Firebase).
 3. **Un backend par donnée.** Signalements : faire écrire l'app dans Supabase
    `reports` (et élargir le `CHECK` de `target_type`), ou faire lire Firestore
    au panneau — pas les deux. Même décision pour marketplace et transferts
