@@ -422,7 +422,7 @@ class AdminDashboardNotifier extends Notifier<AdminDashboardState> {
         return false;
       }
 
-      await AdminAuditHelper.log(
+      final echecJournal = await AdminAuditHelper.log(
         adminId: adminId,
         adminName: adminName,
         action: 'force_logout',
@@ -430,6 +430,10 @@ class AdminDashboardNotifier extends Notifier<AdminDashboardState> {
         targetId: userId,
       );
 
+      if (echecJournal != null) {
+        state = state.copyWith(error: echecJournal);
+        return false;
+      }
       return true;
     } catch (e) {
       state = state.copyWith(error: 'Failed to logout user: $e');
@@ -576,7 +580,7 @@ class AdminBusinessNotifier extends Notifier<AdminBusinessState> {
         return false;
       }
 
-      await AdminAuditHelper.log(
+      final echecJournal = await AdminAuditHelper.log(
         adminId: adminId,
         adminName: adminName,
         action: 'verify_business',
@@ -585,6 +589,10 @@ class AdminBusinessNotifier extends Notifier<AdminBusinessState> {
       );
 
       await fetchAllBusinesses();
+      if (echecJournal != null) {
+        state = state.copyWith(error: echecJournal);
+        return false;
+      }
       return true;
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -613,7 +621,7 @@ class AdminBusinessNotifier extends Notifier<AdminBusinessState> {
         return false;
       }
 
-      await AdminAuditHelper.log(
+      final echecJournal = await AdminAuditHelper.log(
         adminId: adminId,
         adminName: adminName,
         action: 'unverify_business',
@@ -622,6 +630,10 @@ class AdminBusinessNotifier extends Notifier<AdminBusinessState> {
       );
 
       await fetchAllBusinesses();
+      if (echecJournal != null) {
+        state = state.copyWith(error: echecJournal);
+        return false;
+      }
       return true;
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -663,7 +675,7 @@ class AdminBusinessNotifier extends Notifier<AdminBusinessState> {
         return false;
       }
 
-      await AdminAuditHelper.log(
+      final echecJournal = await AdminAuditHelper.log(
         adminId: adminId,
         adminName: adminName,
         action: 'toggle_boost',
@@ -673,6 +685,10 @@ class AdminBusinessNotifier extends Notifier<AdminBusinessState> {
       );
 
       await fetchAllBusinesses();
+      if (echecJournal != null) {
+        state = state.copyWith(error: echecJournal);
+        return false;
+      }
       return true;
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -696,7 +712,7 @@ class AdminBusinessNotifier extends Notifier<AdminBusinessState> {
         return false;
       }
 
-      await AdminAuditHelper.log(
+      final echecJournal = await AdminAuditHelper.log(
         adminId: adminId,
         adminName: adminName,
         action: 'delete_business',
@@ -705,6 +721,10 @@ class AdminBusinessNotifier extends Notifier<AdminBusinessState> {
       );
 
       await fetchAllBusinesses();
+      if (echecJournal != null) {
+        state = state.copyWith(error: echecJournal);
+        return false;
+      }
       return true;
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -820,7 +840,7 @@ class AdminContentNotifier extends Notifier<AdminContentState> {
       await CacheService.instance.removeCachedEvent(eventId);
       forgetDeletedEvent(ref, eventId);
 
-      await AdminAuditHelper.log(
+      final echecJournal = await AdminAuditHelper.log(
         adminId: adminId,
         adminName: adminName,
         action: 'delete_event',
@@ -829,6 +849,10 @@ class AdminContentNotifier extends Notifier<AdminContentState> {
       );
 
       await fetchAllContent();
+      if (echecJournal != null) {
+        state = state.copyWith(error: echecJournal);
+        return false;
+      }
       return true;
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -854,7 +878,7 @@ class AdminContentNotifier extends Notifier<AdminContentState> {
         return false;
       }
 
-      await AdminAuditHelper.log(
+      final echecJournal = await AdminAuditHelper.log(
         adminId: adminId,
         adminName: adminName,
         action: 'cancel_event',
@@ -863,6 +887,10 @@ class AdminContentNotifier extends Notifier<AdminContentState> {
       );
 
       await fetchAllContent();
+      if (echecJournal != null) {
+        state = state.copyWith(error: echecJournal);
+        return false;
+      }
       return true;
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -886,7 +914,7 @@ class AdminContentNotifier extends Notifier<AdminContentState> {
         return false;
       }
 
-      await AdminAuditHelper.log(
+      final echecJournal = await AdminAuditHelper.log(
         adminId: adminId,
         adminName: adminName,
         action: 'delete_group',
@@ -895,6 +923,10 @@ class AdminContentNotifier extends Notifier<AdminContentState> {
       );
 
       await fetchAllContent();
+      if (echecJournal != null) {
+        state = state.copyWith(error: echecJournal);
+        return false;
+      }
       return true;
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -924,7 +956,7 @@ class AdminContentNotifier extends Notifier<AdminContentState> {
         return false;
       }
 
-      await AdminAuditHelper.log(
+      final echecJournal = await AdminAuditHelper.log(
         adminId: adminId,
         adminName: adminName,
         action: 'toggle_privacy',
@@ -934,6 +966,10 @@ class AdminContentNotifier extends Notifier<AdminContentState> {
       );
 
       await fetchAllContent();
+      if (echecJournal != null) {
+        state = state.copyWith(error: echecJournal);
+        return false;
+      }
       return true;
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -1162,7 +1198,7 @@ class AdminReportsNotifier extends Notifier<AdminReportsState> {
         return false;
       }
 
-      await AdminAuditHelper.log(
+      final echecJournal = await AdminAuditHelper.log(
         adminId: adminId,
         adminName: adminName,
         action: 'resolve_report',
@@ -1181,6 +1217,10 @@ class AdminReportsNotifier extends Notifier<AdminReportsState> {
       }
 
       await fetchAllReports();
+      if (echecJournal != null) {
+        state = state.copyWith(error: echecJournal);
+        return false;
+      }
       return true;
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -1250,7 +1290,7 @@ class AdminReportsNotifier extends Notifier<AdminReportsState> {
         return false;
       }
 
-      await AdminAuditHelper.log(
+      final echecJournal = await AdminAuditHelper.log(
         adminId: adminId,
         adminName: adminName,
         action: 'dismiss_report',
@@ -1260,6 +1300,10 @@ class AdminReportsNotifier extends Notifier<AdminReportsState> {
       );
 
       await fetchAllReports();
+      if (echecJournal != null) {
+        state = state.copyWith(error: echecJournal);
+        return false;
+      }
       return true;
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -1312,7 +1356,7 @@ class AdminReportsNotifier extends Notifier<AdminReportsState> {
         return false;
       }
 
-      await AdminAuditHelper.log(
+      final echecJournal = await AdminAuditHelper.log(
         adminId: adminId,
         adminName: adminName,
         action: 'delete_content',
@@ -1329,6 +1373,10 @@ class AdminReportsNotifier extends Notifier<AdminReportsState> {
         );
       }
 
+      if (echecJournal != null) {
+        state = state.copyWith(error: echecJournal);
+        return false;
+      }
       return true;
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -1499,7 +1547,7 @@ class AdminMarketplaceNotifier extends Notifier<AdminMarketplaceState> {
         return false;
       }
 
-      await AdminAuditHelper.log(
+      final echecJournal = await AdminAuditHelper.log(
         adminId: adminId,
         adminName: adminName,
         action: 'toggle_product',
@@ -1509,6 +1557,10 @@ class AdminMarketplaceNotifier extends Notifier<AdminMarketplaceState> {
       );
 
       await fetchAllProducts();
+      if (echecJournal != null) {
+        state = state.copyWith(error: echecJournal);
+        return false;
+      }
       return true;
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -1532,7 +1584,7 @@ class AdminMarketplaceNotifier extends Notifier<AdminMarketplaceState> {
         return false;
       }
 
-      await AdminAuditHelper.log(
+      final echecJournal = await AdminAuditHelper.log(
         adminId: adminId,
         adminName: adminName,
         action: 'delete_product',
@@ -1541,6 +1593,10 @@ class AdminMarketplaceNotifier extends Notifier<AdminMarketplaceState> {
       );
 
       await fetchAllProducts();
+      if (echecJournal != null) {
+        state = state.copyWith(error: echecJournal);
+        return false;
+      }
       return true;
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -1573,7 +1629,7 @@ class AdminMarketplaceNotifier extends Notifier<AdminMarketplaceState> {
         return false;
       }
 
-      await AdminAuditHelper.log(
+      final echecJournal = await AdminAuditHelper.log(
         adminId: adminId,
         adminName: adminName,
         action: 'resolve_dispute',
@@ -1583,6 +1639,10 @@ class AdminMarketplaceNotifier extends Notifier<AdminMarketplaceState> {
       );
 
       await fetchDisputes();
+      if (echecJournal != null) {
+        state = state.copyWith(error: echecJournal);
+        return false;
+      }
       return true;
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -1701,7 +1761,7 @@ class AdminUsersNotifier extends Notifier<AdminUsersState> {
           .update({'session_id': newSessionId})
           .eq('id', userId);
 
-      await AdminAuditHelper.log(
+      final echecJournal = await AdminAuditHelper.log(
         adminId: adminId,
         adminName: adminName,
         action: 'ban_user',
@@ -1711,6 +1771,10 @@ class AdminUsersNotifier extends Notifier<AdminUsersState> {
       );
 
       await fetchAllUsers();
+      if (echecJournal != null) {
+        state = state.copyWith(error: echecJournal);
+        return false;
+      }
       return true;
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -1734,7 +1798,7 @@ class AdminUsersNotifier extends Notifier<AdminUsersState> {
         return false;
       }
 
-      await AdminAuditHelper.log(
+      final echecJournal = await AdminAuditHelper.log(
         adminId: adminId,
         adminName: adminName,
         action: 'unban_user',
@@ -1743,6 +1807,10 @@ class AdminUsersNotifier extends Notifier<AdminUsersState> {
       );
 
       await fetchAllUsers();
+      if (echecJournal != null) {
+        state = state.copyWith(error: echecJournal);
+        return false;
+      }
       return true;
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -1761,7 +1829,7 @@ class AdminUsersNotifier extends Notifier<AdminUsersState> {
           .update({'is_admin': true})
           .eq('id', userId);
 
-      await AdminAuditHelper.log(
+      final echecJournal = await AdminAuditHelper.log(
         adminId: adminId,
         adminName: adminName,
         action: 'promote_admin',
@@ -1770,6 +1838,10 @@ class AdminUsersNotifier extends Notifier<AdminUsersState> {
       );
 
       await fetchAllUsers();
+      if (echecJournal != null) {
+        state = state.copyWith(error: echecJournal);
+        return false;
+      }
       return true;
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -1788,7 +1860,7 @@ class AdminUsersNotifier extends Notifier<AdminUsersState> {
           .update({'is_admin': false})
           .eq('id', userId);
 
-      await AdminAuditHelper.log(
+      final echecJournal = await AdminAuditHelper.log(
         adminId: adminId,
         adminName: adminName,
         action: 'demote_admin',
@@ -1797,6 +1869,10 @@ class AdminUsersNotifier extends Notifier<AdminUsersState> {
       );
 
       await fetchAllUsers();
+      if (echecJournal != null) {
+        state = state.copyWith(error: echecJournal);
+        return false;
+      }
       return true;
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -1823,7 +1899,7 @@ class AdminUsersNotifier extends Notifier<AdminUsersState> {
         return false;
       }
 
-      await AdminAuditHelper.log(
+      final echecJournal = await AdminAuditHelper.log(
         adminId: adminId,
         adminName: adminName,
         action: 'verify_profile',
@@ -1832,6 +1908,10 @@ class AdminUsersNotifier extends Notifier<AdminUsersState> {
       );
 
       await fetchAllUsers();
+      if (echecJournal != null) {
+        state = state.copyWith(error: echecJournal);
+        return false;
+      }
       return true;
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -1857,7 +1937,7 @@ class AdminUsersNotifier extends Notifier<AdminUsersState> {
         return false;
       }
 
-      await AdminAuditHelper.log(
+      final echecJournal = await AdminAuditHelper.log(
         adminId: adminId,
         adminName: adminName,
         action: 'revoke_verification',
@@ -1866,6 +1946,10 @@ class AdminUsersNotifier extends Notifier<AdminUsersState> {
       );
 
       await fetchAllUsers();
+      if (echecJournal != null) {
+        state = state.copyWith(error: echecJournal);
+        return false;
+      }
       return true;
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -2056,7 +2140,7 @@ class AdminTransactionsNotifier extends Notifier<AdminTransactionsState> {
         return false;
       }
 
-      await AdminAuditHelper.log(
+      final echecJournal = await AdminAuditHelper.log(
         adminId: adminId,
         adminName: adminName,
         action: 'refund_transaction',
@@ -2066,6 +2150,10 @@ class AdminTransactionsNotifier extends Notifier<AdminTransactionsState> {
       );
 
       await fetchAllTransactions();
+      if (echecJournal != null) {
+        state = state.copyWith(error: echecJournal);
+        return false;
+      }
       return true;
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -2095,7 +2183,7 @@ class AdminTransactionsNotifier extends Notifier<AdminTransactionsState> {
         return false;
       }
 
-      await AdminAuditHelper.log(
+      final echecJournal = await AdminAuditHelper.log(
         adminId: adminId,
         adminName: adminName,
         action: 'complete_transaction',
@@ -2104,6 +2192,10 @@ class AdminTransactionsNotifier extends Notifier<AdminTransactionsState> {
       );
 
       await fetchAllTransactions();
+      if (echecJournal != null) {
+        state = state.copyWith(error: echecJournal);
+        return false;
+      }
       return true;
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -2134,7 +2226,7 @@ class AdminTransactionsNotifier extends Notifier<AdminTransactionsState> {
         return false;
       }
 
-      await AdminAuditHelper.log(
+      final echecJournal = await AdminAuditHelper.log(
         adminId: adminId,
         adminName: adminName,
         action: 'fail_transaction',
@@ -2144,6 +2236,10 @@ class AdminTransactionsNotifier extends Notifier<AdminTransactionsState> {
       );
 
       await fetchAllTransactions();
+      if (echecJournal != null) {
+        state = state.copyWith(error: echecJournal);
+        return false;
+      }
       return true;
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -2434,7 +2530,7 @@ class AdminNotificationNotifier extends Notifier<AdminNotificationState> {
 
       final newId = (inserted as Map)['id'] as String? ?? '';
 
-      await AdminAuditHelper.log(
+      final echecJournal = await AdminAuditHelper.log(
         adminId: adminId,
         adminName: adminName,
         action: 'send_notification',
@@ -2448,6 +2544,10 @@ class AdminNotificationNotifier extends Notifier<AdminNotificationState> {
         successMessage: 'Notification envoyee avec succes',
       );
       await fetchSentNotifications();
+      if (echecJournal != null) {
+        state = state.copyWith(error: echecJournal);
+        return false;
+      }
       return true;
     } catch (e) {
       state = state.copyWith(isSending: false, error: e.toString());
@@ -2483,7 +2583,7 @@ class AdminNotificationNotifier extends Notifier<AdminNotificationState> {
 
       final newId = (inserted as Map)['id'] as String? ?? '';
 
-      await AdminAuditHelper.log(
+      final echecJournal = await AdminAuditHelper.log(
         adminId: adminId,
         adminName: adminName,
         action: 'send_notification',
@@ -2498,6 +2598,10 @@ class AdminNotificationNotifier extends Notifier<AdminNotificationState> {
             'Notification envoyee a ${userIds.length} utilisateurs',
       );
       await fetchSentNotifications();
+      if (echecJournal != null) {
+        state = state.copyWith(error: echecJournal);
+        return false;
+      }
       return true;
     } catch (e) {
       state = state.copyWith(isSending: false, error: e.toString());
@@ -2641,8 +2745,19 @@ class AdminAuditNotifier extends Notifier<AdminAuditState> {
 // AUDIT HELPER - Static utility for logging admin actions
 // ============================================================================
 
+/// Journal d'audit côté Supabase (`admin_audit_logs`).
+///
+/// `log` rend `null` quand la ligne est écrite, sinon le motif lisible, déjà
+/// tracé par `debugPrint`. L'appelant le pose dans son `state.error` et rend
+/// faux : un journal qui échoue doit se voir. Avant, le `catch` était vide,
+/// et la table est sous RLS sans aucune policy (mesuré le 2026-09-20,
+/// reconfirmé le 2026-10-14) : la piste d'audit n'a jamais rien enregistré,
+/// sans qu'aucun écran le montre (audit du 2026-10-14, § 4 et § 5).
+///
+/// L'écriture métier précède toujours l'appel : le motif dit donc que
+/// l'action a eu lieu, et que seule sa trace manque.
 class AdminAuditHelper {
-  static Future<void> log({
+  static Future<String?> log({
     required String adminId,
     String? adminName,
     required String action,
@@ -2659,8 +2774,13 @@ class AdminAuditHelper {
         'target_id': targetId,
         'details': details ?? {},
       });
+      return null;
     } catch (e) {
-      // debugPrint('Failed to log audit action: $e');
+      final motif =
+          'Action « $action » effectuée, mais non journalisée dans '
+          'admin_audit_logs : $e';
+      debugPrint(motif);
+      return motif;
     }
   }
 }
