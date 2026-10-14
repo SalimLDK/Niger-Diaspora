@@ -3161,7 +3161,7 @@
   },
   "adminBuyer": "Acheteur",
   "adminSeller": "Vendeur",
-  "adminRefund": "Rembourser",
+  "adminRefund": "Marquer remboursée",
   "adminGroupsTab": "Groupes ({count})",
   "@adminGroupsTab": {
     "placeholders": {
@@ -6920,7 +6920,7 @@
   "adminMarkCompleteConfirm": "Êtes-vous sûr de vouloir marquer cette transaction comme complétée ?",
   "adminTransactionCompleted": "Transaction complétée",
   "adminRefundReasonLabel": "Raison du remboursement:",
-  "adminTransactionRefunded": "Transaction remboursée",
+  "adminTransactionRefunded": "Transaction marquée remboursée",
   "adminUnknownAdmin": "Admin inconnu",
   "adminUnknownDate": "Date inconnue",
   "adminEventByOrganizer": "Événement par {id}",

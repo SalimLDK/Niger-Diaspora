@@ -376,48 +376,48 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
 
     switch (action) {
       case 'verify':
-        await notifier.verifyBusiness(
+        final ok = await notifier.verifyBusiness(
           business.id,
           adminId: currentAdmin.id,
           adminName: currentAdmin.name,
         );
-        _showSnackBar(l10n.adminBusinessVerified);
+        _montrerBilan(ok, l10n.adminBusinessVerified);
         break;
       case 'unverify':
-        await notifier.unverifyBusiness(
+        final ok = await notifier.unverifyBusiness(
           business.id,
           adminId: currentAdmin.id,
           adminName: currentAdmin.name,
         );
-        _showSnackBar(l10n.adminVerificationRemoved);
+        _montrerBilan(ok, l10n.adminVerificationRemoved);
         break;
       case 'boost':
-        await notifier.toggleBoost(
+        final ok = await notifier.toggleBoost(
           business.id,
           true,
           adminId: currentAdmin.id,
           adminName: currentAdmin.name,
         );
-        _showSnackBar(l10n.adminBusinessBoosted);
+        _montrerBilan(ok, l10n.adminBusinessBoosted);
         break;
       case 'unboost':
-        await notifier.toggleBoost(
+        final ok = await notifier.toggleBoost(
           business.id,
           false,
           adminId: currentAdmin.id,
           adminName: currentAdmin.name,
         );
-        _showSnackBar(l10n.adminBoostRemoved);
+        _montrerBilan(ok, l10n.adminBoostRemoved);
         break;
       case 'delete':
         final confirm = await _showDeleteConfirmation();
         if (confirm == true) {
-          await notifier.deleteBusiness(
+          final ok = await notifier.deleteBusiness(
             business.id,
             adminId: currentAdmin.id,
             adminName: currentAdmin.name,
           );
-          _showSnackBar(l10n.adminBusinessDeleted);
+          _montrerBilan(ok, l10n.adminBusinessDeleted);
         }
         break;
     }
@@ -458,10 +458,27 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
     );
   }
 
-  void _showSnackBar(String message) {
+  /// Le libellé de succès ne s'affiche que si le notifier a rendu vrai ;
+  /// sinon son `state.error` (zéro ligne sous RLS, journal d'audit refusé…).
+  /// Avant, le succès s'affichait quoi qu'il arrive (audit du 2026-10-14,
+  /// § 5).
+  void _montrerBilan(bool ok, String succes) {
+    if (!mounted) return;
+    if (ok) {
+      _showSnackBar(succes);
+      return;
+    }
+    _showSnackBar(
+      ref.read(adminBusinessNotifierProvider).error ?? l10n.loadingError,
+      isError: true,
+    );
+  }
+
+  void _showSnackBar(String message, {bool isError = false}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
+        backgroundColor: isError ? AdminColors.statusRed : null,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),

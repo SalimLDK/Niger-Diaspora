@@ -1164,13 +1164,13 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
       hintText: l10n.adminRejectHint,
     );
     if (reason != null && reason.isNotEmpty) {
-      await ref.read(adminReportsNotifierProvider.notifier).dismissReport(
+      final ok = await ref.read(adminReportsNotifierProvider.notifier).dismissReport(
         report.id,
         reason,
         adminId: currentAdmin.id,
         adminName: currentAdmin.name,
       );
-      _showSnackBar(l10n.adminReportDismissed);
+      _montrerBilan(ok, l10n.adminReportDismissed);
     }
   }
 
@@ -1187,7 +1187,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
       hintText: l10n.adminProcessHint,
     );
     if (note != null) {
-      await ref.read(adminReportsNotifierProvider.notifier).resolveReport(
+      final ok = await ref.read(adminReportsNotifierProvider.notifier).resolveReport(
         report.id,
         note,
         'resolved',
@@ -1195,7 +1195,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
         adminName: currentAdmin.name,
         reportedUserId: report.reportedUserId,
       );
-      _showSnackBar('Signalement traité${report.reportedUserId != null ? ' (utilisateur notifié)' : ''}');
+      _montrerBilan(ok, 'Signalement traité${report.reportedUserId != null ? ' (utilisateur notifié)' : ''}');
     }
   }
 
@@ -1293,7 +1293,8 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
     );
 
     if (confirm == true) {
-      await ref.read(adminReportsNotifierProvider.notifier).deleteReportedContent(
+      final notifier = ref.read(adminReportsNotifierProvider.notifier);
+      final supprime = await notifier.deleteReportedContent(
         report.targetType,
         report.targetId,
         adminId: currentAdmin.id,
@@ -1301,7 +1302,16 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
         reportId: report.id,
         reportedUserId: report.reportedUserId,
       );
-      await ref.read(adminReportsNotifierProvider.notifier).resolveReport(
+      if (!supprime) {
+        // Rien n'a disparu (type sans table, refus RLS, cible introuvable) :
+        // ne pas clore le signalement en « contenu supprimé », ni l'annoncer.
+        _showSnackBar(
+          ref.read(adminReportsNotifierProvider).error ?? l10n.deleteError,
+          isError: true,
+        );
+        return;
+      }
+      final clos = await notifier.resolveReport(
         report.id,
         l10n.adminContentDeleted,
         'content_deleted',
@@ -1310,7 +1320,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
         reportedUserId: null, // Déjà notifié par deleteReportedContent
         notifyUser: false,
       );
-      _showSnackBar('Contenu supprimé${report.reportedUserId != null ? ' (utilisateur notifié)' : ''}');
+      _montrerBilan(clos, 'Contenu supprimé${report.reportedUserId != null ? ' (utilisateur notifié)' : ''}');
     }
   }
 
@@ -1354,6 +1364,22 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
           ),
         ],
       ),
+    );
+  }
+
+  /// Le libellé de succès ne s'affiche que si le notifier a rendu vrai ;
+  /// sinon son `state.error` (zéro ligne sous RLS, journal d'audit refusé…).
+  /// Avant, le succès s'affichait quoi qu'il arrive (audit du 2026-10-14,
+  /// § 5).
+  void _montrerBilan(bool ok, String succes) {
+    if (!mounted) return;
+    if (ok) {
+      _showSnackBar(succes);
+      return;
+    }
+    _showSnackBar(
+      ref.read(adminReportsNotifierProvider).error ?? l10n.loadingError,
+      isError: true,
     );
   }
 

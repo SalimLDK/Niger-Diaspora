@@ -29,6 +29,17 @@ import '../../../transfers/domain/entities/transaction_entity.dart';
 
 SupabaseClient get _supabase => Supabase.instance.client;
 
+/// Suffixe des erreurs « zéro ligne ». PostgREST ne lève rien quand une policy
+/// RLS filtre toutes les lignes d'un `update` ou d'un `delete` : sans
+/// `.select('id')` derrière l'écriture, le refus passait pour un succès, et
+/// l'écran l'annonçait comme tel. Côté Postgres, rembourser, compléter ou
+/// échouer une transaction, désactiver ou supprimer un produit, supprimer un
+/// groupe n'ont aucune policy admin : zéro ligne à chaque fois (audit du
+/// 2026-10-14, § 5). Chaque écriture relit donc `id` et rend faux si vide,
+/// sur le modèle de `deleteEvent`.
+const String _aucuneLigne =
+    'aucune ligne modifiée (droits insuffisants ou cible introuvable)';
+
 // ---------------------------------------------------------------------------
 // Row → camelCase mappers (Supabase snake_case → model fromJson keys)
 // ---------------------------------------------------------------------------
@@ -401,12 +412,17 @@ class AdminDashboardNotifier extends Notifier<AdminDashboardState> {
       // document `users` qu'a son proprietaire, et le refus serait muet.
       final newSessionId =
           '${SessionService.prefixeForceLogout}${DateTime.now().millisecondsSinceEpoch}';
-      await _supabase
+      final updated = await _supabase
           .from('users')
           .update({'session_id': newSessionId})
-          .eq('id', userId);
+          .eq('id', userId)
+          .select('id');
+      if ((updated as List).isEmpty) {
+        state = state.copyWith(error: 'Déconnexion non forcée : $_aucuneLigne');
+        return false;
+      }
 
-      await AdminAuditHelper.log(
+      final echecJournal = await AdminAuditHelper.log(
         adminId: adminId,
         adminName: adminName,
         action: 'force_logout',
@@ -414,6 +430,10 @@ class AdminDashboardNotifier extends Notifier<AdminDashboardState> {
         targetId: userId,
       );
 
+      if (echecJournal != null) {
+        state = state.copyWith(error: echecJournal);
+        return false;
+      }
       return true;
     } catch (e) {
       state = state.copyWith(error: 'Failed to logout user: $e');
@@ -547,15 +567,20 @@ class AdminBusinessNotifier extends Notifier<AdminBusinessState> {
     String? adminName,
   }) async {
     try {
-      await _supabase
+      final updated = await _supabase
           .from('businesses')
           .update({
             'is_verified': true,
             'updated_at': DateTime.now().toUtc().toIso8601String(),
           })
-          .eq('id', businessId);
+          .eq('id', businessId)
+          .select('id');
+      if ((updated as List).isEmpty) {
+        state = state.copyWith(error: 'Entreprise non vérifiée : $_aucuneLigne');
+        return false;
+      }
 
-      await AdminAuditHelper.log(
+      final echecJournal = await AdminAuditHelper.log(
         adminId: adminId,
         adminName: adminName,
         action: 'verify_business',
@@ -564,6 +589,10 @@ class AdminBusinessNotifier extends Notifier<AdminBusinessState> {
       );
 
       await fetchAllBusinesses();
+      if (echecJournal != null) {
+        state = state.copyWith(error: echecJournal);
+        return false;
+      }
       return true;
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -577,15 +606,22 @@ class AdminBusinessNotifier extends Notifier<AdminBusinessState> {
     String? adminName,
   }) async {
     try {
-      await _supabase
+      final updated = await _supabase
           .from('businesses')
           .update({
             'is_verified': false,
             'updated_at': DateTime.now().toUtc().toIso8601String(),
           })
-          .eq('id', businessId);
+          .eq('id', businessId)
+          .select('id');
+      if ((updated as List).isEmpty) {
+        state = state.copyWith(
+          error: 'Vérification non retirée : $_aucuneLigne',
+        );
+        return false;
+      }
 
-      await AdminAuditHelper.log(
+      final echecJournal = await AdminAuditHelper.log(
         adminId: adminId,
         adminName: adminName,
         action: 'unverify_business',
@@ -594,6 +630,10 @@ class AdminBusinessNotifier extends Notifier<AdminBusinessState> {
       );
 
       await fetchAllBusinesses();
+      if (echecJournal != null) {
+        state = state.copyWith(error: echecJournal);
+        return false;
+      }
       return true;
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -622,12 +662,20 @@ class AdminBusinessNotifier extends Notifier<AdminBusinessState> {
         updates['boost_expires_at'] = null;
       }
 
-      await _supabase
+      final updated = await _supabase
           .from('businesses')
           .update(updates)
-          .eq('id', businessId);
+          .eq('id', businessId)
+          .select('id');
+      if ((updated as List).isEmpty) {
+        state = state.copyWith(
+          error: '${boost ? 'Boost non activé' : 'Boost non retiré'} : '
+              '$_aucuneLigne',
+        );
+        return false;
+      }
 
-      await AdminAuditHelper.log(
+      final echecJournal = await AdminAuditHelper.log(
         adminId: adminId,
         adminName: adminName,
         action: 'toggle_boost',
@@ -637,6 +685,10 @@ class AdminBusinessNotifier extends Notifier<AdminBusinessState> {
       );
 
       await fetchAllBusinesses();
+      if (echecJournal != null) {
+        state = state.copyWith(error: echecJournal);
+        return false;
+      }
       return true;
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -650,9 +702,17 @@ class AdminBusinessNotifier extends Notifier<AdminBusinessState> {
     String? adminName,
   }) async {
     try {
-      await _supabase.from('businesses').delete().eq('id', businessId);
+      final deleted = await _supabase
+          .from('businesses')
+          .delete()
+          .eq('id', businessId)
+          .select('id');
+      if ((deleted as List).isEmpty) {
+        state = state.copyWith(error: 'Entreprise non supprimée : $_aucuneLigne');
+        return false;
+      }
 
-      await AdminAuditHelper.log(
+      final echecJournal = await AdminAuditHelper.log(
         adminId: adminId,
         adminName: adminName,
         action: 'delete_business',
@@ -661,6 +721,10 @@ class AdminBusinessNotifier extends Notifier<AdminBusinessState> {
       );
 
       await fetchAllBusinesses();
+      if (echecJournal != null) {
+        state = state.copyWith(error: echecJournal);
+        return false;
+      }
       return true;
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -776,7 +840,7 @@ class AdminContentNotifier extends Notifier<AdminContentState> {
       await CacheService.instance.removeCachedEvent(eventId);
       forgetDeletedEvent(ref, eventId);
 
-      await AdminAuditHelper.log(
+      final echecJournal = await AdminAuditHelper.log(
         adminId: adminId,
         adminName: adminName,
         action: 'delete_event',
@@ -785,6 +849,10 @@ class AdminContentNotifier extends Notifier<AdminContentState> {
       );
 
       await fetchAllContent();
+      if (echecJournal != null) {
+        state = state.copyWith(error: echecJournal);
+        return false;
+      }
       return true;
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -810,7 +878,7 @@ class AdminContentNotifier extends Notifier<AdminContentState> {
         return false;
       }
 
-      await AdminAuditHelper.log(
+      final echecJournal = await AdminAuditHelper.log(
         adminId: adminId,
         adminName: adminName,
         action: 'cancel_event',
@@ -819,6 +887,10 @@ class AdminContentNotifier extends Notifier<AdminContentState> {
       );
 
       await fetchAllContent();
+      if (echecJournal != null) {
+        state = state.copyWith(error: echecJournal);
+        return false;
+      }
       return true;
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -832,9 +904,17 @@ class AdminContentNotifier extends Notifier<AdminContentState> {
     String? adminName,
   }) async {
     try {
-      await _supabase.from('groups').delete().eq('id', groupId);
+      final deleted = await _supabase
+          .from('groups')
+          .delete()
+          .eq('id', groupId)
+          .select('id');
+      if ((deleted as List).isEmpty) {
+        state = state.copyWith(error: 'Groupe non supprimé : $_aucuneLigne');
+        return false;
+      }
 
-      await AdminAuditHelper.log(
+      final echecJournal = await AdminAuditHelper.log(
         adminId: adminId,
         adminName: adminName,
         action: 'delete_group',
@@ -843,6 +923,10 @@ class AdminContentNotifier extends Notifier<AdminContentState> {
       );
 
       await fetchAllContent();
+      if (echecJournal != null) {
+        state = state.copyWith(error: echecJournal);
+        return false;
+      }
       return true;
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -857,15 +941,22 @@ class AdminContentNotifier extends Notifier<AdminContentState> {
     String? adminName,
   }) async {
     try {
-      await _supabase
+      final updated = await _supabase
           .from('groups')
           .update({
             'is_private': isPrivate,
             'updated_at': DateTime.now().toUtc().toIso8601String(),
           })
-          .eq('id', groupId);
+          .eq('id', groupId)
+          .select('id');
+      if ((updated as List).isEmpty) {
+        state = state.copyWith(
+          error: 'Confidentialité du groupe non modifiée : $_aucuneLigne',
+        );
+        return false;
+      }
 
-      await AdminAuditHelper.log(
+      final echecJournal = await AdminAuditHelper.log(
         adminId: adminId,
         adminName: adminName,
         action: 'toggle_privacy',
@@ -875,6 +966,10 @@ class AdminContentNotifier extends Notifier<AdminContentState> {
       );
 
       await fetchAllContent();
+      if (echecJournal != null) {
+        state = state.copyWith(error: echecJournal);
+        return false;
+      }
       return true;
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -1087,7 +1182,7 @@ class AdminReportsNotifier extends Notifier<AdminReportsState> {
     bool notifyUser = true,
   }) async {
     try {
-      await _supabase
+      final updated = await _supabase
           .from('reports')
           .update({
             'status': 'resolved',
@@ -1096,9 +1191,14 @@ class AdminReportsNotifier extends Notifier<AdminReportsState> {
             'reviewed_by': adminId,
             'reviewed_at': DateTime.now().toUtc().toIso8601String(),
           })
-          .eq('id', reportId);
+          .eq('id', reportId)
+          .select('id');
+      if ((updated as List).isEmpty) {
+        state = state.copyWith(error: 'Signalement non traité : $_aucuneLigne');
+        return false;
+      }
 
-      await AdminAuditHelper.log(
+      final echecJournal = await AdminAuditHelper.log(
         adminId: adminId,
         adminName: adminName,
         action: 'resolve_report',
@@ -1117,6 +1217,10 @@ class AdminReportsNotifier extends Notifier<AdminReportsState> {
       }
 
       await fetchAllReports();
+      if (echecJournal != null) {
+        state = state.copyWith(error: echecJournal);
+        return false;
+      }
       return true;
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -1171,7 +1275,7 @@ class AdminReportsNotifier extends Notifier<AdminReportsState> {
     String? adminName,
   }) async {
     try {
-      await _supabase
+      final updated = await _supabase
           .from('reports')
           .update({
             'status': 'dismissed',
@@ -1179,9 +1283,14 @@ class AdminReportsNotifier extends Notifier<AdminReportsState> {
             'reviewed_by': adminId,
             'reviewed_at': DateTime.now().toUtc().toIso8601String(),
           })
-          .eq('id', reportId);
+          .eq('id', reportId)
+          .select('id');
+      if ((updated as List).isEmpty) {
+        state = state.copyWith(error: 'Signalement non rejeté : $_aucuneLigne');
+        return false;
+      }
 
-      await AdminAuditHelper.log(
+      final echecJournal = await AdminAuditHelper.log(
         adminId: adminId,
         adminName: adminName,
         action: 'dismiss_report',
@@ -1191,6 +1300,10 @@ class AdminReportsNotifier extends Notifier<AdminReportsState> {
       );
 
       await fetchAllReports();
+      if (echecJournal != null) {
+        state = state.copyWith(error: echecJournal);
+        return false;
+      }
       return true;
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -1198,6 +1311,15 @@ class AdminReportsNotifier extends Notifier<AdminReportsState> {
     }
   }
 
+  /// Supprime le contenu visé par un signalement, et ne le dit que si une
+  /// ligne a réellement disparu.
+  ///
+  /// Avant : `_getTableForType` rendait `null` en silence pour `user`,
+  /// `conversation`, `post`, `comment` et `audio_room`, le `delete` partait
+  /// sans `.select()` (zéro ligne sous RLS, aucune erreur), la fonction
+  /// rendait vrai dans les deux cas et l'auteur recevait « Contenu supprimé »
+  /// pour un contenu toujours en ligne (audit du 2026-10-14, § 8). La
+  /// notification ne part plus qu'après une suppression effective.
   Future<bool> deleteReportedContent(
     String targetType,
     String targetId, {
@@ -1208,18 +1330,39 @@ class AdminReportsNotifier extends Notifier<AdminReportsState> {
     bool notifyUser = true,
   }) async {
     try {
-      final table = _getTableForType(targetType);
-      if (table != null) {
-        await _supabase.from(table).delete().eq('id', targetId);
-
-        await AdminAuditHelper.log(
-          adminId: adminId,
-          adminName: adminName,
-          action: 'delete_content',
-          targetType: targetType,
-          targetId: targetId,
+      final table = _tablesSupprimables[targetType];
+      if (table == null) {
+        final motif =
+            _motifsNonSupprimables[targetType] ??
+            'type de contenu inconnu du panneau';
+        state = state.copyWith(
+          error: 'Suppression impossible pour « $targetType » : $motif.',
         );
+        return false;
       }
+
+      final deleted = await _supabase
+          .from(table)
+          .delete()
+          .eq('id', targetId)
+          .select('id');
+      if ((deleted as List).isEmpty) {
+        state = state.copyWith(
+          error: targetType == 'message'
+              ? 'Message non supprimé : $_aucuneLigne — un message chiffré '
+                    '(MLS) vit dans `mls_messages`, hors de portée du panneau'
+              : 'Contenu non supprimé ($targetType) : $_aucuneLigne',
+        );
+        return false;
+      }
+
+      final echecJournal = await AdminAuditHelper.log(
+        adminId: adminId,
+        adminName: adminName,
+        action: 'delete_content',
+        targetType: targetType,
+        targetId: targetId,
+      );
 
       if (notifyUser && reportedUserId != null && reportId != null) {
         await _notifyReportedUser(
@@ -1230,6 +1373,10 @@ class AdminReportsNotifier extends Notifier<AdminReportsState> {
         );
       }
 
+      if (echecJournal != null) {
+        state = state.copyWith(error: echecJournal);
+        return false;
+      }
       return true;
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -1237,26 +1384,35 @@ class AdminReportsNotifier extends Notifier<AdminReportsState> {
     }
   }
 
-  String? _getTableForType(String type) {
-    switch (type) {
-      case 'message':
-        return 'messages';
-      case 'event':
-        return 'events';
-      case 'group':
-        return 'groups';
-      case 'business':
-        return 'businesses';
-      // Posé par `avis_signaler` ; la policy de retrait laisse l'admin
-      // supprimer, et le déclencheur d'agrégat recalcule la note de la fiche.
-      case 'business_review':
-        return 'business_reviews';
-      case 'product':
-        return 'products';
-      default:
-        return null;
-    }
-  }
+  /// Types de contenu que le panneau sait effacer, et la table de chacun.
+  /// `message` vise `messages` : un message chiffré (MLS) vit dans
+  /// `mls_messages` et n'y sera pas trouvé — la fonction rend alors faux au
+  /// lieu de mentir.
+  static const Map<String, String> _tablesSupprimables = {
+    'message': 'messages',
+    'event': 'events',
+    'group': 'groups',
+    'business': 'businesses',
+    // Posé par `avis_signaler` ; la policy de retrait laisse l'admin
+    // supprimer, et le déclencheur d'agrégat recalcule la note de la fiche.
+    'business_review': 'business_reviews',
+    'product': 'products',
+  };
+
+  /// Types signalables sans table effaçable depuis le panneau, avec le motif
+  /// rendu à l'écran : tous ceux de `ReportTargetType` et du CHECK de
+  /// `reports.target_type` qui ne sont pas dans `_tablesSupprimables`.
+  static const Map<String, String> _motifsNonSupprimables = {
+    'user':
+        "un compte se bannit depuis l'écran Utilisateurs, il ne se "
+        "supprime pas d'ici",
+    'conversation':
+        'une conversation appartient à ses participants ; signalez ses '
+        'messages un par un',
+    'post': 'aucune table « posts » côté Supabase',
+    'comment': 'aucune table « comments » côté Supabase',
+    'audio_room': 'aucune table « audio_rooms » côté Supabase',
+  };
 }
 
 // ============================================================================
@@ -1376,15 +1532,22 @@ class AdminMarketplaceNotifier extends Notifier<AdminMarketplaceState> {
     String? adminName,
   }) async {
     try {
-      await _supabase
+      final updated = await _supabase
           .from('products')
           .update({
             'is_available': isAvailable,
             'updated_at': DateTime.now().toUtc().toIso8601String(),
           })
-          .eq('id', productId);
+          .eq('id', productId)
+          .select('id');
+      if ((updated as List).isEmpty) {
+        state = state.copyWith(
+          error: 'Disponibilité du produit non modifiée : $_aucuneLigne',
+        );
+        return false;
+      }
 
-      await AdminAuditHelper.log(
+      final echecJournal = await AdminAuditHelper.log(
         adminId: adminId,
         adminName: adminName,
         action: 'toggle_product',
@@ -1394,6 +1557,10 @@ class AdminMarketplaceNotifier extends Notifier<AdminMarketplaceState> {
       );
 
       await fetchAllProducts();
+      if (echecJournal != null) {
+        state = state.copyWith(error: echecJournal);
+        return false;
+      }
       return true;
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -1407,9 +1574,17 @@ class AdminMarketplaceNotifier extends Notifier<AdminMarketplaceState> {
     String? adminName,
   }) async {
     try {
-      await _supabase.from('products').delete().eq('id', productId);
+      final deleted = await _supabase
+          .from('products')
+          .delete()
+          .eq('id', productId)
+          .select('id');
+      if ((deleted as List).isEmpty) {
+        state = state.copyWith(error: 'Produit non supprimé : $_aucuneLigne');
+        return false;
+      }
 
-      await AdminAuditHelper.log(
+      final echecJournal = await AdminAuditHelper.log(
         adminId: adminId,
         adminName: adminName,
         action: 'delete_product',
@@ -1418,6 +1593,10 @@ class AdminMarketplaceNotifier extends Notifier<AdminMarketplaceState> {
       );
 
       await fetchAllProducts();
+      if (echecJournal != null) {
+        state = state.copyWith(error: echecJournal);
+        return false;
+      }
       return true;
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -1433,7 +1612,7 @@ class AdminMarketplaceNotifier extends Notifier<AdminMarketplaceState> {
     String? adminName,
   }) async {
     try {
-      await _supabase
+      final updated = await _supabase
           .from('orders')
           .update({
             'dispute_resolution': resolution,
@@ -1443,9 +1622,14 @@ class AdminMarketplaceNotifier extends Notifier<AdminMarketplaceState> {
             'is_in_dispute': false,
             'has_dispute': false,
           })
-          .eq('id', orderId);
+          .eq('id', orderId)
+          .select('id');
+      if ((updated as List).isEmpty) {
+        state = state.copyWith(error: 'Litige non résolu : $_aucuneLigne');
+        return false;
+      }
 
-      await AdminAuditHelper.log(
+      final echecJournal = await AdminAuditHelper.log(
         adminId: adminId,
         adminName: adminName,
         action: 'resolve_dispute',
@@ -1455,6 +1639,10 @@ class AdminMarketplaceNotifier extends Notifier<AdminMarketplaceState> {
       );
 
       await fetchDisputes();
+      if (echecJournal != null) {
+        state = state.copyWith(error: echecJournal);
+        return false;
+      }
       return true;
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -1548,11 +1736,19 @@ class AdminUsersNotifier extends Notifier<AdminUsersState> {
     String? adminName,
   }) async {
     try {
-      await _supabase.from('users').update({
-        'is_banned': true,
-        'ban_reason': reason,
-        'banned_at': DateTime.now().toUtc().toIso8601String(),
-      }).eq('id', userId);
+      final updated = await _supabase
+          .from('users')
+          .update({
+            'is_banned': true,
+            'ban_reason': reason,
+            'banned_at': DateTime.now().toUtc().toIso8601String(),
+          })
+          .eq('id', userId)
+          .select('id');
+      if ((updated as List).isEmpty) {
+        state = state.copyWith(error: 'Utilisateur non banni : $_aucuneLigne');
+        return false;
+      }
 
       // Ceinture et bretelles : `is_banned` ci-dessus suffit a faire sortir
       // l'appareil (SessionService.doitEjecterSurDecisionAdmin le lit), la
@@ -1565,7 +1761,7 @@ class AdminUsersNotifier extends Notifier<AdminUsersState> {
           .update({'session_id': newSessionId})
           .eq('id', userId);
 
-      await AdminAuditHelper.log(
+      final echecJournal = await AdminAuditHelper.log(
         adminId: adminId,
         adminName: adminName,
         action: 'ban_user',
@@ -1575,6 +1771,10 @@ class AdminUsersNotifier extends Notifier<AdminUsersState> {
       );
 
       await fetchAllUsers();
+      if (echecJournal != null) {
+        state = state.copyWith(error: echecJournal);
+        return false;
+      }
       return true;
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -1588,13 +1788,17 @@ class AdminUsersNotifier extends Notifier<AdminUsersState> {
     String? adminName,
   }) async {
     try {
-      await _supabase.from('users').update({
-        'is_banned': false,
-        'ban_reason': null,
-        'banned_at': null,
-      }).eq('id', userId);
+      final updated = await _supabase
+          .from('users')
+          .update({'is_banned': false, 'ban_reason': null, 'banned_at': null})
+          .eq('id', userId)
+          .select('id');
+      if ((updated as List).isEmpty) {
+        state = state.copyWith(error: 'Utilisateur non débanni : $_aucuneLigne');
+        return false;
+      }
 
-      await AdminAuditHelper.log(
+      final echecJournal = await AdminAuditHelper.log(
         adminId: adminId,
         adminName: adminName,
         action: 'unban_user',
@@ -1603,60 +1807,10 @@ class AdminUsersNotifier extends Notifier<AdminUsersState> {
       );
 
       await fetchAllUsers();
-      return true;
-    } catch (e) {
-      state = state.copyWith(error: e.toString());
-      return false;
-    }
-  }
-
-  Future<bool> promoteToAdmin(
-    String userId, {
-    required String adminId,
-    String? adminName,
-  }) async {
-    try {
-      await _supabase
-          .from('users')
-          .update({'is_admin': true})
-          .eq('id', userId);
-
-      await AdminAuditHelper.log(
-        adminId: adminId,
-        adminName: adminName,
-        action: 'promote_admin',
-        targetType: 'user',
-        targetId: userId,
-      );
-
-      await fetchAllUsers();
-      return true;
-    } catch (e) {
-      state = state.copyWith(error: e.toString());
-      return false;
-    }
-  }
-
-  Future<bool> demoteFromAdmin(
-    String userId, {
-    required String adminId,
-    String? adminName,
-  }) async {
-    try {
-      await _supabase
-          .from('users')
-          .update({'is_admin': false})
-          .eq('id', userId);
-
-      await AdminAuditHelper.log(
-        adminId: adminId,
-        adminName: adminName,
-        action: 'demote_admin',
-        targetType: 'user',
-        targetId: userId,
-      );
-
-      await fetchAllUsers();
+      if (echecJournal != null) {
+        state = state.copyWith(error: echecJournal);
+        return false;
+      }
       return true;
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -1670,12 +1824,20 @@ class AdminUsersNotifier extends Notifier<AdminUsersState> {
     String? adminName,
   }) async {
     try {
-      await _supabase.from('users').update({
-        'is_verified': true,
-        'verified_at': DateTime.now().toUtc().toIso8601String(),
-      }).eq('id', userId);
+      final updated = await _supabase
+          .from('users')
+          .update({
+            'is_verified': true,
+            'verified_at': DateTime.now().toUtc().toIso8601String(),
+          })
+          .eq('id', userId)
+          .select('id');
+      if ((updated as List).isEmpty) {
+        state = state.copyWith(error: 'Profil non vérifié : $_aucuneLigne');
+        return false;
+      }
 
-      await AdminAuditHelper.log(
+      final echecJournal = await AdminAuditHelper.log(
         adminId: adminId,
         adminName: adminName,
         action: 'verify_profile',
@@ -1684,6 +1846,10 @@ class AdminUsersNotifier extends Notifier<AdminUsersState> {
       );
 
       await fetchAllUsers();
+      if (echecJournal != null) {
+        state = state.copyWith(error: echecJournal);
+        return false;
+      }
       return true;
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -1697,12 +1863,19 @@ class AdminUsersNotifier extends Notifier<AdminUsersState> {
     String? adminName,
   }) async {
     try {
-      await _supabase.from('users').update({
-        'is_verified': false,
-        'verified_at': null,
-      }).eq('id', userId);
+      final updated = await _supabase
+          .from('users')
+          .update({'is_verified': false, 'verified_at': null})
+          .eq('id', userId)
+          .select('id');
+      if ((updated as List).isEmpty) {
+        state = state.copyWith(
+          error: 'Vérification non révoquée : $_aucuneLigne',
+        );
+        return false;
+      }
 
-      await AdminAuditHelper.log(
+      final echecJournal = await AdminAuditHelper.log(
         adminId: adminId,
         adminName: adminName,
         action: 'revoke_verification',
@@ -1711,6 +1884,10 @@ class AdminUsersNotifier extends Notifier<AdminUsersState> {
       );
 
       await fetchAllUsers();
+      if (echecJournal != null) {
+        state = state.copyWith(error: echecJournal);
+        return false;
+      }
       return true;
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -1884,7 +2061,7 @@ class AdminTransactionsNotifier extends Notifier<AdminTransactionsState> {
     String? adminName,
   }) async {
     try {
-      await _supabase
+      final updated = await _supabase
           .from('transactions')
           .update({
             'status': 'refunded',
@@ -1892,9 +2069,16 @@ class AdminTransactionsNotifier extends Notifier<AdminTransactionsState> {
             'refunded_by': adminId,
             'refunded_at': DateTime.now().toUtc().toIso8601String(),
           })
-          .eq('id', transactionId);
+          .eq('id', transactionId)
+          .select('id');
+      if ((updated as List).isEmpty) {
+        state = state.copyWith(
+          error: 'Transaction non marquée remboursée : $_aucuneLigne',
+        );
+        return false;
+      }
 
-      await AdminAuditHelper.log(
+      final echecJournal = await AdminAuditHelper.log(
         adminId: adminId,
         adminName: adminName,
         action: 'refund_transaction',
@@ -1904,6 +2088,10 @@ class AdminTransactionsNotifier extends Notifier<AdminTransactionsState> {
       );
 
       await fetchAllTransactions();
+      if (echecJournal != null) {
+        state = state.copyWith(error: echecJournal);
+        return false;
+      }
       return true;
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -1917,16 +2105,23 @@ class AdminTransactionsNotifier extends Notifier<AdminTransactionsState> {
     String? adminName,
   }) async {
     try {
-      await _supabase
+      final updated = await _supabase
           .from('transactions')
           .update({
             'status': 'completed',
             'completed_by': adminId,
             'completed_at': DateTime.now().toUtc().toIso8601String(),
           })
-          .eq('id', transactionId);
+          .eq('id', transactionId)
+          .select('id');
+      if ((updated as List).isEmpty) {
+        state = state.copyWith(
+          error: 'Transaction non marquée complétée : $_aucuneLigne',
+        );
+        return false;
+      }
 
-      await AdminAuditHelper.log(
+      final echecJournal = await AdminAuditHelper.log(
         adminId: adminId,
         adminName: adminName,
         action: 'complete_transaction',
@@ -1935,6 +2130,10 @@ class AdminTransactionsNotifier extends Notifier<AdminTransactionsState> {
       );
 
       await fetchAllTransactions();
+      if (echecJournal != null) {
+        state = state.copyWith(error: echecJournal);
+        return false;
+      }
       return true;
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -1949,16 +2148,23 @@ class AdminTransactionsNotifier extends Notifier<AdminTransactionsState> {
     String? adminName,
   }) async {
     try {
-      await _supabase
+      final updated = await _supabase
           .from('transactions')
           .update({
             'status': 'failed',
             'failure_reason': reason,
             'failed_by': adminId,
           })
-          .eq('id', transactionId);
+          .eq('id', transactionId)
+          .select('id');
+      if ((updated as List).isEmpty) {
+        state = state.copyWith(
+          error: 'Transaction non marquée échouée : $_aucuneLigne',
+        );
+        return false;
+      }
 
-      await AdminAuditHelper.log(
+      final echecJournal = await AdminAuditHelper.log(
         adminId: adminId,
         adminName: adminName,
         action: 'fail_transaction',
@@ -1968,6 +2174,10 @@ class AdminTransactionsNotifier extends Notifier<AdminTransactionsState> {
       );
 
       await fetchAllTransactions();
+      if (echecJournal != null) {
+        state = state.copyWith(error: echecJournal);
+        return false;
+      }
       return true;
     } catch (e) {
       state = state.copyWith(error: e.toString());
@@ -2258,7 +2468,7 @@ class AdminNotificationNotifier extends Notifier<AdminNotificationState> {
 
       final newId = (inserted as Map)['id'] as String? ?? '';
 
-      await AdminAuditHelper.log(
+      final echecJournal = await AdminAuditHelper.log(
         adminId: adminId,
         adminName: adminName,
         action: 'send_notification',
@@ -2272,6 +2482,10 @@ class AdminNotificationNotifier extends Notifier<AdminNotificationState> {
         successMessage: 'Notification envoyee avec succes',
       );
       await fetchSentNotifications();
+      if (echecJournal != null) {
+        state = state.copyWith(error: echecJournal);
+        return false;
+      }
       return true;
     } catch (e) {
       state = state.copyWith(isSending: false, error: e.toString());
@@ -2307,7 +2521,7 @@ class AdminNotificationNotifier extends Notifier<AdminNotificationState> {
 
       final newId = (inserted as Map)['id'] as String? ?? '';
 
-      await AdminAuditHelper.log(
+      final echecJournal = await AdminAuditHelper.log(
         adminId: adminId,
         adminName: adminName,
         action: 'send_notification',
@@ -2322,6 +2536,10 @@ class AdminNotificationNotifier extends Notifier<AdminNotificationState> {
             'Notification envoyee a ${userIds.length} utilisateurs',
       );
       await fetchSentNotifications();
+      if (echecJournal != null) {
+        state = state.copyWith(error: echecJournal);
+        return false;
+      }
       return true;
     } catch (e) {
       state = state.copyWith(isSending: false, error: e.toString());
@@ -2465,8 +2683,19 @@ class AdminAuditNotifier extends Notifier<AdminAuditState> {
 // AUDIT HELPER - Static utility for logging admin actions
 // ============================================================================
 
+/// Journal d'audit côté Supabase (`admin_audit_logs`).
+///
+/// `log` rend `null` quand la ligne est écrite, sinon le motif lisible, déjà
+/// tracé par `debugPrint`. L'appelant le pose dans son `state.error` et rend
+/// faux : un journal qui échoue doit se voir. Avant, le `catch` était vide,
+/// et la table est sous RLS sans aucune policy (mesuré le 2026-09-20,
+/// reconfirmé le 2026-10-14) : la piste d'audit n'a jamais rien enregistré,
+/// sans qu'aucun écran le montre (audit du 2026-10-14, § 4 et § 5).
+///
+/// L'écriture métier précède toujours l'appel : le motif dit donc que
+/// l'action a eu lieu, et que seule sa trace manque.
 class AdminAuditHelper {
-  static Future<void> log({
+  static Future<String?> log({
     required String adminId,
     String? adminName,
     required String action,
@@ -2483,8 +2712,13 @@ class AdminAuditHelper {
         'target_id': targetId,
         'details': details ?? {},
       });
+      return null;
     } catch (e) {
-      // debugPrint('Failed to log audit action: $e');
+      final motif =
+          'Action « $action » effectuée, mais non journalisée dans '
+          'admin_audit_logs : $e';
+      debugPrint(motif);
+      return motif;
     }
   }
 }
