@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1399 cases à cocher, 55 cochées** — 322 entrées sur 336 ont encore des cases ouvertes.
+**1403 cases à cocher, 55 cochées** — 323 entrées sur 337 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -234,7 +234,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (98)
+**P2 — fonction secondaire ou cas limite** (99)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -277,6 +277,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ Les deux bandeaux de clés retirés : ils promettaient faux (2026-09-16)](#-les-deux-bandeaux-de-clés-retirés--ils-promettaient-faux-2026-09-16) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ L'expéditeur MLS datait lui-même ses propres messages (2026-09-15)](#-lexpéditeur-mls-datait-lui-même-ses-propres-messages-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 4 · [⬜ L'appartenance MLS se réconcilie au moment du changement (phase 8, 2026-09-15)](#-lappartenance-mls-se-réconcilie-au-moment-du-changement-phase-8-2026-09-15) · *Chiffrement de bout en bout et clés*
+- 4 · [⬜ Appel de groupe réservé aux invités ; un départ ne termine plus l'appel de tous (2026-10-14)](#-appel-de-groupe-réservé-aux-invités--un-départ-ne-termine-plus-lappel-de-tous-2026-10-14) · *Appels*
 - 3 · [⬜ Écran Notifications : une demande d'ami sans nom, et une ligne vide (2026-09-22)](#-écran-notifications--une-demande-dami-sans-nom-et-une-ligne-vide-2026-09-22) · *Notifications et push*
 - 16 · [⬜ Notifications lues à l'ouverture de leur écran : profil, groupe, commandes, fiche, mentions (2026-09-19)](#-notifications-lues-à-louverture-de-leur-écran--profil-groupe-commandes-fiche-mentions-2026-09-19) · *Notifications et push*
 - 5 · [⬜ Cycle de vie d'une demande d'ami : six trous soldés (2026-09-15)](#-cycle-de-vie-dune-demande-dami--six-trous-soldés-2026-09-15) · *Notifications et push* · bloqué
@@ -383,7 +384,7 @@ Par domaine :
 - [2. Messagerie](#2-messagerie) — 359 à faire, 31 faites
 - [3. Groupes](#3-groupes) — 141 à faire, 0 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 159 à faire, 4 faites
-- [5. Appels](#5-appels) — 29 à faire, 1 faites
+- [5. Appels](#5-appels) — 33 à faire, 1 faites
 - [6. Notifications et push](#6-notifications-et-push) — 124 à faire, 6 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 36 à faire, 0 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 63 à faire, 0 faites
@@ -5715,6 +5716,27 @@ trafic : à investiguer.
 # 5. Appels
 
 Appels 1:1 et de groupe : signalisation, bulle d'appel, WebRTC/TURN.
+
+---
+
+## ⬜ Appel de groupe réservé aux invités ; un départ ne termine plus l'appel de tous (2026-10-14)
+
+**Priorité P2** · importance 3/5 — app ; règles cibles à déployer APRÈS ;
+**à faire à la réactivation des appels de groupe**.
+
+L'hôte pose désormais dans RTDB la liste des invités ; les règles cibles
+(`database.rules.strict-cible.json`) n'ouvrent l'appel qu'à eux. Avant,
+quiconque connaissait l'identifiant s'y inscrivait, lisait la signalisation et
+recevait les flux. Un départ supprimait aussi tout le nœud de l'appel : tout le
+monde était coupé. La couche de chiffrement de groupe, cassée (clé jamais
+relue, badge affiché en salle sans chiffrement), est éteinte. Banc :
+`tools/rules_tests/signalisation_appels.mjs` (bloc 4).
+
+- [ ] A lance un appel de groupe avec B et C (maillage, moins de 5) : tous
+      s'entendent et se voient, sur les règles DÉPLOYÉES.
+- [ ] B quitte : A et C restent en appel.
+- [ ] Même parcours après déploiement de la cible RTDB.
+- [ ] L'écran n'affiche plus de badge « chiffré » ni de code de vérification.
 
 ---
 

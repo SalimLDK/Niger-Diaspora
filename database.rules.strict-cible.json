@@ -123,22 +123,22 @@
         },
         "group_calls": {
             "$callId": {
-                ".read": "auth != null && (data.child('participants').child(auth.uid).exists() || data.child('hostId').val() === auth.uid)",
-                ".write": "auth != null && (data.child('participants').child(auth.uid).exists() || data.child('hostId').val() === auth.uid)",
+                ".read": "auth != null && (data.child('allowed').child(auth.uid).val() === true || data.child('hostId').val() === auth.uid)",
+                ".write": "auth != null && (data.child('hostId').val() === auth.uid || (!data.exists() && newData.child('hostId').val() === auth.uid))",
                 "participants": {
                     ".indexOn": [
                         "joinedAt"
                     ],
                     "$participantId": {
-                        ".write": "auth != null && $participantId === auth.uid",
+                        ".write": "auth != null && $participantId === auth.uid && (!newData.exists() || newData.parent().parent().child('allowed').child(auth.uid).val() === true || newData.parent().parent().child('hostId').val() === auth.uid)",
                         ".validate": "newData.hasChildren(['joinedAt']) || !newData.exists()"
                     }
                 },
                 "signaling": {
                     "$fromId": {
                         "$toId": {
-                            ".read": "auth != null && ($fromId === auth.uid || $toId === auth.uid)",
-                            ".write": "auth != null && ($fromId === auth.uid || $toId === auth.uid)",
+                            ".read": "auth != null && ($fromId === auth.uid || $toId === auth.uid) && (root.child('group_calls').child($callId).child('allowed').child(auth.uid).val() === true || root.child('group_calls').child($callId).child('hostId').val() === auth.uid)",
+                            ".write": "auth != null && ($fromId === auth.uid || $toId === auth.uid) && (root.child('group_calls').child($callId).child('allowed').child(auth.uid).val() === true || root.child('group_calls').child($callId).child('hostId').val() === auth.uid)",
                             "offer": {
                                 ".validate": "newData.hasChildren(['type', 'sdp'])"
                             },
@@ -149,13 +149,14 @@
                     }
                 },
                 "e2ee_key": {
-                    ".read": "auth != null && (data.parent().child('participants').child(auth.uid).exists() || data.parent().child('hostId').val() === auth.uid)",
-                    ".write": "auth != null && (!data.exists() || data.parent().child('hostId').val() === auth.uid)",
+                    ".read": "auth != null && (data.parent().child('allowed').child(auth.uid).val() === true || data.parent().child('hostId').val() === auth.uid)",
+                    ".write": "auth != null && data.parent().child('hostId').val() === auth.uid",
                     ".validate": "newData.hasChildren(['keyId', 'encryptedKey'])"
                 },
                 "hostId": {
                     ".read": "auth != null",
-                    ".validate": "newData.isString()"
+                    ".write": "auth != null && !data.exists() && newData.val() === auth.uid",
+                    ".validate": "newData.isString() && (!data.exists() || newData.val() === data.val())"
                 },
                 "status": {
                     ".read": "auth != null",
@@ -168,6 +169,12 @@
                 "maxParticipants": {
                     ".read": "auth != null",
                     ".validate": "newData.isNumber() && newData.val() >= 2 && newData.val() <= 50"
+                },
+                "allowed": {
+                    "$uid": {
+                        ".write": "auth != null && newData.parent().parent().child('hostId').val() === auth.uid",
+                        ".validate": "newData.isBoolean()"
+                    }
                 }
             }
         },

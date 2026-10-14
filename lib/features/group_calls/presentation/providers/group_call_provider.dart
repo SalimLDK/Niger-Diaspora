@@ -19,6 +19,27 @@ import '../../../calls/domain/entities/call_entity.dart';
 /// Threshold for switching from mesh to SFU
 const int meshToSfuThreshold = 5;
 
+/// Couche de chiffrement « de groupe » par-dessus WebRTC : désactivée tant
+/// qu'elle n'a pas été refaite (audit du 2026-10-14).
+///
+/// Telle qu'écrite, elle ne pouvait pas marcher et trompait l'usager :
+///   · maillage : chaque arrivant générait SA clé et écrasait celle des
+///     autres dans RTDB, et rien ne relisait la clé partagée — avec la
+///     couche active, personne ne déchiffrait le son ni l'image des autres ;
+///   · la clé partagée était « enveloppée » avec une clé dérivée de
+///     l'identifiant de l'appel et de la liste des participants — rien de
+///     secret — et l'enveloppe utilisait un sel aléatoire jamais stocké, alors
+///     que l'ouverture en attendait un fixe : elle échouait toujours ;
+///   · salle (LiveKit) : aucune clé n'était passée, le média n'était donc PAS
+///     chiffré de bout en bout, mais l'écran affichait le badge et un code de
+///     vérification.
+///
+/// Sans elle, un appel en maillage reste chiffré de bout en bout par WebRTC
+/// lui-même (DTLS-SRTP, de pair à pair, sans serveur média). Un appel en salle
+/// passe par le serveur LiveKit, qui voit le média : l'écran ne prétend plus
+/// le contraire. À rebrancher avec des clés par destinataire (appareils MLS).
+const bool chiffrementDeGroupeDisponible = false;
+
 /// Provider for GroupCallService (mesh)
 final groupCallServiceProvider = Provider<GroupCallService>((ref) {
   return GroupCallService.instance;
@@ -74,7 +95,7 @@ class GroupCallState {
     this.isCameraOff = true,
     this.isScreenSharing = false,
     this.isVideo = false,
-    this.isE2EEEnabled = true,
+    this.isE2EEEnabled = false,
     this.e2eeVerificationCode,
     this.speakingParticipantIds = const {},
     this.duration,
@@ -183,6 +204,7 @@ class CurrentGroupCallNotifier extends Notifier<GroupCallState> {
     required GroupCallType type,
     bool enableE2EE = true,
   }) async {
+    enableE2EE = enableE2EE && chiffrementDeGroupeDisponible;
     final currentUser = await ref.read(currentUserAsyncProvider.future);
     if (currentUser == null) {
       state = state.copyWith(error: 'Utilisateur non connecté');
@@ -300,7 +322,7 @@ class CurrentGroupCallNotifier extends Notifier<GroupCallState> {
         type: callType.name,
         status: 'active',
         mode: mode.name,
-        isE2EEEnabled: true,
+        isE2EEEnabled: chiffrementDeGroupeDisponible,
         createdAt: DateTime.now().toUtc().toIso8601String(),
       );
 
@@ -310,7 +332,10 @@ class CurrentGroupCallNotifier extends Notifier<GroupCallState> {
 
       final callEntity = callModel.copyWith(id: docRef.id).toEntity();
 
-      state = state.copyWith(call: callEntity, isE2EEEnabled: true);
+      state = state.copyWith(
+        call: callEntity,
+        isE2EEEnabled: chiffrementDeGroupeDisponible,
+      );
 
       // Join the call with existing stream (mesh only for now)
       if (mode == GroupCallMode.mesh) {
@@ -318,7 +343,7 @@ class CurrentGroupCallNotifier extends Notifier<GroupCallState> {
           callEntity: callEntity,
           userId: currentUser.id,
           existingLocalStream: existingLocalStream,
-          enableE2EE: true,
+          enableE2EE: chiffrementDeGroupeDisponible,
         );
       } else {
         // For SFU, we need to handle differently (future enhancement)
@@ -326,7 +351,7 @@ class CurrentGroupCallNotifier extends Notifier<GroupCallState> {
           callEntity: callEntity,
           displayName: currentUser.displayName ?? 'Utilisateur',
           enableVideo: callType == GroupCallType.video,
-          enableE2EE: true,
+          enableE2EE: chiffrementDeGroupeDisponible,
         );
       }
 
@@ -392,6 +417,7 @@ class CurrentGroupCallNotifier extends Notifier<GroupCallState> {
       userId: userId,
       participantIds: callEntity.participantIds,
       existingLocalStream: existingLocalStream,
+      hostId: callEntity.hostId,
       enableE2EE: enableE2EE,
       onRemoteStream: (participantId, stream) {
         final newStreams = Map<String, MediaStream>.from(state.remoteStreams);
@@ -517,7 +543,8 @@ class CurrentGroupCallNotifier extends Notifier<GroupCallState> {
       state = state.copyWith(
         call: callEntity,
         mode: callEntity.mode,
-        isE2EEEnabled: callEntity.isE2EEEnabled,
+        isE2EEEnabled:
+            callEntity.isE2EEEnabled && chiffrementDeGroupeDisponible,
       );
 
       // Add user to participant list
@@ -532,7 +559,7 @@ class CurrentGroupCallNotifier extends Notifier<GroupCallState> {
         oderId: currentUser.id,
         displayName: currentUser.displayName ?? 'Utilisateur',
         enableVideo: enableVideo || callEntity.type == GroupCallType.video,
-        enableE2EE: callEntity.isE2EEEnabled,
+        enableE2EE: callEntity.isE2EEEnabled && chiffrementDeGroupeDisponible,
       );
 
       return true;
@@ -600,6 +627,7 @@ class CurrentGroupCallNotifier extends Notifier<GroupCallState> {
       callId: callEntity.id,
       oderId: oderId,
       participantIds: callEntity.participantIds,
+      hostId: callEntity.hostId,
       enableVideo: enableVideo,
       enableE2EE: enableE2EE,
       onRemoteStream: (participantId, stream) {
@@ -920,9 +948,19 @@ class CurrentGroupCallNotifier extends Notifier<GroupCallState> {
         }
       }
 
-      // Cleanup RTDB signaling data for mesh calls
-      if (state.mode == GroupCallMode.mesh) {
-        await _database.ref('group_calls/$callId').remove();
+      // Le nœud RTDB de l'appel n'est supprimé que par l'hôte qui le
+      // termine. Le supprimer à chaque départ terminait l'appel pour tout le
+      // monde : chacun recevait `onChildRemoved` pour tous les autres,
+      // coupait ses liaisons, et le dernier marquait l'appel terminé. Chacun
+      // retire sa propre inscription (GroupCallService.leaveCall).
+      if (state.mode == GroupCallMode.mesh &&
+          currentUser != null &&
+          state.call!.isHost(currentUser.id)) {
+        final doc =
+            await _firestore.collection('group_calls').doc(callId).get();
+        if ((doc.data()?['status'] as String?) == 'ended') {
+          await _database.ref('group_calls/$callId').remove();
+        }
       }
     } catch (e) {
       debugPrint('GroupCallProvider: Error leaving call: $e');

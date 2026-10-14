@@ -72,4 +72,42 @@ void main() {
     expect(garde, isNot(-1));
     expect(garde, lessThan(c.indexOf("'app_restart_cleanup'")));
   });
+
+  test('appel de groupe : l\'hôte pose la liste des invités avant de s\'inscrire', () {
+    final source = lire('lib/core/services/group_call_service.dart');
+    for (final signature in [
+      'Future<void> joinCall({',
+      'Future<void> joinCallWithExistingStream({',
+    ]) {
+      final c = corps(source, signature);
+      final pose = c.indexOf('_poserHoteEtInvites(');
+      expect(pose, isNot(-1), reason: signature);
+      expect(pose, lessThan(c.indexOf('await _registerParticipant(')),
+          reason: signature);
+    }
+    expect(source, contains("for (final id in {...participantIds, hostId}) 'allowed/\$id': true"));
+  });
+
+  test('appel de groupe : un départ ne supprime plus l\'appel de tous', () {
+    final c = corps(
+      lire('lib/features/group_calls/presentation/providers/group_call_provider.dart'),
+      'Future<void> leaveCall(',
+    );
+    final suppression = c.indexOf("_database.ref('group_calls/\$callId').remove()");
+    expect(suppression, isNot(-1));
+    final garde = c.lastIndexOf('isHost(currentUser.id)', suppression);
+    expect(garde, isNot(-1), reason: 'suppression réservée à l\'hôte');
+    final termine = c.indexOf("== 'ended'", garde);
+    expect(termine, isNot(-1), reason: 'et à un appel terminé');
+    expect(termine, lessThan(suppression));
+  });
+
+  test('la couche de chiffrement de groupe cassée est éteinte', () {
+    final source = lire(
+      'lib/features/group_calls/presentation/providers/group_call_provider.dart',
+    );
+    expect(source, contains('const bool chiffrementDeGroupeDisponible = false;'));
+    expect(source, isNot(contains('isE2EEEnabled: true')));
+    expect(source, isNot(contains('enableE2EE: true')));
+  });
 }

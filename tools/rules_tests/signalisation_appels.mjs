@@ -161,6 +161,17 @@ function constater(intitule, obtenu) {
     const ecouteAvant = constater(
         "lire participants SANS y etre inscrit",
         await lire("group_calls/GC/participants", A));
+    // 2026-10-14 : l'hote pose `hostId` et la liste des invites, exactement
+    // comme `GroupCallService._poserHoteEtInvites` — une ecriture
+    // multi-chemins ; refusee (regles deployees), il s'inscrit d'abord et
+    // recommence. Le meme client marche sous les deux jeux de regles.
+    const invites = { hostId: "userA", "allowed/userA": true, "allowed/userB": true };
+    let hotePose = await ecrire("group_calls/GC", A, invites, "PATCH");
+    if (!hotePose.ok) {
+        await ecrire("group_calls/GC/participants/userA", A, { joinedAt: 1 });
+        hotePose = await ecrire("group_calls/GC", A, invites, "PATCH");
+    }
+    exiger("l'hote pose hostId et la liste des invites", hotePose, true);
     exiger("l'hote s'inscrit comme participant",
         await ecrire("group_calls/GC/participants/userA", A, { joinedAt: 1 }), true);
     exiger("l'hote lit participants apres inscription",
@@ -177,6 +188,15 @@ function constater(intitule, obtenu) {
             { type: "answer", sdp: "v=0" }), true);
     constater("un tiers lit la signalisation de A vers B",
         await lire("group_calls/GC/signaling/userA/userB/offer", C));
+    // 2026-10-14 : l'etranger qui connait l'identifiant de l'appel.
+    const etrangerInscrit = constater("un ETRANGER s'inscrit dans l'appel",
+        await ecrire("group_calls/GC/participants/userC", C, { joinedAt: 3 }));
+    const etrangerLit = constater("... puis lit tout l'appel",
+        await lire("group_calls/GC", C));
+    const etrangerHote = constater("un participant se fait hote (hostId reecrit)",
+        await ecrire("group_calls/GC/hostId", B, "userB"));
+    const etrangerEfface = constater("un participant supprime l'appel",
+        await ecrire("group_calls/GC", B, null));
 
     // ------------------------------------------------------------------
     // La cle E2EE d'un appel. Son `.write` commence par `!data.exists()`, ce
@@ -217,6 +237,15 @@ function constater(intitule, obtenu) {
         console.log("    2026-08-06 dans group_call_service.dart, mais un APK");
         console.log("    anterieur ecoute d'abord — sa detection des arrivees");
         console.log("    mourrait en silence. Ne deployer qu'apres un nouveau build.");
+    }
+    if (etrangerInscrit || etrangerLit || etrangerHote || etrangerEfface) {
+        console.log("  🔴 Appel de groupe ouvert :" +
+            (etrangerInscrit ? " un etranger s'y inscrit." : "") +
+            (etrangerLit ? " il lit tout l'appel." : "") +
+            (etrangerHote ? " un participant devient hote." : "") +
+            (etrangerEfface ? " un participant supprime l'appel." : ""));
+    } else {
+        console.log("  Appel de groupe : reserve aux invites de l'hote.");
     }
     console.log(echecs === 0
         ? "  Parcours nominal : INTACT"

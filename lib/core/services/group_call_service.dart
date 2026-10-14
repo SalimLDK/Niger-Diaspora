@@ -109,6 +109,7 @@ class GroupCallService {
     required String callId,
     required String oderId,
     required List<String> participantIds,
+    String? hostId,
     bool enableVideo = false,
     bool enableE2EE = true,
     OnRemoteStreamCallback? onRemoteStream,
@@ -150,6 +151,9 @@ class GroupCallService {
       //
       // S'inscrire d'abord ne fait rien perdre : `onChildAdded` emet aussi
       // pour les enfants deja presents.
+      if (hostId != null && hostId == oderId) {
+        await _poserHoteEtInvites(callId, hostId, participantIds);
+      }
       await _registerParticipant(callId, oderId);
 
       // Listen for new participants joining
@@ -186,6 +190,7 @@ class GroupCallService {
     required String userId,
     required List<String> participantIds,
     required MediaStream existingLocalStream,
+    String? hostId,
     bool enableE2EE = true,
     OnRemoteStreamCallback? onRemoteStream,
     OnParticipantLeftCallback? onParticipantLeft,
@@ -233,6 +238,9 @@ class GroupCallService {
       // S'inscrire AVANT d'ecouter — meme raison qu'au-dessus : sous des regles
       // qui reservent la lecture aux participants, ecouter avant de s'inscrire
       // est refuse et la detection des arrivees meurt en silence.
+      if (hostId != null && hostId == userId) {
+        await _poserHoteEtInvites(callId, hostId, participantIds);
+      }
       await _registerParticipant(callId, userId);
 
       // Listen for new participants joining
@@ -305,6 +313,38 @@ class GroupCallService {
     });
 
     debugPrint('GroupCallService: E2EE key shared');
+  }
+
+  /// L'hôte pose dans RTDB son identité et la liste des invités.
+  ///
+  /// Les règles cibles (database.rules.strict-cible.json) n'ouvrent
+  /// `group_calls/<id>` qu'aux invités de cette liste, que seul l'hôte écrit,
+  /// sous un `hostId` qui ne change plus une fois posé. Avant, quiconque
+  /// connaissait l'identifiant d'un appel s'y inscrivait — et lisait sa
+  /// signalisation, recevait les flux des participants, remplaçait la clé ou
+  /// supprimait l'appel.
+  ///
+  /// Une seule écriture multi-chemins, que les règles cibles acceptent telle
+  /// quelle. Les règles déployées aujourd'hui exigent au contraire d'être
+  /// inscrit avant d'écrire au niveau de l'appel : en cas de refus, on
+  /// s'inscrit d'abord puis on recommence. Le même client marche donc avant et
+  /// après le déploiement des règles.
+  Future<void> _poserHoteEtInvites(
+    String callId,
+    String hostId,
+    List<String> participantIds,
+  ) async {
+    final callRef = _database.ref('group_calls/$callId');
+    final maj = <String, Object>{
+      'hostId': hostId,
+      for (final id in {...participantIds, hostId}) 'allowed/$id': true,
+    };
+    try {
+      await callRef.update(maj);
+    } catch (_) {
+      await _registerParticipant(callId, hostId);
+      await callRef.update(maj);
+    }
   }
 
   /// Register as a participant in Firebase
@@ -724,11 +764,17 @@ class GroupCallService {
   Future<void> leaveCall() async {
     debugPrint('GroupCallService: Leaving call');
 
-    // Remove ourselves from participants
+    // Remove ourselves from participants. Best effort : hors ligne, cette
+    // écriture lève, et la levée sautait tout ce qui suit — micro et caméra
+    // restaient allumés après « Quitter ».
     if (_currentCallId != null && _currentUserId != null) {
-      await _database
-          .ref('group_calls/$_currentCallId/participants/$_currentUserId')
-          .remove();
+      try {
+        await _database
+            .ref('group_calls/$_currentCallId/participants/$_currentUserId')
+            .remove();
+      } catch (e) {
+        debugPrint('GroupCallService: retrait de participants échoué: $e');
+      }
     }
 
     // Cancel all signaling subscriptions
