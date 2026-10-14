@@ -112,8 +112,11 @@ App Check en reCAPTCHA v3, puis `runApp(AdminApp())`.
   `supportedLocales`). `AppLocalizations.of` est nullable
   (`lib/l10n/app_localizations.dart:70-71`) et l'écran de connexion le
   déréférence (`admin_login_screen.dart:20`) : écran rouge avant même le
-  premier champ. Le test `admin_login_signout_test.dart:64-71` monte l'écran
-  avec les délégués, d'où un vert trompeur.
+  premier champ. **Mesuré le 2026-10-14** par un test widget jetable qui
+  monte `ProviderScope(child: AdminApp())` tel quel : première image,
+  `Null check operator used on a null value`. Le test
+  `admin_login_signout_test.dart:64-71` monte l'écran avec les délégués,
+  d'où un vert trompeur.
 - **Aucune cible d'hébergement** : `firebase.json` n'a que les deux sites
   marketing (`diaspo-niger`, `diasponiger`), `public: "public"`, et `/admin`
   y est réécrit vers la page marketing. Aucun script, aucun document ne
@@ -481,9 +484,10 @@ vérifier l'existence (prise de contrôle d'un appel de groupe par son nom), et
   console).
 - **Où, et si, le panneau web a déjà été servi.** Rien dans le dépôt ne le
   dit.
-- Je n'ai pas lancé le panneau (`flutter run -d chrome -t
-  lib/features/admin/main.dart`) : les deux causes du § 1 se lisent dans le
-  code, mais une exécution confirmerait l'ordre dans lequel elles frappent.
+- Je n'ai pas lancé le panneau dans un navigateur (`flutter run -d chrome -t
+  lib/features/admin/main.dart`) : le plantage de localisation du § 1 est
+  mesuré en test widget ; l'absence de `Supabase.initialize` frapperait
+  juste derrière, à la première requête.
 
 ## 10. Plan de remédiation proposé
 
