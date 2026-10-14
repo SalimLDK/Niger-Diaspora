@@ -239,6 +239,29 @@ class GroupRepositoryImpl implements GroupRepository {
   }
 
   @override
+  Future<Either<Failure, void>> basculerModerateur(
+    String groupId,
+    String userId, {
+    required bool moderateur,
+  }) async {
+    if (!await networkInfo.isConnected) {
+      return Left(NetworkFailure(AppErrorMessages.networkError));
+    }
+    try {
+      await remoteDataSource.basculerModerateur(
+        groupId,
+        userId,
+        moderateur: moderateur,
+      );
+      return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
   Future<Either<Failure, void>> leaveGroup(
     String groupId,
     String userId,

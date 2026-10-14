@@ -233,19 +233,19 @@ class _MemberListItem extends ConsumerWidget {
     required this.onTap,
   });
 
-  /// Bascule le rôle modérateur (§9d) via updateGroup (persiste
-  /// groups.moderator_ids). Invalide la fiche pour rafraîchir le badge.
+  /// Bascule le rôle modérateur (§9d) par la RPC serveur, qui pose
+  /// `group_members.role` — ce que lisent les droits — et tient
+  /// `groups.moderator_ids` au même pas. Écrire la seule liste, comme avant,
+  /// affichait un badge qui ne donnait aucun droit.
   Future<void> _toggleModerator(BuildContext context, WidgetRef ref) async {
-    final updated = List<String>.from(group.moderatorIds);
-    if (isModerator) {
-      updated.remove(memberId);
-    } else {
-      updated.add(memberId);
+    final resultat = await ref
+        .read(groupRepositoryProvider)
+        .basculerModerateur(group.id, memberId, moderateur: !isModerator);
+    final success = resultat.isRight();
+    if (success) {
+      ref.invalidate(groupDetailNotifierProvider);
+      ref.invalidate(groupStreamProvider(group.id));
     }
-    final success = await ref
-        .read(myGroupsNotifierProvider.notifier)
-        .updateGroup(group.copyWith(moderatorIds: updated));
-    if (success) ref.invalidate(groupDetailNotifierProvider);
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

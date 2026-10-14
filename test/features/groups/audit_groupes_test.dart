@@ -130,6 +130,25 @@ void main() {
       expect(corps, contains('messageErreurUsager('));
     });
 
+    test('modérateur : par la RPC, plus par la liste de groups', () {
+      final ecran = lire(
+        'lib/features/groups/presentation/screens/group_members_screen.dart',
+      );
+      final debut = ecran.indexOf('Future<void> _toggleModerator(');
+      final corps = ecran.substring(debut, ecran.indexOf('\n  }\n', debut));
+      expect(corps, contains('basculerModerateur('));
+      expect(corps, isNot(contains('updateGroup(')));
+
+      final source = lire(
+        'lib/features/groups/data/datasources/group_supabase_datasource.dart',
+      );
+      final d = source.indexOf('Future<GroupModel> updateGroup(');
+      final maj = source.substring(d, source.indexOf('\n  }\n', d));
+      expect(maj, isNot(contains("'moderator_ids':")));
+      expect(maj, isNot(contains("'permissions':")));
+      expect(source, contains("rpc('basculer_moderateur_du_groupe'"));
+    });
+
     test('updateGroup rend le groupe avec son appartenance', () {
       final source = lire(
         'lib/features/groups/data/datasources/group_supabase_datasource.dart',

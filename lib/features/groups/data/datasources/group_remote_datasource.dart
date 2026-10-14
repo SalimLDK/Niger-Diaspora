@@ -19,6 +19,14 @@ abstract class GroupRemoteDataSource {
   Future<void> deleteGroup(String groupId);
   Future<void> joinGroup(String groupId, String userId);
   Future<void> leaveGroup(String groupId, String userId);
+
+  /// Nomme ou retire un modérateur (`group_members.role`, que lit le
+  /// serveur), par la RPC réservée aux administrateurs du groupe.
+  Future<void> basculerModerateur(
+    String groupId,
+    String userId, {
+    required bool moderateur,
+  });
   Future<void> removeMember(String groupId, String userId);
   Future<List<GroupModel>> getMyGroups(String userId);
 

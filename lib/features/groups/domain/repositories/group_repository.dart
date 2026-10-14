@@ -17,6 +17,11 @@ abstract class GroupRepository {
   Future<Either<Failure, void>> deleteGroup(String groupId);
   Future<Either<Failure, void>> joinGroup(String groupId, String userId);
   Future<Either<Failure, void>> leaveGroup(String groupId, String userId);
+  Future<Either<Failure, void>> basculerModerateur(
+    String groupId,
+    String userId, {
+    required bool moderateur,
+  });
   Future<Either<Failure, void>> removeMember(String groupId, String userId);
   Future<Either<Failure, List<GroupEntity>>> getMyGroups(String userId);
 

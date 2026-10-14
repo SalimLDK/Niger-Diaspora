@@ -512,8 +512,10 @@ class GroupSupabaseDataSource implements GroupRemoteDataSource {
           'is_private': group.isPrivate,
           'group_location': group.location,
           'tags': group.tags,
-          'permissions': group.permissions,
-          'moderator_ids': group.moderatorIds,
+          // Ni `permissions` ni `moderator_ids` : aucun écran n'édite les
+          // permissions, et les modérateurs passent par
+          // `basculer_moderateur_du_groupe`. Réécrits ici depuis la copie de
+          // l'écran, ils écrasaient une nomination faite entre-temps.
           'updated_at': DateTime.now().toUtc().toIso8601String(),
         })
         .eq('id', group.id)
@@ -526,6 +528,20 @@ class GroupSupabaseDataSource implements GroupRemoteDataSource {
     return GroupModel.fromJson(
       _mapGroup(_withMembership(Map<String, dynamic>.from(data), membership)),
     );
+  }
+
+  @override
+  Future<void> basculerModerateur(
+    String groupId,
+    String userId, {
+    required bool moderateur,
+  }) async {
+    await SupabaseAuthBridge.instance.ensureAuthenticated();
+    await _supabase.rpc('basculer_moderateur_du_groupe', params: {
+      'p_group_id': groupId,
+      'p_user_id': userId,
+      'p_moderateur': moderateur,
+    });
   }
 
   @override
