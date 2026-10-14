@@ -132,7 +132,7 @@ service cloud.firestore {
       // Aucun autre champ — donc jamais `isAdmin` ni `adminRole`.
       // Couvert par tools/rules_tests/acceptation_ami.mjs.
       allow create: if (isOwner(userId)
-          && !request.resource.data.keys().hasAny(['isAdmin', 'adminRole']))
+          && !request.resource.data.keys().hasAny(['isAdmin', 'adminRole', 'fcmTokens', 'fcmToken']))
         || (isAuthenticated()
           && request.resource.data.keys().hasOnly(['friendIds'])
           && request.resource.data.keys().hasAll(['friendIds'])
@@ -156,7 +156,13 @@ service cloud.firestore {
       // l'`update` de LEUR PROPRE profil, absent depuis la migration vers
       // Supabase. Mesure et garde-fous dans
       // tools/rules_tests/blocage_utilisateur.mjs (blocs 3 et 5).
-      allow update: if (isOwner(userId) && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['isAdmin', 'adminRole'])) || (
+      //
+      // `fcmTokens` / `fcmToken` : plus écrits par le client (les jetons
+      // vivent dans Supabase, `ajouter_jeton_push`). Les laisser ouverts
+      // permettait de s'attribuer le jeton lu sur le profil d'autrui, et les
+      // Cloud Functions qui lisent encore ce champ poussaient alors vers le
+      // téléphone de la victime.
+      allow update: if (isOwner(userId) && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['isAdmin', 'adminRole', 'fcmTokens', 'fcmToken'])) || (
         isAuthenticated() &&
         (
           // Friend request handling
@@ -272,8 +278,15 @@ service cloud.firestore {
       // Allow getting a specific notification if user owns it
       allow get: if isAuthenticated() && resource.data.userId == request.auth.uid;
 
-      // Allow creating own notifications only; Cloud Functions use Admin SDK (bypasses rules)
-      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      // Plus aucune création par le client. Les notifications vivent dans
+      // Supabase ; l'application n'écrit plus ici. Cette porte servait à
+      // déclencher `sendNotificationOnCreate`, qui poussait titre, corps et
+      // `data` libres vers les jetons `fcmTokens` du document `users` —
+      // jetons que l'appelant pouvait copier depuis le profil d'autrui :
+      // faux appel entrant plein écran sur le téléphone de n'importe qui
+      // (audit des notifications du 2026-10-14). Les Cloud Functions passent
+      // par l'Admin SDK et ne sont pas concernées.
+      allow create: if false;
 
       // Allow update/delete only for owned notifications
       allow update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
@@ -404,7 +417,12 @@ service cloud.firestore {
       }
 
       allow read: if isAuthenticated() || isAdmin(); // Public reading of events + admin access
-      allow create: if isAuthenticated();
+      // Plus de création par le client : les événements vivent dans Supabase.
+      // La règle n'exigeait qu'une session — ni `organizerId == auth.uid`, ni
+      // borne sur le titre — et `notifyLocalEventCreated` poussait ce titre à
+      // tous les inscrits dans un rayon de 50 km (audit des notifications du
+      // 2026-10-14). La fonction est mise en commentaire ; la porte aussi.
+      allow create: if false;
       allow update: if isAuthenticated() && (
         resource.data.organizerId == request.auth.uid
         || inscriptionPourSoi()

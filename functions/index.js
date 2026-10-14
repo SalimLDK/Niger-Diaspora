@@ -304,8 +304,11 @@ exports.sendNotificationOnCreate = functions.firestore
             return null;
         }
 
-        // Les messages sont poussés par Supabase (`send-push`), pas ici.
-        if (notificationType === "message") {
+        // Les messages sont poussés par Supabase (`send-push`), pas ici. Les
+        // appels, par `onCallCreated` seul : ce type-là fait afficher l'écran
+        // d'appel entrant, il ne peut pas venir d'un document de notification.
+        if (notificationType === "message" ||
+            (/call/i.test(notificationType) && notificationType !== "missedCall")) {
             return null;
         }
 
@@ -364,16 +367,20 @@ exports.sendNotificationOnCreate = functions.firestore
             const response = await admin.messaging().sendEachForMulticast({
                 tokens: fcmTokens,
                 notification: { title, body },
+                // Les clés réservées EN DERNIER (comme `donnees_fcm.ts`) : un
+                // `data.type = "incoming_call"` posé dans le document
+                // passait par-dessus le vrai type, et le téléphone affichait
+                // un appel entrant plein écran au nom choisi par l'auteur.
                 data: {
+                    ...Object.keys(notificationData.data || {}).reduce((acc, key) => {
+                        acc[key] = String(notificationData.data[key]);
+                        return acc;
+                    }, {}),
                     type: notificationType,
                     title: title,
                     body: body,
                     targetId: String(notificationData.targetId || ""),
                     click_action: "FLUTTER_NOTIFICATION_CLICK",
-                    ...Object.keys(notificationData.data || {}).reduce((acc, key) => {
-                        acc[key] = String(notificationData.data[key]);
-                        return acc;
-                    }, {}),
                 },
                 android: {
                     priority: "high",
@@ -2197,66 +2204,76 @@ exports.mirrorFriendToSupabase = functions.firestore
         return null;
     });
 
-exports.notifyLocalEventCreated = functions.firestore
-    .document("events/{eventId}")
-    .onCreate(async (snapshot, context) => {
-        const eventData = snapshot.data();
-        const eventId = context.params.eventId;
-
-        const lat = eventData.latitude ?? eventData.location?.latitude;
-        const lng = eventData.longitude ?? eventData.location?.longitude;
-        const organizerId = eventData.organizerId;
-        const placeLabel =
-            eventData.city || eventData.location?.city ||
-            eventData.country || eventData.location?.country || "";
-
-        if (typeof lat !== "number" || typeof lng !== "number") {
-            console.log(`notifyLocalEventCreated: ${eventId} sans coordonnées, ignoré`);
-            return null;
-        }
-
-        try {
-            const recipientIds = await getLocalEventRecipients(
-                lat, lng, LOCAL_EVENT_RADIUS_KM,
-            );
-            if (recipientIds.length === 0) {
-                return { success: true, count: 0 };
-            }
-
-            const promises = [];
-            let notificationCount = 0;
-
-            for (const userId of recipientIds) {
-                // L'organisateur n'a pas besoin d'être averti de son propre événement.
-                if (userId === organizerId) continue;
-
-                notificationCount++;
-                promises.push(createNotification({
-                    userId,
-                    title: "Nouvel événement près de chez vous",
-                    body: placeLabel
-                        ? `"${eventData.title}" - ${placeLabel}`
-                        : `"${eventData.title}"`,
-                    type: "localEvent",
-                    targetId: eventId,
-                    data: {
-                        eventId,
-                        eventTitle: eventData.title,
-                        city: eventData.city || eventData.location?.city || "",
-                        country: eventData.country || eventData.location?.country || "",
-                    },
-                    isRead: false,
-                }));
-            }
-
-            await Promise.all(promises);
-
-            return { success: true, count: notificationCount };
-        } catch (error) {
-            // console.error("Error sending local event notifications:", error);
-            return null;
-        }
-    });
+// ═══════════════════════════════════════════════════════════════════════════
+// MIS EN COMMENTAIRE le 2026-10-14 (audit des notifications). Les événements
+// vivent dans Supabase : l'application ne crée plus de document `events`
+// Firestore. Ce déclencheur ne servait donc plus qu'à un usage détourné —
+// la règle de création n'exigeait qu'une session, sans `organizerId ==
+// auth.uid` ni borne sur le titre — : un compte quelconque poussait un titre
+// libre à tous les inscrits dans un rayon de 50 km autour de coordonnées de
+// son choix. La création Firestore est fermée (firestore.rules). Au
+// déploiement, Firebase proposera de supprimer la fonction : accepter.
+// ═══════════════════════════════════════════════════════════════════════════
+// exports.notifyLocalEventCreated = functions.firestore
+//     .document("events/{eventId}")
+//     .onCreate(async (snapshot, context) => {
+//         const eventData = snapshot.data();
+//         const eventId = context.params.eventId;
+//
+//         const lat = eventData.latitude ?? eventData.location?.latitude;
+//         const lng = eventData.longitude ?? eventData.location?.longitude;
+//         const organizerId = eventData.organizerId;
+//         const placeLabel =
+//             eventData.city || eventData.location?.city ||
+//             eventData.country || eventData.location?.country || "";
+//
+//         if (typeof lat !== "number" || typeof lng !== "number") {
+//             console.log(`notifyLocalEventCreated: ${eventId} sans coordonnées, ignoré`);
+//             return null;
+//         }
+//
+//         try {
+//             const recipientIds = await getLocalEventRecipients(
+//                 lat, lng, LOCAL_EVENT_RADIUS_KM,
+//             );
+//             if (recipientIds.length === 0) {
+//                 return { success: true, count: 0 };
+//             }
+//
+//             const promises = [];
+//             let notificationCount = 0;
+//
+//             for (const userId of recipientIds) {
+//                 // L'organisateur n'a pas besoin d'être averti de son propre événement.
+//                 if (userId === organizerId) continue;
+//
+//                 notificationCount++;
+//                 promises.push(createNotification({
+//                     userId,
+//                     title: "Nouvel événement près de chez vous",
+//                     body: placeLabel
+//                         ? `"${eventData.title}" - ${placeLabel}`
+//                         : `"${eventData.title}"`,
+//                     type: "localEvent",
+//                     targetId: eventId,
+//                     data: {
+//                         eventId,
+//                         eventTitle: eventData.title,
+//                         city: eventData.city || eventData.location?.city || "",
+//                         country: eventData.country || eventData.location?.country || "",
+//                     },
+//                     isRead: false,
+//                 }));
+//             }
+//
+//             await Promise.all(promises);
+//
+//             return { success: true, count: notificationCount };
+//         } catch (error) {
+//             // console.error("Error sending local event notifications:", error);
+//             return null;
+//         }
+//     });
 
 // ============================================================================
 // USER DATA CLEANUP ON ACCOUNT DELETION
@@ -6906,88 +6923,97 @@ exports.onPostCommented = functions.firestore
 // donnée. Contrairement à celle-ci, il ne diffuse pas l'aperçu d'un post de
 // groupe privé à tous les abonnés, et ne notifie qu'une fois un destinataire
 // à la fois abonné et mentionné.
-exports.onNewPostCreated = functions.firestore
-    .document("posts/{postId}")
-    .onCreate(async (snapshot, context) => {
-        const postId = context.params.postId;
-        const post = snapshot.data();
-        const { authorId, authorName } = post;
-
-        const followsSnap = await admin.firestore()
-            .collection("user_follows")
-            .where("followingId", "==", authorId)
-            .limit(500)
-            .get();
-
-        if (followsSnap.empty) return null;
-
-        const batch = admin.firestore().batch();
-        const preview = post.content && post.content.length > 60
-            ? post.content.substring(0, 60) + "…"
-            : (post.content || "Nouvelle publication");
-
-        for (const doc of followsSnap.docs) {
-            const followerId = doc.data().followerId;
-            if (followerId === authorId) continue;
-            const notifRef = admin.firestore().collection("notifications").doc();
-            batch.set(notifRef, {
-                userId: followerId,
-                type: "new_post",
-                title: authorName || "Nouvelle publication",
-                body: preview,
-                data: { postId, authorId },
-                isRead: false,
-                createdAt: admin.firestore.FieldValue.serverTimestamp(),
-            });
-        }
-
-        await batch.commit();
-
-        // Notify mentioned users
-        const mentionedUsers = post.mentionedUsers || [];
-        if (mentionedUsers.length > 0) {
-            const mentionBatch = admin.firestore().batch();
-            for (const mention of mentionedUsers) {
-                if (!mention.id || mention.id === authorId) continue;
-                const notifRef = admin.firestore().collection("notifications").doc();
-                mentionBatch.set(notifRef, {
-                    userId: mention.id,
-                    type: "mentioned",
-                    title: "Vous avez été mentionné(e)",
-                    body: `${authorName || "Quelqu'un"} vous a mentionné(e) dans une publication`,
-                    data: { postId, authorId },
-                    isRead: false,
-                    createdAt: admin.firestore.FieldValue.serverTimestamp(),
-                });
-            }
-            await mentionBatch.commit();
-        }
-
-        // Notify group members when a group is mentioned
-        const mentionedGroups = post.mentionedGroups || [];
-        if (mentionedGroups.length > 0) {
-            const groupBatch = admin.firestore().batch();
-            for (const group of mentionedGroups) {
-                const memberIds = group.memberIds || [];
-                for (const memberId of memberIds) {
-                    if (!memberId || memberId === authorId) continue;
-                    const notifRef = admin.firestore().collection("notifications").doc();
-                    groupBatch.set(notifRef, {
-                        userId: memberId,
-                        type: "group_mention",
-                        title: `${group.name || "Votre groupe"} a été mentionné`,
-                        body: `${authorName || "Quelqu'un"} a mentionné ${group.name || "votre groupe"} dans une publication`,
-                        data: { postId, authorId, groupId: group.id },
-                        isRead: false,
-                        createdAt: admin.firestore.FieldValue.serverTimestamp(),
-                    });
-                }
-            }
-            await groupBatch.commit();
-        }
-
-        return null;
-    });
+// ═══════════════════════════════════════════════════════════════════════════
+// MIS EN COMMENTAIRE le 2026-10-14 (audit des notifications). Morte côté
+// application — le fil vit dans Supabase — mais toujours DÉCLENCHABLE : la
+// règle Firestore de `posts` laisse créer un document dont seul `authorId`
+// est vérifié. `authorName`, `mentionedGroups[].name` et `.memberIds`
+// étaient repris tels quels : une publication Firestore poussait un texte
+// libre à une liste de destinataires choisie. Au déploiement, Firebase
+// proposera de supprimer la fonction : accepter.
+// ═══════════════════════════════════════════════════════════════════════════
+// exports.onNewPostCreated = functions.firestore
+//     .document("posts/{postId}")
+//     .onCreate(async (snapshot, context) => {
+//         const postId = context.params.postId;
+//         const post = snapshot.data();
+//         const { authorId, authorName } = post;
+//
+//         const followsSnap = await admin.firestore()
+//             .collection("user_follows")
+//             .where("followingId", "==", authorId)
+//             .limit(500)
+//             .get();
+//
+//         if (followsSnap.empty) return null;
+//
+//         const batch = admin.firestore().batch();
+//         const preview = post.content && post.content.length > 60
+//             ? post.content.substring(0, 60) + "…"
+//             : (post.content || "Nouvelle publication");
+//
+//         for (const doc of followsSnap.docs) {
+//             const followerId = doc.data().followerId;
+//             if (followerId === authorId) continue;
+//             const notifRef = admin.firestore().collection("notifications").doc();
+//             batch.set(notifRef, {
+//                 userId: followerId,
+//                 type: "new_post",
+//                 title: authorName || "Nouvelle publication",
+//                 body: preview,
+//                 data: { postId, authorId },
+//                 isRead: false,
+//                 createdAt: admin.firestore.FieldValue.serverTimestamp(),
+//             });
+//         }
+//
+//         await batch.commit();
+//
+//         // Notify mentioned users
+//         const mentionedUsers = post.mentionedUsers || [];
+//         if (mentionedUsers.length > 0) {
+//             const mentionBatch = admin.firestore().batch();
+//             for (const mention of mentionedUsers) {
+//                 if (!mention.id || mention.id === authorId) continue;
+//                 const notifRef = admin.firestore().collection("notifications").doc();
+//                 mentionBatch.set(notifRef, {
+//                     userId: mention.id,
+//                     type: "mentioned",
+//                     title: "Vous avez été mentionné(e)",
+//                     body: `${authorName || "Quelqu'un"} vous a mentionné(e) dans une publication`,
+//                     data: { postId, authorId },
+//                     isRead: false,
+//                     createdAt: admin.firestore.FieldValue.serverTimestamp(),
+//                 });
+//             }
+//             await mentionBatch.commit();
+//         }
+//
+//         // Notify group members when a group is mentioned
+//         const mentionedGroups = post.mentionedGroups || [];
+//         if (mentionedGroups.length > 0) {
+//             const groupBatch = admin.firestore().batch();
+//             for (const group of mentionedGroups) {
+//                 const memberIds = group.memberIds || [];
+//                 for (const memberId of memberIds) {
+//                     if (!memberId || memberId === authorId) continue;
+//                     const notifRef = admin.firestore().collection("notifications").doc();
+//                     groupBatch.set(notifRef, {
+//                         userId: memberId,
+//                         type: "group_mention",
+//                         title: `${group.name || "Votre groupe"} a été mentionné`,
+//                         body: `${authorName || "Quelqu'un"} a mentionné ${group.name || "votre groupe"} dans une publication`,
+//                         data: { postId, authorId, groupId: group.id },
+//                         isRead: false,
+//                         createdAt: admin.firestore.FieldValue.serverTimestamp(),
+//                     });
+//                 }
+//             }
+//             await groupBatch.commit();
+//         }
+//
+//         return null;
+//     });
 
 // ----------------------------------------------------------------------------
 // onCommentMention — SUPPRIMÉ (trigger mort).
