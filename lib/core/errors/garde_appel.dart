@@ -37,6 +37,7 @@ import 'package:supabase_flutter/supabase_flutter.dart' as supabase
     show AuthException, FunctionException, PostgrestException, StorageException;
 
 import '../services/supabase_auth_bridge.dart';
+import 'classification_erreurs.dart';
 import 'exceptions.dart';
 import 'failures.dart';
 
@@ -132,8 +133,21 @@ bool _ditJwtExpire(String message) =>
 ///
 /// Les exceptions Supabase deviennent des [ServerFailure] ou [AuthFailure]
 /// dont le [ServerFailure.code] porte ce que le serveur a dit — SQLSTATE
-/// `42501`, `PGRST116`, statut HTTP `522` — pour que l'appelant puisse
-/// décider sans relire le texte.
+/// `42501`, `PGRST116`, `PGRST303` — pour que l'appelant puisse décider sans
+/// relire le texte.
+///
+/// Sauf la passerelle. Un statut 502/503/504 ou 520–524 ([estErreurDePasserelle])
+/// n'est pas une réponse de PostgREST : Cloudflare ou le répartiteur n'a pas
+/// joint l'origine. Il sort en [NetworkFailure], comme une coupure de réseau —
+/// l'usager n'y peut rien d'autre que réessayer, et aucun écran ne doit le
+/// traiter en défaut du serveur. Le `500`, lui, vient bien de l'origine.
+///
+/// Le texte du serveur reste dans `Failure.message`, borné, pour **classer**
+/// la panne et la journaliser : `messageErreurUsager` y lit `42501`,
+/// `permission denied`, « error code: 5xx ». Il n'est pas fait pour l'écran,
+/// qui passe par `messageErreurUsager` et ne le rend jamais — PostgREST
+/// recopie parfois la requête, hôte du projet et identifiant du compte
+/// compris (`test/core/errors/message_erreur_test.dart`).
 Failure? failurePourException(Object erreur) {
   return switch (erreur) {
     // Avant ServerException, dont elle hérite.
@@ -145,6 +159,9 @@ Failure? failurePourException(Object erreur) {
     ValidationException(:final message) => ValidationFailure(message),
     AuthException(:final message, :final code) =>
       AuthFailure(message, code: code),
+    // Avant le cas général : la passerelle n'est pas le serveur.
+    supabase.PostgrestException() when estErreurDePasserelle(erreur) =>
+      NetworkFailure(_messagePostgrest(erreur)),
     supabase.PostgrestException() => ServerFailure(
         _messagePostgrest(erreur),
         code: erreur.code,

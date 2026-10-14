@@ -94,8 +94,11 @@ bool _contientUn(String texte, List<String> marqueurs) =>
 
 /// Marqueurs relevés dans les pannes réellement observées sur ce projet :
 /// `SocketException` et `ClientException` (http/postgrest), le
-/// `Failed host lookup` d'Android hors ligne, les délais dépassés, et le
-/// `UnknownHostException` que remonte le SDK Firebase.
+/// `Failed host lookup` d'Android hors ligne, les délais dépassés, le
+/// `UnknownHostException` que remonte le SDK Firebase, et le corps
+/// « error code: 5xx » que Cloudflare renvoie quand l'origine Supabase ne
+/// répond pas (522 vu le 2026-10-13) — la passerelle, pas l'app, même
+/// classement que `classification_erreurs.dart` et `garderAppel`.
 const _marqueursReseau = <String>[
   'socketexception',
   'clientexception',
@@ -108,6 +111,7 @@ const _marqueursReseau = <String>[
   'network is unreachable',
   'networkexception',
   'unavailable',
+  'error code: 5',
 ];
 
 /// Refus d'autorisation : le 42501 de PostgreSQL (RLS ou GRANT), les codes

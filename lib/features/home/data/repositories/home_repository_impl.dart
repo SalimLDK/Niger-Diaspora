@@ -60,9 +60,12 @@ class HomeRepositoryImpl implements HomeRepository {
         }
       } catch (e) {
         // Une panne serveur — `ServerException` de la datasource, ou la
-        // `PostgrestException` qui la contournait jusqu'ici — se replie sur
-        // le cache. Les autres familles suivent la garde sans détour.
-        if (failurePourException(e) is! ServerFailure) rethrow;
+        // `PostgrestException` qui la contournait jusqu'ici — ou de
+        // passerelle (5xx, `NetworkFailure`) se replie sur le cache, comme le
+        // fait déjà la branche hors ligne. Les autres familles suivent la
+        // garde sans détour.
+        final echec = failurePourException(e);
+        if (echec is! ServerFailure && echec is! NetworkFailure) rethrow;
         debugPrint('HomeRepository: Server error: $e');
 
         // Essayer le cache en cas d'erreur serveur
