@@ -1818,68 +1818,6 @@ class AdminUsersNotifier extends Notifier<AdminUsersState> {
     }
   }
 
-  Future<bool> promoteToAdmin(
-    String userId, {
-    required String adminId,
-    String? adminName,
-  }) async {
-    try {
-      await _supabase
-          .from('users')
-          .update({'is_admin': true})
-          .eq('id', userId);
-
-      final echecJournal = await AdminAuditHelper.log(
-        adminId: adminId,
-        adminName: adminName,
-        action: 'promote_admin',
-        targetType: 'user',
-        targetId: userId,
-      );
-
-      await fetchAllUsers();
-      if (echecJournal != null) {
-        state = state.copyWith(error: echecJournal);
-        return false;
-      }
-      return true;
-    } catch (e) {
-      state = state.copyWith(error: e.toString());
-      return false;
-    }
-  }
-
-  Future<bool> demoteFromAdmin(
-    String userId, {
-    required String adminId,
-    String? adminName,
-  }) async {
-    try {
-      await _supabase
-          .from('users')
-          .update({'is_admin': false})
-          .eq('id', userId);
-
-      final echecJournal = await AdminAuditHelper.log(
-        adminId: adminId,
-        adminName: adminName,
-        action: 'demote_admin',
-        targetType: 'user',
-        targetId: userId,
-      );
-
-      await fetchAllUsers();
-      if (echecJournal != null) {
-        state = state.copyWith(error: echecJournal);
-        return false;
-      }
-      return true;
-    } catch (e) {
-      state = state.copyWith(error: e.toString());
-      return false;
-    }
-  }
-
   Future<bool> verifyProfile(
     String userId, {
     required String adminId,

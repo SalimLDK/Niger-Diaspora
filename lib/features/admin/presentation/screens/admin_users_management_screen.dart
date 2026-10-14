@@ -9,7 +9,15 @@ import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:diaspo_niger/core/theme/design_kit.dart';
 
 class AdminUsersManagementScreen extends ConsumerStatefulWidget {
-  const AdminUsersManagementScreen({super.key});
+  const AdminUsersManagementScreen({super.key, this.onGererRoles});
+
+  /// Mène à l'écran Rôles, seul chemin de promotion. Les entrées « Promouvoir
+  /// admin » / « Retirer admin » de ce menu n'écrivaient que `is_admin`, sans
+  /// `admin_role` ni Firestore : des admins fantômes, tous les pouvoirs RLS
+  /// et invisibles comme admins dans l'app — un tel compte existe en
+  /// production (audit du 2026-10-14, § 2). Nul quand l'écran est monté hors
+  /// du tableau de bord.
+  final VoidCallback? onGererRoles;
 
   @override
   ConsumerState<AdminUsersManagementScreen> createState() =>
@@ -356,10 +364,7 @@ class _AdminUsersManagementScreenState
                   _buildPopupMenuItem('ban', 'Bannir', Icons.block_rounded, AdminColors.statusRed)
                 else
                   _buildPopupMenuItem('unban', 'Débannir', Icons.check_circle_rounded, AdminColors.statusGreen),
-                if (!user.isAdmin)
-                  _buildPopupMenuItem('promote', 'Promouvoir admin', Icons.arrow_upward_rounded, AdminColors.statusPurple)
-                else
-                  _buildPopupMenuItem('demote', 'Retirer admin', Icons.arrow_downward_rounded, AdminColors.statusAmber),
+                _buildPopupMenuItem('roles', 'Rôle admin : écran Rôles', Icons.admin_panel_settings_outlined, AdminColors.statusPurple),
                 _buildPopupMenuItem('verify_profile', 'Vérifier profil', Icons.verified_rounded, AdminColors.actionBlueLight),
                 _buildPopupMenuItem('force_logout', 'Forcer déconnexion', Icons.logout_rounded, _textSecondary),
                 _buildPopupMenuItem('activity', 'Voir activité', Icons.history_rounded, _primaryColor),
@@ -500,40 +505,42 @@ class _AdminUsersManagementScreenState
       case 'ban':
         final reason = await _showTextDialog('Bannir l\'utilisateur', l10n.adminBanReasonLabel);
         if (reason != null && reason.isNotEmpty) {
-          await notifier.banUser(user.id, reason, adminId: currentAdmin.id, adminName: currentAdmin.name);
-          _showSnackBar(l10n.adminUserBanned);
+          final ok = await notifier.banUser(user.id, reason, adminId: currentAdmin.id, adminName: currentAdmin.name);
+          _montrerBilan(ok, l10n.adminUserBanned);
         }
         break;
       case 'unban':
         final confirm = await _showConfirmation('Débannir l\'utilisateur', l10n.adminUnbanConfirm);
         if (confirm == true) {
-          await notifier.unbanUser(user.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
-          _showSnackBar(l10n.adminUserUnbanned);
+          final ok = await notifier.unbanUser(user.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
+          _montrerBilan(ok, l10n.adminUserUnbanned);
         }
         break;
-      case 'promote':
-        final confirm = await _showConfirmation(l10n.adminPromoteToAdminTitle, l10n.adminPromoteConfirm);
-        if (confirm == true) {
-          await notifier.promoteToAdmin(user.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
-          _showSnackBar(l10n.adminUserPromoted);
-        }
-        break;
-      case 'demote':
-        final confirm = await _showConfirmation(l10n.adminRevokeAdminTitle, l10n.adminRevokeAdminConfirm);
-        if (confirm == true) {
-          await notifier.demoteFromAdmin(user.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
-          _showSnackBar(l10n.adminAdminRightsRevoked);
+      case 'roles':
+        // Un seul chemin de promotion : l'écran Rôles écrit les trois
+        // registres (Postgres, Firestore, RTDB), ce menu n'en écrivait qu'un.
+        final ouvrirRoles = widget.onGererRoles;
+        if (ouvrirRoles != null) {
+          ouvrirRoles();
+        } else {
+          _showSnackBar("Les rôles admin se gèrent depuis l'écran Rôles.");
         }
         break;
       case 'verify_profile':
-        await notifier.verifyProfile(user.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
-        _showSnackBar('Profil vérifié');
+        final ok = await notifier.verifyProfile(user.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
+        _montrerBilan(ok, 'Profil vérifié');
         break;
       case 'force_logout':
         final confirm = await _showConfirmation('Forcer la déconnexion', 'Cela déconnectera l\'utilisateur de tous ses appareils.');
         if (confirm == true) {
-          await dashboardNotifier.forceLogoutUser(user.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
-          _showSnackBar(l10n.adminUserDisconnected);
+          final ok = await dashboardNotifier.forceLogoutUser(user.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
+          // L'erreur vit dans le notifier du tableau de bord, pas dans celui
+          // des utilisateurs.
+          _montrerBilan(
+            ok,
+            l10n.adminUserDisconnected,
+            erreur: ref.read(adminDashboardNotifierProvider).error,
+          );
         }
         break;
       case 'activity':
@@ -628,10 +635,27 @@ class _AdminUsersManagementScreenState
     );
   }
 
-  void _showSnackBar(String message) {
+  /// Le libellé de succès ne s'affiche que si le notifier a rendu vrai ;
+  /// sinon son `state.error` (zéro ligne sous RLS, journal d'audit refusé…).
+  /// Avant, le succès s'affichait quoi qu'il arrive (audit du 2026-10-14,
+  /// § 5).
+  void _montrerBilan(bool ok, String succes, {String? erreur}) {
+    if (!mounted) return;
+    if (ok) {
+      _showSnackBar(succes);
+      return;
+    }
+    _showSnackBar(
+      erreur ?? ref.read(adminUsersNotifierProvider).error ?? l10n.loadingError,
+      isError: true,
+    );
+  }
+
+  void _showSnackBar(String message, {bool isError = false}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
+        backgroundColor: isError ? AdminColors.statusRed : null,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),

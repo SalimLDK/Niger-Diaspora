@@ -99,7 +99,8 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
         icon: const AppIcon(AppIcon.people),
         selectedIcon: const AppIcon(AppIcon.people),
         requiredPermission: AdminPermission.viewUsers,
-        contentBuilder: (_, __) => const AdminUsersManagementScreen(),
+        contentBuilder: (_, __) =>
+            AdminUsersManagementScreen(onGererRoles: _ouvrirRoles),
         badgeCount: (state) => state.pendingReports,
       ),
       _NavDestination(
@@ -215,6 +216,26 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
       // No permission required
       return true;
     }).toList();
+  }
+
+  /// Mène à l'écran Rôles depuis le menu d'un utilisateur. L'index se cherche
+  /// dans la liste filtrée par rôle ; si la destination n'y est pas (réservée
+  /// au super-administrateur), on le dit au lieu de sauter sur un autre écran
+  /// — c'est le défaut des actions rapides de l'aperçu, qui posent des index
+  /// en dur dans cette même liste (audit du 2026-10-14, § 8).
+  void _ouvrirRoles() {
+    final destinations = _getFilteredDestinations(ref.read(adminRoleProvider));
+    final index = destinations.indexWhere((d) => d.id == 'roles');
+    if (index < 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("L'écran Rôles est réservé au super-administrateur."),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+    setState(() => _selectedIndex = index);
   }
 
   Widget _buildOverviewWidget() {

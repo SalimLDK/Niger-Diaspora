@@ -610,8 +610,8 @@ class _AdminTransactionsScreenState
                 'Raison de l\'échec:',
               );
               if (reason != null && reason.isNotEmpty) {
-                await notifier.markAsFailed(transaction.id, reason, adminId: currentAdmin.id, adminName: currentAdmin.name);
-                _showSnackBar(l10n.adminTransactionFailed);
+                final ok = await notifier.markAsFailed(transaction.id, reason, adminId: currentAdmin.id, adminName: currentAdmin.name);
+                _montrerBilan(ok, l10n.adminTransactionFailed);
               }
             },
           ),
@@ -630,8 +630,8 @@ class _AdminTransactionsScreenState
                 l10n.adminMarkCompleteConfirm,
               );
               if (confirm == true) {
-                await notifier.markAsCompleted(transaction.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
-                _showSnackBar(l10n.adminTransactionCompleted);
+                final ok = await notifier.markAsCompleted(transaction.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
+                _montrerBilan(ok, l10n.adminTransactionCompleted);
               }
             },
           ),
@@ -651,8 +651,8 @@ class _AdminTransactionsScreenState
                 l10n.adminRefundReasonLabel,
               );
               if (reason != null && reason.isNotEmpty) {
-                await notifier.refundTransaction(transaction.id, reason, adminId: currentAdmin.id, adminName: currentAdmin.name);
-                _showSnackBar(l10n.adminTransactionRefunded);
+                final ok = await notifier.refundTransaction(transaction.id, reason, adminId: currentAdmin.id, adminName: currentAdmin.name);
+                _montrerBilan(ok, l10n.adminTransactionRefunded);
               }
             },
           ),
@@ -934,10 +934,28 @@ class _AdminTransactionsScreenState
     );
   }
 
-  void _showSnackBar(String message) {
+  /// Le libellé de succès ne s'affiche que si le notifier a rendu vrai ;
+  /// sinon son `state.error` (zéro ligne sous RLS, journal d'audit refusé…).
+  /// Avant, le succès s'affichait quoi qu'il arrive — et côté Postgres,
+  /// rembourser, compléter ou échouer une transaction n'a aucune policy
+  /// admin : zéro ligne à chaque fois (audit du 2026-10-14, § 5).
+  void _montrerBilan(bool ok, String succes) {
+    if (!mounted) return;
+    if (ok) {
+      _showSnackBar(succes);
+      return;
+    }
+    _showSnackBar(
+      ref.read(adminTransactionsNotifierProvider).error ?? l10n.loadingError,
+      isError: true,
+    );
+  }
+
+  void _showSnackBar(String message, {bool isError = false}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
+        backgroundColor: isError ? AdminColors.statusRed : null,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),

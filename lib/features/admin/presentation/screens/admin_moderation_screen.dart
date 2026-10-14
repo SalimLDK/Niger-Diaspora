@@ -641,8 +641,7 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
         );
         if (confirm == true) {
           final ok = await notifier.cancelEvent(event.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
-          if (!mounted) return;
-          _showSnackBar(ok ? l10n.adminEventCancelled : l10n.loadingError);
+          _montrerBilan(ok, l10n.adminEventCancelled);
         }
         break;
       case 'delete':
@@ -652,8 +651,7 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
         );
         if (confirm == true) {
           final ok = await notifier.deleteEvent(event.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
-          if (!mounted) return;
-          _showSnackBar(ok ? l10n.adminEventDeleted : l10n.deleteError);
+          _montrerBilan(ok, l10n.adminEventDeleted);
         }
         break;
     }
@@ -670,12 +668,12 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
 
     switch (action) {
       case 'make_public':
-        await notifier.toggleGroupPrivacy(group.id, false, adminId: currentAdmin.id, adminName: currentAdmin.name);
-        _showSnackBar(l10n.adminGroupPublic);
+        final ok = await notifier.toggleGroupPrivacy(group.id, false, adminId: currentAdmin.id, adminName: currentAdmin.name);
+        _montrerBilan(ok, l10n.adminGroupPublic);
         break;
       case 'make_private':
-        await notifier.toggleGroupPrivacy(group.id, true, adminId: currentAdmin.id, adminName: currentAdmin.name);
-        _showSnackBar(l10n.adminGroupPrivate);
+        final ok = await notifier.toggleGroupPrivacy(group.id, true, adminId: currentAdmin.id, adminName: currentAdmin.name);
+        _montrerBilan(ok, l10n.adminGroupPrivate);
         break;
       case 'delete':
         final confirm = await _showConfirmation(
@@ -683,8 +681,8 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
           l10n.adminDeleteGroupConfirm,
         );
         if (confirm == true) {
-          await notifier.deleteGroup(group.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
-          _showSnackBar(l10n.adminGroupDeleted);
+          final ok = await notifier.deleteGroup(group.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
+          _montrerBilan(ok, l10n.adminGroupDeleted);
         }
         break;
     }
@@ -715,10 +713,28 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
     );
   }
 
-  void _showSnackBar(String message) {
+  /// Le libellé de succès ne s'affiche que si le notifier a rendu vrai ;
+  /// sinon son `state.error` (zéro ligne sous RLS, journal d'audit refusé…).
+  /// Avant, le succès s'affichait quoi qu'il arrive pour les groupes, et un
+  /// « Erreur de chargement » sans motif pour les événements (audit du
+  /// 2026-10-14, § 5).
+  void _montrerBilan(bool ok, String succes) {
+    if (!mounted) return;
+    if (ok) {
+      _showSnackBar(succes);
+      return;
+    }
+    _showSnackBar(
+      ref.read(adminContentNotifierProvider).error ?? l10n.loadingError,
+      isError: true,
+    );
+  }
+
+  void _showSnackBar(String message, {bool isError = false}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
+        backgroundColor: isError ? AdminColors.statusRed : null,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
