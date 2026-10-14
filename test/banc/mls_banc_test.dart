@@ -20,7 +20,6 @@
 
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:diaspo_niger/core/crypto/mls/bytea.dart';
 import 'package:diaspo_niger/core/crypto/mls/mls_conversation_service.dart';
