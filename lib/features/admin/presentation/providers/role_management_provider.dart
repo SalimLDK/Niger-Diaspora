@@ -1,13 +1,13 @@
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/foundation.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_database/firebase_database.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../../core/errors/message_erreur.dart';
 import '../../../../core/services/supabase_auth_bridge.dart';
 import '../../domain/enums/admin_enums.dart';
-import 'admin_provider.dart';
+import 'permission_provider.dart';
 
 part 'role_management_provider.freezed.dart';
 part 'role_management_provider.g.dart';
@@ -25,43 +25,43 @@ class AdminUser with _$AdminUser {
     DateTime? lastLoginAt,
   }) = _AdminUser;
 
-  factory AdminUser.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>?;
-    if (data == null) {
-      return AdminUser(id: doc.id, adminRole: AdminRole.none);
-    }
-
-    AdminRole role = AdminRole.none;
-    if (data['adminRole'] != null) {
-      role = AdminRole.fromString(data['adminRole'] as String?);
-    } else if (data['isAdmin'] == true) {
-      role = AdminRole.superAdmin;
-    }
-
-    // Helper to parse DateTime from Timestamp or String
-    DateTime? parseDate(dynamic value) {
-      if (value == null) return null;
-      if (value is Timestamp) return value.toDate();
-      if (value is String) {
-        try {
-          return DateTime.parse(value).toLocal();
-        } catch (_) {
-          return null;
-        }
-      }
-      return null;
-    }
-
+  /// Une ligne rendue par `administrateurs()` ou `profil_par_email()`
+  /// (migration 20261014123000) : Postgres `users`, la source du rôle.
+  ///
+  /// `is_admin` sans `admin_role` — l'admin fantôme mesuré en production le
+  /// 2026-10-14 — donne `AdminRole.none` : on ne promeut plus un booléen en
+  /// superAdmin, c'est ce que faisait `UserModel.fromJson` et c'est ce qui
+  /// affichait un Super Administrateur qui n'en était pas un. Le rôle est
+  /// `admin_role`, rien d'autre ; [estIncoherent] dit quand les deux
+  /// colonnes se contredisent.
+  factory AdminUser.fromRow(Map<String, dynamic> row) {
     return AdminUser(
-      id: doc.id,
-      email: data['email'] as String?,
-      displayName: data['displayName'] as String?,
-      photoUrl: data['photoUrl'] as String?,
-      adminRole: role,
-      createdAt: parseDate(data['createdAt']),
-      lastLoginAt: parseDate(data['lastLoginAt']),
+      id: row['id'] as String,
+      email: row['email'] as String?,
+      displayName: row['display_name'] as String?,
+      photoUrl: row['avatar_url'] as String?,
+      adminRole: AdminRole.fromString(row['admin_role'] as String?),
+      createdAt: _dateDepuis(row['created_at']),
+      lastLoginAt: _dateDepuis(row['last_active_at']),
     );
   }
+
+  /// Vrai quand `is_admin` et `admin_role` d'une ligne se contredisent :
+  /// tous les pouvoirs RLS sans rôle visible, ou l'inverse. À corriger par
+  /// `tools/amorcer_super_admin.mjs` ou par une assignation depuis l'écran.
+  static bool estIncoherent(Map<String, dynamic> row) {
+    final isAdmin = row['is_admin'] == true;
+    final role = AdminRole.fromString(row['admin_role'] as String?);
+    return isAdmin != role.isAdmin;
+  }
+}
+
+DateTime? _dateDepuis(dynamic valeur) {
+  if (valeur is DateTime) return valeur;
+  if (valeur is String) {
+    return DateTime.tryParse(valeur)?.toLocal();
+  }
+  return null;
 }
 
 /// État de la gestion des rôles
@@ -75,7 +75,35 @@ class RoleManagementState with _$RoleManagementState {
   }) = _RoleManagementState;
 }
 
+/// Codes de refus dont le message vient de `functions/roles_admin.js` — en
+/// français, sans identifiant ni URL — et peut donc être montré tel quel.
+/// Tout autre code passe par [messageErreurUsager], qui ne divulgue rien.
+const Set<String> _codesAvecMessageAffichable = {
+  'permission-denied',
+  'not-found',
+  'failed-precondition',
+  'invalid-argument',
+  'unavailable',
+  'internal',
+};
+
+String _messageRefusCallable(FirebaseFunctionsException e) {
+  final message = e.message;
+  if (_codesAvecMessageAffichable.contains(e.code) &&
+      message != null &&
+      message.trim().isNotEmpty) {
+    return message;
+  }
+  return messageErreurUsager(e);
+}
+
 /// Provider pour gérer les rôles admin (SuperAdmin uniquement)
+///
+/// Plus aucune écriture directe : le rôle s'assigne par la Cloud Function
+/// `setAdminRole`, qui écrit Postgres (la source), pose le custom claim et
+/// RTDB, et journalise côté serveur. L'ancien `_syncRoleToBackends` écrivait
+/// les trois registres depuis le client, en *best-effort*, et l'audit
+/// Firestore était refusé en silence (audit du 14/10, § 2 et § 7.5).
 @riverpod
 class RoleManagementNotifier extends _$RoleManagementNotifier {
   @override
@@ -83,41 +111,36 @@ class RoleManagementNotifier extends _$RoleManagementNotifier {
     return const RoleManagementState();
   }
 
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  SupabaseClient get _supabase => Supabase.instance.client;
 
-  /// Charge la liste de tous les admins
+  /// Charge la liste de tous les admins, depuis Postgres.
   Future<void> loadAdmins() async {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      // Récupérer les utilisateurs avec un adminRole défini
-      final snapshot = await _firestore
-          .collection('users')
-          .where('adminRole', isNull: false)
-          .get();
-
-      // Aussi récupérer les anciens admins (isAdmin: true) pour la migration
-      final legacySnapshot = await _firestore
-          .collection('users')
-          .where('isAdmin', isEqualTo: true)
-          .get();
-
-      final adminDocs = <String, DocumentSnapshot>{};
-
-      // Ajouter les admins avec nouveau format
-      for (final doc in snapshot.docs) {
-        adminDocs[doc.id] = doc;
+      if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
+        state = state.copyWith(
+          isLoading: false,
+          error: messageErreurUsager('permission denied: session absente'),
+        );
+        return;
       }
 
-      // Ajouter les anciens admins (sans écraser)
-      for (final doc in legacySnapshot.docs) {
-        if (!adminDocs.containsKey(doc.id)) {
-          adminDocs[doc.id] = doc;
-        }
+      final rows = (await _supabase.rpc('administrateurs') as List)
+          .cast<Map<String, dynamic>>();
+
+      final incoherents = rows.where(AdminUser.estIncoherent).toList();
+      if (incoherents.isNotEmpty) {
+        // Visibles dans le journal, pas dans la liste : l'écran groupe par
+        // rôle et ignore `none`. Les montrer est un chantier d'écran.
+        debugPrint(
+          '[RoleManagement] ${incoherents.length} compte(s) avec is_admin et '
+          'admin_role contradictoires : ${incoherents.map((r) => r['id']).join(', ')}',
+        );
       }
 
-      final admins = adminDocs.values
-          .map((doc) => AdminUser.fromFirestore(doc))
+      final admins = rows
+          .map(AdminUser.fromRow)
           .where((admin) => admin.adminRole != AdminRole.none)
           .toList();
 
@@ -132,75 +155,59 @@ class RoleManagementNotifier extends _$RoleManagementNotifier {
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        error: 'Erreur lors du chargement des admins: $e',
+        error: messageErreurUsager(e),
       );
     }
   }
 
-  /// Assigne un rôle admin à un utilisateur
+  /// Assigne un rôle admin à un utilisateur, par la Cloud Function.
+  ///
+  /// Le serveur vérifie que l'appelant est superAdmin dans Postgres, refuse
+  /// sa propre ligne et le retrait du dernier superAdmin, écrit les trois
+  /// registres et journalise. Un refus arrive en [FirebaseFunctionsException]
+  /// avec un message en français : il est montré tel quel.
   Future<bool> assignRole(String userId, AdminRole newRole) async {
     state = state.copyWith(isLoading: true, error: null, successMessage: null);
 
     try {
-      // Récupérer les infos de l'utilisateur cible
-      final userDoc = await _firestore.collection('users').doc(userId).get();
-      if (!userDoc.exists) {
-        state = state.copyWith(
-          isLoading: false,
-          error: 'Utilisateur non trouvé',
-        );
-        return false;
-      }
-
-      final userData = userDoc.data()!;
-      final previousRole = AdminRole.fromString(userData['adminRole'] as String?);
-
-      // Mettre à jour le rôle
-      await _firestore.collection('users').doc(userId).update({
-        'adminRole': newRole == AdminRole.none ? null : newRole.name,
-        // Nettoyer l'ancien champ isAdmin si présent
-        'isAdmin': FieldValue.delete(),
+      final reponse = await FirebaseFunctions.instance
+          .httpsCallable('setAdminRole')
+          .call<dynamic>({
+        'uid': userId,
+        'adminRole': newRole == AdminRole.none ? 'none' : newRole.name,
       });
+      final data = reponse.data;
+      final journalise = data is Map && data['journalise'] == true;
 
-      // Propager le rôle aux deux autres backends qui décident de droits :
-      // Postgres (is_admin() pilote les policies RLS) et RTDB (règles des
-      // salons audio). Sans ça, un admin promu ici restait un utilisateur
-      // ordinaire côté Supabase et côté Realtime Database.
-      final syncError = await _syncRoleToBackends(userId, newRole);
+      // Le claim n'entre dans un jeton qu'à son renouvellement. Celui du
+      // compte connecté n'a pas changé (le serveur refuse sa propre ligne),
+      // mais le renouveler ici garantit que ce que le panneau affiche vient
+      // du jeton courant, pas d'un cache d'une heure — et `currentAdminRole`
+      // relit les claims sur l'émission d'`idTokenChanges()`.
+      await rafraichirJetonAdmin();
 
-      // Logger l'action
-      final admin = ref.read(currentAdminProvider);
-      await AdminAuditHelper.log(
-        adminId: admin?.id ?? 'unknown',
-        adminName: admin?.name,
-        action: previousRole == AdminRole.none ? 'assign_role' : 'change_role',
-        targetType: 'user',
-        targetId: userId,
-        details: {
-          'previousRole': previousRole.name,
-          'newRole': newRole.name,
-          'targetEmail': userData['email'],
-          'targetName': userData['displayName'],
-        },
-      );
-
-      // Recharger la liste
       await loadAdmins();
 
       state = state.copyWith(
         successMessage: newRole == AdminRole.none
             ? 'Rôle admin révoqué avec succès'
             : 'Rôle ${newRole.displayName} assigné avec succès',
-        // La modification Firestore est passée : on ne la présente pas comme
-        // un échec, mais une désynchronisation doit rester visible.
-        error: syncError,
+        // Le rôle est posé ; un journal refusé doit rester visible.
+        error: journalise
+            ? null
+            : 'Rôle enregistré, mais non journalisé dans admin_audit_logs.',
       );
-
       return true;
+    } on FirebaseFunctionsException catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: _messageRefusCallable(e),
+      );
+      return false;
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
-        error: 'Erreur lors de l\'assignation du rôle: $e',
+        error: messageErreurUsager(e),
       );
       return false;
     }
@@ -211,69 +218,32 @@ class RoleManagementNotifier extends _$RoleManagementNotifier {
     return assignRole(userId, AdminRole.none);
   }
 
-  /// Réplique le rôle admin dans Postgres et dans la Realtime Database.
+  /// Recherche un utilisateur par email pour lui assigner un rôle.
   ///
-  /// - Postgres : `users.is_admin` / `users.admin_role` pilotent `is_admin()`,
-  ///   donc toutes les policies RLS admin. Nécessite la policy
-  ///   `users_update_admin` (migration 20260803120000).
-  /// - RTDB : `/admins/<uid>` est lu par les règles des salons audio pour
-  ///   autoriser la modération fantôme (muet / exclusion / blocage).
-  ///
-  /// Retourne `null` si tout est passé, sinon un message d'erreur lisible.
-  /// L'écriture Firestore, elle, a déjà eu lieu : on ne la rejoue pas.
-  Future<String?> _syncRoleToBackends(String userId, AdminRole newRole) async {
-    final isAdmin = newRole != AdminRole.none;
-    final failures = <String>[];
-
-    try {
-      // Toute écriture Supabase exige une session valide (RLS bloque l'anon).
-      if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
-        failures.add('Base de données (session absente)');
-      } else {
-        await Supabase.instance.client.from('users').update({
-          'is_admin': isAdmin,
-          'admin_role': isAdmin ? newRole.name : null,
-        }).eq('id', userId);
-      }
-    } catch (e) {
-      debugPrint('RoleManagement: sync Postgres échouée: $e');
-      failures.add('Supabase');
-    }
-
-    try {
-      final ref = FirebaseDatabase.instance.ref('admins/$userId');
-      if (isAdmin) {
-        await ref.set(true);
-      } else {
-        await ref.remove();
-      }
-    } catch (e) {
-      debugPrint('RoleManagement: sync RTDB échouée: $e');
-      failures.add('Realtime Database');
-    }
-
-    if (failures.isEmpty) return null;
-    return 'Rôle enregistré dans Firestore, mais non propagé à : '
-        '${failures.join(', ')}. Les droits correspondants resteront inactifs '
-        'tant que ce n\'est pas corrigé.';
-  }
-
-  /// Recherche un utilisateur par email pour lui assigner un rôle
+  /// Dans Postgres, par `profil_par_email()` — plus dans Firestore, qui ne
+  /// connaît que les comptes d'avant la migration.
   Future<AdminUser?> searchUserByEmail(String email) async {
     try {
-      final snapshot = await _firestore
-          .collection('users')
-          .where('email', isEqualTo: email.trim().toLowerCase())
-          .limit(1)
-          .get();
-
-      if (snapshot.docs.isEmpty) {
+      if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
+        state = state.copyWith(
+          error: messageErreurUsager('permission denied: session absente'),
+        );
         return null;
       }
 
-      return AdminUser.fromFirestore(snapshot.docs.first);
+      final rows = (await _supabase.rpc(
+        'profil_par_email',
+        params: {'p_email': email.trim().toLowerCase()},
+      ) as List)
+          .cast<Map<String, dynamic>>();
+
+      if (rows.isEmpty) {
+        return null;
+      }
+
+      return AdminUser.fromRow(rows.first);
     } catch (e) {
-      state = state.copyWith(error: 'Erreur lors de la recherche: $e');
+      state = state.copyWith(error: messageErreurUsager(e));
       return null;
     }
   }
@@ -281,32 +251,5 @@ class RoleManagementNotifier extends _$RoleManagementNotifier {
   /// Efface les messages
   void clearMessages() {
     state = state.copyWith(error: null, successMessage: null);
-  }
-}
-
-/// Helper pour logger les actions admin (repris de admin_provider.dart)
-class AdminAuditHelper {
-  static Future<void> log({
-    required String adminId,
-    String? adminName,
-    required String action,
-    required String targetType,
-    String? targetId,
-    Map<String, dynamic>? details,
-  }) async {
-    try {
-      await FirebaseFirestore.instance.collection('admin_audit_logs').add({
-        'adminId': adminId,
-        'adminName': adminName,
-        'action': action,
-        'targetType': targetType,
-        'targetId': targetId,
-        'details': details,
-        'timestamp': FieldValue.serverTimestamp(),
-      });
-    } catch (e) {
-      // Log error but don't throw - audit logging shouldn't break operations
-      debugPrint('Failed to log admin action: $e');
-    }
   }
 }
