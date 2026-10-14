@@ -10,6 +10,8 @@ import 'package:diaspo_niger/features/messages/domain/entities/message_entity.da
 import 'package:diaspo_niger/features/messages/presentation/utils/message_copy_text.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../helpers/source_bibliotheque.dart';
+
 /// Ce que ces tests protègent
 /// --------------------------
 /// Les messages éphémères étaient **morts en silence** sur le chemin de
@@ -34,7 +36,7 @@ import 'package:flutter_test/flutter_test.dart';
 /// vient d'être écrit ici ou d'un `checkout`, le même fichier arrive en LF ou
 /// en CRLF.
 String _source(String chemin) =>
-    File(chemin).readAsStringSync().replaceAll('\r\n', '\n');
+    sourceBibliotheque(chemin).replaceAll('\r\n', '\n');
 
 /// La dernière migration (ordre lexicographique = chronologique, les noms
 /// commencent par 14 chiffres) qui contient [motif].

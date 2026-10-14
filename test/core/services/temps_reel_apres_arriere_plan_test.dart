@@ -1,6 +1,7 @@
-import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+
+import '../../helpers/source_bibliotheque.dart';
 
 /// Le temps réel mourait après un passage en arrière-plan — vu le 2026-09-21
 /// à deux téléphones, build 1.2.2+26 :
@@ -18,7 +19,7 @@ import 'package:flutter_test/flutter_test.dart';
 /// Un vrai serveur Realtime serait nécessaire pour rejouer ces pannes ; ce
 /// banc tient les deux branchements, qu'une refonte ferait tomber sans bruit.
 String _source(String chemin) =>
-    File(chemin).readAsStringSync().replaceAll('\r\n', '\n');
+    sourceBibliotheque(chemin).replaceAll('\r\n', '\n');
 
 /// Le corps d'une méthode, de sa signature à la méthode suivante.
 String _corps(String source, String signature) {

@@ -2,12 +2,13 @@
 // TESTS_APPAREIL_A_FAIRE.md : « Recherche, favoris et galerie d'une
 // conversation chiffrée » et « Nom et avatar du correspondant dans la liste
 // des discussions ».
-import 'dart:io';
 
 import 'package:diaspo_niger/core/services/e2ee/undecryptable_placeholders.dart';
 import 'package:diaspo_niger/features/messages/data/datasources/message_supabase_datasource.dart';
 import 'package:diaspo_niger/features/messages/data/models/message_model.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../../helpers/source_bibliotheque.dart';
 
 MessageModel _msg(String id, String contenu) => MessageModel.fromJson({
       'id': id,
@@ -66,9 +67,9 @@ void main() {
     });
 
     test('la source applique le filtre après déchiffrement', () {
-      final src = File(
+      final src = sourceBibliotheque(
         'lib/features/messages/data/datasources/message_supabase_datasource.dart',
-      ).readAsStringSync();
+      );
       final debut = src.indexOf('Future<List<MessageModel>> searchMessagesInConversation(');
       final fin = src.indexOf('Future<List<MessageModel>> getMessagesSince(');
       final corps = src.substring(debut, fin);
@@ -80,9 +81,9 @@ void main() {
   });
 
   group('Favoris : la liste suit les étoiles', () {
-    final src = File(
+    final src = sourceBibliotheque(
       'lib/features/messages/presentation/providers/message_provider.dart',
-    ).readAsStringSync();
+    );
 
     test('le provider se libère avec l\'écran', () {
       // Sans autoDispose, la liste était calculée une fois par processus :
@@ -106,9 +107,9 @@ void main() {
   group('Contacts récents : le nom vient du profil', () {
     test('la tuile lit le profil du correspondant, pas conversation.name seul',
         () {
-      final src = File(
+      final src = sourceBibliotheque(
         'lib/features/messages/presentation/screens/new_conversation_screen.dart',
-      ).readAsStringSync();
+      );
       final debut = src.indexOf('Widget _buildRecentTile(');
       final corps = src.substring(debut, src.indexOf('return GestureDetector', debut));
       expect(corps, contains('userStreamProvider('),

@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../helpers/source_bibliotheque.dart';
+
 /// Chaque après-envoi nomme le message qu'il annonce.
 ///
 /// « Supprimer pour tout le monde » et la purge des éphémères reconnaissent le
@@ -36,7 +38,7 @@ void main() {
 
   for (final chemin in chemins) {
     test('$chemin : l\'appel porte p_message_id', () {
-      final source = File(chemin).readAsStringSync();
+      final source = sourceBibliotheque(chemin);
       final debut = source.indexOf("rpc('apres_envoi_message'");
       expect(debut, isNot(-1));
       // Les paramètres de l'appel, jusqu'à la fermeture de la map.

@@ -1,9 +1,10 @@
-import 'dart:io';
 
 import 'package:diaspo_niger/features/messages/data/models/conversation_model.dart';
 import 'package:diaspo_niger/features/messages/data/repositories/message_repository_impl.dart';
 import 'package:diaspo_niger/features/messages/domain/entities/conversation_entity.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../../helpers/source_bibliotheque.dart';
 
 /// Ce que ces tests protègent
 /// --------------------------
@@ -28,7 +29,7 @@ import 'package:flutter_test/flutter_test.dart';
 /// vient d'être écrit ici ou d'un `checkout`, le même fichier arrive en LF ou
 /// en CRLF.
 String _source(String chemin) =>
-    File(chemin).readAsStringSync().replaceAll('\r\n', '\n');
+    sourceBibliotheque(chemin).replaceAll('\r\n', '\n');
 
 ConversationEntity _conv({
   String? apercu,

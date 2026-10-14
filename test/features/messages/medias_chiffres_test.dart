@@ -1,10 +1,11 @@
-import 'dart:io';
 
 import 'package:diaspo_niger/core/services/e2ee/media_dechiffre_cache.dart';
 import 'package:diaspo_niger/features/messages/data/datasources/message_supabase_datasource.dart';
 import 'package:diaspo_niger/features/messages/data/models/message_model.dart';
 import 'package:diaspo_niger/features/messages/domain/entities/message_entity.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../../helpers/source_bibliotheque.dart';
 
 /// Ce que ces tests protègent (plan MLS, C4 tranche 1)
 /// ----------------------------------------------------
@@ -24,7 +25,7 @@ import 'package:flutter_test/flutter_test.dart';
 /// ce qui a manqué à chaque câblage mort de ce dépôt.
 
 String _source(String chemin) =>
-    File(chemin).readAsStringSync().replaceAll('\r\n', '\n');
+    sourceBibliotheque(chemin).replaceAll('\r\n', '\n');
 
 void main() {
   group('MediaChiffre', () {

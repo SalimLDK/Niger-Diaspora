@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:dartz/dartz.dart';
 import 'package:diaspo_niger/core/errors/failures.dart';
@@ -9,6 +8,8 @@ import 'package:diaspo_niger/features/messages/data/datasources/message_remote_d
 import 'package:diaspo_niger/features/messages/data/models/message_model.dart';
 import 'package:diaspo_niger/features/messages/data/repositories/message_repository_impl.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../../helpers/source_bibliotheque.dart';
 
 /// Les flux temps réel d'une discussion ne mangent plus leurs erreurs.
 ///
@@ -82,9 +83,9 @@ void main() {
   });
 
   test('source : un message illisible redevient rattrapable, et le dit', () {
-    final source = File(
+    final source = sourceBibliotheque(
       'lib/features/messages/data/datasources/message_supabase_datasource.dart',
-    ).readAsStringSync();
+    );
     final debut = source.indexOf('Stream<List<MessageModel>> getNewMessagesStream(');
     final corps = source.substring(debut, source.indexOf('\n  }\n', debut));
     // Dans le rappel ET dans le rattrapage, ligne par ligne.
@@ -93,9 +94,9 @@ void main() {
   });
 
   test('l\'écran ne jette plus l\'échec dans un rappel vide', () {
-    final source = File(
+    final source = sourceBibliotheque(
       'lib/features/messages/presentation/providers/message_provider.dart',
-    ).readAsStringSync();
+    );
     for (final ancre in [
       'void _listenForNewMessages(',
       'void _listenForMessageUpdates(',

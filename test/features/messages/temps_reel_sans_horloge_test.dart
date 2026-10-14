@@ -1,6 +1,7 @@
-import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+
+import '../../helpers/source_bibliotheque.dart';
 
 /// Le flux des nouveaux messages ne compare plus deux horloges.
 ///
@@ -16,7 +17,7 @@ import 'package:flutter_test/flutter_test.dart';
 /// vérifie sur appareil (TESTS_APPAREIL_A_FAIRE.md, § 2).
 void main() {
   String corpsDe(String fichier, String debut, String fin) {
-    final source = File(fichier).readAsStringSync();
+    final source = sourceBibliotheque(fichier);
     final i = source.indexOf(debut);
     expect(i, isNot(-1), reason: debut);
     final j = source.indexOf(fin, i + debut.length);
@@ -57,9 +58,9 @@ void main() {
 
   test('la borne d\'une discussion vide n\'est plus l\'horloge du téléphone',
       () {
-    final source = File(
+    final source = sourceBibliotheque(
       'lib/features/messages/presentation/providers/message_provider.dart',
-    ).readAsStringSync();
+    );
     expect(
       source,
       isNot(contains(

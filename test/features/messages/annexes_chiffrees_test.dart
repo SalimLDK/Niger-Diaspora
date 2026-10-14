@@ -1,8 +1,9 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:diaspo_niger/core/services/encryption_service.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../../helpers/source_bibliotheque.dart';
 
 /// Ce que ces tests protègent
 /// --------------------------
@@ -33,7 +34,7 @@ import 'package:flutter_test/flutter_test.dart';
 /// trouverait son compte qu'une fois sur deux. Un garde-fou qui ne tient qu'à
 /// ça finit par échouer chez quelqu'un d'autre, et par être désactivé.
 String _source(String chemin) =>
-    File(chemin).readAsStringSync().replaceAll('\r\n', '\n');
+    sourceBibliotheque(chemin).replaceAll('\r\n', '\n');
 
 void main() {
   group('la charge chiffrée ne laisse rien filtrer', () {
