@@ -134,7 +134,9 @@ void main() {
     // `apercu_message_supprime_test.dart`. Ce qui manquait, et qui se voyait
     // à l'écran, c'est qu'il ne soit **pas appelé** sur le chemin du cache.
     test('getCachedConversations applique la reconstruction', () {
-      final source = sourceBibliotheque('lib/features/messages/data/repositories/message_repository_impl.dart').replaceAll('\r\n', '\n');
+      final source = sourceBibliotheque(
+        'lib/features/messages/data/repositories/message_repository_impl.dart',
+      ).replaceAll('\r\n', '\n');
 
       final debut = source.indexOf(
         'Either<Failure, List<ConversationEntity>> getCachedConversations() {',

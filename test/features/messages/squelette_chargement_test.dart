@@ -7,6 +7,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:diaspo_niger/features/messages/presentation/widgets/messages_skeleton.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 
+import '../../helpers/source_bibliotheque.dart';
+
 /// Les deux attentes de la messagerie montrent maintenant la forme de ce qui
 /// arrive, au lieu d'un tourniquet centré (liste des discussions) et d'un
 /// écran entièrement vide (fil d'une discussion).
@@ -174,7 +176,7 @@ void main() {
     String lire(String chemin) {
       final fichier = File(chemin);
       expect(fichier.existsSync(), isTrue, reason: '$chemin introuvable');
-      return fichier.readAsStringSync();
+      return sourceBibliotheque(chemin);
     }
 
     test('la liste des discussions n\'a plus de tourniquet centré', () {

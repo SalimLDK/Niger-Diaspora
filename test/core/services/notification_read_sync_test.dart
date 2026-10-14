@@ -1,9 +1,9 @@
-import 'dart:io';
-
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:diaspo_niger/core/services/notification_read_sync.dart';
 import 'package:diaspo_niger/features/notifications/domain/entities/notification_entity.dart';
+
+import '../../helpers/source_bibliotheque.dart';
 
 /// Le filtre PostgREST interpole l'identifiant de la cible : il ne doit
 /// accepter que ce qu'un identifiant peut être.
@@ -405,7 +405,7 @@ void main() {
   /// monter dans un test (Firebase, Supabase, routeur) ; on vérifie donc le
   /// câblage à la source, comme les bancs voisins.
   group('câblage', () {
-    String source(String chemin) => File(chemin).readAsStringSync();
+    String source(String chemin) => sourceBibliotheque(chemin);
 
     test('la publication et l\'événement marquent par la même table', () {
       // Les clés ne sont plus recopiées dans les écrans : ce sont celles de la

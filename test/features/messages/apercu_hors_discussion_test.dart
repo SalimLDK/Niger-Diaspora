@@ -5,6 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:diaspo_niger/features/messages/data/repositories/message_repository_impl.dart';
 import 'package:diaspo_niger/features/messages/domain/entities/conversation_entity.dart';
 
+import '../../helpers/source_bibliotheque.dart';
+
 /// Deux défauts trouvés le 2026-09-15 sur Pixel 10 Pro XL, en regardant la
 /// liste des discussions pendant qu'un autre compte envoyait des messages.
 ///
@@ -186,7 +188,7 @@ void main() {
         'lib/features/messages/presentation/screens/conversation_screen.dart',
       );
       expect(fichier.existsSync(), isTrue, reason: 'écran introuvable');
-      source = fichier.readAsStringSync().replaceAll('\r\n', '\n');
+      source = sourceBibliotheque(fichier.path).replaceAll('\r\n', '\n');
     });
 
     test('plus aucun marquage global de lecture', () {

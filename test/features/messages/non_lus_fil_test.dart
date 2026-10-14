@@ -5,6 +5,8 @@ import 'package:diaspo_niger/features/messages/domain/entities/message_entity.da
 import 'package:diaspo_niger/features/messages/presentation/screens/conversation_screen.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../helpers/source_bibliotheque.dart';
+
 /// Ce que ces tests protègent
 /// --------------------------
 /// Le bandeau « 1 message non lu » d'une conversation basculée ne s'effaçait
@@ -115,7 +117,7 @@ void main() {
         'lib/features/messages/presentation/screens/conversation_screen.dart',
       );
       expect(fichier.existsSync(), isTrue, reason: 'ecran introuvable');
-      source = fichier.readAsStringSync().replaceAll('\r\n', '\n');
+      source = sourceBibliotheque(fichier.path).replaceAll('\r\n', '\n');
     });
 
     test('la garde existe et compare au dernier message annonce', () {
@@ -158,7 +160,7 @@ void main() {
         'lib/features/messages/presentation/screens/conversation_screen.dart',
       );
       expect(fichier.existsSync(), isTrue, reason: 'écran introuvable');
-      source = fichier.readAsStringSync().replaceAll('\r\n', '\n');
+      source = sourceBibliotheque(fichier.path).replaceAll('\r\n', '\n');
     });
 
     test('le curseur vient du serveur, pas des préférences locales', () {
@@ -263,12 +265,14 @@ void main() {
     late String corps;
 
     setUpAll(() {
-      final source = File(
+      final source = sourceBibliotheque(
         'lib/features/messages/presentation/screens/conversation_screen.dart',
-      ).readAsStringSync().replaceAll('\r\n', '\n');
+      ).replaceAll('\r\n', '\n');
       final debut = source.indexOf('Future<void> _pousserCurseur() async {');
       expect(debut, isNot(-1), reason: '_pousserCurseur introuvable');
-      corps = source.substring(debut, source.indexOf('final Completer<void> _releve', debut));
+      // Jusqu'à la fin de la méthode : le membre qui la suivait vit dans
+      // une autre partie depuis le découpage de l'écran.
+      corps = source.substring(debut, source.indexOf('\n  }\n', debut));
     });
 
     test('relever, PUIS marquer', () {
@@ -322,9 +326,9 @@ void main() {
     late String source;
 
     setUpAll(() {
-      source = File(
+      source = sourceBibliotheque(
         'lib/features/messages/presentation/screens/conversation_screen.dart',
-      ).readAsStringSync().replaceAll('\r\n', '\n');
+      ).replaceAll('\r\n', '\n');
     });
 
     String corpsDe(String debut, String fin) {
@@ -338,7 +342,7 @@ void main() {
     test('chaque sortie du placement initial pose la vue', () {
       // Une sortie oubliée, et la vue n'est jamais posée : plus aucune bulle ne
       // serait lue, ni à l'ouverture ni après (le filet de 6 s mis à part).
-      final corps = corpsDe('void _scrollToUnreadOrBottom(', 'void dispose()');
+      final corps = corpsDe('void _scrollToUnreadOrBottom(', '\n  }\n');
       expect('_apresPlacement();'.allMatches(corps).length, 4);
       // Et le saut d'abord : poser avant `jumpTo`, c'est lire la liste en bas.
       expect(
@@ -393,9 +397,9 @@ void main() {
     late String source;
 
     setUpAll(() {
-      source = File(
+      source = sourceBibliotheque(
         'lib/features/messages/presentation/screens/conversation_screen.dart',
-      ).readAsStringSync().replaceAll('\r\n', '\n');
+      ).replaceAll('\r\n', '\n');
     });
 
     String corpsDe(String debut, String fin) {
@@ -412,7 +416,7 @@ void main() {
     });
 
     test('un relevé de suivi part APRÈS les écritures du curseur', () {
-      final corps = corpsDe('Future<void> _pousserCurseur() async {', 'final SuiviDesNonLus _suivi');
+      final corps = corpsDe('Future<void> _pousserCurseur() async {', '\n  }\n');
       final suivi = corps.indexOf('await _suivreLaLecture();');
       expect(suivi, isNot(-1));
       expect(suivi, greaterThan(corps.indexOf('.avancerJusqua(')));
@@ -527,7 +531,7 @@ void main() {
     setUpAll(() {
       final fichier = File('lib/core/crypto/mls/mls_gateway.dart');
       expect(fichier.existsSync(), isTrue, reason: 'passerelle introuvable');
-      source = fichier.readAsStringSync().replaceAll('\r\n', '\n');
+      source = sourceBibliotheque(fichier.path).replaceAll('\r\n', '\n');
     });
 
     test('les appelants concurrents partagent le même futur', () {
@@ -571,7 +575,7 @@ void main() {
         'lib/features/messages/presentation/screens/conversation_screen.dart',
       );
       expect(fichier.existsSync(), isTrue, reason: 'écran introuvable');
-      source = fichier.readAsStringSync().replaceAll('\r\n', '\n');
+      source = sourceBibliotheque(fichier.path).replaceAll('\r\n', '\n');
     });
 
     test('zéro non-lu ne ferme plus le verrou immédiatement', () {

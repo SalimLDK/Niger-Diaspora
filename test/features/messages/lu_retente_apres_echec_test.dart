@@ -1,6 +1,6 @@
-import 'dart:io';
-
 import 'package:flutter_test/flutter_test.dart';
+
+import '../../helpers/source_bibliotheque.dart';
 
 /// Signalé en production le 2026-09-27 : « Lu » arrive tard, ou pas.
 ///
@@ -14,9 +14,9 @@ void main() {
   late String source;
 
   setUpAll(() {
-    source = File(
+    source = sourceBibliotheque(
       'lib/features/messages/presentation/screens/conversation_screen.dart',
-    ).readAsStringSync().replaceAll('\r\n', '\n');
+    ).replaceAll('\r\n', '\n');
   });
 
   String corpsDe(String signature) {

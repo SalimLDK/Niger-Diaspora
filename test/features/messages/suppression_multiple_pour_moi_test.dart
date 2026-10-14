@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:dartz/dartz.dart';
 import 'package:diaspo_niger/core/errors/failures.dart';
 import 'package:diaspo_niger/features/auth/domain/entities/user_entity.dart';
@@ -9,6 +7,8 @@ import 'package:diaspo_niger/features/messages/presentation/providers/message_pa
 import 'package:diaspo_niger/features/messages/presentation/providers/message_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../../helpers/source_bibliotheque.dart';
 
 /// « Supprimer pour moi » sur une sélection de messages.
 ///
@@ -62,9 +62,9 @@ void main() {
   });
 
   test('l\'écran n\'utilise plus le service RTDB', () {
-    final ecranSource = File(
+    final ecranSource = sourceBibliotheque(
       'lib/features/messages/presentation/screens/conversation_screen.dart',
-    ).readAsStringSync();
+    );
     expect(ecranSource, isNot(contains('deleteMultipleForMe')));
     expect(ecranSource, contains('deleteManyForMe('));
   });

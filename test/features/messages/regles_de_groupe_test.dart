@@ -158,7 +158,9 @@ void main() {
 
     test('un envoi : au plus une écriture par magasin', () {
       final debut = ecran.indexOf('Future<void> _pousserCurseur() async {');
-      final corps = ecran.substring(debut, ecran.indexOf('final SuiviDesNonLus _suivi', debut));
+      // Jusqu'à la fin de la méthode : le membre qui la suivait vit dans
+      // une autre partie depuis le découpage de l'écran.
+      final corps = ecran.substring(debut, ecran.indexOf('\n  }\n', debut));
       expect('.avancerJusqua('.allMatches(corps).length, 1);
       expect('avancerCurseur('.allMatches(corps).length, 1);
     });

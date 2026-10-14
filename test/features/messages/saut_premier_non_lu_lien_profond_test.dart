@@ -7,10 +7,10 @@
 // Cause : `_filVaJusquAuBout` tenait le fil pour complet quand la liste des
 // discussions n'avait rien annoncé (lien profond, notification) ; le fil du
 // cache, sans les nouveaux messages chiffrés, décidait donc du placement.
-import 'dart:io';
-
 import 'package:diaspo_niger/features/messages/data/datasources/lecture_serveur.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../../helpers/source_bibliotheque.dart';
 
 void main() {
   group('Échéance du fil donnée par le repère serveur', () {
@@ -49,9 +49,9 @@ void main() {
   });
 
   group('Branchement dans l\'écran de conversation', () {
-    final src = File(
+    final src = sourceBibliotheque(
       'lib/features/messages/presentation/screens/conversation_screen.dart',
-    ).readAsStringSync();
+    );
 
     String corps(String signature, String fin) {
       final debut = src.indexOf(signature);
@@ -70,7 +70,9 @@ void main() {
     test('le repli MLS aussi, sur le premier non-lu', () {
       final repli = corps(
         'Future<void> _releverCurseurMls() async {',
-        'static const _fenetreRecompteNonLus',
+        // Fin de la méthode : la constante qui la suivait est devenue un
+        // privé de bibliothèque au découpage de l'écran.
+        '\n  }\n',
       );
       expect(repli, contains('_dernierMessageAnnonce ??= premier.quand'));
     });

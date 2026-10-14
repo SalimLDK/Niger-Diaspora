@@ -1,6 +1,6 @@
-import 'dart:io';
-
 import 'package:flutter_test/flutter_test.dart';
+
+import '../../helpers/source_bibliotheque.dart';
 
 /// Un 1:1 n'a pas d'administrateur.
 ///
@@ -12,9 +12,9 @@ import 'package:flutter_test/flutter_test.dart';
 /// un message de Salim.
 void main() {
   test('le rôle admin de la bulle ne vient que du groupe', () {
-    final source = File(
+    final source = sourceBibliotheque(
       'lib/features/messages/presentation/screens/conversation_screen.dart',
-    ).readAsStringSync().replaceAll('\r\n', '\n');
+    ).replaceAll('\r\n', '\n');
     // Le calcul transmis à `MessageBubble` : celui qui voisine avec
     // `groupForAdminCheck`.
     final debut = source.indexOf('final isAdmin =\n            _isGroup &&');
@@ -26,9 +26,9 @@ void main() {
   });
 
   test('un échec de « supprimer pour tous » se dit', () {
-    final source = File(
+    final source = sourceBibliotheque(
       'lib/features/messages/presentation/widgets/delete_message_modal.dart',
-    ).readAsStringSync();
+    );
     expect(source, contains('deleteForEveryoneFailed'));
   });
 }

@@ -1,6 +1,6 @@
-import 'dart:io';
-
 import 'package:flutter_test/flutter_test.dart';
+
+import '../../helpers/source_bibliotheque.dart';
 
 /// Le menu d'options d'une discussion affiche l'état qu'on lui passe — et on
 /// oubliait de le lui passer. Deux fois déjà : le minuteur des messages
@@ -9,9 +9,9 @@ import 'package:flutter_test/flutter_test.dart';
 /// aucun moyen de la lever depuis la discussion).
 void main() {
   test('conversation_screen passe la sourdine et le minuteur au menu', () {
-    final source = File(
+    final source = sourceBibliotheque(
       'lib/features/messages/presentation/screens/conversation_screen.dart',
-    ).readAsStringSync().replaceAll('\r\n', '\n');
+    ).replaceAll('\r\n', '\n');
     final debut = source.indexOf('ConversationOptionsModal(');
     expect(debut, isNot(-1));
     final appel = source.substring(debut, source.indexOf('\n          ),', debut));
