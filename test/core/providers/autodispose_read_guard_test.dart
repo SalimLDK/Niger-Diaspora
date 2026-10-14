@@ -71,7 +71,7 @@ void main() {
     // occurrence doit être convertie, ou ajoutée ici AVEC SA RAISON.
     const tolerees = <String>{
       // _preEstablishE2EESessions — préchauffage E2EE, void non async
-      'lib/features/messages/presentation/providers/message_provider.dart',
+      'lib/features/messages/presentation/providers/message_provider_pagination.dart',
       // _loadDefaultCountryFilter — pré-remplissage du filtre, void non async
       'lib/features/groups/presentation/screens/groups_screen.dart',
       // _loadDefaultCountryFromProfile — pré-remplissage, void non async

@@ -1,10 +1,10 @@
-import 'dart:io';
-
 import 'package:diaspo_niger/features/groups/data/models/group_model.dart';
 import 'package:diaspo_niger/features/messages/domain/entities/message_entity.dart';
 import 'package:diaspo_niger/features/messages/presentation/providers/message_provider.dart'
     show sansMessagesAvantArrivee;
 import 'package:flutter_test/flutter_test.dart';
+
+import '../../helpers/source_bibliotheque.dart';
 
 /// Ce que ces tests protègent
 /// --------------------------
@@ -31,7 +31,7 @@ import 'package:flutter_test/flutter_test.dart';
 /// pagination et temps réel l'ignoraient. Rebrancher la date sans le
 /// centraliser faisait surgir ces messages du cache à chaque ouverture.
 String _lire(String chemin) =>
-    File(chemin).readAsStringSync().replaceAll('\r\n', '\n');
+    sourceBibliotheque(chemin).replaceAll('\r\n', '\n');
 
 MessageEntity _m(String id, DateTime quand) => MessageEntity(
       id: id,
