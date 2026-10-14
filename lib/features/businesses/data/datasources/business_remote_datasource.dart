@@ -314,7 +314,7 @@ class BusinessRemoteDataSourceImpl implements BusinessRemoteDataSource {
       data['isVerified'] = false;
 
       final docRef = await _businessesCollection.add(data);
-      return getBusinessById(docRef.id);
+      return await getBusinessById(docRef.id);
     } on FirebaseException catch (e) {
       throw ServerException(e.message ?? 'Erreur lors de la creation');
     }
@@ -338,7 +338,7 @@ class BusinessRemoteDataSourceImpl implements BusinessRemoteDataSource {
       data['updatedAt'] = FieldValue.serverTimestamp();
 
       await _businessesCollection.doc(business.id).update(data);
-      return getBusinessById(business.id);
+      return await getBusinessById(business.id);
     } on FirebaseException catch (e) {
       throw ServerException(e.message ?? 'Erreur lors de la mise a jour');
     }

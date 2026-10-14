@@ -132,7 +132,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         await _upsertUserToSupabase(user, email: user.email);
       } catch (_) {}
 
-      return _getUserDataFromSupabase(user);
+      return await _getUserDataFromSupabase(user);
     } on FirebaseAuthException catch (e) {
       throw ServerException(_mapFirebaseAuthError(e.code));
     } catch (e) {
@@ -420,7 +420,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       } catch (_) {}
 
       // Fetch from Supabase to get all fields (for consistency with other methods)
-      return _getUserDataFromSupabase(updatedUser);
+      return await _getUserDataFromSupabase(updatedUser);
     } on FirebaseAuthException catch (e) {
       throw ServerException(_mapFirebaseAuthError(e.code));
     } catch (e) {

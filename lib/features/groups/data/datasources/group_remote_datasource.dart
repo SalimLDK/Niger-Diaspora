@@ -191,7 +191,7 @@ class GroupRemoteDataSourceImpl implements GroupRemoteDataSource {
       data['adminIds'] = [group.creatorId];
 
       final docRef = await _groupsCollection.add(data);
-      return getGroupById(docRef.id);
+      return await getGroupById(docRef.id);
     } on FirebaseException catch (e) {
       throw ServerException(e.message ?? 'Erreur lors de la creation');
     }
@@ -205,7 +205,7 @@ class GroupRemoteDataSourceImpl implements GroupRemoteDataSource {
       data['updatedAt'] = FieldValue.serverTimestamp();
 
       await _groupsCollection.doc(group.id).update(data);
-      return getGroupById(group.id);
+      return await getGroupById(group.id);
     } on FirebaseException catch (e) {
       throw ServerException(e.message ?? 'Erreur lors de la mise a jour');
     }
