@@ -1167,7 +1167,7 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
         videoDuration = thumbnailResult.$2;
       }
 
-      return sendMediaMessage(
+      return await sendMediaMessage(
         conversationId: conversationId,
         senderId: senderId,
         senderName: senderName,
