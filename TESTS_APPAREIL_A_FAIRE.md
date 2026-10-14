@@ -9274,6 +9274,39 @@ parce qu'il change un **comportement**, pas seulement un habillage :
 Supabase et Firebase côté serveur, accès anon, stockage, journaux, Crashlytics, back-office.
 
 ---
+## ⬜ Aucune requête Supabase ne part sans session : le refus du pont est respecté (2026-10-13)
+
+**Priorité P1** · importance 4/5 — suite de « Une erreur Supabase ne fait plus planter l'app : message à l'écran, JWT expiré retenté ». Ce correctif-là rattrapait le symptôme (`PGRST303` re-minté puis rejoué) ; celui-ci ferme la cause : quarante-neuf datasources appelaient `ensureAuthenticated()` sans lire sa réponse, et pendant la fenêtre de calme de `PolitiqueDeReprise` la requête partait quand même, avec le jeton périmé.
+
+Corrigé à la lecture, sans mesure sur appareil :
+
+- `SupabaseAuthBridge.exigerSession()` lève `ServerException('Session non
+  établie – reconnectez-vous')` quand la session manque — après **une**
+  tentative forcée, fenêtre de calme ou pas : une demande explicite vaut une
+  tentative, seuls les rappels automatiques (`authStateChanges`, minuteurs)
+  restent tenus à distance. 77 sites l'emploient : les 49 `await
+  …ensureAuthenticated();` nus, les 26 `if (!…) throw ServerException(…)`
+  identiques, et deux flux.
+- `PolitiqueDeReprise.autoriserUneTentative()` : après l'abandon, un retour au
+  premier plan relance une série complète (5 s, 10 s… puis abandon) au lieu
+  d'une tentative unique suivie de cinq minutes de calme.
+- Flux : sondages (`getPollStream`) et notifications (`getNotifications`)
+  lèvent — et la boucle des notifications retente — au lieu d'ouvrir le flux
+  avec un jeton périmé ; `getGroupStream` et `watchMyMemberships` ne
+  s'abonnent pas sans session (contrat « jamais d'erreur » conservé).
+- Tenu par `test/core/services/refus_du_pont_respecte_test.dart`, qui balaie
+  `lib/` (une seule tolérance nommée : la déconnexion), et
+  `politique_de_reprise_test.dart`.
+
+À vérifier, **en économiseur de batterie** (le cas du A515F) :
+
+- [ ] HOME plus d'une heure, puis rouvrir sur Événements ou Entreprises : la liste se charge au premier affichage ; `adb logcat -s flutter | grep SupabaseAuthBridge` montre un « session sync OK » et **aucun** « JWT expired ».
+- [ ] Même scénario, mode avion enclenché juste avant de rouvrir puis coupé dix secondes après : l'écran affiche le message hors ligne ou « Session non établie – reconnectez-vous » — jamais un spinner sans fin — et un tirer-pour-rafraîchir, réseau revenu, charge la liste sans redémarrer l'app.
+- [ ] Même scénario sur Notifications : la liste précédente reste affichée pendant la reprise, puis se rafraîchit ; pas d'erreur définitive à l'écran.
+- [ ] Même scénario, ouvrir la fiche d'un groupe depuis une conversation : la fiche s'affiche, le compteur de membres suit un changement fait depuis l'autre téléphone (le flux ne s'abonne qu'une fois la session là).
+- [ ] Crashlytics après une journée de la version suivante : plus aucun `PGRST303`, fatal ou non.
+
+---
 ## ⬜ Une erreur Supabase ne fait plus planter l'app : message à l'écran, JWT expiré retenté (2026-10-13)
 
 **Priorité P1** · importance 4/5 — fiche Crashlytics `PostgrestBuilder._parseResponse` : 36 « plantages » sur 90 jours, 9 usagers, tous des `PostgrestException` que dix-sept dépôts laissaient passer (ils n'attrapaient que `ServerException`). L'usager ne voyait rien — écran figé, bouton muet — et la console comptait un plantage.

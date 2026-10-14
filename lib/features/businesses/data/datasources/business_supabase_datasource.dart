@@ -46,7 +46,7 @@ class BusinessSupabaseDataSource implements BusinessRemoteDataSource {
     }
     // Sans session Supabase, RLS refuse en silence : l'appel « réussit » et
     // rend zéro ligne. Voir `project_supabase_write_auth_guard`.
-    await SupabaseAuthBridge.instance.ensureAuthenticated();
+    await SupabaseAuthBridge.instance.exigerSession();
   }
 
   // ── Correspondance ligne ⇄ modèle ──────────────────────────────────────

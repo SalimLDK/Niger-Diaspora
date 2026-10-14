@@ -75,7 +75,19 @@ class PolitiqueDeReprise {
     _pasAvant = null;
   }
 
-  /// Le réseau est revenu (ou l'app repasse au premier plan) : on autorise
-  /// une tentative sans attendre la fin du repos.
-  void autoriserUneTentative() => _pasAvant = null;
+  /// Le réseau est revenu, l'app repasse au premier plan, ou un appelant
+  /// exige une session : on autorise une tentative sans attendre la fin du
+  /// repos.
+  ///
+  /// Après l'abandon, ce signal relance une **série complète** — 5 s, 10 s…
+  /// puis abandon à nouveau — et non une tentative unique. Avant, si cette
+  /// seule tentative ratait (réseau pas encore rétabli à la seconde où
+  /// l'écran s'allume), le repos repartait pour cinq minutes et chaque écran
+  /// ouvert pendant ce temps échouait : c'est la rafale `PGRST303` du
+  /// 2026-10-13. Pendant un repli en cours, en revanche, le signal n'avance
+  /// que la prochaine tentative : la série garde son compte.
+  void autoriserUneTentative() {
+    _pasAvant = null;
+    if (aAbandonne) _echecs = 0;
+  }
 }

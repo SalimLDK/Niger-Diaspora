@@ -22,7 +22,7 @@ class GroupRequestSupabaseDataSource implements GroupRequestDataSource {
     String? message,
   }) async {
     try {
-      await SupabaseAuthBridge.instance.ensureAuthenticated();
+      await SupabaseAuthBridge.instance.exigerSession();
       // Appartenance lue dans `group_members`, pas dans `groups.member_ids` :
       // cette colonne est vide sur toutes les lignes et le chargement la
       // recalcule depuis `group_members`. Le garde ne se declenchait donc
@@ -57,7 +57,7 @@ class GroupRequestSupabaseDataSource implements GroupRequestDataSource {
   @override
   Future<void> approveJoinRequest(String requestId) async {
     try {
-      await SupabaseAuthBridge.instance.ensureAuthenticated();
+      await SupabaseAuthBridge.instance.exigerSession();
       // Statut + appartenance en une transaction cote base.
       //
       // La version precedente faisait trois allers-retours et se trompait sur
@@ -79,7 +79,7 @@ class GroupRequestSupabaseDataSource implements GroupRequestDataSource {
   @override
   Future<void> rejectJoinRequest(String requestId) async {
     try {
-      await SupabaseAuthBridge.instance.ensureAuthenticated();
+      await SupabaseAuthBridge.instance.exigerSession();
       // Meme fonction miroir que l'approbation, pour que `processed_by` soit
       // resolu au meme endroit et dans le meme referentiel d'identite.
       await _supabase.rpc(
@@ -94,7 +94,7 @@ class GroupRequestSupabaseDataSource implements GroupRequestDataSource {
   @override
   Future<void> cancelJoinRequest(String requestId) async {
     try {
-      await SupabaseAuthBridge.instance.ensureAuthenticated();
+      await SupabaseAuthBridge.instance.exigerSession();
       await _supabase.from('group_requests').delete().eq('id', requestId);
     } catch (e) {
       throw ServerException(e.toString());
@@ -138,7 +138,7 @@ class GroupRequestSupabaseDataSource implements GroupRequestDataSource {
     String? inviteePhotoUrl,
   }) async {
     try {
-      await SupabaseAuthBridge.instance.ensureAuthenticated();
+      await SupabaseAuthBridge.instance.exigerSession();
       await _supabase.from('group_invites').upsert({
         'group_id': groupId,
         'group_name': groupName,
@@ -160,7 +160,7 @@ class GroupRequestSupabaseDataSource implements GroupRequestDataSource {
     try {
       // RLS bloque toute écriture en session anonyme : garantir la session
       // Supabase avant d'accepter (sinon l'update échoue silencieusement).
-      await SupabaseAuthBridge.instance.ensureAuthenticated();
+      await SupabaseAuthBridge.instance.exigerSession();
       final row = await _supabase
           .from('group_invites')
           .select('group_id, invitee_id')
@@ -193,7 +193,7 @@ class GroupRequestSupabaseDataSource implements GroupRequestDataSource {
   @override
   Future<void> declineGroupInvite(String inviteId) async {
     try {
-      await SupabaseAuthBridge.instance.ensureAuthenticated();
+      await SupabaseAuthBridge.instance.exigerSession();
       await _supabase.from('group_invites').update({
         'status': 'declined',
         'responded_at': DateTime.now().toUtc().toIso8601String(),
@@ -206,7 +206,7 @@ class GroupRequestSupabaseDataSource implements GroupRequestDataSource {
   @override
   Future<void> cancelGroupInvite(String inviteId) async {
     try {
-      await SupabaseAuthBridge.instance.ensureAuthenticated();
+      await SupabaseAuthBridge.instance.exigerSession();
       await _supabase.from('group_invites').delete().eq('id', inviteId);
     } catch (e) {
       throw ServerException(e.toString());

@@ -1825,7 +1825,7 @@ class NotificationService {
     try {
       // Sans session Supabase authentifiée, RLS bloque l'update de `users` :
       // le token n'était jamais enregistré → aucune notification push.
-      await SupabaseAuthBridge.instance.ensureAuthenticated();
+      await SupabaseAuthBridge.instance.exigerSession();
       // L'ajout se fait EN BASE, en une instruction (`ajouter_jeton_push`).
       // C'était un lire-modifier-écrire de `fcm_tokens`, avec deux défauts :
       // deux appareils du même compte qui s'enregistraient en même temps
@@ -1873,7 +1873,7 @@ class NotificationService {
     }
     if (_fcmToken == null) return;
     try {
-      await SupabaseAuthBridge.instance.ensureAuthenticated();
+      await SupabaseAuthBridge.instance.exigerSession();
       // Voir `_saveTokenToDatabase` : le retrait se fait en base, sans relire
       // `fcm_tokens`.
       await Supabase.instance.client.rpc(
@@ -1888,7 +1888,7 @@ class NotificationService {
   /// Save VoIP push token for iOS (for CallKit incoming calls)
   Future<void> saveVoipTokenForUser(String userId, String voipToken) async {
     try {
-      await SupabaseAuthBridge.instance.ensureAuthenticated();
+      await SupabaseAuthBridge.instance.exigerSession();
       await Supabase.instance.client
           .from('users')
           .update({'voip_token': voipToken, 'last_token_update': DateTime.now().toUtc().toIso8601String()})

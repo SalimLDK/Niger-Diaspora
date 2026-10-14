@@ -1425,11 +1425,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     required String messageId,
   }) async {
     try {
-      if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
-        throw ServerException(
-          'Session non établie – reconnectez-vous',
-        );
-      }
+      await SupabaseAuthBridge.instance.exigerSession();
       final row =
           await _supabase
               .from('messages')
@@ -2412,11 +2408,7 @@ class MessageSupabaseDataSource implements MessageRemoteDataSource {
     required String userId,
   }) async {
     try {
-      if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
-        throw ServerException(
-          'Session non établie – reconnectez-vous',
-        );
-      }
+      await SupabaseAuthBridge.instance.exigerSession();
       // `join_group_conversation` compare `group_members.group_id` (UUID) à
       // son paramètre TEXT via un cast inconditionnel `p_group_id::uuid`. Un
       // groupe hérité de Firestore porte un id de 20 caractères qui n'est pas

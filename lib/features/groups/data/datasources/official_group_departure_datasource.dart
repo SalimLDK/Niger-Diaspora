@@ -1,6 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../../../core/errors/exceptions.dart';
 import '../../../../core/services/supabase_auth_bridge.dart';
 import '../../../../core/utils/date_parsing.dart';
 
@@ -73,9 +72,7 @@ class OfficialGroupDepartureDataSource {
   /// `null` si plus rien n'était à décider (déjà répondu ailleurs, ou retour
   /// dans ce pays entre-temps).
   Future<String?> answer(String groupId, {required bool leave}) async {
-    if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
-      throw ServerException('Session non établie – reconnectez-vous');
-    }
+    await SupabaseAuthBridge.instance.exigerSession();
     final result = await _supabase.rpc(
       'repondre_depart_groupe_officiel',
       params: {'p_group_id': groupId, 'p_quitter': leave},

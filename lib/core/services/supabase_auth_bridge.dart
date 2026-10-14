@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 import 'package:flutter/widgets.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../errors/exceptions.dart';
 import '../utils/reabonnement_temps_reel.dart';
 import 'connectivity_service.dart';
 import 'politique_de_reprise.dart';
@@ -300,6 +301,12 @@ class SupabaseAuthBridge {
   /// Garantit qu'une session Supabase valide est établie avant une opération
   /// d'écriture. Appelé en tête des datasources qui écrivent dans Supabase.
   ///
+  /// Le résultat n'est pas décoratif : `false` veut dire que l'appel qui suit
+  /// partirait sans session, ou avec un jeton périmé. Un appelant qui n'a
+  /// pas de repli emploie [exigerSession], qui lève à sa place ; celui qui
+  /// en a un — ignorer, rendre vide, garder le cache, rester muet — teste le
+  /// booléen. Tenu par `test/core/services/refus_du_pont_respecte_test.dart`.
+  ///
   /// firebase_uid() utilise désormais auth_mappings comme fallback DB — inutile
   /// d'exiger le claim firebase_uid dans le JWT, seulement une session valide.
   Future<bool> ensureAuthenticated() async {
@@ -342,8 +349,44 @@ class SupabaseAuthBridge {
   /// aussi retarder sur celle du serveur — et on dit si une session valide
   /// est en place. Un échange déjà en cours est partagé ([_inFlightSync]),
   /// pas doublé. Appelé par `garderAppel` (`lib/core/errors`), qui rejoue
-  /// ensuite l'appel une fois.
-  Future<bool> resynchroniserApresJwtExpire() async {
+  /// ensuite l'appel une fois. C'est le symptôme ; la cause — l'appel qui
+  /// part sans session — est fermée par [exigerSession].
+  Future<bool> resynchroniserApresJwtExpire() => _tenterMaintenant();
+
+  /// Garantit une session valide, ou lève : sans elle, l'appelant n'a rien
+  /// à envoyer.
+  ///
+  /// La forme à employer en tête de toute méthode qui lit ou écrit dans
+  /// Supabase sans repli. [ensureAuthenticated] rend un booléen, et
+  /// quarante-neuf sites l'ignoraient (`await …ensureAuthenticated();` nu) :
+  /// pendant la fenêtre de calme de la [PolitiqueDeReprise], il rendait
+  /// `false` sans bruit et la requête partait quand même, avec le jeton
+  /// périmé — la rafale `PGRST303` décrite sur
+  /// [resynchroniserApresJwtExpire]. Ici l'oubli est impossible : pas de
+  /// session, pas de requête. Tenu par
+  /// `test/core/services/refus_du_pont_respecte_test.dart`.
+  ///
+  /// **Une demande explicite vaut une tentative.** La fenêtre de calme
+  /// neutralise les rappels automatiques — `authStateChanges`, minuteurs —
+  /// pas l'usager qui vient d'ouvrir un écran : lui refuser sans essayer,
+  /// c'est afficher une erreur alors que le réseau est peut-être revenu
+  /// depuis. On tente donc **une** fois, fenêtre ou pas — ce que
+  /// `garderAppel` faisait après coup sur `PGRST303`, mais avant d'envoyer
+  /// quoi que ce soit — et on ne lève que si la session manque toujours.
+  /// Les appels concurrents partagent l'échange ([_inFlightSync]) ; un échec
+  /// repose la fenêtre ([_scheduleRetry]) : une série d'écrans ouverts en
+  /// vain coûte une tentative chacun, jamais une boucle.
+  ///
+  /// Le message est celui que les datasources levaient déjà à la main ;
+  /// `classification_erreurs.dart` le laisse fatal, sciemment.
+  Future<void> exigerSession() async {
+    if (hasValidSession || await _tenterMaintenant()) return;
+    throw ServerException('Session non établie – reconnectez-vous');
+  }
+
+  /// Une tentative tout de suite, fenêtre de calme ou pas, puis si une
+  /// session valide est en place. Sans compte Firebase, rien à tenter.
+  Future<bool> _tenterMaintenant() async {
     final user = firebase_auth.FirebaseAuth.instance.currentUser;
     if (user == null) return false;
     _reprise.autoriserUneTentative();

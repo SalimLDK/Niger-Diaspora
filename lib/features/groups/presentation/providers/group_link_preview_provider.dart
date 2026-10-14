@@ -34,7 +34,7 @@ class GroupLinkPreview {
 /// migration `20260910060000` — la RLS de `groups`, elle, n'a pas bougé.
 final groupLinkPreviewProvider = FutureProvider.autoDispose
     .family<GroupLinkPreview?, String>((ref, groupId) async {
-      await SupabaseAuthBridge.instance.ensureAuthenticated();
+      await SupabaseAuthBridge.instance.exigerSession();
       final rows =
           await Supabase.instance.client.rpc(
                 'group_link_preview',

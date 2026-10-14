@@ -189,7 +189,7 @@ class EventRepositoryImpl implements EventRepository {
         // panne au lieu de la signaler, c'est pour ça qu'elle a duré.
         String userName = 'Un utilisateur';
         try {
-          await SupabaseAuthBridge.instance.ensureAuthenticated();
+          await SupabaseAuthBridge.instance.exigerSession();
           final row = await Supabase.instance.client
               .from('users')
               .select('display_name')

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/constants/profile_options.dart';
 import '../../../../core/errors/exceptions.dart';
@@ -167,7 +168,7 @@ class GroupSupabaseDataSource implements GroupRemoteDataSource {
     // la lecture part en anonyme et RLS renvoie zéro ligne. L'onglet
     // « Découvrir » affichait alors « Aucun groupe public pour l'instant »
     // alors que la base en contenait — un état vide qui ment.
-    await SupabaseAuthBridge.instance.ensureAuthenticated();
+    await SupabaseAuthBridge.instance.exigerSession();
     final data = await _supabase
         .from('groups')
         .select()
@@ -179,7 +180,7 @@ class GroupSupabaseDataSource implements GroupRemoteDataSource {
 
   @override
   Future<List<GroupModel>> getGroupsByCategory(String category) async {
-    await SupabaseAuthBridge.instance.ensureAuthenticated();
+    await SupabaseAuthBridge.instance.exigerSession();
     final data = await _supabase
         .from('groups')
         .select()
@@ -195,7 +196,7 @@ class GroupSupabaseDataSource implements GroupRemoteDataSource {
     // Sans session Supabase authentifiée, RLS bloque la lecture → l'écran de
     // détails du groupe (ouvert depuis une conversation, sans initialGroup)
     // restait en chargement infini.
-    await SupabaseAuthBridge.instance.ensureAuthenticated();
+    await SupabaseAuthBridge.instance.exigerSession();
     final data = await _supabase.from('groups').select().eq('id', groupId).single();
 
     // L'appartenance vient de `group_members`, pour **tous** les membres et
@@ -209,7 +210,7 @@ class GroupSupabaseDataSource implements GroupRemoteDataSource {
   }
 
   Future<GroupModel?> getGroupByName(String name) async {
-    await SupabaseAuthBridge.instance.ensureAuthenticated();
+    await SupabaseAuthBridge.instance.exigerSession();
     final data = await _supabase
         .from('groups')
         .select()
@@ -293,7 +294,15 @@ class GroupSupabaseDataSource implements GroupRemoteDataSource {
       // Session d'abord : un abonnement créé en anon fait son fetch initial
       // sous RLS sans droits → 0 ligne pour toujours (groupe « introuvable »,
       // écran de détails en chargement infini, permissions par défaut).
-      await SupabaseAuthBridge.instance.ensureAuthenticated();
+      try {
+        await SupabaseAuthBridge.instance.exigerSession();
+      } catch (e) {
+        // Contrat ci-dessus : ce flux ne remonte pas d'erreur. Sans session,
+        // on ne s'abonne pas — un canal ouvert avec un jeton périmé resterait
+        // muet de toute façon — et le one-shot de l'écran dira l'échec.
+        debugPrint('GroupSupabaseDataSource.getGroupStream: $e');
+        return;
+      }
       if (cancelled) return;
       await refetch();
       if (cancelled) return;
@@ -363,7 +372,14 @@ class GroupSupabaseDataSource implements GroupRemoteDataSource {
     var cancelled = false;
 
     Future<void> start() async {
-      await SupabaseAuthBridge.instance.ensureAuthenticated();
+      try {
+        await SupabaseAuthBridge.instance.exigerSession();
+      } catch (e) {
+        // Flux de signal, sans gestionnaire d'erreur chez l'appelant : sans
+        // session, on ne s'abonne pas. « Mes groupes » gardera sa liste.
+        debugPrint('GroupSupabaseDataSource.watchMyMemberships: $e');
+        return;
+      }
       if (cancelled) return;
       channel = _supabase.channel(topic)
         ..onPostgresChanges(
@@ -402,7 +418,7 @@ class GroupSupabaseDataSource implements GroupRemoteDataSource {
 
   @override
   Future<List<GroupModel>> getMyGroups(String userId) async {
-    await SupabaseAuthBridge.instance.ensureAuthenticated();
+    await SupabaseAuthBridge.instance.exigerSession();
 
     // SECURITY DEFINER RPC — returns JSONB to bypass PostgREST schema column selection
     final raw = await _supabase.rpc('get_my_groups');
@@ -428,7 +444,7 @@ class GroupSupabaseDataSource implements GroupRemoteDataSource {
 
   @override
   Future<List<GroupModel>> searchGroups(String query) async {
-    await SupabaseAuthBridge.instance.ensureAuthenticated();
+    await SupabaseAuthBridge.instance.exigerSession();
     final data = await _supabase
         .from('groups')
         .select()
@@ -457,9 +473,7 @@ class GroupSupabaseDataSource implements GroupRemoteDataSource {
 
   @override
   Future<GroupModel> createGroup(GroupModel group) async {
-    if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
-      throw ServerException('Session non établie – reconnectez-vous');
-    }
+    await SupabaseAuthBridge.instance.exigerSession();
 
     final row = await _supabase.rpc('insert_group', params: {
       'p_name': group.name,
@@ -609,7 +623,7 @@ class GroupSupabaseDataSource implements GroupRemoteDataSource {
     assert(conversationId != null);
     // Session d'abord (voir getGroupStream) : sinon RLS anon = bandeau
     // épinglé définitivement vide.
-    await SupabaseAuthBridge.instance.ensureAuthenticated();
+    await SupabaseAuthBridge.instance.exigerSession();
     // final column = groupId != null ? 'group_id' : 'conversation_id';
     // final value = groupId ?? conversationId!;
     // `sort_order` vaut `0` par défaut en base et `pinItem` ne le renseigne
@@ -638,9 +652,7 @@ class GroupSupabaseDataSource implements GroupRemoteDataSource {
     required String pinnedBy,
   }) async {
     assert(conversationId != null);
-    if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
-      throw ServerException('Session non établie – reconnectez-vous');
-    }
+    await SupabaseAuthBridge.instance.exigerSession();
     final row = await _supabase
         .from('group_pinned_items')
         .insert({
@@ -660,9 +672,7 @@ class GroupSupabaseDataSource implements GroupRemoteDataSource {
     required String countryCode,
     required String countryName,
   }) async {
-    if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
-      throw ServerException('Session non établie – reconnectez-vous');
-    }
+    await SupabaseAuthBridge.instance.exigerSession();
     final row = await _supabase.rpc(
       'get_or_create_official_group',
       params: {
@@ -674,9 +684,7 @@ class GroupSupabaseDataSource implements GroupRemoteDataSource {
   }
 
   Future<void> unpinItem(String pinnedItemId) async {
-    if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
-      throw ServerException('Session non établie – reconnectez-vous');
-    }
+    await SupabaseAuthBridge.instance.exigerSession();
     await _supabase.from('group_pinned_items').delete().eq('id', pinnedItemId);
   }
 }

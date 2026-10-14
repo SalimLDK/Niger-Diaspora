@@ -269,7 +269,11 @@ class NotificationSupabaseDataSource implements NotificationRemoteDataSource {
 
     while (true) {
       try {
-        await SupabaseAuthBridge.instance.ensureReadableSession();
+        // Lève sans session : la boucle ci-dessous retente, au lieu d'ouvrir
+        // le flux avec un jeton périmé (la rafale `PGRST303` du 2026-10-13
+        // venait en partie d'ici). `exigerSession` tente une fois, fenêtre de
+        // calme ou pas, et ne lève que si la session manque toujours.
+        await SupabaseAuthBridge.instance.exigerSession();
 
         await for (final models in _fluxAffiches(userId, limit)) {
           failures = 0;
@@ -329,7 +333,7 @@ class NotificationSupabaseDataSource implements NotificationRemoteDataSource {
   @override
   Future<void> markAsRead(String notificationId) async {
     try {
-      await SupabaseAuthBridge.instance.ensureAuthenticated();
+      await SupabaseAuthBridge.instance.exigerSession();
       await _supabase
           .from('notifications')
           .update({'is_read': true})
@@ -344,7 +348,7 @@ class NotificationSupabaseDataSource implements NotificationRemoteDataSource {
   @override
   Future<void> markAllAsRead(String userId) async {
     try {
-      await SupabaseAuthBridge.instance.ensureAuthenticated();
+      await SupabaseAuthBridge.instance.exigerSession();
       await _supabase
           .from('notifications')
           .update({'is_read': true})
@@ -359,7 +363,7 @@ class NotificationSupabaseDataSource implements NotificationRemoteDataSource {
   @override
   Future<void> deleteNotification(String notificationId) async {
     try {
-      await SupabaseAuthBridge.instance.ensureAuthenticated();
+      await SupabaseAuthBridge.instance.exigerSession();
       await _supabase
           .from('notifications')
           .delete()
@@ -374,7 +378,7 @@ class NotificationSupabaseDataSource implements NotificationRemoteDataSource {
   @override
   Future<void> deleteAllNotifications(String userId) async {
     try {
-      await SupabaseAuthBridge.instance.ensureAuthenticated();
+      await SupabaseAuthBridge.instance.exigerSession();
       await _supabase
           .from('notifications')
           .delete()

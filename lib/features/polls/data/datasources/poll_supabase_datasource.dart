@@ -80,9 +80,7 @@ class PollSupabaseDataSource implements PollRemoteDataSource {
     DateTime? endsAt,
     String? userId,
   }) async {
-    if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
-      throw ServerException('Session non établie – reconnectez-vous');
-    }
+    await SupabaseAuthBridge.instance.exigerSession();
 
     final pollRow = await _supabase
         .from('post_polls')
@@ -223,14 +221,9 @@ class PollSupabaseDataSource implements PollRemoteDataSource {
     Future<_PollSideData>? side;
 
     return Rx.fromCallable(
-      () => SupabaseAuthBridge.instance.ensureAuthenticated(),
+      () => SupabaseAuthBridge.instance.exigerSession(),
       reusable: true,
-    ).switchMap((authentifie) {
-      if (!authentifie) {
-        return Stream<PollModel?>.error(
-          ServerException('Session non établie – reconnectez-vous'),
-        );
-      }
+    ).switchMap((_) {
       final pollStream = _supabase
           .from('post_polls')
           .stream(primaryKey: ['id']).eq('id', pollId);
@@ -303,9 +296,7 @@ class PollSupabaseDataSource implements PollRemoteDataSource {
   /// compteurs.
   @override
   Future<void> vote(String pollId, List<String> optionIds, {String? userId}) async {
-    if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
-      throw ServerException('Session non établie – reconnectez-vous');
-    }
+    await SupabaseAuthBridge.instance.exigerSession();
     if (userId == null) {
       throw ServerException('Utilisateur non authentifié');
     }
@@ -356,9 +347,7 @@ class PollSupabaseDataSource implements PollRemoteDataSource {
   Future<Map<String, List<Map<String, dynamic>>>> getPollVoters(
     String pollId,
   ) async {
-    if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
-      throw ServerException('Session non établie – reconnectez-vous');
-    }
+    await SupabaseAuthBridge.instance.exigerSession();
     final rows = await _supabase.rpc(
       'poll_option_voters',
       params: {'p_poll_id': pollId},
@@ -376,9 +365,7 @@ class PollSupabaseDataSource implements PollRemoteDataSource {
 
   @override
   Future<void> deletePoll(String pollId) async {
-    if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
-      throw ServerException('Session non établie – reconnectez-vous');
-    }
+    await SupabaseAuthBridge.instance.exigerSession();
     await _supabase.from('post_polls').delete().eq('id', pollId);
   }
 }

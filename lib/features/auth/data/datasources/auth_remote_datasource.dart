@@ -821,7 +821,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   @override
   Future<void> sendPhoneOtp(String phoneNumber) async {
     try {
-      await SupabaseAuthBridge.instance.ensureAuthenticated();
+      await SupabaseAuthBridge.instance.exigerSession();
       final response = await _supabase.functions.invoke(
         'send-phone-otp',
         body: {'phone_number': phoneNumber},
@@ -843,7 +843,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required String code,
   }) async {
     try {
-      await SupabaseAuthBridge.instance.ensureAuthenticated();
+      await SupabaseAuthBridge.instance.exigerSession();
       final response = await _supabase.functions.invoke(
         'verify-phone-otp',
         body: {'phone_number': phoneNumber, 'code': code},

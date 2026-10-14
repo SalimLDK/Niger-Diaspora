@@ -232,7 +232,7 @@ class EventSupabaseDataSource implements EventRemoteDataSource {
   Future<List<EventModel>> getEvents() async {
     if (!await _connectivity.isConnected()) return _depuisLeCache();
     try {
-      await SupabaseAuthBridge.instance.ensureAuthenticated();
+      await SupabaseAuthBridge.instance.exigerSession();
       final rows =
           await _supabase.from('events').select(_select).order('starts_at')
               as List;
@@ -286,7 +286,7 @@ class EventSupabaseDataSource implements EventRemoteDataSource {
 
     if (!await _connectivity.isConnected()) return repli();
     try {
-      await SupabaseAuthBridge.instance.ensureAuthenticated();
+      await SupabaseAuthBridge.instance.exigerSession();
       final rows =
           await _supabase
                   .from('events')
@@ -320,7 +320,7 @@ class EventSupabaseDataSource implements EventRemoteDataSource {
 
     if (!await _connectivity.isConnected()) return repli();
     try {
-      await SupabaseAuthBridge.instance.ensureAuthenticated();
+      await SupabaseAuthBridge.instance.exigerSession();
       // Complément exact de `getUpcomingEvents` : date dépassée **ou**
       // annulé. `ended` reste accepté sans condition de date — c'est le
       // vocabulaire de la base pour « terminé », et une donnée saisie à la
@@ -359,7 +359,7 @@ class EventSupabaseDataSource implements EventRemoteDataSource {
 
     if (!await _connectivity.isConnected()) return repli();
     try {
-      await SupabaseAuthBridge.instance.ensureAuthenticated();
+      await SupabaseAuthBridge.instance.exigerSession();
       final rows =
           await _supabase
                   .from('events')
@@ -383,7 +383,7 @@ class EventSupabaseDataSource implements EventRemoteDataSource {
 
     if (!await _connectivity.isConnected()) return repli();
     try {
-      await SupabaseAuthBridge.instance.ensureAuthenticated();
+      await SupabaseAuthBridge.instance.exigerSession();
       final rows =
           await _supabase.from('events').select(_select).eq('group_id', groupId)
               as List;
@@ -402,7 +402,7 @@ class EventSupabaseDataSource implements EventRemoteDataSource {
       if (cached != null) return EventModel.fromJson(cached);
       throw ServerException('Evenement non disponible hors ligne');
     }
-    await SupabaseAuthBridge.instance.ensureAuthenticated();
+    await SupabaseAuthBridge.instance.exigerSession();
     // `.single()` et non `.maybeSingle()` : l'absence de ligne — supprimé,
     // brouillon d'un autre, identifiant d'une autre base — doit remonter
     // comme un échec, pas comme un `null` que l'écran prendrait pour un
@@ -430,7 +430,7 @@ class EventSupabaseDataSource implements EventRemoteDataSource {
 
     if (!await _connectivity.isConnected()) return repli();
     try {
-      await SupabaseAuthBridge.instance.ensureAuthenticated();
+      await SupabaseAuthBridge.instance.exigerSession();
       final organises =
           await _supabase
                   .from('events')
@@ -461,7 +461,7 @@ class EventSupabaseDataSource implements EventRemoteDataSource {
 
     if (!await _connectivity.isConnected()) return repli();
     try {
-      await SupabaseAuthBridge.instance.ensureAuthenticated();
+      await SupabaseAuthBridge.instance.exigerSession();
       final inscriptions =
           await _supabase
                   .from('event_attendees')
@@ -493,7 +493,7 @@ class EventSupabaseDataSource implements EventRemoteDataSource {
 
   @override
   Future<EventModel> createEvent(EventModel event, {String? visibility}) async {
-    await SupabaseAuthBridge.instance.ensureAuthenticated();
+    await SupabaseAuthBridge.instance.exigerSession();
     try {
       final ligne = _versLigne(event);
       if (visibility != null) ligne['visibility'] = visibility;
@@ -529,7 +529,7 @@ class EventSupabaseDataSource implements EventRemoteDataSource {
 
   @override
   Future<EventAudience> getEventAudience(String eventId) async {
-    await SupabaseAuthBridge.instance.ensureAuthenticated();
+    await SupabaseAuthBridge.instance.exigerSession();
     try {
       final ligne = await _supabase
           .from('events')
@@ -606,7 +606,7 @@ class EventSupabaseDataSource implements EventRemoteDataSource {
     List<String> groupIds = const [],
     List<String> userIds = const [],
   }) async {
-    await SupabaseAuthBridge.instance.ensureAuthenticated();
+    await SupabaseAuthBridge.instance.exigerSession();
     try {
       await _supabase.rpc(
         'set_event_audience',
@@ -624,7 +624,7 @@ class EventSupabaseDataSource implements EventRemoteDataSource {
 
   @override
   Future<EventModel> updateEvent(EventModel event) async {
-    await SupabaseAuthBridge.instance.ensureAuthenticated();
+    await SupabaseAuthBridge.instance.exigerSession();
     try {
       await _supabase.from('events').update(_versLigne(event)).eq(
         'id',
@@ -638,7 +638,7 @@ class EventSupabaseDataSource implements EventRemoteDataSource {
 
   @override
   Future<void> deleteEvent(String eventId) async {
-    await SupabaseAuthBridge.instance.ensureAuthenticated();
+    await SupabaseAuthBridge.instance.exigerSession();
     final List<dynamic> supprimes;
     try {
       // `.select()` rend les lignes réellement effacées. Une suppression que
@@ -665,7 +665,7 @@ class EventSupabaseDataSource implements EventRemoteDataSource {
 
   @override
   Future<void> attendEvent(String eventId, String userId) async {
-    await SupabaseAuthBridge.instance.ensureAuthenticated();
+    await SupabaseAuthBridge.instance.exigerSession();
     try {
       // `upsert` et non `insert` : la clé primaire est (event_id, user_id), un
       // double tap sur « Participer » lèverait sinon un 23505 que l'écran
@@ -681,7 +681,7 @@ class EventSupabaseDataSource implements EventRemoteDataSource {
 
   @override
   Future<void> cancelAttendance(String eventId, String userId) async {
-    await SupabaseAuthBridge.instance.ensureAuthenticated();
+    await SupabaseAuthBridge.instance.exigerSession();
     try {
       await _supabase
           .from('event_attendees')
@@ -705,7 +705,7 @@ class EventSupabaseDataSource implements EventRemoteDataSource {
 
       final event = await getEventById(eventId);
       final urls = [...event.posterUrls, url];
-      await SupabaseAuthBridge.instance.ensureAuthenticated();
+      await SupabaseAuthBridge.instance.exigerSession();
       await _supabase
           .from('events')
           .update({'poster_urls': urls, 'cover_url': urls.first})
@@ -729,7 +729,7 @@ class EventSupabaseDataSource implements EventRemoteDataSource {
     try {
       final event = await getEventById(eventId);
       final urls = event.posterUrls.where((u) => u != imageUrl).toList();
-      await SupabaseAuthBridge.instance.ensureAuthenticated();
+      await SupabaseAuthBridge.instance.exigerSession();
       await _supabase
           .from('events')
           .update({
@@ -760,7 +760,7 @@ class EventSupabaseDataSource implements EventRemoteDataSource {
     List<String> photoUrls,
     String description,
   ) async {
-    await SupabaseAuthBridge.instance.ensureAuthenticated();
+    await SupabaseAuthBridge.instance.exigerSession();
     try {
       await _supabase
           .from('events')

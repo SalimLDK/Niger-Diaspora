@@ -142,9 +142,7 @@ class StorySupabaseDataSource implements StoryRemoteDataSource {
     int? videoDurationSeconds,
     required StoryAudience audience,
   }) async {
-    if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
-      throw ServerException('Session non établie – reconnectez-vous');
-    }
+    await SupabaseAuthBridge.instance.exigerSession();
     Map<String, dynamic> ligne({required bool avecAudience}) => {
           'author_id': authorId,
           'author_name': authorName,
@@ -193,9 +191,7 @@ class StorySupabaseDataSource implements StoryRemoteDataSource {
 
   @override
   Future<void> deleteStory(String storyId) async {
-    if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
-      throw ServerException('Session non établie – reconnectez-vous');
-    }
+    await SupabaseAuthBridge.instance.exigerSession();
     final List<dynamic> supprimees;
     try {
       // `.select()` : un refus RLS efface zéro ligne sans lever d'erreur.
@@ -302,7 +298,7 @@ class StorySupabaseDataSource implements StoryRemoteDataSource {
   @override
   Future<List<StoryListMember>> getListMembers(String ownerId) async {
     try {
-      await SupabaseAuthBridge.instance.ensureAuthenticated();
+      await SupabaseAuthBridge.instance.exigerSession();
       final rows = await _supabase
           .from('story_audience_members')
           .select('member_id, list')
@@ -324,9 +320,7 @@ class StorySupabaseDataSource implements StoryRemoteDataSource {
     String memberId,
     StoryListKind? kind,
   ) async {
-    if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
-      throw ServerException('Session non établie – reconnectez-vous');
-    }
+    await SupabaseAuthBridge.instance.exigerSession();
     try {
       if (kind == null) {
         await _supabase

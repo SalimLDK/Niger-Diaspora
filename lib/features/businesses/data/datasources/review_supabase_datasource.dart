@@ -41,7 +41,7 @@ class ReviewSupabaseDataSource implements ReviewRemoteDataSource {
     if (!await ConnectivityService.instance.isConnected()) {
       throw ServerException(AppErrorMessages.networkError);
     }
-    await SupabaseAuthBridge.instance.ensureAuthenticated();
+    await SupabaseAuthBridge.instance.exigerSession();
   }
 
   /// Ligne ⇄ modèle. Les dates restent en ISO : `toEntity` les passe en local.

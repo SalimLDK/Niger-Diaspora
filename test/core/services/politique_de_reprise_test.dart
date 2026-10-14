@@ -94,6 +94,38 @@ void main() {
     expect(politique.peutTenter, isTrue);
   });
 
+  test("après l'abandon, un signal extérieur relance une série complète", () {
+    for (var i = 0; i < PolitiqueDeReprise.maxTentatives; i++) {
+      if (i > 0) avancer(const Duration(seconds: 90));
+      politique.enregistrerEchec();
+    }
+    expect(politique.aAbandonne, isTrue);
+
+    // Retour au premier plan : une tentative tout de suite…
+    politique.autoriserUneTentative();
+    expect(politique.peutTenter, isTrue);
+
+    // …et si elle rate, 5 s de repli, pas cinq minutes de repos. Avant, ce
+    // septième échec reposait la fenêtre de calme entière : un écran ouvert
+    // dans les cinq minutes partait sans session.
+    expect(politique.aAbandonne, isFalse);
+    expect(politique.enregistrerEchec(), const Duration(seconds: 5));
+    avancer(const Duration(seconds: 6));
+    expect(politique.peutTenter, isTrue);
+  });
+
+  test("pendant un repli en cours, le signal n'avance que la tentative", () {
+    politique.enregistrerEchec();
+    politique.enregistrerEchec();
+    expect(politique.echecsConsecutifs, 2);
+
+    politique.autoriserUneTentative();
+
+    // Le compte tient : la série ne repart pas du début.
+    expect(politique.echecsConsecutifs, 2);
+    expect(politique.enregistrerEchec(), const Duration(seconds: 20));
+  });
+
   test('un succès efface tout', () {
     politique.enregistrerEchec();
     politique.enregistrerEchec();
