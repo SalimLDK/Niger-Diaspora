@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:diaspo_niger/core/theme/admin_colors.dart';
 import '../providers/admin_provider.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
@@ -381,8 +380,19 @@ class _AdminNotificationsScreenState
       itemCount: state.sentNotifications.length,
       itemBuilder: (context, index) {
         final notification = state.sentNotifications[index];
-        final sentAt = notification['sentAt'] as Timestamp?;
-        final status = notification['status'] as String? ?? 'unknown';
+        // Lignes Supabase en snake_case : `created_at` (ISO), `target_type`,
+        // `sent_count`. L'historique lisait `sentAt` (Timestamp Firestore),
+        // `status` et `targetGroup`, absents de la table : « N/A », chip
+        // « unknown » et « Tous » sur chaque ligne (audit du 2026-10-14, § 8).
+        final creeLe = notification['created_at'] as String?;
+        final sentAt = creeLe == null
+            ? null
+            : DateTime.tryParse(creeLe)?.toLocal();
+        // Rien ne diffuse cette table — aucun consommateur, nulle part
+        // (audit, § 4) : une ligne est enregistrée, pas envoyée, tant que
+        // `sent_count` reste à zéro. Le dire, plutôt qu'un faux « Envoyée ».
+        final sentCount = (notification['sent_count'] as num?)?.toInt() ?? 0;
+        final status = sentCount > 0 ? 'sent' : 'enregistree';
 
         return _buildNotificationCard(notification, sentAt, status);
       },
@@ -391,7 +401,7 @@ class _AdminNotificationsScreenState
 
   Widget _buildNotificationCard(
     Map<String, dynamic> notification,
-    Timestamp? sentAt,
+    DateTime? sentAt,
     String status,
   ) {
     final statusColor = _getStatusColor(status);
@@ -462,14 +472,14 @@ class _AdminNotificationsScreenState
                       Icon(Icons.group_rounded, size: 14, color: _textSecondary.withAlpha(150)),
                       const SizedBox(width: 4),
                       Text(
-                        _getTargetLabel(notification['targetGroup'] as String? ?? 'all'),
+                        _getTargetLabel(notification['target_type'] as String? ?? 'all'),
                         style: TextStyle(color: _textSecondary.withAlpha(150), fontSize: 12),
                       ),
                       const SizedBox(width: 16),
                       Icon(Icons.access_time_rounded, size: 14, color: _textSecondary.withAlpha(150)),
                       const SizedBox(width: 4),
                       Text(
-                        sentAt != null ? _formatDate(sentAt.toDate()) : 'N/A',
+                        sentAt != null ? _formatDate(sentAt) : 'N/A',
                         style: TextStyle(color: _textSecondary.withAlpha(150), fontSize: 12),
                       ),
                     ],
@@ -533,6 +543,8 @@ class _AdminNotificationsScreenState
 
   String _getStatusLabel(String status) {
     switch (status) {
+      case 'enregistree':
+        return 'Enregistrée, non diffusée';
       case 'sent':
         return l10n.adminStatusSent;
       case 'pending':
