@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1285 cases à cocher, 55 cochées** — 287 entrées sur 301 ont encore des cases ouvertes.
+**1292 cases à cocher, 55 cochées** — 288 entrées sur 302 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -93,7 +93,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 6 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (115)
+**P1 — fonction importante, jamais vérifiée** (116)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -169,6 +169,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [⬜ Photo de profil : on choisit son cadrage (2026-09-14)](#-photo-de-profil--on-choisit-son-cadrage-2026-09-14) · *Accueil, profil et réglages*
 - 6 · [⬜ Champ ville : recherche dans le référentiel (2026-09-13)](#-champ-ville--recherche-dans-le-référentiel-2026-09-13) · *Accueil, profil et réglages*
 - 7 · [Bascule en anglais — ~1 600 chaînes branchées, rien vu à l'écran (2026-08-06)](#bascule-en-anglais--1-600-chaînes-branchées-rien-vu-à-lécran-2026-08-06) · *Design, thème, langue et mise en page* · bloqué
+- 7 · [⬜ Registre de rôle unique : claim, Postgres et callable — l'écran Rôles et le bannissement serveur (2026-10-14)](#-registre-de-rôle-unique--claim-postgres-et-callable--lécran-rôles-et-le-bannissement-serveur-2026-10-14) · *Backend, sécurité et observabilité*
 - 5 · [⬜ Aucune requête Supabase ne part sans session : le refus du pont est respecté (2026-10-13)](#-aucune-requête-supabase-ne-part-sans-session--le-refus-du-pont-est-respecté-2026-10-13) · *Backend, sécurité et observabilité*
 - 4 · [⬜ Une erreur Supabase ne fait plus planter l'app : message à l'écran, JWT expiré retenté (2026-10-13)](#-une-erreur-supabase-ne-fait-plus-planter-lapp--message-à-lécran-jwt-expiré-retenté-2026-10-13) · *Backend, sécurité et observabilité*
 - 3 · [⬜ Les echecs attrapes remontent enfin a Crashlytics (2026-09-14)](#-les-echecs-attrapes-remontent-enfin-a-crashlytics-2026-09-14) · *Backend, sécurité et observabilité*
@@ -356,7 +357,7 @@ Par domaine :
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 67 à faire, 0 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 58 à faire, 5 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 108 à faire, 5 faites
-- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 74 à faire, 2 faites
+- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 81 à faire, 2 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 46 à faire, 1 faites
 - [15. Site web](#15-site-web) — 23 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 19 à faire, 0 faites
@@ -9276,6 +9277,24 @@ parce qu'il change un **comportement**, pas seulement un habillage :
 Supabase et Firebase côté serveur, accès anon, stockage, journaux, Crashlytics, back-office.
 
 ---
+## ⬜ Registre de rôle unique : claim, Postgres et callable — l'écran Rôles et le bannissement serveur (2026-10-14)
+
+**Priorité P1** · importance 4/5 — ferme le § 2 et le § 7 de l'audit du 14/10 (`docs/deploiement/AUDIT_ADMIN_2026-10-14.md`) : le rôle admin vivait dans trois registres sans maître, reliés par une écriture cliente ; le bannissement n'existait pas pour Firebase. Quatre livraisons, aucune déployée : callable `setAdminRole` (Postgres source → claim → RTDB → journal), callable `setUserBanned` (Postgres → `updateUser({disabled})` → `revokeRefreshTokens`), règles Firestore/RTDB sur `auth.token.adminRole`, panneau sur le claim et sur Postgres (`permission_provider.dart`, `role_management_provider.dart`, RPC `administrateurs()` / `profil_par_email()`).
+
+Vérifié hors appareil : `cd functions && npm test` (42 cas), bancs d'émulateur `registre_role_claim.mjs` et `salons_audio_admin.mjs`, `flutter test`. Ordre de déploiement dans `docs/ops/AMORCAGE_ADMIN.md` — les règles AVANT l'amorçage du claim retireraient tout à l'admin en place.
+
+À vérifier, après déploiement des fonctions, amorçage (`node tools/amorcer_super_admin.mjs --email <admin> --confirmer`), règles, puis client :
+
+- [ ] Panneau, compte superAdmin : le rail affiche toutes les sections sans qu'aucun document Firestore `users/<uid>` n'existe ; `adb logcat -s flutter | grep PermissionProvider` montre `claim adminRole -> AdminRole.superAdmin`.
+- [ ] Écran Rôles : la liste vient de Postgres — un admin créé après la migration (absent de Firestore) y figure.
+- [ ] « Nouvel admin » : chercher par e-mail un compte absent de Firestore → trouvé ; assigner Modérateur Contenu → snackbar verte, la ligne apparaît dans sa section ; en base `is_admin = true` ET `admin_role = 'contentMod'` ; une ligne `assign_role` dans `admin_audit_logs`.
+- [ ] Depuis le compte promu, se reconnecter (ou attendre ≤ 1 h) : les sections contentMod s'ouvrent ; dans un salon audio, il retire un participant (règle RTDB par claim) ; avant la reconnexion, le même geste est refusé.
+- [ ] Refus visibles, pas de snackbar verte : révoquer le dernier superAdmin → « Impossible de retirer le dernier superAdmin » ; un contentMod qui ouvre l'écran Rôles → message de droits, pas une liste vide.
+- [ ] Bannir depuis Utilisateurs, une fois `admin_provider.dart` branché sur `setUserBanned` : l'appareil banni est déconnecté (sentinelle), et la reconnexion échoue (« compte désactivé ») ; débannir la rétablit.
+- [ ] Règles déployées : un document Firestore `users/<uid>` avec `isAdmin: true` posé à la main ne donne plus accès à `admin_audit_logs` (lecture refusée dans la console → simulateur de règles, ou par l'app).
+
+---
+
 ## ⬜ Aucune requête Supabase ne part sans session : le refus du pont est respecté (2026-10-13)
 
 **Priorité P1** · importance 4/5 — suite de « Une erreur Supabase ne fait plus planter l'app : message à l'écran, JWT expiré retenté ». Ce correctif-là rattrapait le symptôme (`PGRST303` re-minté puis rejoué) ; celui-ci ferme la cause : quarante-neuf datasources appelaient `ensureAuthenticated()` sans lire sa réponse, et pendant la fenêtre de calme de `PolitiqueDeReprise` la requête partait quand même, avec le jeton périmé.

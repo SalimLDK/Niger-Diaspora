@@ -563,9 +563,10 @@ Dans l'ordre où chaque étape rend la suivante possible.
    migration les passe en `text` (tables vides). Mesuré en production AVANT
    (20 cas en échec : le banni se débannit, le compte se vérifie, un compte
    naît `superAdmin`, `anon` lit `events` et `groups`) et APRÈS en répétition
-   annulée (28/28). À appliquer par `supabase db push`, puis relancer le banc
-   tel quel. Reste du point : le ban appliqué côté serveur (policy
-   restrictive, `auth-firebase-exchange`, `disabled` Firebase).
+   annulée (28/28). **Appliquée en production le 2026-10-14** ; le banc
+   relancé tel quel sur l'état vivant rend 28/28. Reste du point : le ban
+   appliqué côté serveur (policy restrictive, `auth-firebase-exchange`,
+   `disabled` Firebase).
 3. **Un backend par donnée.** Signalements : faire écrire l'app dans Supabase
    `reports` (et élargir le `CHECK` de `target_type`), ou faire lire Firestore
    au panneau — pas les deux. Même décision pour marketplace et transferts
