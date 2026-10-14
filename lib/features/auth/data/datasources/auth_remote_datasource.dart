@@ -18,9 +18,67 @@ import '../../../../core/services/ecriture_ligne_users.dart';
 import '../../../../core/services/supabase_auth_bridge.dart';
 import '../../../../core/utils/date_parsing.dart';
 import '../../domain/entities/account_deletion_status.dart';
+import '../../domain/entities/second_facteur.dart';
 import '../models/user_model.dart';
 
 const String _tag = 'AuthRemoteDataSource';
+
+/// Firebase a accepté le premier facteur et interrompu la connexion pour un
+/// second (`multi-factor-auth-required`). Aucune session n'est ouverte.
+///
+/// Porte le défi ; le dépôt la rend en `SecondFacteurRequisFailure`. Pas une
+/// [ServerException] : attrapée avec les autres `FirebaseAuthException`,
+/// elle devenait « Une erreur est survenue (multi-factor-auth-required) »,
+/// et le résolveur — la seule poignée qui permette de finir la connexion —
+/// partait avec elle.
+class SecondFacteurRequisException implements Exception {
+  SecondFacteurRequisException(this.defi);
+
+  final DefiSecondFacteur defi;
+
+  @override
+  String toString() =>
+      'SecondFacteurRequisException(${defi.facteurs.length} facteur(s))';
+}
+
+/// Le défi, avec le résolveur du SDK qu'il faut pour le clore.
+class DefiFirebase implements DefiSecondFacteur {
+  DefiFirebase(this.resolver);
+
+  final MultiFactorResolver resolver;
+
+  @override
+  List<FacteurEnrole> get facteurs =>
+      resolver.hints.map(facteurDepuisFirebase).toList();
+}
+
+/// Le secret, avec la poignée du SDK qu'il faut pour l'assertion
+/// d'enrôlement.
+class SecretTotpFirebase implements SecretTotp {
+  SecretTotpFirebase(this.secret, {required this.urlQr});
+
+  final TotpSecret secret;
+
+  @override
+  final String urlQr;
+
+  @override
+  String get cle => secret.secretKey;
+
+  @override
+  DateTime? get expireLe => secret.enrollmentCompletionDeadline;
+}
+
+/// `enrollmentTimestamp` est en secondes (le web le dérive de
+/// `enrollmentTime` : millisecondes / 1000).
+FacteurEnrole facteurDepuisFirebase(MultiFactorInfo info) => FacteurEnrole(
+      id: info.uid,
+      type: info.factorId,
+      libelle: info.displayName,
+      enroleLe: DateTime.fromMillisecondsSinceEpoch(
+        (info.enrollmentTimestamp * 1000).round(),
+      ),
+    );
 
 abstract class AuthRemoteDataSource {
   Future<UserModel> signInWithEmail({
@@ -79,6 +137,26 @@ abstract class AuthRemoteDataSource {
 
   Future<void> sendPasswordResetEmail(String email);
 
+  /// Les facteurs enrôlés sur le compte courant. Lève sans session.
+  Future<List<FacteurEnrole>> facteursEnroles();
+
+  /// Génère un secret TOTP pour le compte courant (connexion récente exigée).
+  Future<SecretTotp> commencerEnrolementTotp();
+
+  /// Vérifie [code] contre [secret] et enrôle le facteur sous [libelle].
+  Future<void> terminerEnrolementTotp({
+    required SecretTotp secret,
+    required String code,
+    required String libelle,
+  });
+
+  /// Clôt un défi de second facteur par [code], puis termine la connexion
+  /// comme [signInWithEmail] : pont Supabase, ligne `users`, profil.
+  Future<UserModel> resoudreSecondFacteur({
+    required DefiSecondFacteur defi,
+    required String code,
+  });
+
   Future<void> sendPhoneOtp(String phoneNumber);
 
   Future<void> verifyPhoneOtp({
@@ -133,6 +211,11 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       } catch (_) {}
 
       return await _getUserDataFromSupabase(user);
+    } on FirebaseAuthMultiFactorException catch (e) {
+      // Premier facteur accepté, second à prouver : pas une erreur, et
+      // surtout pas à avaler en ServerException — le résolveur partirait
+      // avec. Voir [SecondFacteurRequisException].
+      throw SecondFacteurRequisException(DefiFirebase(e.resolver));
     } on FirebaseAuthException catch (e) {
       throw ServerException(_mapFirebaseAuthError(e.code));
     } catch (e) {
@@ -217,6 +300,11 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       final userModel = await _getUserDataFromSupabase(user);
       if (kDebugMode) dev.log('=== FIN signInWithGoogle - SUCCES === user: ${userModel.id}', name: _tag);
       return userModel;
+    } on FirebaseAuthMultiFactorException catch (e) {
+      // Premier facteur accepté, second à prouver : pas une erreur, et
+      // surtout pas à avaler en ServerException — le résolveur partirait
+      // avec. Voir [SecondFacteurRequisException].
+      throw SecondFacteurRequisException(DefiFirebase(e.resolver));
     } on FirebaseAuthException catch (e) {
       if (kDebugMode) dev.log('ERREUR FirebaseAuthException: code=${e.code}, message=${e.message}', name: _tag, error: e);
       throw ServerException(_mapFirebaseAuthError(e.code));
@@ -361,6 +449,11 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         throw ServerException('Connexion Apple annulee');
       }
       throw ServerException('Echec de la connexion Apple: ${e.message}');
+    } on FirebaseAuthMultiFactorException catch (e) {
+      // Premier facteur accepté, second à prouver : pas une erreur, et
+      // surtout pas à avaler en ServerException — le résolveur partirait
+      // avec. Voir [SecondFacteurRequisException].
+      throw SecondFacteurRequisException(DefiFirebase(e.resolver));
     } on FirebaseAuthException catch (e) {
       throw ServerException(_mapFirebaseAuthError(e.code));
     } on ServerException {
@@ -784,6 +877,121 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     }
   }
 
+  // --- Second facteur (TOTP) ----------------------------------------------
+
+  /// Émetteur affiché par l'application d'authentification au-dessus du
+  /// code ; le compte, c'est l'e-mail.
+  static const _emetteurTotp = 'DiaspoNiger Admin';
+
+  User _sessionCourante() {
+    final user = _firebaseAuth.currentUser;
+    if (user == null) {
+      throw AuthException('Aucune session ouverte', code: 'no-current-user');
+    }
+    return user;
+  }
+
+  @override
+  Future<List<FacteurEnrole>> facteursEnroles() async {
+    final user = _sessionCourante();
+    try {
+      final facteurs = await user.multiFactor.getEnrolledFactors();
+      return facteurs.map(facteurDepuisFirebase).toList();
+    } on FirebaseAuthException catch (e) {
+      throw ServerException(_mapFirebaseAuthError(e.code));
+    }
+  }
+
+  @override
+  Future<SecretTotp> commencerEnrolementTotp() async {
+    final user = _sessionCourante();
+    try {
+      final session = await user.multiFactor.getSession();
+      final secret = await TotpMultiFactorGenerator.generateSecret(session);
+      final urlQr = await secret.generateQrCodeUrl(
+        accountName: user.email ?? user.uid,
+        issuer: _emetteurTotp,
+      );
+      return SecretTotpFirebase(secret, urlQr: urlQr);
+    } on FirebaseAuthException catch (e) {
+      throw ServerException(_mapFirebaseAuthError(e.code));
+    }
+  }
+
+  @override
+  Future<void> terminerEnrolementTotp({
+    required SecretTotp secret,
+    required String code,
+    required String libelle,
+  }) async {
+    final user = _sessionCourante();
+    if (secret is! SecretTotpFirebase) {
+      throw ArgumentError.value(
+        secret,
+        'secret',
+        'doit venir de commencerEnrolementTotp',
+      );
+    }
+    try {
+      final assertion =
+          await TotpMultiFactorGenerator.getAssertionForEnrollment(
+        secret.secret,
+        code,
+      );
+      await user.multiFactor.enroll(assertion, displayName: libelle);
+    } on FirebaseAuthException catch (e) {
+      throw ServerException(_mapFirebaseAuthError(e.code));
+    }
+  }
+
+  @override
+  Future<UserModel> resoudreSecondFacteur({
+    required DefiSecondFacteur defi,
+    required String code,
+  }) async {
+    if (defi is! DefiFirebase) {
+      throw ArgumentError.value(
+        defi,
+        'defi',
+        "doit venir d'une connexion de cette datasource",
+      );
+    }
+    MultiFactorInfo? totp;
+    for (final indice in defi.resolver.hints) {
+      if (indice.factorId == FacteurEnrole.typeTotp) {
+        totp = indice;
+        break;
+      }
+    }
+    if (totp == null) {
+      // Le panneau ne sait prouver qu'un TOTP ; un facteur SMS enrôlé
+      // ailleurs demanderait un reCAPTCHA et un envoi qu'on n'a pas.
+      throw ServerException(
+        "Ce compte n'a pas de facteur TOTP : le panneau ne prend pas en "
+        'charge le second facteur par SMS.',
+      );
+    }
+    try {
+      final assertion = await TotpMultiFactorGenerator.getAssertionForSignIn(
+        totp.uid,
+        code,
+      );
+      final credential = await defi.resolver.resolveSignIn(assertion);
+      final user = credential.user;
+      if (user == null) {
+        throw ServerException('User is null after sign in');
+      }
+      // La même queue que signInWithEmail : la session n'existe qu'ici.
+      await SupabaseAuthBridge.instance.syncWithFirebase(user);
+      try {
+        await _upsertUserToSupabase(user, email: user.email);
+      } catch (_) {}
+      return await _getUserDataFromSupabase(user);
+    } on FirebaseAuthException catch (e) {
+      throw ServerException(_mapFirebaseAuthError(e.code));
+    }
+  }
+
   String _mapFirebaseAuthError(String code) {
     switch (code) {
       case 'user-not-found':
@@ -802,6 +1010,24 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         return 'Trop de tentatives. Reessayez plus tard';
       case 'invalid-credential':
         return 'Email ou mot de passe incorrect';
+      // Second facteur (TOTP) — docs/deploiement/MFA_ADMIN.md.
+      case 'invalid-verification-code':
+        return "Code incorrect. Vérifiez le code affiché par l'application, "
+            "et l'heure de votre téléphone.";
+      case 'requires-recent-login':
+        return 'Connexion trop ancienne pour cette opération : '
+            'reconnectez-vous, puis réessayez.';
+      case 'second-factor-already-enrolled':
+        return 'Un second facteur est déjà enrôlé sur ce compte.';
+      case 'maximum-second-factor-count-exceeded':
+        return 'Ce compte a déjà le nombre maximal de seconds facteurs.';
+      case 'unsupported-first-factor':
+        return 'Ce mode de connexion ne permet pas de second facteur.';
+      case 'multi-factor-info-not-found':
+        return 'Facteur introuvable sur ce compte : reconnectez-vous.';
+      case 'operation-not-allowed':
+        return 'Opération non activée sur le projet Firebase '
+            '(TOTP : docs/deploiement/MFA_ADMIN.md).';
       default:
         return 'Une erreur est survenue ($code)';
     }

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'screens/admin_dashboard_screen.dart';
+import 'screens/admin_enrolement_totp_screen.dart';
 import 'screens/admin_login_screen.dart';
 import 'widgets/garde_tableau_de_bord.dart';
 
@@ -39,9 +40,12 @@ class AdminApp extends ConsumerWidget {
         '/login': (context) => const AdminLoginScreen(),
         // Sans garde, `/dashboard` tapé dans la barre d'adresse rendait le
         // panneau sans connexion (audit du 2026-10-14, § 8).
+        // Et sans second facteur enrôlé, un admin connecté qui tape
+        // l'adresse voit l'enrôlement (docs/deploiement/MFA_ADMIN.md).
         '/dashboard': (context) => const GardeTableauDeBord(
           tableauDeBord: AdminDashboardScreen(),
           connexion: AdminLoginScreen(),
+          enrolement: AdminEnrolementTotpScreen(),
         ),
       },
     );

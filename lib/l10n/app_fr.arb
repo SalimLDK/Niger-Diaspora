@@ -4144,6 +4144,27 @@
   "adminLoginWithGoogle": "Se connecter avec Google",
   "adminPasswordLabel": "Mot de passe",
   "adminLoginButton": "Login",
+  "adminMfaEnrolTitle": "Second facteur requis",
+  "adminMfaEnrolIntro": "Scannez ce QR code avec une application d'authentification (Google Authenticator, Aegis, 1Password…), puis entrez le code à 6 chiffres qu'elle affiche. Sans ce second facteur, le tableau de bord reste fermé.",
+  "adminMfaManualKey": "Ou saisissez cette clé à la main :",
+  "adminMfaConfirmBefore": "À confirmer avant {heure}",
+  "@adminMfaConfirmBefore": {
+    "placeholders": {
+      "heure": {
+        "type": "String"
+      }
+    }
+  },
+  "adminMfaCodeField": "Code à 6 chiffres",
+  "adminMfaCodeMissing": "Entrez le code à 6 chiffres affiché par votre application.",
+  "adminMfaActivateButton": "Activer le second facteur",
+  "adminMfaRetry": "Réessayer",
+  "adminMfaSignOut": "Se déconnecter",
+  "adminMfaChallengeTitle": "Code de vérification",
+  "adminMfaChallengeIntro": "Entrez le code à 6 chiffres affiché par votre application d'authentification.",
+  "adminMfaVerifyButton": "Vérifier",
+  "adminMfaBackToLogin": "Retour à la connexion",
+  "adminMfaNoTotp": "Ce compte n'a qu'un second facteur par SMS, que le panneau ne prend pas en charge.",
   "adminProductsCount": "Produits ({count})",
   "@adminProductsCount": {
     "placeholders": {

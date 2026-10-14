@@ -8873,6 +8873,54 @@ class AppLocalizationsFr extends AppLocalizations {
   String get adminLoginButton => 'Login';
 
   @override
+  String get adminMfaEnrolTitle => 'Second facteur requis';
+
+  @override
+  String get adminMfaEnrolIntro =>
+      'Scannez ce QR code avec une application d\'authentification (Google Authenticator, Aegis, 1Password…), puis entrez le code à 6 chiffres qu\'elle affiche. Sans ce second facteur, le tableau de bord reste fermé.';
+
+  @override
+  String get adminMfaManualKey => 'Ou saisissez cette clé à la main :';
+
+  @override
+  String adminMfaConfirmBefore(String heure) {
+    return 'À confirmer avant $heure';
+  }
+
+  @override
+  String get adminMfaCodeField => 'Code à 6 chiffres';
+
+  @override
+  String get adminMfaCodeMissing =>
+      'Entrez le code à 6 chiffres affiché par votre application.';
+
+  @override
+  String get adminMfaActivateButton => 'Activer le second facteur';
+
+  @override
+  String get adminMfaRetry => 'Réessayer';
+
+  @override
+  String get adminMfaSignOut => 'Se déconnecter';
+
+  @override
+  String get adminMfaChallengeTitle => 'Code de vérification';
+
+  @override
+  String get adminMfaChallengeIntro =>
+      'Entrez le code à 6 chiffres affiché par votre application d\'authentification.';
+
+  @override
+  String get adminMfaVerifyButton => 'Vérifier';
+
+  @override
+  String get adminMfaBackToLogin => 'Retour à la connexion';
+
+  @override
+  String get adminMfaNoTotp =>
+      'Ce compte n\'a qu\'un second facteur par SMS, que le panneau ne prend pas en charge.';
+
+  @override
   String adminProductsCount(int count) {
     return 'Produits ($count)';
   }

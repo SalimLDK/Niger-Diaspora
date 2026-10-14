@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1293 cases à cocher, 55 cochées** — 288 entrées sur 302 ont encore des cases ouvertes.
+**1302 cases à cocher, 55 cochées** — 289 entrées sur 303 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -93,7 +93,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 6 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (116)
+**P1 — fonction importante, jamais vérifiée** (117)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -169,6 +169,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [⬜ Photo de profil : on choisit son cadrage (2026-09-14)](#-photo-de-profil--on-choisit-son-cadrage-2026-09-14) · *Accueil, profil et réglages*
 - 6 · [⬜ Champ ville : recherche dans le référentiel (2026-09-13)](#-champ-ville--recherche-dans-le-référentiel-2026-09-13) · *Accueil, profil et réglages*
 - 7 · [Bascule en anglais — ~1 600 chaînes branchées, rien vu à l'écran (2026-08-06)](#bascule-en-anglais--1-600-chaînes-branchées-rien-vu-à-lécran-2026-08-06) · *Design, thème, langue et mise en page* · bloqué
+- 9 · [⬜ Second facteur TOTP obligatoire sur le panneau admin (2026-10-14)](#-second-facteur-totp-obligatoire-sur-le-panneau-admin-2026-10-14) · *Backend, sécurité et observabilité*
 - 8 · [⬜ Registre de rôle unique : claim, Postgres et callable — l'écran Rôles et le bannissement serveur (2026-10-14)](#-registre-de-rôle-unique--claim-postgres-et-callable--lécran-rôles-et-le-bannissement-serveur-2026-10-14) · *Backend, sécurité et observabilité*
 - 5 · [⬜ Aucune requête Supabase ne part sans session : le refus du pont est respecté (2026-10-13)](#-aucune-requête-supabase-ne-part-sans-session--le-refus-du-pont-est-respecté-2026-10-13) · *Backend, sécurité et observabilité*
 - 4 · [⬜ Une erreur Supabase ne fait plus planter l'app : message à l'écran, JWT expiré retenté (2026-10-13)](#-une-erreur-supabase-ne-fait-plus-planter-lapp--message-à-lécran-jwt-expiré-retenté-2026-10-13) · *Backend, sécurité et observabilité*
@@ -357,7 +358,7 @@ Par domaine :
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 67 à faire, 0 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 58 à faire, 5 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 108 à faire, 5 faites
-- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 82 à faire, 2 faites
+- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 91 à faire, 2 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 46 à faire, 1 faites
 - [15. Site web](#15-site-web) — 23 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 19 à faire, 0 faites
@@ -9277,6 +9278,24 @@ parce qu'il change un **comportement**, pas seulement un habillage :
 Supabase et Firebase côté serveur, accès anon, stockage, journaux, Crashlytics, back-office.
 
 ---
+## ⬜ Second facteur TOTP obligatoire sur le panneau admin (2026-10-14)
+
+**Priorité P1** · importance 4/5 — ferme le § 8 et le § 10 point 7 de l'audit du 14/10 (`docs/deploiement/AUDIT_ADMIN_2026-10-14.md`) : un mot de passe admin hameçonné valait le panneau entier. Désormais un compte admin sans facteur enrôlé est envoyé sur l'enrôlement (QR + premier code) avant tout tableau de bord, un compte avec facteur passe par l'écran de défi, et la garde de `/dashboard` exige rôle **et** facteur (`admin_login_screen.dart`, `admin_enrolement_totp_screen.dart`, `admin_defi_second_facteur_screen.dart`, `garde_tableau_de_bord.dart`). Ce que `flutter test` ne couvre pas : le vrai SDK web (`TotpMultiFactorGenerator`, `MultiFactorResolver`), le QR lu par une vraie application d'authentification, l'horloge du téléphone, et la configuration du projet.
+
+**Préalable** (Salim, `docs/deploiement/MFA_ADMIN.md`) : TOTP activé sur le projet — relevé du 14/10 : Identity Platform oui, MFA activé, SMS seul. Sans lui, l'enrôlement répond « Opération non activée sur le projet Firebase ». Panneau servi en local (`flutter run -d chrome -t lib/features/admin/main.dart`) ou sur une cible d'hébergement quand elle existera. Compte : `test.diaspo@example.com` (superAdmin après amorçage), un téléphone avec Google Authenticator ou Aegis.
+
+- [ ] Connexion e-mail d'un admin sans facteur → écran « Second facteur requis » avec le QR, la clé par blocs de 4, « À confirmer avant HH:MM » ; `/dashboard` tapé dans la barre d'adresse à ce moment → le même écran d'enrôlement, jamais le tableau de bord.
+- [ ] Scanner le QR : l'application affiche « DiaspoNiger Admin » et l'e-mail du compte ; saisir la clé à la main dans une seconde application donne le même code.
+- [ ] Premier code juste → tableau de bord ; dans la console Firebase (Authentication → Users → le compte), un facteur TOTP « Application d'authentification » est listé.
+- [ ] Code faux → « Code incorrect… », bouton réactivé ; code de la fenêtre précédente (≤ 2 min 30, `adjacentIntervals: 5`) → accepté ; horloge du téléphone décalée de 5 min → refusé, message qui parle de l'heure.
+- [ ] Déconnexion, reconnexion du même compte → écran « Code de vérification » **sans** session ouverte (`/dashboard` tapé à ce moment → connexion, pas le tableau de bord) ; code juste → tableau de bord ; code faux → message, bouton réactivé ; « Retour à la connexion » → connexion.
+- [ ] Google : même parcours (enrôlement puis défi) ; un compte sans droits avec un facteur → « Accès refusé… » et session fermée (`/dashboard` → connexion).
+- [ ] Session ouverte depuis plus de 5 min sans facteur (onglet laissé ouvert, puis `/dashboard`) → l'enrôlement affiche « Connexion trop ancienne… » avec « Réessayer » et « Se déconnecter », jamais une page blanche.
+- [ ] App mobile, même compte admin enrôlé → « Ce compte exige un second facteur : connectez-vous depuis le panneau d'administration », pas de plantage, pas de session fantôme.
+- [ ] Perte du téléphone : la recette Admin SDK de `MFA_ADMIN.md` retire le facteur ; la reconnexion retombe sur l'enrôlement.
+
+---
+
 ## ⬜ Registre de rôle unique : claim, Postgres et callable — l'écran Rôles et le bannissement serveur (2026-10-14)
 
 **Priorité P1** · importance 4/5 — ferme le § 2 et le § 7 de l'audit du 14/10 (`docs/deploiement/AUDIT_ADMIN_2026-10-14.md`) : le rôle admin vivait dans trois registres sans maître, reliés par une écriture cliente ; le bannissement n'existait pas pour Firebase. Quatre livraisons, aucune déployée : callable `setAdminRole` (Postgres source → claim → RTDB → journal), callable `setUserBanned` (Postgres → `updateUser({disabled})` → `revokeRefreshTokens`), règles Firestore/RTDB sur `auth.token.adminRole`, panneau sur le claim et sur Postgres (`permission_provider.dart`, `role_management_provider.dart`, RPC `administrateurs()` / `profil_par_email()`). Le même jour, `banUser`/`unbanUser` du panneau (`admin_provider.dart`) appellent `setUserBanned` au lieu d'écrire Postgres et le journal eux-mêmes ; le refus du serveur est affiché (`refus_callable.dart`, partagé avec `setAdminRole`).

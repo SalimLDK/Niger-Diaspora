@@ -3867,6 +3867,27 @@
   "adminLoginWithGoogle": "Sign in with Google",
   "adminPasswordLabel": "Password",
   "adminLoginButton": "Login",
+  "adminMfaEnrolTitle": "Second factor required",
+  "adminMfaEnrolIntro": "Scan this QR code with an authenticator app (Google Authenticator, Aegis, 1Password…), then enter the 6-digit code it shows. Without this second factor, the dashboard stays closed.",
+  "adminMfaManualKey": "Or type this key by hand:",
+  "adminMfaConfirmBefore": "Confirm before {heure}",
+  "@adminMfaConfirmBefore": {
+    "placeholders": {
+      "heure": {
+        "type": "String"
+      }
+    }
+  },
+  "adminMfaCodeField": "6-digit code",
+  "adminMfaCodeMissing": "Enter the 6-digit code shown by your app.",
+  "adminMfaActivateButton": "Enable second factor",
+  "adminMfaRetry": "Retry",
+  "adminMfaSignOut": "Sign out",
+  "adminMfaChallengeTitle": "Verification code",
+  "adminMfaChallengeIntro": "Enter the 6-digit code shown by your authenticator app.",
+  "adminMfaVerifyButton": "Verify",
+  "adminMfaBackToLogin": "Back to sign-in",
+  "adminMfaNoTotp": "This account only has an SMS second factor, which the panel does not support.",
   "adminProductsCount": "Products ({count})",
   "@adminProductsCount": {"placeholders": {"count": {"type": "int"}}},
   "adminOrdersCount": "Orders ({count})",

@@ -16340,6 +16340,90 @@ abstract class AppLocalizations {
   /// **'Login'**
   String get adminLoginButton;
 
+  /// No description provided for @adminMfaEnrolTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Second facteur requis'**
+  String get adminMfaEnrolTitle;
+
+  /// No description provided for @adminMfaEnrolIntro.
+  ///
+  /// In fr, this message translates to:
+  /// **'Scannez ce QR code avec une application d\'authentification (Google Authenticator, Aegis, 1Password…), puis entrez le code à 6 chiffres qu\'elle affiche. Sans ce second facteur, le tableau de bord reste fermé.'**
+  String get adminMfaEnrolIntro;
+
+  /// No description provided for @adminMfaManualKey.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ou saisissez cette clé à la main :'**
+  String get adminMfaManualKey;
+
+  /// No description provided for @adminMfaConfirmBefore.
+  ///
+  /// In fr, this message translates to:
+  /// **'À confirmer avant {heure}'**
+  String adminMfaConfirmBefore(String heure);
+
+  /// No description provided for @adminMfaCodeField.
+  ///
+  /// In fr, this message translates to:
+  /// **'Code à 6 chiffres'**
+  String get adminMfaCodeField;
+
+  /// No description provided for @adminMfaCodeMissing.
+  ///
+  /// In fr, this message translates to:
+  /// **'Entrez le code à 6 chiffres affiché par votre application.'**
+  String get adminMfaCodeMissing;
+
+  /// No description provided for @adminMfaActivateButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Activer le second facteur'**
+  String get adminMfaActivateButton;
+
+  /// No description provided for @adminMfaRetry.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réessayer'**
+  String get adminMfaRetry;
+
+  /// No description provided for @adminMfaSignOut.
+  ///
+  /// In fr, this message translates to:
+  /// **'Se déconnecter'**
+  String get adminMfaSignOut;
+
+  /// No description provided for @adminMfaChallengeTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Code de vérification'**
+  String get adminMfaChallengeTitle;
+
+  /// No description provided for @adminMfaChallengeIntro.
+  ///
+  /// In fr, this message translates to:
+  /// **'Entrez le code à 6 chiffres affiché par votre application d\'authentification.'**
+  String get adminMfaChallengeIntro;
+
+  /// No description provided for @adminMfaVerifyButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vérifier'**
+  String get adminMfaVerifyButton;
+
+  /// No description provided for @adminMfaBackToLogin.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retour à la connexion'**
+  String get adminMfaBackToLogin;
+
+  /// No description provided for @adminMfaNoTotp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce compte n\'a qu\'un second facteur par SMS, que le panneau ne prend pas en charge.'**
+  String get adminMfaNoTotp;
+
   /// No description provided for @adminProductsCount.
   ///
   /// In fr, this message translates to:

@@ -8781,6 +8781,53 @@ class AppLocalizationsEn extends AppLocalizations {
   String get adminLoginButton => 'Login';
 
   @override
+  String get adminMfaEnrolTitle => 'Second factor required';
+
+  @override
+  String get adminMfaEnrolIntro =>
+      'Scan this QR code with an authenticator app (Google Authenticator, Aegis, 1Password…), then enter the 6-digit code it shows. Without this second factor, the dashboard stays closed.';
+
+  @override
+  String get adminMfaManualKey => 'Or type this key by hand:';
+
+  @override
+  String adminMfaConfirmBefore(String heure) {
+    return 'Confirm before $heure';
+  }
+
+  @override
+  String get adminMfaCodeField => '6-digit code';
+
+  @override
+  String get adminMfaCodeMissing => 'Enter the 6-digit code shown by your app.';
+
+  @override
+  String get adminMfaActivateButton => 'Enable second factor';
+
+  @override
+  String get adminMfaRetry => 'Retry';
+
+  @override
+  String get adminMfaSignOut => 'Sign out';
+
+  @override
+  String get adminMfaChallengeTitle => 'Verification code';
+
+  @override
+  String get adminMfaChallengeIntro =>
+      'Enter the 6-digit code shown by your authenticator app.';
+
+  @override
+  String get adminMfaVerifyButton => 'Verify';
+
+  @override
+  String get adminMfaBackToLogin => 'Back to sign-in';
+
+  @override
+  String get adminMfaNoTotp =>
+      'This account only has an SMS second factor, which the panel does not support.';
+
+  @override
   String adminProductsCount(int count) {
     return 'Products ($count)';
   }
