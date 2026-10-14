@@ -10,6 +10,8 @@ const { cheminStorageSur } = require("./chemins_storage");
 const { peutSupprimerConversationPourTous } = require("./autorisations");
 const { preparerAppelEntrant, nomAppele, uidValide } = require("./appels");
 const partners = require("./partners");
+const { creerCallableSetAdminRole } = require("./roles_admin");
+const { creerCallableSetUserBanned } = require("./bannissement");
 // Tokens/profils/conversations : lus dans Supabase, PAS dans Firestore.
 const {
   getFcmTokens,
@@ -23,6 +25,11 @@ const {
   isBlocked,
   claimDueAccountDeletions,
   completeAccountDeletion,
+  getAdminAccount,
+  countSuperAdmins,
+  setAdminFlags,
+  setBanFlags,
+  insertAdminAuditLog,
   isConfigured: isSupabaseConfigured,
 } = require("./supabase");
 
@@ -7871,4 +7878,50 @@ exports.revenueCatWebhook = functions.https.onRequest(async (req, res) => {
         console.error("revenueCatWebhook: error processing event:", error);
         return res.status(500).send("Internal Server Error");
     }
+});
+
+// ============================================================================
+// REGISTRE ADMIN — setAdminRole
+// ============================================================================
+//
+// Le seul chemin par lequel un rôle admin s'écrit depuis l'application.
+// Logique et refus dans roles_admin.js (testé par `npm test`) ; ici, le
+// câblage des accès réels. Amorçage du premier superAdmin :
+// docs/ops/AMORCAGE_ADMIN.md (`tools/amorcer_super_admin.mjs`).
+//
+// Appel client : `FirebaseFunctions.instance.httpsCallable('setAdminRole')`
+// avec `{ uid, adminRole }` — `adminRole` parmi superAdmin, contentMod,
+// businessMod, financeMod, ou "none" pour révoquer.
+exports.setAdminRole = creerCallableSetAdminRole(functions, {
+    lireCompte: getAdminAccount,
+    compterSuperAdmins: countSuperAdmins,
+    ecrireRoleAdmin: setAdminFlags,
+    // `null` retire TOUS les custom claims du compte : il n'y en a pas
+    // d'autre dans ce projet (aucun autre setCustomUserClaims).
+    poserClaim: (uid, role) =>
+        admin.auth().setCustomUserClaims(uid, role ? { adminRole: role } : null),
+    ecrireAdminsRtdb: (uid, present) => {
+        const ref = admin.database().ref(`admins/${uid}`);
+        return present ? ref.set(true) : ref.remove();
+    },
+    journaliser: insertAdminAuditLog,
+});
+
+// ============================================================================
+// BANNISSEMENT — setUserBanned
+// ============================================================================
+//
+// Le bannissement appliqué par le serveur : Postgres (ce que les builds
+// installés lisent pour s'éjecter), puis Firebase Auth désactivé et jetons
+// révoqués — un compte banni n'obtient plus aucun jeton, les règles n'ont
+// rien à lire. Logique et refus dans bannissement.js (`npm test`).
+//
+// Appel client : `httpsCallable('setUserBanned')` avec
+// `{ uid, banned: true, reason }` ou `{ uid, banned: false }`.
+exports.setUserBanned = creerCallableSetUserBanned(functions, {
+    lireCompte: getAdminAccount,
+    ecrireBan: setBanFlags,
+    desactiverCompte: (uid, disabled) => admin.auth().updateUser(uid, { disabled }),
+    revoquerJetons: (uid) => admin.auth().revokeRefreshTokens(uid),
+    journaliser: insertAdminAuditLog,
 });
