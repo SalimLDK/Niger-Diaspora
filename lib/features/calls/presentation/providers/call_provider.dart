@@ -834,11 +834,30 @@ class CurrentCallNotifier extends Notifier<CurrentCallState> {
       return false;
     }
 
-    final call = state.call;
     final currentUser = ref.read(currentUserAsyncProvider).valueOrNull;
     final repository = ref.read(callRepositoryProvider);
     final messageService = ref.read(callMessageServiceProvider);
     final nativeCallService = ref.read(nativeCallServiceProvider);
+
+    // Refuser un AUTRE appel que celui en cours (second appel entrant refusé
+    // depuis la bannière native) : on ne touche ni à l'état ni à l'UI de
+    // l'appel en cours. Avant, `_resetState()` vidait l'écran de l'appel actif
+    // sans le raccrocher — l'audio continuait sans interface — et le message
+    // « refusé » était écrit au nom de l'appel actif.
+    final enCours = state.call;
+    if (enCours != null && enCours.id != callId) {
+      unawaited(nativeCallService.endCallById(callId).catchError((_) {}));
+      return _guardRemote('declineCall', () => repository.declineCall(callId));
+    }
+
+    // Refus depuis la bannière, app en arrière-plan : l'état est vide, on
+    // relit l'appel pour pouvoir écrire le message « refusé » dans la
+    // discussion — il manquait jusqu'ici.
+    var call = enCours;
+    if (call == null) {
+      final lu = await repository.getCall(callId);
+      call = lu.fold((_) => null, (c) => c);
+    }
 
     state = state.copyWith(isEnding: true);
 
@@ -853,15 +872,16 @@ class CurrentCallNotifier extends Notifier<CurrentCallState> {
     );
 
     if (call != null && currentUser != null) {
+      final refuse = call;
       await _guardRemote(
         'createCallMessage(declined)',
         () => messageService.createCallMessage(
-          callId: call.id,
-          callerId: call.callerId,
-          callerName: call.callerName,
-          calleeId: call.calleeId,
-          calleeName: call.calleeName,
-          callType: call.type == CallType.video ? 'video' : 'audio',
+          callId: refuse.id,
+          callerId: refuse.callerId,
+          callerName: refuse.callerName,
+          calleeId: refuse.calleeId,
+          calleeName: refuse.calleeName,
+          callType: refuse.type == CallType.video ? 'video' : 'audio',
           callStatus: 'declined',
           callDuration: null,
           currentUserId: currentUser.id,
@@ -904,6 +924,9 @@ class CurrentCallNotifier extends Notifier<CurrentCallState> {
     final String callStatus;
     if (reason == 'missed' || reason == 'no_answer') {
       callStatus = 'missed';
+    } else if (reason == 'declined') {
+      // L'autre côté a refusé : c'est un refus, pas une annulation.
+      callStatus = 'declined';
     } else if (wasRinging && (duration == null || duration.inSeconds == 0)) {
       // Fin pendant la sonnerie : annulé si c'est l'appelant qui raccroche,
       // manqué si c'est l'appelé.
@@ -1274,8 +1297,13 @@ class CallNotificationHandler extends Notifier<void> {
         break;
 
       case NativeCallEvent.ended:
-        // User ended call from native UI
-        if (currentCallState.call != null) {
+        // User ended call from native UI — celui-là seulement : la bannière
+        // d'un AUTRE appel qu'on ferme ne raccroche pas l'appel en cours.
+        // (Les fermetures demandées par l'app ne remontent plus jusqu'ici :
+        // NativeCallService les filtre.)
+        final enCours = currentCallState.call;
+        if (enCours != null &&
+            (event.callId.isEmpty || event.callId == enCours.id)) {
           unawaited(ref.read(currentCallProvider.notifier).endCall(reason: 'user_ended'));
         }
         break;

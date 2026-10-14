@@ -552,9 +552,13 @@ class _CallScreenState extends ConsumerState<CallScreen>
         message = l10n.callEndedStatus;
     }
 
-    // Cleanup WebRTC
-    final webrtc = ref.read(webRTCServiceProvider);
-    unawaited(webrtc.hangUp());
+    // Fin complète par le notifier, pas seulement WebRTC. `hangUp()` seul
+    // laissait `state.call` posé : l'UI native et la notification d'appel
+    // restaient, les minuteurs de battement et de durée tournaient, et tout
+    // nouvel appel était refusé « occupé » jusqu'à l'expiration du battement.
+    // `endCall` raccroche WebRTC lui-même, et son écriture distante est
+    // idempotente (un statut déjà terminal n'est pas réécrit).
+    unawaited(ref.read(currentCallProvider.notifier).endCall(reason: status));
 
     // Afficher un snackbar bref et fermer l'écran
     if (mounted) {

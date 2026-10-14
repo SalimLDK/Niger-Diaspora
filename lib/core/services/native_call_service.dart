@@ -267,8 +267,41 @@ class NativeCallService {
     debugPrint('NativeCallService: Call connected');
   }
 
+  /// Fermetures demandées par l'application elle-même, par callId logique,
+  /// avec leur échéance.
+  ///
+  /// Le plugin renvoie `ACTION_CALL_ENDED` même quand c'est l'app qui ferme
+  /// la bannière (Android, et iOS pour un appel décroché ou sortant). Pris
+  /// pour un raccrochage de l'utilisateur, cet événement coupait l'appel en
+  /// cours : décrocher fermait la bannière d'arrivée, et l'événement en retour
+  /// raccrochait l'appel qu'on venait de prendre. Refuser un second appel pour
+  /// cause d'occupation effaçait de même l'identifiant de l'appel actif.
+  final Map<String, DateTime> _fermeturesParLApp = {};
+  DateTime? _toutFermeParLAppJusqua;
+  static const _delaiRetourFermeture = Duration(seconds: 5);
+
+  void _noterFermeture(String? callId) {
+    final echeance = DateTime.now().add(_delaiRetourFermeture);
+    if (callId == null || callId.isEmpty) {
+      _toutFermeParLAppJusqua = echeance;
+    } else {
+      _fermeturesParLApp[callId] = echeance;
+    }
+  }
+
+  /// Vrai si la fin de [callId] a été demandée par l'app il y a moins de
+  /// quelques secondes. Consomme la marque.
+  bool _fermeParLApp(String callId) {
+    final maintenant = DateTime.now();
+    _fermeturesParLApp.removeWhere((_, echeance) => echeance.isBefore(maintenant));
+    if (_fermeturesParLApp.remove(callId) != null) return true;
+    final tout = _toutFermeParLAppJusqua;
+    return tout != null && tout.isAfter(maintenant);
+  }
+
   /// End the active call
   Future<void> endCall() async {
+    _noterFermeture(_activeCallId);
     if (_activeCallUuid != null) {
       await FlutterCallkitIncoming.endCall(_activeCallUuid!);
     } else {
@@ -288,6 +321,7 @@ class NativeCallService {
 
   /// End all calls
   Future<void> endAllCalls() async {
+    _noterFermeture(null);
     await FlutterCallkitIncoming.endAllCalls();
     await WakelockHelper.disable();
     _activeCallUuid = null;
@@ -301,6 +335,7 @@ class NativeCallService {
   /// d'occupation, sans couper l'appel réellement en cours (contrairement à
   /// `endAllCalls`, qui les emporterait tous les deux).
   Future<void> endCallById(String callId) async {
+    _noterFermeture(callId);
     await FlutterCallkitIncoming.endCall(callKitUuidFor(callId));
     debugPrint('NativeCallService: Ended call $callId (busy)');
   }
@@ -344,6 +379,9 @@ class NativeCallService {
         nativeEvent = NativeCallEvent.declined;
         break;
       case Event.actionCallEnded:
+        // Écho d'une fermeture demandée par l'app : ni raccrochage, ni oubli
+        // de l'appel actif (voir [_fermeturesParLApp]).
+        if (_fermeParLApp(callId)) return;
         nativeEvent = NativeCallEvent.ended;
         _activeCallUuid = null;
         _activeCallId = null;

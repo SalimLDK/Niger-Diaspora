@@ -78,7 +78,13 @@ class CallMessageService {
         return;
       }
 
-      final msgId = const Uuid().v4();
+      // Un seul message par appel. Les deux côtés (et chaque participant d'un
+      // appel de groupe) écrivaient le leur, sous un identifiant au hasard :
+      // deux bulles par appel, et le compteur de non-lus montait deux fois.
+      // Identifiant dérivé de l'appel + insertion qui ignore le doublon : le
+      // premier qui écrit l'emporte, les suivants n'ajoutent rien.
+      final msgId =
+          const Uuid().v5(Namespace.url.value, 'diasponiger.call-message/$callId');
       final now = DateTime.now().toUtc().toIso8601String();
       final msgData = <String, dynamic>{
         'senderName': currentUserName,
@@ -94,14 +100,24 @@ class CallMessageService {
         'deliveredTo': [currentUserId],
       };
 
-      await Supabase.instance.client.from('messages').insert({
-        'id': msgId,
-        'conversation_id': convId,
-        'sender_id': currentUserId, // Must be auth.uid for RLS
-        'type': 'call',
-        'created_at': now,
-        'data': msgData,
-      });
+      final inseres = await Supabase.instance.client.from('messages').upsert(
+        {
+          'id': msgId,
+          'conversation_id': convId,
+          'sender_id': currentUserId, // Must be auth.uid for RLS
+          'type': 'call',
+          'created_at': now,
+          'data': msgData,
+        },
+        onConflict: 'id',
+        ignoreDuplicates: true,
+      ).select('id');
+      if (inseres.isEmpty) {
+        // L'autre côté a déjà écrit le message de cet appel : rien à ajouter,
+        // ni à l'aperçu (que son écriture a déjà mis à jour).
+        debugPrint('appel: message de l\'appel $callId déjà écrit');
+        return;
+      }
       debugPrint('appel: Message written to Supabase messages/$msgId (conv=$convId)');
 
       // Mettre à jour la conversation dans Supabase avec le dernier message

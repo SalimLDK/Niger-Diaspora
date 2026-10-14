@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1394 cases à cocher, 55 cochées** — 321 entrées sur 335 ont encore des cases ouvertes.
+**1399 cases à cocher, 55 cochées** — 322 entrées sur 336 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -96,7 +96,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 6 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (134)
+**P1 — fonction importante, jamais vérifiée** (135)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -166,6 +166,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [⬜ Distribution des Sender Keys : la même porte, une marche plus loin (2026-09-14)](#-distribution-des-sender-keys--la-même-porte-une-marche-plus-loin-2026-09-14) · *Chiffrement de bout en bout et clés* · bloqué
 - 7 · [⬜ Cartes de partage chiffrées au repos (2026-09-09)](#-cartes-de-partage-chiffrées-au-repos-2026-09-09) · *Chiffrement de bout en bout et clés* · bloqué
 - 4 · [Messages de groupe qui redeviennent indéchiffrables après réouverture (2026-08-13)](#messages-de-groupe-qui-redeviennent-indéchiffrables-après-réouverture-2026-08-13) · *Chiffrement de bout en bout et clés* · bloqué
+- 5 · [⬜ Appel 1:1 : décrocher ne raccroche plus, refuser un second appel ne coupe plus le premier (2026-10-14)](#-appel-11--décrocher-ne-raccroche-plus-refuser-un-second-appel-ne-coupe-plus-le-premier-2026-10-14) · *Appels*
 - 4 · [⬜ Appel entrant : le nom et la photo de l'appelant viennent de la base (2026-09-21)](#-appel-entrant--le-nom-et-la-photo-de-lappelant-viennent-de-la-base-2026-09-21) · *Appels*
 - 2 · [⬜ `onMessageCreated` et `sendMessagePush` retirées : à supprimer en production (2026-10-07)](#-onmessagecreated-et-sendmessagepush-retirées--à-supprimer-en-production-2026-10-07) · *Notifications et push*
 - 3 · [⬜ Message en clair supprimé ou expiré : bannière retirée, texte effacé des notifications (2026-10-05)](#-message-en-clair-supprimé-ou-expiré--bannière-retirée-texte-effacé-des-notifications-2026-10-05) · *Notifications et push*
@@ -382,7 +383,7 @@ Par domaine :
 - [2. Messagerie](#2-messagerie) — 359 à faire, 31 faites
 - [3. Groupes](#3-groupes) — 141 à faire, 0 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 159 à faire, 4 faites
-- [5. Appels](#5-appels) — 24 à faire, 1 faites
+- [5. Appels](#5-appels) — 29 à faire, 1 faites
 - [6. Notifications et push](#6-notifications-et-push) — 124 à faire, 6 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 36 à faire, 0 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 63 à faire, 0 faites
@@ -5714,6 +5715,31 @@ trafic : à investiguer.
 # 5. Appels
 
 Appels 1:1 et de groupe : signalisation, bulle d'appel, WebRTC/TURN.
+
+---
+
+## ⬜ Appel 1:1 : décrocher ne raccroche plus, refuser un second appel ne coupe plus le premier (2026-10-14)
+
+**Priorité P1** · importance 4/5 — app seule ; **à faire à la réactivation des
+appels** (boutons en pause dans l'interface).
+
+Cinq défauts qui empêchaient un appel normal de tenir : l'écho natif de la
+fermeture de la bannière raccrochait l'appel qu'on venait de prendre ; refuser
+un second appel vidait l'écran du premier sans le raccrocher ; la fin par
+l'autre côté laissait l'appel « en cours » (UI native, minuteurs, « occupé ») ;
+le nettoyage au démarrage tuait l'appel accepté depuis l'écran verrouillé ;
+deux bulles par appel dans la discussion. Tests :
+`test/features/calls/audit_appels_test.dart`.
+
+- [ ] Android puis iOS : A appelle B, B décroche depuis la bannière, app
+      ouverte. L'appel **tient** (plus de 10 s), son et image passent.
+- [ ] Même chose, B téléphone verrouillé, app fermée : décrocher depuis
+      l'écran verrouillé ouvre l'app et l'appel tient.
+- [ ] B en appel avec A ; C appelle B ; B refuse C depuis la bannière :
+      l'appel avec A continue, écran compris.
+- [ ] A raccroche : chez B, l'écran d'appel et la notification d'appel
+      disparaissent, et B peut être rappelé tout de suite.
+- [ ] Après l'appel, la discussion A–B montre **une** bulle d'appel.
 
 ---
 

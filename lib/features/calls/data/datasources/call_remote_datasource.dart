@@ -487,6 +487,15 @@ class CallRemoteDataSourceImpl implements CallRemoteDataSource {
       // End each stale call
       for (final doc in allDocs.values) {
         try {
+          // Ne pas tuer un appel VIVANT. Ce nettoyage tourne à chaque
+          // démarrage : il terminait l'appel qu'on venait d'accepter depuis
+          // l'écran verrouillé (l'app démarre à froid pour le prendre), et
+          // celui qu'un autre téléphone du même compte tenait en cours —
+          // en effaçant au passage le nœud RTDB qui porte l'offre.
+          if (await _appelEncoreVivant(doc.id, doc.data())) {
+            debugPrint('CallRemoteDataSource: appel ${doc.id} encore vivant, laissé');
+            continue;
+          }
           await doc.reference.update({
             'status': 'ended',
             'endedAt': FieldValue.serverTimestamp(),
@@ -507,6 +516,36 @@ class CallRemoteDataSourceImpl implements CallRemoteDataSource {
     } catch (e) {
       debugPrint('CallRemoteDataSource: Error cleaning up stale calls: $e');
       rethrow;
+    }
+  }
+
+  /// Vrai si l'appel [callId] est récent (moins de 90 s : sonnerie, ou
+  /// décrochage en cours depuis l'écran verrouillé) ou si l'un des deux côtés
+  /// a battu il y a moins de 30 s (battement toutes les 5 s). Une lecture
+  /// impossible compte pour vivant : mieux vaut un appel périmé laissé au
+  /// nettoyage serveur qu'un appel en cours coupé.
+  Future<bool> _appelEncoreVivant(String callId, Map<String, dynamic> data) async {
+    final maintenant = DateTime.now();
+    final cree = data['createdAt'];
+    final DateTime? creeLe = cree is Timestamp
+        ? cree.toDate()
+        : (cree is String ? DateTime.tryParse(cree) : null);
+    if (creeLe != null &&
+        maintenant.difference(creeLe) < const Duration(seconds: 90)) {
+      return true;
+    }
+    try {
+      final battements =
+          await _callSignalingRef(callId).child('heartbeat').get();
+      final valeur = battements.value;
+      if (valeur is Map) {
+        final seuil =
+            maintenant.millisecondsSinceEpoch - const Duration(seconds: 30).inMilliseconds;
+        return valeur.values.any((t) => t is num && t > seuil);
+      }
+      return false;
+    } catch (_) {
+      return true;
     }
   }
 
