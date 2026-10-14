@@ -28,6 +28,7 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { construireDonneesFcm } from './donnees_fcm.ts'
+import { estJetonMort } from './jeton_mort.ts'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_SERVICE_ROLE_KEY = (Deno.env.get('SERVICE_ROLE_KEY') ?? Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'))!
@@ -297,6 +298,14 @@ Deno.serve(async (req) => {
       body = 'Nouveau message'
     }
 
+    // Sans aperçu, la bannière dit « Nouveau message » : une correction n'a
+    // rien à y corriger, et elle porterait le texte modifié (`body` en clair,
+    // le contrôle chiffré que l'appareil déchiffre) — précisément ce que
+    // l'utilisateur a demandé de ne pas afficher.
+    if (type === 'messageEdited' && userRow?.show_message_preview === false) {
+      return json(200, { skipped: 'preview off' })
+    }
+
     const conversationId = String(
       rawData.conversationId ?? record.target_id ?? rawData.target_id ?? '',
     )
@@ -418,8 +427,9 @@ Deno.serve(async (req) => {
         )
         if (!res.ok) {
           const errText = await res.text()
-          // Retire uniquement les tokens définitivement invalides.
-          if (res.status === 404 || /UNREGISTERED|INVALID_ARGUMENT/.test(errText)) {
+          // Retire uniquement les tokens définitivement invalides — et pas
+          // sur un INVALID_ARGUMENT quelconque : voir jeton_mort.ts.
+          if (estJetonMort(res.status, errText)) {
             dead.push(token)
           } else {
             console.error('FCM send error', res.status, errText)
