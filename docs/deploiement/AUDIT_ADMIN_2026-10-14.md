@@ -601,6 +601,21 @@ Dans l'ordre où chaque étape rend la suivante possible.
    en-têtes de sécurité, `enforceAppCheck` sur les callables. Garde de
    routeur sur `/admin/*` dans l'app mobile (modèle `/ghost`,
    `app_router.dart:412-421`).
+
+   **Fait le 2026-10-14, côté hébergement** — cible Hosting `admin`
+   (`firebase.json`, `.firebaserc`) sur le site `diaspo-niger-admin`, qui
+   existait déjà dans le projet sans que le dépôt le sache : il sert un build
+   du panneau daté du 25/02/2026, sans Supabase, sans aucun en-tête de
+   sécurité et avec `Cache-Control: max-age=3600` sur `index.html`. Réécriture
+   SPA, CSP origine par origine, `X-Frame-Options`, `nosniff`,
+   `Referrer-Policy`, HSTS, `Permissions-Policy`, `must-revalidate` ; clé
+   reCAPTCHA par `--dart-define=ADMIN_RECAPTCHA_SITE_KEY` ;
+   `tools/build_admin_web.sh` ; guide `HEBERGEMENT_ADMIN.md`. Trouvé en
+   construisant : `AppConfig._read` appelait `String.fromEnvironment` avec
+   une clé variable — dart2js lève à l'exécution, page blanche dès
+   `isSupabaseConfigured` ; corrigé par une table constante. **Rien n'est
+   déployé** : `firebase deploy --only hosting:admin` et les trois consoles
+   (reCAPTCHA, OAuth, Auth) sont les étapes de Salim, listées dans le guide.
 8. **Les libellés qui promettent.** « Rembourser » devient « Marquer
    remboursée » tant qu'aucun appel Stripe n'existe ; « Contenu supprimé »
    n'est notifié que si une ligne a été supprimée.
