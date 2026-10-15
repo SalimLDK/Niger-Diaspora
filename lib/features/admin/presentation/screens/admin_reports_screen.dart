@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import '../providers/admin_provider.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:diaspo_niger/core/theme/design_kit.dart';
+import 'package:diaspo_niger/features/admin/presentation/widgets/admin_charger_plus.dart';
 
 class AdminReportsScreen extends ConsumerStatefulWidget {
   const AdminReportsScreen({super.key});
@@ -263,30 +264,15 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Search bar
-          TextField(
+          DesignSearchField(
             controller: _searchController,
-            decoration: InputDecoration(
-              hintText: l10n.adminSearchReports,
-              hintStyle: const TextStyle(color: _textSecondary),
-              prefixIcon: const Icon(Icons.search, color: _textSecondary),
-              suffixIcon: _searchQuery.isNotEmpty
-                  ? IconButton(
-                      icon: const Icon(Icons.clear, color: _textSecondary),
-                      onPressed: () {
-                        _searchController.clear();
-                        _surRecherche('');
-                      },
-                    )
-                  : null,
-              filled: true,
-              fillColor: AdminColors.bg,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide.none,
-              ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            ),
+            hintText: l10n.adminSearchReports,
             onChanged: _surRecherche,
+            onClear: () {
+              _searchController.clear();
+              _surRecherche('');
+            },
+            active: _searchQuery.isNotEmpty,
           ),
           const SizedBox(height: 12),
           // Type filters
@@ -324,31 +310,13 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
   }
 
   Widget _buildFilterChip(String? type, String label) {
-    final isSelected = ref.watch(adminReportsNotifierProvider).typeFiltre == type;
-
-    return FilterChip(
-      label: Text(
-        label,
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-          color: isSelected ? Colors.white : _textSecondary,
-        ),
+    return DesignFilterChip(
+      label: label,
+      selected: ref.watch(adminReportsNotifierProvider).typeFiltre == type,
+      compact: true,
+      onTap: () => unawaited(
+        ref.read(adminReportsNotifierProvider.notifier).filtrerType(type),
       ),
-      selected: isSelected,
-      onSelected: (_) {
-        unawaited(ref.read(adminReportsNotifierProvider.notifier).filtrerType(type));
-      },
-      selectedColor: _primaryColor,
-      backgroundColor: AdminColors.statusGrayBg,
-      checkmarkColor: Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-        side: BorderSide(
-          color: isSelected ? _primaryColor : Colors.transparent,
-        ),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 4),
     );
   }
 
@@ -450,19 +418,12 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
       itemCount: reports.length + (encorePlus ? 1 : 0),
       itemBuilder: (context, index) {
         if (index == reports.length) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Center(
-              child: state.chargementPlus == filtre
-                  ? const CircularProgressIndicator(color: _primaryColor)
-                  : OutlinedButton(
-                      onPressed: () => unawaited(
-                        ref
-                            .read(adminReportsNotifierProvider.notifier)
-                            .chargerPlus(filtre),
-                      ),
-                      child: const Text('Charger plus'),
-                    ),
+          return AdminChargerPlus(
+            enCours: state.chargementPlus == filtre,
+            onPressed: () => unawaited(
+              ref
+                  .read(adminReportsNotifierProvider.notifier)
+                  .chargerPlus(filtre),
             ),
           );
         }
@@ -912,24 +873,13 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
   }
 
   Widget _buildStatusBadge(String status) {
-    final color = _getStatusColor(status);
-    final label = _getStatusLabel(status);
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withAlpha(20),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withAlpha(50)),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.w600,
-          color: color,
-        ),
-      ),
+    return DesignBadge(
+      _getStatusLabel(status),
+      tone: switch (status) {
+        'pending' => DesignBadgeTone.review,
+        'resolved' => DesignBadgeTone.verified,
+        _ => DesignBadgeTone.archived,
+      },
     );
   }
 
@@ -1111,38 +1061,35 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
         ref.watch(adminReportsNotifierProvider).typeFiltre != null;
 
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            hasFilters ? Icons.search_off_rounded : Icons.report_off_rounded,
-            size: 64,
-            color: _textSecondary.withAlpha(100),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            hasFilters ? l10n.adminNoResultsSearch : l10n.adminNoReportsAvailable,
-            style: const TextStyle(
-              color: _textSecondary,
-              fontSize: 16,
-            ),
-          ),
-          if (hasFilters) ...[
-            const SizedBox(height: 12),
-            TextButton.icon(
-              onPressed: () {
-                _debounceRecherche?.cancel();
-                _searchController.clear();
-                setState(() => _searchQuery = '');
-                unawaited(
-                  ref.read(adminReportsNotifierProvider.notifier).viderFiltres(),
-                );
-              },
-              icon: const Icon(Icons.clear),
-              label: Text(l10n.adminClearFilters),
-            ),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: DesignEmptyState(
+          icon: hasFilters ? Icons.search_off_rounded : Icons.report_off_rounded,
+          title: hasFilters
+              ? l10n.adminNoResultsSearch
+              : l10n.adminNoReportsAvailable,
+          body: hasFilters
+              ? 'Essayez un autre mot, ou retirez les filtres.'
+              : 'Rien à traiter ici pour le moment.',
+          children: [
+            if (hasFilters)
+              Center(
+                child: DesignSecondaryButton(
+                  label: l10n.adminClearFilters,
+                  onPressed: () {
+                    _debounceRecherche?.cancel();
+                    _searchController.clear();
+                    setState(() => _searchQuery = '');
+                    unawaited(
+                      ref
+                          .read(adminReportsNotifierProvider.notifier)
+                          .viderFiltres(),
+                    );
+                  },
+                ),
+              ),
           ],
-        ],
+        ),
       ),
     );
   }

@@ -8,6 +8,7 @@ import '../providers/admin_provider.dart';
 import '../widgets/admin_bandeau_erreur.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:diaspo_niger/core/theme/design_kit.dart';
+import 'package:diaspo_niger/features/admin/presentation/widgets/admin_charger_plus.dart';
 
 class AdminUsersManagementScreen extends ConsumerStatefulWidget {
   const AdminUsersManagementScreen({super.key, this.onGererRoles});
@@ -188,42 +189,15 @@ class _AdminUsersManagementScreenState
   }
 
   Widget _buildSearchBar() {
-    return Container(
-      decoration: BoxDecoration(
-        color: _cardColor,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(8),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: TextField(
-        controller: _searchController,
-        onChanged: _surRecherche,
-        decoration: InputDecoration(
-          hintText: l10n.adminSearchUser,
-          prefixIcon: const Icon(Icons.search_rounded, color: _textSecondary),
-          suffixIcon: _searchQuery.isNotEmpty
-              ? IconButton(
-                  icon: const Icon(Icons.clear_rounded, color: _textSecondary),
-                  onPressed: () {
-                    _searchController.clear();
-                    _surRecherche('');
-                  },
-                )
-              : null,
-          filled: true,
-          fillColor: _cardColor,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
-          ),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        ),
-      ),
+    return DesignSearchField(
+      controller: _searchController,
+      hintText: l10n.adminSearchUser,
+      onChanged: _surRecherche,
+      onClear: () {
+        _searchController.clear();
+        _surRecherche('');
+      },
+      active: _searchQuery.isNotEmpty,
     );
   }
 
@@ -247,19 +221,10 @@ class _AdminUsersManagementScreenState
       itemCount: users.length + (encorePlus ? 1 : 0),
       itemBuilder: (context, index) {
         if (index == users.length) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Center(
-              child: state.chargementPlus == filtre
-                  ? const CircularProgressIndicator(color: _primaryColor)
-                  : OutlinedButton(
-                      onPressed: () => unawaited(
-                        ref
-                            .read(adminUsersNotifierProvider.notifier)
-                            .chargerPlus(filtre),
-                      ),
-                      child: const Text('Charger plus'),
-                    ),
+          return AdminChargerPlus(
+            enCours: state.chargementPlus == filtre,
+            onPressed: () => unawaited(
+              ref.read(adminUsersNotifierProvider.notifier).chargerPlus(filtre),
             ),
           );
         }
@@ -350,8 +315,8 @@ class _AdminUsersManagementScreenState
                           ),
                         ),
                       ),
-                      if (user.isAdmin) _buildBadge(l10n.adminAdminBadge, AdminColors.statusPurple),
-                      if (user.isBanned) _buildBadge(l10n.adminBannedBadge, AdminColors.statusRed),
+                      if (user.isAdmin) _badge(DesignTag(l10n.adminAdminBadge, tone: DesignTagTone.accent)),
+                      if (user.isBanned) _badge(DesignBadge(l10n.adminBannedBadge, tone: DesignBadgeTone.failed)),
                     ],
                   ),
                   const SizedBox(height: 4),
@@ -432,25 +397,9 @@ class _AdminUsersManagementScreenState
     );
   }
 
-  Widget _buildBadge(String label, Color color) {
-    return Container(
-      margin: const EdgeInsets.only(left: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: color.withAlpha(20),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: color.withAlpha(50)),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.w600,
-          color: color,
-        ),
-      ),
-    );
-  }
+  /// Les pastilles du kit, décalées de la ligne de nom.
+  Widget _badge(Widget pastille) =>
+      Padding(padding: const EdgeInsets.only(left: 8), child: pastille);
 
   String _formatDate(DateTime date) {
     return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
@@ -516,13 +465,15 @@ class _AdminUsersManagementScreenState
 
   Widget _buildEmptyState() {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.people_outline_rounded, size: 64, color: _textSecondary.withAlpha(100)),
-          const SizedBox(height: 16),
-          Text(l10n.adminNoUserFound, style: TextStyle(color: _textSecondary, fontSize: 16)),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: DesignEmptyState(
+          icon: Icons.people_outline_rounded,
+          title: l10n.adminNoUserFound,
+          body: _searchQuery.isEmpty
+              ? 'Aucun compte dans cette liste.'
+              : 'Aucun compte ne correspond à cette recherche.',
+        ),
       ),
     );
   }
