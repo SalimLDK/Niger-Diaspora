@@ -66,6 +66,7 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
               accent: AdminColors.titleDot,
             ),
             IconButton(
+              tooltip: l10n.adminRefresh,
               icon: const AppIcon(AppIcon.refresh, color: _textSecondary),
               onPressed: () {
                 unawaited(ref
@@ -82,17 +83,17 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
           spacing: 12,
           children: [
             _buildFilterChip(
-              label: 'Tous (${compte(FiltreCommerces.tous)})',
+              label: l10n.adminTabWithCount(l10n.all, compte(FiltreCommerces.tous)),
               isSelected: _selectedFilter == 0,
               onTap: () => setState(() => _selectedFilter = 0),
             ),
             _buildFilterChip(
-              label: 'En attente (${compte(FiltreCommerces.enAttente)})',
+              label: l10n.adminTabWithCount(l10n.statusPending, compte(FiltreCommerces.enAttente)),
               isSelected: _selectedFilter == 1,
               onTap: () => setState(() => _selectedFilter = 1),
             ),
             _buildFilterChip(
-              label: 'Boostés (${compte(FiltreCommerces.boostes)})',
+              label: l10n.adminTabWithCount(l10n.adminBoosted, compte(FiltreCommerces.boostes)),
               isSelected: _selectedFilter == 2,
               onTap: () => setState(() => _selectedFilter = 2),
             ),
@@ -282,6 +283,7 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
 
             // Actions
             PopupMenuButton<String>(
+              tooltip: l10n.moreActions,
               icon: const Icon(Icons.more_vert, color: _textSecondary),
               onSelected: (value) => _handleAction(value, business),
               shape: RoundedRectangleBorder(

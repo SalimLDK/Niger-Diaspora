@@ -52,6 +52,7 @@ class _AdminSettingsScreenState extends ConsumerState<AdminSettingsScreen>
         backgroundColor: _cardColor,
         elevation: 0,
         leading: IconButton(
+          tooltip: MaterialLocalizations.of(context).backButtonTooltip,
           icon: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
@@ -235,7 +236,7 @@ class _AdminSettingsScreenState extends ConsumerState<AdminSettingsScreen>
                   TextButton.icon(
                     onPressed: () => ref.invalidate(appSettingsNotifierProvider),
                     icon: const Icon(Icons.refresh_rounded, size: 18),
-                    label: const Text('Réessayer'),
+                    label: Text(l10n.retry),
                   ),
                 ],
               ),

@@ -7335,5 +7335,49 @@
   "pollVotersVisibleToAll": "Votes are not anonymous: everyone can see who voted for what.",
   "pollVotersHidden": "Anonymous poll: nobody can see who voted for what.",
   "updateAvailableMessage": "Diaspo Niger {version} is available.",
-  "updateAvailableAction": "Update"
+  "updateAvailableAction": "Update",
+  "adminLoadMore": "Load more",
+  "adminTabWithCount": "{label} ({count})",
+  "@adminTabWithCount": {
+    "placeholders": {
+        "label": {"type": "String"},
+        "count": {"type": "String"}
+    }
+  },
+  "adminOrdersName": "Orders",
+  "adminDisputesName": "Disputes",
+  "adminCompletedName": "Completed",
+  "adminBannedName": "Banned",
+  "adminProcessedName": "Processed",
+  "adminStatResolved": "Resolved",
+  "adminStatDismissed": "Dismissed",
+  "adminAuditEmptyTitle": "No audit logs",
+  "adminNoTransactionsTitle": "No transactions found",
+  "adminEmptyTabBody": "Nothing in this tab yet.",
+  "adminEmptyListBody": "Nothing in this list yet.",
+  "adminUsersEmptyBody": "No account in this list.",
+  "adminUsersNoMatchBody": "No account matches this search.",
+  "adminReportsEmptyBody": "Nothing to review here yet.",
+  "adminReportsNoMatchBody": "Try another word, or remove the filters.",
+  "adminReportViewContent": "View {type}",
+  "@adminReportViewContent": {
+    "placeholders": {
+        "type": {"type": "String"}
+    }
+  },
+  "adminChangeRoleTo": "Change to {role}",
+  "@adminChangeRoleTo": {
+    "placeholders": {
+        "role": {"type": "String"}
+    }
+  },
+  "adminRevokeAccessShort": "Revoke access",
+  "adminMessageWithText": "Message: {text}",
+  "@adminMessageWithText": {
+    "placeholders": {
+        "text": {"type": "String"}
+    }
+  },
+  "adminScreenNotAllowed": "This screen is not available with your role.",
+  "adminWelcomePanel": "Welcome to the DiaspoNiger admin panel"
 }

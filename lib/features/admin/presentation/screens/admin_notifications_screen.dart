@@ -162,7 +162,12 @@ class _AdminNotificationsScreenState
     );
   }
 
-  Widget _buildRefreshButton() {
+  Widget _buildRefreshButton() => Tooltip(
+    message: l10n.adminRefresh,
+    child: _boutonActualiser(),
+  );
+
+  Widget _boutonActualiser() {
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -655,12 +660,12 @@ class _AdminNotificationsScreenState
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Confirmer l\'envoi'),
+        title: Text(l10n.adminConfirmSend),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Vous êtes sur le point d\'envoyer une notification à:'),
+            Text(l10n.adminAboutToSend),
             const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -682,7 +687,7 @@ class _AdminNotificationsScreenState
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 4),
-            Text('Message: ${_bodyController.text}'),
+            Text(l10n.adminMessageWithText(_bodyController.text)),
           ],
         ),
         actions: [

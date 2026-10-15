@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1339 cases à cocher, 55 cochées** — 298 entrées sur 312 ont encore des cases ouvertes.
+**1342 cases à cocher, 55 cochées** — 299 entrées sur 313 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -315,7 +315,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [✅ Bulle de chargement d'une vidéo pendant l'upload (2026-08-30)](#-bulle-de-chargement-dune-vidéo-pendant-lupload-2026-08-30) · *Messagerie*
 - 21 · [Refonte Fil & Discussion — Priorité basse — cosmétique, faible risque](#refonte-fil--discussion--priorité-basse--cosmétique-faible-risque) · *Fil, stories, salons audio et podcasts*
 
-**P3 — confort, cosmétique, fonction en pause** (38)
+**P3 — confort, cosmétique, fonction en pause** (39)
 
 - 3 · [⬜ Polices embarquées : plus de téléchargement au premier affichage (2026-09-11)](#-polices-embarquées--plus-de-téléchargement-au-premier-affichage-2026-09-11) · *Design, thème, langue et mise en page* · bloqué
 - 2 · [⬜ Icône du lanceur repeinte en vert (2026-09-07)](#-icône-du-lanceur-repeinte-en-vert-2026-09-07) · *Design, thème, langue et mise en page*
@@ -343,6 +343,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⬜ Une couleur par service dans les deux grilles (2026-09-14)](#-une-couleur-par-service-dans-les-deux-grilles-2026-09-14) · *Design, thème, langue et mise en page*
 - 3 · [Débordement du champ « Type * » — création d'ambassade (2026-08-04)](#débordement-du-champ--type----création-dambassade-2026-08-04) · *Design, thème, langue et mise en page* · bloqué
 - 1 · [Cartographie des accès `anon` réellement nécessaires (2026-08-13)](#cartographie-des-accès-anon-réellement-nécessaires-2026-08-13) · *Backend, sécurité et observabilité*
+- 3 · [⬜ Panneau admin : textes passés en l10n et infobulles sur les boutons-icônes (2026-10-15)](#-panneau-admin--textes-passés-en-l10n-et-infobulles-sur-les-boutons-icônes-2026-10-15) · *Site web*
 - 5 · [⬜ Panneau admin : Transferts, Marketplace, Commerces, Modération et Audit passent aux briques du kit (2026-10-15)](#-panneau-admin--transferts-marketplace-commerces-modération-et-audit-passent-aux-briques-du-kit-2026-10-15) · *Site web*
 - 3 · [⬜ Panneau admin : Utilisateurs et Signalements passent aux briques du kit (2026-10-15)](#-panneau-admin--utilisateurs-et-signalements-passent-aux-briques-du-kit-2026-10-15) · *Site web*
 - 3 · [Passe nocturne + carte vérifiée sur appareil (2026-08-04, SM A515F)](#passe-nocturne--carte-vérifiée-sur-appareil-2026-08-04-sm-a515f) · *Journaux de passes appareil*
@@ -372,7 +373,7 @@ Par domaine :
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 108 à faire, 5 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 97 à faire, 2 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 46 à faire, 1 faites
-- [15. Site web](#15-site-web) — 50 à faire, 0 faites
+- [15. Site web](#15-site-web) — 53 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 23 à faire, 0 faites
 
 <!-- sommaire:fin -->
@@ -10566,6 +10567,22 @@ Firebase App Check Debug Token: E42FC20C-8AE4-4474-BCFC-9A52B36DECEB
 diasponiger.web.app : pages, palette, menu, aperçus de partage.
 
 ---
+
+## ⬜ Panneau admin : textes passés en l10n et infobulles sur les boutons-icônes (2026-10-15)
+
+**Priorité P3** · importance 2/5 — une trentaine de textes en dur de
+`lib/features/admin/` lisent maintenant `AppLocalizations` (32 clés ajoutées à
+`app_fr.arb` et `app_en.arb`, 9 clés déjà présentes mais inutilisées
+réutilisées) ; chaque `IconButton` et `PopupMenuButton` du panneau porte un
+`tooltip` (un test balaie le dossier). Reste en dur : noms des feature flags,
+champs des onglets de Configuration, libellés de quelques dialogues.
+
+- [ ] Panneau en français : les onglets (« Tous (50+) », « Échouées (3) »…), les
+      états vides et les messages d'ambassade se lisent comme avant.
+- [ ] Panneau en anglais (langue du navigateur) : mêmes textes traduits, rien
+      de coupé ni de français résiduel dans ces écrans.
+- [ ] Survol à la souris : « Actualiser », « Autres actions », « Retour »,
+      « Fermer » apparaissent sur les boutons-icônes.
 
 ## ⬜ Panneau admin : écrans Configuration et Signalements découpés (2026-10-15)
 

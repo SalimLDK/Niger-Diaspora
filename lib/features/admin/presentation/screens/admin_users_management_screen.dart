@@ -92,9 +92,9 @@ class _AdminUsersManagementScreenState
             indicatorWeight: 3,
             labelStyle: const TextStyle(fontWeight: FontWeight.w600),
             tabs: [
-              Tab(text: 'Tous (${state.users.length}${state.encorePlus.contains(FiltreUtilisateurs.tous) ? '+' : ''})'),
-              Tab(text: 'Admins (${state.admins.length}${state.encorePlus.contains(FiltreUtilisateurs.admins) ? '+' : ''})'),
-              Tab(text: 'Bannis (${state.bannedUsers.length}${state.encorePlus.contains(FiltreUtilisateurs.bannis) ? '+' : ''})'),
+              Tab(text: l10n.adminTabWithCount(l10n.all, '${state.users.length}${state.encorePlus.contains(FiltreUtilisateurs.tous) ? '+' : ''}')),
+              Tab(text: l10n.adminTabWithCount(l10n.admins, '${state.admins.length}${state.encorePlus.contains(FiltreUtilisateurs.admins) ? '+' : ''}')),
+              Tab(text: l10n.adminTabWithCount(l10n.adminBannedName, '${state.bannedUsers.length}${state.encorePlus.contains(FiltreUtilisateurs.bannis) ? '+' : ''}')),
             ],
           ),
         ),
@@ -164,7 +164,12 @@ class _AdminUsersManagementScreenState
     );
   }
 
-  Widget _buildRefreshButton() {
+  Widget _buildRefreshButton() => Tooltip(
+    message: l10n.adminRefresh,
+    child: _boutonActualiser(),
+  );
+
+  Widget _boutonActualiser() {
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -350,6 +355,7 @@ class _AdminUsersManagementScreenState
             ),
             // Actions
             PopupMenuButton<String>(
+              tooltip: l10n.moreActions,
               onSelected: (value) => _handleUserAction(value, user),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               icon: Container(
@@ -471,8 +477,8 @@ class _AdminUsersManagementScreenState
           icon: Icons.people_outline_rounded,
           title: l10n.adminNoUserFound,
           body: _searchQuery.isEmpty
-              ? 'Aucun compte dans cette liste.'
-              : 'Aucun compte ne correspond à cette recherche.',
+              ? l10n.adminUsersEmptyBody
+              : l10n.adminUsersNoMatchBody,
         ),
       ),
     );
@@ -545,7 +551,7 @@ class _AdminUsersManagementScreenState
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text('Activité de ${user.displayName ?? user.email}'),
+        title: Text(l10n.adminUserActivityTitle(user.displayName ?? user.email ?? '')),
         content: SizedBox(
           width: 400,
           height: 300,

@@ -4,13 +4,23 @@
 // thème qui ne les porte pas ferait lever le rendu — sur un écran admin, donc
 // sans que personne ne le voie avant la mise en ligne.
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:diaspo_niger/core/theme/design_kit.dart';
 import 'package:diaspo_niger/features/admin/presentation/widgets/admin_charger_plus.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 
 Widget _sousThemeAdmin(Widget child, {Brightness b = Brightness.light}) {
   return MaterialApp(
+    locale: const Locale('fr'),
+    localizationsDelegates: const [
+      AppLocalizations.delegate,
+      GlobalMaterialLocalizations.delegate,
+      GlobalWidgetsLocalizations.delegate,
+      GlobalCupertinoLocalizations.delegate,
+    ],
+    supportedLocales: AppLocalizations.supportedLocales,
     theme: ThemeData(brightness: b),
     home: Scaffold(body: SingleChildScrollView(child: child)),
   );

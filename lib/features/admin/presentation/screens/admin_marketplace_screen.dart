@@ -83,7 +83,7 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
                   children: [
                     const Icon(Icons.shopping_bag_rounded, size: 18),
                     const SizedBox(width: 8),
-                    Text('Produits (${state.products.length}${state.encorePlus.contains(ListeMarketplace.produits) ? '+' : ''})'),
+                    Text(l10n.adminTabWithCount(l10n.adminProducts, '${state.products.length}${state.encorePlus.contains(ListeMarketplace.produits) ? '+' : ''}')),
                   ],
                 ),
               ),
@@ -93,7 +93,7 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
                   children: [
                     const Icon(Icons.receipt_rounded, size: 18),
                     const SizedBox(width: 8),
-                    Text('Commandes (${state.orders.length}${state.encorePlus.contains(ListeMarketplace.commandes) ? '+' : ''})'),
+                    Text(l10n.adminTabWithCount(l10n.adminOrdersName, '${state.orders.length}${state.encorePlus.contains(ListeMarketplace.commandes) ? '+' : ''}')),
                   ],
                 ),
               ),
@@ -103,7 +103,7 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
                   children: [
                     const Icon(Icons.gavel_rounded, size: 18),
                     const SizedBox(width: 8),
-                    Text('Litiges (${state.disputes.length}${state.encorePlus.contains(ListeMarketplace.litiges) ? '+' : ''})'),
+                    Text(l10n.adminTabWithCount(l10n.adminDisputesName, '${state.disputes.length}${state.encorePlus.contains(ListeMarketplace.litiges) ? '+' : ''}')),
                   ],
                 ),
               ),
@@ -210,7 +210,12 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
     );
   }
 
-  Widget _buildRefreshButton() {
+  Widget _buildRefreshButton() => Tooltip(
+    message: l10n.adminRefresh,
+    child: _boutonActualiser(),
+  );
+
+  Widget _boutonActualiser() {
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -344,6 +349,7 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
             ),
             // Actions
             PopupMenuButton<String>(
+              tooltip: l10n.moreActions,
               onSelected: (value) => _handleProductAction(value, product),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               icon: Container(
@@ -819,7 +825,7 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
         child: DesignEmptyState(
           icon: icon,
           title: message,
-          body: 'Rien dans cette liste pour le moment.',
+          body: l10n.adminEmptyListBody,
         ),
       ),
     );

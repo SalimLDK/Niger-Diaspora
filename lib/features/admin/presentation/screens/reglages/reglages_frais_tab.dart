@@ -37,15 +37,15 @@ class _AdminFraisTabState extends ConsumerState<AdminFraisTab> {
     _transferFeePercentController =
         TextEditingController(text: (fees.transferFeePercent * 100).toString());
     _transferFeeMinController =
-        TextEditingController(text: fees.transferFeeMin.toString());
+        TextEditingController(text: _montant(fees.transferFeeMin));
     _transferFeeMaxController =
-        TextEditingController(text: fees.transferFeeMax.toString());
+        TextEditingController(text: _montant(fees.transferFeeMax));
     _marketplaceFeePercentController = TextEditingController(
         text: (fees.marketplaceFeePercent * 100).toString());
     _marketplaceFeeMinController =
-        TextEditingController(text: fees.marketplaceFeeMin.toString());
+        TextEditingController(text: _montant(fees.marketplaceFeeMin));
     _marketplaceFeeMaxController =
-        TextEditingController(text: fees.marketplaceFeeMax.toString());
+        TextEditingController(text: _montant(fees.marketplaceFeeMax));
   }
 
   @override
@@ -58,6 +58,12 @@ class _AdminFraisTabState extends ConsumerState<AdminFraisTab> {
     _marketplaceFeeMaxController.dispose();
     super.dispose();
   }
+
+  /// Un montant entier s'affiche sans « .0 » : le champ n'accepte que des
+  /// chiffres (`digitsOnly`) et son validateur lit un nombre, donc « 750.0 »
+  /// rendait l'enregistrement impossible sans retaper les quatre montants.
+  static String _montant(double v) =>
+      v == v.roundToDouble() ? v.toInt().toString() : v.toString();
 
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
@@ -254,7 +260,8 @@ class _AdminFraisTabState extends ConsumerState<AdminFraisTab> {
       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
       validator: (value) {
         if (value == null || value.isEmpty) return l10n.adminFieldRequired;
-        if (int.tryParse(value) == null) return l10n.adminInvalidNumberError;
+        final montant = double.tryParse(value);
+        if (montant == null || montant < 0) return l10n.adminInvalidNumberError;
         return null;
       },
     );
