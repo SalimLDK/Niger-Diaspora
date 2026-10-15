@@ -23,7 +23,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
   late TabController _tabController;
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
-  String? _selectedTypeFilter;
+  Timer? _debounceRecherche;
 
   // Modern color palette (matching dashboard)
   static const Color _primaryColor = AdminColors.actionBlue;
@@ -52,67 +52,35 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
 
   @override
   void dispose() {
+    _debounceRecherche?.cancel();
     _tabController.dispose();
     _searchController.dispose();
     super.dispose();
   }
 
-  List<ReportEntity> _filterReports(List<ReportEntity> reports) {
-    return reports.where((report) {
-      // Apply search filter
-      if (_searchQuery.isNotEmpty) {
-        final query = _searchQuery.toLowerCase();
-        final matchesSearch = (report.targetName?.toLowerCase().contains(query) ?? false) ||
-            (report.reporterName?.toLowerCase().contains(query) ?? false) ||
-            report.reason.toLowerCase().contains(query) ||
-            report.targetId.toLowerCase().contains(query) ||
-            (report.description?.toLowerCase().contains(query) ?? false);
-        if (!matchesSearch) return false;
-      }
-
-      // Apply type filter
-      if (_selectedTypeFilter != null && report.targetType != _selectedTypeFilter) {
-        return false;
-      }
-
-      return true;
-    }).toList();
+  /// La recherche part au serveur, un court instant après la dernière frappe.
+  void _surRecherche(String value) {
+    setState(() => _searchQuery = value);
+    _debounceRecherche?.cancel();
+    _debounceRecherche = Timer(const Duration(milliseconds: 400), () {
+      unawaited(ref.read(adminReportsNotifierProvider.notifier).rechercher(value));
+    });
   }
 
-  Map<String, int> _calculateStatistics(List<ReportEntity> reports) {
-    final stats = <String, int>{
-      'total': reports.length,
-      'pending': 0,
-      'resolved': 0,
-      'dismissed': 0,
-    };
+  Map<String, int> _statistiques(CompteursSignalements c) => {
+        'total': c.total,
+        'pending': c.enAttente,
+        'resolved': c.traites,
+        'dismissed': c.rejetes,
+      };
 
-    // Count by target type
-    for (final type in _targetTypes) {
-      stats[type] = 0;
-    }
-
-    for (final report in reports) {
-      // Count by status
-      if (report.status == 'pending') {
-        stats['pending'] = (stats['pending'] ?? 0) + 1;
-      } else if (report.status == 'resolved') {
-        stats['resolved'] = (stats['resolved'] ?? 0) + 1;
-      } else if (report.status == 'dismissed') {
-        stats['dismissed'] = (stats['dismissed'] ?? 0) + 1;
-      }
-
-      // Count by type
-      stats[report.targetType] = (stats[report.targetType] ?? 0) + 1;
-    }
-
-    return stats;
-  }
+  String _libelleOnglet(String nom, AdminReportsState state, FiltreSignalements f) =>
+      '$nom (${state.liste(f).length}${state.encorePlus.contains(f) ? '+' : ''})';
 
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(adminReportsNotifierProvider);
-    final stats = _calculateStatistics(state.reports);
+    final stats = _statistiques(state.compteurs);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -146,11 +114,11 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
             indicatorWeight: 3,
             labelStyle: const TextStyle(fontWeight: FontWeight.w600),
             tabs: [
-              Tab(text: 'En attente (${_filterReports(state.pendingReports).length})'),
+              Tab(text: _libelleOnglet('En attente', state, FiltreSignalements.enAttente)),
               Tab(
-                text: 'Traités (${_filterReports(state.reports.where((r) => r.status != 'pending').toList()).length})',
+                text: _libelleOnglet('Traités', state, FiltreSignalements.traites),
               ),
-              Tab(text: 'Tous (${_filterReports(state.reports).length})'),
+              Tab(text: _libelleOnglet('Tous', state, FiltreSignalements.tous)),
             ],
           ),
         ),
@@ -175,11 +143,9 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
                           child: TabBarView(
                             controller: _tabController,
                             children: [
-                              _buildReportsList(_filterReports(state.pendingReports)),
-                              _buildReportsList(
-                                _filterReports(state.reports.where((r) => r.status != 'pending').toList()),
-                              ),
-                              _buildReportsList(_filterReports(state.reports)),
+                              _buildReportsList(state, FiltreSignalements.enAttente),
+                              _buildReportsList(state, FiltreSignalements.traites),
+                              _buildReportsList(state, FiltreSignalements.tous),
                             ],
                           ),
                         ),
@@ -308,7 +274,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
                       icon: const Icon(Icons.clear, color: _textSecondary),
                       onPressed: () {
                         _searchController.clear();
-                        setState(() => _searchQuery = '');
+                        _surRecherche('');
                       },
                     )
                   : null,
@@ -320,9 +286,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
               ),
               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             ),
-            onChanged: (value) {
-              setState(() => _searchQuery = value);
-            },
+            onChanged: _surRecherche,
           ),
           const SizedBox(height: 12),
           // Type filters
@@ -360,7 +324,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
   }
 
   Widget _buildFilterChip(String? type, String label) {
-    final isSelected = _selectedTypeFilter == type;
+    final isSelected = ref.watch(adminReportsNotifierProvider).typeFiltre == type;
 
     return FilterChip(
       label: Text(
@@ -373,7 +337,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
       ),
       selected: isSelected,
       onSelected: (_) {
-        setState(() => _selectedTypeFilter = type);
+        unawaited(ref.read(adminReportsNotifierProvider.notifier).filtrerType(type));
       },
       selectedColor: _primaryColor,
       backgroundColor: AdminColors.statusGrayBg,
@@ -417,7 +381,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
         ),
         Row(
           children: [
-            if (state.pendingReports.isNotEmpty) _buildPendingBadge(state.pendingReports.length),
+            if (state.compteurs.enAttente > 0) _buildPendingBadge(state.compteurs.enAttente),
             const SizedBox(width: 12),
             _buildRefreshButton(),
           ],
@@ -475,16 +439,34 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
     );
   }
 
-  Widget _buildReportsList(List<ReportEntity> reports) {
+  Widget _buildReportsList(AdminReportsState state, FiltreSignalements filtre) {
+    final reports = state.liste(filtre);
     if (reports.isEmpty) {
       return _buildEmptyState();
     }
+    final encorePlus = state.encorePlus.contains(filtre);
 
     return ListView.builder(
-      itemCount: reports.length,
+      itemCount: reports.length + (encorePlus ? 1 : 0),
       itemBuilder: (context, index) {
-        final report = reports[index];
-        return _buildReportCard(report);
+        if (index == reports.length) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Center(
+              child: state.chargementPlus == filtre
+                  ? const CircularProgressIndicator(color: _primaryColor)
+                  : OutlinedButton(
+                      onPressed: () => unawaited(
+                        ref
+                            .read(adminReportsNotifierProvider.notifier)
+                            .chargerPlus(filtre),
+                      ),
+                      child: const Text('Charger plus'),
+                    ),
+            ),
+          );
+        }
+        return _buildReportCard(reports[index]);
       },
     );
   }
@@ -1125,7 +1107,8 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
   }
 
   Widget _buildEmptyState() {
-    final hasFilters = _searchQuery.isNotEmpty || _selectedTypeFilter != null;
+    final hasFilters = _searchQuery.isNotEmpty ||
+        ref.watch(adminReportsNotifierProvider).typeFiltre != null;
 
     return Center(
       child: Column(
@@ -1148,11 +1131,12 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
             const SizedBox(height: 12),
             TextButton.icon(
               onPressed: () {
+                _debounceRecherche?.cancel();
                 _searchController.clear();
-                setState(() {
-                  _searchQuery = '';
-                  _selectedTypeFilter = null;
-                });
+                setState(() => _searchQuery = '');
+                unawaited(
+                  ref.read(adminReportsNotifierProvider.notifier).viderFiltres(),
+                );
               },
               icon: const Icon(Icons.clear),
               label: Text(l10n.adminClearFilters),

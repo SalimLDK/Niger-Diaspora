@@ -1100,36 +1100,141 @@ class ReportEntity extends Equatable {
   ];
 }
 
+/// Les trois onglets de l'écran Signalements, chacun une requête paginée.
+enum FiltreSignalements { enAttente, traites, tous }
+
+/// Taille d'une page de l'écran Signalements.
+const int taillePageSignalements = 50;
+
+/// Compteurs réels de la table `reports` (requêtes `count`), indépendants des
+/// pages chargées et des filtres de l'écran.
+class CompteursSignalements extends Equatable {
+  const CompteursSignalements({
+    this.total = 0,
+    this.enAttente = 0,
+    this.traites = 0,
+    this.rejetes = 0,
+  });
+
+  final int total;
+  final int enAttente;
+
+  /// Statut `resolved`.
+  final int traites;
+
+  /// Statut `dismissed`.
+  final int rejetes;
+
+  @override
+  List<Object?> get props => [total, enAttente, traites, rejetes];
+}
+
 class AdminReportsState extends Equatable {
+  /// Onglet « Tous ».
   final List<ReportEntity> reports;
   final List<ReportEntity> pendingReports;
+
+  /// Onglet « Traités » : tout ce qui n'est plus `pending`.
+  final List<ReportEntity> treatedReports;
+  final CompteursSignalements compteurs;
+
+  /// Recherche (texte libre) et type de cible, appliqués côté serveur.
+  final String recherche;
+  final String? typeFiltre;
+
+  final Set<FiltreSignalements> encorePlus;
+  final FiltreSignalements? chargementPlus;
   final bool isLoading;
   final String? error;
 
   const AdminReportsState({
     this.reports = const [],
     this.pendingReports = const [],
+    this.treatedReports = const [],
+    this.compteurs = const CompteursSignalements(),
+    this.recherche = '',
+    this.typeFiltre,
+    this.encorePlus = const {},
+    this.chargementPlus,
     this.isLoading = false,
     this.error,
   });
 
+  List<ReportEntity> liste(FiltreSignalements f) => switch (f) {
+        FiltreSignalements.enAttente => pendingReports,
+        FiltreSignalements.traites => treatedReports,
+        FiltreSignalements.tous => reports,
+      };
+
   AdminReportsState copyWith({
     List<ReportEntity>? reports,
     List<ReportEntity>? pendingReports,
+    List<ReportEntity>? treatedReports,
+    CompteursSignalements? compteurs,
+    String? recherche,
+    String? typeFiltre,
+    bool effacerTypeFiltre = false,
+    Set<FiltreSignalements>? encorePlus,
+    FiltreSignalements? chargementPlus,
+    bool finChargementPlus = false,
     bool? isLoading,
     String? error,
   }) {
     return AdminReportsState(
       reports: reports ?? this.reports,
       pendingReports: pendingReports ?? this.pendingReports,
+      treatedReports: treatedReports ?? this.treatedReports,
+      compteurs: compteurs ?? this.compteurs,
+      recherche: recherche ?? this.recherche,
+      typeFiltre: effacerTypeFiltre ? null : (typeFiltre ?? this.typeFiltre),
+      encorePlus: encorePlus ?? this.encorePlus,
+      chargementPlus:
+          finChargementPlus ? null : (chargementPlus ?? this.chargementPlus),
       isLoading: isLoading ?? this.isLoading,
       error: error,
     );
   }
 
   @override
-  List<Object?> get props => [reports, pendingReports, isLoading, error];
+  List<Object?> get props => [
+    reports,
+    pendingReports,
+    treatedReports,
+    compteurs,
+    recherche,
+    typeFiltre,
+    encorePlus,
+    chargementPlus,
+    isLoading,
+    error,
+  ];
 }
+
+/// Motif `ilike` d'une recherche de signalements, ou null si elle est vide.
+///
+/// Il part dans un filtre `or(...)` de PostgREST, où la virgule, les
+/// parenthèses et les guillemets sont de la syntaxe : on les retire plutôt que
+/// de laisser une saisie réécrire le filtre. `%` et `_` saisis sont des
+/// caractères, pas des jokers.
+String? motifRechercheSignalements(String saisie) {
+  final propre = saisie
+      .replaceAll(RegExp(r'[,()"\\*]'), ' ')
+      .replaceAll('%', r'\%')
+      .replaceAll('_', r'\_')
+      .trim();
+  if (propre.isEmpty) return null;
+  return '%$propre%';
+}
+
+/// Clause `or(...)` qui cherche [motif] dans les cinq champs que l'écran
+/// cherchait déjà côté client.
+String clauseRechercheSignalements(String motif) => [
+      'target_name',
+      'reporter_name',
+      'reason',
+      'target_id',
+      'description',
+    ].map((c) => '$c.ilike.$motif').join(',');
 
 final adminReportsNotifierProvider =
     NotifierProvider<AdminReportsNotifier, AdminReportsState>(
@@ -1147,52 +1252,151 @@ class AdminReportsNotifier extends Notifier<AdminReportsState> {
     return const AdminReportsState();
   }
 
+  /// Recharge la première page des trois onglets et les compteurs, avec la
+  /// recherche et le type courants.
   Future<void> fetchAllReports() async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final rows = await _supabase
-          .from('reports')
-          .select()
-          .order('created_at', ascending: false)
-          .limit(100);
-
-      final reports = (rows as List).map((row) {
-        return ReportEntity(
-          id: row['id'] as String,
-          reporterId: row['reporter_id'] as String? ?? '',
-          reporterName: row['reporter_name'] as String?,
-          targetType: row['target_type'] as String? ?? 'unknown',
-          targetId: row['target_id'] as String? ?? '',
-          targetName: row['target_name'] as String?,
-          conversationId: row['conversation_id'] as String?,
-          reason: row['reason'] as String? ?? '',
-          description: row['description'] as String?,
-          contentSnapshot: row['content_snapshot'] != null
-              ? ContentSnapshotData.fromMap(
-                  (row['content_snapshot'] as Map).cast<String, dynamic>(),
-                )
-              : null,
-          reportedUserId: row['reported_user_id'] as String?,
-          status: row['status'] as String? ?? 'pending',
-          adminNote: row['admin_note'] as String?,
-          reviewedBy: row['reviewed_by'] as String?,
-          createdAt: _parseDateTime(row['created_at']),
-          reviewedAt: _parseDateTime(row['reviewed_at']),
-          reportedUserNotified:
-              row['reported_user_notified'] as bool? ?? false,
-        );
-      }).toList();
-
-      final pending = reports.where((r) => r.status == 'pending').toList();
-
+      final pages = await Future.wait([
+        for (final f in FiltreSignalements.values) _pageSignalements(f, 0),
+      ]);
+      final compteurs = await _compteursSignalements();
       state = state.copyWith(
         isLoading: false,
-        reports: reports,
-        pendingReports: pending,
+        pendingReports: pages[0],
+        treatedReports: pages[1],
+        reports: pages[2],
+        compteurs: compteurs,
+        encorePlus: {
+          for (var i = 0; i < pages.length; i++)
+            if (pages[i].length >= taillePageSignalements)
+              FiltreSignalements.values[i],
+        },
+        finChargementPlus: true,
       );
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
     }
+  }
+
+  /// Applique [texte] côté serveur et recharge. L'écran l'appelle après un
+  /// délai de frappe.
+  Future<void> rechercher(String texte) {
+    state = state.copyWith(recherche: texte.trim());
+    return fetchAllReports();
+  }
+
+  /// Filtre par type de cible (`user`, `message`…), ou null pour tous.
+  Future<void> filtrerType(String? type) {
+    state = type == null
+        ? state.copyWith(effacerTypeFiltre: true)
+        : state.copyWith(typeFiltre: type);
+    return fetchAllReports();
+  }
+
+  /// Retire la recherche et le type d'un seul rechargement.
+  Future<void> viderFiltres() {
+    state = state.copyWith(recherche: '', effacerTypeFiltre: true);
+    return fetchAllReports();
+  }
+
+  /// Ajoute la page suivante de [filtre] à son onglet.
+  Future<void> chargerPlus(FiltreSignalements filtre) async {
+    if (state.chargementPlus != null || !state.encorePlus.contains(filtre)) {
+      return;
+    }
+    state = state.copyWith(chargementPlus: filtre);
+    try {
+      final actuelle = state.liste(filtre);
+      final suite = await _pageSignalements(filtre, actuelle.length);
+      final toutes = [...actuelle, ...suite];
+      final encore = {...state.encorePlus};
+      if (suite.length >= taillePageSignalements) {
+        encore.add(filtre);
+      } else {
+        encore.remove(filtre);
+      }
+      state = state.copyWith(
+        pendingReports: filtre == FiltreSignalements.enAttente ? toutes : null,
+        treatedReports: filtre == FiltreSignalements.traites ? toutes : null,
+        reports: filtre == FiltreSignalements.tous ? toutes : null,
+        encorePlus: encore,
+        finChargementPlus: true,
+      );
+    } catch (e) {
+      state = state.copyWith(error: e.toString(), finChargementPlus: true);
+    }
+  }
+
+  Future<List<ReportEntity>> _pageSignalements(
+    FiltreSignalements filtre,
+    int decalage,
+  ) async {
+    var requete = _supabase.from('reports').select();
+    switch (filtre) {
+      case FiltreSignalements.enAttente:
+        requete = requete.eq('status', 'pending');
+      case FiltreSignalements.traites:
+        requete = requete.neq('status', 'pending');
+      case FiltreSignalements.tous:
+        break;
+    }
+    final type = state.typeFiltre;
+    if (type != null) requete = requete.eq('target_type', type);
+    final motif = motifRechercheSignalements(state.recherche);
+    if (motif != null) requete = requete.or(clauseRechercheSignalements(motif));
+
+    final rows = await requete
+        .order('created_at', ascending: false)
+        .range(decalage, decalage + taillePageSignalements - 1);
+    return (rows as List).map(_signalementDepuisLigne).toList();
+  }
+
+  Future<CompteursSignalements> _compteursSignalements() async {
+    Future<int> compter([String? statut]) async {
+      var requete = _supabase.from('reports').select('id');
+      if (statut != null) requete = requete.eq('status', statut);
+      return (await requete.count(CountOption.exact)).count;
+    }
+
+    final r = await Future.wait([
+      compter(),
+      compter('pending'),
+      compter('resolved'),
+      compter('dismissed'),
+    ]);
+    return CompteursSignalements(
+      total: r[0],
+      enAttente: r[1],
+      traites: r[2],
+      rejetes: r[3],
+    );
+  }
+
+  ReportEntity _signalementDepuisLigne(dynamic row) {
+    return ReportEntity(
+      id: row['id'] as String,
+      reporterId: row['reporter_id'] as String? ?? '',
+      reporterName: row['reporter_name'] as String?,
+      targetType: row['target_type'] as String? ?? 'unknown',
+      targetId: row['target_id'] as String? ?? '',
+      targetName: row['target_name'] as String?,
+      conversationId: row['conversation_id'] as String?,
+      reason: row['reason'] as String? ?? '',
+      description: row['description'] as String?,
+      contentSnapshot: row['content_snapshot'] != null
+          ? ContentSnapshotData.fromMap(
+              (row['content_snapshot'] as Map).cast<String, dynamic>(),
+            )
+          : null,
+      reportedUserId: row['reported_user_id'] as String?,
+      status: row['status'] as String? ?? 'pending',
+      adminNote: row['admin_note'] as String?,
+      reviewedBy: row['reviewed_by'] as String?,
+      createdAt: _parseDateTime(row['created_at']),
+      reviewedAt: _parseDateTime(row['reviewed_at']),
+      reportedUserNotified: row['reported_user_notified'] as bool? ?? false,
+    );
   }
 
   Future<bool> resolveReport(
