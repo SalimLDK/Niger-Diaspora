@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1340 cases à cocher, 55 cochées** — 299 entrées sur 313 ont encore des cases ouvertes.
+**1352 cases à cocher, 55 cochées** — 301 entrées sur 315 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -97,7 +97,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 6 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (117)
+**P1 — fonction importante, jamais vérifiée** (119)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -173,6 +173,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [⬜ Photo de profil : on choisit son cadrage (2026-09-14)](#-photo-de-profil--on-choisit-son-cadrage-2026-09-14) · *Accueil, profil et réglages*
 - 6 · [⬜ Champ ville : recherche dans le référentiel (2026-09-13)](#-champ-ville--recherche-dans-le-référentiel-2026-09-13) · *Accueil, profil et réglages*
 - 7 · [Bascule en anglais — ~1 600 chaînes branchées, rien vu à l'écran (2026-08-06)](#bascule-en-anglais--1-600-chaînes-branchées-rien-vu-à-lécran-2026-08-06) · *Design, thème, langue et mise en page* · bloqué
+- 6 · [⬜ Crashlytics : clés et journaux de diagnostic des OutOfMemoryError (2026-10-15)](#-crashlytics--clés-et-journaux-de-diagnostic-des-outofmemoryerror-2026-10-15) · *Backend, sécurité et observabilité*
 - 9 · [⬜ Second facteur TOTP obligatoire sur le panneau admin (2026-10-14)](#-second-facteur-totp-obligatoire-sur-le-panneau-admin-2026-10-14) · *Backend, sécurité et observabilité*
 - 8 · [⬜ Registre de rôle unique : claim, Postgres et callable — l'écran Rôles et le bannissement serveur (2026-10-14)](#-registre-de-rôle-unique--claim-postgres-et-callable--lécran-rôles-et-le-bannissement-serveur-2026-10-14) · *Backend, sécurité et observabilité*
 - 5 · [⬜ Aucune requête Supabase ne part sans session : le refus du pont est respecté (2026-10-13)](#-aucune-requête-supabase-ne-part-sans-session--le-refus-du-pont-est-respecté-2026-10-13) · *Backend, sécurité et observabilité*
@@ -183,6 +184,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [⬜ Storage : on dépose, on ne réécrit plus (2026-09-21)](#-storage--on-dépose-on-ne-réécrit-plus-2026-09-21) · *Publication et plateformes*
 - 2 · [⛔ « Diaspo Niger s'arrête systématiquement » sur Android 15+ (2026-09-09)](#--diaspo-niger-sarrête-systématiquement--sur-android-15-2026-09-09) · *Publication et plateformes*
 - 4 · [⚠️ Rapatriement iOS : deux dépendances **Android** changent de version majeure (2026-09-08)](#-rapatriement-ios--deux-dépendances-android-changent-de-version-majeure-2026-09-08) · *Publication et plateformes*
+- 6 · [⬜ Panneau admin, Signalements : lit Firestore (ce que l'app signale) en plus de Supabase (2026-10-15)](#-panneau-admin-signalements--lit-firestore-ce-que-lapp-signale-en-plus-de-supabase-2026-10-15) · *Site web*
 - 9 · [⬜ La page de suppression de compte demande la suppression au lieu de l'exécuter (2026-09-19)](#-la-page-de-suppression-de-compte-demande-la-suppression-au-lieu-de-lexécuter-2026-09-19) · *Site web*
 - 9 · [⬜ Accusés, réactions, modifications et suppressions reçus en direct, discussion en clair (2026-09-21)](#-accusés-réactions-modifications-et-suppressions-reçus-en-direct-discussion-en-clair-2026-09-21) · *Messagerie*
 - 9 · [⬜ Partager vers une discussion — groupe et 1:1 (2026-09-09)](#-partager-vers-une-discussion--groupe-et-11-2026-09-09) · *Messagerie*
@@ -371,9 +373,9 @@ Par domaine :
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 67 à faire, 0 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 58 à faire, 5 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 108 à faire, 5 faites
-- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 91 à faire, 2 faites
+- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 97 à faire, 2 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 46 à faire, 1 faites
-- [15. Site web](#15-site-web) — 57 à faire, 0 faites
+- [15. Site web](#15-site-web) — 63 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 23 à faire, 0 faites
 
 <!-- sommaire:fin -->
@@ -9291,6 +9293,20 @@ parce qu'il change un **comportement**, pas seulement un habillage :
 Supabase et Firebase côté serveur, accès anon, stockage, journaux, Crashlytics, back-office.
 
 ---
+## ⬜ Crashlytics : clés et journaux de diagnostic des OutOfMemoryError (2026-10-15)
+
+**Priorité P1** · importance 4/5 — 8 `OutOfMemoryError` en 30 jours sur 1.2.2 (Tecno/Infinix, app en arrière-plan), onglets Clés et Journaux vides : on ne savait pas qui remplissait le tas. `lib/core/services/diagnostic_memoire.dart` pose désormais des clés personnalisées et des journaux dans chaque isolat (principal, FCM, service de localisation, réponse rapide) ; la mémoire Java vient du plugin local `packages/diagnostic_memoire` (Android seulement). Ne corrige PAS l'OOM. `flutter test` ne couvre pas : la lecture native, ni ce que Crashlytics affiche vraiment.
+
+*Bloqué : build release Android sur un téléphone, console Crashlytics (les non-fatals mettent quelques minutes à remonter).*
+
+- [ ] Depuis l'app au premier plan, forcer un non-fatal (`FirebaseCrashlytics.instance.recordError(Exception('test diag'), null)` depuis un bouton de debug ou un test d'intégration), l'ouvrir dans la console → onglet **Clés** : `isolat`=`principal`, `appli_au_premier_plan`=`true`, `service_localisation_actif`, `tas_max_mio`, `tas_alloue_mio`, `tas_libre_mio`, `tas_restant_mio`, `classe_memoire_mio`, `grande_classe_memoire_mio`, `appareil_peu_de_ram`, `rss_mio`, avec des valeurs plausibles (tas max 128–512).
+- [ ] Mettre l'app en arrière-plan, recevoir un push de message, puis forcer un non-fatal depuis l'isolat FCM → clé `isolat`=`fcm_arriere_plan`, `appli_au_premier_plan`=`false`, valeurs du tas rafraîchies ; onglet **Journaux** : `isolat ouvert : fcm_arriere_plan`, `fcm début : message`, `fcm fin`.
+- [ ] Partage de position actif, app en arrière-plan : journaux `isolat ouvert : service_localisation`, `service localisation : démarrage` ; couper le partage → `service localisation : arrêt (…)` et `service_localisation_actif`=`false` sur le non-fatal suivant.
+- [ ] Revenir au premier plan puis repasser en arrière-plan → journaux `cycle de vie : premier plan` / `arrière-plan`, clé `appli_au_premier_plan` suit.
+- [ ] iOS : aucune erreur ni plantage (pas de plugin natif) ; clés `isolat` et `rss_mio` présentes, pas de `tas_*`.
+- [ ] Rappel de lecture : les clés sont **par processus** — `isolat` vaut le dernier isolat signalé, pas forcément celui qui plante ; se fier aux journaux, ordonnés, pour la séquence.
+
+---
 ## ⬜ Second facteur TOTP obligatoire sur le panneau admin (2026-10-14)
 
 **Priorité P1** · importance 4/5 — ferme le § 8 et le § 10 point 7 de l'audit du 14/10 (`docs/deploiement/AUDIT_ADMIN_2026-10-14.md`) : un mot de passe admin hameçonné valait le panneau entier. Désormais un compte admin sans facteur enrôlé est envoyé sur l'enrôlement (QR + premier code) avant tout tableau de bord, un compte avec facteur passe par l'écran de défi, et la garde de `/dashboard` exige rôle **et** facteur (`admin_login_screen.dart`, `admin_enrolement_totp_screen.dart`, `admin_defi_second_facteur_screen.dart`, `garde_tableau_de_bord.dart`). Ce que `flutter test` ne couvre pas : le vrai SDK web (`TotpMultiFactorGenerator`, `MultiFactorResolver`), le QR lu par une vraie application d'authentification, l'horloge du téléphone, et la configuration du projet.
@@ -10554,6 +10570,29 @@ diasponiger.web.app : pages, palette, menu, aperçus de partage.
 
 ---
 
+## ⬜ Panneau admin, Signalements : lit Firestore (ce que l'app signale) en plus de Supabase (2026-10-15)
+
+**Priorité P1** · importance 4/5 — jusqu'ici le panneau ne lisait que
+`public.reports` (Supabase), vide : les signalements de messages, de
+conversations et de contenus que l'app écrit dans Firestore n'y arrivaient
+jamais. `AdminReportsNotifier` fond maintenant les deux sources
+(`fusion_paginee.dart`), et écrit sa décision dans la source du signalement.
+Jamais vu avec de vrais signalements.
+
+- [ ] Signaler un message depuis l'app, puis ouvrir le panneau (compte
+      `contentMod` ou `superAdmin`) : il apparaît dans « En attente », avec la
+      conversation d'origine ; la carte et le badge du tableau de bord comptent.
+- [ ] Signaler une conversation et un utilisateur : les trois formes de
+      document s'affichent (nom du signalant parfois absent).
+- [ ] Résoudre puis rejeter : le document Firestore passe à `resolved` /
+      `dismissed` (console Firebase), l'entrée apparaît dans le journal d'audit,
+      le signalé reçoit sa notification et `reportedUserNotified` passe à vrai.
+- [ ] Compte `businessMod` ou `financeMod` : bandeau « Signalements de l'app
+      illisibles », sans écran vide ni crash.
+- [ ] Si la console réclame un index composite `reports` : le déployer
+      (`firestore.indexes.json` en porte déjà `status + createdAt`).
+- [ ] Marketplace et Transferts : toujours lus dans Supabase (vides, drapeaux
+      fermés) ; à reprendre à la réouverture.
 ## ⬜ Panneau admin, Commerces et Marketplace : recherche côté serveur (2026-10-15)
 
 **Priorité P2** · importance 3/5 — un champ de recherche en tête de chaque

@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:cloud_firestore/cloud_firestore.dart'
+    show FieldValue, FirebaseFirestore, DocumentSnapshot, Query;
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:equatable/equatable.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -24,6 +26,8 @@ import '../../../marketplace/data/models/product_model.dart';
 import '../../../marketplace/domain/entities/product_entity.dart';
 import '../../../transfers/data/models/transaction_model.dart';
 import '../../../transfers/domain/entities/transaction_entity.dart';
+import '../fusion_paginee.dart';
+import '../signalement_firestore.dart';
 import 'refus_callable.dart';
 import 'package:diaspo_niger/features/admin/presentation/recherche_serveur.dart';
 
@@ -351,14 +355,18 @@ class AdminDashboardNotifier extends Notifier<AdminDashboardState> {
         tableCount('businesses'),
         tableCount('products'),
         tableCount('transactions'),
-        // pending reports count
-        _supabase
-            .from('reports')
-            .select('id')
-            .eq('status', 'pending')
-            .count(CountOption.exact)
-            .then((r) => r.count)
-            .catchError((_) => 0),
+        // pending reports count : les avis (Supabase) + ce que l'app signale
+        // (Firestore)
+        Future.wait<int>([
+          _supabase
+              .from('reports')
+              .select('id')
+              .eq('status', 'pending')
+              .count(CountOption.exact)
+              .then((r) => r.count)
+              .catchError((_) => 0),
+          compterSignalementsFirestore('pending'),
+        ]).then((n) => n[0] + n[1]),
         // active sessions: users active in last 24 h
         _supabase
             .from('users')
@@ -1144,6 +1152,20 @@ class ContentSnapshotData {
       text != null || imageUrl != null || videoUrl != null || fileUrl != null;
 }
 
+/// Nombre de signalements de l'app dans Firestore (`count()`, sans lire les
+/// documents), ou zéro si la lecture est refusée : un compteur ne doit pas
+/// faire tomber l'écran.
+Future<int> compterSignalementsFirestore([String? statut]) async {
+  try {
+    Query<Map<String, dynamic>> q =
+        FirebaseFirestore.instance.collection('reports');
+    if (statut != null) q = q.where('status', isEqualTo: statut);
+    return (await q.count().get()).count ?? 0;
+  } catch (_) {
+    return 0;
+  }
+}
+
 class ReportEntity extends Equatable {
   final String id;
   final String reporterId;
@@ -1163,6 +1185,10 @@ class ReportEntity extends Equatable {
   final DateTime? reviewedAt;
   final bool reportedUserNotified;
 
+  /// D'où vient la ligne : `firestore` (ce que l'app signale) ou `supabase`
+  /// (les avis). Décide où le panneau écrit sa décision.
+  final String source;
+
   const ReportEntity({
     required this.id,
     required this.reporterId,
@@ -1181,6 +1207,7 @@ class ReportEntity extends Equatable {
     this.createdAt,
     this.reviewedAt,
     this.reportedUserNotified = false,
+    this.source = 'supabase',
   });
 
   @override
@@ -1202,6 +1229,7 @@ class ReportEntity extends Equatable {
     createdAt,
     reviewedAt,
     reportedUserNotified,
+    source,
   ];
 }
 
@@ -1357,13 +1385,55 @@ class AdminReportsNotifier extends Notifier<AdminReportsState> {
     return const AdminReportsState();
   }
 
+  /// Une fusion par onglet : elle tient les curseurs des deux sources.
+  final Map<FiltreSignalements, FusionPaginee<ReportEntity>> _fusions = {};
+
+  /// Ce que Firestore a répondu de faux au dernier chargement, ou null.
+  /// Une panne de Firestore (règle, index) ne vide pas la liste Supabase : elle
+  /// se dit en bandeau.
+  String? _avertissementFirestore;
+
+  FusionPaginee<ReportEntity> _nouvelleFusion(FiltreSignalements f) {
+    DocumentSnapshot<Map<String, dynamic>>? curseur;
+    var decalageSupabase = 0;
+    return FusionPaginee<ReportEntity>(
+      avant: plusRecentDabord,
+      sources: [
+        () async {
+          try {
+            final lot = await _lotFirestore(f, curseur);
+            curseur = lot.curseur ?? curseur;
+            return (items: lot.items, fini: lot.fini);
+          } catch (e) {
+            _avertissementFirestore =
+                'Signalements de l\'app illisibles : ${messageErreurUsager(e)}';
+            return (items: <ReportEntity>[], fini: true);
+          }
+        },
+        () async {
+          final items = await _pageSupabase(f, decalageSupabase);
+          decalageSupabase += items.length;
+          return (items: items, fini: items.length < taillePageSignalements);
+        },
+      ],
+    );
+  }
+
   /// Recharge la première page des trois onglets et les compteurs, avec la
   /// recherche et le type courants.
   Future<void> fetchAllReports() async {
     state = state.copyWith(isLoading: true, error: null);
+    _avertissementFirestore = null;
     try {
+      _fusions
+        ..clear()
+        ..addEntries([
+          for (final f in FiltreSignalements.values)
+            MapEntry(f, _nouvelleFusion(f)),
+        ]);
       final pages = await Future.wait([
-        for (final f in FiltreSignalements.values) _pageSignalements(f, 0),
+        for (final f in FiltreSignalements.values)
+          _fusions[f]!.prochainePage(taillePageSignalements),
       ]);
       final compteurs = await _compteursSignalements();
       state = state.copyWith(
@@ -1373,10 +1443,10 @@ class AdminReportsNotifier extends Notifier<AdminReportsState> {
         reports: pages[2],
         compteurs: compteurs,
         encorePlus: {
-          for (var i = 0; i < pages.length; i++)
-            if (pages[i].length >= taillePageSignalements)
-              FiltreSignalements.values[i],
+          for (final f in FiltreSignalements.values)
+            if (_fusions[f]!.encorePlus) f,
         },
+        error: _avertissementFirestore,
         finChargementPlus: true,
       );
     } catch (e) {
@@ -1407,16 +1477,19 @@ class AdminReportsNotifier extends Notifier<AdminReportsState> {
 
   /// Ajoute la page suivante de [filtre] à son onglet.
   Future<void> chargerPlus(FiltreSignalements filtre) async {
-    if (state.chargementPlus != null || !state.encorePlus.contains(filtre)) {
+    final fusion = _fusions[filtre];
+    if (fusion == null ||
+        state.chargementPlus != null ||
+        !state.encorePlus.contains(filtre)) {
       return;
     }
     state = state.copyWith(chargementPlus: filtre);
+    _avertissementFirestore = null;
     try {
-      final actuelle = state.liste(filtre);
-      final suite = await _pageSignalements(filtre, actuelle.length);
-      final toutes = [...actuelle, ...suite];
+      final suite = await fusion.prochainePage(taillePageSignalements);
+      final toutes = [...state.liste(filtre), ...suite];
       final encore = {...state.encorePlus};
-      if (suite.length >= taillePageSignalements) {
+      if (fusion.encorePlus) {
         encore.add(filtre);
       } else {
         encore.remove(filtre);
@@ -1426,6 +1499,7 @@ class AdminReportsNotifier extends Notifier<AdminReportsState> {
         treatedReports: filtre == FiltreSignalements.traites ? toutes : null,
         reports: filtre == FiltreSignalements.tous ? toutes : null,
         encorePlus: encore,
+        error: _avertissementFirestore,
         finChargementPlus: true,
       );
     } catch (e) {
@@ -1433,7 +1507,62 @@ class AdminReportsNotifier extends Notifier<AdminReportsState> {
     }
   }
 
-  Future<List<ReportEntity>> _pageSignalements(
+  /// Lots lus par une source Firestore avant d'en rendre la main : au-delà,
+  /// une recherche rare sur une grosse collection lirait tout d'un coup.
+  static const int _plafondLecturesFirestore = 500;
+
+  /// Le lot suivant de `reports` (Firestore), dans l'ordre du plus récent.
+  ///
+  /// Le type et la recherche se filtrent ICI, sur les documents lus : les
+  /// anciens écrivains de l'app posent `type` au lieu de `targetType`, donc
+  /// une requête `where('targetType', …)` les raterait, et Firestore n'a de
+  /// toute façon pas de `ilike`. Le statut, lui, part au serveur (index
+  /// `status + createdAt`).
+  Future<({List<ReportEntity> items, DocumentSnapshot<Map<String, dynamic>>? curseur, bool fini})>
+  _lotFirestore(
+    FiltreSignalements f,
+    DocumentSnapshot<Map<String, dynamic>>? depuis,
+  ) async {
+    final garde = <ReportEntity>[];
+    var curseur = depuis;
+    var fini = false;
+    var lus = 0;
+    final type = state.typeFiltre;
+    final recherche = state.recherche;
+
+    while (garde.length < taillePageSignalements &&
+        lus < _plafondLecturesFirestore) {
+      Query<Map<String, dynamic>> q =
+          FirebaseFirestore.instance.collection('reports');
+      switch (f) {
+        case FiltreSignalements.enAttente:
+          q = q.where('status', isEqualTo: 'pending');
+        case FiltreSignalements.traites:
+          q = q.where('status', whereIn: statutsFirestoreTraites);
+        case FiltreSignalements.tous:
+          break;
+      }
+      q = q.orderBy('createdAt', descending: true);
+      if (curseur != null) q = q.startAfterDocument(curseur);
+      final snap = await q.limit(taillePageSignalements).get();
+      lus += snap.docs.length;
+      if (snap.docs.isNotEmpty) curseur = snap.docs.last;
+      for (final doc in snap.docs) {
+        final r = signalementDepuisFirestore(doc.id, doc.data());
+        if (type != null && r.targetType != type) continue;
+        if (!signalementCorrespond(r, recherche)) continue;
+        garde.add(r);
+      }
+      if (snap.docs.length < taillePageSignalements) {
+        fini = true;
+        break;
+      }
+    }
+    return (items: garde, curseur: curseur, fini: fini);
+  }
+
+  /// Une page de `public.reports` (Supabase) : les avis signalés.
+  Future<List<ReportEntity>> _pageSupabase(
     FiltreSignalements filtre,
     int decalage,
   ) async {
@@ -1457,24 +1586,34 @@ class AdminReportsNotifier extends Notifier<AdminReportsState> {
     return (rows as List).map(_signalementDepuisLigne).toList();
   }
 
+  /// Compteurs réels des deux sources, additionnés. Une source qui répond
+  /// mal compte zéro : les cartes ne tombent pas pour autant.
   Future<CompteursSignalements> _compteursSignalements() async {
-    Future<int> compter([String? statut]) async {
-      var requete = _supabase.from('reports').select('id');
-      if (statut != null) requete = requete.eq('status', statut);
-      return (await requete.count(CountOption.exact)).count;
+    Future<int> supabase([String? statut]) async {
+      try {
+        var requete = _supabase.from('reports').select('id');
+        if (statut != null) requete = requete.eq('status', statut);
+        return (await requete.count(CountOption.exact)).count;
+      } catch (_) {
+        return 0;
+      }
     }
 
     final r = await Future.wait([
-      compter(),
-      compter('pending'),
-      compter('resolved'),
-      compter('dismissed'),
+      supabase(),
+      supabase('pending'),
+      supabase('resolved'),
+      supabase('dismissed'),
+      compterSignalementsFirestore(),
+      compterSignalementsFirestore('pending'),
+      compterSignalementsFirestore('resolved'),
+      compterSignalementsFirestore('dismissed'),
     ]);
     return CompteursSignalements(
-      total: r[0],
-      enAttente: r[1],
-      traites: r[2],
-      rejetes: r[3],
+      total: r[0] + r[4],
+      enAttente: r[1] + r[5],
+      traites: r[2] + r[6],
+      rejetes: r[3] + r[7],
     );
   }
 
@@ -1514,20 +1653,36 @@ class AdminReportsNotifier extends Notifier<AdminReportsState> {
     bool notifyUser = true,
   }) async {
     try {
-      final updated = await _supabase
-          .from('reports')
-          .update({
-            'status': 'resolved',
-            'admin_note': adminNote,
-            'action_taken': action,
-            'reviewed_by': adminId,
-            'reviewed_at': DateTime.now().toUtc().toIso8601String(),
-          })
-          .eq('id', reportId)
-          .select('id');
-      if ((updated as List).isEmpty) {
-        state = state.copyWith(error: 'Signalement non traité : $_aucuneLigne');
-        return false;
+      if (_estFirestore(reportId)) {
+        // Un document absent LÈVE (not-found) : pas de « zéro ligne » muet.
+        await FirebaseFirestore.instance
+            .collection('reports')
+            .doc(reportId)
+            .update({
+              'status': 'resolved',
+              'adminNote': adminNote,
+              'actionTaken': action,
+              'reviewedBy': adminId,
+              'reviewerName': adminName,
+              'reviewedAt': FieldValue.serverTimestamp(),
+            });
+      } else {
+        final updated = await _supabase
+            .from('reports')
+            .update({
+              'status': 'resolved',
+              'admin_note': adminNote,
+              'action_taken': action,
+              'reviewed_by': adminId,
+              'reviewed_at': DateTime.now().toUtc().toIso8601String(),
+            })
+            .eq('id', reportId)
+            .select('id');
+        if ((updated as List).isEmpty) {
+          state =
+              state.copyWith(error: 'Signalement non traité : $_aucuneLigne');
+          return false;
+        }
       }
 
       final echecJournal = await AdminAuditHelper.log(
@@ -1558,6 +1713,17 @@ class AdminReportsNotifier extends Notifier<AdminReportsState> {
       state = state.copyWith(error: e.toString());
       return false;
     }
+  }
+
+  /// Le signalement vient-il de Firestore ? Lu dans les trois onglets
+  /// chargés ; un id inconnu est tenu pour Supabase, comme avant.
+  bool _estFirestore(String reportId) {
+    for (final f in FiltreSignalements.values) {
+      for (final r in state.liste(f)) {
+        if (r.id == reportId) return r.source == sourceFirestore;
+      }
+    }
+    return false;
   }
 
   Future<void> _notifyReportedUser({
@@ -1591,10 +1757,17 @@ class AdminReportsNotifier extends Notifier<AdminReportsState> {
         },
       });
 
-      await _supabase
-          .from('reports')
-          .update({'reported_user_notified': true})
-          .eq('id', reportId);
+      if (_estFirestore(reportId)) {
+        await FirebaseFirestore.instance
+            .collection('reports')
+            .doc(reportId)
+            .update({'reportedUserNotified': true});
+      } else {
+        await _supabase
+            .from('reports')
+            .update({'reported_user_notified': true})
+            .eq('id', reportId);
+      }
     } catch (e) {
       debugPrint('Failed to notify reported user: $e');
     }
@@ -1607,19 +1780,33 @@ class AdminReportsNotifier extends Notifier<AdminReportsState> {
     String? adminName,
   }) async {
     try {
-      final updated = await _supabase
-          .from('reports')
-          .update({
-            'status': 'dismissed',
-            'admin_note': reason,
-            'reviewed_by': adminId,
-            'reviewed_at': DateTime.now().toUtc().toIso8601String(),
-          })
-          .eq('id', reportId)
-          .select('id');
-      if ((updated as List).isEmpty) {
-        state = state.copyWith(error: 'Signalement non rejeté : $_aucuneLigne');
-        return false;
+      if (_estFirestore(reportId)) {
+        await FirebaseFirestore.instance
+            .collection('reports')
+            .doc(reportId)
+            .update({
+              'status': 'dismissed',
+              'adminNote': reason,
+              'reviewedBy': adminId,
+              'reviewerName': adminName,
+              'reviewedAt': FieldValue.serverTimestamp(),
+            });
+      } else {
+        final updated = await _supabase
+            .from('reports')
+            .update({
+              'status': 'dismissed',
+              'admin_note': reason,
+              'reviewed_by': adminId,
+              'reviewed_at': DateTime.now().toUtc().toIso8601String(),
+            })
+            .eq('id', reportId)
+            .select('id');
+        if ((updated as List).isEmpty) {
+          state =
+              state.copyWith(error: 'Signalement non rejeté : $_aucuneLigne');
+          return false;
+        }
       }
 
       final echecJournal = await AdminAuditHelper.log(

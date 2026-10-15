@@ -9,6 +9,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_performance/firebase_performance.dart';
+import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'firebase_options.dart';
 import 'app.dart';
@@ -28,6 +29,7 @@ import 'core/services/preferences_service.dart';
 import 'core/services/remote_config_service.dart';
 import 'core/services/stripe_service.dart';
 import 'core/services/background_location_service.dart';
+import 'core/services/diagnostic_memoire.dart';
 import 'core/services/location_publisher_service.dart';
 import 'core/services/online_status_service.dart';
 import 'core/services/supabase_auth_bridge.dart';
@@ -231,6 +233,10 @@ Future<void> _demarrer() async {
   // echec **montre a l'usager** part aussi en non-fatal.
   installerJournalEchecs();
 
+  // Diagnostic OOM : qui tourne et combien de tas Java reste, dans les clés
+  // et journaux Crashlytics. Après Firebase, jamais fatal.
+  if (!kIsWeb) _demarrerDiagnosticMemoire();
+
   // Activate Firebase App Check
   // Android: Debug mode uses DebugProvider, Release uses PlayIntegrity
   // iOS: Debug mode uses DebugProvider, Release uses AppAttest
@@ -285,6 +291,27 @@ Future<void> _demarrer() async {
   // (process Android, SDK Firebase natifs, enregistrement des plugins).
   // Seule la dernière tranche était de notre ressort.
   unawaited(_initServicesSecondaires());
+}
+
+/// Pose les clés Crashlytics de l'isolat principal et suit le cycle de vie.
+///
+/// Sans `await` : la lecture native ne doit pas retarder le démarrage.
+void _demarrerDiagnosticMemoire() {
+  try {
+    final etat = WidgetsBinding.instance.lifecycleState;
+    WidgetsBinding.instance.addObserver(ObservateurDiagnosticMemoire());
+    unawaited(() async {
+      bool? serviceActif;
+      try {
+        serviceActif = await FlutterBackgroundService().isRunning();
+      } catch (_) {}
+      await DiagnosticMemoire.ouvrirIsolat(
+        Isolat.principal,
+        serviceLocalisationActif: serviceActif,
+        auPremierPlan: etat == null ? null : etat == AppLifecycleState.resumed,
+      );
+    }());
+  } catch (_) {}
 }
 
 /// Services dont aucun écran de démarrage ne dépend.

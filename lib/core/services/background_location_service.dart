@@ -13,6 +13,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../firebase_options.dart';
 import '../../features/profile/data/datasources/profile_supabase_datasource.dart';
 import '../constants/app_config.dart';
+import 'diagnostic_memoire.dart';
 
 /// Service de localisation en arrière-plan.
 ///
@@ -203,6 +204,14 @@ class BackgroundLocationService {
       // Firebase might be already initialized
     }
 
+    // Diagnostic OOM (jamais fatal). `auPremierPlan` n'est PAS posé ici : ce
+    // service partage le processus de l'app, qui peut être au premier plan.
+    unawaited(DiagnosticMemoire.ouvrirIsolat(
+      Isolat.serviceLocalisation,
+      serviceLocalisationActif: true,
+    ));
+    unawaited(DiagnosticMemoire.journaliser('service localisation : démarrage'));
+
     await _initializeSupabaseForIsolate();
 
     final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
@@ -244,6 +253,7 @@ class BackgroundLocationService {
     }
 
     service.on('stopService').listen((event) {
+      _signalerArret('demandé');
       unawaited(service.stopSelf());
     });
 
@@ -261,6 +271,11 @@ class BackgroundLocationService {
 
     // Start recursive location update timer
     _scheduleNextLocationUpdate(service, flutterLocalNotificationsPlugin);
+  }
+
+  static void _signalerArret(String raison) {
+    unawaited(DiagnosticMemoire.journaliser('service localisation : arrêt ($raison)'));
+    unawaited(DiagnosticMemoire.serviceLocalisationChange(false));
   }
 
   /// Recursive timer that reads interval from SharedPreferences each time
@@ -282,6 +297,7 @@ class BackgroundLocationService {
           final isEnabled = prefs.getBool(prefKeyEnabled) ?? false;
 
           if (!isEnabled) {
+            _signalerArret('réglage coupé');
             unawaited(service.stopSelf());
             return;
           }
