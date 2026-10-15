@@ -8,6 +8,7 @@ import '../../../transfers/domain/entities/transaction_entity.dart';
 import '../providers/admin_provider.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:diaspo_niger/core/theme/design_kit.dart';
+import 'package:diaspo_niger/features/admin/presentation/widgets/admin_charger_plus.dart';
 
 class AdminTransactionsScreen extends ConsumerStatefulWidget {
   const AdminTransactionsScreen({super.key});
@@ -403,24 +404,14 @@ class _AdminTransactionsScreenState
   ) {
     final transactions = state.liste(filtre);
     if (transactions.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.receipt_long_rounded,
-              size: 64,
-              color: _textSecondary.withAlpha(100),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Aucune transaction trouvée',
-              style: TextStyle(
-                color: _textSecondary,
-                fontSize: 16,
-              ),
-            ),
-          ],
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(24),
+          child: DesignEmptyState(
+            icon: Icons.receipt_long_rounded,
+            title: 'Aucune transaction trouvée',
+            body: 'Rien dans cet onglet pour le moment.',
+          ),
         ),
       );
     }
@@ -430,19 +421,12 @@ class _AdminTransactionsScreenState
       itemCount: transactions.length + (encorePlus ? 1 : 0),
       itemBuilder: (context, index) {
         if (index == transactions.length) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Center(
-              child: state.chargementPlus == filtre
-                  ? const CircularProgressIndicator()
-                  : OutlinedButton(
-                      onPressed: () => unawaited(
-                        ref
-                            .read(adminTransactionsNotifierProvider.notifier)
-                            .chargerPlus(filtre),
-                      ),
-                      child: const Text('Charger plus'),
-                    ),
+          return AdminChargerPlus(
+            enCours: state.chargementPlus == filtre,
+            onPressed: () => unawaited(
+              ref
+                  .read(adminTransactionsNotifierProvider.notifier)
+                  .chargerPlus(filtre),
             ),
           );
         }
@@ -794,22 +778,16 @@ class _AdminTransactionsScreenState
         label = 'Annulée';
         break;
     }
-    final color = _getStatusColor(status);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withAlpha(20),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withAlpha(50)),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-          color: color,
-        ),
-      ),
+    return DesignBadge(
+      label,
+      tone: switch (status) {
+        TransactionStatus.pending ||
+        TransactionStatus.processing => DesignBadgeTone.review,
+        TransactionStatus.completed => DesignBadgeTone.verified,
+        TransactionStatus.failed => DesignBadgeTone.failed,
+        TransactionStatus.refunded ||
+        TransactionStatus.cancelled => DesignBadgeTone.archived,
+      },
     );
   }
 

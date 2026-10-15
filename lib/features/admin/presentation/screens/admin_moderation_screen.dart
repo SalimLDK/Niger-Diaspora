@@ -261,7 +261,7 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      _buildStatusBadge(event.status.name.toUpperCase(), statusColor),
+                      _buildStatusBadge(event.status),
                       const SizedBox(width: 8),
                       _buildCategoryBadge(event.category.name),
                     ],
@@ -480,42 +480,19 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
     );
   }
 
-  Widget _buildStatusBadge(String label, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withAlpha(20),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: color.withAlpha(50)),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.w600,
-          color: color,
-        ),
-      ),
-    );
+  /// Statut d'un événement : pastille du kit pour les états de cycle de vie,
+  /// étiquette d'accent pour « à venir » (ce n'est pas une décision en attente).
+  Widget _buildStatusBadge(EventStatus status) {
+    final label = status.name;
+    return switch (status) {
+      EventStatus.upcoming => DesignTag(label, tone: DesignTagTone.accent),
+      EventStatus.ongoing => DesignBadge(label, tone: DesignBadgeTone.verified),
+      EventStatus.completed => DesignBadge(label, tone: DesignBadgeTone.archived),
+      EventStatus.cancelled => DesignBadge(label, tone: DesignBadgeTone.failed),
+    };
   }
 
-  Widget _buildCategoryBadge(String category) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: _textSecondary.withAlpha(15),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Text(
-        category,
-        style: TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.w500,
-          color: _textSecondary,
-        ),
-      ),
-    );
-  }
+  Widget _buildCategoryBadge(String category) => DesignTag(category);
 
   Color _getStatusColor(EventStatus status) {
     switch (status) {
@@ -621,23 +598,13 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
 
   Widget _buildEmptyState(IconData icon, String message) {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            size: 64,
-            color: _textSecondary.withAlpha(100),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            message,
-            style: const TextStyle(
-              color: _textSecondary,
-              fontSize: 16,
-            ),
-          ),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: DesignEmptyState(
+          icon: icon,
+          title: message,
+          body: 'Rien dans cette liste pour le moment.',
+        ),
       ),
     );
   }

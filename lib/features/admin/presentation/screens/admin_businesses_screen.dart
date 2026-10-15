@@ -9,6 +9,7 @@ import '../providers/admin_provider.dart';
 import '../../../businesses/domain/entities/business_entity.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:diaspo_niger/core/theme/design_kit.dart';
+import 'package:diaspo_niger/features/admin/presentation/widgets/admin_charger_plus.dart';
 
 class AdminBusinessesScreen extends ConsumerStatefulWidget {
   const AdminBusinessesScreen({super.key});
@@ -144,25 +145,14 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
                           itemCount: filteredList.length + (encorePlus ? 1 : 0),
                           itemBuilder: (context, index) {
                             if (index == filteredList.length) {
-                              return Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 8),
-                                child: Center(
-                                  child: state.chargementPlus == filtreActif
-                                      ? const CircularProgressIndicator(
-                                          color: _primaryColor,
-                                        )
-                                      : OutlinedButton(
-                                          onPressed: () => unawaited(
-                                            ref
-                                                .read(
-                                                  adminBusinessNotifierProvider
-                                                      .notifier,
-                                                )
-                                                .chargerPlus(filtreActif),
-                                          ),
-                                          child: const Text('Charger plus'),
-                                        ),
+                              return AdminChargerPlus(
+                                enCours: state.chargementPlus == filtreActif,
+                                onPressed: () => unawaited(
+                                  ref
+                                      .read(
+                                        adminBusinessNotifierProvider.notifier,
+                                      )
+                                      .chargerPlus(filtreActif),
                                 ),
                               );
                             }
@@ -182,36 +172,7 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
     required bool isSelected,
     required VoidCallback onTap,
   }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        decoration: BoxDecoration(
-          color: isSelected ? _primaryColor : _cardColor,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isSelected ? _primaryColor : AdminColors.border,
-          ),
-          boxShadow:
-              isSelected
-                  ? [
-                    BoxShadow(
-                      color: _primaryColor.withValues(alpha: 0.3),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ]
-                  : null,
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: isSelected ? Colors.white : _textSecondary,
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-          ),
-        ),
-      ),
-    );
+    return DesignFilterChip(label: label, selected: isSelected, onTap: onTap);
   }
 
   Widget _buildBusinessCard(BusinessEntity business) {

@@ -9,6 +9,7 @@ import '../providers/admin_provider.dart';
 import '../../../../shared/widgets/app_icon.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:diaspo_niger/core/theme/design_kit.dart';
+import 'package:diaspo_niger/features/admin/presentation/widgets/admin_charger_plus.dart';
 
 class AdminMarketplaceScreen extends ConsumerStatefulWidget {
   const AdminMarketplaceScreen({super.key});
@@ -237,19 +238,10 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
 
   /// Dernière ligne d'une liste : « Charger plus », ou le sablier en cours.
   Widget _ligneChargerPlus(AdminMarketplaceState state, ListeMarketplace liste) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Center(
-        child: state.chargementPlus == liste
-            ? const CircularProgressIndicator()
-            : OutlinedButton(
-                onPressed: () => unawaited(
-                  ref
-                      .read(adminMarketplaceNotifierProvider.notifier)
-                      .chargerPlus(liste),
-                ),
-                child: const Text('Charger plus'),
-              ),
+    return AdminChargerPlus(
+      enCours: state.chargementPlus == liste,
+      onPressed: () => unawaited(
+        ref.read(adminMarketplaceNotifierProvider.notifier).chargerPlus(liste),
       ),
     );
   }
@@ -410,22 +402,9 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
   }
 
   Widget _buildAvailabilityBadge(bool isAvailable) {
-    final color = isAvailable ? AdminColors.statusGreen : AdminColors.statusRed;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withAlpha(20),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withAlpha(50)),
-      ),
-      child: Text(
-        isAvailable ? l10n.adminAvailable : l10n.adminUnavailable,
-        style: TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.w600,
-          color: color,
-        ),
-      ),
+    return DesignBadge(
+      isAvailable ? l10n.adminAvailable : l10n.adminUnavailable,
+      tone: isAvailable ? DesignBadgeTone.verified : DesignBadgeTone.failed,
     );
   }
 
@@ -835,13 +814,13 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
 
   Widget _buildEmptyState(IconData icon, String message) {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, size: 64, color: _textSecondary.withAlpha(100)),
-          const SizedBox(height: 16),
-          Text(message, style: const TextStyle(color: _textSecondary, fontSize: 16)),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: DesignEmptyState(
+          icon: icon,
+          title: message,
+          body: 'Rien dans cette liste pour le moment.',
+        ),
       ),
     );
   }

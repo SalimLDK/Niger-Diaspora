@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1321 cases à cocher, 55 cochées** — 294 entrées sur 308 ont encore des cases ouvertes.
+**1326 cases à cocher, 55 cochées** — 295 entrées sur 309 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -309,7 +309,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [✅ Bulle de chargement d'une vidéo pendant l'upload (2026-08-30)](#-bulle-de-chargement-dune-vidéo-pendant-lupload-2026-08-30) · *Messagerie*
 - 21 · [Refonte Fil & Discussion — Priorité basse — cosmétique, faible risque](#refonte-fil--discussion--priorité-basse--cosmétique-faible-risque) · *Fil, stories, salons audio et podcasts*
 
-**P3 — confort, cosmétique, fonction en pause** (37)
+**P3 — confort, cosmétique, fonction en pause** (38)
 
 - 3 · [⬜ Polices embarquées : plus de téléchargement au premier affichage (2026-09-11)](#-polices-embarquées--plus-de-téléchargement-au-premier-affichage-2026-09-11) · *Design, thème, langue et mise en page* · bloqué
 - 2 · [⬜ Icône du lanceur repeinte en vert (2026-09-07)](#-icône-du-lanceur-repeinte-en-vert-2026-09-07) · *Design, thème, langue et mise en page*
@@ -337,6 +337,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⬜ Une couleur par service dans les deux grilles (2026-09-14)](#-une-couleur-par-service-dans-les-deux-grilles-2026-09-14) · *Design, thème, langue et mise en page*
 - 3 · [Débordement du champ « Type * » — création d'ambassade (2026-08-04)](#débordement-du-champ--type----création-dambassade-2026-08-04) · *Design, thème, langue et mise en page* · bloqué
 - 1 · [Cartographie des accès `anon` réellement nécessaires (2026-08-13)](#cartographie-des-accès-anon-réellement-nécessaires-2026-08-13) · *Backend, sécurité et observabilité*
+- 5 · [⬜ Panneau admin : Transferts, Marketplace, Commerces, Modération et Audit passent aux briques du kit (2026-10-15)](#-panneau-admin--transferts-marketplace-commerces-modération-et-audit-passent-aux-briques-du-kit-2026-10-15) · *Site web*
 - 3 · [⬜ Panneau admin : Utilisateurs et Signalements passent aux briques du kit (2026-10-15)](#-panneau-admin--utilisateurs-et-signalements-passent-aux-briques-du-kit-2026-10-15) · *Site web*
 - 3 · [Passe nocturne + carte vérifiée sur appareil (2026-08-04, SM A515F)](#passe-nocturne--carte-vérifiée-sur-appareil-2026-08-04-sm-a515f) · *Journaux de passes appareil*
 - 2 · [Session appareil du 2026-08-03 — SM A515F, thème sombre, font_scale 1.1](#session-appareil-du-2026-08-03--sm-a515f-thème-sombre-font_scale-11) · *Journaux de passes appareil*
@@ -365,7 +366,7 @@ Par domaine :
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 108 à faire, 5 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 91 à faire, 2 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 46 à faire, 1 faites
-- [15. Site web](#15-site-web) — 42 à faire, 0 faites
+- [15. Site web](#15-site-web) — 47 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 19 à faire, 0 faites
 
 <!-- sommaire:fin -->
@@ -10545,6 +10546,23 @@ Firebase App Check Debug Token: E42FC20C-8AE4-4474-BCFC-9A52B36DECEB
 diasponiger.web.app : pages, palette, menu, aperçus de partage.
 
 ---
+
+## ⬜ Panneau admin : Transferts, Marketplace, Commerces, Modération et Audit passent aux briques du kit (2026-10-15)
+
+**Priorité P3** · importance 2/5 — même changement que pour Utilisateurs et
+Signalements (voir leur entrée) : états vides `DesignEmptyState`, pastilles
+`DesignBadge`/`DesignTag`, puces `DesignFilterChip` (Commerces), recherche
+`DesignSearchField` (Audit), `AdminChargerPlus`. Les pastilles de type de cible
+de l'Audit (couleur et icône par type) restent faites main : le kit n'a que
+quatre tons de statut.
+
+- [ ] Transferts : pastille de statut lisible pour les six statuts
+      (remboursée et annulée prennent le gris « archivé »).
+- [ ] Modération : « à venir » en étiquette d'accent, « en cours » vert,
+      « terminé » gris, « annulé » rouge ; catégorie en étiquette neutre.
+- [ ] Marketplace : disponible / indisponible ; états vides des trois onglets.
+- [ ] Commerces : puces noires pleines (même question que pour Signalements).
+- [ ] Audit : recherche et état vide.
 
 ## ⬜ Panneau admin : Utilisateurs et Signalements passent aux briques du kit (2026-10-15)
 
