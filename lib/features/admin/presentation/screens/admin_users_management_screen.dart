@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../auth/domain/entities/user_entity.dart';
 import '../providers/admin_provider.dart';
+import '../widgets/avatar_admin.dart';
 import '../widgets/admin_bandeau_erreur.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:diaspo_niger/core/theme/design_kit.dart';
@@ -264,33 +265,9 @@ class _AdminUsersManagementScreenState
             // Avatar
             Stack(
               children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    gradient: user.photoUrl == null
-                        ? const LinearGradient(colors: [_primaryColor, AdminColors.actionBlueLight])
-                        : null,
-                    image: user.photoUrl != null
-                        ? DecorationImage(
-                            image: NetworkImage(user.photoUrl!),
-                            fit: BoxFit.cover,
-                          )
-                        : null,
-                  ),
-                  child: user.photoUrl == null
-                      ? Center(
-                          child: Text(
-                            (user.displayName ?? user.email ?? 'U')[0].toUpperCase(),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                            ),
-                          ),
-                        )
-                      : null,
+                AvatarAdmin(
+                  nom: user.displayName ?? user.email,
+                  photoUrl: user.photoUrl,
                 ),
                 if (user.isBanned)
                   Positioned(

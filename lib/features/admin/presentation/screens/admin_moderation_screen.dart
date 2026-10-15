@@ -10,6 +10,14 @@ import '../providers/admin_provider.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:diaspo_niger/core/theme/design_kit.dart';
 
+/// Ce que la carte d'un événement dit de son organisateur : son nom, et
+/// l'identifiant seulement quand le nom manque. Elle affichait toujours
+/// l'identifiant brut (`ZPXVytz…`), illisible pour qui modère.
+String libelleOrganisateur(String? nom, String id) {
+  final propre = nom?.trim() ?? '';
+  return propre.isNotEmpty ? propre : id;
+}
+
 class AdminModerationScreen extends ConsumerStatefulWidget {
   const AdminModerationScreen({super.key});
 
@@ -257,7 +265,7 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Organisateur: ${event.organizerId}',
+                    'Organisateur: ${libelleOrganisateur(event.organizerName, event.organizerId)}',
                     style: const TextStyle(
                       fontSize: 13,
                       color: _textSecondary,
