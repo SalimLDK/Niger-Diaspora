@@ -33,6 +33,7 @@ class _AdminUsersManagementScreenState
   late TabController _tabController;
   final _searchController = TextEditingController();
   String _searchQuery = '';
+  Timer? _debounceRecherche;
 
   // Modern color palette (matching dashboard)
   static const Color _primaryColor = AdminColors.actionBlue;
@@ -51,6 +52,7 @@ class _AdminUsersManagementScreenState
 
   @override
   void dispose() {
+    _debounceRecherche?.cancel();
     _tabController.dispose();
     _searchController.dispose();
     super.dispose();
@@ -89,9 +91,9 @@ class _AdminUsersManagementScreenState
             indicatorWeight: 3,
             labelStyle: const TextStyle(fontWeight: FontWeight.w600),
             tabs: [
-              Tab(text: 'Tous (${state.users.length})'),
-              Tab(text: 'Admins (${state.admins.length})'),
-              Tab(text: 'Bannis (${state.bannedUsers.length})'),
+              Tab(text: 'Tous (${state.users.length}${state.encorePlus.contains(FiltreUtilisateurs.tous) ? '+' : ''})'),
+              Tab(text: 'Admins (${state.admins.length}${state.encorePlus.contains(FiltreUtilisateurs.admins) ? '+' : ''})'),
+              Tab(text: 'Bannis (${state.bannedUsers.length}${state.encorePlus.contains(FiltreUtilisateurs.bannis) ? '+' : ''})'),
             ],
           ),
         ),
@@ -116,9 +118,9 @@ class _AdminUsersManagementScreenState
                           child: TabBarView(
                             controller: _tabController,
                             children: [
-                              _buildUsersList(_filterUsers(state.users)),
-                              _buildUsersList(_filterUsers(state.admins)),
-                              _buildUsersList(_filterUsers(state.bannedUsers)),
+                              _buildUsersList(state, FiltreUtilisateurs.tous),
+                              _buildUsersList(state, FiltreUtilisateurs.admins),
+                              _buildUsersList(state, FiltreUtilisateurs.bannis),
                             ],
                           ),
                         ),
@@ -200,7 +202,7 @@ class _AdminUsersManagementScreenState
       ),
       child: TextField(
         controller: _searchController,
-        onChanged: (value) => setState(() => _searchQuery = value),
+        onChanged: _surRecherche,
         decoration: InputDecoration(
           hintText: l10n.adminSearchUser,
           prefixIcon: const Icon(Icons.search_rounded, color: _textSecondary),
@@ -209,7 +211,7 @@ class _AdminUsersManagementScreenState
                   icon: const Icon(Icons.clear_rounded, color: _textSecondary),
                   onPressed: () {
                     _searchController.clear();
-                    setState(() => _searchQuery = '');
+                    _surRecherche('');
                   },
                 )
               : null,
@@ -225,25 +227,43 @@ class _AdminUsersManagementScreenState
     );
   }
 
-  List<UserEntity> _filterUsers(List<UserEntity> users) {
-    if (_searchQuery.isEmpty) return users;
-    final query = _searchQuery.toLowerCase();
-    return users.where((user) {
-      return (user.displayName?.toLowerCase().contains(query) ?? false) ||
-          (user.email?.toLowerCase().contains(query) ?? false);
-    }).toList();
+  /// La recherche part au serveur, un court instant après la dernière frappe.
+  void _surRecherche(String value) {
+    setState(() => _searchQuery = value);
+    _debounceRecherche?.cancel();
+    _debounceRecherche = Timer(const Duration(milliseconds: 400), () {
+      unawaited(ref.read(adminUsersNotifierProvider.notifier).rechercher(value));
+    });
   }
 
-  Widget _buildUsersList(List<UserEntity> users) {
+  Widget _buildUsersList(AdminUsersState state, FiltreUtilisateurs filtre) {
+    final users = state.liste(filtre);
     if (users.isEmpty) {
       return _buildEmptyState();
     }
+    final encorePlus = state.encorePlus.contains(filtre);
 
     return ListView.builder(
-      itemCount: users.length,
+      itemCount: users.length + (encorePlus ? 1 : 0),
       itemBuilder: (context, index) {
-        final user = users[index];
-        return _buildUserCard(user);
+        if (index == users.length) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Center(
+              child: state.chargementPlus == filtre
+                  ? const CircularProgressIndicator(color: _primaryColor)
+                  : OutlinedButton(
+                      onPressed: () => unawaited(
+                        ref
+                            .read(adminUsersNotifierProvider.notifier)
+                            .chargerPlus(filtre),
+                      ),
+                      child: const Text('Charger plus'),
+                    ),
+            ),
+          );
+        }
+        return _buildUserCard(users[index]);
       },
     );
   }

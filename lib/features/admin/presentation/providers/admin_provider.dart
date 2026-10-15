@@ -1711,6 +1711,21 @@ String? motifReponseSetUserBanned(dynamic reponse, {required bool banned}) {
       'admin_audit_logs.';
 }
 
+/// Les trois listes de l'écran Utilisateurs. Chacune est paginée et filtrée
+/// **par le serveur** (`profils_admin_page`) : un onglet « Bannis » n'est plus
+/// les bannis parmi les 50 derniers inscrits, mais tous les bannis.
+enum FiltreUtilisateurs {
+  tous('tous'),
+  admins('admins'),
+  bannis('bannis');
+
+  const FiltreUtilisateurs(this.valeurRpc);
+  final String valeurRpc;
+}
+
+/// Taille d'une page de l'écran Utilisateurs.
+const int taillePageUtilisateurs = 50;
+
 class AdminUsersState extends Equatable {
   final List<UserEntity> users;
   final List<UserEntity> bannedUsers;
@@ -1718,13 +1733,32 @@ class AdminUsersState extends Equatable {
   final bool isLoading;
   final String? error;
 
+  /// Recherche en cours (nom ou e-mail), appliquée côté serveur.
+  final String recherche;
+
+  /// Une page de plus à demander, par liste : la dernière page reçue était
+  /// pleine.
+  final Set<FiltreUtilisateurs> encorePlus;
+
+  /// Filtre dont on charge la page suivante, ou null.
+  final FiltreUtilisateurs? chargementPlus;
+
   const AdminUsersState({
     this.users = const [],
     this.bannedUsers = const [],
     this.admins = const [],
     this.isLoading = false,
     this.error,
+    this.recherche = '',
+    this.encorePlus = const {},
+    this.chargementPlus,
   });
+
+  List<UserEntity> liste(FiltreUtilisateurs f) => switch (f) {
+        FiltreUtilisateurs.tous => users,
+        FiltreUtilisateurs.admins => admins,
+        FiltreUtilisateurs.bannis => bannedUsers,
+      };
 
   AdminUsersState copyWith({
     List<UserEntity>? users,
@@ -1732,6 +1766,10 @@ class AdminUsersState extends Equatable {
     List<UserEntity>? admins,
     bool? isLoading,
     String? error,
+    String? recherche,
+    Set<FiltreUtilisateurs>? encorePlus,
+    FiltreUtilisateurs? chargementPlus,
+    bool finChargementPlus = false,
   }) {
     return AdminUsersState(
       users: users ?? this.users,
@@ -1739,11 +1777,24 @@ class AdminUsersState extends Equatable {
       admins: admins ?? this.admins,
       isLoading: isLoading ?? this.isLoading,
       error: error,
+      recherche: recherche ?? this.recherche,
+      encorePlus: encorePlus ?? this.encorePlus,
+      chargementPlus:
+          finChargementPlus ? null : (chargementPlus ?? this.chargementPlus),
     );
   }
 
   @override
-  List<Object?> get props => [users, bannedUsers, admins, isLoading, error];
+  List<Object?> get props => [
+        users,
+        bannedUsers,
+        admins,
+        isLoading,
+        error,
+        recherche,
+        encorePlus,
+        chargementPlus,
+      ];
 }
 
 final adminUsersNotifierProvider =
@@ -1762,32 +1813,91 @@ class AdminUsersNotifier extends Notifier<AdminUsersState> {
     return const AdminUsersState();
   }
 
-  Future<void> fetchAllUsers({int limit = 50}) async {
+  /// Recharge la première page des trois listes, avec la recherche courante.
+  /// Une action (bannir, vérifier…) passe par ici pour que la liste reflète ce
+  /// que le serveur a écrit.
+  Future<void> fetchAllUsers() async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      // Voir `fetchRecentUsers` : `profils_admin()`, même tri, même
-      // troncature (plafonnée à 500 par la fonction).
-      final rows = await _supabase.rpc(
-        'profils_admin',
-        params: {'p_limite': limit},
-      );
-
-      final users = (rows as List)
-          .map((row) => UserModel.fromJson(_mapUser(row)).toEntity())
-          .toList();
-
-      final banned = users.where((u) => u.isBanned).toList();
-      final admins = users.where((u) => u.isAdmin).toList();
-
+      final pages = await Future.wait([
+        for (final f in FiltreUtilisateurs.values)
+          _page(f, decalage: 0, recherche: state.recherche),
+      ]);
       state = state.copyWith(
         isLoading: false,
-        users: users,
-        bannedUsers: banned,
-        admins: admins,
+        users: pages[0],
+        admins: pages[1],
+        bannedUsers: pages[2],
+        encorePlus: {
+          for (var i = 0; i < pages.length; i++)
+            if (pages[i].length >= taillePageUtilisateurs)
+              FiltreUtilisateurs.values[i],
+        },
+        finChargementPlus: true,
       );
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
     }
+  }
+
+  /// Applique [texte] (nom ou e-mail) côté serveur et recharge. L'écran
+  /// l'appelle après un délai de frappe.
+  Future<void> rechercher(String texte) {
+    state = state.copyWith(recherche: texte.trim());
+    return fetchAllUsers();
+  }
+
+  /// Ajoute la page suivante de [filtre] à sa liste.
+  Future<void> chargerPlus(FiltreUtilisateurs filtre) async {
+    if (state.chargementPlus != null || !state.encorePlus.contains(filtre)) {
+      return;
+    }
+    state = state.copyWith(chargementPlus: filtre);
+    try {
+      final actuelle = state.liste(filtre);
+      final suite = await _page(
+        filtre,
+        decalage: actuelle.length,
+        recherche: state.recherche,
+      );
+      final toutes = [...actuelle, ...suite];
+      final encore = {...state.encorePlus};
+      if (suite.length >= taillePageUtilisateurs) {
+        encore.add(filtre);
+      } else {
+        encore.remove(filtre);
+      }
+      state = state.copyWith(
+        users: filtre == FiltreUtilisateurs.tous ? toutes : null,
+        admins: filtre == FiltreUtilisateurs.admins ? toutes : null,
+        bannedUsers: filtre == FiltreUtilisateurs.bannis ? toutes : null,
+        encorePlus: encore,
+        finChargementPlus: true,
+      );
+    } catch (e) {
+      state = state.copyWith(error: e.toString(), finChargementPlus: true);
+    }
+  }
+
+  /// Une page de `profils_admin_page` : même porte que `profils_admin`
+  /// (42501 hors administrateur), plus recherche, filtre et décalage.
+  Future<List<UserEntity>> _page(
+    FiltreUtilisateurs filtre, {
+    required int decalage,
+    required String recherche,
+  }) async {
+    final rows = await _supabase.rpc(
+      'profils_admin_page',
+      params: {
+        'p_recherche': recherche.isEmpty ? null : recherche,
+        'p_filtre': filtre.valeurRpc,
+        'p_decalage': decalage,
+        'p_limite': taillePageUtilisateurs,
+      },
+    );
+    return (rows as List)
+        .map((row) => UserModel.fromJson(_mapUser(row)).toEntity())
+        .toList();
   }
 
   /// Bannit [userId] par la Cloud Function `setUserBanned`
