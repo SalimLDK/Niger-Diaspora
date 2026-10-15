@@ -3,7 +3,7 @@ import 'dart:developer' as dev;
 import 'dart:math';
 import 'package:crypto/crypto.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 import 'package:flutter/services.dart' show PlatformException;
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
@@ -244,49 +244,63 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   Future<UserModel> signInWithGoogle() async {
     if (kDebugMode) dev.log('=== DEBUT signInWithGoogle ===', name: _tag);
     try {
-      // Step 0: Ensure GoogleSignIn is initialized (required for 7.x)
-      if (kDebugMode) dev.log('Etape 0: Initialisation de GoogleSignIn...', name: _tag);
-      await _ensureGoogleSignInInitialized();
+      final UserCredential userCredential;
+      if (kIsWeb) {
+        // `GoogleSignIn.authenticate()` n'existe pas sur le web (v7 :
+        // « authenticate is not supported on the web. Instead, use
+        // renderButton », vu en ligne sur le panneau admin le 2026-10-15).
+        // Firebase fait le parcours lui-même par fenêtre : même compte
+        // Google, même jeton Firebase, donc même suite (pont Supabase,
+        // second facteur) que sur mobile.
+        userCredential = await _firebaseAuth.signInWithPopup(
+          GoogleAuthProvider(),
+        );
+      } else {
+        // Step 0: Ensure GoogleSignIn is initialized (required for 7.x)
+        if (kDebugMode) dev.log('Etape 0: Initialisation de GoogleSignIn...', name: _tag);
+        await _ensureGoogleSignInInitialized();
 
-      // Step 0b: Disconnect any previous session to reset state
-      // This helps prevent NullPointerException on some devices (especially OnePlus)
-      // where SignInHubActivity may have corrupted state from a previous session
-      if (kDebugMode) dev.log('Etape 0b: Deconnexion de la session precedente...', name: _tag);
-      try {
-        await _googleSignIn.disconnect();
-      } catch (e) {
-        // Ignore disconnect errors - user might not be signed in
-        if (kDebugMode) dev.log('Etape 0b: disconnect() ignore (normal si pas de session): $e', name: _tag);
-      }
-
-      if (kDebugMode) dev.log('Etape 1: Appel de _googleSignIn.authenticate()...', name: _tag);
-      final GoogleSignInAccount googleUser;
-      try {
-        googleUser = await _googleSignIn.authenticate();
-      } on GoogleSignInException catch (e) {
-        if (e.code == GoogleSignInExceptionCode.canceled) {
-          if (kDebugMode) dev.log('ERREUR: connexion annulee par l\'utilisateur', name: _tag);
-          throw ServerException('Connexion Google annulee');
+        // Step 0b: Disconnect any previous session to reset state
+        // This helps prevent NullPointerException on some devices (especially OnePlus)
+        // where SignInHubActivity may have corrupted state from a previous session
+        if (kDebugMode) dev.log('Etape 0b: Deconnexion de la session precedente...', name: _tag);
+        try {
+          await _googleSignIn.disconnect();
+        } catch (e) {
+          // Ignore disconnect errors - user might not be signed in
+          if (kDebugMode) dev.log('Etape 0b: disconnect() ignore (normal si pas de session): $e', name: _tag);
         }
-        rethrow;
+
+        if (kDebugMode) dev.log('Etape 1: Appel de _googleSignIn.authenticate()...', name: _tag);
+        final GoogleSignInAccount googleUser;
+        try {
+          googleUser = await _googleSignIn.authenticate();
+        } on GoogleSignInException catch (e) {
+          if (e.code == GoogleSignInExceptionCode.canceled) {
+            if (kDebugMode) dev.log('ERREUR: connexion annulee par l\'utilisateur', name: _tag);
+            throw ServerException('Connexion Google annulee');
+          }
+          rethrow;
+        }
+
+        if (kDebugMode) dev.log('Etape 2: googleUser obtenu - email: ${googleUser.email}, id: ${googleUser.id}', name: _tag);
+
+        if (kDebugMode) dev.log('Etape 3: Recuperation des tokens d\'authentification...', name: _tag);
+        final googleAuth = googleUser.authentication;
+
+        if (kDebugMode) dev.log('Etape 4: Tokens obtenus - idToken: ${googleAuth.idToken != null ? 'present' : 'null'}', name: _tag);
+
+        final credential = GoogleAuthProvider.credential(
+          idToken: googleAuth.idToken,
+        );
+
+        if (kDebugMode) dev.log('Etape 5: Credential Google cree, appel de Firebase signInWithCredential...', name: _tag);
+
+        userCredential = await _firebaseAuth.signInWithCredential(
+          credential,
+        );
+
       }
-
-      if (kDebugMode) dev.log('Etape 2: googleUser obtenu - email: ${googleUser.email}, id: ${googleUser.id}', name: _tag);
-
-      if (kDebugMode) dev.log('Etape 3: Recuperation des tokens d\'authentification...', name: _tag);
-      final googleAuth = googleUser.authentication;
-
-      if (kDebugMode) dev.log('Etape 4: Tokens obtenus - idToken: ${googleAuth.idToken != null ? 'present' : 'null'}', name: _tag);
-
-      final credential = GoogleAuthProvider.credential(
-        idToken: googleAuth.idToken,
-      );
-
-      if (kDebugMode) dev.log('Etape 5: Credential Google cree, appel de Firebase signInWithCredential...', name: _tag);
-
-      final userCredential = await _firebaseAuth.signInWithCredential(
-        credential,
-      );
 
       if (kDebugMode) dev.log('Etape 6: Firebase signInWithCredential reussi', name: _tag);
 
@@ -932,6 +946,18 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       return SecretTotpFirebase(secret, urlQr: urlQr);
     } on FirebaseAuthException catch (e) {
       throw ServerException(_mapFirebaseAuthError(e.code));
+    } on ServerException {
+      rethrow;
+    } catch (e) {
+      // Sur le web, un refus de `mfaEnrollment:start` (HTTP 400) sort en
+      // erreur JS que ni `FirebaseAuthException` ni `garderAppel` ne
+      // reconnaissent : l'écran d'enrôlement tournait sans fin, sans rien
+      // dire (vu en ligne le 2026-10-15). On la nomme, texte borné.
+      final texte = e.toString();
+      throw ServerException(
+        "Impossible de générer le secret du second facteur : "
+        "${texte.length > 160 ? texte.substring(0, 160) : texte}",
+      );
     }
   }
 
