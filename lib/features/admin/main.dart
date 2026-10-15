@@ -1,5 +1,9 @@
+import 'dart:async';
+
 import 'package:diaspo_niger/core/constants/app_config.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
+import 'package:diaspo_niger/core/services/supabase_auth_bridge.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -54,6 +58,32 @@ void main() async {
     url: AppConfig.supabaseUrl,
     publishableKey: AppConfig.supabaseAnonKey,
   );
+
+  // Session Supabase : le panneau n'en avait JAMAIS à l'ouverture. Le pont
+  // `SupabaseAuthBridge.syncWithFirebase` ne partait qu'au moment de se
+  // connecter ; un rechargement de page (session Firebase restaurée) ou un
+  // retour le lendemain partait donc sous `anon`, et chaque requête du
+  // panneau rendait 401 / « permission denied for function » — liste des
+  // utilisateurs vide, compteurs à zéro (vu en ligne le 2026-10-15, aucun appel
+  // à `auth-firebase-exchange` au chargement). On échange le jeton de la
+  // session restaurée AVANT le premier écran, puis à chaque changement de
+  // compte ; le pont déduplique les appels simultanés.
+  final auth = FirebaseAuth.instance;
+  final restauree = await auth.authStateChanges().first;
+  if (restauree != null) {
+    try {
+      await SupabaseAuthBridge.instance
+          .syncWithFirebase(restauree)
+          .timeout(const Duration(seconds: 15));
+    } catch (e) {
+      debugPrint('Admin: session Supabase non rétablie au démarrage ($e)');
+    }
+  }
+  auth.authStateChanges().listen((user) {
+    if (user != null) {
+      unawaited(SupabaseAuthBridge.instance.syncWithFirebase(user));
+    }
+  });
 
   runApp(const ProviderScope(child: AdminApp()));
 }
