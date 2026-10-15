@@ -22,7 +22,8 @@ curl -s -H "Authorization: Bearer $TOK" -H "X-Goog-User-Project: diaspo-niger" \
 |---|---|---|
 | `subtype` | `IDENTITY_PLATFORM` | **Le projet est déjà passé à Identity Platform.** Rien à acheter ni à activer de ce côté : c'est le préalable à tout multi-facteur, et il est fait. |
 | `mfa.state` | `ENABLED` | Le multi-facteur est allumé au niveau du projet. |
-| `mfa.enabledProviders` | `["PHONE_SMS"]` | **Seul le SMS est activé.** Aucun `providerConfigs` avec `totpProviderConfig` : **TOTP n'est pas activé**, l'enrôlement échouerait en `operation-not-allowed`. |
+| `mfa.enabledProviders` | `["PHONE_SMS"]` | Le SMS est activé. |
+| `mfa.providerConfigs` | vide au premier relevé ; **TOTP activé le 2026-10-14** (`state: ENABLED`, `adjacentIntervals: 5`) | Avant l'activation, l'enrôlement échouait en `operation-not-allowed`. Voir « Activé le 2026-10-14 » plus bas. |
 | `signIn.email` | `enabled`, mot de passe requis | Premier facteur accepté par Firebase pour un défi MFA (e-mail + mot de passe, ou fournisseur fédéré comme Google). |
 | `authorizedDomains` | `localhost`, `diaspo-niger.web.app`, `diasponiger.com`, `diaspo-niger-admin.web.app`, … | Déjà suffisant : TOTP n'a pas de domaine à autoriser en plus. |
 | `blockingFunctions` | `{}` | Aucune fonction bloquante. Non requise ici. |
@@ -75,9 +76,9 @@ console.log({ total, avec });
    loin. Le seul poste qui bouge avec le multi-facteur est le SMS — et TOTP
    l'évite entièrement.
 
-3. **Activer TOTP sur le projet.** C'est la seule étape manquante, et c'est
-   Salim qui la fait (elle modifie la configuration de production). Deux
-   voies :
+3. **Activer TOTP sur le projet.** **Fait le 2026-10-14**, par l'API, à la
+   demande de Salim : voir « Activé le 2026-10-14 » plus bas. Les deux voies
+   possibles, pour mémoire (ou pour un autre projet) :
 
    - **Console Firebase** : Authentication → Paramètres (Settings) →
      « Authentification multifacteur » → activer l'authentificateur TOTP s'il
@@ -194,17 +195,30 @@ première fois. À outiller (`tools/retirer_second_facteur.mjs`, lecture seule
 sans `--confirmer`, sur le modèle de `tools/amorcer_super_admin.mjs`) le jour
 où ça sert ; d'ici là, cette recette suffit.
 
-## Liste de ce que Salim fait lui-même, dans l'ordre
+## Activé le 2026-10-14
+
+`PATCH …/config?updateMask=mfa` avec la commande ci-dessus, `PHONE_SMS`
+conservé. Relu aussitôt par le `GET` :
+
+```json
+{"state": "ENABLED", "enabledProviders": ["PHONE_SMS"],
+ "providerConfigs": [{"totpProviderConfig": {"adjacentIntervals": 5}, "state": "ENABLED"}]}
+```
+
+`subtype` toujours `IDENTITY_PLATFORM`. Rien d'autre n'a été modifié.
+`PHONE_SMS` reste activé tant que le nombre de comptes enrôlés en SMS n'est
+pas connu. **Non encore éprouvé** : aucun enrôlement réel n'a été fait
+depuis l'activation.
+
+## Ce qui reste, dans l'ordre
 
 1. Relever combien de comptes ont un facteur SMS (script « Combien de
-   comptes… » ci-dessus). Zéro attendu.
-2. Activer TOTP : console si la bascule existe, sinon le `PATCH`. Garder
-   `PHONE_SMS` si le point 1 n'a pas rendu zéro.
-3. Relire la configuration (`GET`) : `providerConfigs[0].state == ENABLED`.
-4. Déployer le panneau (quand il aura une cible d'hébergement — § 10 point 7
+   comptes… » ci-dessus). Si zéro, `PHONE_SMS` peut être retiré de
+   `enabledProviders` (même `PATCH`, `providerConfigs` inchangé).
+2. Déployer le panneau (quand il aura une cible d'hébergement — § 10 point 7
    de l'audit, toujours ouvert) et dérouler l'entrée du domaine 13 de
    `TESTS_APPAREIL_A_FAIRE.md` avec le compte de test
    (`test.diaspo@example.com`, superAdmin après amorçage) et un téléphone
    portant une application d'authentification.
-5. Enrôler **son** compte en premier, et garder la recette « Perte du
+3. Enrôler **son** compte en premier, et garder la recette « Perte du
    téléphone » sous la main avant d'imposer le facteur aux autres admins.
