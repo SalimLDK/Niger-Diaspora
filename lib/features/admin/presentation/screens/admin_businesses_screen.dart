@@ -23,6 +23,8 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
   AppLocalizations get l10n => AppLocalizations.of(context)!;
 
   int _selectedFilter = 0;
+  final _searchController = TextEditingController();
+  Timer? _debounceRecherche;
 
   // Couleurs cohérentes avec le dashboard
   static const Color _primaryColor = AdminColors.actionBlue;
@@ -35,6 +37,22 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       unawaited(ref.read(adminBusinessNotifierProvider.notifier).fetchAllBusinesses());
+    });
+  }
+
+  @override
+  void dispose() {
+    _debounceRecherche?.cancel();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  /// La recherche part au serveur, un court instant après la dernière frappe.
+  void _surRecherche(String value) {
+    setState(() {});
+    _debounceRecherche?.cancel();
+    _debounceRecherche = Timer(const Duration(milliseconds: 400), () {
+      unawaited(ref.read(adminBusinessNotifierProvider.notifier).rechercher(value));
     });
   }
 
@@ -66,6 +84,7 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
               accent: AdminColors.titleDot,
             ),
             IconButton(
+              tooltip: l10n.adminRefresh,
               icon: const AppIcon(AppIcon.refresh, color: _textSecondary),
               onPressed: () {
                 unawaited(ref
@@ -75,24 +94,36 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
             ),
           ],
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 16),
+
+        DesignSearchField(
+          controller: _searchController,
+          hintText: l10n.searchPlaceholder,
+          onChanged: _surRecherche,
+          onClear: () {
+            _searchController.clear();
+            _surRecherche('');
+          },
+          active: _searchController.text.isNotEmpty,
+        ),
+        const SizedBox(height: 16),
 
         // Filter chips
         Wrap(
           spacing: 12,
           children: [
             _buildFilterChip(
-              label: 'Tous (${compte(FiltreCommerces.tous)})',
+              label: l10n.adminTabWithCount(l10n.all, compte(FiltreCommerces.tous)),
               isSelected: _selectedFilter == 0,
               onTap: () => setState(() => _selectedFilter = 0),
             ),
             _buildFilterChip(
-              label: 'En attente (${compte(FiltreCommerces.enAttente)})',
+              label: l10n.adminTabWithCount(l10n.statusPending, compte(FiltreCommerces.enAttente)),
               isSelected: _selectedFilter == 1,
               onTap: () => setState(() => _selectedFilter = 1),
             ),
             _buildFilterChip(
-              label: 'Boostés (${compte(FiltreCommerces.boostes)})',
+              label: l10n.adminTabWithCount(l10n.adminBoosted, compte(FiltreCommerces.boostes)),
               isSelected: _selectedFilter == 2,
               onTap: () => setState(() => _selectedFilter = 2),
             ),
@@ -282,6 +313,7 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
 
             // Actions
             PopupMenuButton<String>(
+              tooltip: l10n.moreActions,
               icon: const Icon(Icons.more_vert, color: _textSecondary),
               onSelected: (value) => _handleAction(value, business),
               shape: RoundedRectangleBorder(

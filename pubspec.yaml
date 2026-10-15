@@ -187,6 +187,10 @@ dependencies:
   in_app_review: ^2.0.12
   diaspo_mls:
     path: rust_builder
+  # Lit le tas Java pour les clés Crashlytics (diagnostic des OOM). Plugin local
+  # et non un canal de MainActivity : les isolats d'arrière-plan n'ont pas d'activité.
+  diagnostic_memoire:
+    path: packages/diagnostic_memoire
   flutter_rust_bridge: 2.13.0
 
 dev_dependencies:

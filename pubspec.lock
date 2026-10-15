@@ -585,6 +585,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "7.0.3"
+  diagnostic_memoire:
+    dependency: "direct main"
+    description:
+      path: "packages/diagnostic_memoire"
+      relative: true
+    source: path
+    version: "0.0.1"
   diaspo_mls:
     dependency: "direct main"
     description:

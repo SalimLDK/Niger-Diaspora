@@ -1,0 +1,18 @@
+group = "com.diasponiger.diagnostic_memoire"
+version = "1.0-SNAPSHOT"
+
+apply plugin: "com.android.library"
+
+android {
+    namespace = "com.diasponiger.diagnostic_memoire"
+    compileSdk = 36
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+    }
+
+    defaultConfig {
+        minSdk = 21
+    }
+}

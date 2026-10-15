@@ -8665,5 +8665,49 @@
   "updateAvailableAction": "Mettre à jour",
   "@updateAvailableAction": {
     "description": "Action du bandeau de mise a jour : ouvre la fiche du store"
-  }
+  },
+  "adminLoadMore": "Charger plus",
+  "adminTabWithCount": "{label} ({count})",
+  "@adminTabWithCount": {
+    "placeholders": {
+        "label": {"type": "String"},
+        "count": {"type": "String"}
+    }
+  },
+  "adminOrdersName": "Commandes",
+  "adminDisputesName": "Litiges",
+  "adminCompletedName": "Complétées",
+  "adminBannedName": "Bannis",
+  "adminProcessedName": "Traités",
+  "adminStatResolved": "Résolus",
+  "adminStatDismissed": "Rejetés",
+  "adminAuditEmptyTitle": "Aucun log d'audit",
+  "adminNoTransactionsTitle": "Aucune transaction trouvée",
+  "adminEmptyTabBody": "Rien dans cet onglet pour le moment.",
+  "adminEmptyListBody": "Rien dans cette liste pour le moment.",
+  "adminUsersEmptyBody": "Aucun compte dans cette liste.",
+  "adminUsersNoMatchBody": "Aucun compte ne correspond à cette recherche.",
+  "adminReportsEmptyBody": "Rien à traiter ici pour le moment.",
+  "adminReportsNoMatchBody": "Essayez un autre mot, ou retirez les filtres.",
+  "adminReportViewContent": "Voir le {type}",
+  "@adminReportViewContent": {
+    "placeholders": {
+        "type": {"type": "String"}
+    }
+  },
+  "adminChangeRoleTo": "Changer en {role}",
+  "@adminChangeRoleTo": {
+    "placeholders": {
+        "role": {"type": "String"}
+    }
+  },
+  "adminRevokeAccessShort": "Révoquer l'accès",
+  "adminMessageWithText": "Message : {text}",
+  "@adminMessageWithText": {
+    "placeholders": {
+        "text": {"type": "String"}
+    }
+  },
+  "adminScreenNotAllowed": "Cet écran n'est pas accessible avec votre rôle.",
+  "adminWelcomePanel": "Bienvenue dans le panneau d'administration DiaspoNiger"
 }

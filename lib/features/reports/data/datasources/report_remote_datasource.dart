@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/constants/firebase_collections.dart';
 import '../../../../core/errors/exceptions.dart';
+import '../../../../core/services/supabase_auth_bridge.dart';
 import '../../domain/entities/report_entity.dart';
 import '../../domain/repositories/report_repository.dart';
 import '../models/report_model.dart';
@@ -90,6 +91,13 @@ class ReportRemoteDataSourceImpl implements ReportRemoteDataSource {
   CollectionReference<Map<String, dynamic>> get _reportsCollection =>
       _firestore.collection(FirebaseCollections.reports);
 
+  SupabaseClient get _supabase => Supabase.instance.client;
+
+  /// Les signalements vivent dans `public.reports` (Supabase), là où le panneau
+  /// admin les lit. Ils étaient écrits dans Firestore : l'administrateur n'en
+  /// voyait aucun. Le dépôt passe par `signalement_creer`, qui lit l'identité
+  /// du signalant dans le jeton, force le statut à `pending` et refuse un
+  /// second signalement du même contenu — le client ne choisit rien de cela.
   @override
   Future<ReportModel> submitReport({
     required String reporterId,
@@ -106,50 +114,31 @@ class ReportRemoteDataSourceImpl implements ReportRemoteDataSource {
     String? reportedUserId,
   }) async {
     try {
-      // Vérifier si déjà signalé
-      final alreadyReported = await hasAlreadyReported(
-        reporterId: reporterId,
-        targetType: targetType,
-        targetId: targetId,
+      await SupabaseAuthBridge.instance.exigerSession();
+      final id = await _supabase.rpc<dynamic>(
+        'signalement_creer',
+        params: {
+          'p_target_type': targetType.name,
+          'p_target_id': targetId,
+          'p_reason': reason.name,
+          'p_description': description,
+          'p_conversation_id': conversationId,
+          'p_reported_user_id': reportedUserId,
+          'p_target_name': targetName,
+          'p_snapshot': contentSnapshot?.toSupabase(),
+        },
       );
-
-      if (alreadyReported) {
-        throw ServerException('Vous avez déjà signalé ce contenu');
-      }
-
-      final data = <String, dynamic>{
-        'reporterId': reporterId,
-        'reporterName': reporterName,
-        'reporterPhotoUrl': reporterPhotoUrl,
-        'targetType': targetType.name,
-        'targetId': targetId,
-        'targetName': targetName,
-        'targetPreview': targetPreview,
-        'conversationId': conversationId,
-        'reason': reason.name,
-        'description': description,
-        'status': ReportStatus.pending.name,
-        'createdAt': FieldValue.serverTimestamp(),
-        'reportedUserNotified': false,
-      };
-
-      // Ajouter le snapshot si disponible
-      if (contentSnapshot != null) {
-        data['contentSnapshot'] = contentSnapshot.toMap();
-      }
-
-      // Ajouter l'ID de l'utilisateur signalé
-      if (reportedUserId != null) {
-        data['reportedUserId'] = reportedUserId;
-      }
-
-      final docRef = await _reportsCollection.add(data);
-
-      final doc = await docRef.get();
-      return ReportModel.fromFirestore(doc);
-    } on FirebaseException catch (e) {
+      final row = await _supabase
+          .from('reports')
+          .select()
+          .eq('id', id as String)
+          .single();
+      return ReportModel.fromSupabase(row);
+    } on PostgrestException catch (e) {
       throw ServerException(
-        e.message ?? 'Erreur lors de la soumission du signalement',
+        e.code == '23505'
+            ? 'Vous avez déjà signalé ce contenu'
+            : e.message,
       );
     }
   }
@@ -196,39 +185,36 @@ class ReportRemoteDataSourceImpl implements ReportRemoteDataSource {
       );
 
       // Marquer le report comme notifié
-      await _reportsCollection.doc(reportId).update({
-        'reportedUserNotified': true,
-      });
-    } on FirebaseException catch (e) {
-      throw ServerException(
-        e.message ?? 'Erreur lors de la notification',
-      );
+      await _supabase
+          .from('reports')
+          .update({'reported_user_notified': true}).eq('id', reportId);
+    } on PostgrestException catch (e) {
+      throw ServerException(e.message);
     }
   }
 
   @override
   Stream<List<ReportModel>> getMyReports(String userId) {
-    return _reportsCollection
-        .where('reporterId', isEqualTo: userId)
-        .orderBy('createdAt', descending: true)
-        .snapshots()
-        .map((snapshot) {
-      return snapshot.docs
-          .map((doc) => ReportModel.fromFirestore(doc))
-          .toList();
-    });
+    return _supabase
+        .from('reports')
+        .stream(primaryKey: ['id'])
+        .eq('reporter_id', userId)
+        .order('created_at', ascending: false)
+        .map((rows) => rows.map(ReportModel.fromSupabase).toList());
   }
 
   @override
   Future<ReportModel?> getReportById(String reportId) async {
     try {
-      final doc = await _reportsCollection.doc(reportId).get();
-      if (!doc.exists) return null;
-      return ReportModel.fromFirestore(doc);
-    } on FirebaseException catch (e) {
-      throw ServerException(
-        e.message ?? 'Erreur lors de la récupération du signalement',
-      );
+      await SupabaseAuthBridge.instance.exigerSession();
+      final row = await _supabase
+          .from('reports')
+          .select()
+          .eq('id', reportId)
+          .maybeSingle();
+      return row == null ? null : ReportModel.fromSupabase(row);
+    } on PostgrestException catch (e) {
+      throw ServerException(e.message);
     }
   }
 
@@ -239,18 +225,25 @@ class ReportRemoteDataSourceImpl implements ReportRemoteDataSource {
     required String targetId,
   }) async {
     try {
-      final query = await _reportsCollection
-          .where('reporterId', isEqualTo: reporterId)
-          .where('targetType', isEqualTo: targetType.name)
-          .where('targetId', isEqualTo: targetId)
-          .limit(1)
-          .get();
-
-      return query.docs.isNotEmpty;
-    } on FirebaseException {
+      await SupabaseAuthBridge.instance.exigerSession();
+      final rows = await _supabase
+          .from('reports')
+          .select('id')
+          .eq('reporter_id', reporterId)
+          .eq('target_type', targetType.name)
+          .eq('target_id', targetId)
+          .limit(1);
+      return rows.isNotEmpty;
+    } on PostgrestException {
       return false;
     }
   }
+
+  // ============ Admin Methods ============
+  //
+  // Ce qui suit lit encore Firestore et n'a plus de lecteur : le panneau admin
+  // passe par `AdminReportsNotifier` (Supabase). À supprimer avec le
+  // repository, pas à rebrancher.
 
   @override
   Stream<List<ReportModel>> getAllReports({

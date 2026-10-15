@@ -98,11 +98,11 @@ class _AdminTransactionsScreenState
                   labelStyle: const TextStyle(fontWeight: FontWeight.w600),
                   isScrollable: true,
                   tabs: [
-                    Tab(text: 'Toutes (${state.transactions.length}${state.encorePlus.contains(FiltreTransferts.toutes) ? '+' : ''})'),
-                    Tab(text: 'En attente (${state.nbEnAttente})'),
-                    Tab(text: 'Échouées (${state.nbEchouees})'),
+                    Tab(text: l10n.adminTabWithCount(l10n.allTransactions, '${state.transactions.length}${state.encorePlus.contains(FiltreTransferts.toutes) ? '+' : ''}')),
+                    Tab(text: l10n.adminTabWithCount(l10n.statusPending, '${state.nbEnAttente}')),
+                    Tab(text: l10n.adminTabWithCount(l10n.adminFailedPlural, '${state.nbEchouees}')),
                     Tab(
-                      text: 'Complétées (${state.completedTransactions.length}${state.encorePlus.contains(FiltreTransferts.completees) ? '+' : ''})',
+                      text: l10n.adminTabWithCount(l10n.adminCompletedName, '${state.completedTransactions.length}${state.encorePlus.contains(FiltreTransferts.completees) ? '+' : ''}'),
                     ),
                   ],
                 ),
@@ -177,7 +177,12 @@ class _AdminTransactionsScreenState
     );
   }
 
-  Widget _buildRefreshButton() {
+  Widget _buildRefreshButton() => Tooltip(
+    message: l10n.adminRefresh,
+    child: _boutonActualiser(),
+  );
+
+  Widget _boutonActualiser() {
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -404,13 +409,13 @@ class _AdminTransactionsScreenState
   ) {
     final transactions = state.liste(filtre);
     if (transactions.isEmpty) {
-      return const Center(
+      return Center(
         child: Padding(
-          padding: EdgeInsets.all(24),
+          padding: const EdgeInsets.all(24),
           child: DesignEmptyState(
             icon: Icons.receipt_long_rounded,
-            title: 'Aucune transaction trouvée',
-            body: 'Rien dans cet onglet pour le moment.',
+            title: l10n.adminNoTransactionsTitle,
+            body: l10n.adminEmptyTabBody,
           ),
         ),
       );
@@ -769,13 +774,13 @@ class _AdminTransactionsScreenState
         label = l10n.adminTransactionCompletedLabel;
         break;
       case TransactionStatus.failed:
-        label = 'Échouée';
+        label = l10n.transactionStatusFailed;
         break;
       case TransactionStatus.refunded:
-        label = 'Remboursée';
+        label = l10n.transactionStatusRefunded;
         break;
       case TransactionStatus.cancelled:
-        label = 'Annulée';
+        label = l10n.transactionStatusCancelled;
         break;
     }
     return DesignBadge(

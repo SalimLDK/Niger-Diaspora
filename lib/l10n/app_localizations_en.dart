@@ -16715,4 +16715,83 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get updateAvailableAction => 'Update';
+
+  @override
+  String get adminLoadMore => 'Load more';
+
+  @override
+  String adminTabWithCount(String label, String count) {
+    return '$label ($count)';
+  }
+
+  @override
+  String get adminOrdersName => 'Orders';
+
+  @override
+  String get adminDisputesName => 'Disputes';
+
+  @override
+  String get adminCompletedName => 'Completed';
+
+  @override
+  String get adminBannedName => 'Banned';
+
+  @override
+  String get adminProcessedName => 'Processed';
+
+  @override
+  String get adminStatResolved => 'Resolved';
+
+  @override
+  String get adminStatDismissed => 'Dismissed';
+
+  @override
+  String get adminAuditEmptyTitle => 'No audit logs';
+
+  @override
+  String get adminNoTransactionsTitle => 'No transactions found';
+
+  @override
+  String get adminEmptyTabBody => 'Nothing in this tab yet.';
+
+  @override
+  String get adminEmptyListBody => 'Nothing in this list yet.';
+
+  @override
+  String get adminUsersEmptyBody => 'No account in this list.';
+
+  @override
+  String get adminUsersNoMatchBody => 'No account matches this search.';
+
+  @override
+  String get adminReportsEmptyBody => 'Nothing to review here yet.';
+
+  @override
+  String get adminReportsNoMatchBody =>
+      'Try another word, or remove the filters.';
+
+  @override
+  String adminReportViewContent(String type) {
+    return 'View $type';
+  }
+
+  @override
+  String adminChangeRoleTo(String role) {
+    return 'Change to $role';
+  }
+
+  @override
+  String get adminRevokeAccessShort => 'Revoke access';
+
+  @override
+  String adminMessageWithText(String text) {
+    return 'Message: $text';
+  }
+
+  @override
+  String get adminScreenNotAllowed =>
+      'This screen is not available with your role.';
+
+  @override
+  String get adminWelcomePanel => 'Welcome to the DiaspoNiger admin panel';
 }

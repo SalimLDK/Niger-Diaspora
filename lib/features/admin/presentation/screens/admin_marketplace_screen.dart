@@ -23,6 +23,8 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
   AppLocalizations get l10n => AppLocalizations.of(context)!;
 
   late TabController _tabController;
+  final _searchController = TextEditingController();
+  Timer? _debounceRecherche;
 
   // Modern color palette (matching dashboard)
   static const Color _primaryColor = AdminColors.actionBlue;
@@ -43,8 +45,19 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
 
   @override
   void dispose() {
+    _debounceRecherche?.cancel();
     _tabController.dispose();
+    _searchController.dispose();
     super.dispose();
+  }
+
+  /// La recherche part au serveur, un court instant après la dernière frappe.
+  void _surRecherche(String value) {
+    setState(() {});
+    _debounceRecherche?.cancel();
+    _debounceRecherche = Timer(const Duration(milliseconds: 400), () {
+      unawaited(ref.read(adminMarketplaceNotifierProvider.notifier).rechercher(value));
+    });
   }
 
   @override
@@ -55,7 +68,18 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildPageHeader(state),
-        const SizedBox(height: 24),
+        const SizedBox(height: 16),
+        DesignSearchField(
+          controller: _searchController,
+          hintText: l10n.searchPlaceholder,
+          onChanged: _surRecherche,
+          onClear: () {
+            _searchController.clear();
+            _surRecherche('');
+          },
+          active: _searchController.text.isNotEmpty,
+        ),
+        const SizedBox(height: 16),
         // Tabs
         Container(
           decoration: BoxDecoration(
@@ -83,7 +107,7 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
                   children: [
                     const Icon(Icons.shopping_bag_rounded, size: 18),
                     const SizedBox(width: 8),
-                    Text('Produits (${state.products.length}${state.encorePlus.contains(ListeMarketplace.produits) ? '+' : ''})'),
+                    Text(l10n.adminTabWithCount(l10n.adminProducts, '${state.products.length}${state.encorePlus.contains(ListeMarketplace.produits) ? '+' : ''}')),
                   ],
                 ),
               ),
@@ -93,7 +117,7 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
                   children: [
                     const Icon(Icons.receipt_rounded, size: 18),
                     const SizedBox(width: 8),
-                    Text('Commandes (${state.orders.length}${state.encorePlus.contains(ListeMarketplace.commandes) ? '+' : ''})'),
+                    Text(l10n.adminTabWithCount(l10n.adminOrdersName, '${state.orders.length}${state.encorePlus.contains(ListeMarketplace.commandes) ? '+' : ''}')),
                   ],
                 ),
               ),
@@ -103,7 +127,7 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
                   children: [
                     const Icon(Icons.gavel_rounded, size: 18),
                     const SizedBox(width: 8),
-                    Text('Litiges (${state.disputes.length}${state.encorePlus.contains(ListeMarketplace.litiges) ? '+' : ''})'),
+                    Text(l10n.adminTabWithCount(l10n.adminDisputesName, '${state.disputes.length}${state.encorePlus.contains(ListeMarketplace.litiges) ? '+' : ''}')),
                   ],
                 ),
               ),
@@ -210,7 +234,12 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
     );
   }
 
-  Widget _buildRefreshButton() {
+  Widget _buildRefreshButton() => Tooltip(
+    message: l10n.adminRefresh,
+    child: _boutonActualiser(),
+  );
+
+  Widget _boutonActualiser() {
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -344,6 +373,7 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
             ),
             // Actions
             PopupMenuButton<String>(
+              tooltip: l10n.moreActions,
               onSelected: (value) => _handleProductAction(value, product),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               icon: Container(
@@ -819,7 +849,7 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
         child: DesignEmptyState(
           icon: icon,
           title: message,
-          body: 'Rien dans cette liste pour le moment.',
+          body: l10n.adminEmptyListBody,
         ),
       ),
     );
