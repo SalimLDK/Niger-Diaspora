@@ -25,6 +25,7 @@ import '../../../marketplace/domain/entities/product_entity.dart';
 import '../../../transfers/data/models/transaction_model.dart';
 import '../../../transfers/domain/entities/transaction_entity.dart';
 import 'refus_callable.dart';
+import 'package:diaspo_niger/features/admin/presentation/recherche_serveur.dart';
 
 // ---------------------------------------------------------------------------
 // Supabase client accessor
@@ -504,6 +505,9 @@ class AdminBusinessState extends Equatable {
   final List<BusinessEntity> boosted;
   final Set<FiltreCommerces> encorePlus;
   final FiltreCommerces? chargementPlus;
+
+  /// Recherche (nom, ville, catégorie, e-mail), appliquée côté serveur.
+  final String recherche;
   final bool isLoading;
   final String? error;
 
@@ -513,6 +517,7 @@ class AdminBusinessState extends Equatable {
     this.boosted = const [],
     this.encorePlus = const {},
     this.chargementPlus,
+    this.recherche = '',
     this.isLoading = false,
     this.error,
   });
@@ -530,6 +535,7 @@ class AdminBusinessState extends Equatable {
     Set<FiltreCommerces>? encorePlus,
     FiltreCommerces? chargementPlus,
     bool finChargementPlus = false,
+    String? recherche,
     bool? isLoading,
     String? error,
   }) {
@@ -540,6 +546,7 @@ class AdminBusinessState extends Equatable {
       encorePlus: encorePlus ?? this.encorePlus,
       chargementPlus:
           finChargementPlus ? null : (chargementPlus ?? this.chargementPlus),
+      recherche: recherche ?? this.recherche,
       isLoading: isLoading ?? this.isLoading,
       error: error,
     );
@@ -552,6 +559,7 @@ class AdminBusinessState extends Equatable {
     boosted,
     encorePlus,
     chargementPlus,
+    recherche,
     isLoading,
     error,
   ];
@@ -601,6 +609,13 @@ class AdminBusinessNotifier extends Notifier<AdminBusinessState> {
     }
   }
 
+  /// Applique [texte] (nom, ville, catégorie, e-mail) côté serveur et recharge.
+  /// L'écran l'appelle après un délai de frappe.
+  Future<void> rechercher(String texte) {
+    state = state.copyWith(recherche: texte.trim());
+    return fetchAllBusinesses();
+  }
+
   /// Ajoute la page suivante de [filtre] à sa liste.
   Future<void> chargerPlus(FiltreCommerces filtre) async {
     if (state.chargementPlus != null || !state.encorePlus.contains(filtre)) {
@@ -641,6 +656,12 @@ class AdminBusinessNotifier extends Notifier<AdminBusinessState> {
         requete = requete.eq('is_verified', false);
       case FiltreCommerces.boostes:
         requete = requete.eq('is_boosted', true);
+    }
+    final motif = motifRecherche(state.recherche);
+    if (motif != null) {
+      requete = requete.or(
+        clauseRecherche(['name', 'city', 'category', 'email'], motif),
+      );
     }
     final rows = await requete
         .order('created_at', ascending: false)
@@ -1742,6 +1763,10 @@ class AdminMarketplaceState extends Equatable {
   final List<Map<String, dynamic>> disputes;
   final Set<ListeMarketplace> encorePlus;
   final ListeMarketplace? chargementPlus;
+
+  /// Recherche commune aux trois listes : titre, description et catégorie des
+  /// produits ; noms de l'acheteur et du vendeur des commandes et des litiges.
+  final String recherche;
   final bool isLoading;
   final String? error;
 
@@ -1751,6 +1776,7 @@ class AdminMarketplaceState extends Equatable {
     this.disputes = const [],
     this.encorePlus = const {},
     this.chargementPlus,
+    this.recherche = '',
     this.isLoading = false,
     this.error,
   });
@@ -1762,6 +1788,7 @@ class AdminMarketplaceState extends Equatable {
     Set<ListeMarketplace>? encorePlus,
     ListeMarketplace? chargementPlus,
     bool finChargementPlus = false,
+    String? recherche,
     bool? isLoading,
     String? error,
   }) {
@@ -1772,6 +1799,7 @@ class AdminMarketplaceState extends Equatable {
       encorePlus: encorePlus ?? this.encorePlus,
       chargementPlus:
           finChargementPlus ? null : (chargementPlus ?? this.chargementPlus),
+      recherche: recherche ?? this.recherche,
       isLoading: isLoading ?? this.isLoading,
       error: error,
     );
@@ -1784,6 +1812,7 @@ class AdminMarketplaceState extends Equatable {
     disputes,
     encorePlus,
     chargementPlus,
+    recherche,
     isLoading,
     error,
   ];
@@ -1817,9 +1846,14 @@ class AdminMarketplaceNotifier extends Notifier<AdminMarketplaceState> {
   }
 
   Future<List<ProductEntity>> _pageProduits(int decalage) async {
-    final rows = await _supabase
-        .from('products')
-        .select()
+    var requete = _supabase.from('products').select();
+    final motif = motifRecherche(state.recherche);
+    if (motif != null) {
+      requete = requete.or(
+        clauseRecherche(['title', 'description', 'category'], motif),
+      );
+    }
+    final rows = await requete
         .order('created_at', ascending: false)
         .range(decalage, decalage + taillePageMarketplace - 1);
     return (rows as List)
@@ -1833,12 +1867,24 @@ class AdminMarketplaceNotifier extends Notifier<AdminMarketplaceState> {
   }) async {
     var requete = _supabase.from('orders').select();
     if (litigesSeulement) requete = requete.eq('is_in_dispute', true);
+    final motif = motifRecherche(state.recherche);
+    if (motif != null) {
+      requete = requete.or(
+        clauseRecherche(['buyer_name', 'seller_name'], motif),
+      );
+    }
     final rows = await requete
         .order('created_at', ascending: false)
         .range(decalage, decalage + taillePageMarketplace - 1);
     return (rows as List)
         .map((row) => Map<String, dynamic>.from(row as Map))
         .toList();
+  }
+
+  /// Applique [texte] aux trois listes côté serveur et les recharge.
+  Future<void> rechercher(String texte) async {
+    state = state.copyWith(recherche: texte.trim());
+    await Future.wait([fetchAllProducts(), fetchOrders(), fetchDisputes()]);
   }
 
   Future<void> fetchAllProducts() async {
