@@ -419,15 +419,31 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
     }
   }
 
-  void _toggleFlash() {
-    setState(() => _flashOn = !_flashOn);
-    unawaited(_controller.toggleTorch());
+  // `toggleTorch` et `switchCamera` lèvent `controllerUninitialized` (« Call
+  // start() before using it ») tant que la caméra n'a pas démarré — permission
+  // refusée, démarrage encore en cours, caméra arrêtée pour le dialogue « mon
+  // QR ». Lancés en `unawaited`, l'exception partait en erreur non gérée
+  // (fatal vu sur 1.2.2). On n'agit que sur une caméra initialisée, et le
+  // voyant de la torche ne bascule que si la commande a réussi.
+  Future<void> _toggleFlash() async {
+    if (!_controller.value.isInitialized) return;
     unawaited(HapticFeedback.lightImpact());
+    try {
+      await _controller.toggleTorch();
+      if (mounted) setState(() => _flashOn = !_flashOn);
+    } on MobileScannerException {
+      // Caméra arrêtée ou détruite entre-temps : le bouton ne fait rien.
+    }
   }
 
-  void _switchCamera() {
-    unawaited(_controller.switchCamera());
+  Future<void> _switchCamera() async {
+    if (!_controller.value.isInitialized) return;
     unawaited(HapticFeedback.lightImpact());
+    try {
+      await _controller.switchCamera();
+    } on MobileScannerException {
+      // Idem : pas de caméra à changer.
+    }
   }
 
   bool _canPop = false;

@@ -135,6 +135,12 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
 
     setState(() => _isLoading = true);
 
+    // Lu AVANT tout `await` : `ref` est inutilisable une fois l'écran détruit
+    // (« Cannot use "ref" after the widget was disposed », fatal vu sur 1.2.2).
+    // Quitter l'écran pendant l'envoi de la photo ne doit pas tuer l'app — et
+    // le groupe est créé quand même : l'utilisateur a appuyé sur « Créer ».
+    final groupes = ref.read(myGroupsNotifierProvider.notifier);
+
     // `currentUserAsyncProvider` est un StreamProvider **autoDispose** que cet
     // écran ne regarde jamais : un `ref.read(...).valueOrNull` démarrait
     // l'abonnement à l'instant du tap et rendait `AsyncLoading`, donc `null`.
@@ -201,9 +207,7 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
       originRegion: _selectedOriginRegion,
     );
 
-    final success = await ref
-        .read(myGroupsNotifierProvider.notifier)
-        .createGroup(group);
+    final success = await groupes.createGroup(group);
 
     if (success) {
       unawaited(AnalyticsService.instance.logEvent(
@@ -227,7 +231,7 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
     } else {
       // La raison remonte du dépôt : « Erreur lors de la création » tout court
       // n'apprenait rien, ni à l'utilisateur ni au diagnostic.
-      final reason = ref.read(myGroupsNotifierProvider.notifier).lastError;
+      final reason = groupes.lastError;
       ToastUtils.showError(
         context,
         reason == null || reason.isEmpty

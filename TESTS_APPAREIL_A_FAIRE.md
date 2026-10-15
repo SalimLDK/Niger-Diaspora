@@ -10982,3 +10982,21 @@ long **rétrécisse** au lieu d'être coupé. **Non vérifié sur appareil** —
 à confirmer au prochain passage.
 
 - ✔ 2 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Session appareil du 2026-08-03 — SM A515F, thème sombre, font_scale 1.1 »).
+
+## Plantages Crashlytics 1.2.2 (31) — « objet utilisé après destruction » (2026-10-15)
+
+Non testables en widget test (GoogleMap, caméra et envoi d'image passent par
+des canaux de plateforme et des services construits en dur) : à vérifier sur
+appareil.
+
+- [ ] Création de groupe avec photo : appuyer sur « Créer » puis quitter
+      l'écran (retour) pendant l'envoi → pas de plantage ; le groupe apparaît
+      quand même dans « Mes groupes » (`create_group_screen.dart`).
+- [ ] Carte : lancer une recherche de lieu puis quitter l'écran avant le
+      résultat → pas de plantage ; zoom sur un cluster et « zoom arrière » de
+      la carte vide toujours fonctionnels (`map_screen.dart`, `_animerCamera`).
+- [ ] Scanner QR, permission caméra **refusée** : toucher la torche et le
+      changement de caméra → rien ne plante (`qr_scanner_screen.dart`). Avec
+      caméra active : la torche s'allume et le voyant suit.
+- [ ] Réception de clés (`key_transfer_receive_screen.dart`) : permission
+      caméra refusée puis « Réessayer » → pas de plantage.
