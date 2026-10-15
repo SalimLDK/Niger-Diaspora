@@ -4,7 +4,6 @@ import 'package:diaspo_niger/core/theme/admin_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../widgets/admin_bandeau_erreur.dart';
-import 'package:go_router/go_router.dart';
 import '../providers/admin_provider.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:diaspo_niger/core/theme/design_kit.dart';
@@ -14,7 +13,12 @@ import 'package:diaspo_niger/features/admin/presentation/widgets/carte_stat_sign
 import 'package:diaspo_niger/features/admin/presentation/signalement_presentation.dart';
 
 class AdminReportsScreen extends ConsumerStatefulWidget {
-  const AdminReportsScreen({super.key});
+  const AdminReportsScreen({super.key, this.onOuvrirDestination});
+
+  /// Mène à un écran du panneau (`users`, `businesses`…), avec une recherche
+  /// éventuelle : « Voir le contenu » ne peut pas ouvrir une route de l'app.
+  final void Function(String destination, {String? recherche})?
+      onOuvrirDestination;
 
   @override
   ConsumerState<AdminReportsScreen> createState() => _AdminReportsScreenState();
@@ -541,14 +545,23 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
   }
 
   Widget _buildViewContentButton(ReportEntity report) {
-    final route = routeContenuSignale(report);
+    final destination = destinationContenuSignale(report.targetType);
+    final ouvrir = widget.onOuvrirDestination;
 
-    if (route == null) {
+    if (destination == null || ouvrir == null) {
       return const SizedBox.shrink();
     }
 
     return OutlinedButton.icon(
-      onPressed: () => context.push(route),
+      onPressed: () => ouvrir(
+        destination,
+        // Un utilisateur se retrouve par son nom, sinon par son identifiant.
+        recherche: report.targetType == 'user'
+            ? (report.targetName?.trim().isNotEmpty == true
+                ? report.targetName!.trim()
+                : report.targetId)
+            : null,
+      ),
       icon: const Icon(Icons.visibility_outlined, size: 16),
       label: Text(l10n.adminReportViewContent(libelleTypeSignalement(l10n, report.targetType).toLowerCase())),
       style: OutlinedButton.styleFrom(

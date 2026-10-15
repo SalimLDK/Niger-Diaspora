@@ -127,7 +127,18 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
         icon: const Icon(Icons.report_outlined),
         selectedIcon: const Icon(Icons.report),
         requiredPermission: AdminPermission.viewReports,
-        contentBuilder: (_, __) => const AdminReportsScreen(),
+        contentBuilder: (_, __) => AdminReportsScreen(
+          onOuvrirDestination: (destination, {recherche}) {
+            if (destination == 'users' && recherche != null) {
+              unawaited(
+                ref
+                    .read(adminUsersNotifierProvider.notifier)
+                    .rechercher(recherche),
+              );
+            }
+            _ouvrirDestination(destination);
+          },
+        ),
         // Le badge des signalements en attente était posé sur l'entrée
         // Utilisateurs (audit du 2026-10-14, § 8).
         badgeCount: (state) => state.pendingReports,

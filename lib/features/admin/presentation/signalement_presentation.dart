@@ -37,6 +37,29 @@ String? routeContenuSignale(ReportEntity report) {
   }
 }
 
+/// Écran du panneau où voir ce qu'un signalement vise, ou null quand le panneau
+/// n'en a pas. « Voir le contenu » poussait une route de l'app mobile
+/// (`/profile/<id>`) dans un `MaterialApp` qui n'en connaît que deux et sans
+/// GoRouter : le bouton levait une erreur et ne faisait rien (vu en ligne le
+/// 2026-10-15). Les messages et conversations n'ont pas d'écran ici : leur
+/// contenu est chiffré et le panneau ne le lit pas.
+String? destinationContenuSignale(String targetType) {
+  switch (targetType) {
+    case 'user':
+      return 'users';
+    case 'business':
+    case 'business_review':
+      return 'businesses';
+    case 'product':
+      return 'marketplace';
+    case 'group':
+    case 'event':
+      return 'content';
+    default:
+      return null;
+  }
+}
+
 Color couleurStatutSignalement(String status) {
   switch (status) {
     case 'pending':

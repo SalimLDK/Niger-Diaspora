@@ -29,6 +29,23 @@ ReportEntity _signalement(
     );
 
 void main() {
+  group('destinationContenuSignale', () {
+    test("chaque cible mène à un écran qui existe dans le panneau", () {
+      expect(destinationContenuSignale('user'), 'users');
+      expect(destinationContenuSignale('business'), 'businesses');
+      expect(destinationContenuSignale('business_review'), 'businesses');
+      expect(destinationContenuSignale('product'), 'marketplace');
+      expect(destinationContenuSignale('group'), 'content');
+      expect(destinationContenuSignale('event'), 'content');
+    });
+
+    test("un message ou une conversation (chiffrés) n'ont pas d'écran", () {
+      expect(destinationContenuSignale('message'), isNull);
+      expect(destinationContenuSignale('conversation'), isNull);
+      expect(destinationContenuSignale('inconnu'), isNull);
+    });
+  });
+
   group('routeContenuSignale', () {
     test('un type de contenu mène à sa fiche', () {
       expect(routeContenuSignale(_signalement('user')), '/profile/c1');

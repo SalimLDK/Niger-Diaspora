@@ -46,6 +46,11 @@ class _AdminUsersManagementScreenState
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    // Une recherche posée avant l'ouverture (« Voir l'utilisateur » d'un
+    // signalement) doit s'afficher dans le champ, pas seulement filtrer.
+    final recherche = ref.read(adminUsersNotifierProvider).recherche;
+    _searchController.text = recherche;
+    _searchQuery = recherche;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       unawaited(ref.read(adminUsersNotifierProvider.notifier).fetchAllUsers());
     });
