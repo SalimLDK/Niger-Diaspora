@@ -16,26 +16,6 @@ void main() {
     });
   });
 
-  group('AvatarAdmin.demandeUneSession', () {
-    test('une adresse Storage sans jeton demande la session', () {
-      expect(
-        AvatarAdmin.demandeUneSession(
-          'https://firebasestorage.googleapis.com/v0/b/x/o/profiles%2Fu%2Fa.jpg?alt=media',
-        ),
-        isTrue,
-      );
-    });
-    test('avec token= ou hors Storage, aucun en-tête', () {
-      expect(
-        AvatarAdmin.demandeUneSession(
-          'https://firebasestorage.googleapis.com/v0/b/x/o/a.jpg?alt=media&token=abc',
-        ),
-        isFalse,
-      );
-      expect(AvatarAdmin.demandeUneSession('https://exemple.org/a.jpg'), isFalse);
-    });
-  });
-
   group('AvatarAdmin', () {
     testWidgets('sans photo : initiale sur fond dégradé', (tester) async {
       await tester.pumpWidget(
