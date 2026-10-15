@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1342 cases à cocher, 55 cochées** — 299 entrées sur 313 ont encore des cases ouvertes.
+**1346 cases à cocher, 55 cochées** — 300 entrées sur 314 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -97,7 +97,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 6 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (118)
+**P1 — fonction importante, jamais vérifiée** (119)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -174,6 +174,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ Champ ville : recherche dans le référentiel (2026-09-13)](#-champ-ville--recherche-dans-le-référentiel-2026-09-13) · *Accueil, profil et réglages*
 - 7 · [Bascule en anglais — ~1 600 chaînes branchées, rien vu à l'écran (2026-08-06)](#bascule-en-anglais--1-600-chaînes-branchées-rien-vu-à-lécran-2026-08-06) · *Design, thème, langue et mise en page* · bloqué
 - 9 · [⬜ Second facteur TOTP obligatoire sur le panneau admin (2026-10-14)](#-second-facteur-totp-obligatoire-sur-le-panneau-admin-2026-10-14) · *Backend, sécurité et observabilité*
+- 4 · [⬜ Signalements : l'app écrit dans Supabase, le panneau admin les voit (2026-10-15)](#-signalements--lapp-écrit-dans-supabase-le-panneau-admin-les-voit-2026-10-15) · *Backend, sécurité et observabilité*
 - 8 · [⬜ Registre de rôle unique : claim, Postgres et callable — l'écran Rôles et le bannissement serveur (2026-10-14)](#-registre-de-rôle-unique--claim-postgres-et-callable--lécran-rôles-et-le-bannissement-serveur-2026-10-14) · *Backend, sécurité et observabilité*
 - 5 · [⬜ Aucune requête Supabase ne part sans session : le refus du pont est respecté (2026-10-13)](#-aucune-requête-supabase-ne-part-sans-session--le-refus-du-pont-est-respecté-2026-10-13) · *Backend, sécurité et observabilité*
 - 4 · [⬜ Une erreur Supabase ne fait plus planter l'app : message à l'écran, JWT expiré retenté (2026-10-13)](#-une-erreur-supabase-ne-fait-plus-planter-lapp--message-à-lécran-jwt-expiré-retenté-2026-10-13) · *Backend, sécurité et observabilité*
@@ -371,7 +372,7 @@ Par domaine :
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 67 à faire, 0 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 58 à faire, 5 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 108 à faire, 5 faites
-- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 91 à faire, 2 faites
+- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 95 à faire, 2 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 46 à faire, 1 faites
 - [15. Site web](#15-site-web) — 59 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 23 à faire, 0 faites
@@ -9308,6 +9309,19 @@ Supabase et Firebase côté serveur, accès anon, stockage, journaux, Crashlytic
 - [ ] Perte du téléphone : la recette Admin SDK de `MFA_ADMIN.md` retire le facteur ; la reconnexion retombe sur l'enrôlement.
 
 ---
+
+## ⬜ Signalements : l'app écrit dans Supabase, le panneau admin les voit (2026-10-15)
+
+**Priorité P1** · importance 4/5 — avant, l'app écrivait dans Firestore et le
+panneau lisait Supabase : aucun signalement n'arrivait à l'administrateur.
+Dépend de la migration `20261015100000` (à appliquer **avant** le client).
+
+- [ ] Signaler un message, une conversation, un groupe, un utilisateur depuis
+      l'app : il apparaît dans le panneau admin, onglet En attente.
+- [ ] Signaler deux fois le même contenu : message « déjà signalé », pas de doublon.
+- [ ] Traiter un signalement dans le panneau (résoudre, rejeter) : le statut
+      change vraiment (avant : zéro ligne touchée, faute de policy UPDATE).
+- [ ] « Mes signalements » affiche les siens avec le bon statut.
 
 ## ⬜ Registre de rôle unique : claim, Postgres et callable — l'écran Rôles et le bannissement serveur (2026-10-14)
 
