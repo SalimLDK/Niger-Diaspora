@@ -23,6 +23,8 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
   AppLocalizations get l10n => AppLocalizations.of(context)!;
 
   int _selectedFilter = 0;
+  final _searchController = TextEditingController();
+  Timer? _debounceRecherche;
 
   // Couleurs cohérentes avec le dashboard
   static const Color _primaryColor = AdminColors.actionBlue;
@@ -35,6 +37,22 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       unawaited(ref.read(adminBusinessNotifierProvider.notifier).fetchAllBusinesses());
+    });
+  }
+
+  @override
+  void dispose() {
+    _debounceRecherche?.cancel();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  /// La recherche part au serveur, un court instant après la dernière frappe.
+  void _surRecherche(String value) {
+    setState(() {});
+    _debounceRecherche?.cancel();
+    _debounceRecherche = Timer(const Duration(milliseconds: 400), () {
+      unawaited(ref.read(adminBusinessNotifierProvider.notifier).rechercher(value));
     });
   }
 
@@ -76,7 +94,19 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
             ),
           ],
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 16),
+
+        DesignSearchField(
+          controller: _searchController,
+          hintText: l10n.searchPlaceholder,
+          onChanged: _surRecherche,
+          onClear: () {
+            _searchController.clear();
+            _surRecherche('');
+          },
+          active: _searchController.text.isNotEmpty,
+        ),
+        const SizedBox(height: 16),
 
         // Filter chips
         Wrap(

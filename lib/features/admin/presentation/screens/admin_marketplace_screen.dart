@@ -23,6 +23,8 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
   AppLocalizations get l10n => AppLocalizations.of(context)!;
 
   late TabController _tabController;
+  final _searchController = TextEditingController();
+  Timer? _debounceRecherche;
 
   // Modern color palette (matching dashboard)
   static const Color _primaryColor = AdminColors.actionBlue;
@@ -43,8 +45,19 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
 
   @override
   void dispose() {
+    _debounceRecherche?.cancel();
     _tabController.dispose();
+    _searchController.dispose();
     super.dispose();
+  }
+
+  /// La recherche part au serveur, un court instant après la dernière frappe.
+  void _surRecherche(String value) {
+    setState(() {});
+    _debounceRecherche?.cancel();
+    _debounceRecherche = Timer(const Duration(milliseconds: 400), () {
+      unawaited(ref.read(adminMarketplaceNotifierProvider.notifier).rechercher(value));
+    });
   }
 
   @override
@@ -55,7 +68,18 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildPageHeader(state),
-        const SizedBox(height: 24),
+        const SizedBox(height: 16),
+        DesignSearchField(
+          controller: _searchController,
+          hintText: l10n.searchPlaceholder,
+          onChanged: _surRecherche,
+          onClear: () {
+            _searchController.clear();
+            _surRecherche('');
+          },
+          active: _searchController.text.isNotEmpty,
+        ),
+        const SizedBox(height: 16),
         // Tabs
         Container(
           decoration: BoxDecoration(

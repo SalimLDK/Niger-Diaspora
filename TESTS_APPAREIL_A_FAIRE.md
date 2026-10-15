@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1346 cases à cocher, 55 cochées** — 300 entrées sur 314 ont encore des cases ouvertes.
+**1356 cases à cocher, 55 cochées** — 302 entrées sur 316 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -97,7 +97,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 6 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (119)
+**P1 — fonction importante, jamais vérifiée** (120)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -173,6 +173,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [⬜ Photo de profil : on choisit son cadrage (2026-09-14)](#-photo-de-profil--on-choisit-son-cadrage-2026-09-14) · *Accueil, profil et réglages*
 - 6 · [⬜ Champ ville : recherche dans le référentiel (2026-09-13)](#-champ-ville--recherche-dans-le-référentiel-2026-09-13) · *Accueil, profil et réglages*
 - 7 · [Bascule en anglais — ~1 600 chaînes branchées, rien vu à l'écran (2026-08-06)](#bascule-en-anglais--1-600-chaînes-branchées-rien-vu-à-lécran-2026-08-06) · *Design, thème, langue et mise en page* · bloqué
+- 6 · [⬜ Crashlytics : clés et journaux de diagnostic des OutOfMemoryError (2026-10-15)](#-crashlytics--clés-et-journaux-de-diagnostic-des-outofmemoryerror-2026-10-15) · *Backend, sécurité et observabilité*
 - 9 · [⬜ Second facteur TOTP obligatoire sur le panneau admin (2026-10-14)](#-second-facteur-totp-obligatoire-sur-le-panneau-admin-2026-10-14) · *Backend, sécurité et observabilité*
 - 4 · [⬜ Signalements : l'app écrit dans Supabase, le panneau admin les voit (2026-10-15)](#-signalements--lapp-écrit-dans-supabase-le-panneau-admin-les-voit-2026-10-15) · *Backend, sécurité et observabilité*
 - 8 · [⬜ Registre de rôle unique : claim, Postgres et callable — l'écran Rôles et le bannissement serveur (2026-10-14)](#-registre-de-rôle-unique--claim-postgres-et-callable--lécran-rôles-et-le-bannissement-serveur-2026-10-14) · *Backend, sécurité et observabilité*
@@ -219,7 +220,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (94)
+**P2 — fonction secondaire ou cas limite** (95)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -284,6 +285,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [Admin (back-office)](#admin-back-office) · *Backend, sécurité et observabilité*
 - 2 · [⬜ Le `.env` embarqué ne livre plus de chemin de poste (2026-09-21)](#-le-env-embarqué-ne-livre-plus-de-chemin-de-poste-2026-09-21) · *Publication et plateformes*
 - 7 · [iOS : premier build réussi, sur simulateur (2026-09-01)](#ios--premier-build-réussi-sur-simulateur-2026-09-01) · *Publication et plateformes* · bloqué
+- 4 · [⬜ Panneau admin, Commerces et Marketplace : recherche côté serveur (2026-10-15)](#-panneau-admin-commerces-et-marketplace--recherche-côté-serveur-2026-10-15) · *Site web*
 - 3 · [⬜ Panneau admin : écrans Configuration et Signalements découpés (2026-10-15)](#-panneau-admin--écrans-configuration-et-signalements-découpés-2026-10-15) · *Site web*
 - 4 · [⬜ Panneau admin, Commerces et Marketplace : listes paginées (2026-10-15)](#-panneau-admin-commerces-et-marketplace--listes-paginées-2026-10-15) · *Site web*
 - 4 · [⬜ Panneau admin, Signalements : pagination, recherche et type côté serveur (2026-10-14)](#-panneau-admin-signalements--pagination-recherche-et-type-côté-serveur-2026-10-14) · *Site web*
@@ -372,9 +374,9 @@ Par domaine :
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 67 à faire, 0 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 58 à faire, 5 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 108 à faire, 5 faites
-- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 95 à faire, 2 faites
+- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 101 à faire, 2 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 46 à faire, 1 faites
-- [15. Site web](#15-site-web) — 59 à faire, 0 faites
+- [15. Site web](#15-site-web) — 63 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 23 à faire, 0 faites
 
 <!-- sommaire:fin -->
@@ -9292,6 +9294,20 @@ parce qu'il change un **comportement**, pas seulement un habillage :
 Supabase et Firebase côté serveur, accès anon, stockage, journaux, Crashlytics, back-office.
 
 ---
+## ⬜ Crashlytics : clés et journaux de diagnostic des OutOfMemoryError (2026-10-15)
+
+**Priorité P1** · importance 4/5 — 8 `OutOfMemoryError` en 30 jours sur 1.2.2 (Tecno/Infinix, app en arrière-plan), onglets Clés et Journaux vides : on ne savait pas qui remplissait le tas. `lib/core/services/diagnostic_memoire.dart` pose désormais des clés personnalisées et des journaux dans chaque isolat (principal, FCM, service de localisation, réponse rapide) ; la mémoire Java vient du plugin local `packages/diagnostic_memoire` (Android seulement). Ne corrige PAS l'OOM. `flutter test` ne couvre pas : la lecture native, ni ce que Crashlytics affiche vraiment.
+
+*Bloqué : build release Android sur un téléphone, console Crashlytics (les non-fatals mettent quelques minutes à remonter).*
+
+- [ ] Depuis l'app au premier plan, forcer un non-fatal (`FirebaseCrashlytics.instance.recordError(Exception('test diag'), null)` depuis un bouton de debug ou un test d'intégration), l'ouvrir dans la console → onglet **Clés** : `isolat`=`principal`, `appli_au_premier_plan`=`true`, `service_localisation_actif`, `tas_max_mio`, `tas_alloue_mio`, `tas_libre_mio`, `tas_restant_mio`, `classe_memoire_mio`, `grande_classe_memoire_mio`, `appareil_peu_de_ram`, `rss_mio`, avec des valeurs plausibles (tas max 128–512).
+- [ ] Mettre l'app en arrière-plan, recevoir un push de message, puis forcer un non-fatal depuis l'isolat FCM → clé `isolat`=`fcm_arriere_plan`, `appli_au_premier_plan`=`false`, valeurs du tas rafraîchies ; onglet **Journaux** : `isolat ouvert : fcm_arriere_plan`, `fcm début : message`, `fcm fin`.
+- [ ] Partage de position actif, app en arrière-plan : journaux `isolat ouvert : service_localisation`, `service localisation : démarrage` ; couper le partage → `service localisation : arrêt (…)` et `service_localisation_actif`=`false` sur le non-fatal suivant.
+- [ ] Revenir au premier plan puis repasser en arrière-plan → journaux `cycle de vie : premier plan` / `arrière-plan`, clé `appli_au_premier_plan` suit.
+- [ ] iOS : aucune erreur ni plantage (pas de plugin natif) ; clés `isolat` et `rss_mio` présentes, pas de `tas_*`.
+- [ ] Rappel de lecture : les clés sont **par processus** — `isolat` vaut le dernier isolat signalé, pas forcément celui qui plante ; se fier aux journaux, ordonnés, pour la séquence.
+
+---
 ## ⬜ Second facteur TOTP obligatoire sur le panneau admin (2026-10-14)
 
 **Priorité P1** · importance 4/5 — ferme le § 8 et le § 10 point 7 de l'audit du 14/10 (`docs/deploiement/AUDIT_ADMIN_2026-10-14.md`) : un mot de passe admin hameçonné valait le panneau entier. Désormais un compte admin sans facteur enrôlé est envoyé sur l'enrôlement (QR + premier code) avant tout tableau de bord, un compte avec facteur passe par l'écran de défi, et la garde de `/dashboard` exige rôle **et** facteur (`admin_login_screen.dart`, `admin_enrolement_totp_screen.dart`, `admin_defi_second_facteur_screen.dart`, `garde_tableau_de_bord.dart`). Ce que `flutter test` ne couvre pas : le vrai SDK web (`TotpMultiFactorGenerator`, `MultiFactorResolver`), le QR lu par une vraie application d'authentification, l'horloge du téléphone, et la configuration du projet.
@@ -10591,6 +10607,22 @@ Jamais vu avec de vrais signalements.
       (`firestore.indexes.json` en porte déjà `status + createdAt`).
 - [ ] Marketplace et Transferts : toujours lus dans Supabase (vides, drapeaux
       fermés) ; à reprendre à la réouverture.
+## ⬜ Panneau admin, Commerces et Marketplace : recherche côté serveur (2026-10-15)
+
+**Priorité P2** · importance 3/5 — un champ de recherche en tête de chaque
+écran, appliqué par le serveur (`ilike` en `or(...)`, délai de frappe 0,4 s) :
+commerces par nom, ville, catégorie, e-mail ; marketplace par titre,
+description et catégorie des produits, noms d'acheteur et de vendeur des
+commandes et des litiges. Jamais vu avec de vraies données.
+
+- [ ] Commerces : un nom cherché hors des 50 premiers résultats apparaît ;
+      la recherche se combine avec Tous / En attente / Boostés, et chaque
+      puce affiche « n+ » tant qu'il reste une page.
+- [ ] Marketplace : une même saisie filtre les trois onglets (produits,
+      commandes, litiges) ; un nom d'acheteur trouve ses commandes.
+- [ ] Une virgule, une parenthèse ou `%` saisis ne cassent rien ni ne
+      renvoient tout.
+- [ ] Vider le champ (croix) recharge la liste complète.
 
 ## ⬜ Panneau admin : textes passés en l10n et infobulles sur les boutons-icônes (2026-10-15)
 
