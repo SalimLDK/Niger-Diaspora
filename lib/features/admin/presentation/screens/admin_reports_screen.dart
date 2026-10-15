@@ -173,14 +173,14 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
           ),
           const SizedBox(width: 12),
           CarteStatSignalement(
-            'Résolus',
+            l10n.adminStatResolved,
             stats['resolved'] ?? 0,
             Icons.check_circle_outline_rounded,
             AdminColors.statusGreen,
           ),
           const SizedBox(width: 12),
           CarteStatSignalement(
-            'Rejetés',
+            l10n.adminStatDismissed,
             stats['dismissed'] ?? 0,
             Icons.cancel_outlined,
             AdminColors.statusGray,
@@ -334,7 +334,12 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
     );
   }
 
-  Widget _buildRefreshButton() {
+  Widget _buildRefreshButton() => Tooltip(
+    message: l10n.adminRefresh,
+    child: _boutonActualiser(),
+  );
+
+  Widget _boutonActualiser() {
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -545,7 +550,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
     return OutlinedButton.icon(
       onPressed: () => context.push(route),
       icon: const Icon(Icons.visibility_outlined, size: 16),
-      label: Text('Voir le ${libelleTypeSignalement(l10n, report.targetType).toLowerCase()}'),
+      label: Text(l10n.adminReportViewContent(libelleTypeSignalement(l10n, report.targetType).toLowerCase())),
       style: OutlinedButton.styleFrom(
         foregroundColor: _primaryColor,
         side: const BorderSide(color: _primaryColor),
@@ -790,8 +795,8 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
               ? l10n.adminNoResultsSearch
               : l10n.adminNoReportsAvailable,
           body: hasFilters
-              ? 'Essayez un autre mot, ou retirez les filtres.'
-              : 'Rien à traiter ici pour le moment.',
+              ? l10n.adminReportsNoMatchBody
+              : l10n.adminReportsEmptyBody,
           children: [
             if (hasFilters)
               Center(

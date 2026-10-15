@@ -234,8 +234,8 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
     final index = destinations.indexWhere((d) => d.id == id);
     if (index < 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Cet écran n'est pas accessible avec votre rôle."),
+        SnackBar(
+          content: Text(l10n.adminScreenNotAllowed),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -552,7 +552,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
             ),
           _buildPageHeader(
             title: l10n.adminDashboardTitle,
-            subtitle: 'Bienvenue dans le panneau d\'administration DiaspoNiger',
+            subtitle: l10n.adminWelcomePanel,
           ),
           const SizedBox(height: 32),
 

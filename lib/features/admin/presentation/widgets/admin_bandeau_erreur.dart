@@ -1,4 +1,5 @@
 import 'package:diaspo_niger/core/theme/admin_colors.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 /// Bandeau d'erreur posé **au-dessus** d'une liste qui a encore des données.
@@ -45,7 +46,7 @@ class AdminBandeauErreur extends StatelessWidget {
             ),
           ),
           IconButton(
-            tooltip: 'Fermer',
+            tooltip: AppLocalizations.of(context)!.close,
             icon: const Icon(Icons.close_rounded, size: 18),
             color: AdminColors.statusRed,
             onPressed: onFermer,

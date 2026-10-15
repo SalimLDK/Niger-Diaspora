@@ -46,6 +46,7 @@ class _AdminCreateAdminScreenState
         backgroundColor: Colors.white,
         surfaceTintColor: Colors.transparent,
         leading: IconButton(
+          tooltip: MaterialLocalizations.of(context).backButtonTooltip,
           icon: const AppIcon(AppIcon.arrowBack, color: AdminColors.text),
           onPressed: () => Navigator.pop(context),
         ),
@@ -190,6 +191,7 @@ class _AdminCreateAdminScreenState
                           ),
                         )
                       : IconButton(
+                          tooltip: l10n.adminSearchUser,
                           icon: const AppIcon(AppIcon.search),
                           onPressed: _searchUser,
                         ),

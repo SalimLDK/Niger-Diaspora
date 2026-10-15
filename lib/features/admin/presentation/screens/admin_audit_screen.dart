@@ -603,7 +603,7 @@ class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
         padding: const EdgeInsets.all(24),
         child: DesignEmptyState(
           icon: Icons.history,
-          title: "Aucun log d'audit",
+          title: l10n.adminAuditEmptyTitle,
           body: l10n.adminAuditEmptyState,
         ),
       ),

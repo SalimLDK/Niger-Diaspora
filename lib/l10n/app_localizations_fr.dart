@@ -16877,4 +16877,85 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get updateAvailableAction => 'Mettre à jour';
+
+  @override
+  String get adminLoadMore => 'Charger plus';
+
+  @override
+  String adminTabWithCount(String label, String count) {
+    return '$label ($count)';
+  }
+
+  @override
+  String get adminOrdersName => 'Commandes';
+
+  @override
+  String get adminDisputesName => 'Litiges';
+
+  @override
+  String get adminCompletedName => 'Complétées';
+
+  @override
+  String get adminBannedName => 'Bannis';
+
+  @override
+  String get adminProcessedName => 'Traités';
+
+  @override
+  String get adminStatResolved => 'Résolus';
+
+  @override
+  String get adminStatDismissed => 'Rejetés';
+
+  @override
+  String get adminAuditEmptyTitle => 'Aucun log d\'audit';
+
+  @override
+  String get adminNoTransactionsTitle => 'Aucune transaction trouvée';
+
+  @override
+  String get adminEmptyTabBody => 'Rien dans cet onglet pour le moment.';
+
+  @override
+  String get adminEmptyListBody => 'Rien dans cette liste pour le moment.';
+
+  @override
+  String get adminUsersEmptyBody => 'Aucun compte dans cette liste.';
+
+  @override
+  String get adminUsersNoMatchBody =>
+      'Aucun compte ne correspond à cette recherche.';
+
+  @override
+  String get adminReportsEmptyBody => 'Rien à traiter ici pour le moment.';
+
+  @override
+  String get adminReportsNoMatchBody =>
+      'Essayez un autre mot, ou retirez les filtres.';
+
+  @override
+  String adminReportViewContent(String type) {
+    return 'Voir le $type';
+  }
+
+  @override
+  String adminChangeRoleTo(String role) {
+    return 'Changer en $role';
+  }
+
+  @override
+  String get adminRevokeAccessShort => 'Révoquer l\'accès';
+
+  @override
+  String adminMessageWithText(String text) {
+    return 'Message : $text';
+  }
+
+  @override
+  String get adminScreenNotAllowed =>
+      'Cet écran n\'est pas accessible avec votre rôle.';
+
+  @override
+  String get adminWelcomePanel =>
+      'Bienvenue dans le panneau d\'administration DiaspoNiger';
 }

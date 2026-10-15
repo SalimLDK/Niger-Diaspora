@@ -81,7 +81,7 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
                   children: [
                     const Icon(Icons.event_rounded, size: 18),
                     const SizedBox(width: 8),
-                    Text('Événements (${state.events.length})'),
+                    Text(l10n.adminTabWithCount(l10n.eventsTitle, '${state.events.length}')),
                   ],
                 ),
               ),
@@ -91,7 +91,7 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
                   children: [
                     const Icon(Icons.group_rounded, size: 18),
                     const SizedBox(width: 8),
-                    Text('Groupes (${state.groups.length})'),
+                    Text(l10n.adminTabWithCount(l10n.groupsTitle, '${state.groups.length}')),
                   ],
                 ),
               ),
@@ -165,7 +165,12 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
     );
   }
 
-  Widget _buildRefreshButton() {
+  Widget _buildRefreshButton() => Tooltip(
+    message: l10n.adminRefresh,
+    child: _boutonActualiser(),
+  );
+
+  Widget _boutonActualiser() {
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -271,6 +276,7 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
             ),
             // Actions
             PopupMenuButton<String>(
+              tooltip: l10n.moreActions,
               onSelected: (value) => _handleEventAction(value, event),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               icon: Container(
@@ -423,6 +429,7 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
             ),
             // Actions
             PopupMenuButton<String>(
+              tooltip: l10n.moreActions,
               onSelected: (value) => _handleGroupAction(value, group),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               icon: Container(
@@ -603,7 +610,7 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
         child: DesignEmptyState(
           icon: icon,
           title: message,
-          body: 'Rien dans cette liste pour le moment.',
+          body: l10n.adminEmptyListBody,
         ),
       ),
     );

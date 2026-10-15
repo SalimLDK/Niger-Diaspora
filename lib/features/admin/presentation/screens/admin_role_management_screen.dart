@@ -276,6 +276,7 @@ class _AdminRoleManagementScreenState
               ),
             ),
             PopupMenuButton<AdminRole?>(
+              tooltip: l10n.moreActions,
               icon: const Icon(Icons.more_vert, color: AdminColors.text2),
               itemBuilder: (context) => [
                 ...availableAdminRoles
@@ -286,20 +287,20 @@ class _AdminRoleManagementScreenState
                             children: [
                               Icon(role.icon, size: 18, color: role.color),
                               const SizedBox(width: 8),
-                              Text('Changer en ${role.shortName}'),
+                              Text(l10n.adminChangeRoleTo(role.shortName)),
                             ],
                           ),
                         )),
                 const PopupMenuDivider(),
-                const PopupMenuItem(
+                PopupMenuItem(
                   value: null,
                   child: Row(
                     children: [
-                      Icon(Icons.remove_circle_outline,
+                      const Icon(Icons.remove_circle_outline,
                           size: 18, color: AdminColors.statusRed),
-                      SizedBox(width: 8),
-                      Text('Révoquer l\'accès',
-                          style: TextStyle(color: AdminColors.statusRed)),
+                      const SizedBox(width: 8),
+                      Text(l10n.adminRevokeAccessShort,
+                          style: const TextStyle(color: AdminColors.statusRed)),
                     ],
                   ),
                 ),
@@ -350,7 +351,7 @@ class _AdminRoleManagementScreenState
     unawaited(showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Révoquer l\'accès admin'),
+        title: Text(l10n.adminRevokeAccess),
         content: Text(
           'Voulez-vous vraiment révoquer l\'accès admin de '
           '${admin.displayName ?? admin.email}? Cette personne ne pourra plus '

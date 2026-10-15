@@ -1,4 +1,5 @@
 import 'package:diaspo_niger/core/theme/design_kit.dart';
+import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 /// Dernière ligne d'une liste paginée du panneau : « Charger plus », ou un
@@ -24,7 +25,7 @@ class AdminChargerPlus extends StatelessWidget {
         child: enCours
             ? const CircularProgressIndicator()
             : DesignSecondaryButton(
-                label: 'Charger plus',
+                label: AppLocalizations.of(context)!.adminLoadMore,
                 onPressed: onPressed,
               ),
       ),
