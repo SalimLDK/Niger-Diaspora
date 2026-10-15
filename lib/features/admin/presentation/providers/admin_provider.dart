@@ -2051,10 +2051,41 @@ class AdminUsersNotifier extends Notifier<AdminUsersState> {
 // TRANSACTIONS MONITORING
 // ============================================================================
 
+/// Les quatre onglets de l'écran Transferts. Chacun est une requête paginée
+/// filtrée par le serveur : « Échouées » n'est plus les échecs parmi les 100
+/// derniers transferts, mais tous les échecs.
+enum FiltreTransferts {
+  toutes(null),
+  enAttente('pending'),
+  echouees('failed'),
+  completees('completed');
+
+  const FiltreTransferts(this.statut);
+
+  /// Valeur de `transactions.status`, ou null pour tout.
+  final String? statut;
+}
+
+/// Taille d'une page de l'écran Transferts.
+const int taillePageTransferts = 50;
+
 class AdminTransactionsState extends Equatable {
   final List<TransactionEntity> transactions;
   final List<TransactionEntity> pendingTransactions;
   final List<TransactionEntity> failedTransactions;
+  final List<TransactionEntity> completedTransactions;
+
+  /// Nombres réels côté serveur (requêtes `count`), indépendants des pages
+  /// chargées : ce sont eux que les cartes et les onglets affichent.
+  final int nbEnAttente;
+  final int nbEchouees;
+
+  /// Onglets dont la dernière page reçue était pleine.
+  final Set<FiltreTransferts> encorePlus;
+  final FiltreTransferts? chargementPlus;
+
+  /// Calculés sur les transferts **chargés** de l'onglet « Toutes » : ils
+  /// grossissent à chaque « Charger plus ».
   final double totalVolumeUSD;
   final double totalFeesUSD;
   final Map<String, double> volumeByCurrency;
@@ -2066,6 +2097,11 @@ class AdminTransactionsState extends Equatable {
     this.transactions = const [],
     this.pendingTransactions = const [],
     this.failedTransactions = const [],
+    this.completedTransactions = const [],
+    this.nbEnAttente = 0,
+    this.nbEchouees = 0,
+    this.encorePlus = const {},
+    this.chargementPlus,
     this.totalVolumeUSD = 0.0,
     this.totalFeesUSD = 0.0,
     this.volumeByCurrency = const {},
@@ -2074,10 +2110,23 @@ class AdminTransactionsState extends Equatable {
     this.error,
   });
 
+  List<TransactionEntity> liste(FiltreTransferts f) => switch (f) {
+        FiltreTransferts.toutes => transactions,
+        FiltreTransferts.enAttente => pendingTransactions,
+        FiltreTransferts.echouees => failedTransactions,
+        FiltreTransferts.completees => completedTransactions,
+      };
+
   AdminTransactionsState copyWith({
     List<TransactionEntity>? transactions,
     List<TransactionEntity>? pendingTransactions,
     List<TransactionEntity>? failedTransactions,
+    List<TransactionEntity>? completedTransactions,
+    int? nbEnAttente,
+    int? nbEchouees,
+    Set<FiltreTransferts>? encorePlus,
+    FiltreTransferts? chargementPlus,
+    bool finChargementPlus = false,
     double? totalVolumeUSD,
     double? totalFeesUSD,
     Map<String, double>? volumeByCurrency,
@@ -2089,6 +2138,13 @@ class AdminTransactionsState extends Equatable {
       transactions: transactions ?? this.transactions,
       pendingTransactions: pendingTransactions ?? this.pendingTransactions,
       failedTransactions: failedTransactions ?? this.failedTransactions,
+      completedTransactions:
+          completedTransactions ?? this.completedTransactions,
+      nbEnAttente: nbEnAttente ?? this.nbEnAttente,
+      nbEchouees: nbEchouees ?? this.nbEchouees,
+      encorePlus: encorePlus ?? this.encorePlus,
+      chargementPlus:
+          finChargementPlus ? null : (chargementPlus ?? this.chargementPlus),
       totalVolumeUSD: totalVolumeUSD ?? this.totalVolumeUSD,
       totalFeesUSD: totalFeesUSD ?? this.totalFeesUSD,
       volumeByCurrency: volumeByCurrency ?? this.volumeByCurrency,
@@ -2103,6 +2159,11 @@ class AdminTransactionsState extends Equatable {
     transactions,
     pendingTransactions,
     failedTransactions,
+    completedTransactions,
+    nbEnAttente,
+    nbEchouees,
+    encorePlus,
+    chargementPlus,
     totalVolumeUSD,
     totalFeesUSD,
     volumeByCurrency,
@@ -2128,69 +2189,122 @@ class AdminTransactionsNotifier extends Notifier<AdminTransactionsState> {
     return const AdminTransactionsState();
   }
 
-  Future<void> fetchAllTransactions({int limit = 100}) async {
+  /// Recharge la première page des quatre onglets et les deux compteurs.
+  Future<void> fetchAllTransactions() async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final rows = await _supabase
-          .from('transactions')
-          .select()
-          .order('created_at', ascending: false)
-          .limit(limit);
-
-      final transactions = (rows as List)
-          .map(
-            (row) => TransactionModel.fromJson(_mapTransaction(row)).toEntity(),
-          )
-          .toList();
-
-      final pending = transactions
-          .where((t) => t.status == TransactionStatus.pending)
-          .toList();
-      final failed = transactions
-          .where((t) => t.status == TransactionStatus.failed)
-          .toList();
-
-      final currencyService = CurrencyService.instance;
-      double totalVolumeUSD = 0;
-      double totalFeesUSD = 0;
-      final volumeByCurrency = <String, double>{};
-      final feesByCurrency = <String, double>{};
-
-      for (final t in transactions.where(
-        (t) => t.status == TransactionStatus.completed,
-      )) {
-        final currencyCode = t.currency.toUpperCase();
-        final currency = CurrencyExtension.fromCode(currencyCode);
-
-        volumeByCurrency[currencyCode] =
-            (volumeByCurrency[currencyCode] ?? 0) + t.amount;
-        feesByCurrency[currencyCode] =
-            (feesByCurrency[currencyCode] ?? 0) + t.fee;
-
-        final amountInUSD = currencyService.convert(
-          t.amount,
-          currency,
-          Currency.usd,
-        );
-        final feeInUSD =
-            currencyService.convert(t.fee, currency, Currency.usd);
-        totalVolumeUSD += amountInUSD;
-        totalFeesUSD += feeInUSD;
-      }
-
-      state = state.copyWith(
-        isLoading: false,
-        transactions: transactions,
-        pendingTransactions: pending,
-        failedTransactions: failed,
-        totalVolumeUSD: totalVolumeUSD,
-        totalFeesUSD: totalFeesUSD,
-        volumeByCurrency: volumeByCurrency,
-        feesByCurrency: feesByCurrency,
+      final pages = await Future.wait([
+        for (final f in FiltreTransferts.values) _pageTransferts(f, 0),
+      ]);
+      final nbEnAttente = await _compter('pending');
+      final nbEchouees = await _compter('failed');
+      state = _avecTotaux(
+        state.copyWith(
+          isLoading: false,
+          transactions: pages[0],
+          pendingTransactions: pages[1],
+          failedTransactions: pages[2],
+          completedTransactions: pages[3],
+          nbEnAttente: nbEnAttente,
+          nbEchouees: nbEchouees,
+          encorePlus: {
+            for (var i = 0; i < pages.length; i++)
+              if (pages[i].length >= taillePageTransferts)
+                FiltreTransferts.values[i],
+          },
+          finChargementPlus: true,
+        ),
       );
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
     }
+  }
+
+  /// Ajoute la page suivante de [filtre] à son onglet.
+  Future<void> chargerPlus(FiltreTransferts filtre) async {
+    if (state.chargementPlus != null || !state.encorePlus.contains(filtre)) {
+      return;
+    }
+    state = state.copyWith(chargementPlus: filtre);
+    try {
+      final actuelle = state.liste(filtre);
+      final suite = await _pageTransferts(filtre, actuelle.length);
+      final toutes = [...actuelle, ...suite];
+      final encore = {...state.encorePlus};
+      if (suite.length >= taillePageTransferts) {
+        encore.add(filtre);
+      } else {
+        encore.remove(filtre);
+      }
+      state = _avecTotaux(
+        state.copyWith(
+          transactions: filtre == FiltreTransferts.toutes ? toutes : null,
+          pendingTransactions:
+              filtre == FiltreTransferts.enAttente ? toutes : null,
+          failedTransactions:
+              filtre == FiltreTransferts.echouees ? toutes : null,
+          completedTransactions:
+              filtre == FiltreTransferts.completees ? toutes : null,
+          encorePlus: encore,
+          finChargementPlus: true,
+        ),
+      );
+    } catch (e) {
+      state = state.copyWith(error: e.toString(), finChargementPlus: true);
+    }
+  }
+
+  Future<List<TransactionEntity>> _pageTransferts(
+    FiltreTransferts filtre,
+    int decalage,
+  ) async {
+    var requete = _supabase.from('transactions').select();
+    final statut = filtre.statut;
+    if (statut != null) requete = requete.eq('status', statut);
+    final rows = await requete
+        .order('created_at', ascending: false)
+        .range(decalage, decalage + taillePageTransferts - 1);
+    return (rows as List)
+        .map((row) => TransactionModel.fromJson(_mapTransaction(row)).toEntity())
+        .toList();
+  }
+
+  Future<int> _compter(String statut) async {
+    final r = await _supabase
+        .from('transactions')
+        .select('id')
+        .eq('status', statut)
+        .count(CountOption.exact);
+    return r.count;
+  }
+
+  /// Volumes et frais des transferts complétés parmi ceux de « Toutes ».
+  AdminTransactionsState _avecTotaux(AdminTransactionsState etat) {
+    final currencyService = CurrencyService.instance;
+    double totalVolumeUSD = 0;
+    double totalFeesUSD = 0;
+    final volumeByCurrency = <String, double>{};
+    final feesByCurrency = <String, double>{};
+
+    for (final t in etat.transactions.where(
+      (t) => t.status == TransactionStatus.completed,
+    )) {
+      final currencyCode = t.currency.toUpperCase();
+      final currency = CurrencyExtension.fromCode(currencyCode);
+
+      volumeByCurrency[currencyCode] =
+          (volumeByCurrency[currencyCode] ?? 0) + t.amount;
+      feesByCurrency[currencyCode] = (feesByCurrency[currencyCode] ?? 0) + t.fee;
+
+      totalVolumeUSD += currencyService.convert(t.amount, currency, Currency.usd);
+      totalFeesUSD += currencyService.convert(t.fee, currency, Currency.usd);
+    }
+    return etat.copyWith(
+      totalVolumeUSD: totalVolumeUSD,
+      totalFeesUSD: totalFeesUSD,
+      volumeByCurrency: volumeByCurrency,
+      feesByCurrency: feesByCurrency,
+    );
   }
 
   Future<bool> refundTransaction(

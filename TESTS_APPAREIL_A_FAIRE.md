@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1306 cases à cocher, 55 cochées** — 290 entrées sur 304 ont encore des cases ouvertes.
+**1310 cases à cocher, 55 cochées** — 291 entrées sur 305 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -213,7 +213,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (90)
+**P2 — fonction secondaire ou cas limite** (91)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -278,6 +278,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [Admin (back-office)](#admin-back-office) · *Backend, sécurité et observabilité*
 - 2 · [⬜ Le `.env` embarqué ne livre plus de chemin de poste (2026-09-21)](#-le-env-embarqué-ne-livre-plus-de-chemin-de-poste-2026-09-21) · *Publication et plateformes*
 - 7 · [iOS : premier build réussi, sur simulateur (2026-09-01)](#ios--premier-build-réussi-sur-simulateur-2026-09-01) · *Publication et plateformes* · bloqué
+- 4 · [⬜ Panneau admin, Transferts : quatre onglets paginés par le serveur (2026-10-14)](#-panneau-admin-transferts--quatre-onglets-paginés-par-le-serveur-2026-10-14) · *Site web*
 - 4 · [⬜ Panneau admin, Utilisateurs : pagination et recherche côté serveur (2026-10-14)](#-panneau-admin-utilisateurs--pagination-et-recherche-côté-serveur-2026-10-14) · *Site web*
 - 13 · [Passe pilotée du 2026-08-04 (15:25 → 16:05) — SM A515F, APK debug `54083d6`](#passe-pilotée-du-2026-08-04-1525--1605--sm-a515f-apk-debug-54083d6) · *Journaux de passes appareil*
 - 3 · [Fonctionnalité épingle mise en pause (2026-08-14)](#fonctionnalité-épingle-mise-en-pause-2026-08-14) · *Messagerie*
@@ -361,7 +362,7 @@ Par domaine :
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 108 à faire, 5 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 91 à faire, 2 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 46 à faire, 1 faites
-- [15. Site web](#15-site-web) — 27 à faire, 0 faites
+- [15. Site web](#15-site-web) — 31 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 19 à faire, 0 faites
 
 <!-- sommaire:fin -->
@@ -10541,6 +10542,21 @@ Firebase App Check Debug Token: E42FC20C-8AE4-4474-BCFC-9A52B36DECEB
 diasponiger.web.app : pages, palette, menu, aperçus de partage.
 
 ---
+
+## ⬜ Panneau admin, Transferts : quatre onglets paginés par le serveur (2026-10-14)
+
+**Priorité P2** · importance 3/5 — `admin_transactions_screen.dart` : chaque
+onglet interroge `transactions` par statut avec `range` (50 par page) ; les
+cartes « En attente » et « Échouées » lisent un `count` réel. Jamais vu avec
+de vraies données.
+
+- [ ] « Échouées » et « En attente » : les nombres des onglets et des cartes
+      sont les totaux réels, pas plafonnés à 50 ni à 100.
+- [ ] « Charger plus » ajoute la page suivante et disparaît à la dernière.
+- [ ] Rembourser / compléter / échouer un transfert : les quatre onglets et
+      les compteurs se rechargent.
+- [ ] Les cartes de volume et de frais portent sur les transferts chargés de
+      « Toutes » : elles grossissent après « Charger plus ».
 
 ## ⬜ Panneau admin, Utilisateurs : pagination et recherche côté serveur (2026-10-14)
 

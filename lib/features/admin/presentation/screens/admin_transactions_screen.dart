@@ -97,11 +97,11 @@ class _AdminTransactionsScreenState
                   labelStyle: const TextStyle(fontWeight: FontWeight.w600),
                   isScrollable: true,
                   tabs: [
-                    Tab(text: 'Toutes (${state.transactions.length})'),
-                    Tab(text: 'En attente (${state.pendingTransactions.length})'),
-                    Tab(text: 'Échouées (${state.failedTransactions.length})'),
+                    Tab(text: 'Toutes (${state.transactions.length}${state.encorePlus.contains(FiltreTransferts.toutes) ? '+' : ''})'),
+                    Tab(text: 'En attente (${state.nbEnAttente})'),
+                    Tab(text: 'Échouées (${state.nbEchouees})'),
                     Tab(
-                      text: 'Complétées (${state.transactions.where((t) => t.status == TransactionStatus.completed).length})',
+                      text: 'Complétées (${state.completedTransactions.length}${state.encorePlus.contains(FiltreTransferts.completees) ? '+' : ''})',
                     ),
                   ],
                 ),
@@ -132,14 +132,10 @@ class _AdminTransactionsScreenState
                       child: TabBarView(
                   controller: _tabController,
                   children: [
-                    _buildTransactionsList(state.transactions),
-                    _buildTransactionsList(state.pendingTransactions),
-                    _buildTransactionsList(state.failedTransactions),
-                    _buildTransactionsList(
-                      state.transactions
-                          .where((t) => t.status == TransactionStatus.completed)
-                          .toList(),
-                    ),
+                    _buildTransactionsList(state, FiltreTransferts.toutes),
+                    _buildTransactionsList(state, FiltreTransferts.enAttente),
+                    _buildTransactionsList(state, FiltreTransferts.echouees),
+                    _buildTransactionsList(state, FiltreTransferts.completees),
                   ],
                       ),
                     ),
@@ -234,15 +230,15 @@ class _AdminTransactionsScreenState
         ),
         _buildStatCard(
           title: l10n.adminPending,
-          value: state.pendingTransactions.length.toString(),
+          value: state.nbEnAttente.toString(),
           icon: Icons.pending_rounded,
           gradient: const [AdminColors.statusAmber, AdminColors.statusAmberStrong],
         ),
         _buildStatCard(
           title: l10n.adminFailedPlural,
-          value: state.failedTransactions.length.toString(),
+          value: state.nbEchouees.toString(),
           icon: Icons.error_rounded,
-          gradient: state.failedTransactions.isNotEmpty
+          gradient: state.nbEchouees > 0
               ? const [AdminColors.statusRed, AdminColors.statusRedStrong]
               : const [AdminColors.statusGray, AdminColors.statusGray],
         ),
@@ -401,7 +397,11 @@ class _AdminTransactionsScreenState
     );
   }
 
-  Widget _buildTransactionsList(List<TransactionEntity> transactions) {
+  Widget _buildTransactionsList(
+    AdminTransactionsState state,
+    FiltreTransferts filtre,
+  ) {
+    final transactions = state.liste(filtre);
     if (transactions.isEmpty) {
       return Center(
         child: Column(
@@ -425,11 +425,28 @@ class _AdminTransactionsScreenState
       );
     }
 
+    final encorePlus = state.encorePlus.contains(filtre);
     return ListView.builder(
-      itemCount: transactions.length,
+      itemCount: transactions.length + (encorePlus ? 1 : 0),
       itemBuilder: (context, index) {
-        final transaction = transactions[index];
-        return _buildTransactionCard(transaction);
+        if (index == transactions.length) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Center(
+              child: state.chargementPlus == filtre
+                  ? const CircularProgressIndicator()
+                  : OutlinedButton(
+                      onPressed: () => unawaited(
+                        ref
+                            .read(adminTransactionsNotifierProvider.notifier)
+                            .chargerPlus(filtre),
+                      ),
+                      child: const Text('Charger plus'),
+                    ),
+            ),
+          );
+        }
+        return _buildTransactionCard(transactions[index]);
       },
     );
   }
