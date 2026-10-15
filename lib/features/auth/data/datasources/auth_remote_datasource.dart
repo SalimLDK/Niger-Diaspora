@@ -181,11 +181,28 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
   SupabaseClient get _supabase => Supabase.instance.client;
 
+  /// `GoogleSignIn.instance` est un singleton de processus : `initialize` ne
+  /// se rappelle pas (`Bad state: init() has already been called`, vu en ligne
+  /// sur le panneau admin le 2026-10-15). Le drapeau d'instance ne suffisait
+  /// pas — le datasource est reconstruit avec son provider, et un premier
+  /// essai dont l'`initialize` lève APRÈS avoir marqué le plugin initialisé
+  /// laissait le drapeau faux : l'essai suivant lisait ce même état d'erreur.
+  /// Le drapeau est donc de processus, et un second appel déjà fait est tenu
+  /// pour acquis.
+  static bool _googleSignInInitializedProcess = false;
+
   Future<void> _ensureGoogleSignInInitialized() async {
-    if (!_googleSignInInitialized) {
-      await _googleSignIn.initialize(serverClientId: _serverClientId);
+    if (_googleSignInInitialized || _googleSignInInitializedProcess) {
       _googleSignInInitialized = true;
+      return;
     }
+    try {
+      await _googleSignIn.initialize(serverClientId: _serverClientId);
+    } on StateError catch (e) {
+      if (!e.message.contains('already been called')) rethrow;
+    }
+    _googleSignInInitializedProcess = true;
+    _googleSignInInitialized = true;
   }
 
   @override
