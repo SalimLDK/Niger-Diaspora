@@ -10647,8 +10647,9 @@ devient 256 lignes + cinq onglets sous `screens/reglages/` (Frais, Boosts,
 Taxes, Médias, Système) et deux briques partagées (`ReglagesCarteSection`,
 `ReglagesBoutonEnregistrer`) ; `admin_reports_screen.dart` perd son aperçu
 de contenu, ses cartes de compteur et ses libellés. Déplacement mécanique,
-`flutter analyze` propre, mais **aucun test ne monte les onglets de
-Configuration** : un champ perdu en route ne se verrait qu'ici.
+`flutter analyze` propre ; `reglages_onglets_test.dart` monte les cinq
+onglets et vérifie qu'ils réécrivent leurs réglages à l'identique (il a
+trouvé que l'onglet Système effaçait `supportPhone`). Reste à voir le rendu.
 
 - [ ] Configuration : les cinq onglets s'ouvrent, chaque champ affiche sa
       valeur enregistrée, « Enregistrer » écrit et le message de succès sort.

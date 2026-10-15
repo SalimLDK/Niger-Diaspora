@@ -76,6 +76,7 @@ class _AdminSystemeTabState extends ConsumerState<AdminSystemeTab> {
     final newUrls = SystemUrlsEntity(
       shareBaseUrl: _shareBaseUrlController.text,
       supportEmail: _supportEmailController.text,
+      supportPhone: current.supportPhone,
       privacyEmail: _privacyEmailController.text,
       bugsEmail: _bugsEmailController.text,
       feedbackEmail: _feedbackEmailController.text,
@@ -323,7 +324,7 @@ class _AdminSystemeTabState extends ConsumerState<AdminSystemeTab> {
                       Icon(Icons.save_rounded, color: Colors.white, size: 20),
                       SizedBox(width: 8),
                       Text(
-                        l10n.e2eeBackupNudgeAction,
+                        l10n.save,
                         style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
