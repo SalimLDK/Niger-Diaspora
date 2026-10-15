@@ -7,9 +7,9 @@ import 'package:flutter/material.dart';
 /// La carte de l'écran Utilisateurs peignait la photo par `DecorationImage`
 /// sans repli : quand le chargement échoue — CORS sur le web, lien mort —, la
 /// pastille restait **blanche**, sans initiale ni rien (vu en ligne le
-/// 2026-10-15 sur le compte de Mariam Kone). `errorBuilder` ramène l'initiale ;
-/// `WebHtmlElementStrategy.fallback` retente par un élément `<img>` quand le
-/// serveur d'images ne renvoie pas d'en-têtes CORS.
+/// 2026-10-15 sur le compte de Mariam Kone). `errorBuilder` ramène l'initiale.
+/// Pas de `WebHtmlElementStrategy.fallback` : il retombe sur un `<img>` HTML
+/// qui n'appelle jamais `errorBuilder`, donc une photo morte restait blanche.
 class AvatarAdmin extends StatelessWidget {
   const AvatarAdmin({
     super.key,
@@ -64,7 +64,6 @@ class AvatarAdmin extends StatelessWidget {
                 width: taille,
                 height: taille,
                 fit: BoxFit.cover,
-                webHtmlElementStrategy: WebHtmlElementStrategy.fallback,
                 errorBuilder: (_, __, ___) => repli,
                 loadingBuilder: (_, enfant, progression) =>
                     progression == null ? enfant : repli,
