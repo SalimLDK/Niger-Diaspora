@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1326 cases à cocher, 55 cochées** — 295 entrées sur 309 ont encore des cases ouvertes.
+**1329 cases à cocher, 55 cochées** — 296 entrées sur 310 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -213,7 +213,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (93)
+**P2 — fonction secondaire ou cas limite** (94)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -278,6 +278,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [Admin (back-office)](#admin-back-office) · *Backend, sécurité et observabilité*
 - 2 · [⬜ Le `.env` embarqué ne livre plus de chemin de poste (2026-09-21)](#-le-env-embarqué-ne-livre-plus-de-chemin-de-poste-2026-09-21) · *Publication et plateformes*
 - 7 · [iOS : premier build réussi, sur simulateur (2026-09-01)](#ios--premier-build-réussi-sur-simulateur-2026-09-01) · *Publication et plateformes* · bloqué
+- 3 · [⬜ Panneau admin : écrans Configuration et Signalements découpés (2026-10-15)](#-panneau-admin--écrans-configuration-et-signalements-découpés-2026-10-15) · *Site web*
 - 4 · [⬜ Panneau admin, Commerces et Marketplace : listes paginées (2026-10-15)](#-panneau-admin-commerces-et-marketplace--listes-paginées-2026-10-15) · *Site web*
 - 4 · [⬜ Panneau admin, Signalements : pagination, recherche et type côté serveur (2026-10-14)](#-panneau-admin-signalements--pagination-recherche-et-type-côté-serveur-2026-10-14) · *Site web*
 - 4 · [⬜ Panneau admin, Transferts : quatre onglets paginés par le serveur (2026-10-14)](#-panneau-admin-transferts--quatre-onglets-paginés-par-le-serveur-2026-10-14) · *Site web*
@@ -366,7 +367,7 @@ Par domaine :
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 108 à faire, 5 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 91 à faire, 2 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 46 à faire, 1 faites
-- [15. Site web](#15-site-web) — 47 à faire, 0 faites
+- [15. Site web](#15-site-web) — 50 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 19 à faire, 0 faites
 
 <!-- sommaire:fin -->
@@ -10546,6 +10547,23 @@ Firebase App Check Debug Token: E42FC20C-8AE4-4474-BCFC-9A52B36DECEB
 diasponiger.web.app : pages, palette, menu, aperçus de partage.
 
 ---
+
+## ⬜ Panneau admin : écrans Configuration et Signalements découpés (2026-10-15)
+
+**Priorité P2** · importance 3/5 — `admin_settings_screen.dart` (2093 lignes)
+devient 256 lignes + cinq onglets sous `screens/reglages/` (Frais, Boosts,
+Taxes, Médias, Système) et deux briques partagées (`ReglagesCarteSection`,
+`ReglagesBoutonEnregistrer`) ; `admin_reports_screen.dart` perd son aperçu
+de contenu, ses cartes de compteur et ses libellés. Déplacement mécanique,
+`flutter analyze` propre, mais **aucun test ne monte les onglets de
+Configuration** : un champ perdu en route ne se verrait qu'ici.
+
+- [ ] Configuration : les cinq onglets s'ouvrent, chaque champ affiche sa
+      valeur enregistrée, « Enregistrer » écrit et le message de succès sort.
+- [ ] Onglet Système : les deux boutons (URL, intervalles) enregistrent chacun
+      leur groupe de champs.
+- [ ] Signalements : ouvrir un signalement avec contenu capturé (texte, image,
+      fichier) ; « Voir le contenu » mène à la bonne fiche.
 
 ## ⬜ Panneau admin : Transferts, Marketplace, Commerces, Modération et Audit passent aux briques du kit (2026-10-15)
 

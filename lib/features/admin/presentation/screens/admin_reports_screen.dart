@@ -9,6 +9,9 @@ import '../providers/admin_provider.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:diaspo_niger/core/theme/design_kit.dart';
 import 'package:diaspo_niger/features/admin/presentation/widgets/admin_charger_plus.dart';
+import 'package:diaspo_niger/features/admin/presentation/widgets/apercu_contenu_signale.dart';
+import 'package:diaspo_niger/features/admin/presentation/widgets/carte_stat_signalement.dart';
+import 'package:diaspo_niger/features/admin/presentation/signalement_presentation.dart';
 
 class AdminReportsScreen extends ConsumerStatefulWidget {
   const AdminReportsScreen({super.key});
@@ -162,84 +165,32 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
       scrollDirection: Axis.horizontal,
       child: Row(
         children: [
-          _buildStatCard(
+          CarteStatSignalement(
             l10n.adminPending,
             stats['pending'] ?? 0,
             Icons.hourglass_empty_rounded,
             AdminColors.statusAmber,
           ),
           const SizedBox(width: 12),
-          _buildStatCard(
+          CarteStatSignalement(
             'Résolus',
             stats['resolved'] ?? 0,
             Icons.check_circle_outline_rounded,
             AdminColors.statusGreen,
           ),
           const SizedBox(width: 12),
-          _buildStatCard(
+          CarteStatSignalement(
             'Rejetés',
             stats['dismissed'] ?? 0,
             Icons.cancel_outlined,
             AdminColors.statusGray,
           ),
           const SizedBox(width: 12),
-          _buildStatCard(
+          CarteStatSignalement(
             l10n.adminTotalLabel,
             stats['total'] ?? 0,
             Icons.flag_outlined,
             _primaryColor,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatCard(String label, int count, IconData icon, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: _cardColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withAlpha(50)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(5),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: color.withAlpha(20),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(icon, color: color, size: 18),
-          ),
-          const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                count.toString(),
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: color,
-                ),
-              ),
-              Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: _textSecondary,
-                ),
-              ),
-            ],
           ),
         ],
       ),
@@ -296,7 +247,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
                       const SizedBox(width: 8),
                       ..._targetTypes.map((type) => Padding(
                             padding: const EdgeInsets.only(right: 8),
-                            child: _buildFilterChip(type, _getTypeLabel(type)),
+                            child: _buildFilterChip(type, libelleTypeSignalement(l10n, type)),
                           )),
                     ],
                   ),
@@ -433,7 +384,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
   }
 
   Widget _buildReportCard(ReportEntity report) {
-    final statusColor = _getStatusColor(report.status);
+    final statusColor = couleurStatutSignalement(report.status);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -459,7 +410,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
             borderRadius: BorderRadius.circular(10),
           ),
           child: Icon(
-            _getTypeIcon(report.targetType),
+            iconeTypeSignalement(report.targetType),
             color: statusColor,
             size: 20,
           ),
@@ -486,7 +437,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
           children: [
             const SizedBox(height: 4),
             Text(
-              'Type: ${_getTypeLabel(report.targetType)}${report.targetName != null ? ' • ${report.targetName}' : ''}',
+              'Type: ${libelleTypeSignalement(l10n, report.targetType)}${report.targetName != null ? ' • ${report.targetName}' : ''}',
               style: const TextStyle(
                 fontSize: 13,
                 color: _textSecondary,
@@ -518,7 +469,11 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
 
         // Snapshot du contenu signalé
         if (report.contentSnapshot != null && report.contentSnapshot!.hasContent) ...[
-          _buildContentSnapshotPreview(report.contentSnapshot!),
+          ApercuContenuSignale(
+                snapshot: report.contentSnapshot!,
+                libelle: l10n.adminCapturedContentLabel,
+                date: report.contentSnapshot!.capturedAt == null ? null : _formatDate(report.contentSnapshot!.capturedAt!),
+              ),
           const SizedBox(height: 16),
         ],
 
@@ -580,142 +535,8 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
     );
   }
 
-  Widget _buildContentSnapshotPreview(ContentSnapshotData snapshot) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AdminColors.statusAmberBg,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AdminColors.statusAmber.withAlpha(50)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                _getSnapshotIcon(snapshot.contentType),
-                size: 16,
-                color: AdminColors.statusAmber,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                l10n.adminCapturedContentLabel,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: AdminColors.statusAmber,
-                ),
-              ),
-              const Spacer(),
-              if (snapshot.capturedAt != null)
-                Text(
-                  _formatDate(snapshot.capturedAt!),
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: AdminColors.statusAmber.withAlpha(180),
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 8),
-
-          // Image preview
-          if (snapshot.imageUrl != null)
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image.network(
-                snapshot.imageUrl!,
-                height: 120,
-                width: double.infinity,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
-                  height: 80,
-                  color: AdminColors.statusGrayBg,
-                  child: const Center(child: Icon(Icons.broken_image)),
-                ),
-              ),
-            ),
-
-          // Video placeholder
-          if (snapshot.videoUrl != null && snapshot.imageUrl == null)
-            Container(
-              height: 80,
-              decoration: BoxDecoration(
-                color: Colors.black.withAlpha(20),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Center(
-                child: Icon(Icons.play_circle_outline, size: 40, color: _textSecondary),
-              ),
-            ),
-
-          // Text content
-          if (snapshot.text != null && snapshot.text!.isNotEmpty) ...[
-            if (snapshot.imageUrl != null || snapshot.videoUrl != null)
-              const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Text(
-                snapshot.text!,
-                style: const TextStyle(fontSize: 13, color: _textPrimary),
-                maxLines: 5,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-
-          // File name
-          if (snapshot.fileName != null) ...[
-            const SizedBox(height: 4),
-            Row(
-              children: [
-                const Icon(Icons.attach_file, size: 14, color: _textSecondary),
-                const SizedBox(width: 4),
-                Expanded(
-                  child: Text(
-                    snapshot.fileName!,
-                    style: const TextStyle(fontSize: 12, color: _textSecondary),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  IconData _getSnapshotIcon(String? contentType) {
-    switch (contentType) {
-      case 'text':
-        return Icons.chat_bubble_outline;
-      case 'image':
-        return Icons.image_outlined;
-      case 'video':
-        return Icons.videocam_outlined;
-      case 'file':
-        return Icons.attach_file;
-      case 'product':
-        return Icons.shopping_bag_outlined;
-      case 'user':
-        return Icons.person_outline;
-      case 'group':
-        return Icons.group_outlined;
-      default:
-        return Icons.description_outlined;
-    }
-  }
-
   Widget _buildViewContentButton(ReportEntity report) {
-    final route = _getContentRoute(report);
+    final route = routeContenuSignale(report);
 
     if (route == null) {
       return const SizedBox.shrink();
@@ -724,7 +545,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
     return OutlinedButton.icon(
       onPressed: () => context.push(route),
       icon: const Icon(Icons.visibility_outlined, size: 16),
-      label: Text('Voir le ${_getTypeLabel(report.targetType).toLowerCase()}'),
+      label: Text('Voir le ${libelleTypeSignalement(l10n, report.targetType).toLowerCase()}'),
       style: OutlinedButton.styleFrom(
         foregroundColor: _primaryColor,
         side: const BorderSide(color: _primaryColor),
@@ -734,34 +555,6 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
         ),
       ),
     );
-  }
-
-  String? _getContentRoute(ReportEntity report) {
-    switch (report.targetType) {
-      case 'user':
-        return '/profile/${report.targetId}';
-      case 'group':
-        return '/groups/${report.targetId}';
-      case 'event':
-        return '/events/${report.targetId}';
-      case 'business':
-        return '/businesses/${report.targetId}';
-      // La cible est l'avis ; la fiche qui le porte est dans l'instantané
-      // posé par `avis_signaler`.
-      case 'business_review':
-        final fiche = report.contentSnapshot?.metadata?['business_id'];
-        return fiche is String ? '/businesses/$fiche' : null;
-      case 'product':
-        return '/marketplace/${report.targetId}';
-      case 'message':
-      case 'conversation':
-        if (report.conversationId != null) {
-          return '/messages/${report.conversationId}';
-        }
-        return null;
-      default:
-        return null;
-    }
   }
 
   Widget _buildSectionLabel(String label) {
@@ -874,85 +667,13 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
 
   Widget _buildStatusBadge(String status) {
     return DesignBadge(
-      _getStatusLabel(status),
+      libelleStatutSignalement(l10n, status),
       tone: switch (status) {
         'pending' => DesignBadgeTone.review,
         'resolved' => DesignBadgeTone.verified,
         _ => DesignBadgeTone.archived,
       },
     );
-  }
-
-  Color _getStatusColor(String status) {
-    switch (status) {
-      case 'pending':
-        return AdminColors.statusAmber;
-      case 'resolved':
-        return AdminColors.statusGreen;
-      case 'dismissed':
-        return AdminColors.statusGray;
-      default:
-        return AdminColors.actionBlueLight;
-    }
-  }
-
-  String _getStatusLabel(String status) {
-    switch (status) {
-      case 'pending':
-        return l10n.adminPending;
-      case 'resolved':
-        return l10n.adminResolvedLabel;
-      case 'dismissed':
-        return l10n.adminDismissedLabel;
-      default:
-        return status;
-    }
-  }
-
-  IconData _getTypeIcon(String type) {
-    switch (type) {
-      case 'user':
-        return Icons.person_rounded;
-      case 'message':
-        return Icons.message_rounded;
-      case 'conversation':
-        return Icons.chat_bubble_rounded;
-      case 'event':
-        return Icons.event_rounded;
-      case 'group':
-        return Icons.group_rounded;
-      case 'business':
-        return Icons.store_rounded;
-      case 'business_review':
-        return Icons.rate_review_rounded;
-      case 'product':
-        return Icons.shopping_bag_rounded;
-      default:
-        return Icons.report_rounded;
-    }
-  }
-
-  String _getTypeLabel(String type) {
-    switch (type) {
-      case 'user':
-        return l10n.user;
-      case 'message':
-        return l10n.adminMessage;
-      case 'conversation':
-        return l10n.conversation;
-      case 'event':
-        return l10n.eventLabel;
-      case 'group':
-        return l10n.group;
-      case 'business':
-        return l10n.reportTypeBusiness;
-      case 'business_review':
-        return l10n.reviews;
-      case 'product':
-        return l10n.reportTypeProduct;
-      default:
-        return type;
-    }
   }
 
   Widget _buildLoadingState() {
@@ -1184,7 +905,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
             ),
             const SizedBox(height: 8),
             Text(
-              'Cette action est irréversible et supprimera définitivement le ${_getTypeLabel(report.targetType).toLowerCase()}.',
+              'Cette action est irréversible et supprimera définitivement le ${libelleTypeSignalement(l10n, report.targetType).toLowerCase()}.',
               style: const TextStyle(
                 fontSize: 13,
                 color: _textSecondary,
@@ -1201,7 +922,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
                 child: Row(
                   children: [
                     Icon(
-                      _getTypeIcon(report.targetType),
+                      iconeTypeSignalement(report.targetType),
                       size: 18,
                       color: _textSecondary,
                     ),
