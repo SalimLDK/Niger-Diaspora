@@ -113,9 +113,12 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
                 unawaited(ref.read(adminAnalyticsNotifierProvider.notifier).loadAnalytics());
               },
               borderRadius: BorderRadius.circular(12),
-              child: const Padding(
-                padding: EdgeInsets.all(12),
-                child: AppIcon(AppIcon.refresh, color: Colors.white),
+              child: const Tooltip(
+                message: 'Actualiser',
+                child: Padding(
+                  padding: EdgeInsets.all(12),
+                  child: AppIcon(AppIcon.refresh, color: Colors.white),
+                ),
               ),
             ),
           ),
