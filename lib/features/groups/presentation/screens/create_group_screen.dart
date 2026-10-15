@@ -24,7 +24,21 @@ class CreateGroupScreen extends ConsumerStatefulWidget {
   /// Nom pré-rempli, venant du « Créer « X » » de la recherche sans résultat.
   final String? initialName;
 
-  const CreateGroupScreen({super.key, this.initialName});
+  /// Points d'injection des tests : l'envoi passe par un service Firebase
+  /// unique, impossible à jouer sans appareil. `null` = le vrai service.
+  @visibleForTesting
+  final Future<String?> Function(File image, String id)? envoyerImage;
+
+  /// Photo déjà choisie (le sélecteur de galerie est un canal de plateforme).
+  @visibleForTesting
+  final File? imageInitiale;
+
+  const CreateGroupScreen({
+    super.key,
+    this.initialName,
+    this.envoyerImage,
+    this.imageInitiale,
+  });
 
   @override
   ConsumerState<CreateGroupScreen> createState() => _CreateGroupScreenState();
@@ -79,6 +93,7 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
   @override
   void initState() {
     super.initState();
+    _selectedImage = widget.imageInitiale;
     if (widget.initialName != null && widget.initialName!.trim().isNotEmpty) {
       _nameController.text = widget.initialName!.trim();
     }
@@ -160,14 +175,17 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
     // Upload image if selected
     String? imageUrl;
     if (_selectedImage != null) {
-      final imageService = ImageUploadService();
       // Use a temporary ID for upload, will be replaced with actual group ID
       final tempId = DateTime.now().millisecondsSinceEpoch.toString();
-      imageUrl = await imageService.uploadImage(
-        file: _selectedImage!,
-        type: ImageUploadType.group,
-        id: tempId,
-      );
+      final envoyer = widget.envoyerImage;
+      imageUrl =
+          envoyer != null
+              ? await envoyer(_selectedImage!, tempId)
+              : await ImageUploadService().uploadImage(
+                file: _selectedImage!,
+                type: ImageUploadType.group,
+                id: tempId,
+              );
     }
 
     final tags =

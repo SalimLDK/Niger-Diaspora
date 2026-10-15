@@ -11007,7 +11007,7 @@ Non testables en widget test (GoogleMap, caméra et envoi d'image passent par
 des canaux de plateforme et des services construits en dur) : à vérifier sur
 appareil.
 
-- [ ] Création de groupe avec photo : appuyer sur « Créer » puis quitter
+- [ ] (couvert en test ; geste réel à confirmer) Création de groupe avec photo : appuyer sur « Créer » puis quitter
       l'écran (retour) pendant l'envoi → pas de plantage ; le groupe apparaît
       quand même dans « Mes groupes » (`create_group_screen.dart`).
 - [ ] Carte : lancer une recherche de lieu puis quitter l'écran avant le
