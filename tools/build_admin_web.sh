@@ -82,6 +82,16 @@ if ! grep -q "DiaspoNiger Admin" build/web_admin/main.dart.js; then
   exit 1
 fi
 
+# Horodatage dans index.html. Firebase Hosting répond 304 à un navigateur qui
+# revalide un `index.html` inchangé, et Chrome garde alors les EN-TÊTES de
+# l'ancienne réponse : un déploiement qui ne change que `firebase.json` (CSP,
+# frame-src…) restait invisible, la page chargée portait l'ancienne CSP (vu le
+# 2026-10-15 : photos bloquées par `connect-src` malgré le déploiement). Un
+# index.html différent à chaque build force un 200 complet, en-têtes compris.
+printf '
+<!-- build %s -->
+' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> build/web_admin/index.html
+
 echo
 echo "Build du panneau : build/web_admin ($(du -sh build/web_admin | cut -f1))."
 echo "Déploiement (étape de Salim) : firebase deploy --only hosting:admin --project diaspo-niger"
