@@ -491,28 +491,55 @@ class AdminDashboardNotifier extends Notifier<AdminDashboardState> {
 // BUSINESS MANAGEMENT
 // ============================================================================
 
+/// Les trois listes de l'écran Commerces, chacune une requête paginée : « En
+/// attente » n'est plus les non-vérifiés parmi les 50 derniers, mais tous.
+enum FiltreCommerces { tous, enAttente, boostes }
+
+/// Taille d'une page de l'écran Commerces.
+const int taillePageCommerces = 50;
+
 class AdminBusinessState extends Equatable {
   final List<BusinessEntity> businesses;
   final List<BusinessEntity> pendingVerification;
+  final List<BusinessEntity> boosted;
+  final Set<FiltreCommerces> encorePlus;
+  final FiltreCommerces? chargementPlus;
   final bool isLoading;
   final String? error;
 
   const AdminBusinessState({
     this.businesses = const [],
     this.pendingVerification = const [],
+    this.boosted = const [],
+    this.encorePlus = const {},
+    this.chargementPlus,
     this.isLoading = false,
     this.error,
   });
 
+  List<BusinessEntity> liste(FiltreCommerces f) => switch (f) {
+        FiltreCommerces.tous => businesses,
+        FiltreCommerces.enAttente => pendingVerification,
+        FiltreCommerces.boostes => boosted,
+      };
+
   AdminBusinessState copyWith({
     List<BusinessEntity>? businesses,
     List<BusinessEntity>? pendingVerification,
+    List<BusinessEntity>? boosted,
+    Set<FiltreCommerces>? encorePlus,
+    FiltreCommerces? chargementPlus,
+    bool finChargementPlus = false,
     bool? isLoading,
     String? error,
   }) {
     return AdminBusinessState(
       businesses: businesses ?? this.businesses,
       pendingVerification: pendingVerification ?? this.pendingVerification,
+      boosted: boosted ?? this.boosted,
+      encorePlus: encorePlus ?? this.encorePlus,
+      chargementPlus:
+          finChargementPlus ? null : (chargementPlus ?? this.chargementPlus),
       isLoading: isLoading ?? this.isLoading,
       error: error,
     );
@@ -522,6 +549,9 @@ class AdminBusinessState extends Equatable {
   List<Object?> get props => [
     businesses,
     pendingVerification,
+    boosted,
+    encorePlus,
+    chargementPlus,
     isLoading,
     error,
   ];
@@ -543,35 +573,89 @@ class AdminBusinessNotifier extends Notifier<AdminBusinessState> {
     return const AdminBusinessState();
   }
 
+  /// Lignes **lues** par liste (et non conservées) : une ligne illisible est
+  /// sautée de l'affichage mais compte pour le décalage de la page suivante.
+  final Map<FiltreCommerces, int> _lues = {};
+
+  /// Recharge la première page des trois listes.
   Future<void> fetchAllBusinesses() async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final rows = await _supabase
-          .from('businesses')
-          .select()
-          .order('created_at', ascending: false)
-          .limit(50);
-
-      final businesses = <BusinessEntity>[];
-      for (final row in (rows as List)) {
-        try {
-          businesses
-              .add(BusinessModel.fromJson(_mapBusiness(row)).toEntity());
-        } catch (e) {
-          // Skip problematic rows
-        }
-      }
-
-      final pending = businesses.where((b) => !b.isVerified).toList();
-
+      final pages = await Future.wait([
+        for (final f in FiltreCommerces.values) _pageCommerces(f, 0),
+      ]);
       state = state.copyWith(
         isLoading: false,
-        businesses: businesses,
-        pendingVerification: pending,
+        businesses: pages[0].commerces,
+        pendingVerification: pages[1].commerces,
+        boosted: pages[2].commerces,
+        encorePlus: {
+          for (var i = 0; i < pages.length; i++)
+            if (pages[i].lues >= taillePageCommerces)
+              FiltreCommerces.values[i],
+        },
+        finChargementPlus: true,
       );
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
     }
+  }
+
+  /// Ajoute la page suivante de [filtre] à sa liste.
+  Future<void> chargerPlus(FiltreCommerces filtre) async {
+    if (state.chargementPlus != null || !state.encorePlus.contains(filtre)) {
+      return;
+    }
+    state = state.copyWith(chargementPlus: filtre);
+    try {
+      final suite = await _pageCommerces(filtre, _lues[filtre] ?? 0);
+      final toutes = [...state.liste(filtre), ...suite.commerces];
+      final encore = {...state.encorePlus};
+      if (suite.lues >= taillePageCommerces) {
+        encore.add(filtre);
+      } else {
+        encore.remove(filtre);
+      }
+      state = state.copyWith(
+        businesses: filtre == FiltreCommerces.tous ? toutes : null,
+        pendingVerification:
+            filtre == FiltreCommerces.enAttente ? toutes : null,
+        boosted: filtre == FiltreCommerces.boostes ? toutes : null,
+        encorePlus: encore,
+        finChargementPlus: true,
+      );
+    } catch (e) {
+      state = state.copyWith(error: e.toString(), finChargementPlus: true);
+    }
+  }
+
+  Future<({List<BusinessEntity> commerces, int lues})> _pageCommerces(
+    FiltreCommerces filtre,
+    int decalage,
+  ) async {
+    var requete = _supabase.from('businesses').select();
+    switch (filtre) {
+      case FiltreCommerces.tous:
+        break;
+      case FiltreCommerces.enAttente:
+        requete = requete.eq('is_verified', false);
+      case FiltreCommerces.boostes:
+        requete = requete.eq('is_boosted', true);
+    }
+    final rows = await requete
+        .order('created_at', ascending: false)
+        .range(decalage, decalage + taillePageCommerces - 1) as List;
+
+    final commerces = <BusinessEntity>[];
+    for (final row in rows) {
+      try {
+        commerces.add(BusinessModel.fromJson(_mapBusiness(row)).toEntity());
+      } catch (e) {
+        // Ligne illisible : sautée de l'affichage, comptée dans `_lues`.
+      }
+    }
+    _lues[filtre] = decalage + rows.length;
+    return (commerces: commerces, lues: rows.length);
   }
 
   Future<bool> verifyBusiness(
@@ -1646,10 +1730,18 @@ class AdminReportsNotifier extends Notifier<AdminReportsState> {
 // MARKETPLACE MANAGEMENT
 // ============================================================================
 
+/// Les trois listes de l'écran Marketplace, chacune paginée.
+enum ListeMarketplace { produits, commandes, litiges }
+
+/// Taille d'une page de l'écran Marketplace.
+const int taillePageMarketplace = 50;
+
 class AdminMarketplaceState extends Equatable {
   final List<ProductEntity> products;
   final List<Map<String, dynamic>> orders;
   final List<Map<String, dynamic>> disputes;
+  final Set<ListeMarketplace> encorePlus;
+  final ListeMarketplace? chargementPlus;
   final bool isLoading;
   final String? error;
 
@@ -1657,6 +1749,8 @@ class AdminMarketplaceState extends Equatable {
     this.products = const [],
     this.orders = const [],
     this.disputes = const [],
+    this.encorePlus = const {},
+    this.chargementPlus,
     this.isLoading = false,
     this.error,
   });
@@ -1665,6 +1759,9 @@ class AdminMarketplaceState extends Equatable {
     List<ProductEntity>? products,
     List<Map<String, dynamic>>? orders,
     List<Map<String, dynamic>>? disputes,
+    Set<ListeMarketplace>? encorePlus,
+    ListeMarketplace? chargementPlus,
+    bool finChargementPlus = false,
     bool? isLoading,
     String? error,
   }) {
@@ -1672,13 +1769,24 @@ class AdminMarketplaceState extends Equatable {
       products: products ?? this.products,
       orders: orders ?? this.orders,
       disputes: disputes ?? this.disputes,
+      encorePlus: encorePlus ?? this.encorePlus,
+      chargementPlus:
+          finChargementPlus ? null : (chargementPlus ?? this.chargementPlus),
       isLoading: isLoading ?? this.isLoading,
       error: error,
     );
   }
 
   @override
-  List<Object?> get props => [products, orders, disputes, isLoading, error];
+  List<Object?> get props => [
+    products,
+    orders,
+    disputes,
+    encorePlus,
+    chargementPlus,
+    isLoading,
+    error,
+  ];
 }
 
 final adminMarketplaceNotifierProvider =
@@ -1697,20 +1805,51 @@ class AdminMarketplaceNotifier extends Notifier<AdminMarketplaceState> {
     return const AdminMarketplaceState();
   }
 
+  /// Ajuste « il y a encore une page » pour [liste] selon la page reçue.
+  Set<ListeMarketplace> _encore(ListeMarketplace liste, int recues) {
+    final encore = {...state.encorePlus};
+    if (recues >= taillePageMarketplace) {
+      encore.add(liste);
+    } else {
+      encore.remove(liste);
+    }
+    return encore;
+  }
+
+  Future<List<ProductEntity>> _pageProduits(int decalage) async {
+    final rows = await _supabase
+        .from('products')
+        .select()
+        .order('created_at', ascending: false)
+        .range(decalage, decalage + taillePageMarketplace - 1);
+    return (rows as List)
+        .map((row) => ProductModel.fromJson(_mapProduct(row)).toEntity())
+        .toList();
+  }
+
+  Future<List<Map<String, dynamic>>> _pageCommandes(
+    int decalage, {
+    bool litigesSeulement = false,
+  }) async {
+    var requete = _supabase.from('orders').select();
+    if (litigesSeulement) requete = requete.eq('is_in_dispute', true);
+    final rows = await requete
+        .order('created_at', ascending: false)
+        .range(decalage, decalage + taillePageMarketplace - 1);
+    return (rows as List)
+        .map((row) => Map<String, dynamic>.from(row as Map))
+        .toList();
+  }
+
   Future<void> fetchAllProducts() async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final rows = await _supabase
-          .from('products')
-          .select()
-          .order('created_at', ascending: false)
-          .limit(50);
-
-      final products = (rows as List)
-          .map((row) => ProductModel.fromJson(_mapProduct(row)).toEntity())
-          .toList();
-
-      state = state.copyWith(isLoading: false, products: products);
+      final products = await _pageProduits(0);
+      state = state.copyWith(
+        isLoading: false,
+        products: products,
+        encorePlus: _encore(ListeMarketplace.produits, products.length),
+      );
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
     }
@@ -1719,18 +1858,12 @@ class AdminMarketplaceNotifier extends Notifier<AdminMarketplaceState> {
   Future<void> fetchOrders() async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final rows = await _supabase
-          .from('orders')
-          .select()
-          .order('created_at', ascending: false)
-          .limit(50);
-
-      final orders = (rows as List).map((row) {
-        final data = Map<String, dynamic>.from(row as Map);
-        return data;
-      }).toList();
-
-      state = state.copyWith(isLoading: false, orders: orders);
+      final orders = await _pageCommandes(0);
+      state = state.copyWith(
+        isLoading: false,
+        orders: orders,
+        encorePlus: _encore(ListeMarketplace.commandes, orders.length),
+      );
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
     }
@@ -1739,21 +1872,52 @@ class AdminMarketplaceNotifier extends Notifier<AdminMarketplaceState> {
   Future<void> fetchDisputes() async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final rows = await _supabase
-          .from('orders')
-          .select()
-          .eq('is_in_dispute', true)
-          .order('created_at', ascending: false)
-          .limit(50);
-
-      final disputes = (rows as List).map((row) {
-        final data = Map<String, dynamic>.from(row as Map);
-        return data;
-      }).toList();
-
-      state = state.copyWith(isLoading: false, disputes: disputes);
+      final disputes = await _pageCommandes(0, litigesSeulement: true);
+      state = state.copyWith(
+        isLoading: false,
+        disputes: disputes,
+        encorePlus: _encore(ListeMarketplace.litiges, disputes.length),
+      );
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
+    }
+  }
+
+  /// Ajoute la page suivante de [liste].
+  Future<void> chargerPlus(ListeMarketplace liste) async {
+    if (state.chargementPlus != null || !state.encorePlus.contains(liste)) {
+      return;
+    }
+    state = state.copyWith(chargementPlus: liste);
+    try {
+      switch (liste) {
+        case ListeMarketplace.produits:
+          final suite = await _pageProduits(state.products.length);
+          state = state.copyWith(
+            products: [...state.products, ...suite],
+            encorePlus: _encore(liste, suite.length),
+            finChargementPlus: true,
+          );
+        case ListeMarketplace.commandes:
+          final suite = await _pageCommandes(state.orders.length);
+          state = state.copyWith(
+            orders: [...state.orders, ...suite],
+            encorePlus: _encore(liste, suite.length),
+            finChargementPlus: true,
+          );
+        case ListeMarketplace.litiges:
+          final suite = await _pageCommandes(
+            state.disputes.length,
+            litigesSeulement: true,
+          );
+          state = state.copyWith(
+            disputes: [...state.disputes, ...suite],
+            encorePlus: _encore(liste, suite.length),
+            finChargementPlus: true,
+          );
+      }
+    } catch (e) {
+      state = state.copyWith(error: e.toString(), finChargementPlus: true);
     }
   }
 

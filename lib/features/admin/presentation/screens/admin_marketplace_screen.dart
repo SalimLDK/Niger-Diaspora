@@ -82,7 +82,7 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
                   children: [
                     const Icon(Icons.shopping_bag_rounded, size: 18),
                     const SizedBox(width: 8),
-                    Text('Produits (${state.products.length})'),
+                    Text('Produits (${state.products.length}${state.encorePlus.contains(ListeMarketplace.produits) ? '+' : ''})'),
                   ],
                 ),
               ),
@@ -92,7 +92,7 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
                   children: [
                     const Icon(Icons.receipt_rounded, size: 18),
                     const SizedBox(width: 8),
-                    Text('Commandes (${state.orders.length})'),
+                    Text('Commandes (${state.orders.length}${state.encorePlus.contains(ListeMarketplace.commandes) ? '+' : ''})'),
                   ],
                 ),
               ),
@@ -102,7 +102,7 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
                   children: [
                     const Icon(Icons.gavel_rounded, size: 18),
                     const SizedBox(width: 8),
-                    Text('Litiges (${state.disputes.length})'),
+                    Text('Litiges (${state.disputes.length}${state.encorePlus.contains(ListeMarketplace.litiges) ? '+' : ''})'),
                   ],
                 ),
               ),
@@ -133,9 +133,9 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
                           child: TabBarView(
                             controller: _tabController,
                             children: [
-                              _buildProductsList(state.products),
-                              _buildOrdersList(state.orders),
-                              _buildDisputesList(state.disputes),
+                              _buildProductsList(state),
+                              _buildOrdersList(state),
+                              _buildDisputesList(state),
                             ],
                           ),
                         ),
@@ -235,14 +235,38 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
     );
   }
 
-  Widget _buildProductsList(List<ProductEntity> products) {
+  /// Dernière ligne d'une liste : « Charger plus », ou le sablier en cours.
+  Widget _ligneChargerPlus(AdminMarketplaceState state, ListeMarketplace liste) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Center(
+        child: state.chargementPlus == liste
+            ? const CircularProgressIndicator()
+            : OutlinedButton(
+                onPressed: () => unawaited(
+                  ref
+                      .read(adminMarketplaceNotifierProvider.notifier)
+                      .chargerPlus(liste),
+                ),
+                child: const Text('Charger plus'),
+              ),
+      ),
+    );
+  }
+
+  Widget _buildProductsList(AdminMarketplaceState state) {
+    final products = state.products;
     if (products.isEmpty) {
       return _buildEmptyState(Icons.shopping_bag_rounded, l10n.noProductFound);
     }
 
+    final encorePlus = state.encorePlus.contains(ListeMarketplace.produits);
     return ListView.builder(
-      itemCount: products.length,
+      itemCount: products.length + (encorePlus ? 1 : 0),
       itemBuilder: (context, index) {
+        if (index == products.length) {
+          return _ligneChargerPlus(state, ListeMarketplace.produits);
+        }
         final product = products[index];
         return _buildProductCard(product);
       },
@@ -405,14 +429,19 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
     );
   }
 
-  Widget _buildOrdersList(List<Map<String, dynamic>> orders) {
+  Widget _buildOrdersList(AdminMarketplaceState state) {
+    final orders = state.orders;
     if (orders.isEmpty) {
       return _buildEmptyState(Icons.receipt_rounded, l10n.adminNoOrders);
     }
 
+    final encorePlus = state.encorePlus.contains(ListeMarketplace.commandes);
     return ListView.builder(
-      itemCount: orders.length,
+      itemCount: orders.length + (encorePlus ? 1 : 0),
       itemBuilder: (context, index) {
+        if (index == orders.length) {
+          return _ligneChargerPlus(state, ListeMarketplace.commandes);
+        }
         final order = orders[index];
         final status = order['status'] as String? ?? 'pending';
         return _buildOrderCard(order, status);
@@ -522,7 +551,8 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
     );
   }
 
-  Widget _buildDisputesList(List<Map<String, dynamic>> disputes) {
+  Widget _buildDisputesList(AdminMarketplaceState state) {
+    final disputes = state.disputes;
     if (disputes.isEmpty) {
       return Center(
         child: Column(
@@ -554,9 +584,13 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
       );
     }
 
+    final encorePlus = state.encorePlus.contains(ListeMarketplace.litiges);
     return ListView.builder(
-      itemCount: disputes.length,
+      itemCount: disputes.length + (encorePlus ? 1 : 0),
       itemBuilder: (context, index) {
+        if (index == disputes.length) {
+          return _ligneChargerPlus(state, ListeMarketplace.litiges);
+        }
         final dispute = disputes[index];
         return _buildDisputeCard(dispute);
       },

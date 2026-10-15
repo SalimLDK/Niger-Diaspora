@@ -41,22 +41,12 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
   Widget build(BuildContext context) {
     final state = ref.watch(adminBusinessNotifierProvider);
 
-    final allBusinesses = state.businesses;
-    final pendingBusinesses = state.pendingVerification;
-    final boostedBusinesses =
-        state.businesses.where((b) => b.isBoosted).toList();
+    final filtreActif = FiltreCommerces.values[_selectedFilter];
+    final filteredList = state.liste(filtreActif);
+    final encorePlus = state.encorePlus.contains(filtreActif);
 
-    List<BusinessEntity> filteredList;
-    switch (_selectedFilter) {
-      case 1:
-        filteredList = pendingBusinesses;
-        break;
-      case 2:
-        filteredList = boostedBusinesses;
-        break;
-      default:
-        filteredList = allBusinesses;
-    }
+    String compte(FiltreCommerces f) =>
+        '${state.liste(f).length}${state.encorePlus.contains(f) ? '+' : ''}';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -91,17 +81,17 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
           spacing: 12,
           children: [
             _buildFilterChip(
-              label: 'Tous (${allBusinesses.length})',
+              label: 'Tous (${compte(FiltreCommerces.tous)})',
               isSelected: _selectedFilter == 0,
               onTap: () => setState(() => _selectedFilter = 0),
             ),
             _buildFilterChip(
-              label: 'En attente (${pendingBusinesses.length})',
+              label: 'En attente (${compte(FiltreCommerces.enAttente)})',
               isSelected: _selectedFilter == 1,
               onTap: () => setState(() => _selectedFilter = 1),
             ),
             _buildFilterChip(
-              label: 'Boostés (${boostedBusinesses.length})',
+              label: 'Boostés (${compte(FiltreCommerces.boostes)})',
               isSelected: _selectedFilter == 2,
               onTap: () => setState(() => _selectedFilter = 2),
             ),
@@ -151,8 +141,31 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
                           ),
                         )
                         : ListView.builder(
-                          itemCount: filteredList.length,
+                          itemCount: filteredList.length + (encorePlus ? 1 : 0),
                           itemBuilder: (context, index) {
+                            if (index == filteredList.length) {
+                              return Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 8),
+                                child: Center(
+                                  child: state.chargementPlus == filtreActif
+                                      ? const CircularProgressIndicator(
+                                          color: _primaryColor,
+                                        )
+                                      : OutlinedButton(
+                                          onPressed: () => unawaited(
+                                            ref
+                                                .read(
+                                                  adminBusinessNotifierProvider
+                                                      .notifier,
+                                                )
+                                                .chargerPlus(filtreActif),
+                                          ),
+                                          child: const Text('Charger plus'),
+                                        ),
+                                ),
+                              );
+                            }
                             return _buildBusinessCard(filteredList[index]);
                           },
                         ),
