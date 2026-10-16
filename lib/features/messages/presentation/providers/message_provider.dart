@@ -1342,7 +1342,12 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
         'id': replyToMessage.id,
         'senderId': replyToMessage.senderId,
         'senderName': replyToMessage.senderName,
-        'content': replyToMessage.content,
+        // Jamais le marqueur technique : il resterait dans `data` pour toujours,
+        // même si le message cité redevenait lisible.
+        'content':
+            isUndecryptableContent(replyToMessage.content)
+                ? ''
+                : replyToMessage.content,
         'type': replyToMessage.type.name,
         'fileUrl': replyToMessage.fileUrl,
         'fileName': replyToMessage.fileName,

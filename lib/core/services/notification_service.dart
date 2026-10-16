@@ -2251,6 +2251,7 @@ class NotificationService {
             senderId,
             cryptoPayload,
             messageType,
+            data['messageId'] as String?,
           );
         } catch (e) {
           // En cas d'erreur, garder le body générique de FCM
@@ -3077,6 +3078,7 @@ class NotificationService {
     String senderId,
     Map<String, dynamic> cryptoPayload,
     String messageType,
+    String? messageId,
   )?
   _e2eeDecryptionCallback;
 
@@ -3147,6 +3149,7 @@ class NotificationService {
       String senderId,
       Map<String, dynamic> cryptoPayload,
       String messageType,
+      String? messageId,
     )
     callback,
   ) {

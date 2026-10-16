@@ -258,6 +258,30 @@ class CacheService {
     await _updateTimestamp(_messagesBox, key);
   }
 
+  String _dechiffreKey(String messageId) => 'dechiffre_$messageId';
+
+  /// Garde le texte clair d'un message **dès qu'il a été déchiffré**, quel que
+  /// soit l'appelant — notification au premier plan, aperçu, fil.
+  ///
+  /// Signal et Sender Key font avancer un ratchet à sens unique : un message ne
+  /// se déchiffre qu'une fois. Le premier à y arriver consomme la clé ; tout
+  /// autre appelant reçoit ensuite `[🔐 E2EE — session requise]`. Si le premier
+  /// est la bannière de notification, qui n'utilise le texte que pour son
+  /// corps, le fil affiche « Message indisponible » pour un message pourtant
+  /// lu à l'écran (vu le 2026-10-16).
+  ///
+  /// Clé à part, jamais dans la liste de la conversation : une entrée partielle
+  /// là serait relue comme un vrai message par le fil et l'aperçu de liste.
+  Future<void> cacheContenuDechiffre(String messageId, String contenu) async {
+    if (messageId.isEmpty || contenu.isEmpty) return;
+    await Hive.box<String>(_messagesBox).put(_dechiffreKey(messageId), contenu);
+  }
+
+  String? contenuDechiffre(String messageId) {
+    if (messageId.isEmpty) return null;
+    return Hive.box<String>(_messagesBox).get(_dechiffreKey(messageId));
+  }
+
   List<Map<String, dynamic>> getCachedMessages(
     String conversationId, {
     int? limit,
