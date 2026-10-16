@@ -77,8 +77,8 @@ class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const DesignTitle(
-              'Historique d\'Audit',
+            DesignTitle(
+              l10n.adminAuditHistoryTitle,
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
@@ -451,7 +451,7 @@ class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
       case 'demote_admin':
         return _ActionInfo(l10n.adminDemoted, const Icon(Icons.remove_moderator, color: AdminColors.statusAmber, size: 24), AdminColors.statusAmber);
       case 'verify_profile':
-        return _ActionInfo('Profil vérifié', const Icon(Icons.verified, color: AdminColors.actionBlue, size: 24), AdminColors.actionBlue);
+        return _ActionInfo(l10n.adminProfileVerifiedSuccess, const Icon(Icons.verified, color: AdminColors.actionBlue, size: 24), AdminColors.actionBlue);
       case 'verify_business':
         return _ActionInfo(l10n.adminBusinessVerified, const Icon(Icons.verified_user, color: AdminColors.statusGreen, size: 24), AdminColors.statusGreen);
       case 'unverify_business':
@@ -459,7 +459,7 @@ class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
       case 'delete_business':
         return _ActionInfo(l10n.adminBusinessDeleted, const AppIcon(AppIcon.delete, color: AdminColors.statusRed, size: 24), AdminColors.statusRed);
       case 'toggle_boost':
-        return _ActionInfo('Boost modifié', const Icon(Icons.trending_up, color: AdminColors.statusAmber, size: 24), AdminColors.statusAmber);
+        return _ActionInfo(l10n.adminBoostChanged, const Icon(Icons.trending_up, color: AdminColors.statusAmber, size: 24), AdminColors.statusAmber);
       case 'delete_event':
         return _ActionInfo(l10n.adminEventDeleted, const Icon(Icons.event_busy, color: AdminColors.statusRed, size: 24), AdminColors.statusRed);
       case 'cancel_event':

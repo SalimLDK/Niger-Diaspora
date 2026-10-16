@@ -519,8 +519,8 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
                             color: AdminColors.statusRed,
                             borderRadius: BorderRadius.circular(20),
                           ),
-                          child: const Text(
-                            'LITIGE',
+                          child: Text(
+                            l10n.adminDisputeBadge,
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w600,
@@ -627,7 +627,7 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
           child: const Icon(Icons.gavel_rounded, color: AdminColors.statusRed, size: 20),
         ),
         title: Text(
-          'Litige #${dispute['id']?.substring(0, 8) ?? 'N/A'}',
+          l10n.adminDisputeNumber(dispute['id']?.substring(0, 8) ?? 'N/A'),
           style: const TextStyle(
             fontWeight: FontWeight.w600,
             fontSize: 15,

@@ -16794,4 +16794,74 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get adminWelcomePanel => 'Welcome to the DiaspoNiger admin panel';
+
+  @override
+  String get adminMenuVerifyProfile => 'Verify profile';
+
+  @override
+  String get adminMenuViewActivity => 'View activity';
+
+  @override
+  String get adminMenuForceLogout => 'Force sign-out';
+
+  @override
+  String get adminMenuRolesScreen => 'Admin role: Roles screen';
+
+  @override
+  String get adminProfileVerifiedSuccess => 'Profile verified';
+
+  @override
+  String get adminForceLogoutTitle => 'Force sign-out';
+
+  @override
+  String get adminForceLogoutBody =>
+      'This will sign the user out of all their devices.';
+
+  @override
+  String get adminDetailSender => 'Sender';
+
+  @override
+  String get adminDetailRecipient => 'Recipient';
+
+  @override
+  String get adminDetailRecipientPhone => 'Recipient phone';
+
+  @override
+  String get adminDetailProvider => 'Provider';
+
+  @override
+  String get adminDetailMynitaRef => 'MyNita ref.';
+
+  @override
+  String get adminDetailCreatedOn => 'Created on';
+
+  @override
+  String get adminDetailCompletedOn => 'Completed on';
+
+  @override
+  String get adminFailureReasonPrompt => 'Failure reason:';
+
+  @override
+  String adminReportTypeLine(String type) {
+    return 'Type: $type';
+  }
+
+  @override
+  String get adminDisputeBadge => 'DISPUTE';
+
+  @override
+  String adminDisputeNumber(String id) {
+    return 'Dispute #$id';
+  }
+
+  @override
+  String get adminAuditHistoryTitle => 'Audit history';
+
+  @override
+  String get adminBoostChanged => 'Boost changed';
+
+  @override
+  String adminExportLabel(String label) {
+    return 'Export $label';
+  }
 }

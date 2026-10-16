@@ -30787,6 +30787,132 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Bienvenue dans le panneau d\'administration DiaspoNiger'**
   String get adminWelcomePanel;
+
+  /// No description provided for @adminMenuVerifyProfile.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vérifier profil'**
+  String get adminMenuVerifyProfile;
+
+  /// No description provided for @adminMenuViewActivity.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir activité'**
+  String get adminMenuViewActivity;
+
+  /// No description provided for @adminMenuForceLogout.
+  ///
+  /// In fr, this message translates to:
+  /// **'Forcer déconnexion'**
+  String get adminMenuForceLogout;
+
+  /// No description provided for @adminMenuRolesScreen.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rôle admin : écran Rôles'**
+  String get adminMenuRolesScreen;
+
+  /// No description provided for @adminProfileVerifiedSuccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Profil vérifié'**
+  String get adminProfileVerifiedSuccess;
+
+  /// No description provided for @adminForceLogoutTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Forcer la déconnexion'**
+  String get adminForceLogoutTitle;
+
+  /// No description provided for @adminForceLogoutBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cela déconnectera l\'utilisateur de tous ses appareils.'**
+  String get adminForceLogoutBody;
+
+  /// No description provided for @adminDetailSender.
+  ///
+  /// In fr, this message translates to:
+  /// **'Expéditeur'**
+  String get adminDetailSender;
+
+  /// No description provided for @adminDetailRecipient.
+  ///
+  /// In fr, this message translates to:
+  /// **'Destinataire'**
+  String get adminDetailRecipient;
+
+  /// No description provided for @adminDetailRecipientPhone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Téléphone destinataire'**
+  String get adminDetailRecipientPhone;
+
+  /// No description provided for @adminDetailProvider.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fournisseur'**
+  String get adminDetailProvider;
+
+  /// No description provided for @adminDetailMynitaRef.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réf. MyNita'**
+  String get adminDetailMynitaRef;
+
+  /// No description provided for @adminDetailCreatedOn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Créée le'**
+  String get adminDetailCreatedOn;
+
+  /// No description provided for @adminDetailCompletedOn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Complétée le'**
+  String get adminDetailCompletedOn;
+
+  /// No description provided for @adminFailureReasonPrompt.
+  ///
+  /// In fr, this message translates to:
+  /// **'Raison de l\'échec :'**
+  String get adminFailureReasonPrompt;
+
+  /// No description provided for @adminReportTypeLine.
+  ///
+  /// In fr, this message translates to:
+  /// **'Type : {type}'**
+  String adminReportTypeLine(String type);
+
+  /// No description provided for @adminDisputeBadge.
+  ///
+  /// In fr, this message translates to:
+  /// **'LITIGE'**
+  String get adminDisputeBadge;
+
+  /// No description provided for @adminDisputeNumber.
+  ///
+  /// In fr, this message translates to:
+  /// **'Litige #{id}'**
+  String adminDisputeNumber(String id);
+
+  /// No description provided for @adminAuditHistoryTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Historique d\'Audit'**
+  String get adminAuditHistoryTitle;
+
+  /// No description provided for @adminBoostChanged.
+  ///
+  /// In fr, this message translates to:
+  /// **'Boost modifié'**
+  String get adminBoostChanged;
+
+  /// No description provided for @adminExportLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Exporter {label}'**
+  String adminExportLabel(String label);
 }
 
 class _AppLocalizationsDelegate

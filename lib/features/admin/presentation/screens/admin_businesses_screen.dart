@@ -156,7 +156,7 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
                         : state.error != null && state.businesses.isEmpty
                         ? Center(
                           child: Text(
-                            'Erreur: ${state.error}',
+                            l10n.errorLabel(state.error!),
                             style: const TextStyle(
                               color: AdminColors.statusRed,
                             ),
