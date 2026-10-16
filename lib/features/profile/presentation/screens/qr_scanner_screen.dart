@@ -18,6 +18,34 @@ import '../widgets/qr_scanner_control_bar.dart';
 import '../widgets/share_profile_modal.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 
+// `toggleTorch` et `switchCamera` lèvent `controllerUninitialized` (« Call
+// start() before using it ») tant que la caméra n'a pas démarré — permission
+// refusée, démarrage encore en cours, caméra arrêtée pour le dialogue « mon
+// QR ». Lancés en `unawaited`, l'exception partait en erreur non gérée
+// (fatal vu sur 1.2.2). On n'agit que sur une caméra initialisée.
+
+/// Bascule la torche ; `false` si la caméra n'était pas prête (rien changé).
+Future<bool> basculerTorche(MobileScannerController controller) async {
+  if (!controller.value.isInitialized) return false;
+  try {
+    await controller.toggleTorch();
+    return true;
+  } on MobileScannerException {
+    return false;
+  }
+}
+
+/// Change de caméra ; `false` si la caméra n'était pas prête.
+Future<bool> changerDeCamera(MobileScannerController controller) async {
+  if (!controller.value.isInitialized) return false;
+  try {
+    await controller.switchCamera();
+    return true;
+  } on MobileScannerException {
+    return false;
+  }
+}
+
 class QrScannerScreen extends ConsumerStatefulWidget {
   const QrScannerScreen({super.key});
 
@@ -419,15 +447,16 @@ class _QrScannerScreenState extends ConsumerState<QrScannerScreen>
     }
   }
 
-  void _toggleFlash() {
-    setState(() => _flashOn = !_flashOn);
-    unawaited(_controller.toggleTorch());
+  Future<void> _toggleFlash() async {
     unawaited(HapticFeedback.lightImpact());
+    if (await basculerTorche(_controller) && mounted) {
+      setState(() => _flashOn = !_flashOn);
+    }
   }
 
-  void _switchCamera() {
-    unawaited(_controller.switchCamera());
+  Future<void> _switchCamera() async {
     unawaited(HapticFeedback.lightImpact());
+    await changerDeCamera(_controller);
   }
 
   bool _canPop = false;

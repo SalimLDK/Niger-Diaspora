@@ -3086,7 +3086,7 @@
   "@adminDisputesTab": {"placeholders": {"count": {"type": "int"}}},
   "adminBuyer": "Buyer",
   "adminSeller": "Seller",
-  "adminRefund": "Refund",
+  "adminRefund": "Mark as refunded",
 
   "adminGroupsTab": "Groups ({count})",
   "@adminGroupsTab": {"placeholders": {"count": {"type": "int"}}},
@@ -3152,7 +3152,7 @@
   "adminTipAmounts": "Tip amounts (XOF)",
   "adminPriceHint": "Ex: 1, 2, 5, 10, 20",
 
-  "adminComplete": "Complete",
+  "adminComplete": "Mark as completed",
   "adminSearchUserPlaceholder": "Search for a user...",
   "adminLoadingText": "Loading...",
   "adminNoUserFound": "No user found",
@@ -3867,6 +3867,27 @@
   "adminLoginWithGoogle": "Sign in with Google",
   "adminPasswordLabel": "Password",
   "adminLoginButton": "Login",
+  "adminMfaEnrolTitle": "Second factor required",
+  "adminMfaEnrolIntro": "Scan this QR code with an authenticator app (Google Authenticator, Aegis, 1Password…), then enter the 6-digit code it shows. Without this second factor, the dashboard stays closed.",
+  "adminMfaManualKey": "Or type this key by hand:",
+  "adminMfaConfirmBefore": "Confirm before {heure}",
+  "@adminMfaConfirmBefore": {
+    "placeholders": {
+      "heure": {
+        "type": "String"
+      }
+    }
+  },
+  "adminMfaCodeField": "6-digit code",
+  "adminMfaCodeMissing": "Enter the 6-digit code shown by your app.",
+  "adminMfaActivateButton": "Enable second factor",
+  "adminMfaRetry": "Retry",
+  "adminMfaSignOut": "Sign out",
+  "adminMfaChallengeTitle": "Verification code",
+  "adminMfaChallengeIntro": "Enter the 6-digit code shown by your authenticator app.",
+  "adminMfaVerifyButton": "Verify",
+  "adminMfaBackToLogin": "Back to sign-in",
+  "adminMfaNoTotp": "This account only has an SMS second factor, which the panel does not support.",
   "adminProductsCount": "Products ({count})",
   "@adminProductsCount": {"placeholders": {"count": {"type": "int"}}},
   "adminOrdersCount": "Orders ({count})",
@@ -5910,10 +5931,10 @@
   "adminTransactionFailReasonLabel": "Failure reason:",
   "adminTransactionFailed": "Transaction marked as failed",
   "adminMarkCompleteTitle": "Mark as completed",
-  "adminMarkCompleteConfirm": "Are you sure you want to mark this transaction as completed?",
-  "adminTransactionCompleted": "Transaction completed",
+  "adminMarkCompleteConfirm": "Mark this transaction as completed? Nothing is checked with the payment provider: it will show as successful to the user, even if no money ever moved.",
+  "adminTransactionCompleted": "Transaction marked as completed",
   "adminRefundReasonLabel": "Refund reason:",
-  "adminTransactionRefunded": "Transaction refunded",
+  "adminTransactionRefunded": "Transaction marked as refunded",
   "adminUnknownAdmin": "Unknown admin",
   "adminUnknownDate": "Unknown date",
   "adminEventByOrganizer": "Event by {id}",
@@ -7314,5 +7335,49 @@
   "pollVotersVisibleToAll": "Votes are not anonymous: everyone can see who voted for what.",
   "pollVotersHidden": "Anonymous poll: nobody can see who voted for what.",
   "updateAvailableMessage": "Diaspo Niger {version} is available.",
-  "updateAvailableAction": "Update"
+  "updateAvailableAction": "Update",
+  "adminLoadMore": "Load more",
+  "adminTabWithCount": "{label} ({count})",
+  "@adminTabWithCount": {
+    "placeholders": {
+        "label": {"type": "String"},
+        "count": {"type": "String"}
+    }
+  },
+  "adminOrdersName": "Orders",
+  "adminDisputesName": "Disputes",
+  "adminCompletedName": "Completed",
+  "adminBannedName": "Banned",
+  "adminProcessedName": "Processed",
+  "adminStatResolved": "Resolved",
+  "adminStatDismissed": "Dismissed",
+  "adminAuditEmptyTitle": "No audit logs",
+  "adminNoTransactionsTitle": "No transactions found",
+  "adminEmptyTabBody": "Nothing in this tab yet.",
+  "adminEmptyListBody": "Nothing in this list yet.",
+  "adminUsersEmptyBody": "No account in this list.",
+  "adminUsersNoMatchBody": "No account matches this search.",
+  "adminReportsEmptyBody": "Nothing to review here yet.",
+  "adminReportsNoMatchBody": "Try another word, or remove the filters.",
+  "adminReportViewContent": "View {type}",
+  "@adminReportViewContent": {
+    "placeholders": {
+        "type": {"type": "String"}
+    }
+  },
+  "adminChangeRoleTo": "Change to {role}",
+  "@adminChangeRoleTo": {
+    "placeholders": {
+        "role": {"type": "String"}
+    }
+  },
+  "adminRevokeAccessShort": "Revoke access",
+  "adminMessageWithText": "Message: {text}",
+  "@adminMessageWithText": {
+    "placeholders": {
+        "text": {"type": "String"}
+    }
+  },
+  "adminScreenNotAllowed": "This screen is not available with your role.",
+  "adminWelcomePanel": "Welcome to the DiaspoNiger admin panel"
 }

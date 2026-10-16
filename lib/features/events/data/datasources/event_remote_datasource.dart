@@ -304,7 +304,7 @@ class EventRemoteDataSourceImpl implements EventRemoteDataSource {
       }
 
       final docRef = await _eventsCollection.add(data);
-      return getEventById(docRef.id);
+      return await getEventById(docRef.id);
     } on FirebaseException catch (e) {
       throw ServerException(e.message ?? 'Erreur lors de la creation');
     }
@@ -322,7 +322,7 @@ class EventRemoteDataSourceImpl implements EventRemoteDataSource {
       }
 
       await _eventsCollection.doc(event.id).update(data);
-      return getEventById(event.id);
+      return await getEventById(event.id);
     } on FirebaseException catch (e) {
       throw ServerException(e.message ?? 'Erreur lors de la mise a jour');
     }

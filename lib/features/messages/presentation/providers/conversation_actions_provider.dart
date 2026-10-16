@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import 'message_provider.dart';
@@ -121,42 +120,6 @@ class ConversationActionsNotifier extends _$ConversationActionsNotifier {
         return true;
       },
     );
-  }
-
-  Future<bool> reportConversation({
-    required String conversationId,
-    required String reason,
-    String? description,
-  }) async {
-    final currentUser = await ref.read(currentUserAsyncProvider.future);
-    if (currentUser == null) return false;
-
-    state = const AsyncValue.loading();
-
-    try {
-      // Report functionality might not be in repository yet as it seems specific
-      // We can keep it here or move it later. For now, keeping as is but maybe wrapped in repo would be better
-      // But repo doesn't have report method. Let's keep direct calls for report or add to repo.
-      // Given the scope, let's keep direct call for report or assumes it's fine.
-      // Actually plan didn't mention report features.
-      // I'll leave report implementation as is (using Firestore directly as exception) or move it.
-      // The original code was using FieldValue.
-      await FirebaseFirestore.instance.collection('reports').add({
-        'type': 'conversation',
-        'conversationId': conversationId,
-        'reporterId': currentUser.id,
-        'reason': reason,
-        'description': description,
-        'createdAt': FieldValue.serverTimestamp(),
-        'status': 'pending',
-      });
-
-      state = const AsyncValue.data(null);
-      return true;
-    } catch (e) {
-      state = AsyncValue.error(e.toString(), StackTrace.current);
-      return false;
-    }
   }
 
   Future<bool> promoteToAdmin({

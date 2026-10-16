@@ -39,9 +39,13 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1287 cases à cocher, 55 cochées** — 288 entrées sur 302 ont encore des cases ouvertes.
+**1358 cases à cocher, 55 cochées** — 303 entrées sur 317 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
+
+**À classer : aucune ligne « Priorité » sous le titre** (1)
+
+- 4 · [Plantages Crashlytics 1.2.2 (31) — « objet utilisé après destruction » (2026-10-15)](#plantages-crashlytics-122-31---objet-utilisé-après-destruction--2026-10-15) · *Journaux de passes appareil*
 
 **P0 — avant toute nouvelle version** (47)
 
@@ -93,7 +97,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 6 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (116)
+**P1 — fonction importante, jamais vérifiée** (121)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -170,6 +174,10 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [⬜ Photo de profil : on choisit son cadrage (2026-09-14)](#-photo-de-profil--on-choisit-son-cadrage-2026-09-14) · *Accueil, profil et réglages*
 - 6 · [⬜ Champ ville : recherche dans le référentiel (2026-09-13)](#-champ-ville--recherche-dans-le-référentiel-2026-09-13) · *Accueil, profil et réglages*
 - 7 · [Bascule en anglais — ~1 600 chaînes branchées, rien vu à l'écran (2026-08-06)](#bascule-en-anglais--1-600-chaînes-branchées-rien-vu-à-lécran-2026-08-06) · *Design, thème, langue et mise en page* · bloqué
+- 6 · [⬜ Crashlytics : clés et journaux de diagnostic des OutOfMemoryError (2026-10-15)](#-crashlytics--clés-et-journaux-de-diagnostic-des-outofmemoryerror-2026-10-15) · *Backend, sécurité et observabilité*
+- 9 · [⬜ Second facteur TOTP obligatoire sur le panneau admin (2026-10-14)](#-second-facteur-totp-obligatoire-sur-le-panneau-admin-2026-10-14) · *Backend, sécurité et observabilité*
+- 4 · [⬜ Signalements : l'app écrit dans Supabase, le panneau admin les voit (2026-10-15)](#-signalements--lapp-écrit-dans-supabase-le-panneau-admin-les-voit-2026-10-15) · *Backend, sécurité et observabilité*
+- 8 · [⬜ Registre de rôle unique : claim, Postgres et callable — l'écran Rôles et le bannissement serveur (2026-10-14)](#-registre-de-rôle-unique--claim-postgres-et-callable--lécran-rôles-et-le-bannissement-serveur-2026-10-14) · *Backend, sécurité et observabilité*
 - 5 · [⬜ Aucune requête Supabase ne part sans session : le refus du pont est respecté (2026-10-13)](#-aucune-requête-supabase-ne-part-sans-session--le-refus-du-pont-est-respecté-2026-10-13) · *Backend, sécurité et observabilité*
 - 4 · [⬜ Une erreur Supabase ne fait plus planter l'app : message à l'écran, JWT expiré retenté (2026-10-13)](#-une-erreur-supabase-ne-fait-plus-planter-lapp--message-à-lécran-jwt-expiré-retenté-2026-10-13) · *Backend, sécurité et observabilité*
 - 3 · [⬜ Les echecs attrapes remontent enfin a Crashlytics (2026-09-14)](#-les-echecs-attrapes-remontent-enfin-a-crashlytics-2026-09-14) · *Backend, sécurité et observabilité*
@@ -178,6 +186,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [⬜ Storage : on dépose, on ne réécrit plus (2026-09-21)](#-storage--on-dépose-on-ne-réécrit-plus-2026-09-21) · *Publication et plateformes*
 - 2 · [⛔ « Diaspo Niger s'arrête systématiquement » sur Android 15+ (2026-09-09)](#--diaspo-niger-sarrête-systématiquement--sur-android-15-2026-09-09) · *Publication et plateformes*
 - 4 · [⚠️ Rapatriement iOS : deux dépendances **Android** changent de version majeure (2026-09-08)](#-rapatriement-ios--deux-dépendances-android-changent-de-version-majeure-2026-09-08) · *Publication et plateformes*
+- 6 · [⬜ Panneau admin, Signalements : lit Firestore (ce que l'app signale) en plus de Supabase (2026-10-15)](#-panneau-admin-signalements--lit-firestore-ce-que-lapp-signale-en-plus-de-supabase-2026-10-15) · *Site web*
 - 9 · [⬜ La page de suppression de compte demande la suppression au lieu de l'exécuter (2026-09-19)](#-la-page-de-suppression-de-compte-demande-la-suppression-au-lieu-de-lexécuter-2026-09-19) · *Site web*
 - 9 · [⬜ Accusés, réactions, modifications et suppressions reçus en direct, discussion en clair (2026-09-21)](#-accusés-réactions-modifications-et-suppressions-reçus-en-direct-discussion-en-clair-2026-09-21) · *Messagerie*
 - 9 · [⬜ Partager vers une discussion — groupe et 1:1 (2026-09-09)](#-partager-vers-une-discussion--groupe-et-11-2026-09-09) · *Messagerie*
@@ -212,7 +221,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (89)
+**P2 — fonction secondaire ou cas limite** (95)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -277,6 +286,12 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [Admin (back-office)](#admin-back-office) · *Backend, sécurité et observabilité*
 - 2 · [⬜ Le `.env` embarqué ne livre plus de chemin de poste (2026-09-21)](#-le-env-embarqué-ne-livre-plus-de-chemin-de-poste-2026-09-21) · *Publication et plateformes*
 - 7 · [iOS : premier build réussi, sur simulateur (2026-09-01)](#ios--premier-build-réussi-sur-simulateur-2026-09-01) · *Publication et plateformes* · bloqué
+- 4 · [⬜ Panneau admin, Commerces et Marketplace : recherche côté serveur (2026-10-15)](#-panneau-admin-commerces-et-marketplace--recherche-côté-serveur-2026-10-15) · *Site web*
+- 3 · [⬜ Panneau admin : écrans Configuration et Signalements découpés (2026-10-15)](#-panneau-admin--écrans-configuration-et-signalements-découpés-2026-10-15) · *Site web*
+- 4 · [⬜ Panneau admin, Commerces et Marketplace : listes paginées (2026-10-15)](#-panneau-admin-commerces-et-marketplace--listes-paginées-2026-10-15) · *Site web*
+- 4 · [⬜ Panneau admin, Signalements : pagination, recherche et type côté serveur (2026-10-14)](#-panneau-admin-signalements--pagination-recherche-et-type-côté-serveur-2026-10-14) · *Site web*
+- 4 · [⬜ Panneau admin, Transferts : quatre onglets paginés par le serveur (2026-10-14)](#-panneau-admin-transferts--quatre-onglets-paginés-par-le-serveur-2026-10-14) · *Site web*
+- 4 · [⬜ Panneau admin, Utilisateurs : pagination et recherche côté serveur (2026-10-14)](#-panneau-admin-utilisateurs--pagination-et-recherche-côté-serveur-2026-10-14) · *Site web*
 - 13 · [Passe pilotée du 2026-08-04 (15:25 → 16:05) — SM A515F, APK debug `54083d6`](#passe-pilotée-du-2026-08-04-1525--1605--sm-a515f-apk-debug-54083d6) · *Journaux de passes appareil*
 - 3 · [Fonctionnalité épingle mise en pause (2026-08-14)](#fonctionnalité-épingle-mise-en-pause-2026-08-14) · *Messagerie*
 - 1 · [Réactions emoji : une par personne et par message (2026-08-13)](#réactions-emoji--une-par-personne-et-par-message-2026-08-13) · *Messagerie* · bloqué
@@ -304,7 +319,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [✅ Bulle de chargement d'une vidéo pendant l'upload (2026-08-30)](#-bulle-de-chargement-dune-vidéo-pendant-lupload-2026-08-30) · *Messagerie*
 - 21 · [Refonte Fil & Discussion — Priorité basse — cosmétique, faible risque](#refonte-fil--discussion--priorité-basse--cosmétique-faible-risque) · *Fil, stories, salons audio et podcasts*
 
-**P3 — confort, cosmétique, fonction en pause** (36)
+**P3 — confort, cosmétique, fonction en pause** (39)
 
 - 3 · [⬜ Polices embarquées : plus de téléchargement au premier affichage (2026-09-11)](#-polices-embarquées--plus-de-téléchargement-au-premier-affichage-2026-09-11) · *Design, thème, langue et mise en page* · bloqué
 - 2 · [⬜ Icône du lanceur repeinte en vert (2026-09-07)](#-icône-du-lanceur-repeinte-en-vert-2026-09-07) · *Design, thème, langue et mise en page*
@@ -332,6 +347,9 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⬜ Une couleur par service dans les deux grilles (2026-09-14)](#-une-couleur-par-service-dans-les-deux-grilles-2026-09-14) · *Design, thème, langue et mise en page*
 - 3 · [Débordement du champ « Type * » — création d'ambassade (2026-08-04)](#débordement-du-champ--type----création-dambassade-2026-08-04) · *Design, thème, langue et mise en page* · bloqué
 - 1 · [Cartographie des accès `anon` réellement nécessaires (2026-08-13)](#cartographie-des-accès-anon-réellement-nécessaires-2026-08-13) · *Backend, sécurité et observabilité*
+- 3 · [⬜ Panneau admin : textes passés en l10n et infobulles sur les boutons-icônes (2026-10-15)](#-panneau-admin--textes-passés-en-l10n-et-infobulles-sur-les-boutons-icônes-2026-10-15) · *Site web*
+- 5 · [⬜ Panneau admin : Transferts, Marketplace, Commerces, Modération et Audit passent aux briques du kit (2026-10-15)](#-panneau-admin--transferts-marketplace-commerces-modération-et-audit-passent-aux-briques-du-kit-2026-10-15) · *Site web*
+- 3 · [⬜ Panneau admin : Utilisateurs et Signalements passent aux briques du kit (2026-10-15)](#-panneau-admin--utilisateurs-et-signalements-passent-aux-briques-du-kit-2026-10-15) · *Site web*
 - 3 · [Passe nocturne + carte vérifiée sur appareil (2026-08-04, SM A515F)](#passe-nocturne--carte-vérifiée-sur-appareil-2026-08-04-sm-a515f) · *Journaux de passes appareil*
 - 2 · [Session appareil du 2026-08-03 — SM A515F, thème sombre, font_scale 1.1](#session-appareil-du-2026-08-03--sm-a515f-thème-sombre-font_scale-11) · *Journaux de passes appareil*
 - 12 · [Messages épinglés — le bandeau n'était pas temps réel (2026-08-05)](#messages-épinglés--le-bandeau-nétait-pas-temps-réel-2026-08-05) · *Messagerie* · bloqué
@@ -357,10 +375,10 @@ Par domaine :
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 67 à faire, 0 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 58 à faire, 5 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 108 à faire, 5 faites
-- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 74 à faire, 2 faites
+- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 101 à faire, 2 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 46 à faire, 1 faites
-- [15. Site web](#15-site-web) — 23 à faire, 0 faites
-- [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 19 à faire, 0 faites
+- [15. Site web](#15-site-web) — 63 à faire, 0 faites
+- [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 23 à faire, 0 faites
 
 <!-- sommaire:fin -->
 
@@ -456,6 +474,8 @@ Discussions : bulles, composeur, médias, épingles, réactions, accusés, reche
 
 - [ ] Deux téléphones en E2EE Signal, app A au premier plan hors de la discussion : B envoie un message ; lire la bannière, puis ouvrir la discussion. La bulle affiche le texte, pas « indisponible » (`notification_decryption_service.dart`, `message_repository_impl.dart`).
 - [ ] Répondre à un message réellement illisible : la citation et le bandeau « répondre à » affichent « Message indisponible sur cet appareil », jamais `[🔐 E2EE — session requise]` (`message_bubble.dart`, `message_input.dart`).
+
+---
 
 ## ⬜ Liste, discussion, « Distribué » et « Lu » : le message arrive après sa notification, la liste ne s'actualise pas (2026-09-27)
 
@@ -9284,6 +9304,70 @@ parce qu'il change un **comportement**, pas seulement un habillage :
 Supabase et Firebase côté serveur, accès anon, stockage, journaux, Crashlytics, back-office.
 
 ---
+## ⬜ Crashlytics : clés et journaux de diagnostic des OutOfMemoryError (2026-10-15)
+
+**Priorité P1** · importance 4/5 — 8 `OutOfMemoryError` en 30 jours sur 1.2.2 (Tecno/Infinix, app en arrière-plan), onglets Clés et Journaux vides : on ne savait pas qui remplissait le tas. `lib/core/services/diagnostic_memoire.dart` pose désormais des clés personnalisées et des journaux dans chaque isolat (principal, FCM, service de localisation, réponse rapide) ; la mémoire Java vient du plugin local `packages/diagnostic_memoire` (Android seulement). Ne corrige PAS l'OOM. `flutter test` ne couvre pas : la lecture native, ni ce que Crashlytics affiche vraiment.
+
+*Bloqué : build release Android sur un téléphone, console Crashlytics (les non-fatals mettent quelques minutes à remonter).*
+
+- [ ] Depuis l'app au premier plan, forcer un non-fatal (`FirebaseCrashlytics.instance.recordError(Exception('test diag'), null)` depuis un bouton de debug ou un test d'intégration), l'ouvrir dans la console → onglet **Clés** : `isolat`=`principal`, `appli_au_premier_plan`=`true`, `service_localisation_actif`, `tas_max_mio`, `tas_alloue_mio`, `tas_libre_mio`, `tas_restant_mio`, `classe_memoire_mio`, `grande_classe_memoire_mio`, `appareil_peu_de_ram`, `rss_mio`, avec des valeurs plausibles (tas max 128–512).
+- [ ] Mettre l'app en arrière-plan, recevoir un push de message, puis forcer un non-fatal depuis l'isolat FCM → clé `isolat`=`fcm_arriere_plan`, `appli_au_premier_plan`=`false`, valeurs du tas rafraîchies ; onglet **Journaux** : `isolat ouvert : fcm_arriere_plan`, `fcm début : message`, `fcm fin`.
+- [ ] Partage de position actif, app en arrière-plan : journaux `isolat ouvert : service_localisation`, `service localisation : démarrage` ; couper le partage → `service localisation : arrêt (…)` et `service_localisation_actif`=`false` sur le non-fatal suivant.
+- [ ] Revenir au premier plan puis repasser en arrière-plan → journaux `cycle de vie : premier plan` / `arrière-plan`, clé `appli_au_premier_plan` suit.
+- [ ] iOS : aucune erreur ni plantage (pas de plugin natif) ; clés `isolat` et `rss_mio` présentes, pas de `tas_*`.
+- [ ] Rappel de lecture : les clés sont **par processus** — `isolat` vaut le dernier isolat signalé, pas forcément celui qui plante ; se fier aux journaux, ordonnés, pour la séquence.
+
+---
+## ⬜ Second facteur TOTP obligatoire sur le panneau admin (2026-10-14)
+
+**Priorité P1** · importance 4/5 — ferme le § 8 et le § 10 point 7 de l'audit du 14/10 (`docs/deploiement/AUDIT_ADMIN_2026-10-14.md`) : un mot de passe admin hameçonné valait le panneau entier. Désormais un compte admin sans facteur enrôlé est envoyé sur l'enrôlement (QR + premier code) avant tout tableau de bord, un compte avec facteur passe par l'écran de défi, et la garde de `/dashboard` exige rôle **et** facteur (`admin_login_screen.dart`, `admin_enrolement_totp_screen.dart`, `admin_defi_second_facteur_screen.dart`, `garde_tableau_de_bord.dart`). Ce que `flutter test` ne couvre pas : le vrai SDK web (`TotpMultiFactorGenerator`, `MultiFactorResolver`), le QR lu par une vraie application d'authentification, l'horloge du téléphone, et la configuration du projet.
+
+**Préalable** (Salim, `docs/deploiement/MFA_ADMIN.md`) : TOTP activé sur le projet — relevé du 14/10 : Identity Platform oui, MFA activé, SMS seul. Sans lui, l'enrôlement répond « Opération non activée sur le projet Firebase ». Panneau servi en local (`flutter run -d chrome -t lib/features/admin/main.dart`) ou sur une cible d'hébergement quand elle existera. Compte : `test.diaspo@example.com` (superAdmin après amorçage), un téléphone avec Google Authenticator ou Aegis.
+
+- [ ] Connexion e-mail d'un admin sans facteur → écran « Second facteur requis » avec le QR, la clé par blocs de 4, « À confirmer avant HH:MM » ; `/dashboard` tapé dans la barre d'adresse à ce moment → le même écran d'enrôlement, jamais le tableau de bord.
+- [ ] Scanner le QR : l'application affiche « DiaspoNiger Admin » et l'e-mail du compte ; saisir la clé à la main dans une seconde application donne le même code.
+- [ ] Premier code juste → tableau de bord ; dans la console Firebase (Authentication → Users → le compte), un facteur TOTP « Application d'authentification » est listé.
+- [ ] Code faux → « Code incorrect… », bouton réactivé ; code de la fenêtre précédente (≤ 2 min 30, `adjacentIntervals: 5`) → accepté ; horloge du téléphone décalée de 5 min → refusé, message qui parle de l'heure.
+- [ ] Déconnexion, reconnexion du même compte → écran « Code de vérification » **sans** session ouverte (`/dashboard` tapé à ce moment → connexion, pas le tableau de bord) ; code juste → tableau de bord ; code faux → message, bouton réactivé ; « Retour à la connexion » → connexion.
+- [ ] Google : même parcours (enrôlement puis défi) ; un compte sans droits avec un facteur → « Accès refusé… » et session fermée (`/dashboard` → connexion).
+- [ ] Session ouverte depuis plus de 5 min sans facteur (onglet laissé ouvert, puis `/dashboard`) → l'enrôlement affiche « Connexion trop ancienne… » avec « Réessayer » et « Se déconnecter », jamais une page blanche.
+- [ ] App mobile, même compte admin enrôlé → « Ce compte exige un second facteur : connectez-vous depuis le panneau d'administration », pas de plantage, pas de session fantôme.
+- [ ] Perte du téléphone : la recette Admin SDK de `MFA_ADMIN.md` retire le facteur ; la reconnexion retombe sur l'enrôlement.
+
+---
+
+## ⬜ Signalements : l'app écrit dans Supabase, le panneau admin les voit (2026-10-15)
+
+**Priorité P1** · importance 4/5 — avant, l'app écrivait dans Firestore et le
+panneau lisait Supabase : aucun signalement n'arrivait à l'administrateur.
+Dépend de la migration `20261015100000` (à appliquer **avant** le client).
+
+- [ ] Signaler un message, une conversation, un groupe, un utilisateur depuis
+      l'app : il apparaît dans le panneau admin, onglet En attente.
+- [ ] Signaler deux fois le même contenu : message « déjà signalé », pas de doublon.
+- [ ] Traiter un signalement dans le panneau (résoudre, rejeter) : le statut
+      change vraiment (avant : zéro ligne touchée, faute de policy UPDATE).
+- [ ] « Mes signalements » affiche les siens avec le bon statut.
+
+## ⬜ Registre de rôle unique : claim, Postgres et callable — l'écran Rôles et le bannissement serveur (2026-10-14)
+
+**Priorité P1** · importance 4/5 — ferme le § 2 et le § 7 de l'audit du 14/10 (`docs/deploiement/AUDIT_ADMIN_2026-10-14.md`) : le rôle admin vivait dans trois registres sans maître, reliés par une écriture cliente ; le bannissement n'existait pas pour Firebase. Quatre livraisons, aucune déployée : callable `setAdminRole` (Postgres source → claim → RTDB → journal), callable `setUserBanned` (Postgres → `updateUser({disabled})` → `revokeRefreshTokens`), règles Firestore/RTDB sur `auth.token.adminRole`, panneau sur le claim et sur Postgres (`permission_provider.dart`, `role_management_provider.dart`, RPC `administrateurs()` / `profil_par_email()`). Le même jour, `banUser`/`unbanUser` du panneau (`admin_provider.dart`) appellent `setUserBanned` au lieu d'écrire Postgres et le journal eux-mêmes ; le refus du serveur est affiché (`refus_callable.dart`, partagé avec `setAdminRole`).
+
+Vérifié hors appareil : `cd functions && npm test` (42 cas), bancs d'émulateur `registre_role_claim.mjs` et `salons_audio_admin.mjs`, `flutter test`. Ordre de déploiement dans `docs/ops/AMORCAGE_ADMIN.md` — les règles AVANT l'amorçage du claim retireraient tout à l'admin en place.
+
+À vérifier, après déploiement des fonctions, amorçage (`node tools/amorcer_super_admin.mjs --email <admin> --confirmer`), règles, puis client :
+
+- [ ] Panneau, compte superAdmin : le rail affiche toutes les sections sans qu'aucun document Firestore `users/<uid>` n'existe ; `adb logcat -s flutter | grep PermissionProvider` montre `claim adminRole -> AdminRole.superAdmin`.
+- [ ] Écran Rôles : la liste vient de Postgres — un admin créé après la migration (absent de Firestore) y figure.
+- [ ] « Nouvel admin » : chercher par e-mail un compte absent de Firestore → trouvé ; assigner Modérateur Contenu → snackbar verte, la ligne apparaît dans sa section ; en base `is_admin = true` ET `admin_role = 'contentMod'` ; une ligne `assign_role` dans `admin_audit_logs`.
+- [ ] Depuis le compte promu, se reconnecter (ou attendre ≤ 1 h) : les sections contentMod s'ouvrent ; dans un salon audio, il retire un participant (règle RTDB par claim) ; avant la reconnexion, le même geste est refusé.
+- [ ] Refus visibles, pas de snackbar verte : révoquer le dernier superAdmin → « Impossible de retirer le dernier superAdmin » ; un contentMod qui ouvre l'écran Rôles → message de droits, pas une liste vide.
+- [ ] Bannir depuis Utilisateurs : snackbar verte ; en base `is_banned`, `banned_by` = uid de l'admin, `session_id` = `banned_…` ; une ligne `ban_user` dans `admin_audit_logs` sans rien d'écrit par le panneau ; l'appareil banni est déconnecté (sentinelle), et la reconnexion échoue (« compte désactivé ») ; débannir la rétablit.
+- [ ] Refus du bannissement visibles, pas de snackbar verte, liste inchangée : bannir un superAdmin → « Un superAdmin ne se bannit pas : lui retirer son rôle d'abord » ; depuis un compte contentMod, bannir un autre admin → « Seul un superAdmin peut bannir un administrateur » ; en mode avion → « Connexion indisponible… », jamais « UNAVAILABLE » ni le texte brut de l'exception.
+- [ ] Règles déployées : un document Firestore `users/<uid>` avec `isAdmin: true` posé à la main ne donne plus accès à `admin_audit_logs` (lecture refusée dans la console → simulateur de règles, ou par l'app).
+
+---
+
 ## ⬜ Aucune requête Supabase ne part sans session : le refus du pont est respecté (2026-10-13)
 
 **Priorité P1** · importance 4/5 — suite de « Une erreur Supabase ne fait plus planter l'app : message à l'écran, JWT expiré retenté ». Ce correctif-là rattrapait le symptôme (`PGRST303` re-minté puis rejoué) ; celui-ci ferme la cause : quarante-neuf datasources appelaient `ensureAuthenticated()` sans lire sa réponse, et pendant la fenêtre de calme de `PolitiqueDeReprise` la requête partait quand même, avec le jeton périmé.
@@ -10510,6 +10594,171 @@ diasponiger.web.app : pages, palette, menu, aperçus de partage.
 
 ---
 
+## ⬜ Panneau admin, Signalements : lit Firestore (ce que l'app signale) en plus de Supabase (2026-10-15)
+
+**Priorité P1** · importance 4/5 — jusqu'ici le panneau ne lisait que
+`public.reports` (Supabase), vide : les signalements de messages, de
+conversations et de contenus que l'app écrit dans Firestore n'y arrivaient
+jamais. `AdminReportsNotifier` fond maintenant les deux sources
+(`fusion_paginee.dart`), et écrit sa décision dans la source du signalement.
+Jamais vu avec de vrais signalements.
+
+- [ ] Signaler un message depuis l'app, puis ouvrir le panneau (compte
+      `contentMod` ou `superAdmin`) : il apparaît dans « En attente », avec la
+      conversation d'origine ; la carte et le badge du tableau de bord comptent.
+- [ ] Signaler une conversation et un utilisateur : les trois formes de
+      document s'affichent (nom du signalant parfois absent).
+- [ ] Résoudre puis rejeter : le document Firestore passe à `resolved` /
+      `dismissed` (console Firebase), l'entrée apparaît dans le journal d'audit,
+      le signalé reçoit sa notification et `reportedUserNotified` passe à vrai.
+- [ ] Compte `businessMod` ou `financeMod` : bandeau « Signalements de l'app
+      illisibles », sans écran vide ni crash.
+- [ ] Si la console réclame un index composite `reports` : le déployer
+      (`firestore.indexes.json` en porte déjà `status + createdAt`).
+- [ ] Marketplace et Transferts : toujours lus dans Supabase (vides, drapeaux
+      fermés) ; à reprendre à la réouverture.
+## ⬜ Panneau admin, Commerces et Marketplace : recherche côté serveur (2026-10-15)
+
+**Priorité P2** · importance 3/5 — un champ de recherche en tête de chaque
+écran, appliqué par le serveur (`ilike` en `or(...)`, délai de frappe 0,4 s) :
+commerces par nom, ville, catégorie, e-mail ; marketplace par titre,
+description et catégorie des produits, noms d'acheteur et de vendeur des
+commandes et des litiges. Jamais vu avec de vraies données.
+
+- [ ] Commerces : un nom cherché hors des 50 premiers résultats apparaît ;
+      la recherche se combine avec Tous / En attente / Boostés, et chaque
+      puce affiche « n+ » tant qu'il reste une page.
+- [ ] Marketplace : une même saisie filtre les trois onglets (produits,
+      commandes, litiges) ; un nom d'acheteur trouve ses commandes.
+- [ ] Une virgule, une parenthèse ou `%` saisis ne cassent rien ni ne
+      renvoient tout.
+- [ ] Vider le champ (croix) recharge la liste complète.
+
+## ⬜ Panneau admin : textes passés en l10n et infobulles sur les boutons-icônes (2026-10-15)
+
+**Priorité P3** · importance 2/5 — une trentaine de textes en dur de
+`lib/features/admin/` lisent maintenant `AppLocalizations` (32 clés ajoutées à
+`app_fr.arb` et `app_en.arb`, 9 clés déjà présentes mais inutilisées
+réutilisées) ; chaque `IconButton` et `PopupMenuButton` du panneau porte un
+`tooltip` (un test balaie le dossier). Reste en dur : noms des feature flags,
+champs des onglets de Configuration, libellés de quelques dialogues.
+
+- [ ] Panneau en français : les onglets (« Tous (50+) », « Échouées (3) »…), les
+      états vides et les messages d'ambassade se lisent comme avant.
+- [ ] Panneau en anglais (langue du navigateur) : mêmes textes traduits, rien
+      de coupé ni de français résiduel dans ces écrans.
+- [ ] Survol à la souris : « Actualiser », « Autres actions », « Retour »,
+      « Fermer » apparaissent sur les boutons-icônes.
+
+## ⬜ Panneau admin : écrans Configuration et Signalements découpés (2026-10-15)
+
+**Priorité P2** · importance 3/5 — `admin_settings_screen.dart` (2093 lignes)
+devient 256 lignes + cinq onglets sous `screens/reglages/` (Frais, Boosts,
+Taxes, Médias, Système) et deux briques partagées (`ReglagesCarteSection`,
+`ReglagesBoutonEnregistrer`) ; `admin_reports_screen.dart` perd son aperçu
+de contenu, ses cartes de compteur et ses libellés. Déplacement mécanique,
+`flutter analyze` propre ; `reglages_onglets_test.dart` monte les cinq
+onglets et vérifie qu'ils réécrivent leurs réglages à l'identique (il a
+trouvé que l'onglet Système effaçait `supportPhone`). Reste à voir le rendu.
+
+- [ ] Configuration : les cinq onglets s'ouvrent, chaque champ affiche sa
+      valeur enregistrée, « Enregistrer » écrit et le message de succès sort.
+- [ ] Onglet Système : les deux boutons (URL, intervalles) enregistrent chacun
+      leur groupe de champs.
+- [ ] Signalements : ouvrir un signalement avec contenu capturé (texte, image,
+      fichier) ; « Voir le contenu » mène à la bonne fiche.
+
+## ⬜ Panneau admin : Transferts, Marketplace, Commerces, Modération et Audit passent aux briques du kit (2026-10-15)
+
+**Priorité P3** · importance 2/5 — même changement que pour Utilisateurs et
+Signalements (voir leur entrée) : états vides `DesignEmptyState`, pastilles
+`DesignBadge`/`DesignTag`, puces `DesignFilterChip` (Commerces), recherche
+`DesignSearchField` (Audit), `AdminChargerPlus`. Les pastilles de type de cible
+de l'Audit (couleur et icône par type) restent faites main : le kit n'a que
+quatre tons de statut.
+
+- [ ] Transferts : pastille de statut lisible pour les six statuts
+      (remboursée et annulée prennent le gris « archivé »).
+- [ ] Modération : « à venir » en étiquette d'accent, « en cours » vert,
+      « terminé » gris, « annulé » rouge ; catégorie en étiquette neutre.
+- [ ] Marketplace : disponible / indisponible ; états vides des trois onglets.
+- [ ] Commerces : puces noires pleines (même question que pour Signalements).
+- [ ] Audit : recherche et état vide.
+
+## ⬜ Panneau admin : Utilisateurs et Signalements passent aux briques du kit (2026-10-15)
+
+**Priorité P3** · importance 2/5 — recherche (`DesignSearchField`), puces de
+type (`DesignFilterChip`, **noires pleines** et non plus bleu d'action),
+pastilles (`DesignBadge` / `DesignTag`), états vides (`DesignEmptyState`) et
+« Charger plus » (`AdminChargerPlus`) ne sont plus faits main. Le rendu sous
+le thème nu de l'admin est testé ; l'œil, non.
+
+- [ ] Utilisateurs : champ de recherche, pastille « Admin » (étiquette
+      d'accent) et « Banni » (rouge) lisibles sur la carte, sans débordement.
+- [ ] Signalements : puces de type, pastilles En attente / Résolu / Rejeté,
+      état vide avec et sans filtre (bouton « Effacer les filtres »).
+- [ ] Décider si les puces noires conviennent au panneau, ou si l'admin garde
+      son bleu d'action (guide de style, palette ⑤).
+
+## ⬜ Panneau admin, Commerces et Marketplace : listes paginées (2026-10-15)
+
+**Priorité P2** · importance 3/5 — `admin_businesses_screen.dart` (Tous / En
+attente / Boostés : trois requêtes filtrées par `is_verified` et `is_boosted`)
+et `admin_marketplace_screen.dart` (produits, commandes, litiges) chargent 50
+lignes par page avec « Charger plus ». Jamais vu avec de vraies données.
+
+- [ ] Commerces : « En attente » liste tous les non-vérifiés, y compris les
+      plus anciens que les 50 derniers ; « Charger plus » ajoute la suite.
+- [ ] Vérifier / supprimer un commerce : les trois listes se rechargent.
+- [ ] Marketplace : produits, commandes et litiges ont chacun leur « Charger
+      plus » ; l'onglet Litiges ne montre que `is_in_dispute`.
+- [ ] Les libellés d'onglet affichent « n+ » tant qu'il reste une page.
+
+## ⬜ Panneau admin, Signalements : pagination, recherche et type côté serveur (2026-10-14)
+
+**Priorité P2** · importance 3/5 — `admin_reports_screen.dart` : trois onglets,
+chacun une requête paginée (50) sur `reports` ; la recherche (`ilike` sur
+nom de cible, nom du signalant, motif, id de cible, description) et la puce
+de type partent au serveur ; les quatre cartes lisent des `count` réels.
+Jamais vu avec de vraies données.
+
+- [ ] Plus de 100 signalements : « Charger plus » les atteint tous ; les
+      cartes En attente / Traités / Rejetés / Total sont les totaux réels.
+- [ ] Recherche d'un mot présent dans un signalement ancien : il apparaît ;
+      une virgule, une parenthèse ou `%` saisis ne cassent rien.
+- [ ] Puce de type + recherche ensemble ; « Effacer les filtres » remet tout.
+- [ ] Résoudre / rejeter un signalement : onglets et cartes se rechargent,
+      filtres conservés.
+
+## ⬜ Panneau admin, Transferts : quatre onglets paginés par le serveur (2026-10-14)
+
+**Priorité P2** · importance 3/5 — `admin_transactions_screen.dart` : chaque
+onglet interroge `transactions` par statut avec `range` (50 par page) ; les
+cartes « En attente » et « Échouées » lisent un `count` réel. Jamais vu avec
+de vraies données.
+
+- [ ] « Échouées » et « En attente » : les nombres des onglets et des cartes
+      sont les totaux réels, pas plafonnés à 50 ni à 100.
+- [ ] « Charger plus » ajoute la page suivante et disparaît à la dernière.
+- [ ] Rembourser / compléter / échouer un transfert : les quatre onglets et
+      les compteurs se rechargent.
+- [ ] Les cartes de volume et de frais portent sur les transferts chargés de
+      « Toutes » : elles grossissent après « Charger plus ».
+
+## ⬜ Panneau admin, Utilisateurs : pagination et recherche côté serveur (2026-10-14)
+
+**Priorité P2** · importance 3/5 — `admin_users_management_screen.dart` lit
+désormais `profils_admin_page` (migration `20261014140000`, **à appliquer
+avant le client**) ; jamais vu avec de vraies données.
+
+- [ ] Onglet « Tous » : 50 lignes, bouton « Charger plus » ajoute les 50
+      suivantes ; il disparaît à la dernière page.
+- [ ] Recherche d'un nom ou d'un e-mail ancien (hors des 50 derniers
+      inscrits) : il apparaît ; `%` et `_` saisis ne servent pas de jokers.
+- [ ] Onglets « Admins » et « Bannis » : tous les comptes concernés, pas
+      seulement parmi les 50 derniers ; libellé « n+ » s'il y en a d'autres.
+- [ ] Bannir puis débannir : la liste se recharge, la recherche reste.
+
 ## ⬜ La page de suppression de compte demande la suppression au lieu de l'exécuter (2026-09-19)
 
 **Priorité P1** · importance 4/5 — la page `/delete-account` (probablement
@@ -10854,3 +11103,21 @@ long **rétrécisse** au lieu d'être coupé. **Non vérifié sur appareil** —
 à confirmer au prochain passage.
 
 - ✔ 2 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Session appareil du 2026-08-03 — SM A515F, thème sombre, font_scale 1.1 »).
+
+## Plantages Crashlytics 1.2.2 (31) — « objet utilisé après destruction » (2026-10-15)
+
+Non testables en widget test (GoogleMap, caméra et envoi d'image passent par
+des canaux de plateforme et des services construits en dur) : à vérifier sur
+appareil.
+
+- [ ] (couvert en test ; geste réel à confirmer) Création de groupe avec photo : appuyer sur « Créer » puis quitter
+      l'écran (retour) pendant l'envoi → pas de plantage ; le groupe apparaît
+      quand même dans « Mes groupes » (`create_group_screen.dart`).
+- [ ] Carte : lancer une recherche de lieu puis quitter l'écran avant le
+      résultat → pas de plantage ; zoom sur un cluster et « zoom arrière » de
+      la carte vide toujours fonctionnels (`map_screen.dart`, `_animerCamera`).
+- [ ] Scanner QR, permission caméra **refusée** : toucher la torche et le
+      changement de caméra → rien ne plante (`qr_scanner_screen.dart`). Avec
+      caméra active : la torche s'allume et le voyant suit.
+- [ ] Réception de clés (`key_transfer_receive_screen.dart`) : permission
+      caméra refusée puis « Réessayer » → pas de plantage.

@@ -113,9 +113,12 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
                 unawaited(ref.read(adminAnalyticsNotifierProvider.notifier).loadAnalytics());
               },
               borderRadius: BorderRadius.circular(12),
-              child: const Padding(
-                padding: EdgeInsets.all(12),
-                child: AppIcon(AppIcon.refresh, color: Colors.white),
+              child: Tooltip(
+                message: l10n.adminRefresh,
+                child: const Padding(
+                  padding: EdgeInsets.all(12),
+                  child: AppIcon(AppIcon.refresh, color: Colors.white),
+                ),
               ),
             ),
           ),
@@ -693,7 +696,7 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
           children: [
             const Icon(Icons.download_rounded, color: Colors.white),
             const SizedBox(width: 12),
-            Text('Export des $type en cours...'),
+            Text(l10n.adminExportInProgress(type)),
           ],
         ),
         backgroundColor: _primaryColor,

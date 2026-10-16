@@ -5,11 +5,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../auth/domain/entities/user_entity.dart';
 import '../providers/admin_provider.dart';
+import '../widgets/avatar_admin.dart';
+import '../widgets/admin_bandeau_erreur.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:diaspo_niger/core/theme/design_kit.dart';
+import 'package:diaspo_niger/features/admin/presentation/widgets/admin_charger_plus.dart';
 
 class AdminUsersManagementScreen extends ConsumerStatefulWidget {
-  const AdminUsersManagementScreen({super.key});
+  const AdminUsersManagementScreen({super.key, this.onGererRoles});
+
+  /// Mène à l'écran Rôles, seul chemin de promotion. Les entrées « Promouvoir
+  /// admin » / « Retirer admin » de ce menu n'écrivaient que `is_admin`, sans
+  /// `admin_role` ni Firestore : des admins fantômes, tous les pouvoirs RLS
+  /// et invisibles comme admins dans l'app — un tel compte existe en
+  /// production (audit du 2026-10-14, § 2). Nul quand l'écran est monté hors
+  /// du tableau de bord.
+  final VoidCallback? onGererRoles;
 
   @override
   ConsumerState<AdminUsersManagementScreen> createState() =>
@@ -24,6 +35,7 @@ class _AdminUsersManagementScreenState
   late TabController _tabController;
   final _searchController = TextEditingController();
   String _searchQuery = '';
+  Timer? _debounceRecherche;
 
   // Modern color palette (matching dashboard)
   static const Color _primaryColor = AdminColors.actionBlue;
@@ -35,6 +47,11 @@ class _AdminUsersManagementScreenState
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    // Une recherche posée avant l'ouverture (« Voir l'utilisateur » d'un
+    // signalement) doit s'afficher dans le champ, pas seulement filtrer.
+    final recherche = ref.read(adminUsersNotifierProvider).recherche;
+    _searchController.text = recherche;
+    _searchQuery = recherche;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       unawaited(ref.read(adminUsersNotifierProvider.notifier).fetchAllUsers());
     });
@@ -42,6 +59,7 @@ class _AdminUsersManagementScreenState
 
   @override
   void dispose() {
+    _debounceRecherche?.cancel();
     _tabController.dispose();
     _searchController.dispose();
     super.dispose();
@@ -80,9 +98,9 @@ class _AdminUsersManagementScreenState
             indicatorWeight: 3,
             labelStyle: const TextStyle(fontWeight: FontWeight.w600),
             tabs: [
-              Tab(text: 'Tous (${state.users.length})'),
-              Tab(text: 'Admins (${state.admins.length})'),
-              Tab(text: 'Bannis (${state.bannedUsers.length})'),
+              Tab(text: l10n.adminTabWithCount(l10n.all, '${state.users.length}${state.encorePlus.contains(FiltreUtilisateurs.tous) ? '+' : ''}')),
+              Tab(text: l10n.adminTabWithCount(l10n.admins, '${state.admins.length}${state.encorePlus.contains(FiltreUtilisateurs.admins) ? '+' : ''}')),
+              Tab(text: l10n.adminTabWithCount(l10n.adminBannedName, '${state.bannedUsers.length}${state.encorePlus.contains(FiltreUtilisateurs.bannis) ? '+' : ''}')),
             ],
           ),
         ),
@@ -90,14 +108,29 @@ class _AdminUsersManagementScreenState
         Expanded(
           child: state.isLoading
               ? _buildLoadingState()
-              : state.error != null
+              : state.error != null && state.users.isEmpty
                   ? _buildErrorState(state.error!)
-                  : TabBarView(
-                      controller: _tabController,
+                  : Column(
                       children: [
-                        _buildUsersList(_filterUsers(state.users)),
-                        _buildUsersList(_filterUsers(state.admins)),
-                        _buildUsersList(_filterUsers(state.bannedUsers)),
+                        // Une erreur posée après une action (zéro ligne,
+                        // journal refusé) ne doit pas effacer la liste.
+                        if (state.error != null)
+                          AdminBandeauErreur(
+                            message: state.error!,
+                            onFermer: ref
+                                .read(adminUsersNotifierProvider.notifier)
+                                .effacerErreur,
+                          ),
+                        Expanded(
+                          child: TabBarView(
+                            controller: _tabController,
+                            children: [
+                              _buildUsersList(state, FiltreUtilisateurs.tous),
+                              _buildUsersList(state, FiltreUtilisateurs.admins),
+                              _buildUsersList(state, FiltreUtilisateurs.bannis),
+                            ],
+                          ),
+                        ),
                       ],
                     ),
         ),
@@ -137,7 +170,12 @@ class _AdminUsersManagementScreenState
     );
   }
 
-  Widget _buildRefreshButton() {
+  Widget _buildRefreshButton() => Tooltip(
+    message: l10n.adminRefresh,
+    child: _boutonActualiser(),
+  );
+
+  Widget _boutonActualiser() {
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -162,64 +200,46 @@ class _AdminUsersManagementScreenState
   }
 
   Widget _buildSearchBar() {
-    return Container(
-      decoration: BoxDecoration(
-        color: _cardColor,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(8),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: TextField(
-        controller: _searchController,
-        onChanged: (value) => setState(() => _searchQuery = value),
-        decoration: InputDecoration(
-          hintText: l10n.adminSearchUser,
-          prefixIcon: const Icon(Icons.search_rounded, color: _textSecondary),
-          suffixIcon: _searchQuery.isNotEmpty
-              ? IconButton(
-                  icon: const Icon(Icons.clear_rounded, color: _textSecondary),
-                  onPressed: () {
-                    _searchController.clear();
-                    setState(() => _searchQuery = '');
-                  },
-                )
-              : null,
-          filled: true,
-          fillColor: _cardColor,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
-          ),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        ),
-      ),
+    return DesignSearchField(
+      controller: _searchController,
+      hintText: l10n.adminSearchUser,
+      onChanged: _surRecherche,
+      onClear: () {
+        _searchController.clear();
+        _surRecherche('');
+      },
+      active: _searchQuery.isNotEmpty,
     );
   }
 
-  List<UserEntity> _filterUsers(List<UserEntity> users) {
-    if (_searchQuery.isEmpty) return users;
-    final query = _searchQuery.toLowerCase();
-    return users.where((user) {
-      return (user.displayName?.toLowerCase().contains(query) ?? false) ||
-          (user.email?.toLowerCase().contains(query) ?? false);
-    }).toList();
+  /// La recherche part au serveur, un court instant après la dernière frappe.
+  void _surRecherche(String value) {
+    setState(() => _searchQuery = value);
+    _debounceRecherche?.cancel();
+    _debounceRecherche = Timer(const Duration(milliseconds: 400), () {
+      unawaited(ref.read(adminUsersNotifierProvider.notifier).rechercher(value));
+    });
   }
 
-  Widget _buildUsersList(List<UserEntity> users) {
+  Widget _buildUsersList(AdminUsersState state, FiltreUtilisateurs filtre) {
+    final users = state.liste(filtre);
     if (users.isEmpty) {
       return _buildEmptyState();
     }
+    final encorePlus = state.encorePlus.contains(filtre);
 
     return ListView.builder(
-      itemCount: users.length,
+      itemCount: users.length + (encorePlus ? 1 : 0),
       itemBuilder: (context, index) {
-        final user = users[index];
-        return _buildUserCard(user);
+        if (index == users.length) {
+          return AdminChargerPlus(
+            enCours: state.chargementPlus == filtre,
+            onPressed: () => unawaited(
+              ref.read(adminUsersNotifierProvider.notifier).chargerPlus(filtre),
+            ),
+          );
+        }
+        return _buildUserCard(users[index]);
       },
     );
   }
@@ -245,33 +265,9 @@ class _AdminUsersManagementScreenState
             // Avatar
             Stack(
               children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    gradient: user.photoUrl == null
-                        ? const LinearGradient(colors: [_primaryColor, AdminColors.actionBlueLight])
-                        : null,
-                    image: user.photoUrl != null
-                        ? DecorationImage(
-                            image: NetworkImage(user.photoUrl!),
-                            fit: BoxFit.cover,
-                          )
-                        : null,
-                  ),
-                  child: user.photoUrl == null
-                      ? Center(
-                          child: Text(
-                            (user.displayName ?? user.email ?? 'U')[0].toUpperCase(),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                            ),
-                          ),
-                        )
-                      : null,
+                AvatarAdmin(
+                  nom: user.displayName ?? user.email,
+                  photoUrl: user.photoUrl,
                 ),
                 if (user.isBanned)
                   Positioned(
@@ -306,8 +302,8 @@ class _AdminUsersManagementScreenState
                           ),
                         ),
                       ),
-                      if (user.isAdmin) _buildBadge(l10n.adminAdminBadge, AdminColors.statusPurple),
-                      if (user.isBanned) _buildBadge(l10n.adminBannedBadge, AdminColors.statusRed),
+                      if (user.isAdmin) _badge(DesignTag(l10n.adminAdminBadge, tone: DesignTagTone.accent)),
+                      if (user.isBanned) _badge(DesignBadge(l10n.adminBannedBadge, tone: DesignBadgeTone.failed)),
                     ],
                   ),
                   const SizedBox(height: 4),
@@ -341,6 +337,7 @@ class _AdminUsersManagementScreenState
             ),
             // Actions
             PopupMenuButton<String>(
+              tooltip: l10n.moreActions,
               onSelected: (value) => _handleUserAction(value, user),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               icon: Container(
@@ -356,10 +353,7 @@ class _AdminUsersManagementScreenState
                   _buildPopupMenuItem('ban', 'Bannir', Icons.block_rounded, AdminColors.statusRed)
                 else
                   _buildPopupMenuItem('unban', 'Débannir', Icons.check_circle_rounded, AdminColors.statusGreen),
-                if (!user.isAdmin)
-                  _buildPopupMenuItem('promote', 'Promouvoir admin', Icons.arrow_upward_rounded, AdminColors.statusPurple)
-                else
-                  _buildPopupMenuItem('demote', 'Retirer admin', Icons.arrow_downward_rounded, AdminColors.statusAmber),
+                _buildPopupMenuItem('roles', 'Rôle admin : écran Rôles', Icons.admin_panel_settings_outlined, AdminColors.statusPurple),
                 _buildPopupMenuItem('verify_profile', 'Vérifier profil', Icons.verified_rounded, AdminColors.actionBlueLight),
                 _buildPopupMenuItem('force_logout', 'Forcer déconnexion', Icons.logout_rounded, _textSecondary),
                 _buildPopupMenuItem('activity', 'Voir activité', Icons.history_rounded, _primaryColor),
@@ -391,25 +385,9 @@ class _AdminUsersManagementScreenState
     );
   }
 
-  Widget _buildBadge(String label, Color color) {
-    return Container(
-      margin: const EdgeInsets.only(left: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: color.withAlpha(20),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: color.withAlpha(50)),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.w600,
-          color: color,
-        ),
-      ),
-    );
-  }
+  /// Les pastilles du kit, décalées de la ligne de nom.
+  Widget _badge(Widget pastille) =>
+      Padding(padding: const EdgeInsets.only(left: 8), child: pastille);
 
   String _formatDate(DateTime date) {
     return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
@@ -475,13 +453,15 @@ class _AdminUsersManagementScreenState
 
   Widget _buildEmptyState() {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.people_outline_rounded, size: 64, color: _textSecondary.withAlpha(100)),
-          const SizedBox(height: 16),
-          Text(l10n.adminNoUserFound, style: TextStyle(color: _textSecondary, fontSize: 16)),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: DesignEmptyState(
+          icon: Icons.people_outline_rounded,
+          title: l10n.adminNoUserFound,
+          body: _searchQuery.isEmpty
+              ? l10n.adminUsersEmptyBody
+              : l10n.adminUsersNoMatchBody,
+        ),
       ),
     );
   }
@@ -500,40 +480,42 @@ class _AdminUsersManagementScreenState
       case 'ban':
         final reason = await _showTextDialog('Bannir l\'utilisateur', l10n.adminBanReasonLabel);
         if (reason != null && reason.isNotEmpty) {
-          await notifier.banUser(user.id, reason, adminId: currentAdmin.id, adminName: currentAdmin.name);
-          _showSnackBar(l10n.adminUserBanned);
+          final ok = await notifier.banUser(user.id, reason);
+          _montrerBilan(ok, l10n.adminUserBanned);
         }
         break;
       case 'unban':
         final confirm = await _showConfirmation('Débannir l\'utilisateur', l10n.adminUnbanConfirm);
         if (confirm == true) {
-          await notifier.unbanUser(user.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
-          _showSnackBar(l10n.adminUserUnbanned);
+          final ok = await notifier.unbanUser(user.id);
+          _montrerBilan(ok, l10n.adminUserUnbanned);
         }
         break;
-      case 'promote':
-        final confirm = await _showConfirmation(l10n.adminPromoteToAdminTitle, l10n.adminPromoteConfirm);
-        if (confirm == true) {
-          await notifier.promoteToAdmin(user.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
-          _showSnackBar(l10n.adminUserPromoted);
-        }
-        break;
-      case 'demote':
-        final confirm = await _showConfirmation(l10n.adminRevokeAdminTitle, l10n.adminRevokeAdminConfirm);
-        if (confirm == true) {
-          await notifier.demoteFromAdmin(user.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
-          _showSnackBar(l10n.adminAdminRightsRevoked);
+      case 'roles':
+        // Un seul chemin de promotion : l'écran Rôles écrit les trois
+        // registres (Postgres, Firestore, RTDB), ce menu n'en écrivait qu'un.
+        final ouvrirRoles = widget.onGererRoles;
+        if (ouvrirRoles != null) {
+          ouvrirRoles();
+        } else {
+          _showSnackBar("Les rôles admin se gèrent depuis l'écran Rôles.");
         }
         break;
       case 'verify_profile':
-        await notifier.verifyProfile(user.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
-        _showSnackBar('Profil vérifié');
+        final ok = await notifier.verifyProfile(user.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
+        _montrerBilan(ok, 'Profil vérifié');
         break;
       case 'force_logout':
         final confirm = await _showConfirmation('Forcer la déconnexion', 'Cela déconnectera l\'utilisateur de tous ses appareils.');
         if (confirm == true) {
-          await dashboardNotifier.forceLogoutUser(user.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
-          _showSnackBar(l10n.adminUserDisconnected);
+          final ok = await dashboardNotifier.forceLogoutUser(user.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
+          // L'erreur vit dans le notifier du tableau de bord, pas dans celui
+          // des utilisateurs.
+          _montrerBilan(
+            ok,
+            l10n.adminUserDisconnected,
+            erreur: ref.read(adminDashboardNotifierProvider).error,
+          );
         }
         break;
       case 'activity':
@@ -551,7 +533,7 @@ class _AdminUsersManagementScreenState
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text('Activité de ${user.displayName ?? user.email}'),
+        title: Text(l10n.adminUserActivityTitle(user.displayName ?? user.email ?? '')),
         content: SizedBox(
           width: 400,
           height: 300,
@@ -628,10 +610,27 @@ class _AdminUsersManagementScreenState
     );
   }
 
-  void _showSnackBar(String message) {
+  /// Le libellé de succès ne s'affiche que si le notifier a rendu vrai ;
+  /// sinon son `state.error` (zéro ligne sous RLS, journal d'audit refusé…).
+  /// Avant, le succès s'affichait quoi qu'il arrive (audit du 2026-10-14,
+  /// § 5).
+  void _montrerBilan(bool ok, String succes, {String? erreur}) {
+    if (!mounted) return;
+    if (ok) {
+      _showSnackBar(succes);
+      return;
+    }
+    _showSnackBar(
+      erreur ?? ref.read(adminUsersNotifierProvider).error ?? l10n.loadingError,
+      isError: true,
+    );
+  }
+
+  void _showSnackBar(String message, {bool isError = false}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
+        backgroundColor: isError ? AdminColors.statusRed : null,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),

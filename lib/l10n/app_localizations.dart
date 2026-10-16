@@ -12557,7 +12557,7 @@ abstract class AppLocalizations {
   /// No description provided for @adminRefund.
   ///
   /// In fr, this message translates to:
-  /// **'Rembourser'**
+  /// **'Marquer remboursée'**
   String get adminRefund;
 
   /// No description provided for @adminGroupsTab.
@@ -12893,7 +12893,7 @@ abstract class AppLocalizations {
   /// No description provided for @adminComplete.
   ///
   /// In fr, this message translates to:
-  /// **'Compléter'**
+  /// **'Marquer complétée'**
   String get adminComplete;
 
   /// No description provided for @adminSearchUserPlaceholder.
@@ -16339,6 +16339,90 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Login'**
   String get adminLoginButton;
+
+  /// No description provided for @adminMfaEnrolTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Second facteur requis'**
+  String get adminMfaEnrolTitle;
+
+  /// No description provided for @adminMfaEnrolIntro.
+  ///
+  /// In fr, this message translates to:
+  /// **'Scannez ce QR code avec une application d\'authentification (Google Authenticator, Aegis, 1Password…), puis entrez le code à 6 chiffres qu\'elle affiche. Sans ce second facteur, le tableau de bord reste fermé.'**
+  String get adminMfaEnrolIntro;
+
+  /// No description provided for @adminMfaManualKey.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ou saisissez cette clé à la main :'**
+  String get adminMfaManualKey;
+
+  /// No description provided for @adminMfaConfirmBefore.
+  ///
+  /// In fr, this message translates to:
+  /// **'À confirmer avant {heure}'**
+  String adminMfaConfirmBefore(String heure);
+
+  /// No description provided for @adminMfaCodeField.
+  ///
+  /// In fr, this message translates to:
+  /// **'Code à 6 chiffres'**
+  String get adminMfaCodeField;
+
+  /// No description provided for @adminMfaCodeMissing.
+  ///
+  /// In fr, this message translates to:
+  /// **'Entrez le code à 6 chiffres affiché par votre application.'**
+  String get adminMfaCodeMissing;
+
+  /// No description provided for @adminMfaActivateButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Activer le second facteur'**
+  String get adminMfaActivateButton;
+
+  /// No description provided for @adminMfaRetry.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réessayer'**
+  String get adminMfaRetry;
+
+  /// No description provided for @adminMfaSignOut.
+  ///
+  /// In fr, this message translates to:
+  /// **'Se déconnecter'**
+  String get adminMfaSignOut;
+
+  /// No description provided for @adminMfaChallengeTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Code de vérification'**
+  String get adminMfaChallengeTitle;
+
+  /// No description provided for @adminMfaChallengeIntro.
+  ///
+  /// In fr, this message translates to:
+  /// **'Entrez le code à 6 chiffres affiché par votre application d\'authentification.'**
+  String get adminMfaChallengeIntro;
+
+  /// No description provided for @adminMfaVerifyButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vérifier'**
+  String get adminMfaVerifyButton;
+
+  /// No description provided for @adminMfaBackToLogin.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retour à la connexion'**
+  String get adminMfaBackToLogin;
+
+  /// No description provided for @adminMfaNoTotp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce compte n\'a qu\'un second facteur par SMS, que le panneau ne prend pas en charge.'**
+  String get adminMfaNoTotp;
 
   /// No description provided for @adminProductsCount.
   ///
@@ -26861,13 +26945,13 @@ abstract class AppLocalizations {
   /// No description provided for @adminMarkCompleteConfirm.
   ///
   /// In fr, this message translates to:
-  /// **'Êtes-vous sûr de vouloir marquer cette transaction comme complétée ?'**
+  /// **'Marquer cette transaction complétée ? Rien n\'est vérifié auprès du prestataire de paiement : elle apparaîtra comme réussie pour l\'utilisateur, même si l\'argent n\'est jamais parti.'**
   String get adminMarkCompleteConfirm;
 
   /// No description provided for @adminTransactionCompleted.
   ///
   /// In fr, this message translates to:
-  /// **'Transaction complétée'**
+  /// **'Transaction marquée complétée'**
   String get adminTransactionCompleted;
 
   /// No description provided for @adminRefundReasonLabel.
@@ -26879,7 +26963,7 @@ abstract class AppLocalizations {
   /// No description provided for @adminTransactionRefunded.
   ///
   /// In fr, this message translates to:
-  /// **'Transaction remboursée'**
+  /// **'Transaction marquée remboursée'**
   String get adminTransactionRefunded;
 
   /// No description provided for @adminUnknownAdmin.
@@ -30565,6 +30649,144 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Mettre à jour'**
   String get updateAvailableAction;
+
+  /// No description provided for @adminLoadMore.
+  ///
+  /// In fr, this message translates to:
+  /// **'Charger plus'**
+  String get adminLoadMore;
+
+  /// No description provided for @adminTabWithCount.
+  ///
+  /// In fr, this message translates to:
+  /// **'{label} ({count})'**
+  String adminTabWithCount(String label, String count);
+
+  /// No description provided for @adminOrdersName.
+  ///
+  /// In fr, this message translates to:
+  /// **'Commandes'**
+  String get adminOrdersName;
+
+  /// No description provided for @adminDisputesName.
+  ///
+  /// In fr, this message translates to:
+  /// **'Litiges'**
+  String get adminDisputesName;
+
+  /// No description provided for @adminCompletedName.
+  ///
+  /// In fr, this message translates to:
+  /// **'Complétées'**
+  String get adminCompletedName;
+
+  /// No description provided for @adminBannedName.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bannis'**
+  String get adminBannedName;
+
+  /// No description provided for @adminProcessedName.
+  ///
+  /// In fr, this message translates to:
+  /// **'Traités'**
+  String get adminProcessedName;
+
+  /// No description provided for @adminStatResolved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Résolus'**
+  String get adminStatResolved;
+
+  /// No description provided for @adminStatDismissed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rejetés'**
+  String get adminStatDismissed;
+
+  /// No description provided for @adminAuditEmptyTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun log d\'audit'**
+  String get adminAuditEmptyTitle;
+
+  /// No description provided for @adminNoTransactionsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune transaction trouvée'**
+  String get adminNoTransactionsTitle;
+
+  /// No description provided for @adminEmptyTabBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rien dans cet onglet pour le moment.'**
+  String get adminEmptyTabBody;
+
+  /// No description provided for @adminEmptyListBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rien dans cette liste pour le moment.'**
+  String get adminEmptyListBody;
+
+  /// No description provided for @adminUsersEmptyBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun compte dans cette liste.'**
+  String get adminUsersEmptyBody;
+
+  /// No description provided for @adminUsersNoMatchBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun compte ne correspond à cette recherche.'**
+  String get adminUsersNoMatchBody;
+
+  /// No description provided for @adminReportsEmptyBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rien à traiter ici pour le moment.'**
+  String get adminReportsEmptyBody;
+
+  /// No description provided for @adminReportsNoMatchBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Essayez un autre mot, ou retirez les filtres.'**
+  String get adminReportsNoMatchBody;
+
+  /// No description provided for @adminReportViewContent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir le {type}'**
+  String adminReportViewContent(String type);
+
+  /// No description provided for @adminChangeRoleTo.
+  ///
+  /// In fr, this message translates to:
+  /// **'Changer en {role}'**
+  String adminChangeRoleTo(String role);
+
+  /// No description provided for @adminRevokeAccessShort.
+  ///
+  /// In fr, this message translates to:
+  /// **'Révoquer l\'accès'**
+  String get adminRevokeAccessShort;
+
+  /// No description provided for @adminMessageWithText.
+  ///
+  /// In fr, this message translates to:
+  /// **'Message : {text}'**
+  String adminMessageWithText(String text);
+
+  /// No description provided for @adminScreenNotAllowed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cet écran n\'est pas accessible avec votre rôle.'**
+  String get adminScreenNotAllowed;
+
+  /// No description provided for @adminWelcomePanel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bienvenue dans le panneau d\'administration DiaspoNiger'**
+  String get adminWelcomePanel;
 }
 
 class _AppLocalizationsDelegate

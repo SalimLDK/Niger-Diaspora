@@ -385,7 +385,7 @@ class _EmbassyAdminCard extends ConsumerWidget {
               children: [
                 const AppIcon(AppIcon.checkCircle, color: Colors.white),
                 const SizedBox(width: 12),
-                Text('Ambassade ${embassy.name} approuvee'),
+                Text(AppLocalizations.of(context)!.adminEmbassyApproved(embassy.name)),
               ],
             ),
             backgroundColor: AdminColors.statusGreen,
@@ -460,7 +460,7 @@ class _EmbassyAdminCard extends ConsumerWidget {
                     if (context.mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text('Ambassade ${embassy.name} rejetee'),
+                          content: Text(l10n.adminEmbassyRejected(embassy.name)),
                           backgroundColor: AdminColors.statusAmber,
                           behavior: SnackBarBehavior.floating,
                           shape: RoundedRectangleBorder(
@@ -511,7 +511,7 @@ class _EmbassyAdminCard extends ConsumerWidget {
               children: [
                 const Icon(Icons.block_rounded, color: Colors.white),
                 const SizedBox(width: 12),
-                Text('Ambassade ${embassy.name} suspendue'),
+                Text(AppLocalizations.of(context)!.adminEmbassySuspended(embassy.name)),
               ],
             ),
             backgroundColor: AdminColors.statusAmber,
@@ -549,7 +549,7 @@ class _EmbassyAdminCard extends ConsumerWidget {
               children: [
                 const AppIcon(AppIcon.checkCircle, color: Colors.white),
                 const SizedBox(width: 12),
-                Text('Ambassade ${embassy.name} reactivee'),
+                Text(AppLocalizations.of(context)!.adminEmbassyReactivated(embassy.name)),
               ],
             ),
             backgroundColor: AdminColors.statusGreen,

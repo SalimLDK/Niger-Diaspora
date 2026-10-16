@@ -6835,7 +6835,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get adminSeller => 'Vendeur';
 
   @override
-  String get adminRefund => 'Rembourser';
+  String get adminRefund => 'Marquer remboursée';
 
   @override
   String adminGroupsTab(int count) {
@@ -7015,7 +7015,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get adminPriceHint => 'Ex: 1, 2, 5, 10, 20';
 
   @override
-  String get adminComplete => 'Compléter';
+  String get adminComplete => 'Marquer complétée';
 
   @override
   String get adminSearchUserPlaceholder => 'Rechercher un utilisateur...';
@@ -8871,6 +8871,54 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get adminLoginButton => 'Login';
+
+  @override
+  String get adminMfaEnrolTitle => 'Second facteur requis';
+
+  @override
+  String get adminMfaEnrolIntro =>
+      'Scannez ce QR code avec une application d\'authentification (Google Authenticator, Aegis, 1Password…), puis entrez le code à 6 chiffres qu\'elle affiche. Sans ce second facteur, le tableau de bord reste fermé.';
+
+  @override
+  String get adminMfaManualKey => 'Ou saisissez cette clé à la main :';
+
+  @override
+  String adminMfaConfirmBefore(String heure) {
+    return 'À confirmer avant $heure';
+  }
+
+  @override
+  String get adminMfaCodeField => 'Code à 6 chiffres';
+
+  @override
+  String get adminMfaCodeMissing =>
+      'Entrez le code à 6 chiffres affiché par votre application.';
+
+  @override
+  String get adminMfaActivateButton => 'Activer le second facteur';
+
+  @override
+  String get adminMfaRetry => 'Réessayer';
+
+  @override
+  String get adminMfaSignOut => 'Se déconnecter';
+
+  @override
+  String get adminMfaChallengeTitle => 'Code de vérification';
+
+  @override
+  String get adminMfaChallengeIntro =>
+      'Entrez le code à 6 chiffres affiché par votre application d\'authentification.';
+
+  @override
+  String get adminMfaVerifyButton => 'Vérifier';
+
+  @override
+  String get adminMfaBackToLogin => 'Retour à la connexion';
+
+  @override
+  String get adminMfaNoTotp =>
+      'Ce compte n\'a qu\'un second facteur par SMS, que le panneau ne prend pas en charge.';
 
   @override
   String adminProductsCount(int count) {
@@ -14646,16 +14694,16 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get adminMarkCompleteConfirm =>
-      'Êtes-vous sûr de vouloir marquer cette transaction comme complétée ?';
+      'Marquer cette transaction complétée ? Rien n\'est vérifié auprès du prestataire de paiement : elle apparaîtra comme réussie pour l\'utilisateur, même si l\'argent n\'est jamais parti.';
 
   @override
-  String get adminTransactionCompleted => 'Transaction complétée';
+  String get adminTransactionCompleted => 'Transaction marquée complétée';
 
   @override
   String get adminRefundReasonLabel => 'Raison du remboursement:';
 
   @override
-  String get adminTransactionRefunded => 'Transaction remboursée';
+  String get adminTransactionRefunded => 'Transaction marquée remboursée';
 
   @override
   String get adminUnknownAdmin => 'Admin inconnu';
@@ -16829,4 +16877,85 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get updateAvailableAction => 'Mettre à jour';
+
+  @override
+  String get adminLoadMore => 'Charger plus';
+
+  @override
+  String adminTabWithCount(String label, String count) {
+    return '$label ($count)';
+  }
+
+  @override
+  String get adminOrdersName => 'Commandes';
+
+  @override
+  String get adminDisputesName => 'Litiges';
+
+  @override
+  String get adminCompletedName => 'Complétées';
+
+  @override
+  String get adminBannedName => 'Bannis';
+
+  @override
+  String get adminProcessedName => 'Traités';
+
+  @override
+  String get adminStatResolved => 'Résolus';
+
+  @override
+  String get adminStatDismissed => 'Rejetés';
+
+  @override
+  String get adminAuditEmptyTitle => 'Aucun log d\'audit';
+
+  @override
+  String get adminNoTransactionsTitle => 'Aucune transaction trouvée';
+
+  @override
+  String get adminEmptyTabBody => 'Rien dans cet onglet pour le moment.';
+
+  @override
+  String get adminEmptyListBody => 'Rien dans cette liste pour le moment.';
+
+  @override
+  String get adminUsersEmptyBody => 'Aucun compte dans cette liste.';
+
+  @override
+  String get adminUsersNoMatchBody =>
+      'Aucun compte ne correspond à cette recherche.';
+
+  @override
+  String get adminReportsEmptyBody => 'Rien à traiter ici pour le moment.';
+
+  @override
+  String get adminReportsNoMatchBody =>
+      'Essayez un autre mot, ou retirez les filtres.';
+
+  @override
+  String adminReportViewContent(String type) {
+    return 'Voir le $type';
+  }
+
+  @override
+  String adminChangeRoleTo(String role) {
+    return 'Changer en $role';
+  }
+
+  @override
+  String get adminRevokeAccessShort => 'Révoquer l\'accès';
+
+  @override
+  String adminMessageWithText(String text) {
+    return 'Message : $text';
+  }
+
+  @override
+  String get adminScreenNotAllowed =>
+      'Cet écran n\'est pas accessible avec votre rôle.';
+
+  @override
+  String get adminWelcomePanel =>
+      'Bienvenue dans le panneau d\'administration DiaspoNiger';
 }

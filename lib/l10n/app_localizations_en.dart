@@ -6760,7 +6760,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get adminSeller => 'Seller';
 
   @override
-  String get adminRefund => 'Refund';
+  String get adminRefund => 'Mark as refunded';
 
   @override
   String adminGroupsTab(int count) {
@@ -6938,7 +6938,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get adminPriceHint => 'Ex: 1, 2, 5, 10, 20';
 
   @override
-  String get adminComplete => 'Complete';
+  String get adminComplete => 'Mark as completed';
 
   @override
   String get adminSearchUserPlaceholder => 'Search for a user...';
@@ -8779,6 +8779,53 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get adminLoginButton => 'Login';
+
+  @override
+  String get adminMfaEnrolTitle => 'Second factor required';
+
+  @override
+  String get adminMfaEnrolIntro =>
+      'Scan this QR code with an authenticator app (Google Authenticator, Aegis, 1Password…), then enter the 6-digit code it shows. Without this second factor, the dashboard stays closed.';
+
+  @override
+  String get adminMfaManualKey => 'Or type this key by hand:';
+
+  @override
+  String adminMfaConfirmBefore(String heure) {
+    return 'Confirm before $heure';
+  }
+
+  @override
+  String get adminMfaCodeField => '6-digit code';
+
+  @override
+  String get adminMfaCodeMissing => 'Enter the 6-digit code shown by your app.';
+
+  @override
+  String get adminMfaActivateButton => 'Enable second factor';
+
+  @override
+  String get adminMfaRetry => 'Retry';
+
+  @override
+  String get adminMfaSignOut => 'Sign out';
+
+  @override
+  String get adminMfaChallengeTitle => 'Verification code';
+
+  @override
+  String get adminMfaChallengeIntro =>
+      'Enter the 6-digit code shown by your authenticator app.';
+
+  @override
+  String get adminMfaVerifyButton => 'Verify';
+
+  @override
+  String get adminMfaBackToLogin => 'Back to sign-in';
+
+  @override
+  String get adminMfaNoTotp =>
+      'This account only has an SMS second factor, which the panel does not support.';
 
   @override
   String adminProductsCount(int count) {
@@ -14502,16 +14549,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get adminMarkCompleteConfirm =>
-      'Are you sure you want to mark this transaction as completed?';
+      'Mark this transaction as completed? Nothing is checked with the payment provider: it will show as successful to the user, even if no money ever moved.';
 
   @override
-  String get adminTransactionCompleted => 'Transaction completed';
+  String get adminTransactionCompleted => 'Transaction marked as completed';
 
   @override
   String get adminRefundReasonLabel => 'Refund reason:';
 
   @override
-  String get adminTransactionRefunded => 'Transaction refunded';
+  String get adminTransactionRefunded => 'Transaction marked as refunded';
 
   @override
   String get adminUnknownAdmin => 'Unknown admin';
@@ -16668,4 +16715,83 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get updateAvailableAction => 'Update';
+
+  @override
+  String get adminLoadMore => 'Load more';
+
+  @override
+  String adminTabWithCount(String label, String count) {
+    return '$label ($count)';
+  }
+
+  @override
+  String get adminOrdersName => 'Orders';
+
+  @override
+  String get adminDisputesName => 'Disputes';
+
+  @override
+  String get adminCompletedName => 'Completed';
+
+  @override
+  String get adminBannedName => 'Banned';
+
+  @override
+  String get adminProcessedName => 'Processed';
+
+  @override
+  String get adminStatResolved => 'Resolved';
+
+  @override
+  String get adminStatDismissed => 'Dismissed';
+
+  @override
+  String get adminAuditEmptyTitle => 'No audit logs';
+
+  @override
+  String get adminNoTransactionsTitle => 'No transactions found';
+
+  @override
+  String get adminEmptyTabBody => 'Nothing in this tab yet.';
+
+  @override
+  String get adminEmptyListBody => 'Nothing in this list yet.';
+
+  @override
+  String get adminUsersEmptyBody => 'No account in this list.';
+
+  @override
+  String get adminUsersNoMatchBody => 'No account matches this search.';
+
+  @override
+  String get adminReportsEmptyBody => 'Nothing to review here yet.';
+
+  @override
+  String get adminReportsNoMatchBody =>
+      'Try another word, or remove the filters.';
+
+  @override
+  String adminReportViewContent(String type) {
+    return 'View $type';
+  }
+
+  @override
+  String adminChangeRoleTo(String role) {
+    return 'Change to $role';
+  }
+
+  @override
+  String get adminRevokeAccessShort => 'Revoke access';
+
+  @override
+  String adminMessageWithText(String text) {
+    return 'Message: $text';
+  }
+
+  @override
+  String get adminScreenNotAllowed =>
+      'This screen is not available with your role.';
+
+  @override
+  String get adminWelcomePanel => 'Welcome to the DiaspoNiger admin panel';
 }

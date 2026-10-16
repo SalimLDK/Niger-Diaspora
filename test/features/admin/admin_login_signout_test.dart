@@ -8,6 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:diaspo_niger/core/errors/failures.dart';
 import 'package:diaspo_niger/features/admin/domain/enums/admin_enums.dart';
 import 'package:diaspo_niger/features/admin/presentation/screens/admin_login_screen.dart';
+import 'package:diaspo_niger/features/auth/domain/entities/second_facteur.dart';
 import 'package:diaspo_niger/features/auth/domain/entities/user_entity.dart';
 import 'package:diaspo_niger/features/auth/domain/repositories/auth_repository.dart';
 import 'package:diaspo_niger/features/auth/presentation/providers/auth_provider.dart';
@@ -31,6 +32,13 @@ class _FauxAuth implements AuthRepository {
       const Right(null);
 
   int signOutAppels = 0;
+
+  /// Un admin n'entre au tableau de bord qu'avec un second facteur enrôlé
+  /// (`docs/deploiement/MFA_ADMIN.md`) : celui-ci en a un. Le parcours sans
+  /// facteur est dans `admin_login_second_facteur_test.dart`.
+  @override
+  Future<Either<Failure, List<FacteurEnrole>>> facteursEnroles() async =>
+      const Right([FacteurEnrole(id: 'f1', type: FacteurEnrole.typeTotp)]);
 
   @override
   Future<Either<Failure, UserEntity>> signInWithEmail({

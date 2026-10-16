@@ -38,7 +38,7 @@ class AppConfig {
   /// `SUPABASE_ANON_KEY` sont lus avant l'appel distant et viennent forcement
   /// du `.env` -- ils ouvrent la connexion qui sert a joindre `app-config`.
   static String _read(String dartDefineKey, {String fallback = ''}) {
-    final fromDartDefine = String.fromEnvironment(dartDefineKey);
+    final fromDartDefine = _dartDefines[dartDefineKey] ?? '';
     if (fromDartDefine.isNotEmpty) {
       return fromDartDefine;
     }
@@ -56,6 +56,24 @@ class AppConfig {
     }
     return fallback;
   }
+
+  /// Les `--dart-define` que [_read] sait lire — une entrée constante par clé.
+  ///
+  /// `String.fromEnvironment` n'est évaluable qu'en contexte constant. Appelé
+  /// avec une clé variable (`String.fromEnvironment(dartDefineKey)`), dart2js
+  /// **lève** « can only be used as a const constructor » à l'exécution :
+  /// mesuré le 2026-10-14 sur le build web du panneau admin — page blanche,
+  /// « Uncaught Error » dès `isSupabaseConfigured`, avant tout écran. Sur la
+  /// VM l'appel passait, d'où un bug invisible sur Android. Toute nouvelle clé
+  /// lue par [_read] s'ajoute ici, sinon elle n'a pas de `--dart-define`
+  /// (test : `test/core/constants/app_config_dart_define_test.dart`).
+  static const Map<String, String> _dartDefines = {
+    'SUPABASE_URL': String.fromEnvironment('SUPABASE_URL'),
+    'SUPABASE_ANON_KEY': String.fromEnvironment('SUPABASE_ANON_KEY'),
+    'DEEP_LINK_BASE_URL': String.fromEnvironment('DEEP_LINK_BASE_URL'),
+    'LIVEKIT_SERVER_URL': String.fromEnvironment('LIVEKIT_SERVER_URL'),
+    'GOOGLE_MAPS_API_KEY': String.fromEnvironment('GOOGLE_MAPS_API_KEY'),
+  };
 
   // ============================================
   // SUPABASE CONFIGURATION

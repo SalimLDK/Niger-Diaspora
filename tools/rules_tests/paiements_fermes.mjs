@@ -25,10 +25,13 @@
 // ── Non-régressions ───────────────────────────────────────────────────────
 //
 // Les cas 20+ vérifient que la fermeture n'a pas débordé : la LECTURE reste
-// ouverte à qui y a droit, `orders` reste créable par son acheteur (elle a un
-// vrai chemin client, `marketplace_remote_datasource.dart:49`, et demande un
-// traitement par champs plutôt qu'une fermeture), et une collection sans
-// rapport continue de fonctionner.
+// ouverte à qui y a droit, et une collection sans rapport continue de
+// fonctionner. Le cas 22 a changé de sens le 2026-09-21 (1bb6e729) : `orders`
+// avait d'abord été laissée créable par son acheteur, puis fermée le même jour
+// (`allow create: if false`, rationale au bloc `orders` de firestore.rules —
+// aucune commande ne peut plus atteindre `completed`, 0 commande mesurée).
+// Le cas attend donc un refus ; il a échoué « attendu accepté » du 21/09 au
+// 14/10 sans que personne ne le relance.
 //
 // PIÈGE DÉJÀ PAYÉ : `@firebase/rules-unit-testing` vit dans
 // `test/rules/node_modules`, hors du dépôt. Sans `npm install` préalable dans
@@ -132,7 +135,9 @@ await env.withSecurityRulesDisabled((ctx) =>
 await cas(21, "lecture : ses propres demandes de retrait restent lisibles", "accepté", () =>
     getDoc(doc(moi, "payouts", `payout-existant-${RUN}`)));
 
-await cas(22, "orders : l'acheteur crée toujours sa commande", "accepté", () =>
+// Fermée le 2026-09-21 (voir l'en-tête) : la création est refusée, acheteur
+// compris. Rouvrir sera une décision explicite, avec un séquestre serveur.
+await cas(22, "orders : l'acheteur ne crée plus sa commande (fermée le 21/09)", "refusé", () =>
     setDoc(doc(moi, "orders", `cmd-${RUN}`), {
         buyerId: MOI, sellerId: AUTRE, status: "pending", totalAmount: 1000,
     }));

@@ -55,6 +55,19 @@ class ContentSnapshotModel with _$ContentSnapshotModel {
     };
   }
 
+  /// Forme JSON de la colonne `reports.content_snapshot` : les mêmes clés que
+  /// [toMap], mais la date en ISO — un `Timestamp` Firestore n'est pas du JSON.
+  Map<String, dynamic> toSupabase() => {
+        if (text != null) 'text': text,
+        if (imageUrl != null) 'imageUrl': imageUrl,
+        if (videoUrl != null) 'videoUrl': videoUrl,
+        if (fileUrl != null) 'fileUrl': fileUrl,
+        if (fileName != null) 'fileName': fileName,
+        if (contentType != null) 'contentType': contentType,
+        if (metadata != null) 'metadata': metadata,
+        'capturedAt': (capturedAt ?? DateTime.now()).toUtc().toIso8601String(),
+      };
+
   ContentSnapshot toEntity() => ContentSnapshot(
         text: text,
         imageUrl: imageUrl,
@@ -147,6 +160,34 @@ class ReportModel with _$ReportModel {
       createdAt: _timestampToDateTime(data['createdAt']),
       reviewedAt: _timestampToDateTime(data['reviewedAt']),
       reportedUserNotified: data['reportedUserNotified'] as bool? ?? false,
+    );
+  }
+
+  /// Une ligne de `public.reports`. Le nom du réviseur et la résolution n'y
+  /// ont pas de colonne : `action_taken` tient lieu de résolution.
+  factory ReportModel.fromSupabase(Map<String, dynamic> row) {
+    final snapshot = row['content_snapshot'];
+    return ReportModel(
+      id: row['id'] as String,
+      reporterId: row['reporter_id'] as String? ?? '',
+      reporterName: row['reporter_name'] as String?,
+      targetType: row['target_type'] as String? ?? 'user',
+      targetId: row['target_id'] as String? ?? '',
+      targetName: row['target_name'] as String?,
+      conversationId: row['conversation_id'] as String?,
+      reason: row['reason'] as String? ?? 'other',
+      description: row['description'] as String?,
+      contentSnapshot: snapshot is Map
+          ? ContentSnapshotModel.fromMap(snapshot.cast<String, dynamic>())
+          : null,
+      reportedUserId: row['reported_user_id'] as String?,
+      status: row['status'] as String? ?? 'pending',
+      adminNote: row['admin_note'] as String?,
+      reviewedBy: row['reviewed_by'] as String?,
+      resolution: row['action_taken'] as String?,
+      createdAt: _timestampToDateTime(row['created_at']),
+      reviewedAt: _timestampToDateTime(row['reviewed_at']),
+      reportedUserNotified: row['reported_user_notified'] as bool? ?? false,
     );
   }
 

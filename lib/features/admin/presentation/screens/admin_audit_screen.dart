@@ -164,23 +164,15 @@ class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
           Row(
             children: [
               Expanded(
-                child: TextField(
+                child: DesignSearchField(
                   controller: _searchController,
+                  hintText: l10n.adminSearchByAdminOrAction,
                   onChanged: (value) => setState(() => _searchQuery = value),
-                  decoration: InputDecoration(
-                    hintText: l10n.adminSearchByAdminOrAction,
-                    prefixIcon: const AppIcon(AppIcon.search, color: _textSecondary),
-                    filled: true,
-                    fillColor: AdminColors.surfaceAlt,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 14,
-                    ),
-                  ),
+                  onClear: () {
+                    _searchController.clear();
+                    setState(() => _searchQuery = '');
+                  },
+                  active: _searchQuery.isNotEmpty,
                 ),
               ),
               const SizedBox(width: 16),
@@ -607,50 +599,12 @@ class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
 
   Widget _buildEmptyState() {
     return Center(
-      child: Container(
-        padding: const EdgeInsets.all(32),
-        constraints: const BoxConstraints(maxWidth: 400),
-        decoration: BoxDecoration(
-          color: _cardColor,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withAlpha(8),
-              blurRadius: 10,
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AdminColors.surfaceAlt,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.history,
-                size: 48,
-                color: _textSecondary,
-              ),
-            ),
-            const SizedBox(height: 24),
-            const Text(
-              'Aucun log d\'audit',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: _textPrimary,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              l10n.adminAuditEmptyState,
-              textAlign: TextAlign.center,
-              style: TextStyle(color: _textSecondary),
-            ),
-          ],
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: DesignEmptyState(
+          icon: Icons.history,
+          title: l10n.adminAuditEmptyTitle,
+          body: l10n.adminAuditEmptyState,
         ),
       ),
     );

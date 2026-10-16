@@ -23,9 +23,9 @@ rules_version = '2';
 // Fermer ne casse donc rien d'existant ; rouvrir sera une décision explicite.
 //
 // La LECTURE reste ouverte à qui y a droit, et les blocs d'administration ne
-// changent pas. `orders` n'est pas touchée : elle a un vrai chemin client
-// (`marketplace_remote_datasource.dart:49`) et demande un traitement par
-// champs, pas une fermeture.
+// changent pas. `orders` a d'abord été laissée hors de cette fermeture (vrai
+// chemin client, `marketplace_remote_datasource.dart:49`), puis fermée le
+// même jour (1bb6e729) : rationale au bloc `orders`, plus bas.
 //
 // Banc : tools/rules_tests/paiements_fermes.mjs
 // ═══════════════════════════════════════════════════════════════════════════
@@ -43,55 +43,57 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
     
-    // Helper function to get the admin role of the current user
+    // ═══ RÔLE ADMIN : LE CLAIM, ET RIEN D'AUTRE (2026-10-14) ═══════════════
+    //
+    // Le rôle se lisait dans le document Firestore `users/{uid}` (`adminRole`,
+    // ou le drapeau hérité `isAdmin`). Deux défauts, mesurés par l'audit du
+    // 2026-10-14 (docs/deploiement/AUDIT_ADMIN_2026-10-14.md, § 2 et § 7.1) :
+    //   · le bloc admin de `users/{userId}` ne protégeait que `adminRole` :
+    //     tout admin, contentMod compris, pouvait poser `isAdmin: true` sur
+    //     n'importe quel compte — le sien aussi — et les quatre helpers
+    //     retombaient dessus. Escalade en une écriture ;
+    //   · un admin sans document Firestore n'avait aucun droit : `.data`
+    //     d'un document absent fait échouer la règle. Plus rien ne crée ces
+    //     documents depuis la migration vers Supabase (8 documents pour 303
+    //     comptes au 14/10).
+    //
+    // Désormais le rôle vit dans le jeton : custom claim `adminRole`, posé
+    // UNIQUEMENT par la Cloud Function `setAdminRole` (functions/roles_admin.js)
+    // depuis Postgres `users.admin_role`, la source. Aucun client ne peut
+    // l'écrire ; aucun document Firestore n'est lu — donc aucune lecture
+    // facturée, et aucun champ `isAdmin`/`adminRole` posé à la main ne donne
+    // plus rien.
+    //
+    // `token.get('adminRole', null)` et non `token.adminRole` : sur un jeton
+    // sans ce claim, l'accès direct FAIT ÉCHOUER la règle (refus muet, même
+    // dans un `||`), là où `get` rend null.
+    //
+    // Banc : tools/rules_tests/registre_role_claim.mjs
     function getAdminRole() {
-      let userData = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
-      return userData.adminRole;
+      return request.auth.token.get('adminRole', null);
     }
 
-    // Helper function to check if user has any admin role
-    // Supports both new adminRole field and legacy isAdmin boolean
+    // Les quatre rôles de l'application, et eux seuls : une valeur inconnue
+    // dans le claim ne vaut rien.
     function isAdmin() {
-      let userData = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
-      return isAuthenticated() && (
-        userData.adminRole != null ||
-        userData.isAdmin == true
-      );
+      return isAuthenticated()
+        && getAdminRole() in ['superAdmin', 'contentMod', 'businessMod', 'financeMod'];
     }
 
-    // Helper function to check if user is SuperAdmin
     function isSuperAdmin() {
       return isAuthenticated() && getAdminRole() == 'superAdmin';
     }
 
-    // Helper function to check if user can moderate content (SuperAdmin or ContentMod)
-    // Falls back to isAdmin for backward compatibility with admins without specific roles
     function canModerateContent() {
-      let userData = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
-      return isAuthenticated() && (
-        getAdminRole() in ['superAdmin', 'contentMod'] ||
-        userData.isAdmin == true
-      );
+      return isAuthenticated() && getAdminRole() in ['superAdmin', 'contentMod'];
     }
 
-    // Helper function to check if user can moderate businesses (SuperAdmin or BusinessMod)
-    // Falls back to isAdmin for backward compatibility with admins without specific roles
     function canModerateBusiness() {
-      let userData = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
-      return isAuthenticated() && (
-        getAdminRole() in ['superAdmin', 'businessMod'] ||
-        userData.isAdmin == true
-      );
+      return isAuthenticated() && getAdminRole() in ['superAdmin', 'businessMod'];
     }
 
-    // Helper function to check if user can moderate finances (SuperAdmin or FinanceMod)
-    // Falls back to isAdmin for backward compatibility with admins without specific roles
     function canModerateFinance() {
-      let userData = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
-      return isAuthenticated() && (
-        getAdminRole() in ['superAdmin', 'financeMod'] ||
-        userData.isAdmin == true
-      );
+      return isAuthenticated() && getAdminRole() in ['superAdmin', 'financeMod'];
     }
     
     // Users collection - users can read any profile but only write their own
@@ -769,16 +771,19 @@ service cloud.firestore {
       allow read, update: if canModerateFinance();
     }
 
-    // Admin: Full access to users for management
-    // Note: Only SuperAdmin can modify adminRole field
+    // Admin: lecture et gestion des profils.
+    //
+    // Le rôle ne vit plus ici (voir l'en-tête des helpers) : PERSONNE,
+    // superAdmin compris, ne pose `adminRole` ni `isAdmin` dans un document
+    // `users` — un rôle s'assigne par la callable `setAdminRole`. Et un admin
+    // ne touche pas son propre document par ce chemin : la règle
+    // propriétaire, plus haut, couvre déjà ce qu'il a le droit d'y écrire.
+    // Banc : tools/rules_tests/registre_role_claim.mjs (bloc 2).
     match /users/{userId} {
       allow read: if isAdmin();
-      allow update: if isAdmin() && (
-        // SuperAdmin can update anything including adminRole
-        isSuperAdmin() ||
-        // Other admins can update but NOT the adminRole field
-        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['adminRole'])
-      );
+      allow update: if isAdmin()
+        && request.auth.uid != userId
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['adminRole', 'isAdmin']);
     }
 
     // Admin: Read notifications for all users (for support)
