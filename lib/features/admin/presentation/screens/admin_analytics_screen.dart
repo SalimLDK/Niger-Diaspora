@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:diaspo_niger/core/theme/admin_colors.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/admin_provider.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
@@ -409,14 +410,13 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
           Row(
             children: entries.map((entry) {
               final parts = entry.key.split('-');
-              final monthNames = [
-                '', 'Jan', 'Fev', 'Mar', 'Avr', 'Mai', 'Juin',
-                'Juil', 'Aout', 'Sep', 'Oct', 'Nov', 'Dec'
-              ];
+              final locale = Localizations.localeOf(context).toString();
+              String nomDuMois(int m) =>
+                  m < 1 || m > 12 ? '' : DateFormat.MMM(locale).format(DateTime(2000, m));
               final monthIndex = int.tryParse(parts.length > 1 ? parts[1] : '0') ?? 0;
               return Expanded(
                 child: Text(
-                  monthNames[monthIndex],
+                  nomDuMois(monthIndex),
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: _textSecondary,
@@ -669,7 +669,7 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
                 icon,
                 const SizedBox(width: 10),
                 Text(
-                  'Exporter $label',
+                  l10n.adminExportLabel(label),
                   style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w600,

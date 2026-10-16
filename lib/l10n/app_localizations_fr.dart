@@ -16958,4 +16958,74 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get adminWelcomePanel =>
       'Bienvenue dans le panneau d\'administration DiaspoNiger';
+
+  @override
+  String get adminMenuVerifyProfile => 'Vérifier profil';
+
+  @override
+  String get adminMenuViewActivity => 'Voir activité';
+
+  @override
+  String get adminMenuForceLogout => 'Forcer déconnexion';
+
+  @override
+  String get adminMenuRolesScreen => 'Rôle admin : écran Rôles';
+
+  @override
+  String get adminProfileVerifiedSuccess => 'Profil vérifié';
+
+  @override
+  String get adminForceLogoutTitle => 'Forcer la déconnexion';
+
+  @override
+  String get adminForceLogoutBody =>
+      'Cela déconnectera l\'utilisateur de tous ses appareils.';
+
+  @override
+  String get adminDetailSender => 'Expéditeur';
+
+  @override
+  String get adminDetailRecipient => 'Destinataire';
+
+  @override
+  String get adminDetailRecipientPhone => 'Téléphone destinataire';
+
+  @override
+  String get adminDetailProvider => 'Fournisseur';
+
+  @override
+  String get adminDetailMynitaRef => 'Réf. MyNita';
+
+  @override
+  String get adminDetailCreatedOn => 'Créée le';
+
+  @override
+  String get adminDetailCompletedOn => 'Complétée le';
+
+  @override
+  String get adminFailureReasonPrompt => 'Raison de l\'échec :';
+
+  @override
+  String adminReportTypeLine(String type) {
+    return 'Type : $type';
+  }
+
+  @override
+  String get adminDisputeBadge => 'LITIGE';
+
+  @override
+  String adminDisputeNumber(String id) {
+    return 'Litige #$id';
+  }
+
+  @override
+  String get adminAuditHistoryTitle => 'Historique d\'Audit';
+
+  @override
+  String get adminBoostChanged => 'Boost modifié';
+
+  @override
+  String adminExportLabel(String label) {
+    return 'Exporter $label';
+  }
 }

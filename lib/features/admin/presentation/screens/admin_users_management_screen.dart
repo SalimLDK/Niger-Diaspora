@@ -353,10 +353,10 @@ class _AdminUsersManagementScreenState
                   _buildPopupMenuItem('ban', 'Bannir', Icons.block_rounded, AdminColors.statusRed)
                 else
                   _buildPopupMenuItem('unban', 'Débannir', Icons.check_circle_rounded, AdminColors.statusGreen),
-                _buildPopupMenuItem('roles', 'Rôle admin : écran Rôles', Icons.admin_panel_settings_outlined, AdminColors.statusPurple),
-                _buildPopupMenuItem('verify_profile', 'Vérifier profil', Icons.verified_rounded, AdminColors.actionBlueLight),
-                _buildPopupMenuItem('force_logout', 'Forcer déconnexion', Icons.logout_rounded, _textSecondary),
-                _buildPopupMenuItem('activity', 'Voir activité', Icons.history_rounded, _primaryColor),
+                _buildPopupMenuItem('roles', l10n.adminMenuRolesScreen, Icons.admin_panel_settings_outlined, AdminColors.statusPurple),
+                _buildPopupMenuItem('verify_profile', l10n.adminMenuVerifyProfile, Icons.verified_rounded, AdminColors.actionBlueLight),
+                _buildPopupMenuItem('force_logout', l10n.adminMenuForceLogout, Icons.logout_rounded, _textSecondary),
+                _buildPopupMenuItem('activity', l10n.adminMenuViewActivity, Icons.history_rounded, _primaryColor),
               ],
             ),
           ],
@@ -503,10 +503,10 @@ class _AdminUsersManagementScreenState
         break;
       case 'verify_profile':
         final ok = await notifier.verifyProfile(user.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
-        _montrerBilan(ok, 'Profil vérifié');
+        _montrerBilan(ok, l10n.adminProfileVerifiedSuccess);
         break;
       case 'force_logout':
-        final confirm = await _showConfirmation('Forcer la déconnexion', 'Cela déconnectera l\'utilisateur de tous ses appareils.');
+        final confirm = await _showConfirmation(l10n.adminForceLogoutTitle, l10n.adminForceLogoutBody);
         if (confirm == true) {
           final ok = await dashboardNotifier.forceLogoutUser(user.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
           // L'erreur vit dans le notifier du tableau de bord, pas dans celui

@@ -511,13 +511,13 @@ class _AdminTransactionsScreenState
       children: [
         const Divider(),
         const SizedBox(height: 8),
-        _buildDetailRow('Expéditeur', transaction.senderId),
+        _buildDetailRow(l10n.adminDetailSender, transaction.senderId),
         _buildDetailRow(
-          'Destinataire',
+          l10n.adminDetailRecipient,
           transaction.recipientName ?? transaction.recipientId,
         ),
         _buildDetailRow(
-          'Téléphone destinataire',
+          l10n.adminDetailRecipientPhone,
           transaction.recipientPhone ?? 'N/A',
         ),
         const Divider(height: 24),
@@ -543,7 +543,7 @@ class _AdminTransactionsScreenState
         ),
         const Divider(height: 24),
         _buildDetailRow(
-          'Fournisseur',
+          l10n.adminDetailProvider,
           transaction.provider.name.toUpperCase(),
         ),
         if (transaction.paymentIntentId != null)
@@ -553,7 +553,7 @@ class _AdminTransactionsScreenState
           ),
         if (transaction.mynitaReference != null)
           _buildDetailRow(
-            'Réf. MyNita',
+            l10n.adminDetailMynitaRef,
             transaction.mynitaReference!,
           ),
         if (transaction.failureReason != null)
@@ -564,12 +564,12 @@ class _AdminTransactionsScreenState
           ),
         if (transaction.createdAt != null)
           _buildDetailRow(
-            'Créée le',
+            l10n.adminDetailCreatedOn,
             _formatDate(transaction.createdAt!),
           ),
         if (transaction.completedAt != null)
           _buildDetailRow(
-            'Complétée le',
+            l10n.adminDetailCompletedOn,
             _formatDate(transaction.completedAt!),
           ),
         const SizedBox(height: 16),
@@ -629,7 +629,7 @@ class _AdminTransactionsScreenState
               }
               final reason = await _showTextDialog(
                 l10n.adminMarkAsFailedTitle,
-                'Raison de l\'échec:',
+                l10n.adminFailureReasonPrompt,
               );
               if (reason != null && reason.isNotEmpty) {
                 final ok = await notifier.markAsFailed(transaction.id, reason, adminId: currentAdmin.id, adminName: currentAdmin.name);

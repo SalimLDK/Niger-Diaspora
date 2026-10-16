@@ -122,11 +122,11 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
             indicatorWeight: 3,
             labelStyle: const TextStyle(fontWeight: FontWeight.w600),
             tabs: [
-              Tab(text: _libelleOnglet('En attente', state, FiltreSignalements.enAttente)),
+              Tab(text: _libelleOnglet(l10n.statusPending, state, FiltreSignalements.enAttente)),
               Tab(
-                text: _libelleOnglet('Traités', state, FiltreSignalements.traites),
+                text: _libelleOnglet(l10n.adminProcessedName, state, FiltreSignalements.traites),
               ),
-              Tab(text: _libelleOnglet('Tous', state, FiltreSignalements.tous)),
+              Tab(text: _libelleOnglet(l10n.all, state, FiltreSignalements.tous)),
             ],
           ),
         ),
@@ -446,7 +446,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
           children: [
             const SizedBox(height: 4),
             Text(
-              'Type: ${libelleTypeSignalement(l10n, report.targetType)}${report.targetName != null ? ' • ${report.targetName}' : ''}',
+              '${l10n.adminReportTypeLine(libelleTypeSignalement(l10n, report.targetType))}${report.targetName != null ? ' • ${report.targetName}' : ''}',
               style: const TextStyle(
                 fontSize: 13,
                 color: _textSecondary,
