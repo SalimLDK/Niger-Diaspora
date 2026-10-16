@@ -67,11 +67,13 @@ class _NigerDiasporaAppState extends ConsumerState<NigerDiasporaApp> {
       senderId,
       cryptoPayload,
       messageType,
+      messageId,
     ) {
       return decryptionService.decryptPreview(
         senderId: senderId,
         cryptoPayload: cryptoPayload,
         messageType: messageType,
+        messageId: messageId,
       );
     });
   }

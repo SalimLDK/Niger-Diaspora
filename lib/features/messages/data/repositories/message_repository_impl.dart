@@ -1750,6 +1750,13 @@ class MessageRepositoryImpl implements MessageRepository {
     if (!hasFailure) return freshMessages;
 
     final knownGoodContent = <String, String>{};
+    // Texte clair gardé à part par celui qui a déchiffré le premier — la
+    // bannière de notification, qui consomme la clé sans passer par le fil.
+    for (final m in freshMessages) {
+      if (!_undecryptablePlaceholders.contains(m.content)) continue;
+      final garde = cacheService.contenuDechiffre(m.id);
+      if (garde != null && garde.isNotEmpty) knownGoodContent[m.id] = garde;
+    }
     for (final cached in cacheService.getCachedMessages(conversationId)) {
       final id = cached['id'] as String?;
       final content = cached['content'] as String?;
@@ -1757,7 +1764,7 @@ class MessageRepositoryImpl implements MessageRepository {
           content != null &&
           content.isNotEmpty &&
           !_undecryptablePlaceholders.contains(content)) {
-        knownGoodContent[id] = content;
+        knownGoodContent.putIfAbsent(id, () => content);
       }
     }
     if (knownGoodContent.isEmpty) return freshMessages;
