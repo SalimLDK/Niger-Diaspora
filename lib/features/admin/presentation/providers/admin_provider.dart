@@ -11,7 +11,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../../core/errors/message_erreur.dart';
 import '../../../../core/services/currency_service.dart';
-import '../../../../core/services/session_service.dart';
 import '../../../auth/data/models/user_model.dart';
 import '../../../auth/domain/entities/user_entity.dart';
 import '../../../businesses/data/models/business_model.dart';
@@ -437,44 +436,21 @@ class AdminDashboardNotifier extends Notifier<AdminDashboardState> {
     }
   }
 
-  Future<bool> forceLogoutUser(
-    String userId, {
-    required String adminId,
-    String? adminName,
-  }) async {
+  /// Force la déconnexion de [userId] par `member_admin_force_logout` : motif
+  /// obligatoire, permission `community.sessions.revoke`, un compte
+  /// administrateur n'est visé que par un superAdmin. La fonction pose la
+  /// sentinelle que `SessionService` lit en temps réel ; plus d'écriture
+  /// directe sur `users`.
+  Future<bool> forceLogoutUser(String userId, {required String motif}) async {
     try {
-      // Sentinelle lue par `SessionService` sur la ligne `public.users` de
-      // l'usager, via Realtime. La constante vient de la, pas d'ici : c'est
-      // ce qui relie les deux moities. Ecrire `session_id` dans Firestore a
-      // la place ne marcherait pas — `firestore.rules` n'ouvre l'update d'un
-      // document `users` qu'a son proprietaire, et le refus serait muet.
-      final newSessionId =
-          '${SessionService.prefixeForceLogout}${DateTime.now().millisecondsSinceEpoch}';
-      final updated = await _supabase
-          .from('users')
-          .update({'session_id': newSessionId})
-          .eq('id', userId)
-          .select('id');
-      if ((updated as List).isEmpty) {
-        state = state.copyWith(error: 'Déconnexion non forcée : $_aucuneLigne');
-        return false;
-      }
-
-      final echecJournal = await AdminAuditHelper.log(
-        adminId: adminId,
-        adminName: adminName,
-        action: 'force_logout',
-        targetType: 'user',
-        targetId: userId,
-      );
-
-      if (echecJournal != null) {
-        state = state.copyWith(error: echecJournal);
-        return false;
-      }
+      await _supabase.rpc('member_admin_force_logout',
+          params: {'p_id': userId, 'p_reason': motif});
       return true;
+    } on PostgrestException catch (e) {
+      state = state.copyWith(error: messageRefusRpcAdmin(e));
+      return false;
     } catch (e) {
-      state = state.copyWith(error: 'Failed to logout user: $e');
+      state = state.copyWith(error: e.toString());
       return false;
     }
   }
@@ -2462,81 +2438,66 @@ class AdminUsersNotifier extends Notifier<AdminUsersState> {
     }
   }
 
-  Future<bool> verifyProfile(
-    String userId, {
-    required String adminId,
-    String? adminName,
-  }) async {
+  /// Les gestes de modération d'un membre passent par les fonctions de la
+  /// migration 20261019170000 : permission, motif, historique du membre et
+  /// audit dans la même transaction. Plus d'écriture directe sur `users`.
+  Future<bool> _rpcMembre(String fonction, Map<String, dynamic> params) async {
     try {
-      final updated = await _supabase
-          .from('users')
-          .update({
-            'is_verified': true,
-            'verified_at': DateTime.now().toUtc().toIso8601String(),
-          })
-          .eq('id', userId)
-          .select('id');
-      if ((updated as List).isEmpty) {
-        state = state.copyWith(error: 'Profil non vérifié : $_aucuneLigne');
-        return false;
-      }
-
-      final echecJournal = await AdminAuditHelper.log(
-        adminId: adminId,
-        adminName: adminName,
-        action: 'verify_profile',
-        targetType: 'user',
-        targetId: userId,
-      );
-
+      await _supabase.rpc(fonction, params: params);
       await fetchAllUsers();
-      if (echecJournal != null) {
-        state = state.copyWith(error: echecJournal);
-        return false;
-      }
       return true;
+    } on PostgrestException catch (e) {
+      // Recharger d'abord : le chargement efface `error`.
+      await fetchAllUsers();
+      state = state.copyWith(error: messageRefusRpcAdmin(e));
+      return false;
     } catch (e) {
       state = state.copyWith(error: e.toString());
       return false;
     }
   }
 
-  Future<bool> revokeVerification(
-    String userId, {
-    required String adminId,
-    String? adminName,
-  }) async {
+  Future<bool> verifyProfile(String userId, {required String source}) =>
+      _rpcMembre('member_admin_verify', {'p_id': userId, 'p_source': source});
+
+  Future<bool> revokeVerification(String userId, {required String motif}) =>
+      _rpcMembre('member_admin_unverify', {'p_id': userId, 'p_reason': motif});
+
+  /// Avertit un membre : motif interne + message qu'il reçoit. Rend le nombre
+  /// d'avertissements, ou `null` en cas de refus.
+  Future<int?> warnUser(String userId,
+      {required String motif, required String message}) async {
     try {
-      final updated = await _supabase
-          .from('users')
-          .update({'is_verified': false, 'verified_at': null})
-          .eq('id', userId)
-          .select('id');
-      if ((updated as List).isEmpty) {
-        state = state.copyWith(
-          error: 'Vérification non révoquée : $_aucuneLigne',
-        );
-        return false;
-      }
-
-      final echecJournal = await AdminAuditHelper.log(
-        adminId: adminId,
-        adminName: adminName,
-        action: 'revoke_verification',
-        targetType: 'user',
-        targetId: userId,
-      );
-
-      await fetchAllUsers();
-      if (echecJournal != null) {
-        state = state.copyWith(error: echecJournal);
-        return false;
-      }
-      return true;
+      final n = await _supabase.rpc('member_admin_warn',
+          params: {'p_id': userId, 'p_reason': motif, 'p_message': message});
+      return n is int ? n : int.tryParse('$n');
+    } on PostgrestException catch (e) {
+      state = state.copyWith(error: messageRefusRpcAdmin(e));
+      return null;
     } catch (e) {
       state = state.copyWith(error: e.toString());
-      return false;
+      return null;
     }
+  }
+
+  Future<bool> suspendUser(String userId, {required int jours, required String motif}) =>
+      _rpcMembre('member_admin_suspend',
+          {'p_id': userId, 'p_days': jours, 'p_reason': motif});
+
+  Future<bool> unsuspendUser(String userId, {required String motif}) =>
+      _rpcMembre('member_admin_unsuspend', {'p_id': userId, 'p_reason': motif});
+
+  /// L'historique de modération d'un membre, du plus récent au plus ancien.
+  /// Une erreur de lecture lève : un historique vide ne doit pas ressembler à
+  /// une lecture refusée.
+  Future<List<Map<String, dynamic>>> getModerationHistory(String userId) async {
+    final rows = await _supabase
+        .from('member_moderation_events')
+        .select('kind, reason, actor_id, metadata, occurred_at')
+        .eq('member_id', userId)
+        .order('occurred_at', ascending: false)
+        .limit(100);
+    return [for (final r in rows) Map<String, dynamic>.from(r)];
   }
 
   Future<List<Map<String, dynamic>>> getUserActivity(String userId) async {

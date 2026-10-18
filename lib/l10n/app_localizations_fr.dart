@@ -18818,4 +18818,128 @@ class AppLocalizationsFr extends AppLocalizations {
   String tbAdmCountersUnavailable(String names) {
     return 'Certains compteurs n\'ont pas pu être lus et sont marqués « — » plutôt que 0 : $names.';
   }
+
+  @override
+  String get mbrAdmVerify => 'Vérifier le profil';
+
+  @override
+  String get mbrAdmUnverify => 'Retirer le badge';
+
+  @override
+  String get mbrAdmWarn => 'Avertir';
+
+  @override
+  String get mbrAdmSuspend => 'Suspendre';
+
+  @override
+  String get mbrAdmUnsuspend => 'Réactiver (fin de suspension)';
+
+  @override
+  String get mbrAdmHistory => 'Historique de modération';
+
+  @override
+  String get mbrAdmVerifyTitle => 'Vérifier le profil';
+
+  @override
+  String get mbrAdmVerifyWarn =>
+      'Le badge dit au public que ce membre a été contrôlé : indiquez sur quoi, c\'est conservé avec votre nom.';
+
+  @override
+  String get mbrAdmVerifySource => 'Base de la vérification';
+
+  @override
+  String get mbrAdmUnverifyTitle => 'Retirer le badge';
+
+  @override
+  String get mbrAdmReason => 'Motif (conservé dans l\'historique)';
+
+  @override
+  String get mbrAdmWarnTitle => 'Avertir le membre';
+
+  @override
+  String get mbrAdmWarnWarn =>
+      'Le membre reçoit une notification « Avertissement de la modération » avec le texte ci-dessous. Ne révélez ni le signalant ni des données d\'un tiers.';
+
+  @override
+  String get mbrAdmWarnReason => 'Motif interne (non envoyé au membre)';
+
+  @override
+  String get mbrAdmWarnMessage => 'Message au membre (10 à 300 caractères)';
+
+  @override
+  String get mbrAdmSuspendTitle => 'Suspendre le compte';
+
+  @override
+  String get mbrAdmSuspendWarn =>
+      'Le membre est déconnecté et ne peut pas revenir avant la fin de la durée. La suspension se lève toute seule à l\'échéance. Pour un bannissement définitif, utilisez « Bannir ».';
+
+  @override
+  String get mbrAdmSuspendDays => 'Durée';
+
+  @override
+  String mbrAdmDays(String n) {
+    return '$n jours';
+  }
+
+  @override
+  String get mbrAdmUnsuspendTitle => 'Réactiver le compte';
+
+  @override
+  String get mbrAdmForceLogoutReason => 'Motif de la déconnexion';
+
+  @override
+  String get mbrAdmHistoryTitle => 'Historique de modération';
+
+  @override
+  String get mbrAdmHistoryEmpty =>
+      'Aucun événement de modération pour ce membre.';
+
+  @override
+  String get mbrAdmKindVerified => 'Profil vérifié';
+
+  @override
+  String get mbrAdmKindUnverified => 'Badge retiré';
+
+  @override
+  String get mbrAdmKindWarned => 'Avertissement';
+
+  @override
+  String get mbrAdmKindSuspended => 'Suspension';
+
+  @override
+  String get mbrAdmKindUnsuspended => 'Suspension levée';
+
+  @override
+  String get mbrAdmKindRevoked => 'Déconnexion forcée';
+
+  @override
+  String get mbrAdmBySystem => 'le système';
+
+  @override
+  String mbrAdmWarned(String n) {
+    return 'Avertissement envoyé ($n au total).';
+  }
+
+  @override
+  String get mbrAdmSuspended => 'Compte suspendu.';
+
+  @override
+  String get mbrAdmUnsuspended => 'Compte réactivé.';
+
+  @override
+  String get mbrAdmUnverified => 'Badge retiré.';
+
+  @override
+  String get mbrAdmCancel => 'Annuler';
+
+  @override
+  String get mbrAdmConfirm => 'Confirmer';
+
+  @override
+  String get mbrAdmClose => 'Fermer';
+
+  @override
+  String mbrAdmLoadError(String detail) {
+    return 'Chargement impossible : $detail';
+  }
 }

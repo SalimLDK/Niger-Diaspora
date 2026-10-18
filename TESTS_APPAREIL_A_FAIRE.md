@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1463 cases à cocher, 55 cochées** — 317 entrées sur 331 ont encore des cases ouvertes.
+**1469 cases à cocher, 55 cochées** — 318 entrées sur 332 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -230,7 +230,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (100)
+**P2 — fonction secondaire ou cas limite** (101)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -290,6 +290,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⬜ Le sigle DN est le même partout (2026-09-13)](#-le-sigle-dn-est-le-même-partout-2026-09-13) · *Design, thème, langue et mise en page*
 - 1 · [Thème sombre — jetons clairs codés en dur](#thème-sombre--jetons-clairs-codés-en-dur) · *Design, thème, langue et mise en page*
 - 4 · [Bascule design_v2 → production, famille 2 : les services (2026-08-03)](#bascule-design_v2--production-famille-2--les-services-2026-08-03) · *Design, thème, langue et mise en page*
+- 6 · [⬜ Panneau admin : Membres — avertir, suspendre, vérifier, déconnecter avec motif et historique (2026-10-19)](#-panneau-admin--membres--avertir-suspendre-vérifier-déconnecter-avec-motif-et-historique-2026-10-19) · *Backend, sécurité et observabilité*
 - 5 · [⬜ Panneau admin : Transferts et Marketplace — l'écran était vide et ses gestes échouaient (2026-10-19)](#-panneau-admin--transferts-et-marketplace--lécran-était-vide-et-ses-gestes-échouaient-2026-10-19) · *Backend, sécurité et observabilité*
 - 7 · [⬜ Tableau de bord : « À traiter » par droit, et des compteurs qui n'affichent plus 0 en cas d'erreur (2026-10-19)](#-tableau-de-bord---à-traiter--par-droit-et-des-compteurs-qui-naffichent-plus-0-en-cas-derreur-2026-10-19) · *Backend, sécurité et observabilité*
 - 7 · [⬜ Panneau admin : demandes relatives aux données et incidents de sécurité (2026-10-18)](#-panneau-admin--demandes-relatives-aux-données-et-incidents-de-sécurité-2026-10-18) · *Backend, sécurité et observabilité*
@@ -389,7 +390,7 @@ Par domaine :
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 67 à faire, 0 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 58 à faire, 5 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 108 à faire, 5 faites
-- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 200 à faire, 2 faites
+- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 206 à faire, 2 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 46 à faire, 1 faites
 - [15. Site web](#15-site-web) — 69 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 23 à faire, 0 faites
@@ -9316,6 +9317,22 @@ parce qu'il change un **comportement**, pas seulement un habillage :
 # 13. Backend, sécurité et observabilité
 
 Supabase et Firebase côté serveur, accès anon, stockage, journaux, Crashlytics, back-office.
+
+---
+## ⬜ Panneau admin : Membres — avertir, suspendre, vérifier, déconnecter avec motif et historique (2026-10-19)
+
+**Priorité P2** · importance 3/5 — Les gestes de modération des membres passaient par des écritures directes sur `users` sans motif ni historique ; ils passent désormais par des fonctions serveur. À vérifier avec de vrais comptes, surtout la levée automatique de la suspension.
+
+*Bloqué : migration 20261019170000 appliquée, un contentMod, un superAdmin, deux comptes membres de test.*
+
+Fichiers : `admin_users_management_screen.dart`, `admin_provider.dart`, `supabase/migrations/20261019170000_membres_moderation.sql`.
+
+- [ ] « Avertir » : le membre reçoit la notification « Avertissement de la modération » avec le message saisi, pas le motif interne ; le toast annonce le total.
+- [ ] « Suspendre » 1 jour : le membre est déconnecté, ne peut pas rouvrir l'app ; le menu propose « Réactiver » (et plus « Suspendre »).
+- [ ] La suspension se lève seule à l'échéance (tâche toutes les 10 min) ; « Historique de modération » le montre comme émis par le système.
+- [ ] « Vérifier » exige une base ; « Retirer le badge » un motif ; refaire le même geste affiche le refus du serveur, pas un faux succès.
+- [ ] Un contentMod ne peut ni suspendre ni déconnecter un administrateur ; un superAdmin le peut.
+- [ ] « Déconnecter » exige un motif et déconnecte le membre en temps réel.
 
 ---
 ## ⬜ Panneau admin : Transferts et Marketplace — l'écran était vide et ses gestes échouaient (2026-10-19)
