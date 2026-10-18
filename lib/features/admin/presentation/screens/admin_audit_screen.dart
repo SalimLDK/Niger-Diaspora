@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:diaspo_niger/core/theme/admin_colors.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
@@ -6,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../providers/admin_provider.dart';
+import '../providers/audit_journal_provider.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:diaspo_niger/core/theme/design_kit.dart';
 
@@ -19,32 +21,81 @@ class AdminAuditScreen extends ConsumerStatefulWidget {
 class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
   AppLocalizations get l10n => AppLocalizations.of(context)!;
 
-  String _selectedFilter = 'all';
-  String _searchQuery = '';
-  final TextEditingController _searchController = TextEditingController();
+  final _acteur = TextEditingController();
+  final _action = TextEditingController();
+  final _idRessource = TextEditingController();
+  String? _type;
+  String? _resultat;
+  DateTime? _du;
+  DateTime? _au;
+  Timer? _delai;
 
   static const Color _primaryColor = AdminColors.actionBlue;
   static const Color _cardColor = AdminColors.surface;
   static const Color _textPrimary = AdminColors.text;
   static const Color _textSecondary = AdminColors.text2;
 
+  static const _types = [
+    'user', 'business', 'event', 'group', 'report', 'product',
+    'transaction', 'settings', 'notification', 'order',
+  ];
+  static const _resultats = ['success', 'denied', 'failed', 'partial'];
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      unawaited(ref.read(adminAuditNotifierProvider.notifier).fetchAuditLogs());
+      unawaited(ref.read(auditJournalProvider.notifier).appliquer(const AuditFiltre()));
     });
   }
 
   @override
   void dispose() {
-    _searchController.dispose();
+    _delai?.cancel();
+    _acteur.dispose();
+    _action.dispose();
+    _idRessource.dispose();
     super.dispose();
+  }
+
+  AuditFiltre get _filtre => AuditFiltre(
+        acteur: _acteur.text,
+        action: _action.text,
+        typeRessource: _type,
+        idRessource: _idRessource.text,
+        resultat: _resultat,
+        du: _du,
+        au: _au,
+      );
+
+  /// Les filtres texte attendent la fin de la frappe ; les autres s'appliquent
+  /// tout de suite. Chaque application relit le serveur.
+  void _appliquer({bool differe = false}) {
+    _delai?.cancel();
+    if (differe) {
+      _delai = Timer(const Duration(milliseconds: 400),
+          () => unawaited(ref.read(auditJournalProvider.notifier).appliquer(_filtre)));
+    } else {
+      unawaited(ref.read(auditJournalProvider.notifier).appliquer(_filtre));
+    }
+  }
+
+  void _reinitialiser() {
+    _acteur.clear();
+    _action.clear();
+    _idRessource.clear();
+    setState(() {
+      _type = null;
+      _resultat = null;
+      _du = null;
+      _au = null;
+    });
+    _appliquer();
   }
 
   @override
   Widget build(BuildContext context) {
-    final auditState = ref.watch(adminAuditNotifierProvider);
+    final etat = ref.watch(auditJournalProvider);
 
     return NestedScrollView(
       headerSliverBuilder: (context, innerBoxIsScrolled) {
@@ -53,33 +104,36 @@ class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildHeader(),
+                _buildHeader(etat),
                 const SizedBox(height: 24),
-                _buildFiltersAndSearch(),
+                _buildFilters(),
                 const SizedBox(height: 16),
               ],
             ),
           ),
         ];
       },
-      body: auditState.isLoading
+      body: etat.chargement
           ? _buildLoadingState()
-          : auditState.error != null
-              ? _buildErrorState(auditState.error!)
-              : _buildAuditLogsList(auditState.logs),
+          : etat.erreur != null && etat.lignes.isEmpty
+              ? _buildErrorState(etat.erreur!)
+              : _buildAuditLogsList(etat),
     );
   }
 
-  Widget _buildHeader() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  Widget _buildHeader(AuditJournalState etat) {
+    return Wrap(
+      alignment: WrapAlignment.spaceBetween,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      runSpacing: 12,
+      spacing: 12,
       children: [
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             DesignTitle(
               l10n.adminAuditHistoryTitle,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
                 color: _textPrimary,
@@ -88,26 +142,60 @@ class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
             ),
             const SizedBox(height: 4),
             Text(
-              'Suivez toutes les actions des administrateurs',
-              style: TextStyle(
-                fontSize: 14,
-                color: _textSecondary,
-              ),
+              l10n.jrnAudSubtitle,
+              style: const TextStyle(fontSize: 14, color: _textSecondary),
             ),
           ],
         ),
-        _buildRefreshButton(),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            OutlinedButton.icon(
+              onPressed: etat.export ? null : _exporter,
+              icon: etat.export
+                  ? const SizedBox(
+                      width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                  : const Icon(Icons.file_download_outlined, size: 18),
+              label: Text(l10n.jrnAudExport),
+            ),
+            const SizedBox(width: 8),
+            _buildRefreshButton(),
+          ],
+        ),
       ],
     );
+  }
+
+  Future<void> _exporter() async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.jrnAudExportTitle),
+        content: Text(l10n.jrnAudExportBody),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(l10n.mbrAdmCancel)),
+          ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: Text(l10n.jrnAudExport)),
+        ],
+      ),
+    );
+    if (ok != true || !mounted) return;
+    final r = await ref.read(auditJournalProvider.notifier).exporter();
+    if (!mounted) return;
+    final erreur = ref.read(auditJournalProvider).erreur;
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(r == null
+          ? (erreur ?? l10n.adminLoadingError)
+          : r.tronque
+              ? l10n.jrnAudExportTruncated('${r.lignes}')
+              : l10n.jrnAudExported('${r.lignes}')),
+    ));
   }
 
   Widget _buildRefreshButton() {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: () {
-          unawaited(ref.read(adminAuditNotifierProvider.notifier).fetchAuditLogs());
-        },
+        onTap: () => unawaited(ref.read(auditJournalProvider.notifier).recharger()),
         borderRadius: BorderRadius.circular(12),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -127,11 +215,11 @@ class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              AppIcon(AppIcon.refresh, color: Colors.white, size: 20),
-              SizedBox(width: 8),
+              const AppIcon(AppIcon.refresh, color: Colors.white, size: 20),
+              const SizedBox(width: 8),
               Text(
                 l10n.adminRefresh,
-                style: TextStyle(
+                style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.w600,
                   fontSize: 14,
@@ -144,7 +232,89 @@ class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
     );
   }
 
-  Widget _buildFiltersAndSearch() {
+  Widget _champ(TextEditingController c, String libelle, {double largeur = 220}) {
+    return SizedBox(
+      width: largeur,
+      child: TextField(
+        controller: c,
+        onChanged: (_) => _appliquer(differe: true),
+        decoration: InputDecoration(
+          labelText: libelle,
+          isDense: true,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+          suffixIcon: c.text.isEmpty
+              ? null
+              : IconButton(
+                  tooltip: l10n.jrnAudReset,
+                  icon: const Icon(Icons.close, size: 16),
+                  onPressed: () {
+                    c.clear();
+                    setState(() {});
+                    _appliquer();
+                  },
+                ),
+        ),
+      ),
+    );
+  }
+
+  Widget _liste(String libelle, String? valeur, List<String> options,
+      String Function(String) nom, ValueChanged<String?> surChoix) {
+    return SizedBox(
+      width: 200,
+      child: DropdownButtonFormField<String?>(
+        initialValue: valeur,
+        isExpanded: true,
+        decoration: InputDecoration(
+          labelText: libelle,
+          isDense: true,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+        items: [
+          DropdownMenuItem<String?>(value: null, child: Text(l10n.jrnAudAll)),
+          for (final o in options) DropdownMenuItem<String?>(value: o, child: Text(nom(o))),
+        ],
+        onChanged: (v) {
+          surChoix(v);
+          _appliquer();
+        },
+      ),
+    );
+  }
+
+  Future<void> _choisirDate(bool debut) async {
+    final maintenant = DateTime.now();
+    final d = await showDatePicker(
+      context: context,
+      initialDate: (debut ? _du : _au) ?? maintenant,
+      firstDate: DateTime(2025, 1, 1),
+      lastDate: maintenant,
+    );
+    if (d == null) return;
+    setState(() => debut ? _du = d : _au = d);
+    _appliquer();
+  }
+
+  Widget _date(bool debut) {
+    final v = debut ? _du : _au;
+    final f = DateFormat('dd/MM/yyyy');
+    return SizedBox(
+      width: 170,
+      child: OutlinedButton.icon(
+        onPressed: () => _choisirDate(debut),
+        icon: const Icon(Icons.event, size: 16),
+        label: Text(
+          v == null
+              ? (debut ? l10n.jrnAudFrom : l10n.jrnAudTo)
+              : '${debut ? l10n.jrnAudFrom : l10n.jrnAudTo} ${f.format(v)}',
+          overflow: TextOverflow.ellipsis,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFilters() {
+    final inversee = _du != null && _au != null && _du!.isAfter(_au!);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -161,99 +331,158 @@ class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              Expanded(
-                child: DesignSearchField(
-                  controller: _searchController,
-                  hintText: l10n.adminSearchByAdminOrAction,
-                  onChanged: (value) => setState(() => _searchQuery = value),
-                  onClear: () {
-                    _searchController.clear();
-                    setState(() => _searchQuery = '');
-                  },
-                  active: _searchQuery.isNotEmpty,
-                ),
-              ),
-              const SizedBox(width: 16),
-              _buildFilterDropdown(),
+              _champ(_acteur, l10n.jrnAudActor),
+              _champ(_action, l10n.jrnAudAction),
+              _liste(l10n.jrnAudResource, _type, _types, (t) => _getTargetTypeInfo(t).label,
+                  (v) => setState(() => _type = v)),
+              _champ(_idRessource, l10n.jrnAudResourceId),
+              _liste(l10n.jrnAudResult, _resultat, _resultats, _nomResultat,
+                  (v) => setState(() => _resultat = v)),
+              _date(true),
+              _date(false),
+              TextButton(onPressed: _reinitialiser, child: Text(l10n.jrnAudReset)),
             ],
           ),
+          if (inversee)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(l10n.jrnAudPeriodInverted,
+                  style: const TextStyle(fontSize: 12, color: AdminColors.statusRed)),
+            ),
         ],
       ),
     );
   }
 
-  Widget _buildFilterDropdown() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      decoration: BoxDecoration(
-        color: AdminColors.surfaceAlt,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: _selectedFilter,
-          icon: const Icon(Icons.keyboard_arrow_down, color: _textSecondary),
-          items: [
-            DropdownMenuItem(value: 'all', child: Text(l10n.adminAllActions)),
-            DropdownMenuItem(value: 'user', child: Text(l10n.adminUsers)),
-            DropdownMenuItem(value: 'business', child: Text(l10n.adminBusinesses)),
-            DropdownMenuItem(value: 'content', child: Text(l10n.adminContent)),
-            DropdownMenuItem(value: 'report', child: Text(l10n.adminReports)),
-            DropdownMenuItem(value: 'transaction', child: Text(l10n.adminTransactions)),
-            DropdownMenuItem(value: 'settings', child: Text(l10n.adminConfiguration)),
-            DropdownMenuItem(value: 'notification', child: Text(l10n.adminNotifications)),
-          ],
-          onChanged: (value) {
-            setState(() => _selectedFilter = value ?? 'all');
-          },
-        ),
-      ),
-    );
-  }
+  String _nomResultat(String r) => switch (r) {
+        'success' => l10n.jrnAudResultSuccess,
+        'denied' => l10n.jrnAudResultDenied,
+        'failed' => l10n.jrnAudResultFailed,
+        _ => l10n.jrnAudResultPartial,
+      };
 
-  Widget _buildAuditLogsList(List<AuditLogEntry> logs) {
-    final filteredLogs = _filterLogs(logs);
-
-    if (filteredLogs.isEmpty) {
+  Widget _buildAuditLogsList(AuditJournalState etat) {
+    if (etat.lignes.isEmpty) {
       return _buildEmptyState();
     }
 
     return ListView.builder(
-      itemCount: filteredLogs.length,
+      itemCount: etat.lignes.length + 1,
       itemBuilder: (context, index) {
-        final log = filteredLogs[index];
-        return _buildAuditLogCard(log);
+        if (index < etat.lignes.length) {
+          return _buildAuditLogCard(etat.lignes[index]);
+        }
+        // Pied de liste : suite, chargement, ou erreur de la suite.
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Center(
+            child: etat.chargementSuite
+                ? const CircularProgressIndicator()
+                : Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (etat.erreur != null)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Text(etat.erreur!,
+                              style: const TextStyle(color: AdminColors.statusRed)),
+                        ),
+                      if (etat.encoreDesLignes)
+                        OutlinedButton(
+                          onPressed: () =>
+                              unawaited(ref.read(auditJournalProvider.notifier).chargerPlus()),
+                          child: Text(l10n.jrnAudLoadMore),
+                        )
+                      else
+                        Text(l10n.jrnAudEnd,
+                            style: const TextStyle(fontSize: 12, color: _textSecondary)),
+                    ],
+                  ),
+          ),
+        );
       },
     );
   }
 
-  List<AuditLogEntry> _filterLogs(List<AuditLogEntry> logs) {
-    return logs.where((log) {
-      // Filter by type
-      if (_selectedFilter != 'all' && log.targetType != _selectedFilter) {
-        return false;
-      }
-
-      // Filter by search query
-      if (_searchQuery.isNotEmpty) {
-        final query = _searchQuery.toLowerCase();
-        final matchesAdmin = log.adminName?.toLowerCase().contains(query) ?? false;
-        final matchesAction = log.action.toLowerCase().contains(query);
-        final matchesTarget = log.targetId?.toLowerCase().contains(query) ?? false;
-        return matchesAdmin || matchesAction || matchesTarget;
-      }
-
-      return true;
-    }).toList();
+  void _montrerDetail(AuditLogEntry log) {
+    final f = DateFormat('dd/MM/yyyy HH:mm:ss');
+    Widget ligne(String k, String? v) => v == null || v.isEmpty
+        ? const SizedBox.shrink()
+        : Padding(
+            padding: const EdgeInsets.only(bottom: 6),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  width: 120,
+                  child: Text(k, style: const TextStyle(fontSize: 12, color: _textSecondary)),
+                ),
+                Expanded(child: SelectableText(v, style: const TextStyle(fontSize: 13))),
+              ],
+            ),
+          );
+    unawaited(showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.jrnAudDetailTitle),
+        content: SizedBox(
+          width: 520,
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ligne(l10n.jrnAudWhen, log.timestamp == null ? null : f.format(log.timestamp!)),
+                ligne(l10n.jrnAudActor, log.adminName),
+                ligne(l10n.jrnAudActorId, log.adminId),
+                ligne(l10n.jrnAudAction, log.action),
+                ligne(l10n.jrnAudResource, log.targetType),
+                ligne(l10n.jrnAudResourceId, log.targetId),
+                ligne(l10n.jrnAudResult, _nomResultat(log.result)),
+                ligne(l10n.jrnAudReason, log.reasonCode),
+                ligne(l10n.jrnAudCorrelation, log.correlationId),
+                ligne(l10n.jrnAudEntryId, log.id),
+                if (log.details != null && log.details!.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Text(l10n.adminDetailsLabel,
+                      style: const TextStyle(fontSize: 12, color: _textSecondary)),
+                  const SizedBox(height: 4),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: AdminColors.surfaceAlt,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: SelectableText(
+                      const JsonEncoder.withIndent('  ').convert(log.details),
+                      style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(l10n.mbrAdmClose)),
+        ],
+      ),
+    ));
   }
 
   Widget _buildAuditLogCard(AuditLogEntry log) {
     final actionInfo = _getActionInfo(log.action);
     final dateFormatter = DateFormat('dd MMM yyyy, HH:mm', 'fr_FR');
 
-    return Container(
+    return InkWell(
+      onTap: () => _montrerDetail(log),
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -298,6 +527,19 @@ class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
                         ),
                       ),
                     ),
+                    if (log.result != 'success') ...[
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: AdminColors.statusRed.withAlpha(20),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(_nomResultat(log.result),
+                            style: const TextStyle(
+                                fontSize: 11, color: AdminColors.statusRed)),
+                      ),
+                      const SizedBox(width: 6),
+                    ],
                     _buildTargetTypeBadge(log.targetType),
                   ],
                 ),
@@ -361,6 +603,7 @@ class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
           ),
         ],
       ),
+    ),
     );
   }
 
@@ -581,9 +824,7 @@ class _AdminAuditScreenState extends ConsumerState<AdminAuditScreen> {
             ),
             const SizedBox(height: 24),
             ElevatedButton.icon(
-              onPressed: () {
-                unawaited(ref.read(adminAuditNotifierProvider.notifier).fetchAuditLogs());
-              },
+              onPressed: () => unawaited(ref.read(auditJournalProvider.notifier).recharger()),
               icon: const AppIcon(AppIcon.refresh),
               label: Text(l10n.retry),
               style: ElevatedButton.styleFrom(

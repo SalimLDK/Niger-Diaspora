@@ -19167,4 +19167,95 @@ class AppLocalizationsFr extends AppLocalizations {
   String rgHistRestoreFailed(String detail) {
     return 'Retour arrière impossible : $detail';
   }
+
+  @override
+  String get jrnAudSubtitle =>
+      'Toute action d\'un administrateur, en lecture seule : le journal ne se modifie ni ne s\'efface.';
+
+  @override
+  String get jrnAudExport => 'Exporter';
+
+  @override
+  String get jrnAudExportTitle => 'Exporter le journal';
+
+  @override
+  String get jrnAudExportBody =>
+      'Les lignes qui correspondent aux filtres actuels (5 000 au plus) sont copiées en CSV dans le presse-papiers. Cet export est lui-même inscrit au journal, avec vos filtres.';
+
+  @override
+  String jrnAudExported(String n) {
+    return '$n lignes copiées en CSV. L\'export est inscrit au journal.';
+  }
+
+  @override
+  String jrnAudExportTruncated(String n) {
+    return '$n lignes copiées, plafond atteint : affinez les filtres pour le reste. L\'export est inscrit au journal.';
+  }
+
+  @override
+  String get jrnAudActor => 'Acteur (nom ou identifiant)';
+
+  @override
+  String get jrnAudAction => 'Action';
+
+  @override
+  String get jrnAudResource => 'Type de ressource';
+
+  @override
+  String get jrnAudResourceId => 'Identifiant de la ressource';
+
+  @override
+  String get jrnAudResult => 'Résultat';
+
+  @override
+  String get jrnAudAll => 'Tous';
+
+  @override
+  String get jrnAudFrom => 'Du';
+
+  @override
+  String get jrnAudTo => 'Au';
+
+  @override
+  String get jrnAudReset => 'Réinitialiser';
+
+  @override
+  String get jrnAudPeriodInverted =>
+      'La date de début est après la date de fin : aucune ligne ne peut correspondre.';
+
+  @override
+  String get jrnAudResultSuccess => 'Réussi';
+
+  @override
+  String get jrnAudResultDenied => 'Refusé';
+
+  @override
+  String get jrnAudResultFailed => 'Échoué';
+
+  @override
+  String get jrnAudResultPartial => 'Partiel';
+
+  @override
+  String get jrnAudLoadMore => 'Charger la suite';
+
+  @override
+  String get jrnAudEnd => 'Fin du journal pour ces filtres.';
+
+  @override
+  String get jrnAudDetailTitle => 'Détail de l\'entrée';
+
+  @override
+  String get jrnAudWhen => 'Date';
+
+  @override
+  String get jrnAudActorId => 'Identifiant de l\'acteur';
+
+  @override
+  String get jrnAudReason => 'Code de motif';
+
+  @override
+  String get jrnAudCorrelation => 'Corrélation';
+
+  @override
+  String get jrnAudEntryId => 'Identifiant de l\'entrée';
 }
