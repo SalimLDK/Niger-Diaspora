@@ -67,13 +67,6 @@ class BlocATraiter extends ConsumerWidget {
                   style: const TextStyle(
                       fontSize: 16, fontWeight: FontWeight.w700, color: AdminColors.text)),
             ),
-            liste.maybeWhen(
-              data: (l) => l.calculeLe == null
-                  ? const SizedBox.shrink()
-                  : Text(l10n.tbAdmComputedAt(heure(l.calculeLe!)),
-                      style: const TextStyle(fontSize: 12, color: AdminColors.text3)),
-              orElse: () => const SizedBox.shrink(),
-            ),
             IconButton(
               tooltip: l10n.tbAdmRefresh,
               onPressed: () => ref.invalidate(aTraiterProvider),
@@ -82,6 +75,13 @@ class BlocATraiter extends ConsumerWidget {
           ]),
           Text(l10n.tbAdmSubtitle,
               style: const TextStyle(fontSize: 12, color: AdminColors.text3)),
+          liste.maybeWhen(
+            data: (l) => l.calculeLe == null
+                ? const SizedBox.shrink()
+                : Text(l10n.tbAdmComputedAt(heure(l.calculeLe!)),
+                    style: const TextStyle(fontSize: 12, color: AdminColors.text3)),
+            orElse: () => const SizedBox.shrink(),
+          ),
           const SizedBox(height: 12),
           liste.when(
             loading: () => const LinearProgressIndicator(minHeight: 2),

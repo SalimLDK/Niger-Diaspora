@@ -1,172 +1,168 @@
-import 'package:diaspo_niger/core/theme/app_theme.dart';
-import 'package:diaspo_niger/features/admin/presentation/providers/dossier_moderation_provider.dart'
-    show adminAPermissionProvider;
-import 'package:diaspo_niger/features/admin/presentation/providers/evenements_admin_provider.dart';
-import 'package:diaspo_niger/features/admin/presentation/providers/recherche_admin_provider.dart';
-import 'package:diaspo_niger/features/admin/presentation/providers/sources_consulaires_provider.dart';
-import 'package:diaspo_niger/features/admin/presentation/providers/support_admin_provider.dart';
-import 'package:diaspo_niger/features/admin/presentation/screens/admin_recherche_screen.dart';
-import 'package:diaspo_niger/features/admin/presentation/screens/admin_sources_consulaires_screen.dart';
-import 'package:diaspo_niger/features/admin/presentation/widgets/evenements_validation.dart';
-import 'package:diaspo_niger/features/admin/presentation/widgets/reglages_support_dialog.dart';
+import 'package:diaspo_niger/features/admin/data/datasources/reglages_historique_datasource.dart';
+import 'package:diaspo_niger/features/admin/presentation/providers/a_traiter_provider.dart';
+import 'package:diaspo_niger/features/admin/presentation/widgets/bloc_a_traiter.dart';
+import 'package:diaspo_niger/features/admin/presentation/widgets/historique_reglages.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-/// Les écrans d'administration ajoutés ici tiennent sur un téléphone étroit
-/// (360 dp) avec une police agrandie : aucun débordement, aucune exception.
-///
-/// Les données sont posées à la main (surcharges de providers) : le test ne
-/// parle pas à Supabase. La police de test rend chaque glyphe carré, donc les
-/// largeurs sont plus grandes qu'à l'écran — un test qui passe ici passe sur
-/// l'appareil.
-void main() {
-  Widget boot(Widget home, List<Override> overrides) => ProviderScope(
-        overrides: overrides,
-        child: MaterialApp(
-          theme: AppTheme.lightTheme,
-          localizationsDelegates: const [
-            AppLocalizations.delegate,
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          supportedLocales: AppLocalizations.supportedLocales,
-          locale: const Locale('fr'),
-          home: Scaffold(body: Padding(padding: const EdgeInsets.all(16), child: home)),
+/// Spécification d'interfaces § 20-21 : les écrans restent utilisables sur un
+/// écran étroit et avec une police agrandie. Un débordement est une exception
+/// Flutter : il fait échouer le test.
+Future<void> _monter(
+  WidgetTester tester,
+  Widget enfant, {
+  required List<Override> overrides,
+  double largeur = 320,
+  double echelle = 1.5,
+}) async {
+  tester.view.physicalSize = Size(largeur, 700);
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.reset);
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: overrides,
+      child: MaterialApp(
+        locale: const Locale('fr'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        builder: (context, child) => MediaQuery(
+          data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(echelle)),
+          child: child!,
         ),
-      );
+        home: Scaffold(body: SingleChildScrollView(child: enfant)),
+      ),
+    ),
+  );
+  await tester.pumpAndSettle();
+}
 
-  void telephone(WidgetTester tester, double echelle) {
-    tester.view.physicalSize = const Size(1080, 2220); // 360 x 740 dp à 3x
-    tester.view.devicePixelRatio = 3;
-    tester.platformDispatcher.textScaleFactorTestValue = echelle;
-    addTearDown(tester.view.resetPhysicalSize);
-    addTearDown(tester.view.resetDevicePixelRatio);
-    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
-  }
+ListeATraiter _liste(List<ElementATraiter> e) => ListeATraiter(DateTime(2026, 10, 19, 9, 5), e);
 
-  final permissionsOui = [
-    adminAPermissionProvider.overrideWith((ref, cle) async => true),
-    permissionEvenementsProvider.overrideWith((ref, cle) async => true),
-    permissionSupportProvider.overrideWith((ref, cle) async => true),
+void main() {
+  final elements = [
+    ElementATraiter(cle: 'reports', nombre: 12, urgent: 5, leMoinsRecent: DateTime(2026, 10, 1)),
+    const ElementATraiter(cle: 'support', nombre: 0),
+    ElementATraiter(cle: 'demarches', nombre: 3, urgent: 1, leMoinsRecent: DateTime(2026, 9, 12)),
+    const ElementATraiter(cle: 'privacy', nombre: 2, urgent: 0),
   ];
 
-  for (final echelle in [1.0, 1.5]) {
-    testWidgets('À traiter et recherche, 360 dp, échelle $echelle', (tester) async {
-      telephone(tester, echelle);
-      await tester.pumpWidget(boot(
-        AdminRechercheScreen(onOuvrir: (_) {}),
-        [
-          fileATraiterProvider.overrideWith((ref) async => [
-                LigneATraiter('reports', 12, 3, DateTime(2026, 9, 1)),
-                LigneATraiter('tickets_overdue', 4, 4, null),
-                LigneATraiter('businesses_review', 1, 1, DateTime(2026, 1, 1)),
-              ]),
-          rechercheGlobaleProvider.overrideWith((ref) async => null),
-        ],
-      ));
-      await tester.pumpAndSettle();
-      expect(tester.takeException(), isNull);
-      expect(find.text('Signalements en attente'), findsOneWidget);
+  group('Bloc « À traiter »', () {
+    for (final largeur in [320.0, 411.0, 1200.0]) {
+      testWidgets('rend sans débordement à ${largeur.toInt()} dp, police ×1,5', (tester) async {
+        await _monter(
+          tester,
+          BlocATraiter(onOuvrir: (_) {}),
+          largeur: largeur,
+          overrides: [aTraiterProvider.overrideWith((ref) async => _liste(elements))],
+        );
 
-      await tester.tap(find.text('Recherche'));
-      await tester.pumpAndSettle();
-      expect(tester.takeException(), isNull);
+        expect(find.text('Signalements'), findsOneWidget);
+        expect(find.textContaining('Calculé à 09:05'), findsOneWidget,
+            reason: 'chaque indicateur est daté');
+        expect(find.text('Rien en attente'), findsOneWidget,
+            reason: 'une file vide se dit, elle ne s\'efface pas');
+      });
+    }
+
+    testWidgets('une erreur de calcul affiche l\'erreur et un bouton, jamais des zéros', (tester) async {
+      await _monter(
+        tester,
+        BlocATraiter(onOuvrir: (_) {}),
+        overrides: [aTraiterProvider.overrideWith((ref) => Future.error(Exception('refus')))],
+      );
+
+      expect(find.textContaining('Impossible de calculer'), findsOneWidget);
+      expect(find.text('Réessayer'), findsOneWidget);
+      expect(find.text('0'), findsNothing);
     });
 
-    testWidgets('Sources consulaires, 360 dp, échelle $echelle', (tester) async {
-      telephone(tester, echelle);
-      await tester.pumpWidget(boot(
-        AdminSourcesConsulairesScreen(onOuvrir: (_) {}),
-        [
-          ...permissionsOui,
-          sourcesConsulairesProvider.overrideWith((ref) async => SourcesConsulaires(
-                [
-                  SourceDemarche(
-                    id: 'd1',
-                    titre: 'Renouvellement de passeport biométrique pour un mineur né à l\'étranger',
-                    publiee: true,
-                    sourceUrl: 'https://exemple.test/une/adresse/tres/longue/vers/la/source/officielle',
-                    editeur: 'Ministère des Affaires étrangères',
-                    problemes: const [
-                      ProblemeSource.jamaisVerifiee,
-                      ProblemeSource.revisionDepassee,
-                      ProblemeSource.sansRevisionPrevue,
-                    ],
-                    revisionLe: DateTime(2026, 5, 1),
-                  ),
-                ],
-                [
-                  const SourceAmbassade(
-                    id: 'a1',
-                    nom: 'Ambassade de la République du Niger auprès du Royaume',
-                    ville: 'Ville à nom très long',
-                    problemes: [ProblemeSource.sansSource, ProblemeSource.jamaisVerifiee],
-                  ),
-                ],
-                20,
-                32,
-              )),
-        ],
-      ));
-      await tester.pumpAndSettle();
-      expect(tester.takeException(), isNull);
+    testWidgets('un rôle sans file le dit', (tester) async {
+      await _monter(
+        tester,
+        BlocATraiter(onOuvrir: (_) {}),
+        overrides: [aTraiterProvider.overrideWith((ref) async => _liste(const []))],
+      );
+
+      expect(find.textContaining('Aucune file à traiter'), findsOneWidget);
     });
 
-    testWidgets('Validation des événements, 360 dp, échelle $echelle', (tester) async {
-      telephone(tester, echelle);
-      await tester.pumpWidget(boot(
-        const OngletValidationEvenements(),
-        [
-          ...permissionsOui,
-          validationExigeeProvider.overrideWith((ref) async => true),
-          evenementsEnAttenteProvider.overrideWith((ref) async => [
-                EvenementEnAttente(
-                  'e1',
-                  'Grande rencontre annuelle de la diaspora nigérienne en Île-de-France',
-                  DateTime(2026, 12, 5),
-                  'Villeneuve-Saint-Georges',
-                  'Association des Nigériens de France',
-                  DateTime(2026, 10, 1),
-                ),
-              ]),
+    testWidgets('toucher une ligne ouvre sa rubrique', (tester) async {
+      String? ouverte;
+      await _monter(
+        tester,
+        BlocATraiter(onOuvrir: (d) => ouverte = d),
+        overrides: [aTraiterProvider.overrideWith((ref) async => _liste(elements))],
+      );
+
+      await tester.ensureVisible(find.text('Démarches consulaires'));
+      await tester.tap(find.text('Démarches consulaires'));
+      expect(ouverte, 'demarches');
+    });
+  });
+
+  group('Historique des réglages', () {
+    final entrees = [
+      EntreeHistoriqueReglage(
+        id: 'e2',
+        section: 'fees',
+        avant: const {'taux': 2, 'liste': [1, 2]},
+        apres: const {'taux': 3, 'liste': [1, 2], 'nouveau': true},
+        par: 'super-1',
+        date: DateTime(2026, 10, 19, 10, 30),
+        nature: 'update',
+        motif: 'Passage à 3 %',
+      ),
+      EntreeHistoriqueReglage(
+        id: 'e1',
+        section: 'fees',
+        apres: const {'taux': 2},
+        par: 'super-1',
+        date: DateTime(2026, 10, 18, 8, 0),
+        nature: 'update',
+      ),
+    ];
+
+    for (final largeur in [320.0, 600.0]) {
+      testWidgets('rend sans débordement à ${largeur.toInt()} dp, police ×1,5', (tester) async {
+        await _monter(
+          tester,
+          const HistoriqueReglagesDialog(),
+          largeur: largeur,
+          overrides: [reglagesHistoriqueProvider.overrideWith((ref) async => entrees)],
+        );
+
+        expect(find.textContaining('taux : 2 → 3'), findsOneWidget);
+        expect(find.textContaining('nouveau : (absent) → true'), findsOneWidget);
+        expect(find.text('liste'), findsNothing, reason: 'une clé inchangée n\'est pas listée');
+        expect(find.text('Restaurer l\'ancienne valeur'), findsOneWidget,
+            reason: 'seule l\'entrée qui a un « avant » se restaure');
+        expect(find.textContaining('pas d\'ancienne valeur'), findsOneWidget);
+      });
+    }
+
+    testWidgets('une lecture qui échoue n\'est pas un historique vide', (tester) async {
+      await _monter(
+        tester,
+        const HistoriqueReglagesDialog(),
+        overrides: [
+          reglagesHistoriqueProvider.overrideWith((ref) => Future.error(Exception('refus'))),
         ],
-      ));
-      await tester.pumpAndSettle();
-      expect(tester.takeException(), isNull);
+      );
+
+      expect(find.textContaining('Impossible de lire l\'historique'), findsOneWidget);
+      expect(find.textContaining('Aucun changement enregistré'), findsNothing);
     });
 
-    testWidgets('Réglages du support, 360 dp, échelle $echelle', (tester) async {
-      telephone(tester, echelle);
-      await tester.pumpWidget(boot(
-        Builder(
-          builder: (context) => ElevatedButton(
-            onPressed: () => showDialog<void>(
-              context: context,
-              builder: (_) => ReglagesSupportDialog(
-                libelleCategorie: (l, c) => c,
-                libellePriorite: (l, p) => p,
-              ),
-            ),
-            child: const Text('ouvrir'),
-          ),
-        ),
-        [
-          ...permissionsOui,
-          modelesReponseProvider.overrideWith((ref) async => [
-                const ModeleReponse('m1', 'Accusé de réception d\'une demande de remboursement', 'texte', 'transaction'),
-              ]),
-          delaisCiblesProvider.overrideWith((ref) async => [
-                const DelaiCible('transaction', 'urgent', 4, 48),
-              ]),
-        ],
-      ));
-      await tester.tap(find.text('ouvrir'));
-      await tester.pumpAndSettle();
-      expect(tester.takeException(), isNull);
+    testWidgets('un historique réellement vide le dit', (tester) async {
+      await _monter(
+        tester,
+        const HistoriqueReglagesDialog(),
+        overrides: [reglagesHistoriqueProvider.overrideWith((ref) async => const [])],
+      );
+
+      expect(find.textContaining('Aucun changement enregistré'), findsOneWidget);
     });
-  }
+  });
 }

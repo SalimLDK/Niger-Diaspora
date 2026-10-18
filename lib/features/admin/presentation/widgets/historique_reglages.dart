@@ -54,11 +54,16 @@ class HistoriqueReglagesDialog extends ConsumerWidget {
                 data: (liste) => liste.isEmpty
                     ? Text(l10n.rgHistEmpty,
                         style: const TextStyle(color: AdminColors.text3))
-                    : ListView.separated(
-                        shrinkWrap: true,
-                        itemCount: liste.length,
-                        separatorBuilder: (_, __) => const Divider(height: 24),
-                        itemBuilder: (_, i) => _Entree(entree: liste[i]),
+                    : SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            for (var i = 0; i < liste.length; i++) ...[
+                              if (i > 0) const Divider(height: 24),
+                              _Entree(entree: liste[i]),
+                            ],
+                          ],
+                        ),
                       ),
               ),
             ),
