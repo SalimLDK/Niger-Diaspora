@@ -9221,5 +9221,22 @@
   "secAdmSumReports": "Signalements faits",
   "secAdmSumBlocked": "Comptes bloqués",
   "secAdmSumDevices": "Appareils",
-  "mesDonneesAnswerLabel": "Réponse de l'équipe"
+  "mesDonneesAnswerLabel": "Réponse de l'équipe",
+  "ambAdmVerifyTitle": "Vérifier l'ambassade",
+  "ambAdmVerifyWarn": "Le badge dit au public que la fiche a été contrôlée : indiquez la source officielle consultée. Elle est conservée avec la date et votre nom.",
+  "ambAdmSourceUrl": "Adresse de la source (https://…)",
+  "ambAdmSourcePublisher": "Éditeur de la source (ministère, site officiel…)",
+  "ambAdmReasonLabel": "Motif (conservé dans l'historique)",
+  "ambAdmRejectTitle": "Refuser la fiche",
+  "ambAdmSuspendTitle": "Suspendre l'ambassade",
+  "ambAdmSuspendWarn": "La fiche reste en base mais n'est plus présentée comme active. Réversible.",
+  "ambAdmReactivateTitle": "Réactiver l'ambassade",
+  "ambAdmConfirm": "Confirmer",
+  "ambAdmCancel": "Annuler",
+  "ambAdmSuspendedReason": "Suspendue : {reason}",
+  "@ambAdmSuspendedReason": {"placeholders": {"reason": {"type": "String"}}},
+  "ambAdmRejectedReason": "Refusée : {reason}",
+  "@ambAdmRejectedReason": {"placeholders": {"reason": {"type": "String"}}},
+  "ambAdmSourceLine": "Source : {source}",
+  "@ambAdmSourceLine": {"placeholders": {"source": {"type": "String"}}}
 }

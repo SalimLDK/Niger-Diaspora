@@ -18503,4 +18503,55 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get mesDonneesAnswerLabel => 'Réponse de l\'équipe';
+
+  @override
+  String get ambAdmVerifyTitle => 'Vérifier l\'ambassade';
+
+  @override
+  String get ambAdmVerifyWarn =>
+      'Le badge dit au public que la fiche a été contrôlée : indiquez la source officielle consultée. Elle est conservée avec la date et votre nom.';
+
+  @override
+  String get ambAdmSourceUrl => 'Adresse de la source (https://…)';
+
+  @override
+  String get ambAdmSourcePublisher =>
+      'Éditeur de la source (ministère, site officiel…)';
+
+  @override
+  String get ambAdmReasonLabel => 'Motif (conservé dans l\'historique)';
+
+  @override
+  String get ambAdmRejectTitle => 'Refuser la fiche';
+
+  @override
+  String get ambAdmSuspendTitle => 'Suspendre l\'ambassade';
+
+  @override
+  String get ambAdmSuspendWarn =>
+      'La fiche reste en base mais n\'est plus présentée comme active. Réversible.';
+
+  @override
+  String get ambAdmReactivateTitle => 'Réactiver l\'ambassade';
+
+  @override
+  String get ambAdmConfirm => 'Confirmer';
+
+  @override
+  String get ambAdmCancel => 'Annuler';
+
+  @override
+  String ambAdmSuspendedReason(String reason) {
+    return 'Suspendue : $reason';
+  }
+
+  @override
+  String ambAdmRejectedReason(String reason) {
+    return 'Refusée : $reason';
+  }
+
+  @override
+  String ambAdmSourceLine(String source) {
+    return 'Source : $source';
+  }
 }

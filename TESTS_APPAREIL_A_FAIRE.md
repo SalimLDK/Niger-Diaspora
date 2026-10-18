@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1437 cases à cocher, 55 cochées** — 313 entrées sur 327 ont encore des cases ouvertes.
+**1444 cases à cocher, 55 cochées** — 314 entrées sur 328 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -98,7 +98,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 6 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (127)
+**P1 — fonction importante, jamais vérifiée** (128)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -175,6 +175,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [⬜ Photo de profil : on choisit son cadrage (2026-09-14)](#-photo-de-profil--on-choisit-son-cadrage-2026-09-14) · *Accueil, profil et réglages*
 - 6 · [⬜ Champ ville : recherche dans le référentiel (2026-09-13)](#-champ-ville--recherche-dans-le-référentiel-2026-09-13) · *Accueil, profil et réglages*
 - 7 · [Bascule en anglais — ~1 600 chaînes branchées, rien vu à l'écran (2026-08-06)](#bascule-en-anglais--1-600-chaînes-branchées-rien-vu-à-lécran-2026-08-06) · *Design, thème, langue et mise en page* · bloqué
+- 7 · [⬜ Panneau admin : ambassades — vérification sourcée, suspension motivée, historique (2026-10-19)](#-panneau-admin--ambassades--vérification-sourcée-suspension-motivée-historique-2026-10-19) · *Backend, sécurité et observabilité*
 - 8 · [⬜ Demandes de données : le demandeur est prévenu et lit une réponse (2026-10-18)](#-demandes-de-données--le-demandeur-est-prévenu-et-lit-une-réponse-2026-10-18) · *Backend, sécurité et observabilité*
 - 9 · [⬜ « Mes demandes sur mes données » : faire une demande depuis l'application (2026-10-18)](#--mes-demandes-sur-mes-données---faire-une-demande-depuis-lapplication-2026-10-18) · *Backend, sécurité et observabilité*
 - 6 · [⬜ Panneau admin : annuaire — badge motivé, archivage, historique (2026-10-18)](#-panneau-admin--annuaire--badge-motivé-archivage-historique-2026-10-18) · *Backend, sécurité et observabilité*
@@ -385,7 +386,7 @@ Par domaine :
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 67 à faire, 0 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 58 à faire, 5 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 108 à faire, 5 faites
-- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 174 à faire, 2 faites
+- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 181 à faire, 2 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 46 à faire, 1 faites
 - [15. Site web](#15-site-web) — 69 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 23 à faire, 0 faites
@@ -9312,6 +9313,23 @@ parce qu'il change un **comportement**, pas seulement un habillage :
 # 13. Backend, sécurité et observabilité
 
 Supabase et Firebase côté serveur, accès anon, stockage, journaux, Crashlytics, back-office.
+
+---
+## ⬜ Panneau admin : ambassades — vérification sourcée, suspension motivée, historique (2026-10-19)
+
+**Priorité P1** · importance 4/5 — Le badge « vérifié » d'une ambassade n'était posé que par une écriture directe, sans source ni trace ; et la carte de l'application doit continuer d'afficher les 32 fiches existantes.
+
+*Bloqué : migration 20261019090000 appliquée, panneau web avec un compte superAdmin et un compte contentMod, un téléphone.*
+
+Fichiers : `lib/features/admin/presentation/screens/admin_embassy_verification_screen.dart`, `providers/ambassades_admin_provider.dart`, `supabase/migrations/20261019090000_ambassades_moderation.sql`.
+
+- [ ] Téléphone : l'annuaire et la carte des ambassades affichent toujours les 32 fiches, vérifiées (la lecture publique n'a pas bougé).
+- [ ] Panneau, une ambassade non vérifiée : « Vérifier » demande l'adresse https ET l'éditeur de la source ; sans l'un des deux, le bouton reste grisé ; après confirmation la fiche passe vérifiée.
+- [ ] « Refuser » et « Suspendre » exigent un motif de 5 caractères au moins ; « Réactiver » aussi.
+- [ ] Une action refusée par le serveur (déjà vérifiée, déjà suspendue) s'affiche en clair et la liste se recharge.
+- [ ] contentMod (non super) : les boutons échouent avec « pas la permission » — comme avant, seul le superAdmin écrit cette table.
+- [ ] L'écran de création d'une ambassade fonctionne toujours (la fiche naît non vérifiée) ; modifier un numéro de téléphone fonctionne.
+- [ ] Journal d'audit : chaque geste laisse une ligne EMBASSY_*.
 
 ---
 ## ⬜ Demandes de données : le demandeur est prévenu et lit une réponse (2026-10-18)

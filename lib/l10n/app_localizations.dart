@@ -33595,6 +33595,90 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Réponse de l\'équipe'**
   String get mesDonneesAnswerLabel;
+
+  /// No description provided for @ambAdmVerifyTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vérifier l\'ambassade'**
+  String get ambAdmVerifyTitle;
+
+  /// No description provided for @ambAdmVerifyWarn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le badge dit au public que la fiche a été contrôlée : indiquez la source officielle consultée. Elle est conservée avec la date et votre nom.'**
+  String get ambAdmVerifyWarn;
+
+  /// No description provided for @ambAdmSourceUrl.
+  ///
+  /// In fr, this message translates to:
+  /// **'Adresse de la source (https://…)'**
+  String get ambAdmSourceUrl;
+
+  /// No description provided for @ambAdmSourcePublisher.
+  ///
+  /// In fr, this message translates to:
+  /// **'Éditeur de la source (ministère, site officiel…)'**
+  String get ambAdmSourcePublisher;
+
+  /// No description provided for @ambAdmReasonLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif (conservé dans l\'historique)'**
+  String get ambAdmReasonLabel;
+
+  /// No description provided for @ambAdmRejectTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Refuser la fiche'**
+  String get ambAdmRejectTitle;
+
+  /// No description provided for @ambAdmSuspendTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suspendre l\'ambassade'**
+  String get ambAdmSuspendTitle;
+
+  /// No description provided for @ambAdmSuspendWarn.
+  ///
+  /// In fr, this message translates to:
+  /// **'La fiche reste en base mais n\'est plus présentée comme active. Réversible.'**
+  String get ambAdmSuspendWarn;
+
+  /// No description provided for @ambAdmReactivateTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réactiver l\'ambassade'**
+  String get ambAdmReactivateTitle;
+
+  /// No description provided for @ambAdmConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confirmer'**
+  String get ambAdmConfirm;
+
+  /// No description provided for @ambAdmCancel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annuler'**
+  String get ambAdmCancel;
+
+  /// No description provided for @ambAdmSuspendedReason.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suspendue : {reason}'**
+  String ambAdmSuspendedReason(String reason);
+
+  /// No description provided for @ambAdmRejectedReason.
+  ///
+  /// In fr, this message translates to:
+  /// **'Refusée : {reason}'**
+  String ambAdmRejectedReason(String reason);
+
+  /// No description provided for @ambAdmSourceLine.
+  ///
+  /// In fr, this message translates to:
+  /// **'Source : {source}'**
+  String ambAdmSourceLine(String source);
 }
 
 class _AppLocalizationsDelegate

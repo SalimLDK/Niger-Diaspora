@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../embassies/domain/entities/embassy_entity.dart';
 import '../../../embassies/presentation/providers/embassies_provider.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
-import 'package:diaspo_niger/core/errors/message_erreur.dart';
+import '../providers/ambassades_admin_provider.dart';
 
 class AdminEmbassyVerificationScreen extends ConsumerStatefulWidget {
   const AdminEmbassyVerificationScreen({super.key});
@@ -367,210 +367,163 @@ class _EmbassyAdminCard extends ConsumerWidget {
     return l10n.adminStatusPending;
   }
 
-  Future<void> _approve(WidgetRef ref, BuildContext context) async {
+  /// Exécute [geste], relit la liste, dit le résultat. Les refus du serveur se
+  /// lisent (source manquante, motif trop court, ambassade déjà vérifiée…) ;
+  /// la liste est relue même après un refus, un autre administrateur a pu
+  /// agir entre-temps.
+  Future<void> _lancer(
+    WidgetRef ref,
+    BuildContext context,
+    Future<void> Function() geste,
+    String succes, {
+    Color couleur = AdminColors.statusGreen,
+  }) async {
+    final messenger = ScaffoldMessenger.of(context);
+    String? echec;
     try {
-      await ref
-          .read(embassiesRepositoryProvider)
-          .updateEmbassyStatus(
-            embassy.id,
-            isVerified: true,
-            isSuspended: false,
-          );
-      ref.invalidate(embassiesListProvider);
-
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const AppIcon(AppIcon.checkCircle, color: Colors.white),
-                const SizedBox(width: 12),
-                Text(AppLocalizations.of(context)!.adminEmbassyApproved(embassy.name)),
-              ],
-            ),
-            backgroundColor: AdminColors.statusGreen,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-        );
-      }
+      await geste();
     } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const AppIcon(AppIcon.error, color: Colors.white),
-                const SizedBox(width: 12),
-                Expanded(child: Text(messageErreurUsager(e))),
-              ],
+      echec = messageAmbassadeAdmin(e);
+    }
+    ref.invalidate(embassiesListProvider);
+    messenger.showSnackBar(SnackBar(
+      content: Text(echec ?? succes),
+      backgroundColor: echec == null ? couleur : AdminColors.statusRed,
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    ));
+  }
+
+  /// Un ou plusieurs champs obligatoires ; `null` si annulé.
+  Future<List<String>?> _saisir(
+    BuildContext context, {
+    required String titre,
+    required List<String> libelles,
+    String? avertissement,
+    int minimum = 5,
+  }) {
+    final controllers = [for (final _ in libelles) TextEditingController()];
+    return showDialog<List<String>>(
+      context: context,
+      builder: (ctx) {
+        final l10n = AppLocalizations.of(ctx)!;
+        return StatefulBuilder(
+          builder: (ctx, setLocal) => AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            title: Text(titre),
+            content: SizedBox(
+              width: 460,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (avertissement != null)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Text(avertissement,
+                            style: const TextStyle(
+                                fontSize: 12, color: AdminColors.statusAmberStrong)),
+                      ),
+                    for (var i = 0; i < libelles.length; i++) ...[
+                      TextField(
+                        controller: controllers[i],
+                        onChanged: (_) => setLocal(() {}),
+                        maxLines: libelles.length == 1 ? 3 : 1,
+                        decoration: InputDecoration(
+                          labelText: libelles[i],
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                    ],
+                  ],
+                ),
+              ),
             ),
-            backgroundColor: AdminColors.statusRed,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
+            actions: [
+              TextButton(
+                  onPressed: () => Navigator.pop(ctx), child: Text(l10n.ambAdmCancel)),
+              ElevatedButton(
+                onPressed: controllers.every((c) => c.text.trim().length >= minimum)
+                    ? () => Navigator.pop(ctx, [for (final c in controllers) c.text.trim()])
+                    : null,
+                child: Text(l10n.ambAdmConfirm),
+              ),
+            ],
           ),
         );
+      },
+    ).whenComplete(() {
+      for (final c in controllers) {
+        c.dispose();
       }
-    }
+    });
+  }
+
+  Future<void> _approve(WidgetRef ref, BuildContext context) async {
+    final l10n = AppLocalizations.of(context)!;
+    final v = await _saisir(
+      context,
+      titre: l10n.ambAdmVerifyTitle,
+      avertissement: l10n.ambAdmVerifyWarn,
+      libelles: [l10n.ambAdmSourceUrl, l10n.ambAdmSourcePublisher],
+      minimum: 3,
+    );
+    if (v == null || !context.mounted) return;
+    await _lancer(
+      ref,
+      context,
+      () => ref
+          .read(ambassadesAdminActionsProvider)
+          .verifier(embassy.id, adresse: v[0], editeur: v[1]),
+      l10n.adminEmbassyApproved(embassy.name),
+    );
   }
 
   Future<void> _reject(WidgetRef ref, BuildContext context) async {
     final l10n = AppLocalizations.of(context)!;
-    final reasonController = TextEditingController();
-    await showDialog(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            title: Text(l10n.adminRejectRequest),
-            content: TextField(
-              controller: reasonController,
-              decoration: InputDecoration(
-                labelText: l10n.adminRejectReason,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              maxLines: 3,
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text(l10n.adminCancelAction),
-              ),
-              ElevatedButton(
-                onPressed: () async {
-                  Navigator.pop(context);
-                  try {
-                    await ref
-                        .read(embassiesRepositoryProvider)
-                        .updateEmbassyStatus(
-                          embassy.id,
-                          isVerified: false,
-                          rejectionReason: reasonController.text,
-                        );
-                    ref.invalidate(embassiesListProvider);
-
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(l10n.adminEmbassyRejected(embassy.name)),
-                          backgroundColor: AdminColors.statusAmber,
-                          behavior: SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                      );
-                    }
-                  } catch (e) {
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(messageErreurUsager(e)),
-                          backgroundColor: AdminColors.statusRed,
-                          behavior: SnackBarBehavior.floating,
-                        ),
-                      );
-                    }
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AdminColors.statusRed,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: Text(
-                  l10n.adminReject,
-                  style: const TextStyle(color: Colors.white),
-                ),
-              ),
-            ],
-          ),
+    final v = await _saisir(context,
+        titre: l10n.ambAdmRejectTitle, libelles: [l10n.adminRejectReason]);
+    if (v == null || !context.mounted) return;
+    await _lancer(
+      ref,
+      context,
+      () => ref.read(ambassadesAdminActionsProvider).refuser(embassy.id, v[0]),
+      l10n.adminEmbassyRejected(embassy.name),
+      couleur: AdminColors.statusAmber,
     );
   }
 
   Future<void> _suspend(WidgetRef ref, BuildContext context) async {
-    try {
-      await ref
-          .read(embassiesRepositoryProvider)
-          .updateEmbassyStatus(embassy.id, isSuspended: true);
-      ref.invalidate(embassiesListProvider);
-
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const Icon(Icons.block_rounded, color: Colors.white),
-                const SizedBox(width: 12),
-                Text(AppLocalizations.of(context)!.adminEmbassySuspended(embassy.name)),
-              ],
-            ),
-            backgroundColor: AdminColors.statusAmber,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-        );
-      }
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(messageErreurUsager(e)),
-            backgroundColor: AdminColors.statusRed,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
-    }
+    final l10n = AppLocalizations.of(context)!;
+    final v = await _saisir(
+      context,
+      titre: l10n.ambAdmSuspendTitle,
+      avertissement: l10n.ambAdmSuspendWarn,
+      libelles: [l10n.ambAdmReasonLabel],
+    );
+    if (v == null || !context.mounted) return;
+    await _lancer(
+      ref,
+      context,
+      () => ref.read(ambassadesAdminActionsProvider).suspendre(embassy.id, v[0]),
+      l10n.adminEmbassySuspended(embassy.name),
+      couleur: AdminColors.statusAmber,
+    );
   }
 
   Future<void> _reactivate(WidgetRef ref, BuildContext context) async {
-    try {
-      await ref
-          .read(embassiesRepositoryProvider)
-          .updateEmbassyStatus(embassy.id, isSuspended: false);
-      ref.invalidate(embassiesListProvider);
-
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Row(
-              children: [
-                const AppIcon(AppIcon.checkCircle, color: Colors.white),
-                const SizedBox(width: 12),
-                Text(AppLocalizations.of(context)!.adminEmbassyReactivated(embassy.name)),
-              ],
-            ),
-            backgroundColor: AdminColors.statusGreen,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-        );
-      }
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(messageErreurUsager(e)),
-            backgroundColor: AdminColors.statusRed,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
-    }
+    final l10n = AppLocalizations.of(context)!;
+    final v = await _saisir(context,
+        titre: l10n.ambAdmReactivateTitle, libelles: [l10n.ambAdmReasonLabel]);
+    if (v == null || !context.mounted) return;
+    await _lancer(
+      ref,
+      context,
+      () => ref.read(ambassadesAdminActionsProvider).reactiver(embassy.id, v[0]),
+      l10n.adminEmbassyReactivated(embassy.name),
+    );
   }
 
   @override

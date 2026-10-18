@@ -7850,5 +7850,19 @@
   "secAdmSumReports": "Reports filed",
   "secAdmSumBlocked": "Blocked accounts",
   "secAdmSumDevices": "Devices",
-  "mesDonneesAnswerLabel": "Team's reply"
+  "mesDonneesAnswerLabel": "Team's reply",
+  "ambAdmVerifyTitle": "Verify the embassy",
+  "ambAdmVerifyWarn": "The badge tells the public the listing was checked: give the official source consulted. It is kept with the date and your name.",
+  "ambAdmSourceUrl": "Source address (https://…)",
+  "ambAdmSourcePublisher": "Source publisher (ministry, official site…)",
+  "ambAdmReasonLabel": "Reason (kept in the history)",
+  "ambAdmRejectTitle": "Reject the listing",
+  "ambAdmSuspendTitle": "Suspend the embassy",
+  "ambAdmSuspendWarn": "The listing stays in the database but is no longer shown as active. Reversible.",
+  "ambAdmReactivateTitle": "Reactivate the embassy",
+  "ambAdmConfirm": "Confirm",
+  "ambAdmCancel": "Cancel",
+  "ambAdmSuspendedReason": "Suspended: {reason}",
+  "ambAdmRejectedReason": "Rejected: {reason}",
+  "ambAdmSourceLine": "Source: {source}"
 }
