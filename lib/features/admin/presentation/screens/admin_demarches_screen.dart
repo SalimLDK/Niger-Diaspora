@@ -194,8 +194,9 @@ Future<bool> _lancer(
   BuildContext context,
   WidgetRef ref,
   Future<void> Function() geste,
-  String succes,
-) async {
+  String succes, {
+  String Function()? succesCalcule,
+}) async {
   final l10n = AppLocalizations.of(context)!;
   final messenger = ScaffoldMessenger.of(context);
   String? echec;
@@ -210,12 +211,10 @@ Future<bool> _lancer(
     };
   }
   ref.invalidate(lignesDemarchesProvider);
-  // Un succès sans texte (la publication affiche le sien) ne fait pas de bandeau vide.
-  if (echec == null && succes.isEmpty) return true;
   messenger.showSnackBar(SnackBar(
     behavior: SnackBarBehavior.floating,
     backgroundColor: echec == null ? AdminColors.statusGreen : AdminColors.statusRed,
-    content: Text(echec ?? succes),
+    content: Text(echec ?? (succesCalcule?.call() ?? succes)),
   ));
   return echec == null;
 }
@@ -465,16 +464,16 @@ class _CarteDemarche extends ConsumerWidget {
                 ElevatedButton.icon(
                   onPressed: () async {
                     var n = 0;
-                    final ok = await _lancer(context, ref, () async {
-                      n = await acts.publier(b.id);
-                    }, '');
-                    if (ok && context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                        behavior: SnackBarBehavior.floating,
-                        backgroundColor: AdminColors.statusGreen,
-                        content: Text(l10n.demAdmPublished('$n')),
-                      ));
-                    }
+                    await _lancer(
+                      context,
+                      ref,
+                      () async {
+                        n = await acts.publier(b.id);
+                      },
+                      '',
+                      // Le numéro de version n'est connu qu'une fois publié.
+                      succesCalcule: () => l10n.demAdmPublished('$n'),
+                    );
                   },
                   icon: const Icon(Icons.public_rounded, size: 16),
                   label: Text(l10n.demAdmPublish),
