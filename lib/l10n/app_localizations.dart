@@ -32389,6 +32389,390 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Fiche restaurée'**
   String get annAdmRestoredDone;
+
+  /// No description provided for @cmpAdmTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Notifications'**
+  String get cmpAdmTitle;
+
+  /// No description provided for @cmpAdmSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Campagnes : rédaction, approbation par un autre administrateur, envoi. Créée n\'est pas livrée, et livrée n\'est pas lue.'**
+  String get cmpAdmSubtitle;
+
+  /// No description provided for @cmpAdmNoSchedule.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pas de programmation : une campagne part quand l\'envoi est lancé.'**
+  String get cmpAdmNoSchedule;
+
+  /// No description provided for @cmpAdmNew.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouvelle campagne'**
+  String get cmpAdmNew;
+
+  /// No description provided for @cmpAdmFilterWork.
+  ///
+  /// In fr, this message translates to:
+  /// **'À traiter'**
+  String get cmpAdmFilterWork;
+
+  /// No description provided for @cmpAdmFilterSent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoyées'**
+  String get cmpAdmFilterSent;
+
+  /// No description provided for @cmpAdmFilterClosed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Refusées ou annulées'**
+  String get cmpAdmFilterClosed;
+
+  /// No description provided for @cmpAdmFilterAll.
+  ///
+  /// In fr, this message translates to:
+  /// **'Toutes'**
+  String get cmpAdmFilterAll;
+
+  /// No description provided for @cmpAdmEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune campagne dans cette vue.'**
+  String get cmpAdmEmpty;
+
+  /// No description provided for @cmpAdmLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chargement impossible : {detail}'**
+  String cmpAdmLoadError(String detail);
+
+  /// No description provided for @cmpAdmRetry.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réessayer'**
+  String get cmpAdmRetry;
+
+  /// No description provided for @cmpAdmNoAccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous n\'avez pas accès aux campagnes.'**
+  String get cmpAdmNoAccess;
+
+  /// No description provided for @cmpAdmTypeTransactional.
+  ///
+  /// In fr, this message translates to:
+  /// **'Transactionnel'**
+  String get cmpAdmTypeTransactional;
+
+  /// No description provided for @cmpAdmTypeSecurity.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sécurité'**
+  String get cmpAdmTypeSecurity;
+
+  /// No description provided for @cmpAdmTypeOfficial.
+  ///
+  /// In fr, this message translates to:
+  /// **'Information officielle'**
+  String get cmpAdmTypeOfficial;
+
+  /// No description provided for @cmpAdmTypePromotional.
+  ///
+  /// In fr, this message translates to:
+  /// **'Promotionnel'**
+  String get cmpAdmTypePromotional;
+
+  /// No description provided for @cmpAdmTypeHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sécurité et transactionnel passent même si le compte a coupé les messages système ; officiel et promotionnel respectent ce choix.'**
+  String get cmpAdmTypeHelp;
+
+  /// No description provided for @cmpAdmStatusDraft.
+  ///
+  /// In fr, this message translates to:
+  /// **'Brouillon'**
+  String get cmpAdmStatusDraft;
+
+  /// No description provided for @cmpAdmStatusPending.
+  ///
+  /// In fr, this message translates to:
+  /// **'À approuver'**
+  String get cmpAdmStatusPending;
+
+  /// No description provided for @cmpAdmStatusApproved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Approuvée, à envoyer'**
+  String get cmpAdmStatusApproved;
+
+  /// No description provided for @cmpAdmStatusSending.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoi en cours'**
+  String get cmpAdmStatusSending;
+
+  /// No description provided for @cmpAdmStatusSent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoyée'**
+  String get cmpAdmStatusSent;
+
+  /// No description provided for @cmpAdmStatusRejected.
+  ///
+  /// In fr, this message translates to:
+  /// **'Refusée'**
+  String get cmpAdmStatusRejected;
+
+  /// No description provided for @cmpAdmStatusCancelled.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annulée'**
+  String get cmpAdmStatusCancelled;
+
+  /// No description provided for @cmpAdmAudienceAll.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tous les comptes'**
+  String get cmpAdmAudienceAll;
+
+  /// No description provided for @cmpAdmAudienceCountry.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pays : {country}'**
+  String cmpAdmAudienceCountry(String country);
+
+  /// No description provided for @cmpAdmAudienceUsers.
+  ///
+  /// In fr, this message translates to:
+  /// **'{n} comptes précis'**
+  String cmpAdmAudienceUsers(String n);
+
+  /// No description provided for @cmpAdmAudienceCount.
+  ///
+  /// In fr, this message translates to:
+  /// **'{total} comptes visés, {skipped} ont coupé ces messages, {notify} seront notifiés.'**
+  String cmpAdmAudienceCount(String total, String skipped, String notify);
+
+  /// No description provided for @cmpAdmRecipients.
+  ///
+  /// In fr, this message translates to:
+  /// **'{created} notifications créées, {skipped} comptes ignorés (préférences).'**
+  String cmpAdmRecipients(String created, String skipped);
+
+  /// No description provided for @cmpAdmReviewNote.
+  ///
+  /// In fr, this message translates to:
+  /// **'Remarque de la relecture : {note}'**
+  String cmpAdmReviewNote(String note);
+
+  /// No description provided for @cmpAdmCancelReason.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif de l\'annulation : {reason}'**
+  String cmpAdmCancelReason(String reason);
+
+  /// No description provided for @cmpAdmWaiting.
+  ///
+  /// In fr, this message translates to:
+  /// **'En attente de l\'approbation d\'un autre administrateur : vous ne pouvez pas approuver votre propre message.'**
+  String get cmpAdmWaiting;
+
+  /// No description provided for @cmpAdmEdit.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier'**
+  String get cmpAdmEdit;
+
+  /// No description provided for @cmpAdmSubmit.
+  ///
+  /// In fr, this message translates to:
+  /// **'Soumettre à approbation'**
+  String get cmpAdmSubmit;
+
+  /// No description provided for @cmpAdmApprove.
+  ///
+  /// In fr, this message translates to:
+  /// **'Approuver'**
+  String get cmpAdmApprove;
+
+  /// No description provided for @cmpAdmReject.
+  ///
+  /// In fr, this message translates to:
+  /// **'Refuser'**
+  String get cmpAdmReject;
+
+  /// No description provided for @cmpAdmRejectReason.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif du refus'**
+  String get cmpAdmRejectReason;
+
+  /// No description provided for @cmpAdmSend.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lancer l\'envoi'**
+  String get cmpAdmSend;
+
+  /// No description provided for @cmpAdmResume.
+  ///
+  /// In fr, this message translates to:
+  /// **'Reprendre l\'envoi'**
+  String get cmpAdmResume;
+
+  /// No description provided for @cmpAdmCancel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annuler la campagne'**
+  String get cmpAdmCancel;
+
+  /// No description provided for @cmpAdmCancelReasonLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif de l\'annulation'**
+  String get cmpAdmCancelReasonLabel;
+
+  /// No description provided for @cmpAdmCancelWarnSending.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les notifications déjà créées restent envoyées ; seules les suivantes sont arrêtées.'**
+  String get cmpAdmCancelWarnSending;
+
+  /// No description provided for @cmpAdmSendConfirmTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lancer l\'envoi ?'**
+  String get cmpAdmSendConfirmTitle;
+
+  /// No description provided for @cmpAdmSendConfirmBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'{notify} comptes seront notifiés. Un envoi ne se rappelle pas.'**
+  String cmpAdmSendConfirmBody(String notify);
+
+  /// No description provided for @cmpAdmSendProgress.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoi en cours : {done} traités, {left} restants…'**
+  String cmpAdmSendProgress(String done, String left);
+
+  /// No description provided for @cmpAdmSendDone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoi terminé : {created} notifications créées.'**
+  String cmpAdmSendDone(String created);
+
+  /// No description provided for @cmpAdmSendStopped.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoi interrompu ({detail}). Les comptes déjà traités ne seront pas renotifiés ; reprenez l\'envoi.'**
+  String cmpAdmSendStopped(String detail);
+
+  /// No description provided for @cmpAdmConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confirmer'**
+  String get cmpAdmConfirm;
+
+  /// No description provided for @cmpAdmCancelAction.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annuler'**
+  String get cmpAdmCancelAction;
+
+  /// No description provided for @cmpAdmEditorNew.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouvelle campagne'**
+  String get cmpAdmEditorNew;
+
+  /// No description provided for @cmpAdmEditorEdit.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier la campagne'**
+  String get cmpAdmEditorEdit;
+
+  /// No description provided for @cmpAdmFieldType.
+  ///
+  /// In fr, this message translates to:
+  /// **'Type de message'**
+  String get cmpAdmFieldType;
+
+  /// No description provided for @cmpAdmFieldTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Titre (80 caractères au plus)'**
+  String get cmpAdmFieldTitle;
+
+  /// No description provided for @cmpAdmFieldBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Texte (10 à 300 caractères)'**
+  String get cmpAdmFieldBody;
+
+  /// No description provided for @cmpAdmFieldAudience.
+  ///
+  /// In fr, this message translates to:
+  /// **'Audience'**
+  String get cmpAdmFieldAudience;
+
+  /// No description provided for @cmpAdmFieldCountry.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pays (en toutes lettres, tel qu\'enregistré)'**
+  String get cmpAdmFieldCountry;
+
+  /// No description provided for @cmpAdmFieldUsers.
+  ///
+  /// In fr, this message translates to:
+  /// **'Identifiants des comptes (un par ligne, 100 au plus)'**
+  String get cmpAdmFieldUsers;
+
+  /// No description provided for @cmpAdmSaveDraft.
+  ///
+  /// In fr, this message translates to:
+  /// **'Enregistrer le brouillon'**
+  String get cmpAdmSaveDraft;
+
+  /// No description provided for @cmpAdmSaved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Brouillon enregistré.'**
+  String get cmpAdmSaved;
+
+  /// No description provided for @cmpAdmSubmitted.
+  ///
+  /// In fr, this message translates to:
+  /// **'Soumise à approbation.'**
+  String get cmpAdmSubmitted;
+
+  /// No description provided for @cmpAdmApproved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Approuvée.'**
+  String get cmpAdmApproved;
+
+  /// No description provided for @cmpAdmRejected.
+  ///
+  /// In fr, this message translates to:
+  /// **'Refusée.'**
+  String get cmpAdmRejected;
+
+  /// No description provided for @cmpAdmCancelled.
+  ///
+  /// In fr, this message translates to:
+  /// **'Campagne annulée.'**
+  String get cmpAdmCancelled;
+
+  /// No description provided for @cmpAdmUnsaved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Des modifications ne sont pas enregistrées. Quitter ?'**
+  String get cmpAdmUnsaved;
 }
 
 class _AppLocalizationsDelegate

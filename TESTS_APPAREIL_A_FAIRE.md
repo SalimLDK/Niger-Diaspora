@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1404 cases à cocher, 55 cochées** — 309 entrées sur 323 ont encore des cases ouvertes.
+**1413 cases à cocher, 55 cochées** — 310 entrées sur 324 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -47,7 +47,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 
 - 4 · [Plantages Crashlytics 1.2.2 (31) — « objet utilisé après destruction » (2026-10-15)](#plantages-crashlytics-122-31---objet-utilisé-après-destruction--2026-10-15) · *Journaux de passes appareil*
 
-**P0 — avant toute nouvelle version** (47)
+**P0 — avant toute nouvelle version** (48)
 
 - 2 · [⬜ Temps réel après l'arrière-plan, et texte supprimé dans la liste (2026-09-21)](#-temps-réel-après-larrière-plan-et-texte-supprimé-dans-la-liste-2026-09-21) · *Messagerie*
 - 5 · [⬜ Droits d'écriture sur `messages` resserrés : accusés et modification (2026-09-16)](#-droits-décriture-sur-messages-resserrés--accusés-et-modification-2026-09-16) · *Messagerie*
@@ -74,6 +74,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ Qui peut voir un événement : discussion, groupes, personnes, tout le monde (2026-09-12)](#-qui-peut-voir-un-événement--discussion-groupes-personnes-tout-le-monde-2026-09-12) · *Ambassades, démarches, carte, entreprises et événements*
 - 2 · [Réglages/Carte — deux interrupteurs de partage de position désynchronisés (2026-08-13)](#réglagescarte--deux-interrupteurs-de-partage-de-position-désynchronisés-2026-08-13) · *Ambassades, démarches, carte, entreprises et événements*
 - 4 · [⬜ 🔴 Bloquer un utilisateur ne bloque rien — corrigé (2026-09-14)](#--bloquer-un-utilisateur-ne-bloque-rien--corrigé-2026-09-14) · *Accueil, profil et réglages* · bloqué
+- 9 · [⬜ Panneau admin : campagnes de notification — l'ancien écran n'envoyait rien (2026-10-18)](#-panneau-admin--campagnes-de-notification--lancien-écran-nenvoyait-rien-2026-10-18) · *Backend, sécurité et observabilité*
 - 7 · [⬜ `users` : un compte connecté lit e-mail, position et jetons d'autrui (2026-09-21)](#-users--un-compte-connecté-lit-e-mail-position-et-jetons-dautrui-2026-09-21) · *Backend, sécurité et observabilité*
 - 3 · [⬜ `users` n'est plus lisible sans compte (2026-09-20)](#-users-nest-plus-lisible-sans-compte-2026-09-20) · *Backend, sécurité et observabilité*
 - 4 · [⬜ Bloqueurs de publication — Play & iOS (état 2026-09-21)](#-bloqueurs-de-publication--play--ios-état-2026-09-21) · *Publication et plateformes*
@@ -381,7 +382,7 @@ Par domaine :
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 67 à faire, 0 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 58 à faire, 5 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 108 à faire, 5 faites
-- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 141 à faire, 2 faites
+- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 150 à faire, 2 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 46 à faire, 1 faites
 - [15. Site web](#15-site-web) — 69 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 23 à faire, 0 faites
@@ -9308,6 +9309,25 @@ parce qu'il change un **comportement**, pas seulement un habillage :
 # 13. Backend, sécurité et observabilité
 
 Supabase et Firebase côté serveur, accès anon, stockage, journaux, Crashlytics, back-office.
+
+---
+## ⬜ Panneau admin : campagnes de notification — l'ancien écran n'envoyait rien (2026-10-18)
+
+**Priorité P0** · importance 5/5 — L'ancien écran « Notifications » affichait « envoyée avec succès » alors que rien ne partait (aucun déclencheur ne lisait `admin_notifications`). Le nouveau crée de vraies notifications : il faut voir un push arriver sur un vrai téléphone, et mesurer.
+
+*Bloqué : migration 20261018210000 appliquée, deux comptes superAdmin et un contentMod, un téléphone avec un compte de test dans un pays à part (ne PAS viser « tous » pour l'essai).*
+
+Fichiers : `lib/features/admin/presentation/screens/admin_campagnes_screen.dart`, `supabase/migrations/20261018210000_communications_campagnes.sql`.
+
+- [ ] contentMod rédige une campagne « Information officielle » ciblant UN compte de test (audience « comptes précis ») et la soumet ; il ne voit pas « Approuver » et lit la phrase d'attente.
+- [ ] Un premier superAdmin approuve ; le décompte affiché dit « 1 compte visé, 0 ont coupé, 1 sera notifié ».
+- [ ] Lancer l'envoi : la boîte de confirmation donne le vrai nombre ; après envoi la carte dit « 1 notifications créées » ; le téléphone reçoit le push ET la ligne apparaît dans la liste de notifications, avec le libellé « Message système ».
+- [ ] Relire `net._http_response` (recette du 2026-09-15) : un 200 portant `skipped` veut dire « créée mais pas poussée » — le noter, l'écran ne le sait pas.
+- [ ] Sur le téléphone, couper « Messages système » : une campagne promotionnelle ne le notifie plus (« 1 compte ignoré ») ; une campagne « Sécurité » le notifie quand même.
+- [ ] Relancer l'envoi d'une campagne envoyée : refusé, aucun doublon sur le téléphone.
+- [ ] Interrompre un envoi (réseau coupé au milieu d'un lot) puis « Reprendre l'envoi » : pas de notification en double.
+- [ ] Annuler une campagne approuvée : « Lancer l'envoi » disparaît. Aucun champ de date de programmation n'existe (volontaire).
+- [ ] Thème sombre et largeur étroite : formulaire et dialogues lisibles.
 
 ---
 ## ⬜ Panneau admin : annuaire — badge motivé, archivage, historique (2026-10-18)

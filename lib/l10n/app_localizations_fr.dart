@@ -17828,4 +17828,226 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get annAdmRestoredDone => 'Fiche restaurée';
+
+  @override
+  String get cmpAdmTitle => 'Notifications';
+
+  @override
+  String get cmpAdmSubtitle =>
+      'Campagnes : rédaction, approbation par un autre administrateur, envoi. Créée n\'est pas livrée, et livrée n\'est pas lue.';
+
+  @override
+  String get cmpAdmNoSchedule =>
+      'Pas de programmation : une campagne part quand l\'envoi est lancé.';
+
+  @override
+  String get cmpAdmNew => 'Nouvelle campagne';
+
+  @override
+  String get cmpAdmFilterWork => 'À traiter';
+
+  @override
+  String get cmpAdmFilterSent => 'Envoyées';
+
+  @override
+  String get cmpAdmFilterClosed => 'Refusées ou annulées';
+
+  @override
+  String get cmpAdmFilterAll => 'Toutes';
+
+  @override
+  String get cmpAdmEmpty => 'Aucune campagne dans cette vue.';
+
+  @override
+  String cmpAdmLoadError(String detail) {
+    return 'Chargement impossible : $detail';
+  }
+
+  @override
+  String get cmpAdmRetry => 'Réessayer';
+
+  @override
+  String get cmpAdmNoAccess => 'Vous n\'avez pas accès aux campagnes.';
+
+  @override
+  String get cmpAdmTypeTransactional => 'Transactionnel';
+
+  @override
+  String get cmpAdmTypeSecurity => 'Sécurité';
+
+  @override
+  String get cmpAdmTypeOfficial => 'Information officielle';
+
+  @override
+  String get cmpAdmTypePromotional => 'Promotionnel';
+
+  @override
+  String get cmpAdmTypeHelp =>
+      'Sécurité et transactionnel passent même si le compte a coupé les messages système ; officiel et promotionnel respectent ce choix.';
+
+  @override
+  String get cmpAdmStatusDraft => 'Brouillon';
+
+  @override
+  String get cmpAdmStatusPending => 'À approuver';
+
+  @override
+  String get cmpAdmStatusApproved => 'Approuvée, à envoyer';
+
+  @override
+  String get cmpAdmStatusSending => 'Envoi en cours';
+
+  @override
+  String get cmpAdmStatusSent => 'Envoyée';
+
+  @override
+  String get cmpAdmStatusRejected => 'Refusée';
+
+  @override
+  String get cmpAdmStatusCancelled => 'Annulée';
+
+  @override
+  String get cmpAdmAudienceAll => 'Tous les comptes';
+
+  @override
+  String cmpAdmAudienceCountry(String country) {
+    return 'Pays : $country';
+  }
+
+  @override
+  String cmpAdmAudienceUsers(String n) {
+    return '$n comptes précis';
+  }
+
+  @override
+  String cmpAdmAudienceCount(String total, String skipped, String notify) {
+    return '$total comptes visés, $skipped ont coupé ces messages, $notify seront notifiés.';
+  }
+
+  @override
+  String cmpAdmRecipients(String created, String skipped) {
+    return '$created notifications créées, $skipped comptes ignorés (préférences).';
+  }
+
+  @override
+  String cmpAdmReviewNote(String note) {
+    return 'Remarque de la relecture : $note';
+  }
+
+  @override
+  String cmpAdmCancelReason(String reason) {
+    return 'Motif de l\'annulation : $reason';
+  }
+
+  @override
+  String get cmpAdmWaiting =>
+      'En attente de l\'approbation d\'un autre administrateur : vous ne pouvez pas approuver votre propre message.';
+
+  @override
+  String get cmpAdmEdit => 'Modifier';
+
+  @override
+  String get cmpAdmSubmit => 'Soumettre à approbation';
+
+  @override
+  String get cmpAdmApprove => 'Approuver';
+
+  @override
+  String get cmpAdmReject => 'Refuser';
+
+  @override
+  String get cmpAdmRejectReason => 'Motif du refus';
+
+  @override
+  String get cmpAdmSend => 'Lancer l\'envoi';
+
+  @override
+  String get cmpAdmResume => 'Reprendre l\'envoi';
+
+  @override
+  String get cmpAdmCancel => 'Annuler la campagne';
+
+  @override
+  String get cmpAdmCancelReasonLabel => 'Motif de l\'annulation';
+
+  @override
+  String get cmpAdmCancelWarnSending =>
+      'Les notifications déjà créées restent envoyées ; seules les suivantes sont arrêtées.';
+
+  @override
+  String get cmpAdmSendConfirmTitle => 'Lancer l\'envoi ?';
+
+  @override
+  String cmpAdmSendConfirmBody(String notify) {
+    return '$notify comptes seront notifiés. Un envoi ne se rappelle pas.';
+  }
+
+  @override
+  String cmpAdmSendProgress(String done, String left) {
+    return 'Envoi en cours : $done traités, $left restants…';
+  }
+
+  @override
+  String cmpAdmSendDone(String created) {
+    return 'Envoi terminé : $created notifications créées.';
+  }
+
+  @override
+  String cmpAdmSendStopped(String detail) {
+    return 'Envoi interrompu ($detail). Les comptes déjà traités ne seront pas renotifiés ; reprenez l\'envoi.';
+  }
+
+  @override
+  String get cmpAdmConfirm => 'Confirmer';
+
+  @override
+  String get cmpAdmCancelAction => 'Annuler';
+
+  @override
+  String get cmpAdmEditorNew => 'Nouvelle campagne';
+
+  @override
+  String get cmpAdmEditorEdit => 'Modifier la campagne';
+
+  @override
+  String get cmpAdmFieldType => 'Type de message';
+
+  @override
+  String get cmpAdmFieldTitle => 'Titre (80 caractères au plus)';
+
+  @override
+  String get cmpAdmFieldBody => 'Texte (10 à 300 caractères)';
+
+  @override
+  String get cmpAdmFieldAudience => 'Audience';
+
+  @override
+  String get cmpAdmFieldCountry =>
+      'Pays (en toutes lettres, tel qu\'enregistré)';
+
+  @override
+  String get cmpAdmFieldUsers =>
+      'Identifiants des comptes (un par ligne, 100 au plus)';
+
+  @override
+  String get cmpAdmSaveDraft => 'Enregistrer le brouillon';
+
+  @override
+  String get cmpAdmSaved => 'Brouillon enregistré.';
+
+  @override
+  String get cmpAdmSubmitted => 'Soumise à approbation.';
+
+  @override
+  String get cmpAdmApproved => 'Approuvée.';
+
+  @override
+  String get cmpAdmRejected => 'Refusée.';
+
+  @override
+  String get cmpAdmCancelled => 'Campagne annulée.';
+
+  @override
+  String get cmpAdmUnsaved =>
+      'Des modifications ne sont pas enregistrées. Quitter ?';
 }

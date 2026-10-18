@@ -17660,4 +17660,223 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get annAdmRestoredDone => 'Listing restored';
+
+  @override
+  String get cmpAdmTitle => 'Notifications';
+
+  @override
+  String get cmpAdmSubtitle =>
+      'Campaigns: drafting, approval by another administrator, sending. Created is not delivered, and delivered is not read.';
+
+  @override
+  String get cmpAdmNoSchedule =>
+      'No scheduling: a campaign goes out when sending is started.';
+
+  @override
+  String get cmpAdmNew => 'New campaign';
+
+  @override
+  String get cmpAdmFilterWork => 'To handle';
+
+  @override
+  String get cmpAdmFilterSent => 'Sent';
+
+  @override
+  String get cmpAdmFilterClosed => 'Rejected or cancelled';
+
+  @override
+  String get cmpAdmFilterAll => 'All';
+
+  @override
+  String get cmpAdmEmpty => 'No campaign in this view.';
+
+  @override
+  String cmpAdmLoadError(String detail) {
+    return 'Could not load: $detail';
+  }
+
+  @override
+  String get cmpAdmRetry => 'Retry';
+
+  @override
+  String get cmpAdmNoAccess => 'You do not have access to campaigns.';
+
+  @override
+  String get cmpAdmTypeTransactional => 'Transactional';
+
+  @override
+  String get cmpAdmTypeSecurity => 'Security';
+
+  @override
+  String get cmpAdmTypeOfficial => 'Official information';
+
+  @override
+  String get cmpAdmTypePromotional => 'Promotional';
+
+  @override
+  String get cmpAdmTypeHelp =>
+      'Security and transactional go through even if the account turned system messages off; official and promotional respect that choice.';
+
+  @override
+  String get cmpAdmStatusDraft => 'Draft';
+
+  @override
+  String get cmpAdmStatusPending => 'To approve';
+
+  @override
+  String get cmpAdmStatusApproved => 'Approved, to send';
+
+  @override
+  String get cmpAdmStatusSending => 'Sending';
+
+  @override
+  String get cmpAdmStatusSent => 'Sent';
+
+  @override
+  String get cmpAdmStatusRejected => 'Rejected';
+
+  @override
+  String get cmpAdmStatusCancelled => 'Cancelled';
+
+  @override
+  String get cmpAdmAudienceAll => 'All accounts';
+
+  @override
+  String cmpAdmAudienceCountry(String country) {
+    return 'Country: $country';
+  }
+
+  @override
+  String cmpAdmAudienceUsers(String n) {
+    return '$n specific accounts';
+  }
+
+  @override
+  String cmpAdmAudienceCount(String total, String skipped, String notify) {
+    return '$total accounts targeted, $skipped turned these messages off, $notify will be notified.';
+  }
+
+  @override
+  String cmpAdmRecipients(String created, String skipped) {
+    return '$created notifications created, $skipped accounts skipped (preferences).';
+  }
+
+  @override
+  String cmpAdmReviewNote(String note) {
+    return 'Reviewer\'s remark: $note';
+  }
+
+  @override
+  String cmpAdmCancelReason(String reason) {
+    return 'Cancellation reason: $reason';
+  }
+
+  @override
+  String get cmpAdmWaiting =>
+      'Waiting for another administrator to approve: you cannot approve your own message.';
+
+  @override
+  String get cmpAdmEdit => 'Edit';
+
+  @override
+  String get cmpAdmSubmit => 'Submit for approval';
+
+  @override
+  String get cmpAdmApprove => 'Approve';
+
+  @override
+  String get cmpAdmReject => 'Reject';
+
+  @override
+  String get cmpAdmRejectReason => 'Reason for rejection';
+
+  @override
+  String get cmpAdmSend => 'Start sending';
+
+  @override
+  String get cmpAdmResume => 'Resume sending';
+
+  @override
+  String get cmpAdmCancel => 'Cancel the campaign';
+
+  @override
+  String get cmpAdmCancelReasonLabel => 'Reason for cancelling';
+
+  @override
+  String get cmpAdmCancelWarnSending =>
+      'Notifications already created stay sent; only the following ones are stopped.';
+
+  @override
+  String get cmpAdmSendConfirmTitle => 'Start sending?';
+
+  @override
+  String cmpAdmSendConfirmBody(String notify) {
+    return '$notify accounts will be notified. A send cannot be recalled.';
+  }
+
+  @override
+  String cmpAdmSendProgress(String done, String left) {
+    return 'Sending: $done processed, $left left…';
+  }
+
+  @override
+  String cmpAdmSendDone(String created) {
+    return 'Sending finished: $created notifications created.';
+  }
+
+  @override
+  String cmpAdmSendStopped(String detail) {
+    return 'Sending interrupted ($detail). Accounts already processed will not be notified again; resume sending.';
+  }
+
+  @override
+  String get cmpAdmConfirm => 'Confirm';
+
+  @override
+  String get cmpAdmCancelAction => 'Cancel';
+
+  @override
+  String get cmpAdmEditorNew => 'New campaign';
+
+  @override
+  String get cmpAdmEditorEdit => 'Edit the campaign';
+
+  @override
+  String get cmpAdmFieldType => 'Message type';
+
+  @override
+  String get cmpAdmFieldTitle => 'Title (80 characters max)';
+
+  @override
+  String get cmpAdmFieldBody => 'Text (10 to 300 characters)';
+
+  @override
+  String get cmpAdmFieldAudience => 'Audience';
+
+  @override
+  String get cmpAdmFieldCountry => 'Country (full name, as stored)';
+
+  @override
+  String get cmpAdmFieldUsers => 'Account identifiers (one per line, 100 max)';
+
+  @override
+  String get cmpAdmSaveDraft => 'Save draft';
+
+  @override
+  String get cmpAdmSaved => 'Draft saved.';
+
+  @override
+  String get cmpAdmSubmitted => 'Submitted for approval.';
+
+  @override
+  String get cmpAdmApproved => 'Approved.';
+
+  @override
+  String get cmpAdmRejected => 'Rejected.';
+
+  @override
+  String get cmpAdmCancelled => 'Campaign cancelled.';
+
+  @override
+  String get cmpAdmUnsaved => 'Some changes are not saved. Leave?';
 }

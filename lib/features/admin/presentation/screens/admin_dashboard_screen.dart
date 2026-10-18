@@ -21,7 +21,7 @@ import 'admin_marketplace_screen.dart';
 import 'admin_users_management_screen.dart';
 import 'admin_transactions_screen.dart';
 import 'admin_analytics_screen.dart';
-import 'admin_notifications_screen.dart';
+import 'admin_campagnes_screen.dart';
 import 'admin_settings_screen.dart';
 import 'admin_feature_flags_screen.dart';
 import 'admin_audit_screen.dart';
@@ -200,11 +200,14 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
       ),
       _NavDestination(
         id: 'notifications',
-        label: l10n.adminNotifications,
+        label: l10n.cmpAdmTitle,
         icon: const Icon(Icons.notifications_outlined),
         selectedIcon: const Icon(Icons.notifications),
-        requiredPermission: AdminPermission.sendNotifications,
-        contentBuilder: (_, __) => const AdminNotificationsScreen(),
+        // Même population que les signalements : contentMod rédige, le
+        // superAdmin approuve et envoie. Les droits réels (`communications.*`)
+        // sont relus par l'écran et par la base.
+        requiredPermission: AdminPermission.viewReports,
+        contentBuilder: (_, __) => const AdminCampagnesScreen(),
       ),
       _NavDestination(
         id: 'settings',
