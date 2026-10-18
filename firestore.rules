@@ -691,9 +691,46 @@ service cloud.firestore {
     }
 
     // App Configuration - readable by authenticated users, writable by SuperAdmin only
+    //
+    // `app_config/settings` ne se modifie PLUS sans laisser sa trace : le lot
+    // d'écriture doit porter, en même temps, une entrée neuve de
+    // `app_config_history` dont le document de réglages cite l'identifiant
+    // (`lastChangeId`). Le panneau l'écrit déjà ainsi (AppSettingsDataSourceImpl).
+    // Un identifiant déjà utilisé ne peut pas autoriser un second changement :
+    // l'entrée citée ne doit pas exister AVANT le lot (`!exists`) et doit
+    // exister APRÈS (`existsAfter`), au nom de l'auteur de l'écriture.
+    // Banc : tools/rules_tests/reglages_historique.mjs.
     match /app_config/{documentId} {
       allow read: if isAuthenticated(); // All authenticated users can read settings
-      allow write: if isSuperAdmin(); // Only SuperAdmin can modify settings
+
+      function changementTrace() {
+        return request.resource.data.get('lastChangeId', null) is string
+          && !exists(/databases/$(database)/documents/app_config_history/$(request.resource.data.lastChangeId))
+          && existsAfter(/databases/$(database)/documents/app_config_history/$(request.resource.data.lastChangeId))
+          && getAfter(/databases/$(database)/documents/app_config_history/$(request.resource.data.lastChangeId)).data.by == request.auth.uid;
+      }
+
+      allow create: if isSuperAdmin() && (documentId != 'settings' || changementTrace());
+      allow update: if isSuperAdmin() && (documentId != 'settings' || changementTrace());
+      // Le document des réglages ne se supprime pas ; les autres, comme avant.
+      allow delete: if isSuperAdmin() && documentId != 'settings';
+    }
+
+    // Historique des réglages : ajout seul, jamais réécrit ni supprimé — pas
+    // même par le superAdmin. Lisible par le seul superAdmin.
+    match /app_config_history/{changeId} {
+      allow read: if isSuperAdmin();
+      allow create: if isSuperAdmin()
+        && request.resource.data.keys().hasOnly(['section', 'before', 'after', 'by', 'at', 'kind', 'restoredFrom', 'reason'])
+        && request.resource.data.keys().hasAll(['section', 'after', 'by', 'at', 'kind'])
+        && request.resource.data.section is string
+        && request.resource.data.after is map
+        && (!('before' in request.resource.data) || request.resource.data.before == null || request.resource.data.before is map)
+        && request.resource.data.by == request.auth.uid
+        && request.resource.data.at == request.time
+        && request.resource.data.kind in ['update', 'restore']
+        && (!('reason' in request.resource.data) || (request.resource.data.reason is string && request.resource.data.reason.size() <= 500));
+      allow update, delete: if false;
     }
 
     // Embassies - admins can create and manage embassies

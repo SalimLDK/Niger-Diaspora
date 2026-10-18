@@ -48,7 +48,7 @@ const { doc, setDoc, getDoc, deleteDoc, updateDoc, writeBatch, serverTimestamp }
 const env = await initializeTestEnvironment({
     projectId: "diaspo-niger",
     firestore: {
-        rules: readFileSync(join(RACINE, process.env.FIRESTORE_REGLES || "firestore.rules.cible-reglages-historique"), "utf8"),
+        rules: readFileSync(join(RACINE, process.env.FIRESTORE_REGLES || "firestore.rules"), "utf8"),
         host: "127.0.0.1",
         port: Number(process.env.FIRESTORE_EMULATEUR_PORT || 8080),
     },
