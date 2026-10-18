@@ -9381,5 +9381,19 @@
   "rchAdmKindEmbassies": "Embassies",
   "rchAdmKindCampaigns": "Campaigns",
   "rchAdmLoadError": "Could not load: {detail}",
-  "rchAdmRetry": "Retry"
+  "rchAdmRetry": "Retry",
+  "srcAdmTitle": "Consular sources",
+  "srcAdmSubtitle": "What is missing or has aged in procedures and embassies. Read-only: fix it from the relevant screen.",
+  "srcAdmRetry": "Retry",
+  "srcAdmAll": "All",
+  "srcAdmNoSource": "No source",
+  "srcAdmNeverChecked": "Never checked",
+  "srcAdmReviewOverdue": "Review overdue",
+  "srcAdmNoReviewPlanned": "No review planned",
+  "srcAdmProcedures": "Procedures to review: {n} of {total}",
+  "srcAdmEmbassies": "Embassies to review: {n} of {total}",
+  "srcAdmNothing": "Nothing to review.",
+  "srcAdmReviewOn": "Review planned on {date}",
+  "srcAdmUnpublished": "Unpublished",
+  "srcAdmLoadError": "Could not load: {detail}"
 }
