@@ -9267,5 +9267,16 @@
   "jrnAudActorId": "Actor id",
   "jrnAudReason": "Reason code",
   "jrnAudCorrelation": "Correlation",
-  "jrnAudEntryId": "Entry id"
+  "jrnAudEntryId": "Entry id",
+  "statTitle": "Statistics",
+  "statSubtitle": "Figures read live from the database, with their definition.",
+  "statToday": "Today",
+  "statDefTitle": "What these figures measure",
+  "statDefToday": "Today: accounts created since midnight, this device's time.",
+  "statDefWeek": "This week: accounts created since Monday midnight, this device's time.",
+  "statDefMonth": "This month: accounts created since the 1st, this device's time.",
+  "statDefGrowth": "Growth: accounts created per calendar month over the last six months. Sign-ups, not active members; accounts deleted since no longer appear.",
+  "statDefCategories": "Events and businesses by category: those your permissions let you read, any status (an inactive business or a cancelled event counts).",
+  "statDefNoExport": "No export is offered here: the panel's only export is the audit log's.",
+  "statReadAt": "Data read on {date}"
 }

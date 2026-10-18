@@ -19258,4 +19258,46 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get jrnAudEntryId => 'Identifiant de l\'entrée';
+
+  @override
+  String get statTitle => 'Statistiques';
+
+  @override
+  String get statSubtitle =>
+      'Chiffres lus en direct dans la base, avec leur définition.';
+
+  @override
+  String get statToday => 'Aujourd\'hui';
+
+  @override
+  String get statDefTitle => 'Ce que mesurent ces chiffres';
+
+  @override
+  String get statDefToday =>
+      'Aujourd\'hui : comptes créés depuis minuit, heure de cet appareil.';
+
+  @override
+  String get statDefWeek =>
+      'Cette semaine : comptes créés depuis lundi minuit, heure de cet appareil.';
+
+  @override
+  String get statDefMonth =>
+      'Ce mois : comptes créés depuis le 1er du mois, heure de cet appareil.';
+
+  @override
+  String get statDefGrowth =>
+      'Croissance : comptes créés par mois civil, sur les six derniers mois. Inscriptions, pas membres actifs ; les comptes supprimés depuis n\'y figurent plus.';
+
+  @override
+  String get statDefCategories =>
+      'Événements et commerces par catégorie : ceux que vos droits vous permettent de lire, tous statuts confondus (un commerce inactif ou un événement annulé compte).';
+
+  @override
+  String get statDefNoExport =>
+      'Aucun export n\'est proposé ici : le seul export du panneau est celui du journal d\'audit.';
+
+  @override
+  String statReadAt(String date) {
+    return 'Données lues le $date';
+  }
 }

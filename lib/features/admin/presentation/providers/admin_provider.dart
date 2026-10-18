@@ -2865,7 +2865,11 @@ class AnalyticsData extends Equatable {
     this.newUsersToday = 0,
     this.newUsersThisWeek = 0,
     this.newUsersThisMonth = 0,
+    this.lueLe,
   });
+
+  /// Instant où le serveur a répondu ; `null` tant que rien n'a été lu.
+  final DateTime? lueLe;
 
   @override
   List<Object?> get props => [
@@ -2875,6 +2879,7 @@ class AnalyticsData extends Equatable {
     newUsersToday,
     newUsersThisWeek,
     newUsersThisMonth,
+    lueLe,
   ];
 }
 
@@ -2916,98 +2921,63 @@ class AdminAnalyticsNotifier extends Notifier<AdminAnalyticsState> {
     return const AdminAnalyticsState();
   }
 
+  /// Compte les lignes de [table] créées entre [gte] (inclus) et [lt] (exclu).
+  /// Une erreur LÈVE : un échec de lecture ne devient jamais un « 0 » (avant,
+  /// un `catch` rendait 0 et la courbe de croissance affichait six mois vides
+  /// quand le serveur ne répondait pas).
+  Future<int> _compter(String table, {required DateTime gte, DateTime? lt}) async {
+    var q = _supabase
+        .from(table)
+        .select('id')
+        .gte('created_at', gte.toUtc().toIso8601String());
+    if (lt != null) q = q.lt('created_at', lt.toUtc().toIso8601String());
+    final r = await q.count(CountOption.exact);
+    return r.count;
+  }
+
+  /// Répartition par catégorie, lue par pages de 1000 : PostgREST plafonne une
+  /// réponse à 1000 lignes, et lire sans page tronquait la répartition en
+  /// silence au-delà.
+  Future<Map<String, int>> _repartition(String table) async {
+    const page = 1000;
+    final out = <String, int>{};
+    for (var debut = 0;; debut += page) {
+      final rows = await _supabase
+          .from(table)
+          .select('category')
+          .order('id')
+          .range(debut, debut + page - 1);
+      for (final row in rows) {
+        final c = row['category'] as String? ?? 'other';
+        out[c] = (out[c] ?? 0) + 1;
+      }
+      if (rows.length < page) return out;
+    }
+  }
+
   Future<void> loadAnalytics() async {
     state = state.copyWith(isLoading: true, error: null);
     try {
       final now = DateTime.now();
-
-      Future<int> countWhere(
-        String table, {
-        String? column,
-        String? gte,
-        String? lt,
-      }) async {
-        try {
-          var q = _supabase.from(table).select('id');
-          if (column != null && gte != null) {
-            q = q.gte(column, gte);
-          }
-          if (column != null && lt != null) {
-            q = (q as dynamic).lt(column, lt) as dynamic;
-          }
-          final resp = await (q as dynamic).count(CountOption.exact);
-          return (resp as dynamic).count as int;
-        } catch (_) {
-          return 0;
-        }
-      }
-
       final todayStart = DateTime(now.year, now.month, now.day);
-      final newUsersToday = await countWhere(
-        'users',
-        column: 'created_at',
-        gte: todayStart.toUtc().toIso8601String(),
-      );
-
-      final weekStart = now.subtract(Duration(days: now.weekday - 1));
-      final newUsersThisWeek = await countWhere(
-        'users',
-        column: 'created_at',
-        gte: DateTime(weekStart.year, weekStart.month, weekStart.day)
-            .toUtc().toIso8601String(),
-      );
-
+      final weekStart = DateTime(now.year, now.month, now.day - (now.weekday - 1));
       final monthStart = DateTime(now.year, now.month, 1);
-      final newUsersThisMonth = await countWhere(
-        'users',
-        column: 'created_at',
-        gte: monthStart.toUtc().toIso8601String(),
-      );
 
-      // User growth by month (last 6 months)
+      final newUsersToday = await _compter('users', gte: todayStart);
+      final newUsersThisWeek = await _compter('users', gte: weekStart);
+      final newUsersThisMonth = await _compter('users', gte: monthStart);
+
+      // Croissance mensuelle sur les six derniers mois.
       final userGrowth = <String, int>{};
       for (int i = 5; i >= 0; i--) {
         final month = DateTime(now.year, now.month - i, 1);
         final nextMonth = DateTime(now.year, now.month - i + 1, 1);
-        try {
-          final resp = await _supabase
-              .from('users')
-              .select('id')
-              .gte('created_at', month.toUtc().toIso8601String())
-              .lt('created_at', nextMonth.toUtc().toIso8601String())
-              .count(CountOption.exact);
-          final monthKey =
-              '${month.year}-${month.month.toString().padLeft(2, '0')}';
-          userGrowth[monthKey] = resp.count;
-        } catch (_) {
-          final monthKey =
-              '${month.year}-${month.month.toString().padLeft(2, '0')}';
-          userGrowth[monthKey] = 0;
-        }
+        final monthKey = '${month.year}-${month.month.toString().padLeft(2, '0')}';
+        userGrowth[monthKey] = await _compter('users', gte: month, lt: nextMonth);
       }
 
-      // Events by category
-      final eventsRows = await _supabase
-          .from('events')
-          .select('category')
-          .catchError((_) => <dynamic>[]);
-      final eventsByCategory = <String, int>{};
-      for (final row in (eventsRows as List)) {
-        final category = (row as Map)['category'] as String? ?? 'other';
-        eventsByCategory[category] = (eventsByCategory[category] ?? 0) + 1;
-      }
-
-      // Businesses by category
-      final businessesRows = await _supabase
-          .from('businesses')
-          .select('category')
-          .catchError((_) => <dynamic>[]);
-      final businessesByCategory = <String, int>{};
-      for (final row in (businessesRows as List)) {
-        final category = (row as Map)['category'] as String? ?? 'other';
-        businessesByCategory[category] =
-            (businessesByCategory[category] ?? 0) + 1;
-      }
+      final eventsByCategory = await _repartition('events');
+      final businessesByCategory = await _repartition('businesses');
 
       state = state.copyWith(
         isLoading: false,
@@ -3018,10 +2988,17 @@ class AdminAnalyticsNotifier extends Notifier<AdminAnalyticsState> {
           userGrowth: userGrowth,
           eventsByCategory: eventsByCategory,
           businessesByCategory: businessesByCategory,
+          lueLe: DateTime.now(),
         ),
       );
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
+      // Les anciennes valeurs sont effacées : un chiffre périmé sous une
+      // erreur se lirait comme à jour.
+      state = state.copyWith(
+        isLoading: false,
+        data: const AnalyticsData(),
+        error: messageErreurUsager(e),
+      );
     }
   }
 }

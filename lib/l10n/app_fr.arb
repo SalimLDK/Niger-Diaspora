@@ -10012,5 +10012,17 @@
   "jrnAudActorId": "Identifiant de l'acteur",
   "jrnAudReason": "Code de motif",
   "jrnAudCorrelation": "Corrélation",
-  "jrnAudEntryId": "Identifiant de l'entrée"
+  "jrnAudEntryId": "Identifiant de l'entrée",
+  "statTitle": "Statistiques",
+  "statSubtitle": "Chiffres lus en direct dans la base, avec leur définition.",
+  "statToday": "Aujourd'hui",
+  "statDefTitle": "Ce que mesurent ces chiffres",
+  "statDefToday": "Aujourd'hui : comptes créés depuis minuit, heure de cet appareil.",
+  "statDefWeek": "Cette semaine : comptes créés depuis lundi minuit, heure de cet appareil.",
+  "statDefMonth": "Ce mois : comptes créés depuis le 1er du mois, heure de cet appareil.",
+  "statDefGrowth": "Croissance : comptes créés par mois civil, sur les six derniers mois. Inscriptions, pas membres actifs ; les comptes supprimés depuis n'y figurent plus.",
+  "statDefCategories": "Événements et commerces par catégorie : ceux que vos droits vous permettent de lire, tous statuts confondus (un commerce inactif ou un événement annulé compte).",
+  "statDefNoExport": "Aucun export n'est proposé ici : le seul export du panneau est celui du journal d'audit.",
+  "statReadAt": "Données lues le {date}",
+  "@statReadAt": {"placeholders": {"date": {"type": "String"}}}
 }

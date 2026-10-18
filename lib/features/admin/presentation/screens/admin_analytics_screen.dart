@@ -60,7 +60,7 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
             const SizedBox(height: 32),
             _buildCategoryDistributionSection(state.data),
             const SizedBox(height: 32),
-            _buildExportSection(),
+            _buildDefinitions(state.data),
           ],
         ],
       ),
@@ -75,7 +75,7 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             DesignTitle(
-              'Analytics & Rapports',
+              l10n.statTitle,
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
@@ -85,7 +85,7 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
             ),
             const SizedBox(height: 4),
             Text(
-              'Statistiques et metriques de l\'application',
+              l10n.statSubtitle,
               style: TextStyle(
                 fontSize: 14,
                 color: _textSecondary,
@@ -205,7 +205,7 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
           runSpacing: 16,
           children: [
             _buildStatCard(
-              'Aujourd\'hui',
+              l10n.statToday,
               data.newUsersToday.toString(),
               const AppIcon(AppIcon.personAdd, color: AdminColors.actionBlueLight, size: 24),
               AdminColors.actionBlueLight,
@@ -585,101 +585,47 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
     );
   }
 
-  Widget _buildExportSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [AdminColors.statusPurple, AdminColors.statusPurple],
-                ),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Icon(Icons.download_rounded, color: Colors.white, size: 20),
-            ),
-            const SizedBox(width: 12),
-            Text(
-              l10n.adminDataExport,
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: _textPrimary,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 20),
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: _cardColor,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            children: [
-              _buildExportButton(l10n.adminUsers, const AppIcon(AppIcon.people, color: Colors.white, size: 20), AdminColors.actionBlueLight, 'users'),
-              _buildExportButton(l10n.adminEventsLabel, const Icon(Icons.event_rounded, color: Colors.white, size: 20), AdminColors.statusGreen, 'events'),
-              _buildExportButton(l10n.adminBusinesses, const AppIcon(AppIcon.store, color: Colors.white, size: 20), AdminColors.statusAmber, 'businesses'),
-              _buildExportButton(l10n.adminTransactions, const Icon(Icons.payments_rounded, color: Colors.white, size: 20), AdminColors.statusPurple, 'transactions'),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildExportButton(String label, Widget icon, Color color, String type) {
+  /// Ce que chaque chiffre mesure, et quand il a été lu : sans cela, « 12
+  /// aujourd'hui » ne dit ni depuis quand ni sur quel périmètre.
+  Widget _buildDefinitions(AnalyticsData data) {
+    final lue = data.lueLe == null
+        ? ''
+        : DateFormat('dd/MM/yyyy HH:mm:ss').format(data.lueLe!);
+    Widget ligne(String t) => Padding(
+          padding: const EdgeInsets.only(bottom: 6),
+          child: Text(t, style: const TextStyle(fontSize: 13, color: _textSecondary)),
+        );
     return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [color, color.withValues(alpha: 0.8)],
-        ),
-        borderRadius: BorderRadius.circular(12),
+        color: _cardColor,
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: color.withValues(alpha: 0.3),
-            blurRadius: 8,
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
             offset: const Offset(0, 4),
           ),
         ],
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () => _exportData(type),
-          borderRadius: BorderRadius.circular(12),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                icon,
-                const SizedBox(width: 10),
-                Text(
-                  l10n.adminExportLabel(label),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(l10n.statDefTitle,
+              style: const TextStyle(
+                  fontSize: 16, fontWeight: FontWeight.bold, color: _textPrimary)),
+          const SizedBox(height: 10),
+          ligne(l10n.statDefToday),
+          ligne(l10n.statDefWeek),
+          ligne(l10n.statDefMonth),
+          ligne(l10n.statDefGrowth),
+          ligne(l10n.statDefCategories),
+          ligne(l10n.statDefNoExport),
+          const SizedBox(height: 4),
+          Text(l10n.statReadAt(lue),
+              style: const TextStyle(fontSize: 12, color: _textSecondary)),
+        ],
       ),
     );
   }
@@ -687,22 +633,5 @@ class _AdminAnalyticsScreenState extends ConsumerState<AdminAnalyticsScreen> {
   String _formatCategoryName(String name) {
     if (name.isEmpty) return name;
     return name[0].toUpperCase() + name.substring(1);
-  }
-
-  void _exportData(String type) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.download_rounded, color: Colors.white),
-            const SizedBox(width: 12),
-            Text(l10n.adminExportInProgress(type)),
-          ],
-        ),
-        backgroundColor: _primaryColor,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-    );
   }
 }

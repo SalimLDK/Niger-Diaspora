@@ -19083,4 +19083,46 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get jrnAudEntryId => 'Entry id';
+
+  @override
+  String get statTitle => 'Statistics';
+
+  @override
+  String get statSubtitle =>
+      'Figures read live from the database, with their definition.';
+
+  @override
+  String get statToday => 'Today';
+
+  @override
+  String get statDefTitle => 'What these figures measure';
+
+  @override
+  String get statDefToday =>
+      'Today: accounts created since midnight, this device\'s time.';
+
+  @override
+  String get statDefWeek =>
+      'This week: accounts created since Monday midnight, this device\'s time.';
+
+  @override
+  String get statDefMonth =>
+      'This month: accounts created since the 1st, this device\'s time.';
+
+  @override
+  String get statDefGrowth =>
+      'Growth: accounts created per calendar month over the last six months. Sign-ups, not active members; accounts deleted since no longer appear.';
+
+  @override
+  String get statDefCategories =>
+      'Events and businesses by category: those your permissions let you read, any status (an inactive business or a cancelled event counts).';
+
+  @override
+  String get statDefNoExport =>
+      'No export is offered here: the panel\'s only export is the audit log\'s.';
+
+  @override
+  String statReadAt(String date) {
+    return 'Data read on $date';
+  }
 }
