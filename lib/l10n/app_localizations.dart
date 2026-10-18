@@ -33679,6 +33679,162 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Source : {source}'**
   String ambAdmSourceLine(String source);
+
+  /// No description provided for @cmpAdmScheduledFor.
+  ///
+  /// In fr, this message translates to:
+  /// **'Programmée le {date}'**
+  String cmpAdmScheduledFor(String date);
+
+  /// No description provided for @cmpAdmSchedule.
+  ///
+  /// In fr, this message translates to:
+  /// **'Programmer'**
+  String get cmpAdmSchedule;
+
+  /// No description provided for @cmpAdmReschedule.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier l\'heure'**
+  String get cmpAdmReschedule;
+
+  /// No description provided for @cmpAdmUnschedule.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retirer la programmation'**
+  String get cmpAdmUnschedule;
+
+  /// No description provided for @cmpAdmScheduleHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Une campagne approuvée et programmée part toute seule à son heure (vérification toutes les 5 minutes). L\'approbation porte aussi sur l\'heure.'**
+  String get cmpAdmScheduleHelp;
+
+  /// No description provided for @cmpAdmScheduledNoManual.
+  ///
+  /// In fr, this message translates to:
+  /// **'Programmée : elle part à son heure, ou s\'annule.'**
+  String get cmpAdmScheduledNoManual;
+
+  /// No description provided for @cmpAdmScheduleSaved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Heure enregistrée.'**
+  String get cmpAdmScheduleSaved;
+
+  /// No description provided for @cmpAdmFieldSchedule.
+  ///
+  /// In fr, this message translates to:
+  /// **'Heure d\'envoi (facultatif)'**
+  String get cmpAdmFieldSchedule;
+
+  /// No description provided for @cmpAdmPickWhen.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisir la date et l\'heure'**
+  String get cmpAdmPickWhen;
+
+  /// No description provided for @cmpAdmNoSchedule2.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoi manuel'**
+  String get cmpAdmNoSchedule2;
+
+  /// No description provided for @cmpAdmTemplates.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modèles'**
+  String get cmpAdmTemplates;
+
+  /// No description provided for @cmpAdmTemplateUse.
+  ///
+  /// In fr, this message translates to:
+  /// **'Partir d\'un modèle'**
+  String get cmpAdmTemplateUse;
+
+  /// No description provided for @cmpAdmTemplateNone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun modèle'**
+  String get cmpAdmTemplateNone;
+
+  /// No description provided for @cmpAdmTemplateNew.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouveau modèle'**
+  String get cmpAdmTemplateNew;
+
+  /// No description provided for @cmpAdmTemplateName.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nom du modèle (3 à 60 caractères)'**
+  String get cmpAdmTemplateName;
+
+  /// No description provided for @cmpAdmTemplateSaved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modèle enregistré.'**
+  String get cmpAdmTemplateSaved;
+
+  /// No description provided for @cmpAdmTemplateArchived.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modèle archivé.'**
+  String get cmpAdmTemplateArchived;
+
+  /// No description provided for @cmpAdmTemplateArchive.
+  ///
+  /// In fr, this message translates to:
+  /// **'Archiver'**
+  String get cmpAdmTemplateArchive;
+
+  /// No description provided for @cmpAdmTemplatesEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun modèle.'**
+  String get cmpAdmTemplatesEmpty;
+
+  /// No description provided for @cmpAdmTemplateHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Un modèle ne contient ni audience ni heure, et n\'approuve rien : la campagne qui en part suit l\'approbation habituelle.'**
+  String get cmpAdmTemplateHelp;
+
+  /// No description provided for @cmpAdmReportTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rapport d\'envoi'**
+  String get cmpAdmReportTitle;
+
+  /// No description provided for @cmpAdmReportCounts.
+  ///
+  /// In fr, this message translates to:
+  /// **'{created} notifications créées · {skipped} ignorées (préférences) · {remaining} restantes'**
+  String cmpAdmReportCounts(String created, String skipped, String remaining);
+
+  /// No description provided for @cmpAdmReportPush.
+  ///
+  /// In fr, this message translates to:
+  /// **'{n} destinataires joignables par push (porteurs d\'un jeton).'**
+  String cmpAdmReportPush(String n);
+
+  /// No description provided for @cmpAdmReportDelay.
+  ///
+  /// In fr, this message translates to:
+  /// **'Départ {s} s après l\'heure programmée.'**
+  String cmpAdmReportDelay(String s);
+
+  /// No description provided for @cmpAdmReportDuration.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoi en {s} s.'**
+  String cmpAdmReportDuration(String s);
+
+  /// No description provided for @cmpAdmReportCaveat.
+  ///
+  /// In fr, this message translates to:
+  /// **'Créée n\'est pas livrée, et livrée n\'est pas lue : ni la livraison ni la lecture ne sont mesurées ici.'**
+  String get cmpAdmReportCaveat;
 }
 
 class _AppLocalizationsDelegate

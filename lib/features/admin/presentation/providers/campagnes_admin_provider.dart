@@ -22,6 +22,7 @@ class Campagne {
     this.noteRelecture,
     this.motifAnnulation,
     this.misAJourLe,
+    this.programmeeLe,
   });
 
   final String id;
@@ -34,6 +35,12 @@ class Campagne {
   final String? noteRelecture;
   final String? motifAnnulation;
   final DateTime? misAJourLe;
+
+  /// L'heure d'envoi programmée, si elle l'est : la campagne approuvée part
+  /// alors toute seule (tâche toutes les 5 minutes) et ne s'envoie plus à la main.
+  final DateTime? programmeeLe;
+
+  bool get programmeeAVenir => programmeeLe != null && programmeeLe!.isAfter(DateTime.now());
 
   String get audienceKind => audience['kind'] as String? ?? '';
 
@@ -48,8 +55,77 @@ class Campagne {
         noteRelecture: r['review_note'] as String?,
         motifAnnulation: r['cancel_reason'] as String?,
         misAJourLe: DateTime.tryParse(r['updated_at'] as String? ?? '')?.toLocal(),
+        programmeeLe: DateTime.tryParse(r['scheduled_at'] as String? ?? '')?.toLocal(),
       );
 }
+
+/// Un modèle de message : type, titre, texte. Ni audience ni heure.
+class ModeleCampagne {
+  const ModeleCampagne({
+    required this.id,
+    required this.nom,
+    required this.type,
+    required this.titre,
+    required this.texte,
+  });
+  final String id;
+  final String nom;
+  final String type;
+  final String titre;
+  final String texte;
+
+  factory ModeleCampagne.fromRow(Map<String, dynamic> r) => ModeleCampagne(
+        id: r['id'] as String,
+        nom: r['name'] as String,
+        type: r['type'] as String,
+        titre: r['title'] as String,
+        texte: r['body'] as String,
+      );
+}
+
+final modelesCampagnesProvider =
+    FutureProvider.autoDispose<List<ModeleCampagne>>((ref) async {
+  final rows = await _supabase
+      .from('campaign_templates')
+      .select()
+      .isFilter('archived_at', null)
+      .order('name');
+  return [
+    for (final r in rows) ModeleCampagne.fromRow(Map<String, dynamic>.from(r)),
+  ];
+});
+
+/// Le rapport d'envoi : ce que le serveur a créé, pas ce qui a été livré.
+class RapportCampagne {
+  const RapportCampagne({
+    required this.creees,
+    required this.ignorees,
+    required this.restantes,
+    required this.joignablesPush,
+    this.delaiDepartS,
+    this.dureeS,
+  });
+  final int creees;
+  final int ignorees;
+  final int restantes;
+  final int joignablesPush;
+  final int? delaiDepartS;
+  final int? dureeS;
+}
+
+final rapportCampagneProvider =
+    FutureProvider.autoDispose.family<RapportCampagne, String>((ref, id) async {
+  final r = await _supabase.rpc('campaign_report', params: {'p_id': id});
+  final m = Map<String, dynamic>.from(r as Map);
+  return RapportCampagne(
+    creees: m['created'] as int,
+    ignorees: m['skipped_pref'] as int,
+    restantes: m['remaining'] as int,
+    joignablesPush: m['reachable_by_push'] as int,
+    delaiDepartS: m['start_delay_seconds'] as int?,
+    dureeS: m['duration_seconds'] as int?,
+  );
+});
 
 /// Le filtre de la file : `null` = toutes.
 enum VueCampagnes { atraiter, envoyees, closes, toutes }
@@ -139,21 +215,49 @@ class LotEnvoye {
 class CampagnesAdminActions {
   const CampagnesAdminActions();
 
-  Future<void> enregistrer({
+  /// Rend l'identifiant de la campagne (créée ou mise à jour).
+  Future<String> enregistrer({
     String? id,
     required String type,
     required String titre,
     required String texte,
     required Map<String, dynamic> audience,
   }) async {
-    await _supabase.rpc('campaign_save', params: {
+    final r = await _supabase.rpc('campaign_save', params: {
       'p_id': id,
       'p_type': type,
       'p_title': titre,
       'p_body': texte,
       'p_audience': audience,
     });
+    return r.toString();
   }
+
+  /// Programme l'envoi ; `null` efface la programmation.
+  Future<void> programmer(String id, DateTime? quand) =>
+      _supabase.rpc('campaign_schedule', params: {
+        'p_id': id,
+        'p_at': quand?.toUtc().toIso8601String(),
+      });
+
+  Future<void> enregistrerModele({
+    String? id,
+    required String nom,
+    required String type,
+    required String titre,
+    required String texte,
+  }) async {
+    await _supabase.rpc('campaign_template_save', params: {
+      'p_id': id,
+      'p_name': nom,
+      'p_type': type,
+      'p_title': titre,
+      'p_body': texte,
+    });
+  }
+
+  Future<void> archiverModele(String id) =>
+      _supabase.rpc('campaign_template_archive', params: {'p_id': id});
 
   Future<void> soumettre(String id) =>
       _supabase.rpc('campaign_submit', params: {'p_id': id});

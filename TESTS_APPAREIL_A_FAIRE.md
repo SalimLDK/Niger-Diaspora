@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1444 cases à cocher, 55 cochées** — 314 entrées sur 328 ont encore des cases ouvertes.
+**1451 cases à cocher, 55 cochées** — 315 entrées sur 329 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -98,7 +98,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 6 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (128)
+**P1 — fonction importante, jamais vérifiée** (129)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -176,6 +176,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ Champ ville : recherche dans le référentiel (2026-09-13)](#-champ-ville--recherche-dans-le-référentiel-2026-09-13) · *Accueil, profil et réglages*
 - 7 · [Bascule en anglais — ~1 600 chaînes branchées, rien vu à l'écran (2026-08-06)](#bascule-en-anglais--1-600-chaînes-branchées-rien-vu-à-lécran-2026-08-06) · *Design, thème, langue et mise en page* · bloqué
 - 7 · [⬜ Panneau admin : ambassades — vérification sourcée, suspension motivée, historique (2026-10-19)](#-panneau-admin--ambassades--vérification-sourcée-suspension-motivée-historique-2026-10-19) · *Backend, sécurité et observabilité*
+- 7 · [⬜ Campagnes : programmation, modèles et rapport d'envoi (2026-10-18)](#-campagnes--programmation-modèles-et-rapport-denvoi-2026-10-18) · *Backend, sécurité et observabilité*
 - 8 · [⬜ Demandes de données : le demandeur est prévenu et lit une réponse (2026-10-18)](#-demandes-de-données--le-demandeur-est-prévenu-et-lit-une-réponse-2026-10-18) · *Backend, sécurité et observabilité*
 - 9 · [⬜ « Mes demandes sur mes données » : faire une demande depuis l'application (2026-10-18)](#--mes-demandes-sur-mes-données---faire-une-demande-depuis-lapplication-2026-10-18) · *Backend, sécurité et observabilité*
 - 6 · [⬜ Panneau admin : annuaire — badge motivé, archivage, historique (2026-10-18)](#-panneau-admin--annuaire--badge-motivé-archivage-historique-2026-10-18) · *Backend, sécurité et observabilité*
@@ -386,7 +387,7 @@ Par domaine :
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 67 à faire, 0 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 58 à faire, 5 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 108 à faire, 5 faites
-- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 181 à faire, 2 faites
+- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 188 à faire, 2 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 46 à faire, 1 faites
 - [15. Site web](#15-site-web) — 69 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 23 à faire, 0 faites
@@ -9330,6 +9331,21 @@ Fichiers : `lib/features/admin/presentation/screens/admin_embassy_verification_s
 - [ ] contentMod (non super) : les boutons échouent avec « pas la permission » — comme avant, seul le superAdmin écrit cette table.
 - [ ] L'écran de création d'une ambassade fonctionne toujours (la fiche naît non vérifiée) ; modifier un numéro de téléphone fonctionne.
 - [ ] Journal d'audit : chaque geste laisse une ligne EMBASSY_*.
+## ⬜ Campagnes : programmation, modèles et rapport d'envoi (2026-10-18)
+
+**Priorité P1** · importance 4/5 — Une campagne approuvée part désormais TOUTE SEULE à son heure (tâche pg_cron toutes les 5 minutes) : c'est la première fois qu'un message de masse part sans que personne ne clique.
+
+*Bloqué : migration 20261019110000 appliquée, deux comptes superAdmin et un contentMod, un téléphone avec un compte de test dans un pays à part (ne PAS viser « tous »).*
+
+Fichiers : `lib/features/admin/presentation/screens/admin_campagnes_screen.dart`, `supabase/migrations/20261019110000_campagnes_programmees_modeles_rapports.sql`.
+
+- [ ] Programmer une campagne d'essai (1 compte de test) dans ~10 minutes, la soumettre, l'approuver avec l'autre superAdmin : « Lancer l'envoi » n'est PAS offert avant l'heure ; elle part seule dans les 5 minutes qui suivent l'heure ; le téléphone reçoit le push.
+- [ ] Le rapport affiche créées / ignorées / restantes, « joignables par push », le délai de départ et la durée, et rappelle que la livraison n'est pas mesurée.
+- [ ] Approuver une campagne dont l'heure est dans moins de 2 minutes est refusé avec un message lisible.
+- [ ] Annuler une campagne approuvée et programmée avant l'heure : rien ne part, même après l'heure.
+- [ ] Une campagne non approuvée dont l'heure passe ne part jamais.
+- [ ] Modèles : créer, utiliser dans l'éditeur (type, titre et texte repris), archiver ; la campagne qui en part suit toute l'approbation.
+- [ ] Vérifier `select * from cron.job where jobname = 'campaign_send_due'` : une ligne, active, toutes les 5 minutes.
 
 ---
 ## ⬜ Demandes de données : le demandeur est prévenu et lit une réponse (2026-10-18)
