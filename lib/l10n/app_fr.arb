@@ -9761,7 +9761,72 @@
   "tbAdmListingsDef": "Fiches actives sans badge « vérifié ».",
   "tbAdmCounterUnavailable": "indisponible",
   "tbAdmCountersUnavailable": "Certains compteurs n'ont pas pu être lus et sont marqués « — » plutôt que 0 : {names}.",
-  "@tbAdmCountersUnavailable": {"placeholders": {"names": {"type": "String"}}},
+  "@tbAdmCountersUnavailable": {
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "mbrAdmVerify": "Vérifier le profil",
+  "mbrAdmUnverify": "Retirer le badge",
+  "mbrAdmWarn": "Avertir",
+  "mbrAdmSuspend": "Suspendre",
+  "mbrAdmUnsuspend": "Réactiver (fin de suspension)",
+  "mbrAdmHistory": "Historique de modération",
+  "mbrAdmVerifyTitle": "Vérifier le profil",
+  "mbrAdmVerifyWarn": "Le badge dit au public que ce membre a été contrôlé : indiquez sur quoi, c'est conservé avec votre nom.",
+  "mbrAdmVerifySource": "Base de la vérification",
+  "mbrAdmUnverifyTitle": "Retirer le badge",
+  "mbrAdmReason": "Motif (conservé dans l'historique)",
+  "mbrAdmWarnTitle": "Avertir le membre",
+  "mbrAdmWarnWarn": "Le membre reçoit une notification « Avertissement de la modération » avec le texte ci-dessous. Ne révélez ni le signalant ni des données d'un tiers.",
+  "mbrAdmWarnReason": "Motif interne (non envoyé au membre)",
+  "mbrAdmWarnMessage": "Message au membre (10 à 300 caractères)",
+  "mbrAdmSuspendTitle": "Suspendre le compte",
+  "mbrAdmSuspendWarn": "Le membre est déconnecté et ne peut pas revenir avant la fin de la durée. La suspension se lève toute seule à l'échéance. Pour un bannissement définitif, utilisez « Bannir ».",
+  "mbrAdmSuspendDays": "Durée",
+  "mbrAdmDays": "{n} jours",
+  "@mbrAdmDays": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "mbrAdmUnsuspendTitle": "Réactiver le compte",
+  "mbrAdmForceLogoutReason": "Motif de la déconnexion",
+  "mbrAdmHistoryTitle": "Historique de modération",
+  "mbrAdmHistoryEmpty": "Aucun événement de modération pour ce membre.",
+  "mbrAdmKindVerified": "Profil vérifié",
+  "mbrAdmKindUnverified": "Badge retiré",
+  "mbrAdmKindWarned": "Avertissement",
+  "mbrAdmKindSuspended": "Suspension",
+  "mbrAdmKindUnsuspended": "Suspension levée",
+  "mbrAdmKindRevoked": "Déconnexion forcée",
+  "mbrAdmBySystem": "le système",
+  "mbrAdmWarned": "Avertissement envoyé ({n} au total).",
+  "@mbrAdmWarned": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "mbrAdmSuspended": "Compte suspendu.",
+  "mbrAdmUnsuspended": "Compte réactivé.",
+  "mbrAdmUnverified": "Badge retiré.",
+  "mbrAdmCancel": "Annuler",
+  "mbrAdmConfirm": "Confirmer",
+  "mbrAdmClose": "Fermer",
+  "mbrAdmLoadError": "Chargement impossible : {detail}",
+  "@mbrAdmLoadError": {
+    "placeholders": {
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
   "refAdmTitle": "Référentiel géographique",
   "refAdmSubtitle": "Villes, doublons, pays. Réservé au super-administrateur : une ville fausse peut ouvrir des groupes officiels.",
   "refAdmNoAccess": "Vous n'avez pas accès à cette rubrique.",
@@ -9769,7 +9834,13 @@
   "refAdmTabDuplicates": "Doublons",
   "refAdmTabCountries": "Pays",
   "refAdmLoadError": "Chargement impossible : {detail}",
-  "@refAdmLoadError": {"placeholders": {"detail": {"type": "String"}}},
+  "@refAdmLoadError": {
+    "placeholders": {
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
   "refAdmRetry": "Réessayer",
   "refAdmReason": "Motif (conservé dans l'historique)",
   "refAdmCancel": "Annuler",
@@ -9784,9 +9855,21 @@
   "refAdmEdit": "Modifier",
   "refAdmDelete": "Supprimer",
   "refAdmPopulation": "{n} hab.",
-  "@refAdmPopulation": {"placeholders": {"n": {"type": "String"}}},
+  "@refAdmPopulation": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "refAdmDeleteTitle": "Supprimer {name} ?",
-  "@refAdmDeleteTitle": {"placeholders": {"name": {"type": "String"}}},
+  "@refAdmDeleteTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "refAdmDeleteWarn": "Refusé tant qu'un profil ou un groupe s'appuie sur cette ville : fusionnez-la plutôt. Seul l'historique est conservé.",
   "refAdmDeleted": "Ville supprimée.",
   "refAdmFieldName": "Nom",
@@ -9798,9 +9881,30 @@
   "refAdmDuplicatesHelp": "Même nom dans le même pays, à moins de 20 km. Fusionner reporte les profils sur la ville conservée ; refusé si la ville retirée porte un groupe.",
   "refAdmNoDuplicates": "Aucun doublon probable.",
   "refAdmDistance": "{km} km",
-  "@refAdmDistance": {"placeholders": {"km": {"type": "String"}}},
+  "@refAdmDistance": {
+    "placeholders": {
+      "km": {
+        "type": "String"
+      }
+    }
+  },
   "refAdmKeepA": "Garder {id} ({profils} profil(s), {groupes} groupe(s)) — retirer {other}",
-  "@refAdmKeepA": {"placeholders": {"id": {"type": "String"}, "profils": {"type": "String"}, "groupes": {"type": "String"}, "other": {"type": "String"}}},
+  "@refAdmKeepA": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      },
+      "profils": {
+        "type": "String"
+      },
+      "groupes": {
+        "type": "String"
+      },
+      "other": {
+        "type": "String"
+      }
+    }
+  },
   "refAdmMergeTitle": "Fusionner ces deux villes",
   "refAdmMergeWarn": "La ville retirée disparaît : ses profils passent à la ville conservée, ses autres noms sont réunis, son identifiant GeoNames est tracé dans l'historique.",
   "refAdmMerged": "Villes fusionnées.",
@@ -9813,28 +9917,70 @@
   "rgHistSubtitle": "Chaque changement garde l'ancienne et la nouvelle valeur, qui l'a fait et quand. Rien ne s'y réécrit ni ne s'y supprime.",
   "rgHistEmpty": "Aucun changement enregistré depuis la mise en place de l'historique.",
   "rgHistLoadError": "Impossible de lire l'historique : {detail}",
-  "@rgHistLoadError": {"placeholders": {"detail": {"type": "String"}}},
+  "@rgHistLoadError": {
+    "placeholders": {
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
   "rgHistRetry": "Réessayer",
   "rgHistClose": "Fermer",
   "rgHistKindUpdate": "Modification",
   "rgHistKindRestore": "Retour arrière",
   "rgHistBy": "Par {who}",
-  "@rgHistBy": {"placeholders": {"who": {"type": "String"}}},
+  "@rgHistBy": {
+    "placeholders": {
+      "who": {
+        "type": "String"
+      }
+    }
+  },
   "rgHistReason": "Motif : {reason}",
-  "@rgHistReason": {"placeholders": {"reason": {"type": "String"}}},
+  "@rgHistReason": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
   "rgHistChange": "{key} : {from} → {to}",
-  "@rgHistChange": {"placeholders": {"key": {"type": "String"}, "from": {"type": "String"}, "to": {"type": "String"}}},
+  "@rgHistChange": {
+    "placeholders": {
+      "key": {
+        "type": "String"
+      },
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
   "rgHistAbsent": "(absent)",
   "rgHistNoDiff": "Aucune valeur n'a changé.",
   "rgHistRestore": "Restaurer l'ancienne valeur",
   "rgHistNoBefore": "Première valeur enregistrée de cette section : pas d'ancienne valeur à restaurer.",
   "rgHistRestoreTitle": "Restaurer « {section} » ?",
-  "@rgHistRestoreTitle": {"placeholders": {"section": {"type": "String"}}},
+  "@rgHistRestoreTitle": {
+    "placeholders": {
+      "section": {
+        "type": "String"
+      }
+    }
+  },
   "rgHistRestoreBody": "La section reprend les valeurs d'avant cette modification. Le retour arrière est lui-même enregistré.",
   "rgHistRestoreReason": "Motif du retour arrière",
   "rgHistRestoreCancel": "Annuler",
   "rgHistRestoreConfirm": "Restaurer",
   "rgHistRestored": "Section restaurée.",
   "rgHistRestoreFailed": "Retour arrière impossible : {detail}",
-  "@rgHistRestoreFailed": {"placeholders": {"detail": {"type": "String"}}}
+  "@rgHistRestoreFailed": {
+    "placeholders": {
+      "detail": {
+        "type": "String"
+      }
+    }
+  }
 }

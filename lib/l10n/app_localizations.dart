@@ -34136,6 +34136,234 @@ abstract class AppLocalizations {
   /// **'Certains compteurs n\'ont pas pu être lus et sont marqués « — » plutôt que 0 : {names}.'**
   String tbAdmCountersUnavailable(String names);
 
+  /// No description provided for @mbrAdmVerify.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vérifier le profil'**
+  String get mbrAdmVerify;
+
+  /// No description provided for @mbrAdmUnverify.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retirer le badge'**
+  String get mbrAdmUnverify;
+
+  /// No description provided for @mbrAdmWarn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Avertir'**
+  String get mbrAdmWarn;
+
+  /// No description provided for @mbrAdmSuspend.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suspendre'**
+  String get mbrAdmSuspend;
+
+  /// No description provided for @mbrAdmUnsuspend.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réactiver (fin de suspension)'**
+  String get mbrAdmUnsuspend;
+
+  /// No description provided for @mbrAdmHistory.
+  ///
+  /// In fr, this message translates to:
+  /// **'Historique de modération'**
+  String get mbrAdmHistory;
+
+  /// No description provided for @mbrAdmVerifyTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vérifier le profil'**
+  String get mbrAdmVerifyTitle;
+
+  /// No description provided for @mbrAdmVerifyWarn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le badge dit au public que ce membre a été contrôlé : indiquez sur quoi, c\'est conservé avec votre nom.'**
+  String get mbrAdmVerifyWarn;
+
+  /// No description provided for @mbrAdmVerifySource.
+  ///
+  /// In fr, this message translates to:
+  /// **'Base de la vérification'**
+  String get mbrAdmVerifySource;
+
+  /// No description provided for @mbrAdmUnverifyTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retirer le badge'**
+  String get mbrAdmUnverifyTitle;
+
+  /// No description provided for @mbrAdmReason.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif (conservé dans l\'historique)'**
+  String get mbrAdmReason;
+
+  /// No description provided for @mbrAdmWarnTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Avertir le membre'**
+  String get mbrAdmWarnTitle;
+
+  /// No description provided for @mbrAdmWarnWarn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le membre reçoit une notification « Avertissement de la modération » avec le texte ci-dessous. Ne révélez ni le signalant ni des données d\'un tiers.'**
+  String get mbrAdmWarnWarn;
+
+  /// No description provided for @mbrAdmWarnReason.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif interne (non envoyé au membre)'**
+  String get mbrAdmWarnReason;
+
+  /// No description provided for @mbrAdmWarnMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Message au membre (10 à 300 caractères)'**
+  String get mbrAdmWarnMessage;
+
+  /// No description provided for @mbrAdmSuspendTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suspendre le compte'**
+  String get mbrAdmSuspendTitle;
+
+  /// No description provided for @mbrAdmSuspendWarn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le membre est déconnecté et ne peut pas revenir avant la fin de la durée. La suspension se lève toute seule à l\'échéance. Pour un bannissement définitif, utilisez « Bannir ».'**
+  String get mbrAdmSuspendWarn;
+
+  /// No description provided for @mbrAdmSuspendDays.
+  ///
+  /// In fr, this message translates to:
+  /// **'Durée'**
+  String get mbrAdmSuspendDays;
+
+  /// No description provided for @mbrAdmDays.
+  ///
+  /// In fr, this message translates to:
+  /// **'{n} jours'**
+  String mbrAdmDays(String n);
+
+  /// No description provided for @mbrAdmUnsuspendTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réactiver le compte'**
+  String get mbrAdmUnsuspendTitle;
+
+  /// No description provided for @mbrAdmForceLogoutReason.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif de la déconnexion'**
+  String get mbrAdmForceLogoutReason;
+
+  /// No description provided for @mbrAdmHistoryTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Historique de modération'**
+  String get mbrAdmHistoryTitle;
+
+  /// No description provided for @mbrAdmHistoryEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun événement de modération pour ce membre.'**
+  String get mbrAdmHistoryEmpty;
+
+  /// No description provided for @mbrAdmKindVerified.
+  ///
+  /// In fr, this message translates to:
+  /// **'Profil vérifié'**
+  String get mbrAdmKindVerified;
+
+  /// No description provided for @mbrAdmKindUnverified.
+  ///
+  /// In fr, this message translates to:
+  /// **'Badge retiré'**
+  String get mbrAdmKindUnverified;
+
+  /// No description provided for @mbrAdmKindWarned.
+  ///
+  /// In fr, this message translates to:
+  /// **'Avertissement'**
+  String get mbrAdmKindWarned;
+
+  /// No description provided for @mbrAdmKindSuspended.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suspension'**
+  String get mbrAdmKindSuspended;
+
+  /// No description provided for @mbrAdmKindUnsuspended.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suspension levée'**
+  String get mbrAdmKindUnsuspended;
+
+  /// No description provided for @mbrAdmKindRevoked.
+  ///
+  /// In fr, this message translates to:
+  /// **'Déconnexion forcée'**
+  String get mbrAdmKindRevoked;
+
+  /// No description provided for @mbrAdmBySystem.
+  ///
+  /// In fr, this message translates to:
+  /// **'le système'**
+  String get mbrAdmBySystem;
+
+  /// No description provided for @mbrAdmWarned.
+  ///
+  /// In fr, this message translates to:
+  /// **'Avertissement envoyé ({n} au total).'**
+  String mbrAdmWarned(String n);
+
+  /// No description provided for @mbrAdmSuspended.
+  ///
+  /// In fr, this message translates to:
+  /// **'Compte suspendu.'**
+  String get mbrAdmSuspended;
+
+  /// No description provided for @mbrAdmUnsuspended.
+  ///
+  /// In fr, this message translates to:
+  /// **'Compte réactivé.'**
+  String get mbrAdmUnsuspended;
+
+  /// No description provided for @mbrAdmUnverified.
+  ///
+  /// In fr, this message translates to:
+  /// **'Badge retiré.'**
+  String get mbrAdmUnverified;
+
+  /// No description provided for @mbrAdmCancel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annuler'**
+  String get mbrAdmCancel;
+
+  /// No description provided for @mbrAdmConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confirmer'**
+  String get mbrAdmConfirm;
+
+  /// No description provided for @mbrAdmClose.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fermer'**
+  String get mbrAdmClose;
+
+  /// No description provided for @mbrAdmLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chargement impossible : {detail}'**
+  String mbrAdmLoadError(String detail);
+
   /// No description provided for @refAdmTitle.
   ///
   /// In fr, this message translates to:

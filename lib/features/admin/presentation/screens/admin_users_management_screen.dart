@@ -354,9 +354,19 @@ class _AdminUsersManagementScreenState
                 else
                   _buildPopupMenuItem('unban', 'Débannir', Icons.check_circle_rounded, AdminColors.statusGreen),
                 _buildPopupMenuItem('roles', l10n.adminMenuRolesScreen, Icons.admin_panel_settings_outlined, AdminColors.statusPurple),
-                _buildPopupMenuItem('verify_profile', l10n.adminMenuVerifyProfile, Icons.verified_rounded, AdminColors.actionBlueLight),
+                _buildPopupMenuItem('warn', l10n.mbrAdmWarn, Icons.report_gmailerrorred_rounded, AdminColors.statusAmber),
+                if (!user.isBanned)
+                  _buildPopupMenuItem('suspend', l10n.mbrAdmSuspend, Icons.pause_circle_outline_rounded, AdminColors.statusAmber)
+                else if ((user.banReason ?? '').startsWith('Suspension : '))
+                  _buildPopupMenuItem('unsuspend', l10n.mbrAdmUnsuspend, Icons.play_circle_outline_rounded, AdminColors.statusGreen),
+                // L'écran ne sait pas si le profil porte déjà le badge : les
+                // deux gestes restent offerts, le serveur refuse l'inutile
+                // (déjà vérifié / pas vérifié) en le disant.
+                _buildPopupMenuItem('verify_profile', l10n.mbrAdmVerify, Icons.verified_rounded, AdminColors.actionBlueLight),
+                _buildPopupMenuItem('unverify_profile', l10n.mbrAdmUnverify, Icons.verified_outlined, _textSecondary),
                 _buildPopupMenuItem('force_logout', l10n.adminMenuForceLogout, Icons.logout_rounded, _textSecondary),
-                _buildPopupMenuItem('activity', l10n.adminMenuViewActivity, Icons.history_rounded, _primaryColor),
+                _buildPopupMenuItem('moderation_history', l10n.mbrAdmHistory, Icons.history_rounded, _primaryColor),
+                _buildPopupMenuItem('activity', l10n.adminMenuViewActivity, Icons.list_alt_rounded, _primaryColor),
               ],
             ),
           ],
@@ -502,26 +512,197 @@ class _AdminUsersManagementScreenState
         }
         break;
       case 'verify_profile':
-        final ok = await notifier.verifyProfile(user.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
+        final v = await _saisir(
+          l10n.mbrAdmVerifyTitle,
+          [l10n.mbrAdmVerifySource],
+          avertissement: l10n.mbrAdmVerifyWarn,
+        );
+        if (v == null) return;
+        final ok = await notifier.verifyProfile(user.id, source: v[0]);
         _montrerBilan(ok, l10n.adminProfileVerifiedSuccess);
         break;
+      case 'unverify_profile':
+        final v = await _saisir(l10n.mbrAdmUnverifyTitle, [l10n.mbrAdmReason]);
+        if (v == null) return;
+        final ok = await notifier.revokeVerification(user.id, motif: v[0]);
+        _montrerBilan(ok, l10n.mbrAdmUnverified);
+        break;
+      case 'warn':
+        final v = await _saisir(
+          l10n.mbrAdmWarnTitle,
+          [l10n.mbrAdmWarnReason, l10n.mbrAdmWarnMessage],
+          avertissement: l10n.mbrAdmWarnWarn,
+          minimums: const [5, 10],
+        );
+        if (v == null) return;
+        final n = await notifier.warnUser(user.id, motif: v[0], message: v[1]);
+        _montrerBilan(n != null, l10n.mbrAdmWarned('${n ?? 0}'));
+        break;
+      case 'suspend':
+        final s = await showDialog<({int jours, String motif})>(
+          context: context,
+          builder: (_) => const _DialogueSuspension(),
+        );
+        if (s == null) return;
+        final ok = await notifier.suspendUser(user.id, jours: s.jours, motif: s.motif);
+        _montrerBilan(ok, l10n.mbrAdmSuspended);
+        break;
+      case 'unsuspend':
+        final v = await _saisir(l10n.mbrAdmUnsuspendTitle, [l10n.mbrAdmReason]);
+        if (v == null) return;
+        final ok = await notifier.unsuspendUser(user.id, motif: v[0]);
+        _montrerBilan(ok, l10n.mbrAdmUnsuspended);
+        break;
       case 'force_logout':
-        final confirm = await _showConfirmation(l10n.adminForceLogoutTitle, l10n.adminForceLogoutBody);
-        if (confirm == true) {
-          final ok = await dashboardNotifier.forceLogoutUser(user.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
-          // L'erreur vit dans le notifier du tableau de bord, pas dans celui
-          // des utilisateurs.
-          _montrerBilan(
-            ok,
-            l10n.adminUserDisconnected,
-            erreur: ref.read(adminDashboardNotifierProvider).error,
-          );
-        }
+        final v = await _saisir(
+          l10n.adminForceLogoutTitle,
+          [l10n.mbrAdmForceLogoutReason],
+          avertissement: l10n.adminForceLogoutBody,
+        );
+        if (v == null) return;
+        final ok = await dashboardNotifier.forceLogoutUser(user.id, motif: v[0]);
+        // L'erreur vit dans le notifier du tableau de bord, pas dans celui
+        // des utilisateurs.
+        _montrerBilan(
+          ok,
+          l10n.adminUserDisconnected,
+          erreur: ref.read(adminDashboardNotifierProvider).error,
+        );
+        break;
+      case 'moderation_history':
+        await _showModerationHistory(user);
         break;
       case 'activity':
         await _showUserActivity(user);
         break;
     }
+  }
+
+  /// Un ou plusieurs champs obligatoires (5 caractères au moins, ou
+  /// [minimums]) ; `null` si annulé.
+  Future<List<String>?> _saisir(
+    String titre,
+    List<String> libelles, {
+    String? avertissement,
+    List<int>? minimums,
+  }) {
+    final controllers = [for (final _ in libelles) TextEditingController()];
+    return showDialog<List<String>>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setLocal) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Text(titre),
+          content: SizedBox(
+            width: 460,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (avertissement != null)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Text(avertissement,
+                          style: const TextStyle(
+                              fontSize: 12, color: AdminColors.statusAmberStrong)),
+                    ),
+                  for (var i = 0; i < libelles.length; i++) ...[
+                    TextField(
+                      controller: controllers[i],
+                      onChanged: (_) => setLocal(() {}),
+                      maxLines: 3,
+                      maxLength: 500,
+                      decoration: InputDecoration(
+                        labelText: libelles[i],
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                  ],
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(ctx), child: Text(l10n.mbrAdmCancel)),
+            ElevatedButton(
+              onPressed: [
+                for (var i = 0; i < controllers.length; i++)
+                  controllers[i].text.trim().length >= (minimums != null ? minimums[i] : 5),
+              ].every((b) => b)
+                  ? () => Navigator.pop(ctx, [for (final c in controllers) c.text.trim()])
+                  : null,
+              child: Text(l10n.mbrAdmConfirm),
+            ),
+          ],
+        ),
+      ),
+    ).whenComplete(() {
+      for (final c in controllers) {
+        c.dispose();
+      }
+    });
+  }
+
+  Future<void> _showModerationHistory(UserEntity user) async {
+    List<Map<String, dynamic>> events = const [];
+    String? erreur;
+    try {
+      events = await ref.read(adminUsersNotifierProvider.notifier).getModerationHistory(user.id);
+    } catch (e) {
+      erreur = '$e';
+    }
+    if (!mounted) return;
+    String libelle(String k) => switch (k) {
+          'verified' => l10n.mbrAdmKindVerified,
+          'unverified' => l10n.mbrAdmKindUnverified,
+          'warned' => l10n.mbrAdmKindWarned,
+          'suspended' => l10n.mbrAdmKindSuspended,
+          'unsuspended' => l10n.mbrAdmKindUnsuspended,
+          _ => l10n.mbrAdmKindRevoked,
+        };
+    String jour(Object? v) {
+      final d = DateTime.tryParse('$v')?.toLocal();
+      return d == null
+          ? ''
+          : '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
+    }
+
+    await showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(l10n.mbrAdmHistoryTitle),
+        content: SizedBox(
+          width: 460,
+          height: 320,
+          child: erreur != null
+              ? Text(l10n.mbrAdmLoadError(erreur),
+                  style: const TextStyle(color: AdminColors.statusRed))
+              : events.isEmpty
+                  ? Center(child: Text(l10n.mbrAdmHistoryEmpty))
+                  : ListView(
+                      children: [
+                        for (final e in events)
+                          ListTile(
+                            dense: true,
+                            title: Text('${libelle('${e['kind']}')} · ${jour(e['occurred_at'])}'),
+                            subtitle: Text(
+                              e['actor_id'] == null
+                                  ? '${l10n.mbrAdmBySystem} — ${e['reason'] ?? ''}'
+                                  : '${e['reason'] ?? ''}',
+                            ),
+                          ),
+                      ],
+                    ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.mbrAdmClose)),
+        ],
+      ),
+    );
   }
 
   Future<void> _showUserActivity(UserEntity user) async {
@@ -634,6 +815,80 @@ class _AdminUsersManagementScreenState
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
+    );
+  }
+}
+
+/// Durée (1 à 30 jours) et motif d'une suspension.
+class _DialogueSuspension extends StatefulWidget {
+  const _DialogueSuspension();
+
+  @override
+  State<_DialogueSuspension> createState() => _DialogueSuspensionState();
+}
+
+class _DialogueSuspensionState extends State<_DialogueSuspension> {
+  final _motif = TextEditingController();
+  int _jours = 7;
+
+  @override
+  void dispose() {
+    _motif.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      title: Text(l10n.mbrAdmSuspendTitle),
+      content: SizedBox(
+        width: 460,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(l10n.mbrAdmSuspendWarn,
+                  style: const TextStyle(fontSize: 12, color: AdminColors.statusAmberStrong)),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<int>(
+                initialValue: _jours,
+                decoration: InputDecoration(
+                  labelText: l10n.mbrAdmSuspendDays,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+                items: [
+                  for (final j in const [1, 3, 7, 14, 30])
+                    DropdownMenuItem(value: j, child: Text(l10n.mbrAdmDays('$j'))),
+                ],
+                onChanged: (v) => setState(() => _jours = v ?? _jours),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _motif,
+                onChanged: (_) => setState(() {}),
+                maxLines: 3,
+                maxLength: 500,
+                decoration: InputDecoration(
+                  labelText: l10n.mbrAdmReason,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.mbrAdmCancel)),
+        ElevatedButton(
+          onPressed: _motif.text.trim().length >= 5
+              ? () => Navigator.pop(context, (jours: _jours, motif: _motif.text.trim()))
+              : null,
+          child: Text(l10n.mbrAdmConfirm),
+        ),
+      ],
     );
   }
 }

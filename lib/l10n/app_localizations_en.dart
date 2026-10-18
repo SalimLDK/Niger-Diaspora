@@ -18647,6 +18647,130 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get mbrAdmVerify => 'Verify the profile';
+
+  @override
+  String get mbrAdmUnverify => 'Remove the badge';
+
+  @override
+  String get mbrAdmWarn => 'Warn';
+
+  @override
+  String get mbrAdmSuspend => 'Suspend';
+
+  @override
+  String get mbrAdmUnsuspend => 'Reactivate (end suspension)';
+
+  @override
+  String get mbrAdmHistory => 'Moderation history';
+
+  @override
+  String get mbrAdmVerifyTitle => 'Verify the profile';
+
+  @override
+  String get mbrAdmVerifyWarn =>
+      'The badge tells the public this member was checked: say on what basis, it is kept with your name.';
+
+  @override
+  String get mbrAdmVerifySource => 'Basis of the verification';
+
+  @override
+  String get mbrAdmUnverifyTitle => 'Remove the badge';
+
+  @override
+  String get mbrAdmReason => 'Reason (kept in the history)';
+
+  @override
+  String get mbrAdmWarnTitle => 'Warn the member';
+
+  @override
+  String get mbrAdmWarnWarn =>
+      'The member receives a \"Moderation warning\" notification with the text below. Do not reveal the reporter or third-party data.';
+
+  @override
+  String get mbrAdmWarnReason => 'Internal reason (not sent to the member)';
+
+  @override
+  String get mbrAdmWarnMessage =>
+      'Message to the member (10 to 300 characters)';
+
+  @override
+  String get mbrAdmSuspendTitle => 'Suspend the account';
+
+  @override
+  String get mbrAdmSuspendWarn =>
+      'The member is signed out and cannot return before the end of the duration. The suspension lifts by itself at expiry. For a permanent ban, use \"Ban\".';
+
+  @override
+  String get mbrAdmSuspendDays => 'Duration';
+
+  @override
+  String mbrAdmDays(String n) {
+    return '$n days';
+  }
+
+  @override
+  String get mbrAdmUnsuspendTitle => 'Reactivate the account';
+
+  @override
+  String get mbrAdmForceLogoutReason => 'Reason for signing out';
+
+  @override
+  String get mbrAdmHistoryTitle => 'Moderation history';
+
+  @override
+  String get mbrAdmHistoryEmpty => 'No moderation event for this member.';
+
+  @override
+  String get mbrAdmKindVerified => 'Profile verified';
+
+  @override
+  String get mbrAdmKindUnverified => 'Badge removed';
+
+  @override
+  String get mbrAdmKindWarned => 'Warning';
+
+  @override
+  String get mbrAdmKindSuspended => 'Suspension';
+
+  @override
+  String get mbrAdmKindUnsuspended => 'Suspension lifted';
+
+  @override
+  String get mbrAdmKindRevoked => 'Forced sign-out';
+
+  @override
+  String get mbrAdmBySystem => 'the system';
+
+  @override
+  String mbrAdmWarned(String n) {
+    return 'Warning sent ($n in total).';
+  }
+
+  @override
+  String get mbrAdmSuspended => 'Account suspended.';
+
+  @override
+  String get mbrAdmUnsuspended => 'Account reactivated.';
+
+  @override
+  String get mbrAdmUnverified => 'Badge removed.';
+
+  @override
+  String get mbrAdmCancel => 'Cancel';
+
+  @override
+  String get mbrAdmConfirm => 'Confirm';
+
+  @override
+  String get mbrAdmClose => 'Close';
+
+  @override
+  String mbrAdmLoadError(String detail) {
+    return 'Could not load: $detail';
+  }
+
+  @override
   String get refAdmTitle => 'Geographic reference';
 
   @override
