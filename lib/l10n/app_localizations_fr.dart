@@ -19169,6 +19169,135 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get evtCalTitle => 'Événements';
+
+  @override
+  String get evtCalSubtitle =>
+      'Calendrier, inscrits et chiffres. Annuler ou supprimer se fait depuis « Contenu ».';
+
+  @override
+  String get evtCalTabCalendar => 'Calendrier';
+
+  @override
+  String get evtCalTabStats => 'Statistiques';
+
+  @override
+  String get evtCalNoAccess => 'Vous n\'avez pas accès aux événements.';
+
+  @override
+  String evtCalLoadError(String detail) {
+    return 'Chargement impossible : $detail';
+  }
+
+  @override
+  String get evtCalRetry => 'Réessayer';
+
+  @override
+  String get evtCalPrevMonth => 'Mois précédent';
+
+  @override
+  String get evtCalNextMonth => 'Mois suivant';
+
+  @override
+  String evtCalTimezone(String zone) {
+    return 'Heures affichées dans le fuseau de cet appareil ($zone).';
+  }
+
+  @override
+  String evtCalPrivateHidden(String n) {
+    return '$n événement(s) non public(s) ou brouillon(s) sur la période : comptés, pas listés.';
+  }
+
+  @override
+  String get evtCalNoEventsDay => 'Aucun événement public ce jour-là.';
+
+  @override
+  String get evtCalNoEventsMonth => 'Aucun événement public ce mois-ci.';
+
+  @override
+  String get evtCalAllMonth => 'Tout le mois';
+
+  @override
+  String evtCalAttendees(String n) {
+    return '$n inscrit(s)';
+  }
+
+  @override
+  String evtCalAttendeesOf(String n, String max) {
+    return '$n / $max inscrits';
+  }
+
+  @override
+  String get evtCalOnline => 'En ligne';
+
+  @override
+  String get evtCalSeeAttendees => 'Voir les inscrits';
+
+  @override
+  String evtCalAttendeesTitle(String title) {
+    return 'Inscrits : $title';
+  }
+
+  @override
+  String get evtCalAttendeesWarn =>
+      'Cette consultation est journalisée (qui, quel événement, combien de lignes — jamais les noms).';
+
+  @override
+  String get evtCalAttendeesEmpty => 'Aucun inscrit.';
+
+  @override
+  String get evtCalStatusDraft => 'Brouillon';
+
+  @override
+  String get evtCalStatusUpcoming => 'À venir';
+
+  @override
+  String get evtCalStatusOngoing => 'En cours';
+
+  @override
+  String get evtCalStatusEnded => 'Terminé';
+
+  @override
+  String get evtCalStatusCancelled => 'Annulé';
+
+  @override
+  String get evtCalWindow => 'Fenêtre';
+
+  @override
+  String evtCalDays(String n) {
+    return '$n jours';
+  }
+
+  @override
+  String get evtCalStatCreated => 'Événements créés';
+
+  @override
+  String get evtCalStatUpcoming => 'Événements à venir';
+
+  @override
+  String get evtCalStatRegistrations => 'Inscriptions';
+
+  @override
+  String get evtCalStatCancelled => 'Événements annulés';
+
+  @override
+  String get evtCalStatFill => 'Remplissage moyen (à venir, capacité fixée)';
+
+  @override
+  String get evtCalStatNone => '—';
+
+  @override
+  String evtCalStatNotMeasured(String list) {
+    return 'Non mesuré : $list.';
+  }
+
+  @override
+  String get evtCalStatDefinitions => 'Définitions';
+
+  @override
+  String get evtCalDone => 'Fait.';
+
+  @override
   String get jrnAudSubtitle =>
       'Toute action d\'un administrateur, en lecture seule : le journal ne se modifie ni ne s\'efface.';
 

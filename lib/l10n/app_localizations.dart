@@ -34748,6 +34748,228 @@ abstract class AppLocalizations {
   /// **'Retour arrière impossible : {detail}'**
   String rgHistRestoreFailed(String detail);
 
+  /// No description provided for @evtCalTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Événements'**
+  String get evtCalTitle;
+
+  /// No description provided for @evtCalSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Calendrier, inscrits et chiffres. Annuler ou supprimer se fait depuis « Contenu ».'**
+  String get evtCalSubtitle;
+
+  /// No description provided for @evtCalTabCalendar.
+  ///
+  /// In fr, this message translates to:
+  /// **'Calendrier'**
+  String get evtCalTabCalendar;
+
+  /// No description provided for @evtCalTabStats.
+  ///
+  /// In fr, this message translates to:
+  /// **'Statistiques'**
+  String get evtCalTabStats;
+
+  /// No description provided for @evtCalNoAccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous n\'avez pas accès aux événements.'**
+  String get evtCalNoAccess;
+
+  /// No description provided for @evtCalLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chargement impossible : {detail}'**
+  String evtCalLoadError(String detail);
+
+  /// No description provided for @evtCalRetry.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réessayer'**
+  String get evtCalRetry;
+
+  /// No description provided for @evtCalPrevMonth.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mois précédent'**
+  String get evtCalPrevMonth;
+
+  /// No description provided for @evtCalNextMonth.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mois suivant'**
+  String get evtCalNextMonth;
+
+  /// No description provided for @evtCalTimezone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Heures affichées dans le fuseau de cet appareil ({zone}).'**
+  String evtCalTimezone(String zone);
+
+  /// No description provided for @evtCalPrivateHidden.
+  ///
+  /// In fr, this message translates to:
+  /// **'{n} événement(s) non public(s) ou brouillon(s) sur la période : comptés, pas listés.'**
+  String evtCalPrivateHidden(String n);
+
+  /// No description provided for @evtCalNoEventsDay.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun événement public ce jour-là.'**
+  String get evtCalNoEventsDay;
+
+  /// No description provided for @evtCalNoEventsMonth.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun événement public ce mois-ci.'**
+  String get evtCalNoEventsMonth;
+
+  /// No description provided for @evtCalAllMonth.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tout le mois'**
+  String get evtCalAllMonth;
+
+  /// No description provided for @evtCalAttendees.
+  ///
+  /// In fr, this message translates to:
+  /// **'{n} inscrit(s)'**
+  String evtCalAttendees(String n);
+
+  /// No description provided for @evtCalAttendeesOf.
+  ///
+  /// In fr, this message translates to:
+  /// **'{n} / {max} inscrits'**
+  String evtCalAttendeesOf(String n, String max);
+
+  /// No description provided for @evtCalOnline.
+  ///
+  /// In fr, this message translates to:
+  /// **'En ligne'**
+  String get evtCalOnline;
+
+  /// No description provided for @evtCalSeeAttendees.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir les inscrits'**
+  String get evtCalSeeAttendees;
+
+  /// No description provided for @evtCalAttendeesTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Inscrits : {title}'**
+  String evtCalAttendeesTitle(String title);
+
+  /// No description provided for @evtCalAttendeesWarn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cette consultation est journalisée (qui, quel événement, combien de lignes — jamais les noms).'**
+  String get evtCalAttendeesWarn;
+
+  /// No description provided for @evtCalAttendeesEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun inscrit.'**
+  String get evtCalAttendeesEmpty;
+
+  /// No description provided for @evtCalStatusDraft.
+  ///
+  /// In fr, this message translates to:
+  /// **'Brouillon'**
+  String get evtCalStatusDraft;
+
+  /// No description provided for @evtCalStatusUpcoming.
+  ///
+  /// In fr, this message translates to:
+  /// **'À venir'**
+  String get evtCalStatusUpcoming;
+
+  /// No description provided for @evtCalStatusOngoing.
+  ///
+  /// In fr, this message translates to:
+  /// **'En cours'**
+  String get evtCalStatusOngoing;
+
+  /// No description provided for @evtCalStatusEnded.
+  ///
+  /// In fr, this message translates to:
+  /// **'Terminé'**
+  String get evtCalStatusEnded;
+
+  /// No description provided for @evtCalStatusCancelled.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annulé'**
+  String get evtCalStatusCancelled;
+
+  /// No description provided for @evtCalWindow.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fenêtre'**
+  String get evtCalWindow;
+
+  /// No description provided for @evtCalDays.
+  ///
+  /// In fr, this message translates to:
+  /// **'{n} jours'**
+  String evtCalDays(String n);
+
+  /// No description provided for @evtCalStatCreated.
+  ///
+  /// In fr, this message translates to:
+  /// **'Événements créés'**
+  String get evtCalStatCreated;
+
+  /// No description provided for @evtCalStatUpcoming.
+  ///
+  /// In fr, this message translates to:
+  /// **'Événements à venir'**
+  String get evtCalStatUpcoming;
+
+  /// No description provided for @evtCalStatRegistrations.
+  ///
+  /// In fr, this message translates to:
+  /// **'Inscriptions'**
+  String get evtCalStatRegistrations;
+
+  /// No description provided for @evtCalStatCancelled.
+  ///
+  /// In fr, this message translates to:
+  /// **'Événements annulés'**
+  String get evtCalStatCancelled;
+
+  /// No description provided for @evtCalStatFill.
+  ///
+  /// In fr, this message translates to:
+  /// **'Remplissage moyen (à venir, capacité fixée)'**
+  String get evtCalStatFill;
+
+  /// No description provided for @evtCalStatNone.
+  ///
+  /// In fr, this message translates to:
+  /// **'—'**
+  String get evtCalStatNone;
+
+  /// No description provided for @evtCalStatNotMeasured.
+  ///
+  /// In fr, this message translates to:
+  /// **'Non mesuré : {list}.'**
+  String evtCalStatNotMeasured(String list);
+
+  /// No description provided for @evtCalStatDefinitions.
+  ///
+  /// In fr, this message translates to:
+  /// **'Définitions'**
+  String get evtCalStatDefinitions;
+
+  /// No description provided for @evtCalDone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fait.'**
+  String get evtCalDone;
+
   /// No description provided for @jrnAudSubtitle.
   ///
   /// In fr, this message translates to:
