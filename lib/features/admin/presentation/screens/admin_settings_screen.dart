@@ -9,6 +9,7 @@ import 'reglages/reglages_boosts_tab.dart';
 import 'reglages/reglages_taxes_tab.dart';
 import 'reglages/reglages_medias_tab.dart';
 import 'reglages/reglages_systeme_tab.dart';
+import '../widgets/historique_reglages.dart';
 
 class AdminSettingsScreen extends ConsumerStatefulWidget {
   const AdminSettingsScreen({super.key});
@@ -63,6 +64,16 @@ class _AdminSettingsScreenState extends ConsumerState<AdminSettingsScreen>
           ),
           onPressed: () => Navigator.of(context).pop(),
         ),
+        actions: [
+          IconButton(
+            tooltip: l10n.rgHistTooltip,
+            icon: const Icon(Icons.history_rounded, color: _primaryColor),
+            onPressed: () => showDialog<void>(
+              context: context,
+              builder: (_) => const HistoriqueReglagesDialog(),
+            ),
+          ),
+        ],
         title: DesignTitle(
           l10n.adminConfigurationAppTitle,
           style: TextStyle(

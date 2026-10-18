@@ -18958,4 +18958,89 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get refAdmFieldIso => 'Code ISO (deux lettres majuscules)';
+
+  @override
+  String get rgHistTooltip => 'Historique des réglages';
+
+  @override
+  String get rgHistTitle => 'Historique des réglages';
+
+  @override
+  String get rgHistSubtitle =>
+      'Chaque changement garde l\'ancienne et la nouvelle valeur, qui l\'a fait et quand. Rien ne s\'y réécrit ni ne s\'y supprime.';
+
+  @override
+  String get rgHistEmpty =>
+      'Aucun changement enregistré depuis la mise en place de l\'historique.';
+
+  @override
+  String rgHistLoadError(String detail) {
+    return 'Impossible de lire l\'historique : $detail';
+  }
+
+  @override
+  String get rgHistRetry => 'Réessayer';
+
+  @override
+  String get rgHistClose => 'Fermer';
+
+  @override
+  String get rgHistKindUpdate => 'Modification';
+
+  @override
+  String get rgHistKindRestore => 'Retour arrière';
+
+  @override
+  String rgHistBy(String who) {
+    return 'Par $who';
+  }
+
+  @override
+  String rgHistReason(String reason) {
+    return 'Motif : $reason';
+  }
+
+  @override
+  String rgHistChange(String key, String from, String to) {
+    return '$key : $from → $to';
+  }
+
+  @override
+  String get rgHistAbsent => '(absent)';
+
+  @override
+  String get rgHistNoDiff => 'Aucune valeur n\'a changé.';
+
+  @override
+  String get rgHistRestore => 'Restaurer l\'ancienne valeur';
+
+  @override
+  String get rgHistNoBefore =>
+      'Première valeur enregistrée de cette section : pas d\'ancienne valeur à restaurer.';
+
+  @override
+  String rgHistRestoreTitle(String section) {
+    return 'Restaurer « $section » ?';
+  }
+
+  @override
+  String get rgHistRestoreBody =>
+      'La section reprend les valeurs d\'avant cette modification. Le retour arrière est lui-même enregistré.';
+
+  @override
+  String get rgHistRestoreReason => 'Motif du retour arrière';
+
+  @override
+  String get rgHistRestoreCancel => 'Annuler';
+
+  @override
+  String get rgHistRestoreConfirm => 'Restaurer';
+
+  @override
+  String get rgHistRestored => 'Section restaurée.';
+
+  @override
+  String rgHistRestoreFailed(String detail) {
+    return 'Retour arrière impossible : $detail';
+  }
 }

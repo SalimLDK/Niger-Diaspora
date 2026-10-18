@@ -34381,6 +34381,144 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Code ISO (deux lettres majuscules)'**
   String get refAdmFieldIso;
+
+  /// No description provided for @rgHistTooltip.
+  ///
+  /// In fr, this message translates to:
+  /// **'Historique des réglages'**
+  String get rgHistTooltip;
+
+  /// No description provided for @rgHistTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Historique des réglages'**
+  String get rgHistTitle;
+
+  /// No description provided for @rgHistSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chaque changement garde l\'ancienne et la nouvelle valeur, qui l\'a fait et quand. Rien ne s\'y réécrit ni ne s\'y supprime.'**
+  String get rgHistSubtitle;
+
+  /// No description provided for @rgHistEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun changement enregistré depuis la mise en place de l\'historique.'**
+  String get rgHistEmpty;
+
+  /// No description provided for @rgHistLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de lire l\'historique : {detail}'**
+  String rgHistLoadError(String detail);
+
+  /// No description provided for @rgHistRetry.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réessayer'**
+  String get rgHistRetry;
+
+  /// No description provided for @rgHistClose.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fermer'**
+  String get rgHistClose;
+
+  /// No description provided for @rgHistKindUpdate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modification'**
+  String get rgHistKindUpdate;
+
+  /// No description provided for @rgHistKindRestore.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retour arrière'**
+  String get rgHistKindRestore;
+
+  /// No description provided for @rgHistBy.
+  ///
+  /// In fr, this message translates to:
+  /// **'Par {who}'**
+  String rgHistBy(String who);
+
+  /// No description provided for @rgHistReason.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif : {reason}'**
+  String rgHistReason(String reason);
+
+  /// No description provided for @rgHistChange.
+  ///
+  /// In fr, this message translates to:
+  /// **'{key} : {from} → {to}'**
+  String rgHistChange(String key, String from, String to);
+
+  /// No description provided for @rgHistAbsent.
+  ///
+  /// In fr, this message translates to:
+  /// **'(absent)'**
+  String get rgHistAbsent;
+
+  /// No description provided for @rgHistNoDiff.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune valeur n\'a changé.'**
+  String get rgHistNoDiff;
+
+  /// No description provided for @rgHistRestore.
+  ///
+  /// In fr, this message translates to:
+  /// **'Restaurer l\'ancienne valeur'**
+  String get rgHistRestore;
+
+  /// No description provided for @rgHistNoBefore.
+  ///
+  /// In fr, this message translates to:
+  /// **'Première valeur enregistrée de cette section : pas d\'ancienne valeur à restaurer.'**
+  String get rgHistNoBefore;
+
+  /// No description provided for @rgHistRestoreTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Restaurer « {section} » ?'**
+  String rgHistRestoreTitle(String section);
+
+  /// No description provided for @rgHistRestoreBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'La section reprend les valeurs d\'avant cette modification. Le retour arrière est lui-même enregistré.'**
+  String get rgHistRestoreBody;
+
+  /// No description provided for @rgHistRestoreReason.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif du retour arrière'**
+  String get rgHistRestoreReason;
+
+  /// No description provided for @rgHistRestoreCancel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annuler'**
+  String get rgHistRestoreCancel;
+
+  /// No description provided for @rgHistRestoreConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Restaurer'**
+  String get rgHistRestoreConfirm;
+
+  /// No description provided for @rgHistRestored.
+  ///
+  /// In fr, this message translates to:
+  /// **'Section restaurée.'**
+  String get rgHistRestored;
+
+  /// No description provided for @rgHistRestoreFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retour arrière impossible : {detail}'**
+  String rgHistRestoreFailed(String detail);
 }
 
 class _AppLocalizationsDelegate

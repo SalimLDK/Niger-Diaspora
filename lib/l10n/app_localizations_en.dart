@@ -18784,4 +18784,88 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get refAdmFieldIso => 'ISO code (two capital letters)';
+
+  @override
+  String get rgHistTooltip => 'Settings history';
+
+  @override
+  String get rgHistTitle => 'Settings history';
+
+  @override
+  String get rgHistSubtitle =>
+      'Each change keeps the old and new value, who made it and when. Nothing in it can be rewritten or deleted.';
+
+  @override
+  String get rgHistEmpty => 'No change recorded since the history was set up.';
+
+  @override
+  String rgHistLoadError(String detail) {
+    return 'Could not read the history: $detail';
+  }
+
+  @override
+  String get rgHistRetry => 'Retry';
+
+  @override
+  String get rgHistClose => 'Close';
+
+  @override
+  String get rgHistKindUpdate => 'Change';
+
+  @override
+  String get rgHistKindRestore => 'Rollback';
+
+  @override
+  String rgHistBy(String who) {
+    return 'By $who';
+  }
+
+  @override
+  String rgHistReason(String reason) {
+    return 'Reason: $reason';
+  }
+
+  @override
+  String rgHistChange(String key, String from, String to) {
+    return '$key: $from → $to';
+  }
+
+  @override
+  String get rgHistAbsent => '(absent)';
+
+  @override
+  String get rgHistNoDiff => 'No value changed.';
+
+  @override
+  String get rgHistRestore => 'Restore the old value';
+
+  @override
+  String get rgHistNoBefore =>
+      'First recorded value of this section: no old value to restore.';
+
+  @override
+  String rgHistRestoreTitle(String section) {
+    return 'Restore \"$section\"?';
+  }
+
+  @override
+  String get rgHistRestoreBody =>
+      'The section takes back the values from before this change. The rollback is itself recorded.';
+
+  @override
+  String get rgHistRestoreReason => 'Reason for the rollback';
+
+  @override
+  String get rgHistRestoreCancel => 'Cancel';
+
+  @override
+  String get rgHistRestoreConfirm => 'Restore';
+
+  @override
+  String get rgHistRestored => 'Section restored.';
+
+  @override
+  String rgHistRestoreFailed(String detail) {
+    return 'Rollback failed: $detail';
+  }
 }
