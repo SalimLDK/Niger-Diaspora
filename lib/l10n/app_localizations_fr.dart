@@ -18439,4 +18439,68 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get mesDonneesFailed =>
       'La demande n\'a pas pu être envoyée. Réessayez plus tard.';
+
+  @override
+  String get secAdmReqAnswerLabel =>
+      'Réponse au demandeur (il la lit dans l\'application)';
+
+  @override
+  String get secAdmReqAnswerHelp =>
+      'La note interne ne sort jamais ; seule cette réponse est lue par le demandeur. L\'aperçu de la notification ne la contient pas.';
+
+  @override
+  String get secAdmReqInternalCompleteNote =>
+      'Compte rendu interne (systèmes traités, résultat)';
+
+  @override
+  String get secAdmReqInternalRefuseNote => 'Motif interne du refus';
+
+  @override
+  String get secAdmReqSummary => 'État des lieux';
+
+  @override
+  String get secAdmReqSummaryHelp =>
+      'Des nombres, jamais de contenu. Disponible une fois l\'identité vérifiée.';
+
+  @override
+  String get secAdmSumMessages => 'Messages envoyés (chiffrés)';
+
+  @override
+  String get secAdmSumPosts => 'Publications';
+
+  @override
+  String get secAdmSumComments => 'Commentaires';
+
+  @override
+  String get secAdmSumStories => 'Stories';
+
+  @override
+  String get secAdmSumFriends => 'Amis';
+
+  @override
+  String get secAdmSumGroups => 'Groupes';
+
+  @override
+  String get secAdmSumNotifications => 'Notifications';
+
+  @override
+  String get secAdmSumEvents => 'Événements organisés';
+
+  @override
+  String get secAdmSumBusinesses => 'Fiches d\'entreprise';
+
+  @override
+  String get secAdmSumTickets => 'Tickets de support';
+
+  @override
+  String get secAdmSumReports => 'Signalements faits';
+
+  @override
+  String get secAdmSumBlocked => 'Comptes bloqués';
+
+  @override
+  String get secAdmSumDevices => 'Appareils';
+
+  @override
+  String get mesDonneesAnswerLabel => 'Réponse de l\'équipe';
 }

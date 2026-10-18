@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1429 cases à cocher, 55 cochées** — 312 entrées sur 326 ont encore des cases ouvertes.
+**1437 cases à cocher, 55 cochées** — 313 entrées sur 327 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -98,7 +98,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 6 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (126)
+**P1 — fonction importante, jamais vérifiée** (127)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -175,6 +175,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [⬜ Photo de profil : on choisit son cadrage (2026-09-14)](#-photo-de-profil--on-choisit-son-cadrage-2026-09-14) · *Accueil, profil et réglages*
 - 6 · [⬜ Champ ville : recherche dans le référentiel (2026-09-13)](#-champ-ville--recherche-dans-le-référentiel-2026-09-13) · *Accueil, profil et réglages*
 - 7 · [Bascule en anglais — ~1 600 chaînes branchées, rien vu à l'écran (2026-08-06)](#bascule-en-anglais--1-600-chaînes-branchées-rien-vu-à-lécran-2026-08-06) · *Design, thème, langue et mise en page* · bloqué
+- 8 · [⬜ Demandes de données : le demandeur est prévenu et lit une réponse (2026-10-18)](#-demandes-de-données--le-demandeur-est-prévenu-et-lit-une-réponse-2026-10-18) · *Backend, sécurité et observabilité*
 - 9 · [⬜ « Mes demandes sur mes données » : faire une demande depuis l'application (2026-10-18)](#--mes-demandes-sur-mes-données---faire-une-demande-depuis-lapplication-2026-10-18) · *Backend, sécurité et observabilité*
 - 6 · [⬜ Panneau admin : annuaire — badge motivé, archivage, historique (2026-10-18)](#-panneau-admin--annuaire--badge-motivé-archivage-historique-2026-10-18) · *Backend, sécurité et observabilité*
 - 10 · [⬜ Panneau admin : démarches consulaires, du brouillon à la publication (2026-10-18)](#-panneau-admin--démarches-consulaires-du-brouillon-à-la-publication-2026-10-18) · *Backend, sécurité et observabilité*
@@ -384,7 +385,7 @@ Par domaine :
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 67 à faire, 0 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 58 à faire, 5 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 108 à faire, 5 faites
-- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 166 à faire, 2 faites
+- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 174 à faire, 2 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 46 à faire, 1 faites
 - [15. Site web](#15-site-web) — 69 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 23 à faire, 0 faites
@@ -9311,6 +9312,24 @@ parce qu'il change un **comportement**, pas seulement un habillage :
 # 13. Backend, sécurité et observabilité
 
 Supabase et Firebase côté serveur, accès anon, stockage, journaux, Crashlytics, back-office.
+
+---
+## ⬜ Demandes de données : le demandeur est prévenu et lit une réponse (2026-10-18)
+
+**Priorité P1** · importance 4/5 — La notification doit arriver sur un vrai téléphone et son aperçu, affiché écran verrouillé, ne doit rien révéler de la demande.
+
+*Bloqué : migration 20261018270000 appliquée, un téléphone avec un compte de test (notifications autorisées), le panneau web avec un superAdmin.*
+
+Fichiers : `supabase/migrations/20261018270000_demandes_donnees_reponse_et_avancement.sql`, `mes_demandes_donnees_screen.dart`, `admin_securite_screen.dart`.
+
+- [ ] Téléphone verrouillé : à chaque étape décidée au panneau (identité vérifiée, traitement, traitée), un push « Votre demande sur vos données » arrive, SANS la nature de la demande ni le motif.
+- [ ] Relire `net._http_response` (recette du 2026-09-15) : un 200 portant `skipped` veut dire « créée mais pas poussée » ; le noter.
+- [ ] Appuyer sur la notification ouvre l'application ; la ligne est dans la liste de notifications, libellé « Général ».
+- [ ] Avec « Messages système » coupé dans les réglages, la notification arrive quand même (message de service, pas promotionnel).
+- [ ] Panneau : « État des lieux » n'est offert qu'après la vérification d'identité, montre des NOMBRES seulement, jamais de contenu.
+- [ ] Panneau : terminer ou refuser la demande d'un compte demande deux textes (note interne, réponse au demandeur) ; sans la réponse, le bouton reste grisé.
+- [ ] Téléphone, « Mes demandes » : la réponse de l'équipe s'affiche sous la demande traitée ou refusée, jamais la note interne ni le motif.
+- [ ] Retirer soi-même une demande ne déclenche aucune notification.
 
 ---
 ## ⬜ « Mes demandes sur mes données » : faire une demande depuis l'application (2026-10-18)

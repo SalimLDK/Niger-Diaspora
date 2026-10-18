@@ -33475,6 +33475,126 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'La demande n\'a pas pu être envoyée. Réessayez plus tard.'**
   String get mesDonneesFailed;
+
+  /// No description provided for @secAdmReqAnswerLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réponse au demandeur (il la lit dans l\'application)'**
+  String get secAdmReqAnswerLabel;
+
+  /// No description provided for @secAdmReqAnswerHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'La note interne ne sort jamais ; seule cette réponse est lue par le demandeur. L\'aperçu de la notification ne la contient pas.'**
+  String get secAdmReqAnswerHelp;
+
+  /// No description provided for @secAdmReqInternalCompleteNote.
+  ///
+  /// In fr, this message translates to:
+  /// **'Compte rendu interne (systèmes traités, résultat)'**
+  String get secAdmReqInternalCompleteNote;
+
+  /// No description provided for @secAdmReqInternalRefuseNote.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif interne du refus'**
+  String get secAdmReqInternalRefuseNote;
+
+  /// No description provided for @secAdmReqSummary.
+  ///
+  /// In fr, this message translates to:
+  /// **'État des lieux'**
+  String get secAdmReqSummary;
+
+  /// No description provided for @secAdmReqSummaryHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Des nombres, jamais de contenu. Disponible une fois l\'identité vérifiée.'**
+  String get secAdmReqSummaryHelp;
+
+  /// No description provided for @secAdmSumMessages.
+  ///
+  /// In fr, this message translates to:
+  /// **'Messages envoyés (chiffrés)'**
+  String get secAdmSumMessages;
+
+  /// No description provided for @secAdmSumPosts.
+  ///
+  /// In fr, this message translates to:
+  /// **'Publications'**
+  String get secAdmSumPosts;
+
+  /// No description provided for @secAdmSumComments.
+  ///
+  /// In fr, this message translates to:
+  /// **'Commentaires'**
+  String get secAdmSumComments;
+
+  /// No description provided for @secAdmSumStories.
+  ///
+  /// In fr, this message translates to:
+  /// **'Stories'**
+  String get secAdmSumStories;
+
+  /// No description provided for @secAdmSumFriends.
+  ///
+  /// In fr, this message translates to:
+  /// **'Amis'**
+  String get secAdmSumFriends;
+
+  /// No description provided for @secAdmSumGroups.
+  ///
+  /// In fr, this message translates to:
+  /// **'Groupes'**
+  String get secAdmSumGroups;
+
+  /// No description provided for @secAdmSumNotifications.
+  ///
+  /// In fr, this message translates to:
+  /// **'Notifications'**
+  String get secAdmSumNotifications;
+
+  /// No description provided for @secAdmSumEvents.
+  ///
+  /// In fr, this message translates to:
+  /// **'Événements organisés'**
+  String get secAdmSumEvents;
+
+  /// No description provided for @secAdmSumBusinesses.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fiches d\'entreprise'**
+  String get secAdmSumBusinesses;
+
+  /// No description provided for @secAdmSumTickets.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tickets de support'**
+  String get secAdmSumTickets;
+
+  /// No description provided for @secAdmSumReports.
+  ///
+  /// In fr, this message translates to:
+  /// **'Signalements faits'**
+  String get secAdmSumReports;
+
+  /// No description provided for @secAdmSumBlocked.
+  ///
+  /// In fr, this message translates to:
+  /// **'Comptes bloqués'**
+  String get secAdmSumBlocked;
+
+  /// No description provided for @secAdmSumDevices.
+  ///
+  /// In fr, this message translates to:
+  /// **'Appareils'**
+  String get secAdmSumDevices;
+
+  /// No description provided for @mesDonneesAnswerLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réponse de l\'équipe'**
+  String get mesDonneesAnswerLabel;
 }
 
 class _AppLocalizationsDelegate

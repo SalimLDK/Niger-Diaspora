@@ -405,6 +405,16 @@ class _CarteDemande extends ConsumerWidget {
                   icon: const Icon(Icons.verified_user_outlined, size: 16),
                   label: Text(l10n.secAdmReqVerify),
                 ),
+              if (d.compte != null &&
+                  (d.statut == 'identity_verified' || d.statut == 'in_progress'))
+                OutlinedButton.icon(
+                  onPressed: () => unawaited(showDialog<void>(
+                    context: context,
+                    builder: (_) => _EtatDesLieux(id: d.id),
+                  )),
+                  icon: const Icon(Icons.fact_check_outlined, size: 16),
+                  label: Text(l10n.secAdmReqSummary),
+                ),
               if (d.statut == 'identity_verified')
                 ElevatedButton.icon(
                   onPressed: () => unawaited(_lancer(
@@ -421,13 +431,19 @@ class _CarteDemande extends ConsumerWidget {
                   onPressed: () async {
                     final v = await _saisir(context,
                         titre: l10n.secAdmReqComplete,
-                        libelles: [l10n.secAdmReqCompleteNote],
-                        avertissement: l10n.secAdmReqCompleteWarn);
+                        libelles: [
+                          l10n.secAdmReqInternalCompleteNote,
+                          if (d.compte != null) l10n.secAdmReqAnswerLabel,
+                        ],
+                        aide: d.compte != null ? l10n.secAdmReqAnswerHelp : null,
+                        avertissement: l10n.secAdmReqCompleteWarn,
+                        minLongs: d.compte != null ? {1} : const {});
                     if (v == null || !context.mounted) return;
                     await _lancer(
                         context,
                         ref,
-                        () => acts.transitionnerDemande(d.id, 'completed', note: v[0]),
+                        () => acts.transitionnerDemande(d.id, 'completed',
+                            note: v[0], reponse: v.length > 1 ? v[1] : null),
                         l10n.secAdmDone,
                         relecture);
                   },
@@ -437,12 +453,19 @@ class _CarteDemande extends ConsumerWidget {
               OutlinedButton.icon(
                 onPressed: () async {
                   final v = await _saisir(context,
-                      titre: l10n.secAdmReqRefuse, libelles: [l10n.secAdmReqRefuseNote]);
+                      titre: l10n.secAdmReqRefuse,
+                      libelles: [
+                        l10n.secAdmReqInternalRefuseNote,
+                        if (d.compte != null) l10n.secAdmReqAnswerLabel,
+                      ],
+                      aide: d.compte != null ? l10n.secAdmReqAnswerHelp : null,
+                      minLongs: d.compte != null ? {1} : const {});
                   if (v == null || !context.mounted) return;
                   await _lancer(
                       context,
                       ref,
-                      () => acts.transitionnerDemande(d.id, 'refused', note: v[0]),
+                      () => acts.transitionnerDemande(d.id, 'refused',
+                          note: v[0], reponse: v.length > 1 ? v[1] : null),
                       l10n.secAdmDone,
                       relecture);
                 },
@@ -504,6 +527,71 @@ class _EtatSuppression extends ConsumerWidget {
               ),
             )
           : const SizedBox.shrink(),
+    );
+  }
+}
+
+/// Les nombres d'un compte, après vérification d'identité. Aucun contenu.
+class _EtatDesLieux extends ConsumerWidget {
+  const _EtatDesLieux({required this.id});
+  final String id;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+    final s = ref.watch(etatDesLieuxProvider(id));
+    final libelles = {
+      'messages_sent': l10n.secAdmSumMessages,
+      'posts': l10n.secAdmSumPosts,
+      'post_comments': l10n.secAdmSumComments,
+      'stories': l10n.secAdmSumStories,
+      'friends': l10n.secAdmSumFriends,
+      'groups': l10n.secAdmSumGroups,
+      'notifications': l10n.secAdmSumNotifications,
+      'events_organized': l10n.secAdmSumEvents,
+      'businesses': l10n.secAdmSumBusinesses,
+      'support_tickets': l10n.secAdmSumTickets,
+      'reports_filed': l10n.secAdmSumReports,
+      'blocked_users': l10n.secAdmSumBlocked,
+      'devices': l10n.secAdmSumDevices,
+    };
+    return AlertDialog(
+      title: Text(l10n.secAdmReqSummary),
+      content: SizedBox(
+        width: 420,
+        child: s.when(
+          loading: () => const LinearProgressIndicator(minHeight: 2),
+          error: (e, _) => Text(l10n.secAdmLoadError(detailSecurite(e)),
+              style: const TextStyle(color: AdminColors.statusRed)),
+          data: (m) => Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(l10n.secAdmReqSummaryHelp,
+                  style: const TextStyle(fontSize: 12, color: AdminColors.text3)),
+              const SizedBox(height: 8),
+              for (final e in libelles.entries)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2),
+                  child: Row(children: [
+                    Expanded(child: Text(e.value)),
+                    Text('${m[e.key] ?? '—'}',
+                        style: const TextStyle(fontWeight: FontWeight.w600)),
+                  ]),
+                ),
+              if (m['note'] != null) ...[
+                const SizedBox(height: 8),
+                Text('${m['note']}',
+                    style: const TextStyle(fontSize: 11, color: AdminColors.text3)),
+              ],
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+            onPressed: () => Navigator.pop(context), child: Text(l10n.secAdmConfirm)),
+      ],
     );
   }
 }

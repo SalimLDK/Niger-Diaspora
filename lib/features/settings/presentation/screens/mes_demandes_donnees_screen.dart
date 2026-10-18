@@ -27,11 +27,14 @@ class MesDemandesDonneesScreen extends ConsumerStatefulWidget {
 }
 
 class _Demande {
-  const _Demande(this.id, this.nature, this.statut, this.creeeLe);
+  const _Demande(this.id, this.nature, this.statut, this.creeeLe, this.reponse);
   final String id;
   final String nature;
   final String statut;
   final DateTime? creeeLe;
+
+  /// La réponse de l'équipe, seulement une fois la demande traitée ou refusée.
+  final String? reponse;
 
   bool get ouverte =>
       statut == 'received' || statut == 'identity_verified' || statut == 'in_progress';
@@ -47,6 +50,7 @@ final _mesDemandesProvider = FutureProvider.autoDispose<List<_Demande>>((ref) as
         r['kind'] as String,
         r['status'] as String,
         DateTime.tryParse(r['created_at'] as String? ?? '')?.toLocal(),
+        r['answer'] as String?,
       ),
   ];
 });
@@ -198,8 +202,21 @@ class _MesDemandesDonneesScreenState extends ConsumerState<MesDemandesDonneesScr
                         ListTile(
                           contentPadding: EdgeInsets.zero,
                           title: Text(_libelleNature(l10n, d.nature)),
-                          subtitle: Text(
-                              '${_libelleStatut(l10n, d.statut)} · ${l10n.mesDonneesDate(_jour(d.creeeLe))}'),
+                          isThreeLine: d.reponse != null,
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                  '${_libelleStatut(l10n, d.statut)} · ${l10n.mesDonneesDate(_jour(d.creeeLe))}'),
+                              if (d.reponse != null) ...[
+                                const SizedBox(height: 6),
+                                Text(l10n.mesDonneesAnswerLabel,
+                                    style: const TextStyle(
+                                        fontWeight: FontWeight.w600, fontSize: 12)),
+                                SelectableText(d.reponse!),
+                              ],
+                            ],
+                          ),
                           trailing: d.ouverte
                               ? TextButton(
                                   onPressed: _enCours

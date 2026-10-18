@@ -18266,4 +18266,68 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get mesDonneesFailed =>
       'The request could not be sent. Try again later.';
+
+  @override
+  String get secAdmReqAnswerLabel =>
+      'Reply to the requester (they read it in the app)';
+
+  @override
+  String get secAdmReqAnswerHelp =>
+      'The internal note never leaves; only this reply is read by the requester. The notification preview does not contain it.';
+
+  @override
+  String get secAdmReqInternalCompleteNote =>
+      'Internal report (systems processed, result)';
+
+  @override
+  String get secAdmReqInternalRefuseNote => 'Internal reason for refusal';
+
+  @override
+  String get secAdmReqSummary => 'Data overview';
+
+  @override
+  String get secAdmReqSummaryHelp =>
+      'Counts, never content. Available once the identity is verified.';
+
+  @override
+  String get secAdmSumMessages => 'Messages sent (encrypted)';
+
+  @override
+  String get secAdmSumPosts => 'Posts';
+
+  @override
+  String get secAdmSumComments => 'Comments';
+
+  @override
+  String get secAdmSumStories => 'Stories';
+
+  @override
+  String get secAdmSumFriends => 'Friends';
+
+  @override
+  String get secAdmSumGroups => 'Groups';
+
+  @override
+  String get secAdmSumNotifications => 'Notifications';
+
+  @override
+  String get secAdmSumEvents => 'Events organized';
+
+  @override
+  String get secAdmSumBusinesses => 'Business listings';
+
+  @override
+  String get secAdmSumTickets => 'Support tickets';
+
+  @override
+  String get secAdmSumReports => 'Reports filed';
+
+  @override
+  String get secAdmSumBlocked => 'Blocked accounts';
+
+  @override
+  String get secAdmSumDevices => 'Devices';
+
+  @override
+  String get mesDonneesAnswerLabel => 'Team\'s reply';
 }

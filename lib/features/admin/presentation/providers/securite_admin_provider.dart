@@ -81,6 +81,13 @@ final etatSuppressionProvider =
   );
 });
 
+/// L'état des lieux d'une demande : des nombres par catégorie, jamais de contenu.
+final etatDesLieuxProvider =
+    FutureProvider.autoDispose.family<Map<String, dynamic>, String>((ref, id) async {
+  final r = await _supabase.rpc('privacy_request_data_summary', params: {'p_id': id});
+  return Map<String, dynamic>.from(r as Map);
+});
+
 enum VueSecurite { enCours, closes, toutes }
 
 final vueDemandesProvider =
@@ -221,9 +228,12 @@ class SecuriteAdminActions {
       _supabase.rpc('privacy_request_verify_identity',
           params: {'p_id': id, 'p_method': methode});
 
-  Future<void> transitionnerDemande(String id, String vers, {String? note}) =>
+  /// [reponse] : le texte que le demandeur lira ; requis par le serveur pour
+  /// terminer ou refuser la demande d'une personne qui a un compte.
+  Future<void> transitionnerDemande(String id, String vers,
+          {String? note, String? reponse}) =>
       _supabase.rpc('privacy_request_transition',
-          params: {'p_id': id, 'p_to': vers, 'p_note': note});
+          params: {'p_id': id, 'p_to': vers, 'p_note': note, 'p_answer': reponse});
 
   Future<void> ouvrirIncident({
     required String titre,
