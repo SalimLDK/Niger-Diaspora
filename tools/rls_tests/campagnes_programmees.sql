@@ -1,4 +1,4 @@
--- Banc : campagnes programmées, modèles, rapport (migration 20261018270000).
+-- Banc : campagnes programmées, modèles, rapport (migration 20261019110000).
 --
 --   supabase db query --linked -f tools/rls_tests/campagnes_programmees.sql
 --
