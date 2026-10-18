@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1482 cases à cocher, 55 cochées** — 320 entrées sur 334 ont encore des cases ouvertes.
+**1490 cases à cocher, 55 cochées** — 321 entrées sur 335 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -98,7 +98,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 6 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (131)
+**P1 — fonction importante, jamais vérifiée** (132)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -175,6 +175,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [⬜ Photo de profil : on choisit son cadrage (2026-09-14)](#-photo-de-profil--on-choisit-son-cadrage-2026-09-14) · *Accueil, profil et réglages*
 - 6 · [⬜ Champ ville : recherche dans le référentiel (2026-09-13)](#-champ-ville--recherche-dans-le-référentiel-2026-09-13) · *Accueil, profil et réglages*
 - 7 · [Bascule en anglais — ~1 600 chaînes branchées, rien vu à l'écran (2026-08-06)](#bascule-en-anglais--1-600-chaînes-branchées-rien-vu-à-lécran-2026-08-06) · *Design, thème, langue et mise en page* · bloqué
+- 8 · [⬜ Événements : calendrier, inscrits, statistiques — et un administrateur ne lit plus tous les événements (2026-10-19)](#-événements--calendrier-inscrits-statistiques--et-un-administrateur-ne-lit-plus-tous-les-événements-2026-10-19) · *Backend, sécurité et observabilité*
 - 6 · [⬜ Réglages versionnés : historique, comparaison, retour arrière (2026-10-19)](#-réglages-versionnés--historique-comparaison-retour-arrière-2026-10-19) · *Backend, sécurité et observabilité*
 - 7 · [⬜ Référentiel géographique : villes, doublons, pays (2026-10-19)](#-référentiel-géographique--villes-doublons-pays-2026-10-19) · *Backend, sécurité et observabilité*
 - 7 · [⬜ Panneau admin : ambassades — vérification sourcée, suspension motivée, historique (2026-10-19)](#-panneau-admin--ambassades--vérification-sourcée-suspension-motivée-historique-2026-10-19) · *Backend, sécurité et observabilité*
@@ -392,7 +393,7 @@ Par domaine :
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 67 à faire, 0 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 58 à faire, 5 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 108 à faire, 5 faites
-- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 219 à faire, 2 faites
+- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 227 à faire, 2 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 46 à faire, 1 faites
 - [15. Site web](#15-site-web) — 69 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 23 à faire, 0 faites
@@ -9319,6 +9320,24 @@ parce qu'il change un **comportement**, pas seulement un habillage :
 # 13. Backend, sécurité et observabilité
 
 Supabase et Firebase côté serveur, accès anon, stockage, journaux, Crashlytics, back-office.
+
+---
+## ⬜ Événements : calendrier, inscrits, statistiques — et un administrateur ne lit plus tous les événements (2026-10-19)
+
+**Priorité P1** · importance 4/5 — Un correctif de visibilité touche l'application elle-même : `can_see_event` et `is_event_readable` ont changé. Il faut vérifier sur un téléphone que les événements, brouillons et inscrits s'affichent comme avant pour les bonnes personnes.
+
+*Bloqué : migration 20261019190000 appliquée, un téléphone avec un compte organisateur et un compte invité, le panneau web avec contentMod et superAdmin.*
+
+Fichiers : `lib/features/admin/presentation/screens/admin_evenements_screen.dart`, `supabase/migrations/20261019190000_evenements_calendrier_inscrits_stats.sql`.
+
+- [ ] Téléphone, organisateur : ses événements (brouillon, privé, public) s'affichent tous ; créer et modifier fonctionne.
+- [ ] Téléphone, invité à un événement privé : il le voit et voit « qui y va ». Un autre membre non invité ne le voit pas.
+- [ ] Téléphone, événement public : la liste des participants s'affiche toujours.
+- [ ] Panneau, rubrique « Événements » : le calendrier du mois montre les événements publics avec leur nombre par jour ; le texte dit combien d'événements non publics sont comptés sans être listés.
+- [ ] contentMod ne voit pas « Voir les inscrits » ; le superAdmin le voit, la liste s'affiche avec un rappel de journalisation, et le journal d'audit montre une ligne EVENT_ATTENDEES_VIEWED sans noms.
+- [ ] Statistiques : fenêtre 7/30/90/365 jours ; les définitions s'affichent et l'écran dit « Non mesuré : désinscriptions, participations confirmées ».
+- [ ] financeMod / businessMod ne voient plus les événements privés dans l'écran Contenu.
+- [ ] Les heures du calendrier indiquent le fuseau de l'appareil.
 
 ---
 ## ⬜ Panneau admin : Membres — avertir, suspendre, vérifier, déconnecter avec motif et historique (2026-10-19)

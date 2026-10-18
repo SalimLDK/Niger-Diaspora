@@ -18992,4 +18992,133 @@ class AppLocalizationsEn extends AppLocalizations {
   String rgHistRestoreFailed(String detail) {
     return 'Rollback failed: $detail';
   }
+
+  @override
+  String get evtCalTitle => 'Events';
+
+  @override
+  String get evtCalSubtitle =>
+      'Calendar, attendees and figures. Cancelling or deleting is done from \"Content\".';
+
+  @override
+  String get evtCalTabCalendar => 'Calendar';
+
+  @override
+  String get evtCalTabStats => 'Statistics';
+
+  @override
+  String get evtCalNoAccess => 'You do not have access to events.';
+
+  @override
+  String evtCalLoadError(String detail) {
+    return 'Could not load: $detail';
+  }
+
+  @override
+  String get evtCalRetry => 'Retry';
+
+  @override
+  String get evtCalPrevMonth => 'Previous month';
+
+  @override
+  String get evtCalNextMonth => 'Next month';
+
+  @override
+  String evtCalTimezone(String zone) {
+    return 'Times shown in this device\'s time zone ($zone).';
+  }
+
+  @override
+  String evtCalPrivateHidden(String n) {
+    return '$n non-public or draft event(s) in the period: counted, not listed.';
+  }
+
+  @override
+  String get evtCalNoEventsDay => 'No public event that day.';
+
+  @override
+  String get evtCalNoEventsMonth => 'No public event this month.';
+
+  @override
+  String get evtCalAllMonth => 'Whole month';
+
+  @override
+  String evtCalAttendees(String n) {
+    return '$n attendee(s)';
+  }
+
+  @override
+  String evtCalAttendeesOf(String n, String max) {
+    return '$n / $max attendees';
+  }
+
+  @override
+  String get evtCalOnline => 'Online';
+
+  @override
+  String get evtCalSeeAttendees => 'See attendees';
+
+  @override
+  String evtCalAttendeesTitle(String title) {
+    return 'Attendees: $title';
+  }
+
+  @override
+  String get evtCalAttendeesWarn =>
+      'This lookup is logged (who, which event, how many rows — never the names).';
+
+  @override
+  String get evtCalAttendeesEmpty => 'No attendee.';
+
+  @override
+  String get evtCalStatusDraft => 'Draft';
+
+  @override
+  String get evtCalStatusUpcoming => 'Upcoming';
+
+  @override
+  String get evtCalStatusOngoing => 'Ongoing';
+
+  @override
+  String get evtCalStatusEnded => 'Ended';
+
+  @override
+  String get evtCalStatusCancelled => 'Cancelled';
+
+  @override
+  String get evtCalWindow => 'Window';
+
+  @override
+  String evtCalDays(String n) {
+    return '$n days';
+  }
+
+  @override
+  String get evtCalStatCreated => 'Events created';
+
+  @override
+  String get evtCalStatUpcoming => 'Upcoming events';
+
+  @override
+  String get evtCalStatRegistrations => 'Registrations';
+
+  @override
+  String get evtCalStatCancelled => 'Events cancelled';
+
+  @override
+  String get evtCalStatFill => 'Average fill (upcoming, capacity set)';
+
+  @override
+  String get evtCalStatNone => '—';
+
+  @override
+  String evtCalStatNotMeasured(String list) {
+    return 'Not measured: $list.';
+  }
+
+  @override
+  String get evtCalStatDefinitions => 'Definitions';
+
+  @override
+  String get evtCalDone => 'Done.';
 }

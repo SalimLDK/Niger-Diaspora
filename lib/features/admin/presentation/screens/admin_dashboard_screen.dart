@@ -25,6 +25,7 @@ import 'admin_campagnes_screen.dart';
 import '../widgets/bloc_a_traiter.dart';
 import 'admin_securite_screen.dart';
 import 'admin_referentiel_screen.dart';
+import 'admin_evenements_screen.dart';
 import 'admin_settings_screen.dart';
 import 'admin_feature_flags_screen.dart';
 import 'admin_audit_screen.dart';
@@ -125,6 +126,14 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
         selectedIcon: const AppIcon(AppIcon.event),
         requiredPermission: AdminPermission.viewContent,
         contentBuilder: (_, __) => const AdminModerationScreen(),
+      ),
+      _NavDestination(
+        id: 'evenements',
+        label: l10n.evtCalTitle,
+        icon: const Icon(Icons.calendar_month_outlined),
+        selectedIcon: const Icon(Icons.calendar_month),
+        requiredPermission: AdminPermission.moderateEvents,
+        contentBuilder: (_, __) => const AdminEvenementsScreen(),
       ),
       _NavDestination(
         id: 'reports',
