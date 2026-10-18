@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1458 cases à cocher, 55 cochées** — 316 entrées sur 330 ont encore des cases ouvertes.
+**1465 cases à cocher, 55 cochées** — 317 entrées sur 331 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -98,7 +98,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 6 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (129)
+**P1 — fonction importante, jamais vérifiée** (130)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -175,6 +175,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [⬜ Photo de profil : on choisit son cadrage (2026-09-14)](#-photo-de-profil--on-choisit-son-cadrage-2026-09-14) · *Accueil, profil et réglages*
 - 6 · [⬜ Champ ville : recherche dans le référentiel (2026-09-13)](#-champ-ville--recherche-dans-le-référentiel-2026-09-13) · *Accueil, profil et réglages*
 - 7 · [Bascule en anglais — ~1 600 chaînes branchées, rien vu à l'écran (2026-08-06)](#bascule-en-anglais--1-600-chaînes-branchées-rien-vu-à-lécran-2026-08-06) · *Design, thème, langue et mise en page* · bloqué
+- 7 · [⬜ Référentiel géographique : villes, doublons, pays (2026-10-19)](#-référentiel-géographique--villes-doublons-pays-2026-10-19) · *Backend, sécurité et observabilité*
 - 7 · [⬜ Panneau admin : ambassades — vérification sourcée, suspension motivée, historique (2026-10-19)](#-panneau-admin--ambassades--vérification-sourcée-suspension-motivée-historique-2026-10-19) · *Backend, sécurité et observabilité*
 - 7 · [⬜ Campagnes : programmation, modèles et rapport d'envoi (2026-10-18)](#-campagnes--programmation-modèles-et-rapport-denvoi-2026-10-18) · *Backend, sécurité et observabilité*
 - 8 · [⬜ Demandes de données : le demandeur est prévenu et lit une réponse (2026-10-18)](#-demandes-de-données--le-demandeur-est-prévenu-et-lit-une-réponse-2026-10-18) · *Backend, sécurité et observabilité*
@@ -388,7 +389,7 @@ Par domaine :
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 67 à faire, 0 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 58 à faire, 5 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 108 à faire, 5 faites
-- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 195 à faire, 2 faites
+- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 202 à faire, 2 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 46 à faire, 1 faites
 - [15. Site web](#15-site-web) — 69 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 23 à faire, 0 faites
@@ -9315,6 +9316,23 @@ parce qu'il change un **comportement**, pas seulement un habillage :
 # 13. Backend, sécurité et observabilité
 
 Supabase et Firebase côté serveur, accès anon, stockage, journaux, Crashlytics, back-office.
+
+---
+## ⬜ Référentiel géographique : villes, doublons, pays (2026-10-19)
+
+**Priorité P1** · importance 4/5 — Une ville fausse ou fusionnée de travers peut ouvrir ou casser des groupes officiels « Diaspora Niger — <ville> » et décaler des profils. Rubrique réservée au superAdmin.
+
+*Bloqué : migration 20261019180000 appliquée, un compte superAdmin sur le panneau web, un téléphone avec un compte de test.*
+
+Fichiers : `lib/features/admin/presentation/screens/admin_referentiel_screen.dart`, `supabase/migrations/20261019180000_referentiel_geographique.sql`.
+
+- [ ] Application : la recherche de ville (profil, filtre Découvrir, « Utiliser ma position ») marche comme avant — la lecture publique n'a pas été cassée par le retrait des droits d'écriture.
+- [ ] contentMod et businessMod ne voient pas « Référentiel géographique » ; tapé en adresse, l'écran affiche « pas accès ».
+- [ ] Ville : chercher « Niamey », la modifier avec un motif (population) : l'historique la trace ; sans motif, le bouton reste grisé.
+- [ ] Créer une ville à moins de 20 km d'une homonyme du même pays : refusée avec le numéro de l'existante.
+- [ ] Doublons : la liste montre les couples avec profils et groupes de chaque côté ; fusionner reporte les profils (vérifier sur un compte de test que sa ville affichée est la ville conservée).
+- [ ] Fusionner une ville qui porte un groupe, supprimer une ville utilisée, changer le pays d'une ville utilisée : tous refusés avec le décompte des profils et groupes.
+- [ ] Pays : ajouter un pays de test (code ISO 2 lettres) ; il n'existe aucun bouton de renommage ni de suppression.
 
 ---
 ## ⬜ Tableau de bord : « À traiter » par droit, et des compteurs qui n'affichent plus 0 en cas d'erreur (2026-10-19)
