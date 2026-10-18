@@ -65,7 +65,7 @@ SELECT pg_temp.verifie(1, 'anon n''exécute aucune des sept fonctions', 'false',
    OR has_function_privilege('anon', 'public.privacy_request_withdraw(uuid)', 'EXECUTE')
    OR has_function_privilege('anon', 'public.privacy_request_take(uuid)', 'EXECUTE')
    OR has_function_privilege('anon', 'public.privacy_request_verify_identity(uuid,text)', 'EXECUTE')
-   OR has_function_privilege('anon', 'public.privacy_request_transition(uuid,text,text)', 'EXECUTE')
+   OR has_function_privilege('anon', 'public.privacy_request_transition(uuid,text,text,text)', 'EXECUTE')
    OR has_function_privilege('anon', 'public.privacy_request_erasure_status(uuid)', 'EXECUTE'))::text);
 
 -- ═══ 2. Le membre ouvre une demande ════════════════════════════════════════
@@ -162,7 +162,7 @@ SELECT pg_temp.verifie(43, 'état de la suppression : compte présent, aucune de
   (SELECT ((r ->> 'linked')::boolean)::text || '/' || ((r ->> 'account_exists')::boolean)::text || '/' || coalesce(r ->> 'deletion_status', 'vide')
      FROM (SELECT public.privacy_request_erasure_status((SELECT v FROM ids WHERE k = 'e1')) AS r) x));
 SELECT pg_temp.essai(44, 'TERMINER alors que le compte existe → 55000', '55000',
-  $q$SELECT public.privacy_request_transition((SELECT v FROM ids WHERE k = 'e1'), 'completed', 'Compte supprimé (en réalité non)')$q$);
+  $q$SELECT public.privacy_request_transition((SELECT v FROM ids WHERE k = 'e1'), 'completed', 'Compte supprimé (en réalité non)', 'Votre compte a été supprimé.')$q$);
 RESET ROLE;
 
 -- La suppression en phases a abouti : la ligne de pierre tombale existe, le compte est parti.
@@ -176,7 +176,7 @@ SELECT pg_temp.verifie(45, 'état de la suppression : compte parti, suppression 
   (SELECT ((r ->> 'account_exists')::boolean)::text || '/' || (r ->> 'deletion_status')
      FROM (SELECT public.privacy_request_erasure_status((SELECT v FROM ids WHERE k = 'e1')) AS r) x));
 SELECT pg_temp.essai(46, 'terminer une fois le compte effacé', 'OK',
-  $q$SELECT public.privacy_request_transition((SELECT v FROM ids WHERE k = 'e1'), 'completed', 'Suppression achevée par le parcours de suppression de compte.')$q$);
+  $q$SELECT public.privacy_request_transition((SELECT v FROM ids WHERE k = 'e1'), 'completed', 'Suppression achevée par le parcours de suppression de compte.', 'Votre compte a été supprimé.')$q$);
 SELECT pg_temp.essai(47, 'effacement par contact seul (aucun compte) : terminable sans preuve de compte', 'OK',
   $q$SELECT public.privacy_request_create('erasure', NULL, 'externe@exemple.org', NULL, NULL, now() + interval '20 days')$q$);
 RESET ROLE;

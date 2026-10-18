@@ -65,7 +65,7 @@ SELECT pg_temp.verifie(1, '2 permissions au catalogue, mappées à AUCUN rôle',
 SELECT pg_temp.verifie(2, 'anon n''exécute aucune des sept RPC', 'false',
   (has_function_privilege('anon', 'public.privacy_request_create(text,text,text,uuid,text,timestamptz)', 'EXECUTE')
    OR has_function_privilege('anon', 'public.privacy_request_verify_identity(uuid,text)', 'EXECUTE')
-   OR has_function_privilege('anon', 'public.privacy_request_transition(uuid,text,text)', 'EXECUTE')
+   OR has_function_privilege('anon', 'public.privacy_request_transition(uuid,text,text,text)', 'EXECUTE')
    OR has_function_privilege('anon', 'public.security_incident_open(text,text,text,text,timestamptz)', 'EXECUTE')
    OR has_function_privilege('anon', 'public.security_incident_note(uuid,text)', 'EXECUTE')
    OR has_function_privilege('anon', 'public.security_incident_set_severity(uuid,text,text)', 'EXECUTE')
@@ -131,7 +131,7 @@ SELECT pg_temp.essai(35, 'passe en traitement', 'OK',
 SELECT pg_temp.essai(36, 'terminer sans compte rendu → 22023', '22023',
   $q$SELECT public.privacy_request_transition((SELECT v FROM ids WHERE k = 'd1'), 'completed', '  ')$q$);
 SELECT pg_temp.essai(37, 'termine avec compte rendu', 'OK',
-  $q$SELECT public.privacy_request_transition((SELECT v FROM ids WHERE k = 'd1'), 'completed', 'Export envoyé : compte, messages (chiffrés), positions.')$q$);
+  $q$SELECT public.privacy_request_transition((SELECT v FROM ids WHERE k = 'd1'), 'completed', 'Export envoyé : compte, messages (chiffrés), positions.', 'Votre export vous a été envoyé.')$q$);
 SELECT pg_temp.essai(38, 'rouvrir une demande terminée → 55000', '55000',
   $q$SELECT public.privacy_request_transition((SELECT v FROM ids WHERE k = 'd1'), 'in_progress')$q$);
 
