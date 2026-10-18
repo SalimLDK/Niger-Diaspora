@@ -3039,6 +3039,9 @@ class AuditLogEntry extends Equatable {
   final String? targetId;
   final Map<String, dynamic>? details;
   final DateTime? timestamp;
+  final String result;
+  final String? reasonCode;
+  final String? correlationId;
 
   const AuditLogEntry({
     required this.id,
@@ -3049,6 +3052,9 @@ class AuditLogEntry extends Equatable {
     this.targetId,
     this.details,
     this.timestamp,
+    this.result = 'success',
+    this.reasonCode,
+    this.correlationId,
   });
 
   @override
@@ -3061,6 +3067,9 @@ class AuditLogEntry extends Equatable {
     targetId,
     details,
     timestamp,
+    result,
+    reasonCode,
+    correlationId,
   ];
 }
 

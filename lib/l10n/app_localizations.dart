@@ -34969,6 +34969,174 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Fait.'**
   String get evtCalDone;
+
+  /// No description provided for @jrnAudSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Toute action d\'un administrateur, en lecture seule : le journal ne se modifie ni ne s\'efface.'**
+  String get jrnAudSubtitle;
+
+  /// No description provided for @jrnAudExport.
+  ///
+  /// In fr, this message translates to:
+  /// **'Exporter'**
+  String get jrnAudExport;
+
+  /// No description provided for @jrnAudExportTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Exporter le journal'**
+  String get jrnAudExportTitle;
+
+  /// No description provided for @jrnAudExportBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les lignes qui correspondent aux filtres actuels (5 000 au plus) sont copiées en CSV dans le presse-papiers. Cet export est lui-même inscrit au journal, avec vos filtres.'**
+  String get jrnAudExportBody;
+
+  /// No description provided for @jrnAudExported.
+  ///
+  /// In fr, this message translates to:
+  /// **'{n} lignes copiées en CSV. L\'export est inscrit au journal.'**
+  String jrnAudExported(String n);
+
+  /// No description provided for @jrnAudExportTruncated.
+  ///
+  /// In fr, this message translates to:
+  /// **'{n} lignes copiées, plafond atteint : affinez les filtres pour le reste. L\'export est inscrit au journal.'**
+  String jrnAudExportTruncated(String n);
+
+  /// No description provided for @jrnAudActor.
+  ///
+  /// In fr, this message translates to:
+  /// **'Acteur (nom ou identifiant)'**
+  String get jrnAudActor;
+
+  /// No description provided for @jrnAudAction.
+  ///
+  /// In fr, this message translates to:
+  /// **'Action'**
+  String get jrnAudAction;
+
+  /// No description provided for @jrnAudResource.
+  ///
+  /// In fr, this message translates to:
+  /// **'Type de ressource'**
+  String get jrnAudResource;
+
+  /// No description provided for @jrnAudResourceId.
+  ///
+  /// In fr, this message translates to:
+  /// **'Identifiant de la ressource'**
+  String get jrnAudResourceId;
+
+  /// No description provided for @jrnAudResult.
+  ///
+  /// In fr, this message translates to:
+  /// **'Résultat'**
+  String get jrnAudResult;
+
+  /// No description provided for @jrnAudAll.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tous'**
+  String get jrnAudAll;
+
+  /// No description provided for @jrnAudFrom.
+  ///
+  /// In fr, this message translates to:
+  /// **'Du'**
+  String get jrnAudFrom;
+
+  /// No description provided for @jrnAudTo.
+  ///
+  /// In fr, this message translates to:
+  /// **'Au'**
+  String get jrnAudTo;
+
+  /// No description provided for @jrnAudReset.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réinitialiser'**
+  String get jrnAudReset;
+
+  /// No description provided for @jrnAudPeriodInverted.
+  ///
+  /// In fr, this message translates to:
+  /// **'La date de début est après la date de fin : aucune ligne ne peut correspondre.'**
+  String get jrnAudPeriodInverted;
+
+  /// No description provided for @jrnAudResultSuccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réussi'**
+  String get jrnAudResultSuccess;
+
+  /// No description provided for @jrnAudResultDenied.
+  ///
+  /// In fr, this message translates to:
+  /// **'Refusé'**
+  String get jrnAudResultDenied;
+
+  /// No description provided for @jrnAudResultFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Échoué'**
+  String get jrnAudResultFailed;
+
+  /// No description provided for @jrnAudResultPartial.
+  ///
+  /// In fr, this message translates to:
+  /// **'Partiel'**
+  String get jrnAudResultPartial;
+
+  /// No description provided for @jrnAudLoadMore.
+  ///
+  /// In fr, this message translates to:
+  /// **'Charger la suite'**
+  String get jrnAudLoadMore;
+
+  /// No description provided for @jrnAudEnd.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fin du journal pour ces filtres.'**
+  String get jrnAudEnd;
+
+  /// No description provided for @jrnAudDetailTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Détail de l\'entrée'**
+  String get jrnAudDetailTitle;
+
+  /// No description provided for @jrnAudWhen.
+  ///
+  /// In fr, this message translates to:
+  /// **'Date'**
+  String get jrnAudWhen;
+
+  /// No description provided for @jrnAudActorId.
+  ///
+  /// In fr, this message translates to:
+  /// **'Identifiant de l\'acteur'**
+  String get jrnAudActorId;
+
+  /// No description provided for @jrnAudReason.
+  ///
+  /// In fr, this message translates to:
+  /// **'Code de motif'**
+  String get jrnAudReason;
+
+  /// No description provided for @jrnAudCorrelation.
+  ///
+  /// In fr, this message translates to:
+  /// **'Corrélation'**
+  String get jrnAudCorrelation;
+
+  /// No description provided for @jrnAudEntryId.
+  ///
+  /// In fr, this message translates to:
+  /// **'Identifiant de l\'entrée'**
+  String get jrnAudEntryId;
 }
 
 class _AppLocalizationsDelegate

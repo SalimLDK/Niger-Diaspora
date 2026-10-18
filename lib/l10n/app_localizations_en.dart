@@ -19121,4 +19121,95 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get evtCalDone => 'Done.';
+
+  @override
+  String get jrnAudSubtitle =>
+      'Every administrator action, read-only: the log can be neither edited nor erased.';
+
+  @override
+  String get jrnAudExport => 'Export';
+
+  @override
+  String get jrnAudExportTitle => 'Export the log';
+
+  @override
+  String get jrnAudExportBody =>
+      'The rows matching the current filters (5,000 at most) are copied as CSV to the clipboard. This export is itself written to the log, with your filters.';
+
+  @override
+  String jrnAudExported(String n) {
+    return '$n rows copied as CSV. The export is written to the log.';
+  }
+
+  @override
+  String jrnAudExportTruncated(String n) {
+    return '$n rows copied, limit reached: narrow the filters for the rest. The export is written to the log.';
+  }
+
+  @override
+  String get jrnAudActor => 'Actor (name or id)';
+
+  @override
+  String get jrnAudAction => 'Action';
+
+  @override
+  String get jrnAudResource => 'Resource type';
+
+  @override
+  String get jrnAudResourceId => 'Resource id';
+
+  @override
+  String get jrnAudResult => 'Result';
+
+  @override
+  String get jrnAudAll => 'All';
+
+  @override
+  String get jrnAudFrom => 'From';
+
+  @override
+  String get jrnAudTo => 'To';
+
+  @override
+  String get jrnAudReset => 'Reset';
+
+  @override
+  String get jrnAudPeriodInverted =>
+      'The start date is after the end date: no row can match.';
+
+  @override
+  String get jrnAudResultSuccess => 'Succeeded';
+
+  @override
+  String get jrnAudResultDenied => 'Denied';
+
+  @override
+  String get jrnAudResultFailed => 'Failed';
+
+  @override
+  String get jrnAudResultPartial => 'Partial';
+
+  @override
+  String get jrnAudLoadMore => 'Load more';
+
+  @override
+  String get jrnAudEnd => 'End of the log for these filters.';
+
+  @override
+  String get jrnAudDetailTitle => 'Entry detail';
+
+  @override
+  String get jrnAudWhen => 'Date';
+
+  @override
+  String get jrnAudActorId => 'Actor id';
+
+  @override
+  String get jrnAudReason => 'Reason code';
+
+  @override
+  String get jrnAudCorrelation => 'Correlation';
+
+  @override
+  String get jrnAudEntryId => 'Entry id';
 }

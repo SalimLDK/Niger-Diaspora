@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1490 cases à cocher, 55 cochées** — 321 entrées sur 335 ont encore des cases ouvertes.
+**1497 cases à cocher, 55 cochées** — 322 entrées sur 336 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -233,7 +233,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (101)
+**P2 — fonction secondaire ou cas limite** (102)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -293,6 +293,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⬜ Le sigle DN est le même partout (2026-09-13)](#-le-sigle-dn-est-le-même-partout-2026-09-13) · *Design, thème, langue et mise en page*
 - 1 · [Thème sombre — jetons clairs codés en dur](#thème-sombre--jetons-clairs-codés-en-dur) · *Design, thème, langue et mise en page*
 - 4 · [Bascule design_v2 → production, famille 2 : les services (2026-08-03)](#bascule-design_v2--production-famille-2--les-services-2026-08-03) · *Design, thème, langue et mise en page*
+- 7 · [⬜ Panneau admin : Journal d'audit — filtres côté serveur, détail, export audité (2026-10-19)](#-panneau-admin--journal-daudit--filtres-côté-serveur-détail-export-audité-2026-10-19) · *Backend, sécurité et observabilité*
 - 6 · [⬜ Panneau admin : Membres — avertir, suspendre, vérifier, déconnecter avec motif et historique (2026-10-19)](#-panneau-admin--membres--avertir-suspendre-vérifier-déconnecter-avec-motif-et-historique-2026-10-19) · *Backend, sécurité et observabilité*
 - 5 · [⬜ Panneau admin : Transferts et Marketplace — l'écran était vide et ses gestes échouaient (2026-10-19)](#-panneau-admin--transferts-et-marketplace--lécran-était-vide-et-ses-gestes-échouaient-2026-10-19) · *Backend, sécurité et observabilité*
 - 7 · [⬜ Tableau de bord : « À traiter » par droit, et des compteurs qui n'affichent plus 0 en cas d'erreur (2026-10-19)](#-tableau-de-bord---à-traiter--par-droit-et-des-compteurs-qui-naffichent-plus-0-en-cas-derreur-2026-10-19) · *Backend, sécurité et observabilité*
@@ -393,7 +394,7 @@ Par domaine :
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 67 à faire, 0 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 58 à faire, 5 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 108 à faire, 5 faites
-- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 227 à faire, 2 faites
+- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 234 à faire, 2 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 46 à faire, 1 faites
 - [15. Site web](#15-site-web) — 69 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 23 à faire, 0 faites
@@ -9338,6 +9339,22 @@ Fichiers : `lib/features/admin/presentation/screens/admin_evenements_screen.dart
 - [ ] Statistiques : fenêtre 7/30/90/365 jours ; les définitions s'affichent et l'écran dit « Non mesuré : désinscriptions, participations confirmées ».
 - [ ] financeMod / businessMod ne voient plus les événements privés dans l'écran Contenu.
 - [ ] Les heures du calendrier indiquent le fuseau de l'appareil.
+
+## ⬜ Panneau admin : Journal d'audit — filtres côté serveur, détail, export audité (2026-10-19)
+
+**Priorité P2** · importance 3/5 — L'écran ne filtrait que les 100 dernières lignes en mémoire : une action plus ancienne répondait « aucun résultat ». Les filtres lisent désormais toute la table ; l'export est plafonné et s'inscrit lui-même au journal.
+
+*Bloqué : migration 20261019171000 appliquée, un superAdmin, un contentMod, quelques dizaines de lignes de journal (dont des refus).*
+
+Fichiers : `admin_audit_screen.dart`, `audit_journal_provider.dart`, `supabase/migrations/20261019171000_journal_audit_export.sql`.
+
+- [ ] Chercher une action vieille de plus de 100 lignes (filtre « Action ») la trouve ; « Charger la suite » ajoute 50 lignes et finit sur « Fin du journal ».
+- [ ] Filtres acteur, type, identifiant, résultat et période se combinent ; une période inversée l'écrit au lieu d'afficher une liste vide.
+- [ ] Taper `%` ou `_` dans « Action » ne ramène pas tout le journal.
+- [ ] Toucher une ligne ouvre le détail complet en lecture seule (corrélation, motif, JSON), texte sélectionnable.
+- [ ] « Exporter » (superAdmin) copie le CSV ; coller dans un tableur : une cellule `=…` s'affiche en texte. Une ligne `AUDIT_EXPORTED` apparaît avec les filtres.
+- [ ] Un contentMod n'a pas accès au journal ; s'il appelle l'export, il est refusé et rien n'est inscrit.
+- [ ] Couper le réseau puis filtrer : l'erreur s'affiche, pas « aucune entrée ».
 
 ---
 ## ⬜ Panneau admin : Membres — avertir, suspendre, vérifier, déconnecter avec motif et historique (2026-10-19)
