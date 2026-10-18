@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1391 cases à cocher, 55 cochées** — 307 entrées sur 321 ont encore des cases ouvertes.
+**1392 cases à cocher, 55 cochées** — 307 entrées sur 321 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -174,7 +174,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [⬜ Photo de profil : on choisit son cadrage (2026-09-14)](#-photo-de-profil--on-choisit-son-cadrage-2026-09-14) · *Accueil, profil et réglages*
 - 6 · [⬜ Champ ville : recherche dans le référentiel (2026-09-13)](#-champ-ville--recherche-dans-le-référentiel-2026-09-13) · *Accueil, profil et réglages*
 - 7 · [Bascule en anglais — ~1 600 chaînes branchées, rien vu à l'écran (2026-08-06)](#bascule-en-anglais--1-600-chaînes-branchées-rien-vu-à-lécran-2026-08-06) · *Design, thème, langue et mise en page* · bloqué
-- 9 · [⬜ Panneau admin : démarches consulaires, du brouillon à la publication (2026-10-18)](#-panneau-admin--démarches-consulaires-du-brouillon-à-la-publication-2026-10-18) · *Backend, sécurité et observabilité*
+- 10 · [⬜ Panneau admin : démarches consulaires, du brouillon à la publication (2026-10-18)](#-panneau-admin--démarches-consulaires-du-brouillon-à-la-publication-2026-10-18) · *Backend, sécurité et observabilité*
 - 9 · [⬜ Panneau admin : l'écran Support et la création d'un ticket côté application (2026-10-18)](#-panneau-admin--lécran-support-et-la-création-dun-ticket-côté-application-2026-10-18) · *Backend, sécurité et observabilité*
 - 6 · [⬜ Crashlytics : clés et journaux de diagnostic des OutOfMemoryError (2026-10-15)](#-crashlytics--clés-et-journaux-de-diagnostic-des-outofmemoryerror-2026-10-15) · *Backend, sécurité et observabilité*
 - 9 · [⬜ Second facteur TOTP obligatoire sur le panneau admin (2026-10-14)](#-second-facteur-totp-obligatoire-sur-le-panneau-admin-2026-10-14) · *Backend, sécurité et observabilité*
@@ -379,7 +379,7 @@ Par domaine :
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 67 à faire, 0 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 58 à faire, 5 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 108 à faire, 5 faites
-- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 128 à faire, 2 faites
+- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 129 à faire, 2 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 46 à faire, 1 faites
 - [15. Site web](#15-site-web) — 69 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 23 à faire, 0 faites
@@ -9325,6 +9325,7 @@ Fichiers : `lib/features/admin/presentation/screens/admin_demarches_screen.dart`
 - [ ] Publier : version 2, l'historique montre les versions 1 et 2 et le motif ; le téléphone voit le nouveau texte après relance de l'application.
 - [ ] Dépublier : la démarche disparaît de l'application, y compris après vidage du cache ; noter ce qui reste affiché hors ligne (copie embarquée dans l'APK).
 - [ ] Fermer l'éditeur modifié demande confirmation. Thème sombre et largeur étroite : formulaire lisible.
+- [ ] Application, écran de demande administrative : après une publication, la démarche affiche « Informations vérifiées le … · source : … » ; coupé du réseau, le bandeau dit « liste enregistrée hors ligne le JJ/MM/AAAA ».
 
 ---
 ## ⬜ Panneau admin : l'écran Support et la création d'un ticket côté application (2026-10-18)
