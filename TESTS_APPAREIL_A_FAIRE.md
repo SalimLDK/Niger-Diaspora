@@ -1,4 +1,4 @@
-# Tests à faire sur appareil physique
+﻿# Tests à faire sur appareil physique
 
 Tout ce qui n'a pas encore été vérifié sur un vrai téléphone : rendu
 visuel, gestes, permissions runtime (caméra, localisation), thème sombre,
@@ -9321,9 +9321,9 @@ Supabase et Firebase côté serveur, accès anon, stockage, journaux, Crashlytic
 
 **Priorité P2** · importance 3/5 — Les tables sont vides et les paiements éteints, ce qui a masqué le défaut : un administrateur ne lisait aucun transfert. À vérifier avec de vraies lignes de test avant de rallumer la fonction.
 
-*Bloqué : migration 20261019130000 appliquée, deux comptes financeMod, un businessMod, un superAdmin, et des lignes de test (transferts, produits, une commande en litige) insérées par SQL.*
+*Bloqué : migration 20261019160000 appliquée, deux comptes financeMod, un businessMod, un superAdmin, et des lignes de test (transferts, produits, une commande en litige) insérées par SQL.*
 
-Fichiers : `admin_transactions_screen.dart`, `admin_marketplace_screen.dart`, `supabase/migrations/20261019130000_transferts_marketplace_admin.sql`.
+Fichiers : `admin_transactions_screen.dart`, `admin_marketplace_screen.dart`, `supabase/migrations/20261019160000_transferts_marketplace_admin.sql`.
 
 - [ ] financeMod voit les transferts de test dans l'écran Transferts (avant : liste toujours vide) ; businessMod et contentMod n'en voient aucun.
 - [ ] « Terminer » exige une preuve du règlement ; « Échec » un motif ; un transfert terminé ne s'échoue plus.
