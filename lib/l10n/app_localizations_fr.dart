@@ -19745,7 +19745,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get evtValEnableBody =>
-      'Les nouveaux événements publics resteront invisibles des autres membres jusqu\'à leur approbation. L\'organisateur ne voit pas encore dans l\'application que son événement est en attente.';
+      'Les nouveaux événements publics resteront invisibles des autres membres jusqu\'à leur approbation. L\'organisateur voit « en attente » ou « refusé » (avec le motif) sur la fiche de son événement.';
 
   @override
   String get evtValDisableTitle => 'Désactiver la validation ?';
@@ -19780,4 +19780,25 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get rchAdmQEventsPending => 'Événements à valider';
+
+  @override
+  String get evtOrgPendingTitle => 'En attente de validation';
+
+  @override
+  String get evtOrgPendingBody =>
+      'Les autres membres ne voient pas encore cet événement : l\'équipe doit l\'approuver avant sa publication.';
+
+  @override
+  String get evtOrgRejectedTitle => 'Événement refusé';
+
+  @override
+  String evtOrgRejectedBody(String reason) {
+    return 'Motif : $reason. Corrigez l\'événement puis soumettez-le de nouveau.';
+  }
+
+  @override
+  String get evtOrgResubmit => 'Soumettre de nouveau';
+
+  @override
+  String get evtOrgResubmitted => 'Événement soumis de nouveau.';
 }

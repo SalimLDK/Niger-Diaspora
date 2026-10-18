@@ -9407,7 +9407,7 @@
   "evtValSettingOn": "On: a public event is visible only to its organizer until it is approved.",
   "evtValSettingOff": "Off: events are published immediately.",
   "evtValEnableTitle": "Turn validation on?",
-  "evtValEnableBody": "New public events will stay invisible to other members until approved. The organizer cannot yet see in the app that their event is pending.",
+  "evtValEnableBody": "New public events will stay invisible to other members until approved. The organizer sees \"pending\" or \"rejected\" (with the reason) on their event page.",
   "evtValDisableTitle": "Turn validation off?",
   "evtValDisableBody": "New events will be published immediately. Those already pending stay pending.",
   "evtValConfirm": "Confirm",
@@ -9417,5 +9417,11 @@
   "evtValApprove": "Approve",
   "evtValReject": "Reject",
   "evtValRejectReason": "Reason for rejection (visible to the organizer)",
-  "rchAdmQEventsPending": "Events to validate"
+  "rchAdmQEventsPending": "Events to validate",
+  "evtOrgPendingTitle": "Awaiting validation",
+  "evtOrgPendingBody": "Other members cannot see this event yet: the team must approve it before it is published.",
+  "evtOrgRejectedTitle": "Event rejected",
+  "evtOrgRejectedBody": "Reason: {reason}. Fix the event, then submit it again.",
+  "evtOrgResubmit": "Submit again",
+  "evtOrgResubmitted": "Event submitted again."
 }
