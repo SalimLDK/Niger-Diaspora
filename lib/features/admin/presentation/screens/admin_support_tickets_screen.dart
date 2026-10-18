@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/support_admin_provider.dart';
+import '../widgets/reglages_support_dialog.dart';
 
 /// Support : la file des tickets des membres (spécification d'interfaces § 15).
 ///
@@ -52,6 +53,7 @@ class _AdminSupportTicketsScreenState
       ('in_progress', l10n.supAdmFilterInProgress),
       ('resolved', l10n.supAdmFilterResolved),
       ('closed', l10n.supAdmFilterClosed),
+      ('escalated', l10n.supAdmFilterEscalated),
       (null, l10n.supAdmFilterAll),
     ];
 
@@ -75,9 +77,26 @@ class _AdminSupportTicketsScreenState
                 ],
               ),
             ),
+            if ((ref.watch(permissionSupportProvider('support.templates.manage')).valueOrNull ??
+                    false) ||
+                (ref.watch(permissionSupportProvider('support.sla.manage')).valueOrNull ?? false))
+              IconButton(
+                tooltip: l10n.supSlaSettings,
+                onPressed: () => unawaited(showDialog<void>(
+                  context: context,
+                  builder: (_) => const ReglagesSupportDialog(
+                    libelleCategorie: _libelleCategorie,
+                    libellePriorite: _libellePriorite,
+                  ),
+                )),
+                icon: const Icon(Icons.tune_rounded),
+              ),
             IconButton(
               tooltip: l10n.supAdmRetry,
-              onPressed: () => ref.invalidate(ticketsAdminProvider),
+              onPressed: () {
+                ref.invalidate(ticketsAdminProvider);
+                ref.invalidate(echeancesProvider);
+              },
               icon: const Icon(Icons.refresh_rounded),
             ),
           ],
@@ -222,6 +241,7 @@ Future<bool> _lancer(
     };
   }
   ref.invalidate(ticketsAdminProvider);
+  ref.invalidate(echeancesProvider);
   if (ticketId != null) ref.invalidate(notesTicketProvider(ticketId));
   messenger.showSnackBar(SnackBar(
     behavior: SnackBarBehavior.floating,
@@ -306,6 +326,12 @@ class _CarteTicketState extends ConsumerState<_CarteTicket> {
         ref.watch(permissionSupportProvider('support.tickets.reply')).valueOrNull ?? false;
     final peutClore =
         ref.watch(permissionSupportProvider('support.tickets.close')).valueOrNull ?? false;
+    final peutEscalader =
+        ref.watch(permissionSupportProvider('support.tickets.escalate')).valueOrNull ?? false;
+    final peutLever =
+        ref.watch(permissionSupportProvider('support.tickets.escalation.resolve')).valueOrNull ??
+            false;
+    final echeance = ref.watch(echeancesProvider).valueOrNull?[t.id];
     final acts = ref.read(supportAdminActionsProvider);
 
     return Container(
@@ -340,6 +366,10 @@ class _CarteTicketState extends ConsumerState<_CarteTicket> {
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               DesignBadge(_libelleStatut(l10n, t.statut), tone: _tonStatut(t.statut)),
+              if (t.escalade)
+                DesignBadge(l10n.supSlaEscalatedBadge, tone: DesignBadgeTone.failed),
+              if (echeance != null && echeance.enRetard)
+                DesignBadge(l10n.supSlaLateBadge, tone: DesignBadgeTone.failed),
               if (t.priorite == 'high' || t.priorite == 'urgent')
                 DesignBadge(_libellePriorite(l10n, t.priorite),
                     tone: DesignBadgeTone.failed),
@@ -368,6 +398,21 @@ class _CarteTicketState extends ConsumerState<_CarteTicket> {
                 : (aMoi ? l10n.supAdmAssignedToYou : l10n.supAdmAssignedToOther),
             style: const TextStyle(fontSize: 12, color: AdminColors.text3),
           ),
+          if (t.escalade && t.escaladeMotif != null) ...[
+            const SizedBox(height: 4),
+            Text(l10n.supSlaEscalationReason(t.escaladeMotif!),
+                style: const TextStyle(fontSize: 13, color: AdminColors.statusRed)),
+          ],
+          if (echeance?.premiereAvant != null)
+            Text(l10n.supSlaDueFirst(_date(echeance!.premiereAvant)),
+                style: TextStyle(
+                    fontSize: 12,
+                    color: echeance.premiereEnRetard ? AdminColors.statusRed : AdminColors.text3)),
+          if (echeance?.resolutionAvant != null)
+            Text(l10n.supSlaDueResolution(_date(echeance!.resolutionAvant)),
+                style: TextStyle(
+                    fontSize: 12,
+                    color: echeance.resolutionEnRetard ? AdminColors.statusRed : AdminColors.text3)),
           if (t.resolution != null) ...[
             const SizedBox(height: 4),
             Text(l10n.supAdmResolution(t.resolution!),
@@ -378,6 +423,10 @@ class _CarteTicketState extends ConsumerState<_CarteTicket> {
           for (final m in t.messages) _Bulle(message: m),
           if (t.enCours && peutRepondre) ...[
             const SizedBox(height: 8),
+            _ChoixModele(
+              categorie: t.categorie,
+              onChoisi: (texte) => setState(() => _reponse.text = texte),
+            ),
             TextField(
               controller: _reponse,
               onChanged: (_) => setState(() {}),
@@ -472,6 +521,20 @@ class _CarteTicketState extends ConsumerState<_CarteTicket> {
                       (n) => acts.transitionner(t.id, 'closed', note: n)),
                   icon: const Icon(Icons.lock_outline_rounded, size: 16),
                   label: Text(l10n.supAdmClose),
+                ),
+              if (t.statut != 'resolved' && t.statut != 'closed' && !t.escalade && peutEscalader)
+                OutlinedButton.icon(
+                  onPressed: () => _avecMotif(l10n.supSlaEscalateReason, l10n.supSlaEscalate,
+                      (n) => acts.escalader(t.id, n)),
+                  icon: const Icon(Icons.priority_high_rounded, size: 16),
+                  label: Text(l10n.supSlaEscalate),
+                ),
+              if (t.escalade && peutLever)
+                OutlinedButton.icon(
+                  onPressed: () => _lancer(
+                      context, ref, () => acts.leverEscalade(t.id), l10n.supAdmDone),
+                  icon: const Icon(Icons.flag_outlined, size: 16),
+                  label: Text(l10n.supSlaEscalationLift),
                 ),
               if (t.statut == 'resolved' && peutAssigner)
                 OutlinedButton.icon(
@@ -634,6 +697,44 @@ class _NotesInternes extends ConsumerWidget {
             ),
           ],
         ],
+      ),
+    );
+  }
+}
+
+// ═══ Le choix d'un modèle ═════════════════════════════════════════════════
+
+/// Un modèle remplace le brouillon de réponse ; l'agent le relit avant d'envoyer.
+/// Les modèles de la catégorie du ticket, et ceux sans catégorie.
+class _ChoixModele extends ConsumerWidget {
+  const _ChoixModele({required this.categorie, required this.onChoisi});
+  final String categorie;
+  final void Function(String texte) onChoisi;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+    final modeles = ref.watch(modelesReponseProvider).valueOrNull ?? const <ModeleReponse>[];
+    final proposes =
+        modeles.where((m) => m.categorie == null || m.categorie == categorie).toList();
+    if (proposes.isEmpty) return const SizedBox.shrink();
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: PopupMenuButton<ModeleReponse>(
+        tooltip: l10n.supSlaInsertTemplate,
+        onSelected: (m) => onChoisi(m.texte),
+        itemBuilder: (_) => [
+          for (final m in proposes) PopupMenuItem(value: m, child: Text(m.titre)),
+        ],
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(mainAxisSize: MainAxisSize.min, children: [
+            const Icon(Icons.article_outlined, size: 16, color: AdminColors.actionBlue),
+            const SizedBox(width: 6),
+            Text(l10n.supSlaInsertTemplate,
+                style: const TextStyle(fontSize: 13, color: AdminColors.actionBlue)),
+          ]),
+        ),
       ),
     );
   }

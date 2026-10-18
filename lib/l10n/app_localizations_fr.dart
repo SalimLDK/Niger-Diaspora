@@ -19387,4 +19387,119 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get jrnAudEntryId => 'Identifiant de l\'entrée';
+
+  @override
+  String get supAdmFilterEscalated => 'Escaladés';
+
+  @override
+  String get supSlaEscalatedBadge => 'Escaladé';
+
+  @override
+  String get supSlaLateBadge => 'En retard';
+
+  @override
+  String supSlaEscalationReason(String reason) {
+    return 'Escalade : $reason';
+  }
+
+  @override
+  String supSlaDueFirst(String date) {
+    return 'Première réponse avant le $date';
+  }
+
+  @override
+  String supSlaDueResolution(String date) {
+    return 'Résolution avant le $date';
+  }
+
+  @override
+  String get supSlaEscalate => 'Escalader';
+
+  @override
+  String get supSlaEscalateReason =>
+      'Pourquoi ce ticket dépasse-t-il votre périmètre ?';
+
+  @override
+  String get supSlaEscalationLift => 'Lever l\'escalade';
+
+  @override
+  String get supSlaInsertTemplate => 'Insérer un modèle';
+
+  @override
+  String get supSlaSettings => 'Modèles et délais';
+
+  @override
+  String get supSlaSettingsTitle => 'Réglages du support';
+
+  @override
+  String get supSlaClose => 'Fermer';
+
+  @override
+  String get supSlaTemplatesTitle => 'Modèles de réponse';
+
+  @override
+  String get supSlaTemplatesEmpty => 'Aucun modèle.';
+
+  @override
+  String get supSlaTemplateNew => 'Nouveau modèle';
+
+  @override
+  String get supSlaTemplateEdit => 'Modifier';
+
+  @override
+  String get supSlaTemplateDelete => 'Supprimer';
+
+  @override
+  String get supSlaTemplateTitleLabel => 'Titre';
+
+  @override
+  String get supSlaTemplateBodyLabel => 'Texte';
+
+  @override
+  String get supSlaTemplateCategoryLabel => 'Catégorie';
+
+  @override
+  String get supSlaTemplateAnyCategory => 'Toutes catégories';
+
+  @override
+  String get supSlaTemplateSave => 'Enregistrer';
+
+  @override
+  String supSlaTemplateDeleteConfirm(String title) {
+    return 'Supprimer le modèle « $title » ?';
+  }
+
+  @override
+  String get supSlaTargetsTitle => 'Délais de service';
+
+  @override
+  String get supSlaTargetsNote =>
+      'Heures d\'horloge, pas ouvrées. Sans délai arrêté, un ticket n\'a pas d\'échéance et n\'est jamais en retard. Une cible existante est remplacée par la même catégorie et priorité.';
+
+  @override
+  String get supSlaTargetsEmpty => 'Aucun délai arrêté.';
+
+  @override
+  String get supSlaFirstHours => '1re réponse (h)';
+
+  @override
+  String get supSlaResolutionHours => 'Résolution (h)';
+
+  @override
+  String get supSlaTargetSave => 'Arrêter';
+
+  @override
+  String get supSlaTargetRemove => 'Retirer ce délai';
+
+  @override
+  String supSlaTargetLine(String first, String res) {
+    return 'Première réponse : $first h · Résolution : $res h';
+  }
+
+  @override
+  String get supSlaNoValue => '—';
+
+  @override
+  String get supSlaHoursInvalid =>
+      'Saisissez des heures entières, de 1 à 8760, dans au moins un des deux champs.';
 }
