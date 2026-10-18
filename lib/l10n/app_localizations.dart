@@ -35753,7 +35753,7 @@ abstract class AppLocalizations {
   /// No description provided for @evtValEnableBody.
   ///
   /// In fr, this message translates to:
-  /// **'Les nouveaux événements publics resteront invisibles des autres membres jusqu\'à leur approbation. L\'organisateur ne voit pas encore dans l\'application que son événement est en attente.'**
+  /// **'Les nouveaux événements publics resteront invisibles des autres membres jusqu\'à leur approbation. L\'organisateur voit « en attente » ou « refusé » (avec le motif) sur la fiche de son événement.'**
   String get evtValEnableBody;
 
   /// No description provided for @evtValDisableTitle.
@@ -35815,6 +35815,42 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Événements à valider'**
   String get rchAdmQEventsPending;
+
+  /// No description provided for @evtOrgPendingTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'En attente de validation'**
+  String get evtOrgPendingTitle;
+
+  /// No description provided for @evtOrgPendingBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les autres membres ne voient pas encore cet événement : l\'équipe doit l\'approuver avant sa publication.'**
+  String get evtOrgPendingBody;
+
+  /// No description provided for @evtOrgRejectedTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Événement refusé'**
+  String get evtOrgRejectedTitle;
+
+  /// No description provided for @evtOrgRejectedBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif : {reason}. Corrigez l\'événement puis soumettez-le de nouveau.'**
+  String evtOrgRejectedBody(String reason);
+
+  /// No description provided for @evtOrgResubmit.
+  ///
+  /// In fr, this message translates to:
+  /// **'Soumettre de nouveau'**
+  String get evtOrgResubmit;
+
+  /// No description provided for @evtOrgResubmitted.
+  ///
+  /// In fr, this message translates to:
+  /// **'Événement soumis de nouveau.'**
+  String get evtOrgResubmitted;
 }
 
 class _AppLocalizationsDelegate

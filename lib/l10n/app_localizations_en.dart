@@ -19567,7 +19567,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get evtValEnableBody =>
-      'New public events will stay invisible to other members until approved. The organizer cannot yet see in the app that their event is pending.';
+      'New public events will stay invisible to other members until approved. The organizer sees \"pending\" or \"rejected\" (with the reason) on their event page.';
 
   @override
   String get evtValDisableTitle => 'Turn validation off?';
@@ -19602,4 +19602,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get rchAdmQEventsPending => 'Events to validate';
+
+  @override
+  String get evtOrgPendingTitle => 'Awaiting validation';
+
+  @override
+  String get evtOrgPendingBody =>
+      'Other members cannot see this event yet: the team must approve it before it is published.';
+
+  @override
+  String get evtOrgRejectedTitle => 'Event rejected';
+
+  @override
+  String evtOrgRejectedBody(String reason) {
+    return 'Reason: $reason. Fix the event, then submit it again.';
+  }
+
+  @override
+  String get evtOrgResubmit => 'Submit again';
+
+  @override
+  String get evtOrgResubmitted => 'Event submitted again.';
 }

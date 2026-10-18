@@ -10330,7 +10330,7 @@
   "evtValSettingOn": "Activée : un événement public est visible de son organisateur seul tant qu'il n'est pas approuvé.",
   "evtValSettingOff": "Désactivée : les événements sont publiés tout de suite.",
   "evtValEnableTitle": "Activer la validation ?",
-  "evtValEnableBody": "Les nouveaux événements publics resteront invisibles des autres membres jusqu'à leur approbation. L'organisateur ne voit pas encore dans l'application que son événement est en attente.",
+  "evtValEnableBody": "Les nouveaux événements publics resteront invisibles des autres membres jusqu'à leur approbation. L'organisateur voit « en attente » ou « refusé » (avec le motif) sur la fiche de son événement.",
   "evtValDisableTitle": "Désactiver la validation ?",
   "evtValDisableBody": "Les nouveaux événements seront publiés tout de suite. Ceux déjà en attente le restent.",
   "evtValConfirm": "Confirmer",
@@ -10348,5 +10348,12 @@
         "type": "String"
       }
     }
-  }
+  },
+  "evtOrgPendingTitle": "En attente de validation",
+  "evtOrgPendingBody": "Les autres membres ne voient pas encore cet événement : l'équipe doit l'approuver avant sa publication.",
+  "evtOrgRejectedTitle": "Événement refusé",
+  "evtOrgRejectedBody": "Motif : {reason}. Corrigez l'événement puis soumettez-le de nouveau.",
+  "@evtOrgRejectedBody": {"placeholders": {"reason": {"type": "String"}}},
+  "evtOrgResubmit": "Soumettre de nouveau",
+  "evtOrgResubmitted": "Événement soumis de nouveau."
 }
