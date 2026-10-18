@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1364 cases à cocher, 55 cochées** — 304 entrées sur 318 ont encore des cases ouvertes.
+**1373 cases à cocher, 55 cochées** — 305 entrées sur 319 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -222,7 +222,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (95)
+**P2 — fonction secondaire ou cas limite** (96)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -282,6 +282,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⬜ Le sigle DN est le même partout (2026-09-13)](#-le-sigle-dn-est-le-même-partout-2026-09-13) · *Design, thème, langue et mise en page*
 - 1 · [Thème sombre — jetons clairs codés en dur](#thème-sombre--jetons-clairs-codés-en-dur) · *Design, thème, langue et mise en page*
 - 4 · [Bascule design_v2 → production, famille 2 : les services (2026-08-03)](#bascule-design_v2--production-famille-2--les-services-2026-08-03) · *Design, thème, langue et mise en page*
+- 9 · [⬜ Panneau admin : demandes d'informations et recours dans le dossier de signalement (2026-10-18)](#-panneau-admin--demandes-dinformations-et-recours-dans-le-dossier-de-signalement-2026-10-18) · *Backend, sécurité et observabilité*
 - 5 · [⬜ Avis sur les entreprises : basculés de Firestore vers Supabase (2026-09-21)](#-avis-sur-les-entreprises--basculés-de-firestore-vers-supabase-2026-09-21) · *Backend, sécurité et observabilité*
 - 5 · [Fuseau horaire — heures affichées en UTC (2026-08-04)](#fuseau-horaire--heures-affichées-en-utc-2026-08-04) · *Backend, sécurité et observabilité*
 - 7 · [Admin (back-office)](#admin-back-office) · *Backend, sécurité et observabilité*
@@ -376,7 +377,7 @@ Par domaine :
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 67 à faire, 0 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 58 à faire, 5 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 108 à faire, 5 faites
-- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 101 à faire, 2 faites
+- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 110 à faire, 2 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 46 à faire, 1 faites
 - [15. Site web](#15-site-web) — 69 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 23 à faire, 0 faites
@@ -9303,6 +9304,25 @@ parce qu'il change un **comportement**, pas seulement un habillage :
 # 13. Backend, sécurité et observabilité
 
 Supabase et Firebase côté serveur, accès anon, stockage, journaux, Crashlytics, back-office.
+
+---
+## ⬜ Panneau admin : demandes d'informations et recours dans le dossier de signalement (2026-10-18)
+
+**Priorité P2** · importance 3/5 — Un modérateur voit des boutons qui échouent, ou un recours que le décideur peut examiner lui-même, sans que le serveur ne s'en plaigne lisiblement.
+
+*Bloqué : panneau admin en web (diaspo-niger-admin), deux comptes contentMod distincts, un signalement `resolved` décidé par le premier. Migration 20261018090000 appliquée.*
+
+Fichiers : `lib/features/admin/presentation/widgets/dossier_moderation_sections.dart`, `admin_reports_screen.dart` (bouton « Prendre en charge »).
+
+- [ ] Signalement `pending` : « Prendre en charge » passe le dossier en examen à votre nom ; la section Demandes d'informations apparaît.
+- [ ] Rédiger une demande au signalant, puis au membre signalé (deux brouillons distincts) ; une seconde au même destinataire → message de conflit lisible.
+- [ ] Envoyer : l'aperçu montre le texte exact ; après envoi, plus de bouton Envoyer ; consigner la réponse la passe en « Répondue ».
+- [ ] Une demande dont l'échéance est passée s'affiche « En retard » (laisser une échéance de 3 jours, ou la reculer en base).
+- [ ] Compte contentMod B sur le dossier de A : aucun refus muet, le message dit que le dossier est attribué ailleurs.
+- [ ] Dossier `resolved` : « Enregistrer un recours » ; avec le compte qui a décidé, « Prendre en examen » est absent et la phrase de conflit s'affiche.
+- [ ] Avec un autre compte : prendre en examen, trancher « Renvoyer pour réexamen » → le dossier repasse « escaladé » et la décision contestée reste lisible sur le recours.
+- [ ] Un signalement hérité de Firestore ne montre ni ces sections ni « Prendre en charge ».
+- [ ] Thème sombre et largeur étroite (< 768 px) : dialogues lisibles, sans débordement.
 
 ---
 ## ⬜ Crashlytics : clés et journaux de diagnostic des OutOfMemoryError (2026-10-15)

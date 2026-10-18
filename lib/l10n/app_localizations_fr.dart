@@ -17080,4 +17080,179 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get adminEscalatedLabel => 'Escaladé';
+
+  @override
+  String get modoInfoTitle => 'Demandes d\'informations';
+
+  @override
+  String get modoInfoEmpty => 'Aucune demande pour ce dossier.';
+
+  @override
+  String get modoInfoNew => 'Nouvelle demande';
+
+  @override
+  String get modoInfoRecipientLabel => 'Destinataire';
+
+  @override
+  String get modoInfoRecipientReporter => 'Le signalant';
+
+  @override
+  String get modoInfoRecipientReported => 'Le membre signalé';
+
+  @override
+  String get modoInfoQuestionsLabel => 'Questions précises';
+
+  @override
+  String get modoInfoQuestionsHint =>
+      'Sans révéler l\'identité du signalant ni de données de tiers.';
+
+  @override
+  String get modoInfoDueLabel => 'Délai de réponse';
+
+  @override
+  String modoInfoDueDays(int days) {
+    return '$days jours';
+  }
+
+  @override
+  String get modoInfoCreate => 'Enregistrer le brouillon';
+
+  @override
+  String get modoInfoSend => 'Envoyer';
+
+  @override
+  String get modoInfoSendTitle => 'Envoyer cette demande ?';
+
+  @override
+  String get modoInfoSendBody =>
+      'Le texte ne pourra plus être modifié. Vérifiez qu\'il ne révèle ni le signalant ni des données de tiers.';
+
+  @override
+  String get modoInfoRecordResponse => 'Consigner la réponse';
+
+  @override
+  String get modoInfoResponseLabel => 'Réponse reçue';
+
+  @override
+  String get modoInfoStatusDraft => 'Brouillon';
+
+  @override
+  String get modoInfoStatusSent => 'Envoyée';
+
+  @override
+  String get modoInfoStatusAnswered => 'Répondue';
+
+  @override
+  String get modoInfoStatusOverdue => 'En retard';
+
+  @override
+  String get modoInfoStatusCancelled => 'Annulée';
+
+  @override
+  String modoInfoDue(String date) {
+    return 'Échéance : $date';
+  }
+
+  @override
+  String get modoInfoNoChannel =>
+      'Les destinataires ne sont pas encore notifiés dans l\'application : transmettez la demande par un autre moyen, puis consignez ici la réponse reçue.';
+
+  @override
+  String get modoInfoDraftSaved => 'Brouillon enregistré.';
+
+  @override
+  String get modoInfoSentOk => 'Demande marquée comme envoyée.';
+
+  @override
+  String get modoInfoResponseSaved => 'Réponse consignée.';
+
+  @override
+  String get modoAppealTitle => 'Recours';
+
+  @override
+  String get modoAppealRegister => 'Enregistrer un recours';
+
+  @override
+  String get modoAppealArgumentLabel => 'Arguments du membre';
+
+  @override
+  String modoAppealContested(String action, String reason) {
+    return 'Décision contestée : $action ($reason)';
+  }
+
+  @override
+  String get modoAppealTake => 'Prendre en examen';
+
+  @override
+  String get modoAppealDecide => 'Trancher';
+
+  @override
+  String get modoAppealOutcomeLabel => 'Issue';
+
+  @override
+  String get modoAppealOutcomeUpheld => 'Maintenir la décision';
+
+  @override
+  String get modoAppealOutcomeReduced => 'Réduire la mesure';
+
+  @override
+  String get modoAppealOutcomeAnnulled => 'Annuler la décision';
+
+  @override
+  String get modoAppealOutcomeSentBack => 'Renvoyer pour réexamen';
+
+  @override
+  String get modoAppealNoteLabel => 'Motif final';
+
+  @override
+  String get modoAppealStatusReceived => 'Reçu';
+
+  @override
+  String get modoAppealStatusUnderReview => 'En examen';
+
+  @override
+  String get modoAppealSelfConflict =>
+      'Vous avez pris la décision contestée : un autre administrateur doit examiner ce recours.';
+
+  @override
+  String get modoAppealOutcomeNote =>
+      'L\'issue est consignée ; elle n\'exécute pas encore la levée de la mesure.';
+
+  @override
+  String get modoAppealRegistered => 'Recours enregistré.';
+
+  @override
+  String get modoAppealTaken => 'Recours pris en examen.';
+
+  @override
+  String get modoAppealDecided => 'Recours tranché.';
+
+  @override
+  String get modoErrDenied =>
+      'Vous n\'avez pas la permission d\'effectuer cette action.';
+
+  @override
+  String get modoErrConflict =>
+      'Le dossier a changé entre-temps. Rechargez puis réessayez.';
+
+  @override
+  String modoErrInput(String detail) {
+    return 'Saisie refusée : $detail';
+  }
+
+  @override
+  String modoErrGeneric(String detail) {
+    return 'Action impossible : $detail';
+  }
+
+  @override
+  String modoLoadError(String detail) {
+    return 'Chargement impossible : $detail';
+  }
+
+  @override
+  String get modoReportTake => 'Prendre en charge';
+
+  @override
+  String get modoReportTaken => 'Dossier pris en charge.';
 }

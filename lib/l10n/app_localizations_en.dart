@@ -16916,4 +16916,179 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get adminEscalatedLabel => 'Escalated';
+
+  @override
+  String get modoInfoTitle => 'Information requests';
+
+  @override
+  String get modoInfoEmpty => 'No request for this case.';
+
+  @override
+  String get modoInfoNew => 'New request';
+
+  @override
+  String get modoInfoRecipientLabel => 'Recipient';
+
+  @override
+  String get modoInfoRecipientReporter => 'The reporter';
+
+  @override
+  String get modoInfoRecipientReported => 'The reported member';
+
+  @override
+  String get modoInfoQuestionsLabel => 'Specific questions';
+
+  @override
+  String get modoInfoQuestionsHint =>
+      'Without revealing the reporter\'s identity or third-party data.';
+
+  @override
+  String get modoInfoDueLabel => 'Time to answer';
+
+  @override
+  String modoInfoDueDays(int days) {
+    return '$days days';
+  }
+
+  @override
+  String get modoInfoCreate => 'Save draft';
+
+  @override
+  String get modoInfoSend => 'Send';
+
+  @override
+  String get modoInfoSendTitle => 'Send this request?';
+
+  @override
+  String get modoInfoSendBody =>
+      'The text can no longer be edited. Check that it reveals neither the reporter nor third-party data.';
+
+  @override
+  String get modoInfoRecordResponse => 'Record the answer';
+
+  @override
+  String get modoInfoResponseLabel => 'Answer received';
+
+  @override
+  String get modoInfoStatusDraft => 'Draft';
+
+  @override
+  String get modoInfoStatusSent => 'Sent';
+
+  @override
+  String get modoInfoStatusAnswered => 'Answered';
+
+  @override
+  String get modoInfoStatusOverdue => 'Overdue';
+
+  @override
+  String get modoInfoStatusCancelled => 'Cancelled';
+
+  @override
+  String modoInfoDue(String date) {
+    return 'Due: $date';
+  }
+
+  @override
+  String get modoInfoNoChannel =>
+      'Recipients are not yet notified in the app: pass the request on by another channel, then record the answer here.';
+
+  @override
+  String get modoInfoDraftSaved => 'Draft saved.';
+
+  @override
+  String get modoInfoSentOk => 'Request marked as sent.';
+
+  @override
+  String get modoInfoResponseSaved => 'Answer recorded.';
+
+  @override
+  String get modoAppealTitle => 'Appeals';
+
+  @override
+  String get modoAppealRegister => 'Register an appeal';
+
+  @override
+  String get modoAppealArgumentLabel => 'Member\'s arguments';
+
+  @override
+  String modoAppealContested(String action, String reason) {
+    return 'Contested decision: $action ($reason)';
+  }
+
+  @override
+  String get modoAppealTake => 'Start review';
+
+  @override
+  String get modoAppealDecide => 'Decide';
+
+  @override
+  String get modoAppealOutcomeLabel => 'Outcome';
+
+  @override
+  String get modoAppealOutcomeUpheld => 'Uphold the decision';
+
+  @override
+  String get modoAppealOutcomeReduced => 'Reduce the measure';
+
+  @override
+  String get modoAppealOutcomeAnnulled => 'Annul the decision';
+
+  @override
+  String get modoAppealOutcomeSentBack => 'Send back for re-examination';
+
+  @override
+  String get modoAppealNoteLabel => 'Final reason';
+
+  @override
+  String get modoAppealStatusReceived => 'Received';
+
+  @override
+  String get modoAppealStatusUnderReview => 'Under review';
+
+  @override
+  String get modoAppealSelfConflict =>
+      'You made the contested decision: another administrator must review this appeal.';
+
+  @override
+  String get modoAppealOutcomeNote =>
+      'The outcome is recorded; it does not yet lift the measure.';
+
+  @override
+  String get modoAppealRegistered => 'Appeal registered.';
+
+  @override
+  String get modoAppealTaken => 'Appeal under review.';
+
+  @override
+  String get modoAppealDecided => 'Appeal decided.';
+
+  @override
+  String get modoErrDenied =>
+      'You do not have permission to perform this action.';
+
+  @override
+  String get modoErrConflict =>
+      'The case changed in the meantime. Reload and try again.';
+
+  @override
+  String modoErrInput(String detail) {
+    return 'Input refused: $detail';
+  }
+
+  @override
+  String modoErrGeneric(String detail) {
+    return 'Action failed: $detail';
+  }
+
+  @override
+  String modoLoadError(String detail) {
+    return 'Could not load: $detail';
+  }
+
+  @override
+  String get modoReportTake => 'Take the case';
+
+  @override
+  String get modoReportTaken => 'Case taken.';
 }

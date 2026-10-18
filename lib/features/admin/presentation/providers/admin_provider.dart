@@ -1789,6 +1789,22 @@ class AdminReportsNotifier extends Notifier<AdminReportsState> {
     }
   }
 
+  /// Prend le dossier en charge (`pending`/`escalated` → `reviewing`, à votre
+  /// nom) sans le décider : c'est ce qui ouvre les demandes d'informations.
+  /// Rend vrai seulement si le serveur l'a accepté ; sinon `error` le dit.
+  Future<bool> prendreEnCharge(String reportId) async {
+    try {
+      await _transitionner(reportId, 'reviewing');
+      await fetchAllReports();
+      return true;
+    } on PostgrestException catch (e) {
+      final message = messageTransitionSignalement(e);
+      await fetchAllReports();
+      state = state.copyWith(error: message);
+      return false;
+    }
+  }
+
   /// Le signalement vient-il de Firestore ? Lu dans les trois onglets
   /// chargés ; un id inconnu est tenu pour Supabase, comme avant.
   bool _estFirestore(String reportId) {

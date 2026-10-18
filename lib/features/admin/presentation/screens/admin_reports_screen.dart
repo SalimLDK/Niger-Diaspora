@@ -12,6 +12,8 @@ import 'package:diaspo_niger/features/admin/presentation/widgets/apercu_contenu_
 import 'package:diaspo_niger/features/admin/presentation/widgets/carte_stat_signalement.dart';
 import 'package:diaspo_niger/features/admin/domain/constants/moderation_signalements.dart';
 import 'package:diaspo_niger/features/admin/presentation/signalement_presentation.dart';
+import 'package:diaspo_niger/features/admin/presentation/signalement_firestore.dart';
+import 'package:diaspo_niger/features/admin/presentation/widgets/dossier_moderation_sections.dart';
 
 class AdminReportsScreen extends ConsumerStatefulWidget {
   const AdminReportsScreen({super.key, this.onOuvrirDestination});
@@ -537,6 +539,17 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
             ),
           ),
         ],
+        // Les demandes d'informations et les recours n'existent qu'en base
+        // Supabase : un signalement hérité de Firestore n'y a pas de ligne.
+        if (report.source != sourceFirestore) ...[
+          const SizedBox(height: 20),
+          DemandesInformationsSection(
+            reportId: report.id,
+            reportStatus: report.status,
+            hasReportedUser: report.reportedUserId != null,
+          ),
+          RecoursSection(reportId: report.id, reportStatus: report.status),
+        ],
         if (statutsSignalementEnAttente.contains(report.status)) ...[
           const SizedBox(height: 20),
           _buildActionButtons(report),
@@ -624,6 +637,15 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
       runSpacing: 8,
       alignment: WrapAlignment.end,
       children: [
+        if (report.source != sourceFirestore &&
+            (report.status == 'pending' || report.status == 'escalated'))
+          _buildActionButton(
+            label: l10n.modoReportTake,
+            icon: Icons.person_add_alt_1_rounded,
+            color: _primaryColor,
+            isOutlined: true,
+            onPressed: () => _takeReport(report),
+          ),
         _buildActionButton(
           label: l10n.adminReject,
           icon: Icons.close_rounded,
@@ -836,6 +858,12 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
 
   String _formatDate(DateTime date) {
     return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+  }
+
+  Future<void> _takeReport(ReportEntity report) async {
+    final ok =
+        await ref.read(adminReportsNotifierProvider.notifier).prendreEnCharge(report.id);
+    _montrerBilan(ok, l10n.modoReportTaken);
   }
 
   Future<void> _dismissReport(ReportEntity report) async {

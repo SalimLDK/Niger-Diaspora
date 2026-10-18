@@ -31015,6 +31015,318 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Escaladé'**
   String get adminEscalatedLabel;
+
+  /// No description provided for @modoInfoTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Demandes d\'informations'**
+  String get modoInfoTitle;
+
+  /// No description provided for @modoInfoEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune demande pour ce dossier.'**
+  String get modoInfoEmpty;
+
+  /// No description provided for @modoInfoNew.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouvelle demande'**
+  String get modoInfoNew;
+
+  /// No description provided for @modoInfoRecipientLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Destinataire'**
+  String get modoInfoRecipientLabel;
+
+  /// No description provided for @modoInfoRecipientReporter.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le signalant'**
+  String get modoInfoRecipientReporter;
+
+  /// No description provided for @modoInfoRecipientReported.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le membre signalé'**
+  String get modoInfoRecipientReported;
+
+  /// No description provided for @modoInfoQuestionsLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Questions précises'**
+  String get modoInfoQuestionsLabel;
+
+  /// No description provided for @modoInfoQuestionsHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sans révéler l\'identité du signalant ni de données de tiers.'**
+  String get modoInfoQuestionsHint;
+
+  /// No description provided for @modoInfoDueLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Délai de réponse'**
+  String get modoInfoDueLabel;
+
+  /// No description provided for @modoInfoDueDays.
+  ///
+  /// In fr, this message translates to:
+  /// **'{days} jours'**
+  String modoInfoDueDays(int days);
+
+  /// No description provided for @modoInfoCreate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Enregistrer le brouillon'**
+  String get modoInfoCreate;
+
+  /// No description provided for @modoInfoSend.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoyer'**
+  String get modoInfoSend;
+
+  /// No description provided for @modoInfoSendTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoyer cette demande ?'**
+  String get modoInfoSendTitle;
+
+  /// No description provided for @modoInfoSendBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le texte ne pourra plus être modifié. Vérifiez qu\'il ne révèle ni le signalant ni des données de tiers.'**
+  String get modoInfoSendBody;
+
+  /// No description provided for @modoInfoRecordResponse.
+  ///
+  /// In fr, this message translates to:
+  /// **'Consigner la réponse'**
+  String get modoInfoRecordResponse;
+
+  /// No description provided for @modoInfoResponseLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réponse reçue'**
+  String get modoInfoResponseLabel;
+
+  /// No description provided for @modoInfoStatusDraft.
+  ///
+  /// In fr, this message translates to:
+  /// **'Brouillon'**
+  String get modoInfoStatusDraft;
+
+  /// No description provided for @modoInfoStatusSent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoyée'**
+  String get modoInfoStatusSent;
+
+  /// No description provided for @modoInfoStatusAnswered.
+  ///
+  /// In fr, this message translates to:
+  /// **'Répondue'**
+  String get modoInfoStatusAnswered;
+
+  /// No description provided for @modoInfoStatusOverdue.
+  ///
+  /// In fr, this message translates to:
+  /// **'En retard'**
+  String get modoInfoStatusOverdue;
+
+  /// No description provided for @modoInfoStatusCancelled.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annulée'**
+  String get modoInfoStatusCancelled;
+
+  /// No description provided for @modoInfoDue.
+  ///
+  /// In fr, this message translates to:
+  /// **'Échéance : {date}'**
+  String modoInfoDue(String date);
+
+  /// No description provided for @modoInfoNoChannel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les destinataires ne sont pas encore notifiés dans l\'application : transmettez la demande par un autre moyen, puis consignez ici la réponse reçue.'**
+  String get modoInfoNoChannel;
+
+  /// No description provided for @modoInfoDraftSaved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Brouillon enregistré.'**
+  String get modoInfoDraftSaved;
+
+  /// No description provided for @modoInfoSentOk.
+  ///
+  /// In fr, this message translates to:
+  /// **'Demande marquée comme envoyée.'**
+  String get modoInfoSentOk;
+
+  /// No description provided for @modoInfoResponseSaved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réponse consignée.'**
+  String get modoInfoResponseSaved;
+
+  /// No description provided for @modoAppealTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Recours'**
+  String get modoAppealTitle;
+
+  /// No description provided for @modoAppealRegister.
+  ///
+  /// In fr, this message translates to:
+  /// **'Enregistrer un recours'**
+  String get modoAppealRegister;
+
+  /// No description provided for @modoAppealArgumentLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Arguments du membre'**
+  String get modoAppealArgumentLabel;
+
+  /// No description provided for @modoAppealContested.
+  ///
+  /// In fr, this message translates to:
+  /// **'Décision contestée : {action} ({reason})'**
+  String modoAppealContested(String action, String reason);
+
+  /// No description provided for @modoAppealTake.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prendre en examen'**
+  String get modoAppealTake;
+
+  /// No description provided for @modoAppealDecide.
+  ///
+  /// In fr, this message translates to:
+  /// **'Trancher'**
+  String get modoAppealDecide;
+
+  /// No description provided for @modoAppealOutcomeLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Issue'**
+  String get modoAppealOutcomeLabel;
+
+  /// No description provided for @modoAppealOutcomeUpheld.
+  ///
+  /// In fr, this message translates to:
+  /// **'Maintenir la décision'**
+  String get modoAppealOutcomeUpheld;
+
+  /// No description provided for @modoAppealOutcomeReduced.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réduire la mesure'**
+  String get modoAppealOutcomeReduced;
+
+  /// No description provided for @modoAppealOutcomeAnnulled.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annuler la décision'**
+  String get modoAppealOutcomeAnnulled;
+
+  /// No description provided for @modoAppealOutcomeSentBack.
+  ///
+  /// In fr, this message translates to:
+  /// **'Renvoyer pour réexamen'**
+  String get modoAppealOutcomeSentBack;
+
+  /// No description provided for @modoAppealNoteLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif final'**
+  String get modoAppealNoteLabel;
+
+  /// No description provided for @modoAppealStatusReceived.
+  ///
+  /// In fr, this message translates to:
+  /// **'Reçu'**
+  String get modoAppealStatusReceived;
+
+  /// No description provided for @modoAppealStatusUnderReview.
+  ///
+  /// In fr, this message translates to:
+  /// **'En examen'**
+  String get modoAppealStatusUnderReview;
+
+  /// No description provided for @modoAppealSelfConflict.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous avez pris la décision contestée : un autre administrateur doit examiner ce recours.'**
+  String get modoAppealSelfConflict;
+
+  /// No description provided for @modoAppealOutcomeNote.
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'issue est consignée ; elle n\'exécute pas encore la levée de la mesure.'**
+  String get modoAppealOutcomeNote;
+
+  /// No description provided for @modoAppealRegistered.
+  ///
+  /// In fr, this message translates to:
+  /// **'Recours enregistré.'**
+  String get modoAppealRegistered;
+
+  /// No description provided for @modoAppealTaken.
+  ///
+  /// In fr, this message translates to:
+  /// **'Recours pris en examen.'**
+  String get modoAppealTaken;
+
+  /// No description provided for @modoAppealDecided.
+  ///
+  /// In fr, this message translates to:
+  /// **'Recours tranché.'**
+  String get modoAppealDecided;
+
+  /// No description provided for @modoErrDenied.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous n\'avez pas la permission d\'effectuer cette action.'**
+  String get modoErrDenied;
+
+  /// No description provided for @modoErrConflict.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le dossier a changé entre-temps. Rechargez puis réessayez.'**
+  String get modoErrConflict;
+
+  /// No description provided for @modoErrInput.
+  ///
+  /// In fr, this message translates to:
+  /// **'Saisie refusée : {detail}'**
+  String modoErrInput(String detail);
+
+  /// No description provided for @modoErrGeneric.
+  ///
+  /// In fr, this message translates to:
+  /// **'Action impossible : {detail}'**
+  String modoErrGeneric(String detail);
+
+  /// No description provided for @modoLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chargement impossible : {detail}'**
+  String modoLoadError(String detail);
+
+  /// No description provided for @modoReportTake.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prendre en charge'**
+  String get modoReportTake;
+
+  /// No description provided for @modoReportTaken.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dossier pris en charge.'**
+  String get modoReportTaken;
 }
 
 class _AppLocalizationsDelegate
