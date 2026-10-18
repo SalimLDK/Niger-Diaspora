@@ -251,7 +251,7 @@ class _LigneEvenement extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
-    final e = evenement;
+    final ev = evenement;
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
@@ -263,29 +263,29 @@ class _LigneEvenement extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(e.titre, style: const TextStyle(fontWeight: FontWeight.w600)),
+          Text(ev.titre, style: const TextStyle(fontWeight: FontWeight.w600)),
           const SizedBox(height: 4),
           Wrap(
             spacing: 8,
             runSpacing: 4,
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              DesignBadge(_libelleStatut(l10n, e.statut), tone: _ton(e.statut)),
-              Text('${e.debut.day.toString().padLeft(2, '0')}/${e.debut.month.toString().padLeft(2, '0')} · ${_heure(e.debut)}',
+              DesignBadge(_libelleStatut(l10n, ev.statut), tone: _ton(ev.statut)),
+              Text('${ev.debut.day.toString().padLeft(2, '0')}/${ev.debut.month.toString().padLeft(2, '0')} · ${_heure(ev.debut)}',
                   style: const TextStyle(fontSize: 12, color: AdminColors.text3)),
-              if (e.enLigne)
+              if (ev.enLigne)
                 Text(l10n.evtCalOnline,
                     style: const TextStyle(fontSize: 12, color: AdminColors.text3))
-              else if (e.ville != null)
-                Text(e.ville!, style: const TextStyle(fontSize: 12, color: AdminColors.text3)),
+              else if (ev.ville != null)
+                Text(ev.ville!, style: const TextStyle(fontSize: 12, color: AdminColors.text3)),
               Text(
-                  e.capacite == null
-                      ? l10n.evtCalAttendees('${e.inscrits}')
-                      : l10n.evtCalAttendeesOf('${e.inscrits}', '${e.capacite}'),
+                  ev.capacite == null
+                      ? l10n.evtCalAttendees('${ev.inscrits}')
+                      : l10n.evtCalAttendeesOf('${ev.inscrits}', '${ev.capacite}'),
                   style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
               if (peutVoirInscrits)
                 TextButton(
-                  onPressed: () => _inscrits(context, e),
+                  onPressed: () => _inscrits(context, ev),
                   child: Text(l10n.evtCalSeeAttendees),
                 ),
             ],
