@@ -1,4 +1,4 @@
-﻿-- Banc : transferts et marketplace côté administration (migration 20261019160000).
+-- Banc : transferts et marketplace côté administration (migration 20261019160000).
 --
 --   supabase db query --linked -f tools/rls_tests/transferts_marketplace_admin.sql
 --

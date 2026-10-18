@@ -22,6 +22,7 @@ import 'admin_users_management_screen.dart';
 import 'admin_transactions_screen.dart';
 import 'admin_analytics_screen.dart';
 import 'admin_campagnes_screen.dart';
+import '../widgets/bloc_a_traiter.dart';
 import 'admin_securite_screen.dart';
 import 'admin_settings_screen.dart';
 import 'admin_feature_flags_screen.dart';
@@ -572,6 +573,10 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
     );
   }
 
+  /// Un compteur illisible s'écrit « — », jamais 0.
+  String _valeur(AdminDashboardState state, String cle, int valeur) =>
+      state.compteursIndisponibles.contains(cle) ? '—' : valeur.toString();
+
   Widget _buildOverview(AdminDashboardState state) {
     if (state.isLoading) {
       return _buildLoadingState();
@@ -600,6 +605,16 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
             title: l10n.adminDashboardTitle,
             subtitle: l10n.adminWelcomePanel,
           ),
+          const SizedBox(height: 24),
+          BlocATraiter(onOuvrir: _ouvrirDestination),
+          if (state.compteursIndisponibles.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Text(
+              l10n.tbAdmCountersUnavailable(
+                  (state.compteursIndisponibles.toList()..sort()).join(', ')),
+              style: const TextStyle(fontSize: 12, color: AdminColors.statusAmberStrong),
+            ),
+          ],
           const SizedBox(height: 32),
 
           // Main Stats
@@ -608,25 +623,25 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
           _buildStatsGrid([
             _StatItem(
               title: l10n.adminUsers,
-              value: state.totalUsers.toString(),
+              value: _valeur(state, 'users', state.totalUsers),
               icon: const AppIcon(AppIcon.people, color: Colors.white, size: 24),
               gradient: const [AdminColors.actionBlue, AdminColors.actionBlueLight],
             ),
             _StatItem(
               title: l10n.adminActiveSessions,
-              value: state.activeSessions.toString(),
+              value: _valeur(state, 'active_sessions', state.activeSessions),
               icon: const Icon(Icons.wifi_rounded, color: Colors.white, size: 24),
               gradient: const [AdminColors.statusGreen, AdminColors.statusGreenStrong],
             ),
             _StatItem(
               title: l10n.adminEventsLabel,
-              value: state.totalEvents.toString(),
+              value: _valeur(state, 'events', state.totalEvents),
               icon: const AppIcon(AppIcon.event, color: Colors.white, size: 24),
               gradient: const [AdminColors.statusAmber, AdminColors.statusAmberStrong],
             ),
             _StatItem(
               title: l10n.adminGroupsLabel,
-              value: state.totalGroups.toString(),
+              value: _valeur(state, 'groups', state.totalGroups),
               icon: const AppIcon(AppIcon.groups, color: Colors.white, size: 24),
               gradient: const [AdminColors.statusPurple, AdminColors.statusPurple],
             ),
@@ -639,25 +654,25 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
           _buildStatsGrid([
             _StatItem(
               title: l10n.adminBusinesses,
-              value: state.totalBusinesses.toString(),
+              value: _valeur(state, 'businesses', state.totalBusinesses),
               icon: const AppIcon(AppIcon.store, color: Colors.white, size: 24),
               gradient: const [AdminColors.statusGreen, AdminColors.statusGreenStrong],
             ),
             _StatItem(
               title: l10n.adminProducts,
-              value: state.totalProducts.toString(),
+              value: _valeur(state, 'products', state.totalProducts),
               icon: const Icon(Icons.shopping_bag_rounded, color: Colors.white, size: 24),
               gradient: const [AdminColors.actionBlue, AdminColors.actionBlueLight],
             ),
             _StatItem(
               title: l10n.adminTransactions,
-              value: state.totalTransactions.toString(),
+              value: _valeur(state, 'transactions', state.totalTransactions),
               icon: const Icon(Icons.payments_rounded, color: Colors.white, size: 24),
               gradient: const [AdminColors.statusAmber, AdminColors.statusAmberStrong],
             ),
             _StatItem(
               title: l10n.adminReports,
-              value: state.pendingReports.toString(),
+              value: _valeur(state, 'reports', state.pendingReports),
               icon: Icon(Icons.report_rounded, color: Colors.white, size: 24),
               gradient: state.pendingReports > 0
                   ? const [AdminColors.statusRed, AdminColors.statusRedStrong]

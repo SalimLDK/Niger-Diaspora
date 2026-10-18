@@ -18707,4 +18707,115 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get marAdmDisputeWarn =>
       'La décision est consignée. Le séquestre n\'est ni libéré ni remboursé ici : cela se fait chez le prestataire de paiement.';
+
+  @override
+  String get tbAdmTitle => 'À traiter';
+
+  @override
+  String get tbAdmSubtitle =>
+      'Ce qui attend en ce moment, selon vos droits. Un état courant, pas une période : voir l\'heure du calcul.';
+
+  @override
+  String tbAdmComputedAt(String time) {
+    return 'Calculé à $time';
+  }
+
+  @override
+  String get tbAdmRefresh => 'Recalculer';
+
+  @override
+  String tbAdmLoadError(String detail) {
+    return 'Impossible de calculer cette liste : $detail';
+  }
+
+  @override
+  String get tbAdmRetry => 'Réessayer';
+
+  @override
+  String get tbAdmNothingForRole =>
+      'Aucune file à traiter n\'est rattachée à votre rôle.';
+
+  @override
+  String get tbAdmCalm => 'Rien en attente';
+
+  @override
+  String tbAdmOldest(String date) {
+    return 'plus ancien : $date';
+  }
+
+  @override
+  String tbAdmUrgentPrefix(String n, String label) {
+    return 'dont $n $label';
+  }
+
+  @override
+  String get tbAdmOpen => 'Ouvrir';
+
+  @override
+  String get tbAdmReports => 'Signalements';
+
+  @override
+  String get tbAdmReportsDef => 'Nouveaux, en examen ou escaladés.';
+
+  @override
+  String get tbAdmReportsUrgent => 'non pris en charge';
+
+  @override
+  String get tbAdmSupport => 'Support';
+
+  @override
+  String get tbAdmSupportDef => 'Tickets ouverts ou en cours.';
+
+  @override
+  String get tbAdmSupportUrgent => 'non pris en charge';
+
+  @override
+  String get tbAdmDemarches => 'Démarches consulaires';
+
+  @override
+  String get tbAdmDemarchesDef =>
+      'Textes à relire ou à publier, et démarches publiées dont la révision datée est dépassée.';
+
+  @override
+  String get tbAdmDemarchesUrgent => 'en retard de révision';
+
+  @override
+  String get tbAdmCampaigns => 'Campagnes';
+
+  @override
+  String get tbAdmCampaignsDef =>
+      'Messages soumis qui attendent l\'approbation d\'un autre administrateur.';
+
+  @override
+  String get tbAdmPrivacy => 'Demandes de données';
+
+  @override
+  String get tbAdmPrivacyDef =>
+      'Demandes ouvertes (reçues, identité vérifiée, en traitement).';
+
+  @override
+  String get tbAdmPrivacyUrgent => 'au-delà de l\'échéance interne';
+
+  @override
+  String get tbAdmIncidents => 'Incidents de sécurité';
+
+  @override
+  String get tbAdmIncidentsDef => 'Incidents non clos.';
+
+  @override
+  String get tbAdmIncidentsUrgent => 'de gravité élevée ou critique';
+
+  @override
+  String get tbAdmListings => 'Fiches à vérifier';
+
+  @override
+  String get tbAdmListingsDef => 'Fiches actives sans badge « vérifié ».';
+
+  @override
+  String get tbAdmCounterUnavailable => 'indisponible';
+
+  @override
+  String tbAdmCountersUnavailable(String names) {
+    return 'Certains compteurs n\'ont pas pu être lus et sont marqués « — » plutôt que 0 : $names.';
+  }
 }

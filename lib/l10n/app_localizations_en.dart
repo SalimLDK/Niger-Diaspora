@@ -18534,4 +18534,115 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get marAdmDisputeWarn =>
       'The decision is recorded. The escrow is neither released nor refunded here: that is done with the payment provider.';
+
+  @override
+  String get tbAdmTitle => 'To handle';
+
+  @override
+  String get tbAdmSubtitle =>
+      'What is waiting right now, according to your permissions. A current state, not a period: see the time of calculation.';
+
+  @override
+  String tbAdmComputedAt(String time) {
+    return 'Calculated at $time';
+  }
+
+  @override
+  String get tbAdmRefresh => 'Recalculate';
+
+  @override
+  String tbAdmLoadError(String detail) {
+    return 'Could not calculate this list: $detail';
+  }
+
+  @override
+  String get tbAdmRetry => 'Retry';
+
+  @override
+  String get tbAdmNothingForRole => 'No queue is attached to your role.';
+
+  @override
+  String get tbAdmCalm => 'Nothing waiting';
+
+  @override
+  String tbAdmOldest(String date) {
+    return 'oldest: $date';
+  }
+
+  @override
+  String tbAdmUrgentPrefix(String n, String label) {
+    return 'including $n $label';
+  }
+
+  @override
+  String get tbAdmOpen => 'Open';
+
+  @override
+  String get tbAdmReports => 'Reports';
+
+  @override
+  String get tbAdmReportsDef => 'New, under review or escalated.';
+
+  @override
+  String get tbAdmReportsUrgent => 'not taken yet';
+
+  @override
+  String get tbAdmSupport => 'Support';
+
+  @override
+  String get tbAdmSupportDef => 'Open or in-progress tickets.';
+
+  @override
+  String get tbAdmSupportUrgent => 'not taken yet';
+
+  @override
+  String get tbAdmDemarches => 'Consular procedures';
+
+  @override
+  String get tbAdmDemarchesDef =>
+      'Texts to review or publish, and published procedures whose dated review is overdue.';
+
+  @override
+  String get tbAdmDemarchesUrgent => 'overdue for review';
+
+  @override
+  String get tbAdmCampaigns => 'Campaigns';
+
+  @override
+  String get tbAdmCampaignsDef =>
+      'Submitted messages waiting for another administrator\'s approval.';
+
+  @override
+  String get tbAdmPrivacy => 'Data requests';
+
+  @override
+  String get tbAdmPrivacyDef =>
+      'Open requests (received, identity verified, in progress).';
+
+  @override
+  String get tbAdmPrivacyUrgent => 'past the internal due date';
+
+  @override
+  String get tbAdmIncidents => 'Security incidents';
+
+  @override
+  String get tbAdmIncidentsDef => 'Incidents not closed.';
+
+  @override
+  String get tbAdmIncidentsUrgent => 'high or critical severity';
+
+  @override
+  String get tbAdmListings => 'Listings to verify';
+
+  @override
+  String get tbAdmListingsDef =>
+      'Active listings without the \"verified\" badge.';
+
+  @override
+  String get tbAdmCounterUnavailable => 'unavailable';
+
+  @override
+  String tbAdmCountersUnavailable(String names) {
+    return 'Some counters could not be read and show \"—\" rather than 0: $names.';
+  }
 }
