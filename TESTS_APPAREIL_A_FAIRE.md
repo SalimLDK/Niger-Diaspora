@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1503 cases à cocher, 55 cochées** — 323 entrées sur 337 ont encore des cases ouvertes.
+**1507 cases à cocher, 55 cochées** — 324 entrées sur 338 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -339,7 +339,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [✅ Bulle de chargement d'une vidéo pendant l'upload (2026-08-30)](#-bulle-de-chargement-dune-vidéo-pendant-lupload-2026-08-30) · *Messagerie*
 - 21 · [Refonte Fil & Discussion — Priorité basse — cosmétique, faible risque](#refonte-fil--discussion--priorité-basse--cosmétique-faible-risque) · *Fil, stories, salons audio et podcasts*
 
-**P3 — confort, cosmétique, fonction en pause** (39)
+**P3 — confort, cosmétique, fonction en pause** (40)
 
 - 3 · [⬜ Polices embarquées : plus de téléchargement au premier affichage (2026-09-11)](#-polices-embarquées--plus-de-téléchargement-au-premier-affichage-2026-09-11) · *Design, thème, langue et mise en page* · bloqué
 - 2 · [⬜ Icône du lanceur repeinte en vert (2026-09-07)](#-icône-du-lanceur-repeinte-en-vert-2026-09-07) · *Design, thème, langue et mise en page*
@@ -366,6 +366,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⬜ Deux textes du fil que `font_scale` 1.3 abime — corrigés, à revoir (2026-09-14)](#-deux-textes-du-fil-que-font_scale-13-abime--corrigés-à-revoir-2026-09-14) · *Design, thème, langue et mise en page*
 - 2 · [⬜ Une couleur par service dans les deux grilles (2026-09-14)](#-une-couleur-par-service-dans-les-deux-grilles-2026-09-14) · *Design, thème, langue et mise en page*
 - 3 · [Débordement du champ « Type * » — création d'ambassade (2026-08-04)](#débordement-du-champ--type----création-dambassade-2026-08-04) · *Design, thème, langue et mise en page* · bloqué
+- 4 · [⬜ Panneau admin : Statistiques — fini les zéros qui cachent une erreur et l'export factice (2026-10-19)](#-panneau-admin--statistiques--fini-les-zéros-qui-cachent-une-erreur-et-lexport-factice-2026-10-19) · *Backend, sécurité et observabilité*
 - 1 · [Cartographie des accès `anon` réellement nécessaires (2026-08-13)](#cartographie-des-accès-anon-réellement-nécessaires-2026-08-13) · *Backend, sécurité et observabilité*
 - 3 · [⬜ Panneau admin : textes passés en l10n et infobulles sur les boutons-icônes (2026-10-15)](#-panneau-admin--textes-passés-en-l10n-et-infobulles-sur-les-boutons-icônes-2026-10-15) · *Site web*
 - 5 · [⬜ Panneau admin : Transferts, Marketplace, Commerces, Modération et Audit passent aux briques du kit (2026-10-15)](#-panneau-admin--transferts-marketplace-commerces-modération-et-audit-passent-aux-briques-du-kit-2026-10-15) · *Site web*
@@ -395,7 +396,7 @@ Par domaine :
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 67 à faire, 0 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 58 à faire, 5 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 108 à faire, 5 faites
-- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 240 à faire, 2 faites
+- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 244 à faire, 2 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 46 à faire, 1 faites
 - [15. Site web](#15-site-web) — 69 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 23 à faire, 0 faites
@@ -9338,6 +9339,19 @@ Fichiers : `lib/features/admin/presentation/screens/admin_support_tickets_screen
 - [ ] contentMod : voit la section modèles mais pas celle des délais ; crée un modèle, l'insère dans une réponse (le texte remplace le brouillon et reste modifiable).
 - [ ] contentMod escalade un ticket avec un motif : badge « Escaladé », filtre « Escaladés », motif visible ; le bouton Lever l'escalade n'apparaît que pour le superAdmin.
 - [ ] Largeur tablette : le dialogue des réglages reste utilisable (défilement, champs numériques).
+
+## ⬜ Panneau admin : Statistiques — fini les zéros qui cachent une erreur et l'export factice (2026-10-19)
+
+**Priorité P3** · importance 2/5 — Un échec de lecture s'affichait « 0 » (courbe de croissance vide), les répartitions s'arrêtaient à 1000 lignes, et trois boutons « Exporter » annonçaient « Export en cours » sans rien produire. Les chiffres portent maintenant leur définition et l'heure de lecture.
+
+*Bloqué : un compte administrateur sur le panneau ; pouvoir couper le réseau.*
+
+Fichiers : `admin_analytics_screen.dart`, `admin_provider.dart` (`AdminAnalyticsNotifier`).
+
+- [ ] Les trois compteurs (aujourd'hui, semaine, mois) et la courbe de six mois correspondent à un comptage fait à la main dans la base.
+- [ ] Réseau coupé puis « Actualiser » : un message d'erreur s'affiche, aucun chiffre périmé ni zéro.
+- [ ] La carte « Ce que mesurent ces chiffres » donne les définitions et « Données lues le … » change à chaque actualisation.
+- [ ] Il n'y a plus de bouton d'export sur cet écran.
 
 ---
 ## ⬜ Événements : calendrier, inscrits, statistiques — et un administrateur ne lit plus tous les événements (2026-10-19)

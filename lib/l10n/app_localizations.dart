@@ -35341,6 +35341,72 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Saisissez des heures entières, de 1 à 8760, dans au moins un des deux champs.'**
   String get supSlaHoursInvalid;
+
+  /// No description provided for @statTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Statistiques'**
+  String get statTitle;
+
+  /// No description provided for @statSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chiffres lus en direct dans la base, avec leur définition.'**
+  String get statSubtitle;
+
+  /// No description provided for @statToday.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aujourd\'hui'**
+  String get statToday;
+
+  /// No description provided for @statDefTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce que mesurent ces chiffres'**
+  String get statDefTitle;
+
+  /// No description provided for @statDefToday.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aujourd\'hui : comptes créés depuis minuit, heure de cet appareil.'**
+  String get statDefToday;
+
+  /// No description provided for @statDefWeek.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cette semaine : comptes créés depuis lundi minuit, heure de cet appareil.'**
+  String get statDefWeek;
+
+  /// No description provided for @statDefMonth.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce mois : comptes créés depuis le 1er du mois, heure de cet appareil.'**
+  String get statDefMonth;
+
+  /// No description provided for @statDefGrowth.
+  ///
+  /// In fr, this message translates to:
+  /// **'Croissance : comptes créés par mois civil, sur les six derniers mois. Inscriptions, pas membres actifs ; les comptes supprimés depuis n\'y figurent plus.'**
+  String get statDefGrowth;
+
+  /// No description provided for @statDefCategories.
+  ///
+  /// In fr, this message translates to:
+  /// **'Événements et commerces par catégorie : ceux que vos droits vous permettent de lire, tous statuts confondus (un commerce inactif ou un événement annulé compte).'**
+  String get statDefCategories;
+
+  /// No description provided for @statDefNoExport.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun export n\'est proposé ici : le seul export du panneau est celui du journal d\'audit.'**
+  String get statDefNoExport;
+
+  /// No description provided for @statReadAt.
+  ///
+  /// In fr, this message translates to:
+  /// **'Données lues le {date}'**
+  String statReadAt(String date);
 }
 
 class _AppLocalizationsDelegate
