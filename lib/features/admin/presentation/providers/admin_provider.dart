@@ -3143,7 +3143,7 @@ class AdminAuditNotifier extends Notifier<AdminAuditState> {
 /// `adminName`, que les appelants passent encore, ne sont plus envoyés — un
 /// client qui pouvait nommer l'auteur pouvait aussi en nommer un autre.
 /// L'`INSERT` direct sur la table est fermé par supabase/
-/// admin-audit-ecriture-par-rpc-cible.sql, à appliquer une fois ce build déployé.
+/// migrations/20261019172000_journal_audit_ecriture_par_rpc.sql (appliquée une fois ce build déployé).
 Future<void> _ecrireAudit({
   required String action,
   required String targetType,

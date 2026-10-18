@@ -1,8 +1,8 @@
--- Banc de la cible supabase/admin-audit-ecriture-par-rpc-cible.sql.
+-- Banc de la cible supabase/migrations/20261019172000_journal_audit_ecriture_par_rpc.sql.
 --
 --   python tools/rls_tests/repeter_cible.py \
 --     tools/rls_tests/admin_audit_ecriture_par_rpc_cible.sql \
---     supabase/admin-audit-ecriture-par-rpc-cible.sql sortie.sql
+--     supabase/migrations/20261019172000_journal_audit_ecriture_par_rpc.sql sortie.sql
 --   supabase db query --linked -f sortie.sql
 --
 -- Condition : 0 ÉCHEC. BEGIN … ROLLBACK.
