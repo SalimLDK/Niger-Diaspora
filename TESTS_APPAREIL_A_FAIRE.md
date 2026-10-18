@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1512 cases à cocher, 55 cochées** — 325 entrées sur 339 ont encore des cases ouvertes.
+**1518 cases à cocher, 55 cochées** — 326 entrées sur 340 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -233,7 +233,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (104)
+**P2 — fonction secondaire ou cas limite** (105)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -294,6 +294,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 1 · [Thème sombre — jetons clairs codés en dur](#thème-sombre--jetons-clairs-codés-en-dur) · *Design, thème, langue et mise en page*
 - 4 · [Bascule design_v2 → production, famille 2 : les services (2026-08-03)](#bascule-design_v2--production-famille-2--les-services-2026-08-03) · *Design, thème, langue et mise en page*
 - 5 · [⬜ Panneau admin : Groupes — confidentialité et suppression qui marchent, avec motif et historique (2026-10-19)](#-panneau-admin--groupes--confidentialité-et-suppression-qui-marchent-avec-motif-et-historique-2026-10-19) · *Backend, sécurité et observabilité*
+- 6 · [⬜ Panneau admin : « À traiter » et recherche globale (2026-10-19)](#-panneau-admin---à-traiter--et-recherche-globale-2026-10-19) · *Backend, sécurité et observabilité*
 - 6 · [⬜ Support : délais de service, escalade, modèles de réponse (2026-10-19)](#-support--délais-de-service-escalade-modèles-de-réponse-2026-10-19) · *Backend, sécurité et observabilité*
 - 7 · [⬜ Panneau admin : Journal d'audit — filtres côté serveur, détail, export audité (2026-10-19)](#-panneau-admin--journal-daudit--filtres-côté-serveur-détail-export-audité-2026-10-19) · *Backend, sécurité et observabilité*
 - 6 · [⬜ Panneau admin : Membres — avertir, suspendre, vérifier, déconnecter avec motif et historique (2026-10-19)](#-panneau-admin--membres--avertir-suspendre-vérifier-déconnecter-avec-motif-et-historique-2026-10-19) · *Backend, sécurité et observabilité*
@@ -397,7 +398,7 @@ Par domaine :
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 67 à faire, 0 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 58 à faire, 5 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 108 à faire, 5 faites
-- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 249 à faire, 2 faites
+- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 255 à faire, 2 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 46 à faire, 1 faites
 - [15. Site web](#15-site-web) — 69 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 23 à faire, 0 faites
@@ -9339,6 +9340,20 @@ Fichiers : `admin_moderation_screen.dart`, `admin_provider.dart` (`setGroupPriva
 - [ ] « Supprimer » exige un motif ; le message dit combien d'événements sont partis avec le groupe ; le groupe disparaît de la liste.
 - [ ] Un groupe officiel : un contentMod est refusé (message de permission), un superAdmin réussit.
 - [ ] Le Journal d'audit montre `GROUP_PRIVACY_CHANGED` / `GROUP_DELETED` sans le motif ; le motif reste dans l'historique du groupe.
+## ⬜ Panneau admin : « À traiter » et recherche globale (2026-10-19)
+
+**Priorité P2** · importance 3/5 — Écran d'administration seulement ; la recherche touche des données personnelles de membres, donc ce qu'elle rend selon le rôle compte.
+
+*Bloqué : migration 20261019230000 appliquée, le panneau web avec contentMod, financeMod et superAdmin.*
+
+Fichiers : `lib/features/admin/presentation/screens/admin_recherche_screen.dart`, `lib/features/admin/presentation/providers/recherche_admin_provider.dart`, `supabase/migrations/20261019230000_recherche_globale_a_traiter.sql`.
+
+- [ ] superAdmin : « À traiter » liste les familles qui ont des éléments, avec le plus ancien et le nombre en retard ; toucher une ligne ouvre l'écran concerné.
+- [ ] financeMod : la recherche d'un nom de membre ne rend aucun membre et dit « Non cherché (droit manquant) : Membres… ».
+- [ ] Rechercher « % » ne rend rien (pas toute la base) ; rechercher par courriel ne trouve pas de membre.
+- [ ] La recherche ne part qu'à la validation (Entrée / bouton), pas à chaque frappe.
+- [ ] Couper le réseau puis actualiser « À traiter » : l'erreur s'affiche, pas « Rien n'attend ».
+- [ ] Journal d'audit : l'entrée ADMIN_SEARCH ne contient pas le mot cherché.
 
 ---
 ## ⬜ Support : délais de service, escalade, modèles de réponse (2026-10-19)

@@ -9989,25 +9989,64 @@
   "evtCalTabStats": "Statistiques",
   "evtCalNoAccess": "Vous n'avez pas accès aux événements.",
   "evtCalLoadError": "Chargement impossible : {detail}",
-  "@evtCalLoadError": {"placeholders": {"detail": {"type": "String"}}},
+  "@evtCalLoadError": {
+    "placeholders": {
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
   "evtCalRetry": "Réessayer",
   "evtCalPrevMonth": "Mois précédent",
   "evtCalNextMonth": "Mois suivant",
   "evtCalTimezone": "Heures affichées dans le fuseau de cet appareil ({zone}).",
-  "@evtCalTimezone": {"placeholders": {"zone": {"type": "String"}}},
+  "@evtCalTimezone": {
+    "placeholders": {
+      "zone": {
+        "type": "String"
+      }
+    }
+  },
   "evtCalPrivateHidden": "{n} événement(s) non public(s) ou brouillon(s) sur la période : comptés, pas listés.",
-  "@evtCalPrivateHidden": {"placeholders": {"n": {"type": "String"}}},
+  "@evtCalPrivateHidden": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "evtCalNoEventsDay": "Aucun événement public ce jour-là.",
   "evtCalNoEventsMonth": "Aucun événement public ce mois-ci.",
   "evtCalAllMonth": "Tout le mois",
   "evtCalAttendees": "{n} inscrit(s)",
-  "@evtCalAttendees": {"placeholders": {"n": {"type": "String"}}},
+  "@evtCalAttendees": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "evtCalAttendeesOf": "{n} / {max} inscrits",
-  "@evtCalAttendeesOf": {"placeholders": {"n": {"type": "String"}, "max": {"type": "String"}}},
+  "@evtCalAttendeesOf": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  },
   "evtCalOnline": "En ligne",
   "evtCalSeeAttendees": "Voir les inscrits",
   "evtCalAttendeesTitle": "Inscrits : {title}",
-  "@evtCalAttendeesTitle": {"placeholders": {"title": {"type": "String"}}},
+  "@evtCalAttendeesTitle": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
   "evtCalAttendeesWarn": "Cette consultation est journalisée (qui, quel événement, combien de lignes — jamais les noms).",
   "evtCalAttendeesEmpty": "Aucun inscrit.",
   "evtCalStatusDraft": "Brouillon",
@@ -10017,7 +10056,13 @@
   "evtCalStatusCancelled": "Annulé",
   "evtCalWindow": "Fenêtre",
   "evtCalDays": "{n} jours",
-  "@evtCalDays": {"placeholders": {"n": {"type": "String"}}},
+  "@evtCalDays": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "evtCalStatCreated": "Événements créés",
   "evtCalStatUpcoming": "Événements à venir",
   "evtCalStatRegistrations": "Inscriptions",
@@ -10025,7 +10070,13 @@
   "evtCalStatFill": "Remplissage moyen (à venir, capacité fixée)",
   "evtCalStatNone": "—",
   "evtCalStatNotMeasured": "Non mesuré : {list}.",
-  "@evtCalStatNotMeasured": {"placeholders": {"list": {"type": "String"}}},
+  "@evtCalStatNotMeasured": {
+    "placeholders": {
+      "list": {
+        "type": "String"
+      }
+    }
+  },
   "evtCalStatDefinitions": "Définitions",
   "evtCalDone": "Fait.",
   "jrnAudSubtitle": "Toute action d'un administrateur, en lecture seule : le journal ne se modifie ni ne s'efface.",
@@ -10033,9 +10084,21 @@
   "jrnAudExportTitle": "Exporter le journal",
   "jrnAudExportBody": "Les lignes qui correspondent aux filtres actuels (5 000 au plus) sont copiées en CSV dans le presse-papiers. Cet export est lui-même inscrit au journal, avec vos filtres.",
   "jrnAudExported": "{n} lignes copiées en CSV. L'export est inscrit au journal.",
-  "@jrnAudExported": {"placeholders": {"n": {"type": "String"}}},
+  "@jrnAudExported": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "jrnAudExportTruncated": "{n} lignes copiées, plafond atteint : affinez les filtres pour le reste. L'export est inscrit au journal.",
-  "@jrnAudExportTruncated": {"placeholders": {"n": {"type": "String"}}},
+  "@jrnAudExportTruncated": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
   "jrnAudActor": "Acteur (nom ou identifiant)",
   "jrnAudAction": "Action",
   "jrnAudResource": "Type de ressource",
@@ -10062,11 +10125,29 @@
   "supSlaEscalatedBadge": "Escaladé",
   "supSlaLateBadge": "En retard",
   "supSlaEscalationReason": "Escalade : {reason}",
-  "@supSlaEscalationReason": {"placeholders": {"reason": {"type": "String"}}},
+  "@supSlaEscalationReason": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
   "supSlaDueFirst": "Première réponse avant le {date}",
-  "@supSlaDueFirst": {"placeholders": {"date": {"type": "String"}}},
+  "@supSlaDueFirst": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "supSlaDueResolution": "Résolution avant le {date}",
-  "@supSlaDueResolution": {"placeholders": {"date": {"type": "String"}}},
+  "@supSlaDueResolution": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "supSlaEscalate": "Escalader",
   "supSlaEscalateReason": "Pourquoi ce ticket dépasse-t-il votre périmètre ?",
   "supSlaEscalationLift": "Lever l'escalade",
@@ -10085,7 +10166,13 @@
   "supSlaTemplateAnyCategory": "Toutes catégories",
   "supSlaTemplateSave": "Enregistrer",
   "supSlaTemplateDeleteConfirm": "Supprimer le modèle « {title} » ?",
-  "@supSlaTemplateDeleteConfirm": {"placeholders": {"title": {"type": "String"}}},
+  "@supSlaTemplateDeleteConfirm": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
   "supSlaTargetsTitle": "Délais de service",
   "supSlaTargetsNote": "Heures d'horloge, pas ouvrées. Sans délai arrêté, un ticket n'a pas d'échéance et n'est jamais en retard. Une cible existante est remplacée par la même catégorie et priorité.",
   "supSlaTargetsEmpty": "Aucun délai arrêté.",
@@ -10094,7 +10181,16 @@
   "supSlaTargetSave": "Arrêter",
   "supSlaTargetRemove": "Retirer ce délai",
   "supSlaTargetLine": "Première réponse : {first} h · Résolution : {res} h",
-  "@supSlaTargetLine": {"placeholders": {"first": {"type": "String"}, "res": {"type": "String"}}},
+  "@supSlaTargetLine": {
+    "placeholders": {
+      "first": {
+        "type": "String"
+      },
+      "res": {
+        "type": "String"
+      }
+    }
+  },
   "supSlaNoValue": "—",
   "supSlaHoursInvalid": "Saisissez des heures entières, de 1 à 8760, dans au moins un des deux champs.",
   "statTitle": "Statistiques",
@@ -10108,12 +10204,84 @@
   "statDefCategories": "Événements et commerces par catégorie : ceux que vos droits vous permettent de lire, tous statuts confondus (un commerce inactif ou un événement annulé compte).",
   "statDefNoExport": "Aucun export n'est proposé ici : le seul export du panneau est celui du journal d'audit.",
   "statReadAt": "Données lues le {date}",
-  "@statReadAt": {"placeholders": {"date": {"type": "String"}}},
+  "@statReadAt": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "grpAdmPrivateTitle": "Rendre le groupe privé",
   "grpAdmPrivateWarn": "Le groupe disparaît de la recherche et des listes publiques ; seuls ses membres le voient. Le motif est conservé dans l'historique du groupe.",
   "grpAdmPublicTitle": "Rendre le groupe public",
   "grpAdmPublicWarn": "Le groupe devient visible et joignable par tous les membres de l'application. Le motif est conservé dans l'historique du groupe.",
   "grpAdmDeleteWarn": "Irréversible. Les événements et sondages du groupe sont supprimés avec lui, et le groupe n'est pas prévenu. Un groupe officiel ne se supprime que par un superAdmin. Le motif est conservé dans l'historique.",
   "grpAdmDeleted": "Groupe supprimé ({n} événement(s) supprimé(s) avec lui).",
-  "@grpAdmDeleted": {"placeholders": {"n": {"type": "String"}}}
+  "@grpAdmDeleted": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "rchAdmTitle": "À traiter et recherche",
+  "rchAdmSubtitle": "Ce qui attend votre décision, et une recherche sur ce que votre rôle peut lire.",
+  "rchAdmTabQueue": "À traiter",
+  "rchAdmTabSearch": "Recherche",
+  "rchAdmRefresh": "Actualiser",
+  "rchAdmQueueEmpty": "Rien n'attend votre décision pour le moment.",
+  "rchAdmOldest": "Le plus ancien : {date}",
+  "@rchAdmOldest": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "rchAdmLate": "{n} en retard",
+  "@rchAdmLate": {
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "rchAdmQReports": "Signalements en attente",
+  "rchAdmQAppeals": "Recours à examiner",
+  "rchAdmQTickets": "Tickets ouverts ou en cours",
+  "rchAdmQTicketsEscalated": "Tickets escaladés",
+  "rchAdmQTicketsOverdue": "Tickets hors délai de service",
+  "rchAdmQPrivacy": "Demandes sur les données personnelles",
+  "rchAdmQProcedures": "Démarches à approuver",
+  "rchAdmQCampaigns": "Campagnes à approuver",
+  "rchAdmQBusinessesReview": "Fiches d'entreprise à revérifier",
+  "rchAdmSearchLabel": "Chercher un nom ou un titre",
+  "rchAdmSearchHelp": "Validez pour chercher. La recherche est journalisée, sans le mot cherché.",
+  "rchAdmSearchGo": "Chercher",
+  "rchAdmSkipped": "Non cherché (droit manquant) : {list}.",
+  "@rchAdmSkipped": {
+    "placeholders": {
+      "list": {
+        "type": "String"
+      }
+    }
+  },
+  "rchAdmNoResult": "Aucun résultat.",
+  "rchAdmKindMembers": "Membres",
+  "rchAdmKindTickets": "Tickets",
+  "rchAdmKindReports": "Signalements",
+  "rchAdmKindBusinesses": "Entreprises",
+  "rchAdmKindEvents": "Événements",
+  "rchAdmKindProcedures": "Démarches",
+  "rchAdmKindEmbassies": "Ambassades",
+  "rchAdmKindCampaigns": "Campagnes",
+  "rchAdmLoadError": "Chargement impossible : {detail}",
+  "@rchAdmLoadError": {
+    "placeholders": {
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
+  "rchAdmRetry": "Réessayer"
 }

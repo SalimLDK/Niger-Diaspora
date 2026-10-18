@@ -29,6 +29,7 @@ import 'admin_evenements_screen.dart';
 import 'admin_settings_screen.dart';
 import 'admin_feature_flags_screen.dart';
 import 'admin_audit_screen.dart';
+import 'admin_recherche_screen.dart';
 import 'admin_role_management_screen.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:diaspo_niger/core/theme/design_kit.dart';
@@ -100,6 +101,15 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
         selectedIcon: const Icon(Icons.dashboard),
         requiredPermission: AdminPermission.viewDashboard,
         contentBuilder: (_, __) => _buildOverviewWidget(),
+      ),
+      _NavDestination(
+        id: 'recherche',
+        label: l10n.rchAdmTitle,
+        icon: const Icon(Icons.manage_search_outlined),
+        selectedIcon: const Icon(Icons.manage_search),
+        // Pas de droit propre : chaque source est filtrée par le serveur selon
+        // le droit de lecture qui la protège.
+        contentBuilder: (_, __) => AdminRechercheScreen(onOuvrir: _ouvrirDestination),
       ),
       _NavDestination(
         id: 'users',

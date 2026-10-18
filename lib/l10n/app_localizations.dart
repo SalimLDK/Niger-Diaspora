@@ -35443,6 +35443,198 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Groupe supprimé ({n} événement(s) supprimé(s) avec lui).'**
   String grpAdmDeleted(String n);
+
+  /// No description provided for @rchAdmTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'À traiter et recherche'**
+  String get rchAdmTitle;
+
+  /// No description provided for @rchAdmSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce qui attend votre décision, et une recherche sur ce que votre rôle peut lire.'**
+  String get rchAdmSubtitle;
+
+  /// No description provided for @rchAdmTabQueue.
+  ///
+  /// In fr, this message translates to:
+  /// **'À traiter'**
+  String get rchAdmTabQueue;
+
+  /// No description provided for @rchAdmTabSearch.
+  ///
+  /// In fr, this message translates to:
+  /// **'Recherche'**
+  String get rchAdmTabSearch;
+
+  /// No description provided for @rchAdmRefresh.
+  ///
+  /// In fr, this message translates to:
+  /// **'Actualiser'**
+  String get rchAdmRefresh;
+
+  /// No description provided for @rchAdmQueueEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rien n\'attend votre décision pour le moment.'**
+  String get rchAdmQueueEmpty;
+
+  /// No description provided for @rchAdmOldest.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le plus ancien : {date}'**
+  String rchAdmOldest(String date);
+
+  /// No description provided for @rchAdmLate.
+  ///
+  /// In fr, this message translates to:
+  /// **'{n} en retard'**
+  String rchAdmLate(String n);
+
+  /// No description provided for @rchAdmQReports.
+  ///
+  /// In fr, this message translates to:
+  /// **'Signalements en attente'**
+  String get rchAdmQReports;
+
+  /// No description provided for @rchAdmQAppeals.
+  ///
+  /// In fr, this message translates to:
+  /// **'Recours à examiner'**
+  String get rchAdmQAppeals;
+
+  /// No description provided for @rchAdmQTickets.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tickets ouverts ou en cours'**
+  String get rchAdmQTickets;
+
+  /// No description provided for @rchAdmQTicketsEscalated.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tickets escaladés'**
+  String get rchAdmQTicketsEscalated;
+
+  /// No description provided for @rchAdmQTicketsOverdue.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tickets hors délai de service'**
+  String get rchAdmQTicketsOverdue;
+
+  /// No description provided for @rchAdmQPrivacy.
+  ///
+  /// In fr, this message translates to:
+  /// **'Demandes sur les données personnelles'**
+  String get rchAdmQPrivacy;
+
+  /// No description provided for @rchAdmQProcedures.
+  ///
+  /// In fr, this message translates to:
+  /// **'Démarches à approuver'**
+  String get rchAdmQProcedures;
+
+  /// No description provided for @rchAdmQCampaigns.
+  ///
+  /// In fr, this message translates to:
+  /// **'Campagnes à approuver'**
+  String get rchAdmQCampaigns;
+
+  /// No description provided for @rchAdmQBusinessesReview.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fiches d\'entreprise à revérifier'**
+  String get rchAdmQBusinessesReview;
+
+  /// No description provided for @rchAdmSearchLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chercher un nom ou un titre'**
+  String get rchAdmSearchLabel;
+
+  /// No description provided for @rchAdmSearchHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Validez pour chercher. La recherche est journalisée, sans le mot cherché.'**
+  String get rchAdmSearchHelp;
+
+  /// No description provided for @rchAdmSearchGo.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chercher'**
+  String get rchAdmSearchGo;
+
+  /// No description provided for @rchAdmSkipped.
+  ///
+  /// In fr, this message translates to:
+  /// **'Non cherché (droit manquant) : {list}.'**
+  String rchAdmSkipped(String list);
+
+  /// No description provided for @rchAdmNoResult.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun résultat.'**
+  String get rchAdmNoResult;
+
+  /// No description provided for @rchAdmKindMembers.
+  ///
+  /// In fr, this message translates to:
+  /// **'Membres'**
+  String get rchAdmKindMembers;
+
+  /// No description provided for @rchAdmKindTickets.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tickets'**
+  String get rchAdmKindTickets;
+
+  /// No description provided for @rchAdmKindReports.
+  ///
+  /// In fr, this message translates to:
+  /// **'Signalements'**
+  String get rchAdmKindReports;
+
+  /// No description provided for @rchAdmKindBusinesses.
+  ///
+  /// In fr, this message translates to:
+  /// **'Entreprises'**
+  String get rchAdmKindBusinesses;
+
+  /// No description provided for @rchAdmKindEvents.
+  ///
+  /// In fr, this message translates to:
+  /// **'Événements'**
+  String get rchAdmKindEvents;
+
+  /// No description provided for @rchAdmKindProcedures.
+  ///
+  /// In fr, this message translates to:
+  /// **'Démarches'**
+  String get rchAdmKindProcedures;
+
+  /// No description provided for @rchAdmKindEmbassies.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ambassades'**
+  String get rchAdmKindEmbassies;
+
+  /// No description provided for @rchAdmKindCampaigns.
+  ///
+  /// In fr, this message translates to:
+  /// **'Campagnes'**
+  String get rchAdmKindCampaigns;
+
+  /// No description provided for @rchAdmLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chargement impossible : {detail}'**
+  String rchAdmLoadError(String detail);
+
+  /// No description provided for @rchAdmRetry.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réessayer'**
+  String get rchAdmRetry;
 }
 
 class _AppLocalizationsDelegate
