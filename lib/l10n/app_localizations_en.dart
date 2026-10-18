@@ -19368,4 +19368,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String statReadAt(String date) {
     return 'Data read on $date';
   }
+
+  @override
+  String get grpAdmPrivateTitle => 'Make the group private';
+
+  @override
+  String get grpAdmPrivateWarn =>
+      'The group disappears from search and public lists; only its members see it. The reason is kept in the group\'s history.';
+
+  @override
+  String get grpAdmPublicTitle => 'Make the group public';
+
+  @override
+  String get grpAdmPublicWarn =>
+      'The group becomes visible and joinable by every member of the app. The reason is kept in the group\'s history.';
+
+  @override
+  String get grpAdmDeleteWarn =>
+      'Irreversible. The group\'s events and polls are deleted with it, and the group is not notified. An official group can only be deleted by a superAdmin. The reason is kept in the history.';
+
+  @override
+  String grpAdmDeleted(String n) {
+    return 'Group deleted ($n event(s) deleted with it).';
+  }
 }

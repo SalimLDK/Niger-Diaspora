@@ -9349,5 +9349,11 @@
   "statDefGrowth": "Growth: accounts created per calendar month over the last six months. Sign-ups, not active members; accounts deleted since no longer appear.",
   "statDefCategories": "Events and businesses by category: those your permissions let you read, any status (an inactive business or a cancelled event counts).",
   "statDefNoExport": "No export is offered here: the panel's only export is the audit log's.",
-  "statReadAt": "Data read on {date}"
+  "statReadAt": "Data read on {date}",
+  "grpAdmPrivateTitle": "Make the group private",
+  "grpAdmPrivateWarn": "The group disappears from search and public lists; only its members see it. The reason is kept in the group's history.",
+  "grpAdmPublicTitle": "Make the group public",
+  "grpAdmPublicWarn": "The group becomes visible and joinable by every member of the app. The reason is kept in the group's history.",
+  "grpAdmDeleteWarn": "Irreversible. The group's events and polls are deleted with it, and the group is not notified. An official group can only be deleted by a superAdmin. The reason is kept in the history.",
+  "grpAdmDeleted": "Group deleted ({n} event(s) deleted with it)."
 }

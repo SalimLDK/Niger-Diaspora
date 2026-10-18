@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1507 cases à cocher, 55 cochées** — 324 entrées sur 338 ont encore des cases ouvertes.
+**1512 cases à cocher, 55 cochées** — 325 entrées sur 339 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -233,7 +233,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (103)
+**P2 — fonction secondaire ou cas limite** (104)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -293,6 +293,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⬜ Le sigle DN est le même partout (2026-09-13)](#-le-sigle-dn-est-le-même-partout-2026-09-13) · *Design, thème, langue et mise en page*
 - 1 · [Thème sombre — jetons clairs codés en dur](#thème-sombre--jetons-clairs-codés-en-dur) · *Design, thème, langue et mise en page*
 - 4 · [Bascule design_v2 → production, famille 2 : les services (2026-08-03)](#bascule-design_v2--production-famille-2--les-services-2026-08-03) · *Design, thème, langue et mise en page*
+- 5 · [⬜ Panneau admin : Groupes — confidentialité et suppression qui marchent, avec motif et historique (2026-10-19)](#-panneau-admin--groupes--confidentialité-et-suppression-qui-marchent-avec-motif-et-historique-2026-10-19) · *Backend, sécurité et observabilité*
 - 6 · [⬜ Support : délais de service, escalade, modèles de réponse (2026-10-19)](#-support--délais-de-service-escalade-modèles-de-réponse-2026-10-19) · *Backend, sécurité et observabilité*
 - 7 · [⬜ Panneau admin : Journal d'audit — filtres côté serveur, détail, export audité (2026-10-19)](#-panneau-admin--journal-daudit--filtres-côté-serveur-détail-export-audité-2026-10-19) · *Backend, sécurité et observabilité*
 - 6 · [⬜ Panneau admin : Membres — avertir, suspendre, vérifier, déconnecter avec motif et historique (2026-10-19)](#-panneau-admin--membres--avertir-suspendre-vérifier-déconnecter-avec-motif-et-historique-2026-10-19) · *Backend, sécurité et observabilité*
@@ -396,7 +397,7 @@ Par domaine :
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 67 à faire, 0 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 58 à faire, 5 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 108 à faire, 5 faites
-- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 244 à faire, 2 faites
+- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 249 à faire, 2 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 46 à faire, 1 faites
 - [15. Site web](#15-site-web) — 69 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 23 à faire, 0 faites
@@ -9323,6 +9324,21 @@ parce qu'il change un **comportement**, pas seulement un habillage :
 # 13. Backend, sécurité et observabilité
 
 Supabase et Firebase côté serveur, accès anon, stockage, journaux, Crashlytics, back-office.
+
+---
+## ⬜ Panneau admin : Groupes — confidentialité et suppression qui marchent, avec motif et historique (2026-10-19)
+
+**Priorité P2** · importance 3/5 — Les deux gestes étaient des écritures directes que les droits ne laissaient passer que pour l'administrateur du groupe : sur un groupe ordinaire, « Rendre privé » et « Supprimer » échouaient. Ils passent par des fonctions serveur ; les groupes privés deviennent lisibles par la modération.
+
+*Bloqué : migration 20261019173000 appliquée, un contentMod, un superAdmin, un groupe ordinaire de test (avec un événement rattaché), un groupe privé dont le compte n'est pas membre.*
+
+Fichiers : `admin_moderation_screen.dart`, `admin_provider.dart` (`setGroupPrivacy`, `deleteGroup`), `supabase/migrations/20261019173000_groupes_moderation_admin.sql`.
+
+- [ ] L'onglet Groupes de la modération liste aussi les groupes privés dont le compte n'est pas membre (avant : une fraction des groupes).
+- [ ] « Rendre privé » / « Rendre public » exige un motif (5 caractères) et réussit sur un groupe ordinaire dont le compte n'est pas administrateur.
+- [ ] « Supprimer » exige un motif ; le message dit combien d'événements sont partis avec le groupe ; le groupe disparaît de la liste.
+- [ ] Un groupe officiel : un contentMod est refusé (message de permission), un superAdmin réussit.
+- [ ] Le Journal d'audit montre `GROUP_PRIVACY_CHANGED` / `GROUP_DELETED` sans le motif ; le motif reste dans l'historique du groupe.
 
 ---
 ## ⬜ Support : délais de service, escalade, modèles de réponse (2026-10-19)

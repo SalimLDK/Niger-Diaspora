@@ -35407,6 +35407,42 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Données lues le {date}'**
   String statReadAt(String date);
+
+  /// No description provided for @grpAdmPrivateTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rendre le groupe privé'**
+  String get grpAdmPrivateTitle;
+
+  /// No description provided for @grpAdmPrivateWarn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le groupe disparaît de la recherche et des listes publiques ; seuls ses membres le voient. Le motif est conservé dans l\'historique du groupe.'**
+  String get grpAdmPrivateWarn;
+
+  /// No description provided for @grpAdmPublicTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rendre le groupe public'**
+  String get grpAdmPublicTitle;
+
+  /// No description provided for @grpAdmPublicWarn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le groupe devient visible et joignable par tous les membres de l\'application. Le motif est conservé dans l\'historique du groupe.'**
+  String get grpAdmPublicWarn;
+
+  /// No description provided for @grpAdmDeleteWarn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Irréversible. Les événements et sondages du groupe sont supprimés avec lui, et le groupe n\'est pas prévenu. Un groupe officiel ne se supprime que par un superAdmin. Le motif est conservé dans l\'historique.'**
+  String get grpAdmDeleteWarn;
+
+  /// No description provided for @grpAdmDeleted.
+  ///
+  /// In fr, this message translates to:
+  /// **'Groupe supprimé ({n} événement(s) supprimé(s) avec lui).'**
+  String grpAdmDeleted(String n);
 }
 
 class _AppLocalizationsDelegate

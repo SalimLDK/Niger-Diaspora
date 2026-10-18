@@ -10108,5 +10108,12 @@
   "statDefCategories": "Événements et commerces par catégorie : ceux que vos droits vous permettent de lire, tous statuts confondus (un commerce inactif ou un événement annulé compte).",
   "statDefNoExport": "Aucun export n'est proposé ici : le seul export du panneau est celui du journal d'audit.",
   "statReadAt": "Données lues le {date}",
-  "@statReadAt": {"placeholders": {"date": {"type": "String"}}}
+  "@statReadAt": {"placeholders": {"date": {"type": "String"}}},
+  "grpAdmPrivateTitle": "Rendre le groupe privé",
+  "grpAdmPrivateWarn": "Le groupe disparaît de la recherche et des listes publiques ; seuls ses membres le voient. Le motif est conservé dans l'historique du groupe.",
+  "grpAdmPublicTitle": "Rendre le groupe public",
+  "grpAdmPublicWarn": "Le groupe devient visible et joignable par tous les membres de l'application. Le motif est conservé dans l'historique du groupe.",
+  "grpAdmDeleteWarn": "Irréversible. Les événements et sondages du groupe sont supprimés avec lui, et le groupe n'est pas prévenu. Un groupe officiel ne se supprime que par un superAdmin. Le motif est conservé dans l'historique.",
+  "grpAdmDeleted": "Groupe supprimé ({n} événement(s) supprimé(s) avec lui).",
+  "@grpAdmDeleted": {"placeholders": {"n": {"type": "String"}}}
 }
