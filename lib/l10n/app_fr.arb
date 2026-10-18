@@ -10162,5 +10162,22 @@
   "@srcAdmReviewOn": {"placeholders": {"date": {"type": "String"}}},
   "srcAdmUnpublished": "Non publiée",
   "srcAdmLoadError": "Chargement impossible : {detail}",
-  "@srcAdmLoadError": {"placeholders": {"detail": {"type": "String"}}}
+  "@srcAdmLoadError": {"placeholders": {"detail": {"type": "String"}}},
+  "evtValTab": "À valider",
+  "evtValSetting": "Validation avant publication",
+  "evtValSettingOn": "Activée : un événement public est visible de son organisateur seul tant qu'il n'est pas approuvé.",
+  "evtValSettingOff": "Désactivée : les événements sont publiés tout de suite.",
+  "evtValEnableTitle": "Activer la validation ?",
+  "evtValEnableBody": "Les nouveaux événements publics resteront invisibles des autres membres jusqu'à leur approbation. L'organisateur ne voit pas encore dans l'application que son événement est en attente.",
+  "evtValDisableTitle": "Désactiver la validation ?",
+  "evtValDisableBody": "Les nouveaux événements seront publiés tout de suite. Ceux déjà en attente le restent.",
+  "evtValConfirm": "Confirmer",
+  "evtValNoAccess": "Vous ne pouvez pas valider les événements.",
+  "evtValEmpty": "Aucun événement à valider.",
+  "evtValLoadError": "Chargement impossible : {detail}",
+  "@evtValLoadError": {"placeholders": {"detail": {"type": "String"}}},
+  "evtValApprove": "Approuver",
+  "evtValReject": "Refuser",
+  "evtValRejectReason": "Motif du refus (visible de l'organisateur)",
+  "rchAdmQEventsPending": "Événements à valider"
 }

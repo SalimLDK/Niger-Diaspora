@@ -19525,4 +19525,58 @@ class AppLocalizationsEn extends AppLocalizations {
   String srcAdmLoadError(String detail) {
     return 'Could not load: $detail';
   }
+
+  @override
+  String get evtValTab => 'To validate';
+
+  @override
+  String get evtValSetting => 'Validation before publication';
+
+  @override
+  String get evtValSettingOn =>
+      'On: a public event is visible only to its organizer until it is approved.';
+
+  @override
+  String get evtValSettingOff => 'Off: events are published immediately.';
+
+  @override
+  String get evtValEnableTitle => 'Turn validation on?';
+
+  @override
+  String get evtValEnableBody =>
+      'New public events will stay invisible to other members until approved. The organizer cannot yet see in the app that their event is pending.';
+
+  @override
+  String get evtValDisableTitle => 'Turn validation off?';
+
+  @override
+  String get evtValDisableBody =>
+      'New events will be published immediately. Those already pending stay pending.';
+
+  @override
+  String get evtValConfirm => 'Confirm';
+
+  @override
+  String get evtValNoAccess => 'You cannot validate events.';
+
+  @override
+  String get evtValEmpty => 'No event to validate.';
+
+  @override
+  String evtValLoadError(String detail) {
+    return 'Could not load: $detail';
+  }
+
+  @override
+  String get evtValApprove => 'Approve';
+
+  @override
+  String get evtValReject => 'Reject';
+
+  @override
+  String get evtValRejectReason =>
+      'Reason for rejection (visible to the organizer)';
+
+  @override
+  String get rchAdmQEventsPending => 'Events to validate';
 }

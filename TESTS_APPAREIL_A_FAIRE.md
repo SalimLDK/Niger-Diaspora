@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1517 cases à cocher, 55 cochées** — 326 entrées sur 340 ont encore des cases ouvertes.
+**1523 cases à cocher, 55 cochées** — 327 entrées sur 341 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -98,7 +98,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 6 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (132)
+**P1 — fonction importante, jamais vérifiée** (133)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -175,6 +175,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [⬜ Photo de profil : on choisit son cadrage (2026-09-14)](#-photo-de-profil--on-choisit-son-cadrage-2026-09-14) · *Accueil, profil et réglages*
 - 6 · [⬜ Champ ville : recherche dans le référentiel (2026-09-13)](#-champ-ville--recherche-dans-le-référentiel-2026-09-13) · *Accueil, profil et réglages*
 - 7 · [Bascule en anglais — ~1 600 chaînes branchées, rien vu à l'écran (2026-08-06)](#bascule-en-anglais--1-600-chaînes-branchées-rien-vu-à-lécran-2026-08-06) · *Design, thème, langue et mise en page* · bloqué
+- 6 · [⬜ Événements : validation avant publication, en option (2026-10-20)](#-événements--validation-avant-publication-en-option-2026-10-20) · *Backend, sécurité et observabilité*
 - 8 · [⬜ Événements : calendrier, inscrits, statistiques — et un administrateur ne lit plus tous les événements (2026-10-19)](#-événements--calendrier-inscrits-statistiques--et-un-administrateur-ne-lit-plus-tous-les-événements-2026-10-19) · *Backend, sécurité et observabilité*
 - 6 · [⬜ Réglages versionnés : historique, comparaison, retour arrière (2026-10-19)](#-réglages-versionnés--historique-comparaison-retour-arrière-2026-10-19) · *Backend, sécurité et observabilité*
 - 7 · [⬜ Référentiel géographique : villes, doublons, pays (2026-10-19)](#-référentiel-géographique--villes-doublons-pays-2026-10-19) · *Backend, sécurité et observabilité*
@@ -398,7 +399,7 @@ Par domaine :
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 67 à faire, 0 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 58 à faire, 5 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 108 à faire, 5 faites
-- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 254 à faire, 2 faites
+- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 260 à faire, 2 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 46 à faire, 1 faites
 - [15. Site web](#15-site-web) — 69 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 23 à faire, 0 faites
@@ -9325,6 +9326,22 @@ parce qu'il change un **comportement**, pas seulement un habillage :
 # 13. Backend, sécurité et observabilité
 
 Supabase et Firebase côté serveur, accès anon, stockage, journaux, Crashlytics, back-office.
+
+---
+## ⬜ Événements : validation avant publication, en option (2026-10-20)
+
+**Priorité P1** · importance 4/5 — Les politiques de lecture des événements et la visibilité côté membre ont changé (option désactivée, donc rien ne doit bouger) : à vérifier sur un téléphone avant toute activation.
+
+*Bloqué : migration 20261020090000 appliquée, un téléphone avec un compte organisateur et un compte invité, le panneau web avec contentMod et superAdmin. **Ne pas activer le réglage en production avant que l'écran organisateur affiche « en attente / refusé » : l'application ne le dit pas encore.***
+
+Fichiers : `lib/features/admin/presentation/widgets/evenements_validation.dart`, `supabase/migrations/20261020090000_evenements_validation_option.sql`.
+
+- [ ] Option désactivée, téléphone : créer un événement public — il apparaît tout de suite chez un autre compte, comme avant.
+- [ ] Option désactivée : les événements existants, privés et publics, s'affichent et se rejoignent comme avant.
+- [ ] superAdmin active le réglage : la confirmation rappelle que l'organisateur ne voit pas l'état ; contentMod n'a pas l'interrupteur.
+- [ ] Option active : un événement public créé n'apparaît pas chez un autre compte, apparaît dans « À valider » ; l'approuver le rend visible, le refuser demande un motif.
+- [ ] Un contentMod organisateur ne peut pas approuver son propre événement (message de refus clair).
+- [ ] Option active : un événement privé (invités) reste visible de ses invités sans validation.
 
 ---
 ## ⬜ Panneau admin : sources consulaires à revoir (2026-10-19)

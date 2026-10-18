@@ -78,6 +78,7 @@ class _AdminRechercheScreenState extends ConsumerState<AdminRechercheScreen> {
         'privacy' => l.rchAdmQPrivacy,
         'procedures' => l.rchAdmQProcedures,
         'campaigns' => l.rchAdmQCampaigns,
+        'events_pending' => l.rchAdmQEventsPending,
         'businesses_review' => l.rchAdmQBusinessesReview,
         _ => cle,
       };

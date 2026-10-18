@@ -90,6 +90,7 @@ final fileATraiterProvider = FutureProvider.autoDispose<List<LigneATraiter>>((re
 String destinationDe(String cleOuGenre) => switch (cleOuGenre) {
       'members' => 'users',
       'tickets' || 'tickets_escalated' || 'tickets_overdue' => 'support',
+      'events_pending' => 'evenements',
       'reports' || 'appeals' => 'reports',
       'businesses' || 'businesses_review' => 'businesses',
       'events' => 'evenements',

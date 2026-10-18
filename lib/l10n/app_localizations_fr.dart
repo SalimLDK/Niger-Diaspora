@@ -19702,4 +19702,59 @@ class AppLocalizationsFr extends AppLocalizations {
   String srcAdmLoadError(String detail) {
     return 'Chargement impossible : $detail';
   }
+
+  @override
+  String get evtValTab => 'À valider';
+
+  @override
+  String get evtValSetting => 'Validation avant publication';
+
+  @override
+  String get evtValSettingOn =>
+      'Activée : un événement public est visible de son organisateur seul tant qu\'il n\'est pas approuvé.';
+
+  @override
+  String get evtValSettingOff =>
+      'Désactivée : les événements sont publiés tout de suite.';
+
+  @override
+  String get evtValEnableTitle => 'Activer la validation ?';
+
+  @override
+  String get evtValEnableBody =>
+      'Les nouveaux événements publics resteront invisibles des autres membres jusqu\'à leur approbation. L\'organisateur ne voit pas encore dans l\'application que son événement est en attente.';
+
+  @override
+  String get evtValDisableTitle => 'Désactiver la validation ?';
+
+  @override
+  String get evtValDisableBody =>
+      'Les nouveaux événements seront publiés tout de suite. Ceux déjà en attente le restent.';
+
+  @override
+  String get evtValConfirm => 'Confirmer';
+
+  @override
+  String get evtValNoAccess => 'Vous ne pouvez pas valider les événements.';
+
+  @override
+  String get evtValEmpty => 'Aucun événement à valider.';
+
+  @override
+  String evtValLoadError(String detail) {
+    return 'Chargement impossible : $detail';
+  }
+
+  @override
+  String get evtValApprove => 'Approuver';
+
+  @override
+  String get evtValReject => 'Refuser';
+
+  @override
+  String get evtValRejectReason =>
+      'Motif du refus (visible de l\'organisateur)';
+
+  @override
+  String get rchAdmQEventsPending => 'Événements à valider';
 }

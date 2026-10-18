@@ -9395,5 +9395,21 @@
   "srcAdmNothing": "Nothing to review.",
   "srcAdmReviewOn": "Review planned on {date}",
   "srcAdmUnpublished": "Unpublished",
-  "srcAdmLoadError": "Could not load: {detail}"
+  "srcAdmLoadError": "Could not load: {detail}",
+  "evtValTab": "To validate",
+  "evtValSetting": "Validation before publication",
+  "evtValSettingOn": "On: a public event is visible only to its organizer until it is approved.",
+  "evtValSettingOff": "Off: events are published immediately.",
+  "evtValEnableTitle": "Turn validation on?",
+  "evtValEnableBody": "New public events will stay invisible to other members until approved. The organizer cannot yet see in the app that their event is pending.",
+  "evtValDisableTitle": "Turn validation off?",
+  "evtValDisableBody": "New events will be published immediately. Those already pending stay pending.",
+  "evtValConfirm": "Confirm",
+  "evtValNoAccess": "You cannot validate events.",
+  "evtValEmpty": "No event to validate.",
+  "evtValLoadError": "Could not load: {detail}",
+  "evtValApprove": "Approve",
+  "evtValReject": "Reject",
+  "evtValRejectReason": "Reason for rejection (visible to the organizer)",
+  "rchAdmQEventsPending": "Events to validate"
 }

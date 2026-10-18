@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/evenements_admin_provider.dart';
+import '../widgets/evenements_validation.dart';
 
 /// Événements (spécification d'interfaces § 13) : un calendrier et des chiffres.
 ///
@@ -22,7 +23,7 @@ class AdminEvenementsScreen extends ConsumerWidget {
       return Center(child: Text(l10n.evtCalNoAccess));
     }
     return DefaultTabController(
-      length: 2,
+      length: 3,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -35,10 +36,18 @@ class AdminEvenementsScreen extends ConsumerWidget {
           TabBar(
             labelColor: AdminColors.actionBlue,
             unselectedLabelColor: AdminColors.text3,
-            tabs: [Tab(text: l10n.evtCalTabCalendar), Tab(text: l10n.evtCalTabStats)],
+            tabs: [
+              Tab(text: l10n.evtCalTabCalendar),
+              Tab(text: l10n.evtValTab),
+              Tab(text: l10n.evtCalTabStats),
+            ],
           ),
           const SizedBox(height: 12),
-          const Expanded(child: TabBarView(children: [_Calendrier(), _Statistiques()])),
+          const Expanded(
+            child: TabBarView(
+              children: [_Calendrier(), OngletValidationEvenements(), _Statistiques()],
+            ),
+          ),
         ],
       ),
     );

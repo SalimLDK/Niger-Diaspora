@@ -35683,6 +35683,102 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Chargement impossible : {detail}'**
   String srcAdmLoadError(String detail);
+
+  /// No description provided for @evtValTab.
+  ///
+  /// In fr, this message translates to:
+  /// **'À valider'**
+  String get evtValTab;
+
+  /// No description provided for @evtValSetting.
+  ///
+  /// In fr, this message translates to:
+  /// **'Validation avant publication'**
+  String get evtValSetting;
+
+  /// No description provided for @evtValSettingOn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Activée : un événement public est visible de son organisateur seul tant qu\'il n\'est pas approuvé.'**
+  String get evtValSettingOn;
+
+  /// No description provided for @evtValSettingOff.
+  ///
+  /// In fr, this message translates to:
+  /// **'Désactivée : les événements sont publiés tout de suite.'**
+  String get evtValSettingOff;
+
+  /// No description provided for @evtValEnableTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Activer la validation ?'**
+  String get evtValEnableTitle;
+
+  /// No description provided for @evtValEnableBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les nouveaux événements publics resteront invisibles des autres membres jusqu\'à leur approbation. L\'organisateur ne voit pas encore dans l\'application que son événement est en attente.'**
+  String get evtValEnableBody;
+
+  /// No description provided for @evtValDisableTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Désactiver la validation ?'**
+  String get evtValDisableTitle;
+
+  /// No description provided for @evtValDisableBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les nouveaux événements seront publiés tout de suite. Ceux déjà en attente le restent.'**
+  String get evtValDisableBody;
+
+  /// No description provided for @evtValConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confirmer'**
+  String get evtValConfirm;
+
+  /// No description provided for @evtValNoAccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous ne pouvez pas valider les événements.'**
+  String get evtValNoAccess;
+
+  /// No description provided for @evtValEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun événement à valider.'**
+  String get evtValEmpty;
+
+  /// No description provided for @evtValLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chargement impossible : {detail}'**
+  String evtValLoadError(String detail);
+
+  /// No description provided for @evtValApprove.
+  ///
+  /// In fr, this message translates to:
+  /// **'Approuver'**
+  String get evtValApprove;
+
+  /// No description provided for @evtValReject.
+  ///
+  /// In fr, this message translates to:
+  /// **'Refuser'**
+  String get evtValReject;
+
+  /// No description provided for @evtValRejectReason.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif du refus (visible de l\'organisateur)'**
+  String get evtValRejectReason;
+
+  /// No description provided for @rchAdmQEventsPending.
+  ///
+  /// In fr, this message translates to:
+  /// **'Événements à valider'**
+  String get rchAdmQEventsPending;
 }
 
 class _AppLocalizationsDelegate

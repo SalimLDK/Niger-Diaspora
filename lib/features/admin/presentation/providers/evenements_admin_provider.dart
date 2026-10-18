@@ -21,6 +21,7 @@ class EvenementCal {
     this.enLigne = false,
     this.capacite,
     this.organisateur,
+    this.approbation = 'approved',
   });
 
   final String id;
@@ -35,6 +36,10 @@ class EvenementCal {
   final int? capacite;
   final String? organisateur;
 
+  /// approved | pending | rejected — `approved` partout tant que l'option de
+  /// validation est coupée.
+  final String approbation;
+
   factory EvenementCal.fromJson(Map<String, dynamic> j) => EvenementCal(
         id: j['id'] as String,
         titre: j['title'] as String? ?? '',
@@ -47,6 +52,7 @@ class EvenementCal {
         inscrits: (j['attendee_count'] as num?)?.toInt() ?? 0,
         capacite: (j['max_attendees'] as num?)?.toInt(),
         organisateur: j['organizer_name'] as String?,
+        approbation: j['approval_status'] as String? ?? 'approved',
       );
 }
 
@@ -152,3 +158,51 @@ final permissionEvenementsProvider =
 });
 
 String detailEvenements(Object e) => e is PostgrestException ? e.message : e.toString();
+
+// ═══ Validation avant publication (migration 20261020090000) ═════════════════
+
+class EvenementEnAttente {
+  const EvenementEnAttente(this.id, this.titre, this.debut, this.ville, this.organisateur, this.depuis);
+  final String id;
+  final String titre;
+  final DateTime? debut;
+  final String? ville;
+  final String? organisateur;
+  final DateTime? depuis;
+}
+
+/// La file. Une erreur de lecture reste une erreur — jamais « rien à valider ».
+final evenementsEnAttenteProvider =
+    FutureProvider.autoDispose<List<EvenementEnAttente>>((ref) async {
+  final rows = await _supabase.rpc('event_admin_pending') as List;
+  return [
+    for (final r in rows)
+      EvenementEnAttente(
+        r['id'] as String,
+        r['title'] as String? ?? '',
+        DateTime.tryParse('${r['starts_at'] ?? ''}')?.toLocal(),
+        r['city'] as String?,
+        r['organizer_name'] as String?,
+        DateTime.tryParse('${r['created_at'] ?? ''}')?.toLocal(),
+      ),
+  ];
+});
+
+/// Le réglage : `true` quand la validation est exigée. Illisible sans le droit
+/// de modérer — l'erreur remonte.
+final validationExigeeProvider = FutureProvider.autoDispose<bool>((ref) async {
+  final row = await _supabase.from('event_moderation_settings').select('require_approval').single();
+  return row['require_approval'] == true;
+});
+
+class ValidationEvenementsActions {
+  const ValidationEvenementsActions();
+  Future<void> approuver(String id, {String? note}) =>
+      _supabase.rpc('event_admin_approve', params: {'p_id': id, 'p_note': note});
+  Future<void> refuser(String id, String motif) =>
+      _supabase.rpc('event_admin_reject', params: {'p_id': id, 'p_reason': motif});
+  Future<void> regler(bool exigee) =>
+      _supabase.rpc('event_set_approval_required', params: {'p_on': exigee});
+}
+
+final validationEvenementsActionsProvider = Provider((ref) => const ValidationEvenementsActions());
