@@ -18332,6 +18332,57 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mesDonneesAnswerLabel => 'Team\'s reply';
 
   @override
+  String get ambAdmVerifyTitle => 'Verify the embassy';
+
+  @override
+  String get ambAdmVerifyWarn =>
+      'The badge tells the public the listing was checked: give the official source consulted. It is kept with the date and your name.';
+
+  @override
+  String get ambAdmSourceUrl => 'Source address (https://…)';
+
+  @override
+  String get ambAdmSourcePublisher =>
+      'Source publisher (ministry, official site…)';
+
+  @override
+  String get ambAdmReasonLabel => 'Reason (kept in the history)';
+
+  @override
+  String get ambAdmRejectTitle => 'Reject the listing';
+
+  @override
+  String get ambAdmSuspendTitle => 'Suspend the embassy';
+
+  @override
+  String get ambAdmSuspendWarn =>
+      'The listing stays in the database but is no longer shown as active. Reversible.';
+
+  @override
+  String get ambAdmReactivateTitle => 'Reactivate the embassy';
+
+  @override
+  String get ambAdmConfirm => 'Confirm';
+
+  @override
+  String get ambAdmCancel => 'Cancel';
+
+  @override
+  String ambAdmSuspendedReason(String reason) {
+    return 'Suspended: $reason';
+  }
+
+  @override
+  String ambAdmRejectedReason(String reason) {
+    return 'Rejected: $reason';
+  }
+
+  @override
+  String ambAdmSourceLine(String source) {
+    return 'Source: $source';
+  }
+
+  @override
   String cmpAdmScheduledFor(String date) {
     return 'Scheduled for $date';
   }
