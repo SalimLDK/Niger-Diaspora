@@ -19368,4 +19368,110 @@ class AppLocalizationsEn extends AppLocalizations {
   String statReadAt(String date) {
     return 'Data read on $date';
   }
+
+  @override
+  String get rchAdmTitle => 'To handle and search';
+
+  @override
+  String get rchAdmSubtitle =>
+      'What awaits your decision, and a search across what your role may read.';
+
+  @override
+  String get rchAdmTabQueue => 'To handle';
+
+  @override
+  String get rchAdmTabSearch => 'Search';
+
+  @override
+  String get rchAdmRefresh => 'Refresh';
+
+  @override
+  String get rchAdmQueueEmpty => 'Nothing awaits your decision right now.';
+
+  @override
+  String rchAdmOldest(String date) {
+    return 'Oldest: $date';
+  }
+
+  @override
+  String rchAdmLate(String n) {
+    return '$n overdue';
+  }
+
+  @override
+  String get rchAdmQReports => 'Reports pending';
+
+  @override
+  String get rchAdmQAppeals => 'Appeals to review';
+
+  @override
+  String get rchAdmQTickets => 'Open or in-progress tickets';
+
+  @override
+  String get rchAdmQTicketsEscalated => 'Escalated tickets';
+
+  @override
+  String get rchAdmQTicketsOverdue => 'Tickets past their service deadline';
+
+  @override
+  String get rchAdmQPrivacy => 'Personal-data requests';
+
+  @override
+  String get rchAdmQProcedures => 'Procedures to approve';
+
+  @override
+  String get rchAdmQCampaigns => 'Campaigns to approve';
+
+  @override
+  String get rchAdmQBusinessesReview => 'Business listings to re-verify';
+
+  @override
+  String get rchAdmSearchLabel => 'Search a name or a title';
+
+  @override
+  String get rchAdmSearchHelp =>
+      'Press enter to search. The search is logged, without the searched word.';
+
+  @override
+  String get rchAdmSearchGo => 'Search';
+
+  @override
+  String rchAdmSkipped(String list) {
+    return 'Not searched (missing permission): $list.';
+  }
+
+  @override
+  String get rchAdmNoResult => 'No result.';
+
+  @override
+  String get rchAdmKindMembers => 'Members';
+
+  @override
+  String get rchAdmKindTickets => 'Tickets';
+
+  @override
+  String get rchAdmKindReports => 'Reports';
+
+  @override
+  String get rchAdmKindBusinesses => 'Businesses';
+
+  @override
+  String get rchAdmKindEvents => 'Events';
+
+  @override
+  String get rchAdmKindProcedures => 'Procedures';
+
+  @override
+  String get rchAdmKindEmbassies => 'Embassies';
+
+  @override
+  String get rchAdmKindCampaigns => 'Campaigns';
+
+  @override
+  String rchAdmLoadError(String detail) {
+    return 'Could not load: $detail';
+  }
+
+  @override
+  String get rchAdmRetry => 'Retry';
 }

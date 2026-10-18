@@ -19544,4 +19544,111 @@ class AppLocalizationsFr extends AppLocalizations {
   String statReadAt(String date) {
     return 'Données lues le $date';
   }
+
+  @override
+  String get rchAdmTitle => 'À traiter et recherche';
+
+  @override
+  String get rchAdmSubtitle =>
+      'Ce qui attend votre décision, et une recherche sur ce que votre rôle peut lire.';
+
+  @override
+  String get rchAdmTabQueue => 'À traiter';
+
+  @override
+  String get rchAdmTabSearch => 'Recherche';
+
+  @override
+  String get rchAdmRefresh => 'Actualiser';
+
+  @override
+  String get rchAdmQueueEmpty =>
+      'Rien n\'attend votre décision pour le moment.';
+
+  @override
+  String rchAdmOldest(String date) {
+    return 'Le plus ancien : $date';
+  }
+
+  @override
+  String rchAdmLate(String n) {
+    return '$n en retard';
+  }
+
+  @override
+  String get rchAdmQReports => 'Signalements en attente';
+
+  @override
+  String get rchAdmQAppeals => 'Recours à examiner';
+
+  @override
+  String get rchAdmQTickets => 'Tickets ouverts ou en cours';
+
+  @override
+  String get rchAdmQTicketsEscalated => 'Tickets escaladés';
+
+  @override
+  String get rchAdmQTicketsOverdue => 'Tickets hors délai de service';
+
+  @override
+  String get rchAdmQPrivacy => 'Demandes sur les données personnelles';
+
+  @override
+  String get rchAdmQProcedures => 'Démarches à approuver';
+
+  @override
+  String get rchAdmQCampaigns => 'Campagnes à approuver';
+
+  @override
+  String get rchAdmQBusinessesReview => 'Fiches d\'entreprise à revérifier';
+
+  @override
+  String get rchAdmSearchLabel => 'Chercher un nom ou un titre';
+
+  @override
+  String get rchAdmSearchHelp =>
+      'Validez pour chercher. La recherche est journalisée, sans le mot cherché.';
+
+  @override
+  String get rchAdmSearchGo => 'Chercher';
+
+  @override
+  String rchAdmSkipped(String list) {
+    return 'Non cherché (droit manquant) : $list.';
+  }
+
+  @override
+  String get rchAdmNoResult => 'Aucun résultat.';
+
+  @override
+  String get rchAdmKindMembers => 'Membres';
+
+  @override
+  String get rchAdmKindTickets => 'Tickets';
+
+  @override
+  String get rchAdmKindReports => 'Signalements';
+
+  @override
+  String get rchAdmKindBusinesses => 'Entreprises';
+
+  @override
+  String get rchAdmKindEvents => 'Événements';
+
+  @override
+  String get rchAdmKindProcedures => 'Démarches';
+
+  @override
+  String get rchAdmKindEmbassies => 'Ambassades';
+
+  @override
+  String get rchAdmKindCampaigns => 'Campagnes';
+
+  @override
+  String rchAdmLoadError(String detail) {
+    return 'Chargement impossible : $detail';
+  }
+
+  @override
+  String get rchAdmRetry => 'Réessayer';
 }
