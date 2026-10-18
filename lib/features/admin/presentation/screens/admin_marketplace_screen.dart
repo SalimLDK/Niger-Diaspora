@@ -866,22 +866,26 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
 
     switch (action) {
       case 'enable':
-        final ok = await notifier.toggleProductAvailability(product.id, true, adminId: currentAdmin.id, adminName: currentAdmin.name);
+        final motif = await _showTextDialog(l10n.marAdmRestoreTitle, l10n.marAdmReasonLabel);
+        if (motif == null || motif.isEmpty) return;
+        final ok = await notifier.toggleProductAvailability(product.id, true, motif: motif);
         _montrerBilan(ok, l10n.adminProductActivated);
         break;
       case 'disable':
-        final ok = await notifier.toggleProductAvailability(product.id, false, adminId: currentAdmin.id, adminName: currentAdmin.name);
+        final motif = await _showTextDialog(l10n.marAdmHideTitle, l10n.marAdmReasonLabel);
+        if (motif == null || motif.isEmpty) return;
+        final ok = await notifier.toggleProductAvailability(product.id, false, motif: motif);
         _montrerBilan(ok, l10n.adminProductDeactivated);
         break;
       case 'delete':
-        final confirm = await _showConfirmation(
-          l10n.adminDeleteProductTitle,
-          l10n.adminDeleteProductConfirm,
+        final motif = await _showTextDialog(
+          l10n.marAdmDeleteTitle,
+          l10n.marAdmReasonLabel,
+          aide: l10n.marAdmDeleteWarn,
         );
-        if (confirm == true) {
-          final ok = await notifier.deleteProduct(product.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
-          _montrerBilan(ok, l10n.adminProductDeleted);
-        }
+        if (motif == null || motif.isEmpty) return;
+        final ok = await notifier.deleteProduct(product.id, motif: motif);
+        _montrerBilan(ok, l10n.adminProductDeleted);
         break;
     }
   }
@@ -893,55 +897,46 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
       return;
     }
 
-    final note = await _showTextDialog(l10n.adminResolveDisputeTitle, l10n.adminProcessReportPrompt);
-    if (note != null) {
+    final note = await _showTextDialog(
+      l10n.adminResolveDisputeTitle,
+      l10n.adminProcessReportPrompt,
+      aide: l10n.marAdmDisputeWarn,
+    );
+    if (note != null && note.isNotEmpty) {
       final ok = await ref.read(adminMarketplaceNotifierProvider.notifier).resolveDispute(
         dispute['id'],
         resolution,
         note,
-        adminId: currentAdmin.id,
-        adminName: currentAdmin.name,
       );
       _montrerBilan(ok, l10n.adminDisputeResolved);
     }
   }
 
-  Future<bool?> _showConfirmation(String title, String content) {
-    return showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(title),
-        content: Text(content),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l10n.adminCancelAction)),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AdminColors.statusRed,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            ),
-            child: Text(l10n.adminConfirmAction),
-          ),
-        ],
-      ),
-    );
-  }
 
-  Future<String?> _showTextDialog(String title, String label) {
+  Future<String?> _showTextDialog(String title, String label, {String? aide}) {
     final controller = TextEditingController();
     return showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(title),
-        content: TextField(
-          controller: controller,
-          decoration: InputDecoration(
-            labelText: label,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-          ),
-          maxLines: 3,
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (aide != null) ...[
+              Text(aide, style: const TextStyle(fontSize: 12, color: AdminColors.text2)),
+              const SizedBox(height: 12),
+            ],
+            TextField(
+              controller: controller,
+              decoration: InputDecoration(
+                labelText: label,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+              maxLines: 3,
+            ),
+          ],
         ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.adminCancelAction)),

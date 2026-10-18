@@ -18648,6 +18648,67 @@ class AppLocalizationsFr extends AppLocalizations {
       'Créée n\'est pas livrée, et livrée n\'est pas lue : ni la livraison ni la lecture ne sont mesurées ici.';
 
   @override
+  String get trfAdmProofLabel =>
+      'Preuve du règlement (n° de reçu, référence bancaire…)';
+
+  @override
+  String get trfAdmRequestRefund => 'Demander le remboursement';
+
+  @override
+  String get trfAdmRequestRefundTitle => 'Demander le remboursement (registre)';
+
+  @override
+  String get trfAdmRefundWarn =>
+      'Aucun remboursement n\'est déclenché ici : seul le registre change, après la décision d\'un AUTRE administrateur. Le remboursement réel se fait chez le prestataire de paiement, à part.';
+
+  @override
+  String trfAdmRefundPending(String reason) {
+    return 'Remboursement demandé : $reason';
+  }
+
+  @override
+  String get trfAdmRefundWaiting =>
+      'En attente de la décision d\'un autre administrateur : vous ne pouvez pas décider votre propre demande.';
+
+  @override
+  String get trfAdmApproveRefund => 'Approuver';
+
+  @override
+  String get trfAdmRejectRefund => 'Refuser';
+
+  @override
+  String get trfAdmRejectRefundTitle => 'Refuser le remboursement';
+
+  @override
+  String get trfAdmRejectRefundNote => 'Motif du refus';
+
+  @override
+  String get trfAdmRefundRequested => 'Remboursement demandé.';
+
+  @override
+  String get trfAdmRefundDecided => 'Décision enregistrée.';
+
+  @override
+  String get marAdmReasonLabel => 'Motif (conservé avec votre nom)';
+
+  @override
+  String get marAdmHideTitle => 'Masquer le produit';
+
+  @override
+  String get marAdmRestoreTitle => 'Rétablir le produit';
+
+  @override
+  String get marAdmDeleteTitle => 'Supprimer le produit';
+
+  @override
+  String get marAdmDeleteWarn =>
+      'Suppression définitive, réservée au super-administrateur. Un produit qui a des commandes se masque, il ne s\'efface pas.';
+
+  @override
+  String get marAdmDisputeWarn =>
+      'La décision est consignée. Le séquestre n\'est ni libéré ni remboursé ici : cela se fait chez le prestataire de paiement.';
+
+  @override
   String get tbAdmTitle => 'À traiter';
 
   @override

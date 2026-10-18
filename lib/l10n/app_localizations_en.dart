@@ -18475,6 +18475,67 @@ class AppLocalizationsEn extends AppLocalizations {
       'Created is not delivered, and delivered is not read: neither delivery nor reading is measured here.';
 
   @override
+  String get trfAdmProofLabel =>
+      'Proof of settlement (receipt no., bank reference…)';
+
+  @override
+  String get trfAdmRequestRefund => 'Request a refund';
+
+  @override
+  String get trfAdmRequestRefundTitle => 'Request a refund (ledger)';
+
+  @override
+  String get trfAdmRefundWarn =>
+      'No refund is triggered here: only the ledger changes, after ANOTHER administrator decides. The actual refund is made with the payment provider, separately.';
+
+  @override
+  String trfAdmRefundPending(String reason) {
+    return 'Refund requested: $reason';
+  }
+
+  @override
+  String get trfAdmRefundWaiting =>
+      'Waiting for another administrator to decide: you cannot decide your own request.';
+
+  @override
+  String get trfAdmApproveRefund => 'Approve';
+
+  @override
+  String get trfAdmRejectRefund => 'Reject';
+
+  @override
+  String get trfAdmRejectRefundTitle => 'Reject the refund';
+
+  @override
+  String get trfAdmRejectRefundNote => 'Reason for rejection';
+
+  @override
+  String get trfAdmRefundRequested => 'Refund requested.';
+
+  @override
+  String get trfAdmRefundDecided => 'Decision recorded.';
+
+  @override
+  String get marAdmReasonLabel => 'Reason (kept with your name)';
+
+  @override
+  String get marAdmHideTitle => 'Hide the product';
+
+  @override
+  String get marAdmRestoreTitle => 'Restore the product';
+
+  @override
+  String get marAdmDeleteTitle => 'Delete the product';
+
+  @override
+  String get marAdmDeleteWarn =>
+      'Permanent deletion, super-admin only. A product with orders is hidden, not erased.';
+
+  @override
+  String get marAdmDisputeWarn =>
+      'The decision is recorded. The escrow is neither released nor refunded here: that is done with the payment provider.';
+
+  @override
   String get tbAdmTitle => 'To handle';
 
   @override

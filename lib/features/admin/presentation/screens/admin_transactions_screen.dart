@@ -612,80 +612,122 @@ class _AdminTransactionsScreenState
   Widget _buildActionButtons(TransactionEntity transaction) {
     final notifier = ref.read(adminTransactionsNotifierProvider.notifier);
     final currentAdmin = ref.read(currentAdminProvider);
+    final demande = ref.watch(demandesRemboursementProvider).valueOrNull?[transaction.id];
+    final estDemandeur = demande != null && currentAdmin != null && demande.par == currentAdmin.id;
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        if (transaction.status == TransactionStatus.pending) ...[
-          _buildActionButton(
-            label: l10n.adminMarkFailedAction,
-            icon: Icons.error_rounded,
-            color: AdminColors.statusRed,
-            isOutlined: true,
-            onPressed: () async {
-              if (currentAdmin == null) {
-                _showSnackBar(l10n.adminNotConnected);
-                return;
-              }
-              final reason = await _showTextDialog(
-                l10n.adminMarkAsFailedTitle,
-                l10n.adminFailureReasonPrompt,
-              );
-              if (reason != null && reason.isNotEmpty) {
-                final ok = await notifier.markAsFailed(transaction.id, reason, adminId: currentAdmin.id, adminName: currentAdmin.name);
-                _montrerBilan(ok, l10n.adminTransactionFailed);
-              }
-            },
+        if (demande != null) ...[
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              l10n.trfAdmRefundPending(demande.motif),
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+            ),
           ),
-          const SizedBox(width: 8),
-          _buildActionButton(
-            label: l10n.adminComplete,
-            icon: Icons.check_rounded,
-            color: AdminColors.statusGreen,
-            onPressed: () async {
-              if (currentAdmin == null) {
-                _showSnackBar(l10n.adminNotConnected);
-                return;
-              }
-              final confirm = await _showConfirmation(
-                l10n.adminMarkCompleteTitle,
-                l10n.adminMarkCompleteConfirm,
-              );
-              if (confirm == true) {
-                final ok = await notifier.markAsCompleted(transaction.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
-                _montrerBilan(ok, l10n.adminTransactionCompleted);
-              }
-            },
-          ),
+          if (estDemandeur)
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(l10n.trfAdmRefundWaiting,
+                  style: const TextStyle(fontSize: 12, color: AdminColors.text2)),
+            ),
+          const SizedBox(height: 8),
         ],
-        if (transaction.status == TransactionStatus.completed)
-          _buildActionButton(
-            label: l10n.adminRefund,
-            icon: Icons.undo_rounded,
-            color: AdminColors.statusAmber,
-            onPressed: () async {
-              if (currentAdmin == null) {
-                _showSnackBar(l10n.adminNotConnected);
-                return;
-              }
-              // « Rembourser » promettait un remboursement qui n'a pas lieu :
-              // refundTransaction pose `status = 'refunded'` et rien d'autre,
-              // aucun appel Stripe n'existe dans le dépôt (audit du
-              // 2026-10-14, § 8). Le libellé et la ligne d'aide le disent.
-              final reason = await _showTextDialog(
-                'Marquer la transaction remboursée',
-                l10n.adminRefundReasonLabel,
-                aide:
-                    "Aucun remboursement n'est déclenché ici : seul le statut "
-                    'passe à « remboursée ». Le remboursement réel se fait '
-                    'chez le prestataire de paiement, à part.',
-              );
-              if (reason != null && reason.isNotEmpty) {
-                final ok = await notifier.refundTransaction(transaction.id, reason, adminId: currentAdmin.id, adminName: currentAdmin.name);
-                _montrerBilan(ok, l10n.adminTransactionRefunded);
-              }
-            },
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            if (transaction.status == TransactionStatus.pending) ...[
+              _buildActionButton(
+                label: l10n.adminMarkFailedAction,
+                icon: Icons.error_rounded,
+                color: AdminColors.statusRed,
+                isOutlined: true,
+                onPressed: () async {
+                  final reason = await _showTextDialog(
+                    l10n.adminMarkAsFailedTitle,
+                    l10n.adminFailureReasonPrompt,
+                  );
+                  if (reason != null && reason.isNotEmpty) {
+                    final ok = await notifier.markAsFailed(transaction.id, reason);
+                    _montrerBilan(ok, l10n.adminTransactionFailed);
+                  }
+                },
+              ),
+              const SizedBox(width: 8),
+              _buildActionButton(
+                label: l10n.adminComplete,
+                icon: Icons.check_rounded,
+                color: AdminColors.statusGreen,
+                onPressed: () async {
+                  final preuve = await _showTextDialog(
+                    l10n.adminMarkCompleteTitle,
+                    l10n.trfAdmProofLabel,
+                    aide: l10n.adminMarkCompleteConfirm,
+                  );
+                  if (preuve != null && preuve.isNotEmpty) {
+                    final ok = await notifier.markAsCompleted(transaction.id, preuve: preuve);
+                    _montrerBilan(ok, l10n.adminTransactionCompleted);
+                  }
+                },
+              ),
+            ],
+            if (transaction.status == TransactionStatus.completed && demande == null)
+              _buildActionButton(
+                label: l10n.trfAdmRequestRefund,
+                icon: Icons.undo_rounded,
+                color: AdminColors.statusAmber,
+                onPressed: () async {
+                  final reason = await _showTextDialog(
+                    l10n.trfAdmRequestRefundTitle,
+                    l10n.adminRefundReasonLabel,
+                    aide: l10n.trfAdmRefundWarn,
+                  );
+                  if (reason != null && reason.isNotEmpty) {
+                    final ok = await notifier.requestRefund(transaction.id, reason);
+                    _montrerBilan(ok, l10n.trfAdmRefundRequested);
+                  }
+                },
+              ),
+            if (transaction.status == TransactionStatus.completed &&
+                demande != null &&
+                !estDemandeur) ...[
+              _buildActionButton(
+                label: l10n.trfAdmRejectRefund,
+                icon: Icons.close_rounded,
+                color: AdminColors.statusRed,
+                isOutlined: true,
+                onPressed: () async {
+                  final note = await _showTextDialog(
+                    l10n.trfAdmRejectRefundTitle,
+                    l10n.trfAdmRejectRefundNote,
+                  );
+                  if (note != null && note.isNotEmpty) {
+                    final ok = await notifier.decideRefund(transaction.id,
+                        approve: false, note: note);
+                    _montrerBilan(ok, l10n.trfAdmRefundDecided);
+                  }
+                },
+              ),
+              const SizedBox(width: 8),
+              _buildActionButton(
+                label: l10n.trfAdmApproveRefund,
+                icon: Icons.check_rounded,
+                color: AdminColors.statusAmber,
+                onPressed: () async {
+                  final confirm = await _showConfirmation(
+                    l10n.trfAdmApproveRefund,
+                    l10n.trfAdmRefundWarn,
+                  );
+                  if (confirm == true) {
+                    final ok = await notifier.decideRefund(transaction.id, approve: true);
+                    _montrerBilan(ok, l10n.trfAdmRefundDecided);
+                  }
+                },
+              ),
+            ],
+          ],
+        ),
       ],
     );
   }

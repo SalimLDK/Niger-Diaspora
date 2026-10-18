@@ -33836,6 +33836,114 @@ abstract class AppLocalizations {
   /// **'Créée n\'est pas livrée, et livrée n\'est pas lue : ni la livraison ni la lecture ne sont mesurées ici.'**
   String get cmpAdmReportCaveat;
 
+  /// No description provided for @trfAdmProofLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Preuve du règlement (n° de reçu, référence bancaire…)'**
+  String get trfAdmProofLabel;
+
+  /// No description provided for @trfAdmRequestRefund.
+  ///
+  /// In fr, this message translates to:
+  /// **'Demander le remboursement'**
+  String get trfAdmRequestRefund;
+
+  /// No description provided for @trfAdmRequestRefundTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Demander le remboursement (registre)'**
+  String get trfAdmRequestRefundTitle;
+
+  /// No description provided for @trfAdmRefundWarn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun remboursement n\'est déclenché ici : seul le registre change, après la décision d\'un AUTRE administrateur. Le remboursement réel se fait chez le prestataire de paiement, à part.'**
+  String get trfAdmRefundWarn;
+
+  /// No description provided for @trfAdmRefundPending.
+  ///
+  /// In fr, this message translates to:
+  /// **'Remboursement demandé : {reason}'**
+  String trfAdmRefundPending(String reason);
+
+  /// No description provided for @trfAdmRefundWaiting.
+  ///
+  /// In fr, this message translates to:
+  /// **'En attente de la décision d\'un autre administrateur : vous ne pouvez pas décider votre propre demande.'**
+  String get trfAdmRefundWaiting;
+
+  /// No description provided for @trfAdmApproveRefund.
+  ///
+  /// In fr, this message translates to:
+  /// **'Approuver'**
+  String get trfAdmApproveRefund;
+
+  /// No description provided for @trfAdmRejectRefund.
+  ///
+  /// In fr, this message translates to:
+  /// **'Refuser'**
+  String get trfAdmRejectRefund;
+
+  /// No description provided for @trfAdmRejectRefundTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Refuser le remboursement'**
+  String get trfAdmRejectRefundTitle;
+
+  /// No description provided for @trfAdmRejectRefundNote.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif du refus'**
+  String get trfAdmRejectRefundNote;
+
+  /// No description provided for @trfAdmRefundRequested.
+  ///
+  /// In fr, this message translates to:
+  /// **'Remboursement demandé.'**
+  String get trfAdmRefundRequested;
+
+  /// No description provided for @trfAdmRefundDecided.
+  ///
+  /// In fr, this message translates to:
+  /// **'Décision enregistrée.'**
+  String get trfAdmRefundDecided;
+
+  /// No description provided for @marAdmReasonLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif (conservé avec votre nom)'**
+  String get marAdmReasonLabel;
+
+  /// No description provided for @marAdmHideTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Masquer le produit'**
+  String get marAdmHideTitle;
+
+  /// No description provided for @marAdmRestoreTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rétablir le produit'**
+  String get marAdmRestoreTitle;
+
+  /// No description provided for @marAdmDeleteTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer le produit'**
+  String get marAdmDeleteTitle;
+
+  /// No description provided for @marAdmDeleteWarn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suppression définitive, réservée au super-administrateur. Un produit qui a des commandes se masque, il ne s\'efface pas.'**
+  String get marAdmDeleteWarn;
+
+  /// No description provided for @marAdmDisputeWarn.
+  ///
+  /// In fr, this message translates to:
+  /// **'La décision est consignée. Le séquestre n\'est ni libéré ni remboursé ici : cela se fait chez le prestataire de paiement.'**
+  String get marAdmDisputeWarn;
+
   /// No description provided for @tbAdmTitle.
   ///
   /// In fr, this message translates to:
