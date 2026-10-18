@@ -22,6 +22,7 @@ import 'admin_users_management_screen.dart';
 import 'admin_transactions_screen.dart';
 import 'admin_analytics_screen.dart';
 import 'admin_campagnes_screen.dart';
+import 'admin_securite_screen.dart';
 import 'admin_settings_screen.dart';
 import 'admin_feature_flags_screen.dart';
 import 'admin_audit_screen.dart';
@@ -232,6 +233,14 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
         selectedIcon: const Icon(Icons.history),
         requiredPermission: AdminPermission.viewAuditLogs,
         contentBuilder: (_, __) => const AdminAuditScreen(),
+      ),
+      _NavDestination(
+        id: 'securite',
+        label: l10n.secAdmTitle,
+        icon: const Icon(Icons.shield_outlined),
+        selectedIcon: const Icon(Icons.shield),
+        superAdminOnly: true,
+        contentBuilder: (_, __) => const AdminSecuriteScreen(),
       ),
       _NavDestination(
         id: 'roles',

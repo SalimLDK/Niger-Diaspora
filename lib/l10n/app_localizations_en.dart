@@ -17879,4 +17879,274 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get cmpAdmUnsaved => 'Some changes are not saved. Leave?';
+
+  @override
+  String get secAdmTitle => 'Security and compliance';
+
+  @override
+  String get secAdmSubtitle =>
+      'Personal data requests and security incidents. Super-admin only.';
+
+  @override
+  String get secAdmTabRequests => 'Data requests';
+
+  @override
+  String get secAdmTabIncidents => 'Incidents';
+
+  @override
+  String get secAdmNoAccess => 'You do not have access to this section.';
+
+  @override
+  String secAdmLoadError(String detail) {
+    return 'Could not load: $detail';
+  }
+
+  @override
+  String get secAdmRetry => 'Retry';
+
+  @override
+  String get secAdmEmpty => 'Nothing in this view.';
+
+  @override
+  String get secAdmFilterOpen => 'In progress';
+
+  @override
+  String get secAdmFilterClosed => 'Closed';
+
+  @override
+  String get secAdmFilterAll => 'All';
+
+  @override
+  String get secAdmConfirm => 'Confirm';
+
+  @override
+  String get secAdmCancelAction => 'Cancel';
+
+  @override
+  String get secAdmSave => 'Save';
+
+  @override
+  String get secAdmDone => 'Done.';
+
+  @override
+  String get secAdmReqNew => 'New request';
+
+  @override
+  String get secAdmReqKindAccess => 'Access';
+
+  @override
+  String get secAdmReqKindRectification => 'Rectification';
+
+  @override
+  String get secAdmReqKindErasure => 'Erasure';
+
+  @override
+  String get secAdmReqKindPortability => 'Portability';
+
+  @override
+  String get secAdmReqKindObjection => 'Objection';
+
+  @override
+  String get secAdmReqStatusReceived => 'Received';
+
+  @override
+  String get secAdmReqStatusIdentity => 'Identity verified';
+
+  @override
+  String get secAdmReqStatusInProgress => 'In progress';
+
+  @override
+  String get secAdmReqStatusCompleted => 'Completed';
+
+  @override
+  String get secAdmReqStatusRefused => 'Refused';
+
+  @override
+  String get secAdmReqStatusCancelled => 'Cancelled';
+
+  @override
+  String secAdmReqDueInternal(String date) {
+    return 'Internal due date: $date';
+  }
+
+  @override
+  String get secAdmReqOverdue => 'Overdue';
+
+  @override
+  String get secAdmReqDueHelp =>
+      'The due date is an internal target you choose. The legal deadline depends on the applicable law: it is not computed here.';
+
+  @override
+  String get secAdmReqFieldKind => 'Kind of request';
+
+  @override
+  String get secAdmReqFieldAccount => 'Account identifier (if known)';
+
+  @override
+  String get secAdmReqFieldContact => 'Requester\'s contact (email…)';
+
+  @override
+  String get secAdmReqFieldScope => 'Scope (systems concerned)';
+
+  @override
+  String get secAdmReqFieldDue => 'Internal due date';
+
+  @override
+  String secAdmReqDays(String n) {
+    return '$n days';
+  }
+
+  @override
+  String secAdmReqRequester(String who) {
+    return 'Requester: $who';
+  }
+
+  @override
+  String secAdmReqScope(String scope) {
+    return 'Scope: $scope';
+  }
+
+  @override
+  String secAdmReqIdentity(String method) {
+    return 'Identity verified: $method';
+  }
+
+  @override
+  String secAdmReqResult(String note) {
+    return 'Result: $note';
+  }
+
+  @override
+  String get secAdmReqNeedsIdentity =>
+      'Processing only starts once the identity is verified.';
+
+  @override
+  String get secAdmReqVerify => 'Verify identity';
+
+  @override
+  String get secAdmReqVerifyMethod => 'How the identity was verified';
+
+  @override
+  String get secAdmReqStart => 'Start processing';
+
+  @override
+  String get secAdmReqComplete => 'Complete';
+
+  @override
+  String get secAdmReqCompleteNote => 'Report (systems processed, result)';
+
+  @override
+  String get secAdmReqCompleteWarn =>
+      'This tracking executes nothing: deletion or export go through their own flows, then are recorded here.';
+
+  @override
+  String get secAdmReqRefuse => 'Refuse';
+
+  @override
+  String get secAdmReqRefuseNote => 'Reason for refusal';
+
+  @override
+  String get secAdmReqCancel => 'Cancel the request';
+
+  @override
+  String get secAdmReqCancelNote => 'Reason for cancelling';
+
+  @override
+  String get secAdmReqCreated => 'Request recorded.';
+
+  @override
+  String get secAdmIncNew => 'Open an incident';
+
+  @override
+  String get secAdmIncSevLow => 'Low';
+
+  @override
+  String get secAdmIncSevMedium => 'Medium';
+
+  @override
+  String get secAdmIncSevHigh => 'High';
+
+  @override
+  String get secAdmIncSevCritical => 'Critical';
+
+  @override
+  String get secAdmIncStatusOpen => 'Open';
+
+  @override
+  String get secAdmIncStatusContained => 'Contained';
+
+  @override
+  String get secAdmIncStatusResolved => 'Resolved';
+
+  @override
+  String get secAdmIncStatusClosed => 'Closed';
+
+  @override
+  String get secAdmIncFieldTitle => 'Title';
+
+  @override
+  String get secAdmIncFieldSeverity => 'Severity';
+
+  @override
+  String get secAdmIncFieldSummary => 'What happened (10 characters at least)';
+
+  @override
+  String get secAdmIncFieldImpact => 'Impact (accounts, data, services)';
+
+  @override
+  String get secAdmIncTimeline => 'Timeline';
+
+  @override
+  String get secAdmIncTimelineHint =>
+      'Evidence goes in the timeline notes, never in the audit.';
+
+  @override
+  String get secAdmIncNoteLabel => 'Add a note';
+
+  @override
+  String get secAdmIncAddNote => 'Add';
+
+  @override
+  String get secAdmIncSetSeverity => 'Change severity';
+
+  @override
+  String get secAdmIncSeverityReason => 'Reason for the change';
+
+  @override
+  String get secAdmIncContain => 'Contain';
+
+  @override
+  String get secAdmIncResolve => 'Mark resolved';
+
+  @override
+  String get secAdmIncClose => 'Close';
+
+  @override
+  String get secAdmIncTransitionNote => 'What was done';
+
+  @override
+  String get secAdmIncCloseCause => 'Cause';
+
+  @override
+  String get secAdmIncCloseActions => 'Corrective actions';
+
+  @override
+  String get secAdmIncCloseLessons => 'Lessons learned';
+
+  @override
+  String get secAdmIncCloseHelp =>
+      'Closing requires the analysis: cause, corrective actions, lessons (10 characters each at least).';
+
+  @override
+  String get secAdmIncOpened => 'Incident opened.';
+
+  @override
+  String secAdmIncImpact(String impact) {
+    return 'Impact: $impact';
+  }
+
+  @override
+  String secAdmIncDetected(String date) {
+    return 'Detected on $date';
+  }
 }

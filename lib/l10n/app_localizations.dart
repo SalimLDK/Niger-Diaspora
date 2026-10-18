@@ -32773,6 +32773,498 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Des modifications ne sont pas enregistrées. Quitter ?'**
   String get cmpAdmUnsaved;
+
+  /// No description provided for @secAdmTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sécurité et conformité'**
+  String get secAdmTitle;
+
+  /// No description provided for @secAdmSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Demandes relatives aux données personnelles et incidents de sécurité. Réservé au super-administrateur.'**
+  String get secAdmSubtitle;
+
+  /// No description provided for @secAdmTabRequests.
+  ///
+  /// In fr, this message translates to:
+  /// **'Demandes de données'**
+  String get secAdmTabRequests;
+
+  /// No description provided for @secAdmTabIncidents.
+  ///
+  /// In fr, this message translates to:
+  /// **'Incidents'**
+  String get secAdmTabIncidents;
+
+  /// No description provided for @secAdmNoAccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous n\'avez pas accès à cette rubrique.'**
+  String get secAdmNoAccess;
+
+  /// No description provided for @secAdmLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chargement impossible : {detail}'**
+  String secAdmLoadError(String detail);
+
+  /// No description provided for @secAdmRetry.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réessayer'**
+  String get secAdmRetry;
+
+  /// No description provided for @secAdmEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rien dans cette vue.'**
+  String get secAdmEmpty;
+
+  /// No description provided for @secAdmFilterOpen.
+  ///
+  /// In fr, this message translates to:
+  /// **'En cours'**
+  String get secAdmFilterOpen;
+
+  /// No description provided for @secAdmFilterClosed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Closes'**
+  String get secAdmFilterClosed;
+
+  /// No description provided for @secAdmFilterAll.
+  ///
+  /// In fr, this message translates to:
+  /// **'Toutes'**
+  String get secAdmFilterAll;
+
+  /// No description provided for @secAdmConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confirmer'**
+  String get secAdmConfirm;
+
+  /// No description provided for @secAdmCancelAction.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annuler'**
+  String get secAdmCancelAction;
+
+  /// No description provided for @secAdmSave.
+  ///
+  /// In fr, this message translates to:
+  /// **'Enregistrer'**
+  String get secAdmSave;
+
+  /// No description provided for @secAdmDone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fait.'**
+  String get secAdmDone;
+
+  /// No description provided for @secAdmReqNew.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouvelle demande'**
+  String get secAdmReqNew;
+
+  /// No description provided for @secAdmReqKindAccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Accès'**
+  String get secAdmReqKindAccess;
+
+  /// No description provided for @secAdmReqKindRectification.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rectification'**
+  String get secAdmReqKindRectification;
+
+  /// No description provided for @secAdmReqKindErasure.
+  ///
+  /// In fr, this message translates to:
+  /// **'Effacement'**
+  String get secAdmReqKindErasure;
+
+  /// No description provided for @secAdmReqKindPortability.
+  ///
+  /// In fr, this message translates to:
+  /// **'Portabilité'**
+  String get secAdmReqKindPortability;
+
+  /// No description provided for @secAdmReqKindObjection.
+  ///
+  /// In fr, this message translates to:
+  /// **'Opposition'**
+  String get secAdmReqKindObjection;
+
+  /// No description provided for @secAdmReqStatusReceived.
+  ///
+  /// In fr, this message translates to:
+  /// **'Reçue'**
+  String get secAdmReqStatusReceived;
+
+  /// No description provided for @secAdmReqStatusIdentity.
+  ///
+  /// In fr, this message translates to:
+  /// **'Identité vérifiée'**
+  String get secAdmReqStatusIdentity;
+
+  /// No description provided for @secAdmReqStatusInProgress.
+  ///
+  /// In fr, this message translates to:
+  /// **'En traitement'**
+  String get secAdmReqStatusInProgress;
+
+  /// No description provided for @secAdmReqStatusCompleted.
+  ///
+  /// In fr, this message translates to:
+  /// **'Terminée'**
+  String get secAdmReqStatusCompleted;
+
+  /// No description provided for @secAdmReqStatusRefused.
+  ///
+  /// In fr, this message translates to:
+  /// **'Refusée'**
+  String get secAdmReqStatusRefused;
+
+  /// No description provided for @secAdmReqStatusCancelled.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annulée'**
+  String get secAdmReqStatusCancelled;
+
+  /// No description provided for @secAdmReqDueInternal.
+  ///
+  /// In fr, this message translates to:
+  /// **'Échéance interne : {date}'**
+  String secAdmReqDueInternal(String date);
+
+  /// No description provided for @secAdmReqOverdue.
+  ///
+  /// In fr, this message translates to:
+  /// **'En retard'**
+  String get secAdmReqOverdue;
+
+  /// No description provided for @secAdmReqDueHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'échéance est un objectif interne choisi par vous. Le délai légal dépend du droit applicable : il n\'est pas calculé ici.'**
+  String get secAdmReqDueHelp;
+
+  /// No description provided for @secAdmReqFieldKind.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nature de la demande'**
+  String get secAdmReqFieldKind;
+
+  /// No description provided for @secAdmReqFieldAccount.
+  ///
+  /// In fr, this message translates to:
+  /// **'Identifiant du compte (si connu)'**
+  String get secAdmReqFieldAccount;
+
+  /// No description provided for @secAdmReqFieldContact.
+  ///
+  /// In fr, this message translates to:
+  /// **'Contact du demandeur (courriel…)'**
+  String get secAdmReqFieldContact;
+
+  /// No description provided for @secAdmReqFieldScope.
+  ///
+  /// In fr, this message translates to:
+  /// **'Périmètre (systèmes concernés)'**
+  String get secAdmReqFieldScope;
+
+  /// No description provided for @secAdmReqFieldDue.
+  ///
+  /// In fr, this message translates to:
+  /// **'Échéance interne'**
+  String get secAdmReqFieldDue;
+
+  /// No description provided for @secAdmReqDays.
+  ///
+  /// In fr, this message translates to:
+  /// **'{n} jours'**
+  String secAdmReqDays(String n);
+
+  /// No description provided for @secAdmReqRequester.
+  ///
+  /// In fr, this message translates to:
+  /// **'Demandeur : {who}'**
+  String secAdmReqRequester(String who);
+
+  /// No description provided for @secAdmReqScope.
+  ///
+  /// In fr, this message translates to:
+  /// **'Périmètre : {scope}'**
+  String secAdmReqScope(String scope);
+
+  /// No description provided for @secAdmReqIdentity.
+  ///
+  /// In fr, this message translates to:
+  /// **'Identité vérifiée : {method}'**
+  String secAdmReqIdentity(String method);
+
+  /// No description provided for @secAdmReqResult.
+  ///
+  /// In fr, this message translates to:
+  /// **'Résultat : {note}'**
+  String secAdmReqResult(String note);
+
+  /// No description provided for @secAdmReqNeedsIdentity.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le traitement ne commence qu\'une fois l\'identité vérifiée.'**
+  String get secAdmReqNeedsIdentity;
+
+  /// No description provided for @secAdmReqVerify.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vérifier l\'identité'**
+  String get secAdmReqVerify;
+
+  /// No description provided for @secAdmReqVerifyMethod.
+  ///
+  /// In fr, this message translates to:
+  /// **'Comment l\'identité a été vérifiée'**
+  String get secAdmReqVerifyMethod;
+
+  /// No description provided for @secAdmReqStart.
+  ///
+  /// In fr, this message translates to:
+  /// **'Commencer le traitement'**
+  String get secAdmReqStart;
+
+  /// No description provided for @secAdmReqComplete.
+  ///
+  /// In fr, this message translates to:
+  /// **'Terminer'**
+  String get secAdmReqComplete;
+
+  /// No description provided for @secAdmReqCompleteNote.
+  ///
+  /// In fr, this message translates to:
+  /// **'Compte rendu (systèmes traités, résultat)'**
+  String get secAdmReqCompleteNote;
+
+  /// No description provided for @secAdmReqCompleteWarn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce suivi n\'exécute rien : la suppression ou l\'export se fait par les parcours prévus, puis se consigne ici.'**
+  String get secAdmReqCompleteWarn;
+
+  /// No description provided for @secAdmReqRefuse.
+  ///
+  /// In fr, this message translates to:
+  /// **'Refuser'**
+  String get secAdmReqRefuse;
+
+  /// No description provided for @secAdmReqRefuseNote.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif du refus'**
+  String get secAdmReqRefuseNote;
+
+  /// No description provided for @secAdmReqCancel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annuler la demande'**
+  String get secAdmReqCancel;
+
+  /// No description provided for @secAdmReqCancelNote.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif de l\'annulation'**
+  String get secAdmReqCancelNote;
+
+  /// No description provided for @secAdmReqCreated.
+  ///
+  /// In fr, this message translates to:
+  /// **'Demande enregistrée.'**
+  String get secAdmReqCreated;
+
+  /// No description provided for @secAdmIncNew.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ouvrir un incident'**
+  String get secAdmIncNew;
+
+  /// No description provided for @secAdmIncSevLow.
+  ///
+  /// In fr, this message translates to:
+  /// **'Faible'**
+  String get secAdmIncSevLow;
+
+  /// No description provided for @secAdmIncSevMedium.
+  ///
+  /// In fr, this message translates to:
+  /// **'Moyenne'**
+  String get secAdmIncSevMedium;
+
+  /// No description provided for @secAdmIncSevHigh.
+  ///
+  /// In fr, this message translates to:
+  /// **'Élevée'**
+  String get secAdmIncSevHigh;
+
+  /// No description provided for @secAdmIncSevCritical.
+  ///
+  /// In fr, this message translates to:
+  /// **'Critique'**
+  String get secAdmIncSevCritical;
+
+  /// No description provided for @secAdmIncStatusOpen.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ouvert'**
+  String get secAdmIncStatusOpen;
+
+  /// No description provided for @secAdmIncStatusContained.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confiné'**
+  String get secAdmIncStatusContained;
+
+  /// No description provided for @secAdmIncStatusResolved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Résolu'**
+  String get secAdmIncStatusResolved;
+
+  /// No description provided for @secAdmIncStatusClosed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Clos'**
+  String get secAdmIncStatusClosed;
+
+  /// No description provided for @secAdmIncFieldTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Titre'**
+  String get secAdmIncFieldTitle;
+
+  /// No description provided for @secAdmIncFieldSeverity.
+  ///
+  /// In fr, this message translates to:
+  /// **'Gravité'**
+  String get secAdmIncFieldSeverity;
+
+  /// No description provided for @secAdmIncFieldSummary.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce qui s\'est passé (10 caractères au moins)'**
+  String get secAdmIncFieldSummary;
+
+  /// No description provided for @secAdmIncFieldImpact.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impact (comptes, données, services)'**
+  String get secAdmIncFieldImpact;
+
+  /// No description provided for @secAdmIncTimeline.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chronologie'**
+  String get secAdmIncTimeline;
+
+  /// No description provided for @secAdmIncTimelineHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les éléments de preuve vont dans les notes de la chronologie, jamais dans l\'audit.'**
+  String get secAdmIncTimelineHint;
+
+  /// No description provided for @secAdmIncNoteLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter une note'**
+  String get secAdmIncNoteLabel;
+
+  /// No description provided for @secAdmIncAddNote.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter'**
+  String get secAdmIncAddNote;
+
+  /// No description provided for @secAdmIncSetSeverity.
+  ///
+  /// In fr, this message translates to:
+  /// **'Changer la gravité'**
+  String get secAdmIncSetSeverity;
+
+  /// No description provided for @secAdmIncSeverityReason.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif du changement'**
+  String get secAdmIncSeverityReason;
+
+  /// No description provided for @secAdmIncContain.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confiner'**
+  String get secAdmIncContain;
+
+  /// No description provided for @secAdmIncResolve.
+  ///
+  /// In fr, this message translates to:
+  /// **'Marquer résolu'**
+  String get secAdmIncResolve;
+
+  /// No description provided for @secAdmIncClose.
+  ///
+  /// In fr, this message translates to:
+  /// **'Clôturer'**
+  String get secAdmIncClose;
+
+  /// No description provided for @secAdmIncTransitionNote.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce qui a été fait'**
+  String get secAdmIncTransitionNote;
+
+  /// No description provided for @secAdmIncCloseCause.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cause'**
+  String get secAdmIncCloseCause;
+
+  /// No description provided for @secAdmIncCloseActions.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mesures correctives'**
+  String get secAdmIncCloseActions;
+
+  /// No description provided for @secAdmIncCloseLessons.
+  ///
+  /// In fr, this message translates to:
+  /// **'Enseignements'**
+  String get secAdmIncCloseLessons;
+
+  /// No description provided for @secAdmIncCloseHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'La clôture exige l\'analyse : cause, mesures correctives, enseignements (10 caractères chacun au moins).'**
+  String get secAdmIncCloseHelp;
+
+  /// No description provided for @secAdmIncOpened.
+  ///
+  /// In fr, this message translates to:
+  /// **'Incident ouvert.'**
+  String get secAdmIncOpened;
+
+  /// No description provided for @secAdmIncImpact.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impact : {impact}'**
+  String secAdmIncImpact(String impact);
+
+  /// No description provided for @secAdmIncDetected.
+  ///
+  /// In fr, this message translates to:
+  /// **'Détecté le {date}'**
+  String secAdmIncDetected(String date);
 }
 
 class _AppLocalizationsDelegate

@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1413 cases à cocher, 55 cochées** — 310 entrées sur 324 ont encore des cases ouvertes.
+**1420 cases à cocher, 55 cochées** — 311 entrées sur 325 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -226,7 +226,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (97)
+**P2 — fonction secondaire ou cas limite** (98)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -286,6 +286,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⬜ Le sigle DN est le même partout (2026-09-13)](#-le-sigle-dn-est-le-même-partout-2026-09-13) · *Design, thème, langue et mise en page*
 - 1 · [Thème sombre — jetons clairs codés en dur](#thème-sombre--jetons-clairs-codés-en-dur) · *Design, thème, langue et mise en page*
 - 4 · [Bascule design_v2 → production, famille 2 : les services (2026-08-03)](#bascule-design_v2--production-famille-2--les-services-2026-08-03) · *Design, thème, langue et mise en page*
+- 7 · [⬜ Panneau admin : demandes relatives aux données et incidents de sécurité (2026-10-18)](#-panneau-admin--demandes-relatives-aux-données-et-incidents-de-sécurité-2026-10-18) · *Backend, sécurité et observabilité*
 - 6 · [⬜ Panneau admin : annuler / supprimer un événement avec motif, historique des changements (2026-10-18)](#-panneau-admin--annuler--supprimer-un-événement-avec-motif-historique-des-changements-2026-10-18) · *Backend, sécurité et observabilité*
 - 9 · [⬜ Panneau admin : demandes d'informations et recours dans le dossier de signalement (2026-10-18)](#-panneau-admin--demandes-dinformations-et-recours-dans-le-dossier-de-signalement-2026-10-18) · *Backend, sécurité et observabilité*
 - 5 · [⬜ Avis sur les entreprises : basculés de Firestore vers Supabase (2026-09-21)](#-avis-sur-les-entreprises--basculés-de-firestore-vers-supabase-2026-09-21) · *Backend, sécurité et observabilité*
@@ -382,7 +383,7 @@ Par domaine :
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 67 à faire, 0 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 58 à faire, 5 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 108 à faire, 5 faites
-- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 150 à faire, 2 faites
+- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 157 à faire, 2 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 46 à faire, 1 faites
 - [15. Site web](#15-site-web) — 69 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 23 à faire, 0 faites
@@ -9309,6 +9310,23 @@ parce qu'il change un **comportement**, pas seulement un habillage :
 # 13. Backend, sécurité et observabilité
 
 Supabase et Firebase côté serveur, accès anon, stockage, journaux, Crashlytics, back-office.
+
+---
+## ⬜ Panneau admin : demandes relatives aux données et incidents de sécurité (2026-10-18)
+
+**Priorité P2** · importance 3/5 — Premier suivi tenu de ces deux sujets. Rubrique réservée au superAdmin : à confirmer qu'aucun autre rôle ne la voit.
+
+*Bloqué : migration 20261018230000 appliquée, un compte superAdmin et un compte contentMod sur le panneau web.*
+
+Fichiers : `lib/features/admin/presentation/screens/admin_securite_screen.dart`, `supabase/migrations/20261018230000_securite_conformite.sql`.
+
+- [ ] contentMod et businessMod ne voient pas « Sécurité et conformité » dans le menu ; tapé en adresse, l'écran affiche « pas accès » et aucune donnée.
+- [ ] superAdmin crée une demande d'accès avec un compte de test : « Passer en traitement » n'est offert qu'APRÈS « Vérifier l'identité » ; terminer exige un compte rendu.
+- [ ] L'écran répète que l'échéance est interne (aucun délai légal calculé) et que le suivi n'exécute rien.
+- [ ] Une demande d'effacement « terminée » ne supprime pas le compte (vérifier : le compte existe toujours).
+- [ ] Les données du demandeur (compte, contact) n'apparaissent que carte dépliée, jamais dans la liste.
+- [ ] Incident : ouvrir, noter, confiner, résoudre ; clore sans cause ou sans enseignements est refusé avec un message lisible ; la chronologie d'un incident clos n'accepte plus de note.
+- [ ] Dans le journal d'audit, ni le texte des notes, ni l'identité du demandeur n'apparaissent.
 
 ---
 ## ⬜ Panneau admin : campagnes de notification — l'ancien écran n'envoyait rien (2026-10-18)
