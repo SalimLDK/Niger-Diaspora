@@ -18769,4 +18769,227 @@ class AppLocalizationsEn extends AppLocalizations {
   String mbrAdmLoadError(String detail) {
     return 'Could not load: $detail';
   }
+
+  @override
+  String get refAdmTitle => 'Geographic reference';
+
+  @override
+  String get refAdmSubtitle =>
+      'Cities, duplicates, countries. Super-admin only: a wrong city can open official groups.';
+
+  @override
+  String get refAdmNoAccess => 'You do not have access to this section.';
+
+  @override
+  String get refAdmTabCities => 'Cities';
+
+  @override
+  String get refAdmTabDuplicates => 'Duplicates';
+
+  @override
+  String get refAdmTabCountries => 'Countries';
+
+  @override
+  String refAdmLoadError(String detail) {
+    return 'Could not load: $detail';
+  }
+
+  @override
+  String get refAdmRetry => 'Retry';
+
+  @override
+  String get refAdmReason => 'Reason (kept in the history)';
+
+  @override
+  String get refAdmCancel => 'Cancel';
+
+  @override
+  String get refAdmConfirm => 'Confirm';
+
+  @override
+  String get refAdmSave => 'Save';
+
+  @override
+  String get refAdmSaved => 'Saved.';
+
+  @override
+  String get refAdmSearchCity => 'Search a city (2 letters at least)';
+
+  @override
+  String get refAdmSearchHint =>
+      'Search a city or pick a country: the reference holds over 33,000 cities.';
+
+  @override
+  String get refAdmCountry => 'Country';
+
+  @override
+  String get refAdmAllCountries => 'All countries';
+
+  @override
+  String get refAdmNewCity => 'New city';
+
+  @override
+  String get refAdmEdit => 'Edit';
+
+  @override
+  String get refAdmDelete => 'Delete';
+
+  @override
+  String refAdmPopulation(String n) {
+    return '$n inh.';
+  }
+
+  @override
+  String refAdmDeleteTitle(String name) {
+    return 'Delete $name?';
+  }
+
+  @override
+  String get refAdmDeleteWarn =>
+      'Refused while a profile or group relies on this city: merge it instead. Only the history is kept.';
+
+  @override
+  String get refAdmDeleted => 'City deleted.';
+
+  @override
+  String get refAdmFieldName => 'Name';
+
+  @override
+  String get refAdmFieldRegion => 'Region (optional)';
+
+  @override
+  String get refAdmFieldLat => 'Latitude';
+
+  @override
+  String get refAdmFieldLon => 'Longitude';
+
+  @override
+  String get refAdmFieldPopulation => 'Population';
+
+  @override
+  String get refAdmFieldAliases => 'Other names, comma-separated (optional)';
+
+  @override
+  String get refAdmDuplicatesHelp =>
+      'Same name in the same country, within 20 km. Merging moves profiles to the kept city; refused if the removed city carries a group.';
+
+  @override
+  String get refAdmNoDuplicates => 'No probable duplicate.';
+
+  @override
+  String refAdmDistance(String km) {
+    return '$km km';
+  }
+
+  @override
+  String refAdmKeepA(String id, String profils, String groupes, String other) {
+    return 'Keep $id ($profils profile(s), $groupes group(s)) — remove $other';
+  }
+
+  @override
+  String get refAdmMergeTitle => 'Merge these two cities';
+
+  @override
+  String get refAdmMergeWarn =>
+      'The removed city disappears: its profiles move to the kept city, its other names are merged, its GeoNames id is recorded in the history.';
+
+  @override
+  String get refAdmMerged => 'Cities merged.';
+
+  @override
+  String get refAdmCountriesHelp =>
+      'Adding is possible; renaming and deleting are not: profiles, listings and events carry the country name spelled out.';
+
+  @override
+  String get refAdmSearchCountry => 'Search a country';
+
+  @override
+  String get refAdmNewCountry => 'New country';
+
+  @override
+  String get refAdmFieldIso => 'ISO code (two capital letters)';
+
+  @override
+  String get rgHistTooltip => 'Settings history';
+
+  @override
+  String get rgHistTitle => 'Settings history';
+
+  @override
+  String get rgHistSubtitle =>
+      'Each change keeps the old and new value, who made it and when. Nothing in it can be rewritten or deleted.';
+
+  @override
+  String get rgHistEmpty => 'No change recorded since the history was set up.';
+
+  @override
+  String rgHistLoadError(String detail) {
+    return 'Could not read the history: $detail';
+  }
+
+  @override
+  String get rgHistRetry => 'Retry';
+
+  @override
+  String get rgHistClose => 'Close';
+
+  @override
+  String get rgHistKindUpdate => 'Change';
+
+  @override
+  String get rgHistKindRestore => 'Rollback';
+
+  @override
+  String rgHistBy(String who) {
+    return 'By $who';
+  }
+
+  @override
+  String rgHistReason(String reason) {
+    return 'Reason: $reason';
+  }
+
+  @override
+  String rgHistChange(String key, String from, String to) {
+    return '$key: $from → $to';
+  }
+
+  @override
+  String get rgHistAbsent => '(absent)';
+
+  @override
+  String get rgHistNoDiff => 'No value changed.';
+
+  @override
+  String get rgHistRestore => 'Restore the old value';
+
+  @override
+  String get rgHistNoBefore =>
+      'First recorded value of this section: no old value to restore.';
+
+  @override
+  String rgHistRestoreTitle(String section) {
+    return 'Restore \"$section\"?';
+  }
+
+  @override
+  String get rgHistRestoreBody =>
+      'The section takes back the values from before this change. The rollback is itself recorded.';
+
+  @override
+  String get rgHistRestoreReason => 'Reason for the rollback';
+
+  @override
+  String get rgHistRestoreCancel => 'Cancel';
+
+  @override
+  String get rgHistRestoreConfirm => 'Restore';
+
+  @override
+  String get rgHistRestored => 'Section restored.';
+
+  @override
+  String rgHistRestoreFailed(String detail) {
+    return 'Rollback failed: $detail';
+  }
 }

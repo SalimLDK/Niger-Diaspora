@@ -1,0 +1,1641 @@
+rules_version = '2';
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CHAÎNE DE PAIEMENT — écriture cliente fermée (2026-09-21)
+//
+// Douze collections font bouger de l'argent : `escrow_transactions`, `tips`,
+// `roomTickets`, `roomReplays`, `creatorSubscriptions`, `creatorProfiles`,
+// `payouts`, `stripe_connect_requests`, `debit_requests`,
+// `card_credit_requests`, `order_payment_requests`, `escrow_release_requests`.
+//
+// Chacune sert de DÉCLENCHEUR à une Cloud Function qui agit en Admin SDK :
+// créer le document, c'est ordonner le virement. Les règles laissaient
+// n'importe quel compte le créer, pourvu qu'il s'y déclare propriétaire —
+// c'est-à-dire qu'elles demandaient à l'appelant s'il était autorisé. D'où,
+// entre autres : un solde `availableBalance` posé à la main puis retiré, un
+// séquestre libéré sur une commande fabriquée, le lien du tableau de bord
+// Stripe de quelqu'un d'autre.
+//
+// Aucun code de `lib/` n'écrit dans ces collections — vérifié le 2026-09-21,
+// zéro `collection('…')` pour les douze — et les tables Supabase
+// correspondantes sont VIDES : 0 commande, 0 transaction, 0 séquestre, 0
+// pourboire, 0 billet, 0 profil créateur. La chaîne n'a jamais servi.
+// Fermer ne casse donc rien d'existant ; rouvrir sera une décision explicite.
+//
+// La LECTURE reste ouverte à qui y a droit, et les blocs d'administration ne
+// changent pas. `orders` a d'abord été laissée hors de cette fermeture (vrai
+// chemin client, `marketplace_remote_datasource.dart:49`), puis fermée le
+// même jour (1bb6e729) : rationale au bloc `orders`, plus bas.
+//
+// Banc : tools/rules_tests/paiements_fermes.mjs
+// ═══════════════════════════════════════════════════════════════════════════
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    
+    // Helper function to check if user owns the document
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // ═══ RÔLE ADMIN : LE CLAIM, ET RIEN D'AUTRE (2026-10-14) ═══════════════
+    //
+    // Le rôle se lisait dans le document Firestore `users/{uid}` (`adminRole`,
+    // ou le drapeau hérité `isAdmin`). Deux défauts, mesurés par l'audit du
+    // 2026-10-14 (docs/deploiement/AUDIT_ADMIN_2026-10-14.md, § 2 et § 7.1) :
+    //   · le bloc admin de `users/{userId}` ne protégeait que `adminRole` :
+    //     tout admin, contentMod compris, pouvait poser `isAdmin: true` sur
+    //     n'importe quel compte — le sien aussi — et les quatre helpers
+    //     retombaient dessus. Escalade en une écriture ;
+    //   · un admin sans document Firestore n'avait aucun droit : `.data`
+    //     d'un document absent fait échouer la règle. Plus rien ne crée ces
+    //     documents depuis la migration vers Supabase (8 documents pour 303
+    //     comptes au 14/10).
+    //
+    // Désormais le rôle vit dans le jeton : custom claim `adminRole`, posé
+    // UNIQUEMENT par la Cloud Function `setAdminRole` (functions/roles_admin.js)
+    // depuis Postgres `users.admin_role`, la source. Aucun client ne peut
+    // l'écrire ; aucun document Firestore n'est lu — donc aucune lecture
+    // facturée, et aucun champ `isAdmin`/`adminRole` posé à la main ne donne
+    // plus rien.
+    //
+    // `token.get('adminRole', null)` et non `token.adminRole` : sur un jeton
+    // sans ce claim, l'accès direct FAIT ÉCHOUER la règle (refus muet, même
+    // dans un `||`), là où `get` rend null.
+    //
+    // Banc : tools/rules_tests/registre_role_claim.mjs
+    function getAdminRole() {
+      return request.auth.token.get('adminRole', null);
+    }
+
+    // Les quatre rôles de l'application, et eux seuls : une valeur inconnue
+    // dans le claim ne vaut rien.
+    function isAdmin() {
+      return isAuthenticated()
+        && getAdminRole() in ['superAdmin', 'contentMod', 'businessMod', 'financeMod'];
+    }
+
+    function isSuperAdmin() {
+      return isAuthenticated() && getAdminRole() == 'superAdmin';
+    }
+
+    function canModerateContent() {
+      return isAuthenticated() && getAdminRole() in ['superAdmin', 'contentMod'];
+    }
+
+    function canModerateBusiness() {
+      return isAuthenticated() && getAdminRole() in ['superAdmin', 'businessMod'];
+    }
+
+    function canModerateFinance() {
+      return isAuthenticated() && getAdminRole() in ['superAdmin', 'financeMod'];
+    }
+    
+    // Users collection - users can read any profile but only write their own
+    match /users/{userId} {
+      // Allow list queries (for browsing/aggregation) - authenticated users or admins
+      allow list: if isAuthenticated() || isAdmin();
+
+      // Allow getting individual profiles - authenticated users
+      allow get: if isAuthenticated();
+
+      // `write` etait un seul bloc couvrant create, update ET delete, et il
+      // appelait `diff(resource.data)` sans garde. Sur une CREATION, `resource`
+      // est nul : la regle ne renvoyait pas false, elle **plantait** — « Null
+      // value error, ligne 79, colonne 71 » (verifie le 2026-08-05 par l'API
+      // `firebaserules:test`). Consequence : personne ne pouvait creer son
+      // propre document `users`, et toute ecriture par lot qui en contenait une
+      // etait refusee en entier — c'est ce qui bloquait l'acceptation d'une
+      // demande d'ami, dont le batch fait un `set(merge)` sur les deux profils.
+      //
+      // D'ou la separation en create / update / delete : sur un `update`,
+      // `resource` existe toujours, et le `diff` ne peut plus planter.
+
+      // Creation de son propre profil, sans se donner de role admin.
+      //
+      // La seconde branche existe pour les APK deja installes : leur lot
+      // d'acceptation d'une demande d'ami fait un `set(merge)` sur le profil de
+      // L'AUTRE, ce qui est une CREATION quand ce document n'existe pas — et
+      // plus rien ne cree les documents `users` Firestore depuis la migration
+      // vers Supabase. Le lot etant atomique, ce seul refus annulait les trois
+      // autres ecritures : l'usager lisait « Erreur de chargement », rien ne
+      // bougeait en base. Le client ne fait plus cette ecriture (`friendIds`
+      // n'etait lu par personne) ; cette branche ne sert qu'aux versions
+      // anterieures, et pourra etre retiree quand elles auront disparu.
+      //
+      // Strictement bornee, et volontairement plus etroite que la regle
+      // d'`update` juste en dessous : le document cree ne peut contenir QUE
+      // `friendIds`, et ce tableau ne peut contenir QUE l'uid de l'appelant.
+      // Aucun autre champ — donc jamais `isAdmin` ni `adminRole`.
+      // Couvert par tools/rules_tests/acceptation_ami.mjs.
+      allow create: if (isOwner(userId)
+          && !request.resource.data.keys().hasAny(['isAdmin', 'adminRole']))
+        || (isAuthenticated()
+          && request.resource.data.keys().hasOnly(['friendIds'])
+          && request.resource.data.keys().hasAll(['friendIds'])
+          && request.resource.data.friendIds.toSet().hasOnly([request.auth.uid]));
+
+      allow delete: if isOwner(userId);
+
+      // Exception: allow updating friendIds array when accepting/removing a friend request
+      // Exception: allow updating blockedByUserIds when being blocked/unblocked
+      // Security: block users from modifying their own admin fields
+      //
+      // L'exception `blockedByUserIds` n'est PLUS EMPRUNTEE PAR LE CLIENT
+      // depuis le 2026-09-14 : `blockUser`/`unblockUser` n'ecrivent plus les
+      // profils du tout. Le sens inverse — « qui m'a bloque » — passe par
+      // `public.blocked_users` cote Supabase (`usersWhoBlockedMe`) ; ce
+      // tableau-ci n'est lu nulle part, `profile_supabase_datasource` le code
+      // meme en dur a vide.
+      //
+      // Elle est laissee en place pour les APK DEJA INSTALLES, et retiree
+      // sans profit : leur lot bute de toute facon un cran plus tot, sur
+      // l'`update` de LEUR PROPRE profil, absent depuis la migration vers
+      // Supabase. Mesure et garde-fous dans
+      // tools/rules_tests/blocage_utilisateur.mjs (blocs 3 et 5).
+      allow update: if (isOwner(userId) && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['isAdmin', 'adminRole'])) || (
+        isAuthenticated() &&
+        (
+          // Friend request handling
+          (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['friendIds']) &&
+          (
+            // Allow adding current user to friendIds (accepting friend request)
+            (request.resource.data.get('friendIds', []).toSet().difference(resource.data.get('friendIds', []).toSet()).hasOnly([request.auth.uid]) &&
+             resource.data.get('friendIds', []).toSet().difference(request.resource.data.get('friendIds', []).toSet()).size() == 0) ||
+            // Allow removing current user from friendIds (unfriending)
+            (resource.data.get('friendIds', []).toSet().difference(request.resource.data.get('friendIds', []).toSet()).hasOnly([request.auth.uid]) &&
+             request.resource.data.get('friendIds', []).toSet().difference(resource.data.get('friendIds', []).toSet()).size() == 0)
+          )) ||
+          // Block/unblock handling - allow adding/removing current user ID to/from blockedByUserIds
+          (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['blockedByUserIds']) &&
+          (
+            // Allow adding current user to blockedByUserIds (being blocked)
+            (request.resource.data.blockedByUserIds.toSet().difference(resource.data.get('blockedByUserIds', []).toSet()).hasOnly([request.auth.uid]) &&
+             resource.data.get('blockedByUserIds', []).toSet().difference(request.resource.data.blockedByUserIds.toSet()).size() == 0) ||
+            // Allow removing current user from blockedByUserIds (being unblocked)
+            (resource.data.get('blockedByUserIds', []).toSet().difference(request.resource.data.blockedByUserIds.toSet()).hasOnly([request.auth.uid]) &&
+             request.resource.data.blockedByUserIds.toSet().difference(resource.data.get('blockedByUserIds', []).toSet()).size() == 0)
+          ))
+        )
+      );
+
+      // Friends subcollection
+      match /friends/{friendId} {
+        allow read: if isAuthenticated();
+        // Allow write if:
+        // 1. User owns this friends collection (userId == auth.uid)
+        // 2. User is being added/removed as a friend (friendId == auth.uid)
+        allow write: if isOwner(userId) || (isAuthenticated() && friendId == request.auth.uid);
+      }
+
+      // Blocked Users subcollection
+      match /blocked_users/{blockId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      // Cart subcollection (for marketplace)
+      match /cart/{cartId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      // Payment history subcollection
+      match /payment_history/{paymentId} {
+        allow read: if isOwner(userId);
+        allow write: if false; // Only backend/cloud functions should write payment history
+      }
+
+      // Payment accounts subcollection (mobile money, bank accounts, etc.)
+      match /payment_accounts/{accountId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      // E2EE session backup — owner-only, never readable by anyone else
+      match /e2ee_backups/{backupId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    // Profiles collection (separate from users in some architectures)
+    match /profiles/{profileId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && request.auth.uid == profileId;
+      allow update: if isAuthenticated() && request.auth.uid == profileId;
+    }
+    
+    // Friend requests collection
+    match /friend_requests/{requestId} {
+      // Security: restrict friend request reads to sender or receiver only
+      allow read: if isAuthenticated() &&
+        (resource.data.senderId == request.auth.uid ||
+         resource.data.receiverId == request.auth.uid);
+      // `create` etait `isAuthenticated()` tout court : n'importe quel compte
+      // pouvait fabriquer une demande AU NOM DE quelqu'un d'autre, ou se
+      // l'adresser a soi-meme. La garde « pas soi-meme » ne vivait que dans le
+      // bouton de la fiche de profil.
+      allow create: if isAuthenticated()
+        && request.resource.data.senderId == request.auth.uid
+        && request.resource.data.receiverId != request.auth.uid
+        && request.resource.data.status == 'pending';
+
+      // Only allow updating status field by the receiver, or canceling by sender
+      //
+      // `resource.data.status == 'pending'` ferme la reprise d'une demande
+      // deja traitee : sans lui, un ecran reste ouvert pouvait accepter une
+      // demande que l'expediteur venait d'annuler, ou en reaccepter une deja
+      // acceptee. Et le destinataire ne peut poser que les deux etats qui sont
+      // les siens — il ne peut pas « annuler » a la place de l'expediteur.
+      allow update: if isAuthenticated()
+        && resource.data.status == 'pending'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'updatedAt'])
+        && (
+          (resource.data.receiverId == request.auth.uid &&
+           request.resource.data.status in ['accepted', 'declined']) ||
+          // Sender can cancel (update status to cancelled)
+          (resource.data.senderId == request.auth.uid &&
+           request.resource.data.status == 'cancelled')
+        );
+      // Allow deletion by either party after request is accepted/declined/cancelled
+      allow delete: if isAuthenticated() && 
+        (resource.data.senderId == request.auth.uid || 
+         resource.data.receiverId == request.auth.uid) &&
+        resource.data.status in ['accepted', 'declined', 'cancelled'];
+    }
+    
+    // Notifications - users can only read/write their own notifications
+    match /notifications/{notificationId} {
+      // Allow listing notifications with userId filter (for queries)
+      allow list: if isAuthenticated() && resource.data.userId == request.auth.uid;
+
+      // Allow getting a specific notification if user owns it
+      allow get: if isAuthenticated() && resource.data.userId == request.auth.uid;
+
+      // Allow creating own notifications only; Cloud Functions use Admin SDK (bypasses rules)
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+
+      // Allow update/delete only for owned notifications
+      allow update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
+
+    // Reminders - users can manage their own scheduled reminders
+    match /reminders/{reminderId} {
+      // Allow listing reminders with userId filter (for queries)
+      allow list: if isAuthenticated() && resource.data.userId == request.auth.uid;
+
+      // Allow getting a specific reminder if user owns it
+      allow get: if isAuthenticated() && resource.data.userId == request.auth.uid;
+
+      // Allow creating reminders for themselves
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+
+      // Allow update/delete only for owned reminders
+      allow update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
+
+    // Recurring Transfers - users can manage their scheduled transfers
+    match /recurringTransfers/{transferId} {
+      // Allow listing only for the owner (enforced filter)
+      allow list: if isAuthenticated() && resource.data.userId == request.auth.uid;
+
+      // Allow getting specific transfer if user owns it
+      allow get: if isAuthenticated() && resource.data.userId == request.auth.uid;
+
+      // Allow creating for themselves
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+
+      // Allow update/delete only for owned transfers
+      allow update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
+
+    // Conversations
+    match /conversations/{conversationId} {
+      allow read: if isAuthenticated() && request.auth.uid in resource.data.participantIds;
+      allow create: if isAuthenticated() && request.auth.uid in request.resource.data.participantIds;
+      // Allow update if participant (e.g. reading receipt, last message update)
+      // Also allow creator to update (handles edge cases where participantIds might be malformed)
+      allow update: if isAuthenticated() && (
+        request.auth.uid in resource.data.participantIds ||
+        resource.data.createdBy == request.auth.uid
+      );
+      allow delete: if isAuthenticated() && request.auth.uid in resource.data.participantIds; // Allow delete for cleanup
+      
+      // Match messages subcollection (Legacy/Backup support for deleteAccount)
+      match /messages/{messageId} {
+        allow read, write: if isAuthenticated() && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participantIds;
+      }
+    }
+
+    // Groups
+    match /groups/{groupId} {
+      // Allow list queries (including aggregation/count) for authenticated users
+      // Note: Aggregation queries don't expose document data, just counts
+      // Admins can always list
+      allow list: if isAuthenticated() || isAdmin();
+
+      // Individual document reads: public groups are open; private groups require membership
+      allow get: if isAdmin() || (isAuthenticated() && (
+        !resource.data.get('isPrivate', false) ||
+        resource.data.creatorId == request.auth.uid ||
+        request.auth.uid in resource.data.get('memberIds', []) ||
+        request.auth.uid in resource.data.get('adminIds', [])
+      ));
+      allow create: if isAuthenticated();
+
+      // SECURE UPDATE RULES - Restricts what each role can update
+      allow update: if isAuthenticated() && (
+        // CREATOR: Can update most fields but NOT creatorId (immutable)
+        (resource.data.creatorId == request.auth.uid &&
+         !request.resource.data.diff(resource.data).affectedKeys().hasAny(['creatorId'])) ||
+
+        // ADMINS (in adminIds): Can update limited fields
+        (request.auth.uid in resource.data.get('adminIds', []) &&
+         request.resource.data.diff(resource.data).affectedKeys()
+           .hasOnly(['description', 'rules', 'updatedAt', 'imageUrl'])) ||
+
+        // ANY USER: Join a public group (add themselves only)
+        (resource.data.get('isPublic', false) == true &&
+         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['memberIds', 'memberJoinedAt']) &&
+         request.resource.data.memberIds.toSet().difference(resource.data.memberIds.toSet()).hasOnly([request.auth.uid]) &&
+         resource.data.memberIds.toSet().difference(request.resource.data.memberIds.toSet()).size() == 0) ||
+
+        // MEMBERS: Leave group via Cloud Function (or direct removal of self only)
+        (request.auth.uid in resource.data.memberIds &&
+         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['memberIds', 'memberJoinedAt']) &&
+         resource.data.memberIds.toSet().difference(request.resource.data.memberIds.toSet()).hasOnly([request.auth.uid]) &&
+         // Ensure not adding anyone
+         request.resource.data.memberIds.toSet().difference(resource.data.memberIds.toSet()).size() == 0)
+
+        // NOTE: For removing other members, use Cloud Function removeMemberFromGroup
+        // NOTE: For deleting group, use Cloud Function deleteGroup
+      );
+
+      // Only creator can delete directly (prefer Cloud Function deleteGroup for cleanup)
+      allow delete: if isAuthenticated() && resource.data.creatorId == request.auth.uid;
+    }
+
+    // Events
+    match /events/{eventId} {
+      // Un participant s'inscrit ou se desinscrit lui-meme.
+      //
+      // La regle d'update ne laissait ecrire que l'organisateur, or
+      // `attendEvent` fait un `arrayUnion` sur `attendeeIds` du document
+      // evenement : personne ne pouvait s'inscrire a un evenement qu'il
+      // n'avait pas cree. Verifie sur appareil le 2026-08-05 contre CES
+      // regles-ci (celles en production) — refus sur un evenement d'autrui,
+      // succes sur un evenement dont le compte de test etait organisateur,
+      // tout le reste identique.
+      //
+      // Le garde-fou reste serre : seul `attendeeIds` peut changer, et la
+      // seule difference avec l'etat precedent doit etre l'uid de l'appelant,
+      // dans un sens ou dans l'autre. On ne peut donc ni inscrire quelqu'un
+      // d'autre, ni vider la liste, ni toucher au titre ou a la date.
+      function inscriptionPourSoi() {
+        let avant = resource.data.get('attendeeIds', []).toSet();
+        let apres = request.resource.data.get('attendeeIds', []).toSet();
+        let moi = [request.auth.uid].toSet();
+        return request.resource.data.diff(resource.data)
+                 .affectedKeys().hasOnly(['attendeeIds'])
+            && ((apres.difference(avant) == moi
+                 && avant.difference(apres).size() == 0)
+             || (avant.difference(apres) == moi
+                 && apres.difference(avant).size() == 0));
+      }
+
+      allow read: if isAuthenticated() || isAdmin(); // Public reading of events + admin access
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated() && (
+        resource.data.organizerId == request.auth.uid
+        || inscriptionPourSoi()
+      );
+      allow delete: if isAuthenticated() && resource.data.organizerId == request.auth.uid;
+    }
+
+    // Reports - Content moderators can manage reports
+    match /reports/{reportId} {
+      allow create: if isAuthenticated();
+      // Content moderators (ContentMod, SuperAdmin) can read and manage all reports
+      allow read, update, delete: if canModerateContent();
+    }
+
+    // Payment Intents (Stripe)
+    match /payment_intents/{intentId} {
+      // Security: validate required fields and ownership on payment intent creation
+      allow create: if isAuthenticated() &&
+        request.resource.data.userId == request.auth.uid &&
+        request.resource.data.amount is number &&
+        request.resource.data.amount > 0;
+
+      // Allow listing payment intents only for the owner (enforced filter)
+      allow list: if isAuthenticated() && resource.data.userId == request.auth.uid;
+
+      // Allow getting specific intent if user owns it
+      allow get: if isAuthenticated() && resource.data.userId == request.auth.uid;
+
+      allow update: if false; // Should be handled by Cloud Functions
+    }
+
+    // Sessions subcollection (if you use it)
+    match /users/{userId}/sessions/{sessionId} {
+      allow read, write: if isOwner(userId);
+    }
+    
+    // Products - Marketplace
+    match /products/{productId} {
+      // Allow listing all products for authenticated users
+      allow list: if isAuthenticated();
+
+      // Allow getting specific product if available OR user is seller
+      allow get: if isAuthenticated() && (resource.data.isAvailable == true || resource.data.sellerId == request.auth.uid);
+
+      allow create: if isAuthenticated();
+
+      // Only seller can update their products
+      // Quantity changes are handled by Cloud Functions (onOrderCreated, onOrderUpdated)
+      // ViewCount can be incremented by anyone
+      allow update: if isAuthenticated() && (
+        // Seller can update anything EXCEPT quantity (managed by Cloud Functions)
+        (resource.data.sellerId == request.auth.uid &&
+         !request.resource.data.diff(resource.data).affectedKeys().hasAny(['quantity'])) ||
+        // Seller CAN update quantity directly (for manual stock adjustments)
+        resource.data.sellerId == request.auth.uid ||
+        // Any user can increment viewCount only
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['viewCount'])
+      );
+
+      allow delete: if isAuthenticated() && resource.data.sellerId == request.auth.uid;
+    }
+
+    // Businesses
+    match /businesses/{businessId} {
+      // Require authentication for reading business directory
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      // Security: removed hardcoded "admin" UID bypass — use role-based access instead
+      allow update: if isAuthenticated() && (resource.data.ownerId == request.auth.uid || canModerateBusiness());
+      allow delete: if isAuthenticated() && resource.data.ownerId == request.auth.uid;
+    }
+
+    // Business Posts (announcements, offers, etc.)
+    match /business_posts/{postId} {
+      // Require authentication for reading posts
+      allow read: if isAuthenticated();
+      // Only business owner can create/update/delete posts
+      allow create: if isAuthenticated() &&
+        exists(/databases/$(database)/documents/businesses/$(request.resource.data.businessId)) &&
+        get(/databases/$(database)/documents/businesses/$(request.resource.data.businessId)).data.ownerId == request.auth.uid;
+      allow update: if isAuthenticated() &&
+        exists(/databases/$(database)/documents/businesses/$(resource.data.businessId)) &&
+        get(/databases/$(database)/documents/businesses/$(resource.data.businessId)).data.ownerId == request.auth.uid;
+      allow delete: if isAuthenticated() &&
+        exists(/databases/$(database)/documents/businesses/$(resource.data.businessId)) &&
+        get(/databases/$(database)/documents/businesses/$(resource.data.businessId)).data.ownerId == request.auth.uid;
+    }
+
+    // Transactions (Money Transfers)
+    match /transactions/{transactionId} {
+      // Allow listing transactions only if user is sender or receiver (enforced filter)
+      allow list: if isAuthenticated() &&
+        (resource.data.senderId == request.auth.uid ||
+         resource.data.receiverId == request.auth.uid);
+
+      // Allow getting specific transaction if user is sender or receiver
+      allow get: if isAuthenticated() &&
+        (resource.data.senderId == request.auth.uid ||
+         resource.data.receiverId == request.auth.uid);
+
+      allow create: if isAuthenticated() && request.resource.data.senderId == request.auth.uid;
+
+      // Security: restrict transaction updates to status-related fields only
+      allow update: if isAuthenticated() &&
+        (resource.data.senderId == request.auth.uid ||
+         resource.data.receiverId == request.auth.uid) &&
+        request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['status', 'updatedAt', 'completedAt', 'cancelledAt', 'failedAt', 'failureReason']);
+
+      allow delete: if false; // Transactions should not be deleted
+    }
+
+    // Recipients (for Money Transfers)
+    match /recipients/{recipientId} {
+      // Allow listing recipients only for the owner (enforced filter)
+      allow list: if isAuthenticated() && resource.data.userId == request.auth.uid;
+
+      // Allow getting specific recipient if user owns it
+      allow get: if isAuthenticated() && resource.data.userId == request.auth.uid;
+
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
+
+    // Orders - users can manage their own orders as buyer or seller
+    match /orders/{orderId} {
+      // Allow listing orders (queries must filter by buyerId or sellerId)
+      // Security: enforce buyer/seller filter on order listing
+      allow list: if isAuthenticated() &&
+        (resource.data.buyerId == request.auth.uid ||
+         resource.data.sellerId == request.auth.uid);
+
+      // Allow getting specific order if user is buyer or seller
+      allow get: if isAuthenticated() &&
+        (resource.data.buyerId == request.auth.uid ||
+         resource.data.sellerId == request.auth.uid);
+
+      // ── FERMÉ 2026-09-21 ────────────────────────────────────────────
+      // Voir « Chaîne de paiement » en tête de ce fichier.
+      //
+      // La CRÉATION était la porte : `buyerId == auth.uid` et rien d'autre.
+      // L'acheteur posait donc lui-même `totalAmount`, `sellerAmount`,
+      // `status`, `escrowStatus`, `paidAt` et `paymentIntentId` — le prix
+      // n'était jamais relu depuis `products`.
+      //
+      // La MISE À JOUR, elle, était déjà bien gardée : rôle, transition et
+      // liste de champs, et la note BUG-04 avait déjà sorti la libération du
+      // séquestre vers `escrow_release_requests` + Cloud Function. À tel
+      // point que `MarketplaceRemoteDataSource.releaseEscrow()`, qui pose
+      // `status: 'completed'` et `escrowStatus: 'released'`, est du code MORT
+      // depuis : les règles le refusent déjà.
+      //
+      // Pourquoi fermer quand même : `escrow_release_requests` est fermée
+      // depuis ce jour, donc aucune commande ne peut plus atteindre
+      // `completed` — la vente est de toute façon sans issue. Et mesuré le
+      // 2026-09-21 : 0 commande et 0 produit dans Firestore, 0 commande dans
+      // Supabase, drapeau `marketplace` fermé. Rien n'existe à casser.
+      //
+      // Rouvrir demandera un séquestre tenu par le serveur : prix relu depuis
+      // `products`, paiement confirmé auprès de Stripe, et le passage à
+      // `paid` comme à `completed` réservé à une Cloud Function.
+      allow create: if false;
+      allow update: if false;
+
+      allow delete: if false; // Orders should not be deleted
+    }
+
+    // Group Requests - users can send requests to join groups
+    match /group_requests/{requestId} {
+      // Only requester or group creator/admin may see these documents
+      allow list: if isAuthenticated() && (
+        resource.data.requesterId == request.auth.uid ||
+        get(/databases/$(database)/documents/groups/$(resource.data.groupId)).data.creatorId == request.auth.uid
+      );
+      allow get: if isAuthenticated() && (
+        resource.data.requesterId == request.auth.uid ||
+        get(/databases/$(database)/documents/groups/$(resource.data.groupId)).data.creatorId == request.auth.uid
+      );
+      allow create: if isAuthenticated() && request.resource.data.requesterId == request.auth.uid;
+      // Requester can cancel, group creator can approve/reject
+      allow update: if isAuthenticated() && (
+        resource.data.requesterId == request.auth.uid ||
+        get(/databases/$(database)/documents/groups/$(resource.data.groupId)).data.creatorId == request.auth.uid
+      );
+      allow delete: if isAuthenticated() && resource.data.requesterId == request.auth.uid;
+    }
+
+    // Group Invites - group admins can send invites, invited users can accept/decline
+    match /group_invites/{inviteId} {
+      allow list: if isAuthenticated() && (
+        resource.data.inviteeId == request.auth.uid ||
+        resource.data.inviterId == request.auth.uid
+      );
+      allow get: if isAuthenticated() &&
+        (resource.data.inviteeId == request.auth.uid || resource.data.inviterId == request.auth.uid);
+      allow create: if isAuthenticated() && request.resource.data.inviterId == request.auth.uid;
+      // Invitee can accept/decline, inviter can cancel
+      allow update: if isAuthenticated() &&
+        (resource.data.inviteeId == request.auth.uid || resource.data.inviterId == request.auth.uid);
+      allow delete: if isAuthenticated() &&
+        (resource.data.inviteeId == request.auth.uid || resource.data.inviterId == request.auth.uid);
+    }
+
+    // Profile Share Links - users can create and manage temporary links to their profile
+    match /profile_share_links/{linkId} {
+      // Allow listing only for the owner (enforced filter)
+      allow list: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow get: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
+
+    // Escrow Transactions - managed by participants, often with backend involvement
+    match /escrow_transactions/{transactionId} {
+      // Allow listing only if user is participant or initiator (enforced filter)
+      allow list: if isAuthenticated() &&
+        (request.auth.uid in resource.data.participantIds || request.auth.uid == resource.data.initiatorId);
+      allow get: if isAuthenticated() &&
+        (request.auth.uid in resource.data.participantIds || request.auth.uid == resource.data.initiatorId);
+      // FERMÉ 2026-09-21 — voir « Chaîne de paiement » en tête de ce fichier.
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false; // Escrow transactions should not be deleted by users
+    }
+
+    // Business Reviews - users can write reviews, businesses can read them
+    match /business_reviews/{reviewId} {
+      allow list: if isAuthenticated();
+      allow get: if isAuthenticated();
+      allow create: if isAuthenticated() && request.resource.data.reviewerId == request.auth.uid;
+      allow update: if isAuthenticated() && resource.data.reviewerId == request.auth.uid;
+      allow delete: if isAuthenticated() && resource.data.reviewerId == request.auth.uid;
+    }
+
+    // Business Boosts - managed by business owners
+    match /business_boosts/{boostId} {
+      // Allow listing only for the business owner (enforced filter)
+      allow list: if isAuthenticated() && resource.data.businessOwnerId == request.auth.uid;
+      allow get: if isAuthenticated() && resource.data.businessOwnerId == request.auth.uid;
+      // ── FERMÉ 2026-09-21 ────────────────────────────────────────────
+      // Voir « CHAÎNE DE PAIEMENT » en tête de ce fichier.
+      //
+      // Une promotion payante que le client s'accorde lui-même : `create`
+      // n'exigeait que `businessOwnerId == auth.uid`, donc le montant, le
+      // type, la durée et la date de fin venaient de l'acheteur.
+      //
+      // Chemin MORT, mesuré le 2026-09-21 : le module Entreprises a basculé
+      // sur Supabase le 2026-09-10 (`business_supabase_datasource.dart`), et
+      // Firestore porte 0 document dans `businesses`, `business_boosts`,
+      // `business_posts` et `business_reviews`. La quittance côté Supabase
+      // est fermée le même jour (migration 20260921071500), avec l'effet
+      // payant lui-même — `businesses.is_boosted` — et le badge
+      // `is_verified`, tous deux en libre-service jusqu'ici.
+      //
+      // La lecture reste, pour que d'anciens documents restent consultables
+      // s'il en réapparaissait. Le bloc administrateur, plus bas dans ce
+      // fichier, garde son `read, update`.
+      allow create: if false;
+      allow update, delete: if false;
+    }
+
+    // Legal Content - publicly readable, only admin can write
+    match /legal_content/{documentId} {
+      allow read: if true; // Publicly readable (e.g., Terms of Service, Privacy Policy)
+      allow write: if false; // Only admin via backend
+    }
+
+    // =========================================================================
+    // ADMIN-SPECIFIC RULES
+    // =========================================================================
+
+    // Admin Notifications - admins can read/write global notifications
+    match /admin_notifications/{notificationId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Admin Audit Logs - admins can read and write audit logs
+    // Security: audit logs are append-only via Cloud Functions, not client-writable
+    match /admin_audit_logs/{logId} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
+    // App Configuration - readable by authenticated users, writable by SuperAdmin only
+    //
+    // `app_config/settings` ne se modifie PLUS sans laisser sa trace : le lot
+    // d'écriture doit porter, en même temps, une entrée neuve de
+    // `app_config_history` dont le document de réglages cite l'identifiant
+    // (`lastChangeId`). Le panneau l'écrit déjà ainsi (AppSettingsDataSourceImpl).
+    // Un identifiant déjà utilisé ne peut pas autoriser un second changement :
+    // l'entrée citée ne doit pas exister AVANT le lot (`!exists`) et doit
+    // exister APRÈS (`existsAfter`), au nom de l'auteur de l'écriture.
+    // Banc : tools/rules_tests/reglages_historique.mjs.
+    match /app_config/{documentId} {
+      allow read: if isAuthenticated(); // All authenticated users can read settings
+
+      function changementTrace() {
+        return request.resource.data.get('lastChangeId', null) is string
+          && !exists(/databases/$(database)/documents/app_config_history/$(request.resource.data.lastChangeId))
+          && existsAfter(/databases/$(database)/documents/app_config_history/$(request.resource.data.lastChangeId))
+          && getAfter(/databases/$(database)/documents/app_config_history/$(request.resource.data.lastChangeId)).data.by == request.auth.uid;
+      }
+
+      allow create: if isSuperAdmin() && (documentId != 'settings' || changementTrace());
+      allow update: if isSuperAdmin() && (documentId != 'settings' || changementTrace());
+      // Le document des réglages ne se supprime pas ; les autres, comme avant.
+      allow delete: if isSuperAdmin() && documentId != 'settings';
+    }
+
+    // Historique des réglages : ajout seul, jamais réécrit ni supprimé — pas
+    // même par le superAdmin. Lisible par le seul superAdmin.
+    match /app_config_history/{changeId} {
+      allow read: if isSuperAdmin();
+      allow create: if isSuperAdmin()
+        && request.resource.data.keys().hasOnly(['section', 'before', 'after', 'by', 'at', 'kind', 'restoredFrom', 'reason'])
+        && request.resource.data.keys().hasAll(['section', 'after', 'by', 'at', 'kind'])
+        && request.resource.data.section is string
+        && request.resource.data.after is map
+        && (!('before' in request.resource.data) || request.resource.data.before == null || request.resource.data.before is map)
+        && request.resource.data.by == request.auth.uid
+        && request.resource.data.at == request.time
+        && request.resource.data.kind in ['update', 'restore']
+        && (!('reason' in request.resource.data) || (request.resource.data.reason is string && request.resource.data.reason.size() <= 500));
+      allow update, delete: if false;
+    }
+
+    // Embassies - admins can create and manage embassies
+    match /embassies/{embassyId} {
+      allow read: if true; // Public read for embassy directory
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Embassy Employees - admins can manage embassy staff
+    match /embassy_employees/{employeeId} {
+      allow read: if isAuthenticated();
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Embassy Messages - admins can view all embassy communications
+    match /embassy_messages/{messageId} {
+      // Users can read their own messages or if they work at the embassy
+      // Security: restrict embassy message reads to the message owner or embassy admins
+      allow read: if isAuthenticated() &&
+        (resource.data.userId == request.auth.uid ||
+         isAdmin());
+      allow create: if isAuthenticated();
+      allow update, delete: if isAdmin();
+    }
+
+    // Activity Logs - admins can view user activity for moderation
+    match /activity_logs/{logId} {
+      allow read: if isAdmin();
+      allow create: if isAuthenticated();
+      allow update, delete: if false;
+    }
+
+    // Admin: Full access to profiles for user management
+    match /profiles/{profileId} {
+      allow read, update: if isAdmin();
+    }
+
+    // Admin: Full access to orders for dispute management
+    match /orders/{orderId} {
+      allow read, update: if isAdmin();
+    }
+
+    // Admin: Business moderators can access products
+    match /products/{productId} {
+      allow read, update, delete: if canModerateBusiness();
+    }
+
+    // Admin: Business moderators can access businesses
+    match /businesses/{businessId} {
+      allow read, update, delete: if canModerateBusiness();
+    }
+
+    // Admin: Business moderators can access business posts
+    match /business_posts/{postId} {
+      allow read, update, delete: if canModerateBusiness();
+    }
+
+    // Admin: Business moderators can access business reviews
+    match /business_reviews/{reviewId} {
+      allow read, update, delete: if canModerateBusiness();
+    }
+
+    // Admin: Content moderators can access events
+    match /events/{eventId} {
+      allow read, update, delete: if canModerateContent();
+    }
+
+    // Admin: Content moderators can access groups
+    match /groups/{groupId} {
+      allow read, update, delete: if canModerateContent();
+    }
+
+    // Admin: Finance moderators can access transactions
+    match /transactions/{transactionId} {
+      allow read, update: if canModerateFinance();
+    }
+
+    // Admin: lecture et gestion des profils.
+    //
+    // Le rôle ne vit plus ici (voir l'en-tête des helpers) : PERSONNE,
+    // superAdmin compris, ne pose `adminRole` ni `isAdmin` dans un document
+    // `users` — un rôle s'assigne par la callable `setAdminRole`. Et un admin
+    // ne touche pas son propre document par ce chemin : la règle
+    // propriétaire, plus haut, couvre déjà ce qu'il a le droit d'y écrire.
+    // Banc : tools/rules_tests/registre_role_claim.mjs (bloc 2).
+    match /users/{userId} {
+      allow read: if isAdmin();
+      allow update: if isAdmin()
+        && request.auth.uid != userId
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['adminRole', 'isAdmin']);
+    }
+
+    // Admin: Read notifications for all users (for support)
+    match /notifications/{notificationId} {
+      allow read: if isAdmin();
+    }
+
+    // Admin: Manage conversations for support/moderation
+    match /conversations/{conversationId} {
+      allow read: if isAdmin();
+    }
+
+    // Admin: Manage escrow transactions for dispute resolution
+    match /escrow_transactions/{transactionId} {
+      allow read, update: if isAdmin();
+    }
+
+    // Admin: Manage friend requests for moderation
+    match /friend_requests/{requestId} {
+      allow read, delete: if isAdmin();
+    }
+
+    // Admin: Manage group requests for moderation
+    match /group_requests/{requestId} {
+      allow read, delete: if isAdmin();
+    }
+
+    // Admin: Manage group invites for moderation
+    match /group_invites/{inviteId} {
+      allow read, delete: if isAdmin();
+    }
+
+    // Admin: View profile share links for support
+    match /profile_share_links/{linkId} {
+      allow read: if isAdmin();
+    }
+
+    // Admin: View recipients for support
+    match /recipients/{recipientId} {
+      allow read: if isAdmin();
+    }
+
+    // Admin: Manage business boosts
+    match /business_boosts/{boostId} {
+      allow read, update: if isAdmin();
+    }
+
+    // Admin: View payment intents for support
+    match /payment_intents/{intentId} {
+      allow read: if isAdmin();
+    }
+
+    // Admin: Manage reminders for support
+    match /reminders/{reminderId} {
+      allow read: if isAdmin();
+    }
+
+    // Admin: Manage recurring transfers for support
+    match /recurringTransfers/{transferId} {
+      allow read, update: if canModerateFinance();
+    }
+
+    // Admin: Access user subcollections for moderation
+    match /users/{userId}/friends/{friendId} {
+      allow read, delete: if isAdmin();
+    }
+
+    match /users/{userId}/blocked_users/{blockId} {
+      allow read: if isAdmin();
+    }
+
+    match /users/{userId}/sessions/{sessionId} {
+      allow read, delete: if isAdmin();
+    }
+
+    match /users/{userId}/cart/{cartId} {
+      allow read: if isAdmin();
+    }
+
+    match /users/{userId}/e2ee_backups/{backupId} {
+      allow read: if isAdmin();
+    }
+
+    // Admin: Manage legal content (Terms, Privacy Policy)
+    match /legal_content/{documentId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Admin: Access conversation messages for moderation
+    match /conversations/{conversationId}/messages/{messageId} {
+      allow read, delete: if isAdmin();
+    }
+
+    // =========================================================================
+    // CALLS (1:1 Audio/Video)
+    // =========================================================================
+
+    match /calls/{callId} {
+      // E2EE key subcollection
+      match /e2ee_key/{keyId} {
+        allow read: if isAuthenticated() && (
+          resource.data.callerId == request.auth.uid ||
+          resource.data.calleeId == request.auth.uid
+        );
+        allow write: if isAuthenticated() && (
+          resource.data.callerId == request.auth.uid ||
+          resource.data.calleeId == request.auth.uid
+        );
+      }
+    }
+
+    // Calls collection (main rules) - caller and callee can read/write
+    match /calls/{callId} {
+      // Both participants can read
+      allow read: if isAuthenticated() && (
+        resource.data.callerId == request.auth.uid ||
+        resource.data.calleeId == request.auth.uid
+      );
+      // Allow listing calls where user is a participant
+      allow list: if isAuthenticated() && (
+        resource.data.callerId == request.auth.uid ||
+        resource.data.calleeId == request.auth.uid
+      );
+      // ── Durci le 2026-09-21 ──────────────────────────────────────────
+      // Créer un appel déclenche `onCallCreated`, qui fait SONNER l'appelé
+      // (push `incoming_call`, écran d'appel natif). La règle n'exigeait que
+      // `callerId == auth.uid` : type, statut et appelé étaient libres. Le
+      // nom et la photo de l'appelant, eux, ne sont plus lus par la fonction
+      // (functions/appels.js) — ils restent écrits ici pour l'historique
+      // d'appels, sans pouvoir tromper la sonnerie.
+      //
+      // `calleeId` doit avoir la forme d'un uid : la fonction le passe à
+      // PostgREST, où un `&` ou une parenthèse réécrirait la requête.
+      // Valeurs relevées dans `lib/` : `CallType { audio, video }`, statut
+      // `ringing` (call_repository_impl.dart:37) ou `busy`
+      // (call_remote_datasource.dart:148).
+      allow create: if isAuthenticated()
+        && request.resource.data.callerId == request.auth.uid
+        && request.resource.data.calleeId is string
+        && request.resource.data.calleeId.matches('^[A-Za-z0-9_-]{1,128}$')
+        && request.resource.data.calleeId != request.auth.uid
+        && request.resource.data.type in ['audio', 'video']
+        && request.resource.data.status in ['ringing', 'busy'];
+      // Un participant fait avancer l'appel — rien d'autre. La règle laissait
+      // réécrire N'IMPORTE QUEL champ, `callerId` compris, et
+      // `onCallUpdated` prévenait alors un tiers choisi (« X a refusé votre
+      // appel »). Les seuls champs que le client met à jour, relevés dans
+      // call_remote_datasource.dart (:224, :273-282, :296, :311).
+      allow update: if isAuthenticated() && (
+        resource.data.callerId == request.auth.uid ||
+        resource.data.calleeId == request.auth.uid
+      ) && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['status', 'answeredAt', 'endedAt', 'endReason', 'durationSeconds']);
+      // Both participants can delete call records
+      allow delete: if isAuthenticated() && (
+        resource.data.callerId == request.auth.uid ||
+        resource.data.calleeId == request.auth.uid
+      );
+    }
+
+    // =========================================================================
+    // GROUP CALLS (2+ participants)
+    // =========================================================================
+
+    // Group Calls collection - multi-participant audio/video calls
+    match /group_calls/{callId} {
+      // Allow listing group calls where user is a participant
+      allow list: if isAuthenticated() && (
+        resource.data.hostId == request.auth.uid ||
+        request.auth.uid in resource.data.participantIds
+      );
+
+      // Participants can read the call
+      allow get: if isAuthenticated() && (
+        resource.data.hostId == request.auth.uid ||
+        request.auth.uid in resource.data.participantIds
+      );
+
+      // Authenticated users can create group calls (must be the host)
+      allow create: if isAuthenticated() &&
+        request.resource.data.hostId == request.auth.uid &&
+        request.auth.uid in request.resource.data.participantIds;
+
+      // Host and participants can update
+      allow update: if isAuthenticated() && (
+        // Host can update anything
+        resource.data.hostId == request.auth.uid ||
+        // Participants can update certain fields (join/leave, own status)
+        (request.auth.uid in resource.data.participantIds &&
+         request.resource.data.diff(resource.data).affectedKeys()
+           .hasOnly(['participantIds', 'participantCount', 'updatedAt']))
+      );
+
+      // Only host can delete (end) the call
+      allow delete: if isAuthenticated() && resource.data.hostId == request.auth.uid;
+
+      // E2EE key subcollection - shared encryption key for the group
+      match /e2ee_key/{keyId} {
+        // Only participants can read the key
+        allow read: if isAuthenticated() && (
+          resource.data.hostId == request.auth.uid ||
+          request.auth.uid in resource.data.participantIds
+        );
+        // Only host can write the key
+        allow write: if isAuthenticated() &&
+          resource.data.hostId == request.auth.uid;
+      }
+
+      // Participants subcollection - detailed participant info
+      match /participants/{participantId} {
+        allow read: if isAuthenticated() && (
+          resource.data.hostId == request.auth.uid ||
+          request.auth.uid in resource.data.participantIds
+        );
+        // Users can add themselves, host can add anyone
+        allow create: if isAuthenticated() && (
+          participantId == request.auth.uid ||
+          resource.data.hostId == request.auth.uid
+        );
+        // Users can update their own data, host can update anyone
+        allow update: if isAuthenticated() && (
+          participantId == request.auth.uid ||
+          resource.data.hostId == request.auth.uid
+        );
+        // Users can remove themselves, host can remove anyone
+        allow delete: if isAuthenticated() && (
+          participantId == request.auth.uid ||
+          resource.data.hostId == request.auth.uid
+        );
+      }
+    }
+
+    // Admin: Manage group calls for moderation
+    match /group_calls/{callId} {
+      allow read, update, delete: if canModerateContent();
+    }
+
+    // =========================================================================
+    // AUDIO ROOMS
+    // =========================================================================
+
+    // Audio Rooms - live audio spaces (similar to X Spaces / Clubhouse)
+    match /audioRooms/{roomId} {
+      // Anyone authenticated can list/read live and scheduled rooms
+      allow list: if isAuthenticated();
+      allow get: if isAuthenticated();
+
+      // Authenticated users can create rooms
+      allow create: if isAuthenticated() && request.resource.data.hostId == request.auth.uid;
+
+      // Host can update/delete their room
+      // Participants can update certain fields (like joining/leaving)
+      allow update: if isAuthenticated() && (
+        // Host can update anything
+        resource.data.hostId == request.auth.uid ||
+        // Co-hosts can update moderation-related fields
+        request.auth.uid in resource.data.get('coHostIds', []) ||
+        // Authenticated users may update counts and their own presence only (if not blocked)
+        (request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['listenerCount', 'speakerCount', 'participantIds', 'raisedHandIds']) &&
+         !(request.auth.uid in resource.data.get('blockedUserIds', [])) &&
+         (!resource.data.get('isPrivate', false) || request.auth.uid in resource.data.get('allowedUserIds', [])) &&
+         // participantIds: only the requesting user's UID may be added or removed
+         (
+           !request.resource.data.diff(resource.data).affectedKeys().hasAny(['participantIds']) ||
+           (resource.data.get('participantIds', []).toSet().difference(request.resource.data.get('participantIds', []).toSet()).hasOnly([request.auth.uid]) ||
+            request.resource.data.get('participantIds', []).toSet().difference(resource.data.get('participantIds', []).toSet()).hasOnly([request.auth.uid]))
+         ) &&
+         // raisedHandIds: only the requesting user's UID may be added or removed
+         (
+           !request.resource.data.diff(resource.data).affectedKeys().hasAny(['raisedHandIds']) ||
+           (resource.data.get('raisedHandIds', []).toSet().difference(request.resource.data.get('raisedHandIds', []).toSet()).hasOnly([request.auth.uid]) ||
+            request.resource.data.get('raisedHandIds', []).toSet().difference(resource.data.get('raisedHandIds', []).toSet()).hasOnly([request.auth.uid]))
+         ))
+      );
+
+      // Only host can delete the room
+      allow delete: if isAuthenticated() && resource.data.hostId == request.auth.uid;
+
+      // Participants subcollection
+      match /participants/{participantId} {
+        allow read: if isAuthenticated();
+        // Users can add themselves as participants (if not blocked and allowed for private rooms)
+        allow create: if isAuthenticated() &&
+          participantId == request.auth.uid &&
+          // Check user is not in blockedUserIds
+          !(request.auth.uid in get(/databases/$(database)/documents/audioRooms/$(roomId)).data.get('blockedUserIds', [])) &&
+          // For private rooms, check user is in allowedUserIds or is host/co-host
+          (!get(/databases/$(database)/documents/audioRooms/$(roomId)).data.get('isPrivate', false) ||
+           request.auth.uid in get(/databases/$(database)/documents/audioRooms/$(roomId)).data.get('allowedUserIds', []) ||
+           request.auth.uid == get(/databases/$(database)/documents/audioRooms/$(roomId)).data.hostId ||
+           request.auth.uid in get(/databases/$(database)/documents/audioRooms/$(roomId)).data.get('coHostIds', []));
+        // Users can update their own participant data, hosts can update anyone
+        allow update: if isAuthenticated() && (
+          participantId == request.auth.uid ||
+          get(/databases/$(database)/documents/audioRooms/$(roomId)).data.hostId == request.auth.uid ||
+          request.auth.uid in get(/databases/$(database)/documents/audioRooms/$(roomId)).data.get('coHostIds', [])
+        );
+        // Users can remove themselves, hosts can remove anyone
+        allow delete: if isAuthenticated() && (
+          participantId == request.auth.uid ||
+          get(/databases/$(database)/documents/audioRooms/$(roomId)).data.hostId == request.auth.uid ||
+          request.auth.uid in get(/databases/$(database)/documents/audioRooms/$(roomId)).data.get('coHostIds', [])
+        );
+      }
+
+      // Tips/Donations subcollection
+      match /tips/{tipId} {
+        allow read: if isAuthenticated();
+        // FERMÉ 2026-09-21 — voir « Chaîne de paiement » en tête de ce fichier.
+        allow create: if false;
+        allow update, delete: if false; // Tips should not be modified
+      }
+
+      // Chat messages in room
+      match /messages/{messageId} {
+        allow read: if isAuthenticated();
+        allow create: if isAuthenticated() && request.resource.data.senderId == request.auth.uid;
+        allow update: if isAuthenticated() && resource.data.senderId == request.auth.uid;
+        allow delete: if isAuthenticated() && (
+          resource.data.senderId == request.auth.uid ||
+          get(/databases/$(database)/documents/audioRooms/$(roomId)).data.hostId == request.auth.uid ||
+          request.auth.uid in get(/databases/$(database)/documents/audioRooms/$(roomId)).data.get('coHostIds', [])
+        );
+      }
+    }
+
+    // Heritage Recordings - cultural content library
+    match /heritageRecordings/{recordingId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && request.resource.data.creatorId == request.auth.uid;
+      allow update: if isAuthenticated() && (
+        resource.data.creatorId == request.auth.uid ||
+        // Allow incrementing play count
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['playCount', 'lastPlayedAt'])
+      );
+      allow delete: if isAuthenticated() && resource.data.creatorId == request.auth.uid;
+    }
+
+    // Saved Heritage Recordings (user bookmarks)
+    match /users/{userId}/savedRecordings/{recordingId} {
+      allow read, write: if isOwner(userId);
+    }
+
+    // Admin: Manage audio rooms for moderation
+    match /audioRooms/{roomId} {
+      allow read, update, delete: if canModerateContent();
+    }
+
+    // Admin: Manage heritage recordings for moderation
+    match /heritageRecordings/{recordingId} {
+      allow read, update, delete: if canModerateContent();
+    }
+
+    // =========================================================================
+    // MONETIZATION COLLECTIONS (root level)
+    // =========================================================================
+
+    // Tips - donations sent in audio rooms
+    match /tips/{tipId} {
+      // Users can see tips they sent or received, or tips in rooms they are in
+      allow list: if isAuthenticated() && (
+        resource.data.senderId == request.auth.uid ||
+        resource.data.recipientId == request.auth.uid ||
+        // Room participants can see tips in their room
+        (resource.data.roomId != null &&
+         exists(/databases/$(database)/documents/audioRooms/$(resource.data.roomId)) &&
+         (get(/databases/$(database)/documents/audioRooms/$(resource.data.roomId)).data.hostId == request.auth.uid ||
+          request.auth.uid in get(/databases/$(database)/documents/audioRooms/$(resource.data.roomId)).data.speakerIds ||
+          request.auth.uid in get(/databases/$(database)/documents/audioRooms/$(resource.data.roomId)).data.listenerIds))
+      );
+      allow get: if isAuthenticated() && (
+        resource.data.senderId == request.auth.uid ||
+        resource.data.recipientId == request.auth.uid ||
+        // Room host can see tips in their room (verify host ownership)
+        (resource.data.roomId != null &&
+         get(/databases/$(database)/documents/audioRooms/$(resource.data.roomId)).data.hostId == request.auth.uid)
+      );
+      // FERMÉ 2026-09-21 — voir « Chaîne de paiement » en tête de ce fichier.
+      allow create: if false;
+      // Tips should not be modified or deleted
+      allow update, delete: if false;
+    }
+
+    // Room Tickets - paid access to audio rooms
+    match /roomTickets/{ticketId} {
+      // Users can see their own tickets
+      allow list: if isAuthenticated() && resource.data.buyerId == request.auth.uid;
+      allow get: if isAuthenticated() && (
+        resource.data.buyerId == request.auth.uid ||
+        // Room host can verify tickets (verify host ownership)
+        (resource.data.roomId != null &&
+         get(/databases/$(database)/documents/audioRooms/$(resource.data.roomId)).data.hostId == request.auth.uid)
+      );
+      // FERMÉ 2026-09-21 — voir « Chaîne de paiement » en tête de ce fichier.
+      allow create: if false;
+      // Tickets should not be modified by users (Cloud Functions handle status updates)
+      allow update, delete: if false;
+    }
+
+    // Room Replays - recorded audio room sessions for purchase
+    match /roomReplays/{replayId} {
+      // Anyone authenticated can browse replays
+      allow list, get: if isAuthenticated();
+      // FERMÉ 2026-09-21 — voir « Chaîne de paiement » en tête de ce fichier.
+      allow create: if false;
+      allow update, delete: if false;
+    }
+
+    // Creator Subscriptions - monthly subscriptions to creators
+    match /creatorSubscriptions/{subscriptionId} {
+      // Users can see subscriptions they have or are receiving
+      allow list: if isAuthenticated() && (
+        resource.data.subscriberId == request.auth.uid ||
+        resource.data.creatorId == request.auth.uid
+      );
+      allow get: if isAuthenticated() && (
+        resource.data.subscriberId == request.auth.uid ||
+        resource.data.creatorId == request.auth.uid
+      );
+      // FERMÉ 2026-09-21 — voir « Chaîne de paiement » en tête de ce fichier.
+      allow create: if false;
+      allow update: if false;
+      // Subscriptions should not be deleted
+      allow delete: if false;
+    }
+
+    // Creator Profiles - public creator/monetization profiles
+    match /creatorProfiles/{profileId} {
+      // Anyone authenticated can view creator profiles
+      allow list, get: if isAuthenticated();
+      // FERMÉ 2026-09-21 — voir « Chaîne de paiement » en tête de ce fichier.
+      // `availableBalance` et `stripeAccountId` étaient posables à la création :
+      // le premier finançait un retrait, le second ouvrait le tableau de bord
+      // Stripe d'un autre.
+      allow create: if false;
+      // Users can update only safe fields (earnings/stats are managed by Cloud Functions)
+      allow update: if isAuthenticated() &&
+        profileId == request.auth.uid &&
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+          'subscriberCount',
+          'totalSubscriptionEarnings',
+          'totalTipEarnings',
+          'totalTicketEarnings',
+          'totalReplayEarnings',
+          'currentMonthEarnings',
+          'availableBalance',
+          'stripeAccountId',
+          'isStripeAccountComplete',
+          'totalRoomsHosted',
+          'totalHoursHosted',
+          'averageRating',
+          'totalRatings',
+          'userId',
+          'createdAt'
+        ]);
+      // FERMÉ 2026-09-21 — voir « Chaîne de paiement » en tête de ce fichier.
+      allow delete: if false;
+    }
+
+    // Admin: Manage monetization for support/disputes
+    match /tips/{tipId} {
+      allow read, update: if canModerateFinance();
+    }
+
+    match /roomTickets/{ticketId} {
+      allow read, update: if canModerateFinance();
+    }
+
+    match /roomReplays/{replayId} {
+      allow read, update, delete: if canModerateContent();
+    }
+
+    match /creatorSubscriptions/{subscriptionId} {
+      allow read, update: if canModerateFinance();
+    }
+
+    match /creatorProfiles/{profileId} {
+      allow read, update: if canModerateContent();
+    }
+
+    // =========================================================================
+    // PAYOUTS & STRIPE CONNECT
+    // =========================================================================
+
+    // Payouts - creator payout requests
+    match /payouts/{payoutId} {
+      // Creators can see their own payouts
+      allow list: if isAuthenticated() && resource.data.creatorId == request.auth.uid;
+      allow get: if isAuthenticated() && resource.data.creatorId == request.auth.uid;
+      // FERMÉ 2026-09-21 — voir « Chaîne de paiement » en tête de ce fichier.
+      allow create: if false;
+      allow update: if false;
+      // Payouts should not be deleted
+      allow delete: if false;
+    }
+
+    // Stripe Connect Requests - triggers for Cloud Functions
+    match /stripe_connect_requests/{requestId} {
+      // Users can see their own requests
+      allow list: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow get: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      // FERMÉ 2026-09-21 — voir « Chaîne de paiement » en tête de ce fichier.
+      allow create: if false;
+      // Users should not modify requests (Cloud Functions handle updates)
+      allow update, delete: if false;
+    }
+
+    // Admin: Manage payouts for support
+    match /payouts/{payoutId} {
+      allow read, update: if canModerateFinance();
+    }
+
+    match /stripe_connect_requests/{requestId} {
+      allow read: if isAdmin();
+    }
+
+    // Support Tickets
+    match /support_tickets/{ticketId} {
+      // Users can only list their own tickets; admins can list all
+      allow list: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+      // Users can get their own tickets, admins can get all
+      allow get: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid || isAdmin()
+      );
+      // Users can create tickets (userId must match auth)
+      allow create: if isAuthenticated() &&
+        request.resource.data.userId == request.auth.uid;
+      // Only admins can update tickets (status changes, read flags)
+      // Users can only update hasUnreadSupportMessages to false (mark as read)
+      allow update: if isAuthenticated() && (
+        isAdmin() ||
+        (resource.data.userId == request.auth.uid &&
+         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['hasUnreadSupportMessages']))
+      );
+
+      match /messages/{messageId} {
+        // Users can read messages of their own tickets, admins can read all
+        allow read: if isAuthenticated() && (
+          get(/databases/$(database)/documents/support_tickets/$(ticketId)).data.userId == request.auth.uid ||
+          isAdmin()
+        );
+        // Users can create messages in their own tickets
+        // Admins can create messages (support replies) in any ticket
+        allow create: if isAuthenticated() && (
+          get(/databases/$(database)/documents/support_tickets/$(ticketId)).data.userId == request.auth.uid ||
+          isAdmin()
+        );
+      }
+    }
+
+    // =========================================================================
+    // PODCASTS
+    // =========================================================================
+
+    // Podcasts - main podcast collection
+    match /podcasts/{podcastId} {
+      // Anyone authenticated can browse published podcasts
+      // Allow queries with filters (e.g., where hostId for "my podcasts" view)
+      allow list: if isAuthenticated();
+      allow get: if isAuthenticated();
+
+      // Authenticated users can create podcasts
+      allow create: if isAuthenticated() && request.resource.data.hostId == request.auth.uid;
+
+      // Only host can update their podcast
+      allow update: if isAuthenticated() && resource.data.hostId == request.auth.uid;
+
+      // Only host can delete their podcast
+      allow delete: if isAuthenticated() && resource.data.hostId == request.auth.uid;
+    }
+
+    // Podcast Episodes - episodes within podcasts
+    match /podcastEpisodes/{episodeId} {
+      // Anyone authenticated can browse published episodes
+      allow list: if isAuthenticated();
+      allow get: if isAuthenticated();
+
+      // Podcast host can create episodes
+      allow create: if isAuthenticated() &&
+        request.resource.data.podcastId != null &&
+        get(/databases/$(database)/documents/podcasts/$(request.resource.data.podcastId)).data.hostId == request.auth.uid;
+
+      // Podcast host can update episodes, anyone can update playCount
+      allow update: if isAuthenticated() && (
+        get(/databases/$(database)/documents/podcasts/$(resource.data.podcastId)).data.hostId == request.auth.uid ||
+        // Allow incrementing play count only
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['playCount', 'lastPlayedAt'])
+      );
+
+      // Podcast host can delete episodes
+      allow delete: if isAuthenticated() &&
+        get(/databases/$(database)/documents/podcasts/$(resource.data.podcastId)).data.hostId == request.auth.uid;
+    }
+
+    // Podcast User Data - user subscriptions, listen history, etc.
+    match /podcastUserData/{userId} {
+      // Users can only access their own podcast data
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId);
+      allow delete: if isOwner(userId);
+
+      // Subcollections for user podcast data
+      match /subscriptions/{subscriptionId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /listenHistory/{historyId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /downloads/{downloadId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    // Podcast Subscriptions — free and paid
+    match /podcastSubscriptions/{subId} {
+      // Users can read their own subscriptions; podcast hosts can see who subscribed
+      allow get: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid ||
+        resource.data.hostId == request.auth.uid
+      );
+      allow list: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid ||
+        resource.data.hostId == request.auth.uid
+      );
+
+      // Users can create a subscription for themselves only
+      allow create: if isAuthenticated() &&
+        request.resource.data.userId == request.auth.uid;
+
+      // Only the backend (Cloud Functions) should update subscriptions
+      // (status changes, balanceCredited flag). Client cannot update directly.
+      allow update: if false;
+
+      // Users can delete their own (free) subscriptions
+      allow delete: if isAuthenticated() &&
+        resource.data.userId == request.auth.uid &&
+        resource.data.isPaid != true;
+    }
+
+    // Admin: Manage podcasts for moderation
+    match /podcasts/{podcastId} {
+      allow read, update, delete: if canModerateContent();
+    }
+
+    match /podcastEpisodes/{episodeId} {
+      allow read, update, delete: if canModerateContent();
+    }
+
+    match /podcastUserData/{userId} {
+      allow read: if isAdmin();
+    }
+
+    match /podcastSubscriptions/{subId} {
+      allow read, update: if canModerateFinance();
+    }
+
+    // =========================================================================
+    // FINANCIAL TRIGGER COLLECTIONS (for Cloud Functions)
+    // =========================================================================
+
+    // Debit Requests - triggers processDebitRequest Cloud Function
+    match /debit_requests/{requestId} {
+      // FERMÉ 2026-09-21 — voir « Chaîne de paiement » en tête de ce fichier.
+      allow create: if false;
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    // Card Credit Requests - triggers card payment Cloud Function
+    match /card_credit_requests/{requestId} {
+      // FERMÉ 2026-09-21 — voir « Chaîne de paiement » en tête de ce fichier.
+      allow create: if false;
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    // Order Payment Requests - triggers processOrderPayment Cloud Function.
+    // The function verifies the Stripe PaymentIntent server-side and only then
+    // marks the order as paid (BUG-05). Clients can only create the request
+    // and read its result; the Cloud Function (admin SDK) writes the verdict.
+    match /order_payment_requests/{requestId} {
+      // FERMÉ 2026-09-21 — voir « Chaîne de paiement » en tête de ce fichier.
+      allow create: if false;
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    // Escrow Release Requests - triggers processEscrowRelease Cloud Function.
+    // The function creates a Stripe Transfer to the seller's Connect account
+    // (BUG-04). Clients only create the request and observe the result.
+    match /escrow_release_requests/{requestId} {
+      // Clients must provide userId (matching themselves) and orderId.
+      // isSystem is a server-only privilege — clients cannot set it.
+      // FERMÉ 2026-09-21 — voir « Chaîne de paiement » en tête de ce fichier.
+      allow create: if false;
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    // =========================================================================
+    // FEED SOCIAL
+    // =========================================================================
+
+    match /posts/{postId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() &&
+        request.resource.data.authorId == request.auth.uid;
+      allow update: if isAuthenticated() && (
+        resource.data.authorId == request.auth.uid ||
+        request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['likeCount', 'commentCount', 'shareCount'])
+      );
+      allow delete: if isAuthenticated() &&
+        resource.data.authorId == request.auth.uid;
+    }
+
+    match /post_comments/{commentId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() &&
+        request.resource.data.authorId == request.auth.uid;
+      allow delete: if isAuthenticated() &&
+        resource.data.authorId == request.auth.uid;
+    }
+
+    match /post_likes/{likeId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() &&
+        request.resource.data.userId == request.auth.uid;
+      allow delete: if isAuthenticated() &&
+        resource.data.userId == request.auth.uid;
+    }
+
+    match /user_follows/{followId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() &&
+        request.resource.data.followerId == request.auth.uid;
+      allow delete: if isAuthenticated() &&
+        resource.data.followerId == request.auth.uid;
+    }
+
+    // Admin: Manage feed for moderation
+    match /posts/{postId} {
+      allow read, update, delete: if canModerateContent();
+    }
+
+    match /post_comments/{commentId} {
+      allow read, delete: if canModerateContent();
+    }
+
+    // =========================================================================
+    // USER KEYS — Signal Protocol public key distribution
+    //
+    // Structure:
+    //   user_keys/{userId}                              — active device list
+    //   user_keys/{userId}/devices/{deviceId}           — per-device public keys
+    //   user_keys/{userId}/devices/{deviceId}/oneTimePreKeys/{keyId}  — OTPs
+    // =========================================================================
+
+    // Main user-key document (active devices list, e2eeEnabled flag).
+    // Any authenticated user can read (needed to enumerate devices for X3DH).
+    // Only the owner can write (to register/remove their own devices).
+    match /user_keys/{userId} {
+      allow read: if isAuthenticated();
+      allow write: if isOwner(userId);
+
+      // Device-specific public keys (identityKey, signedPreKey).
+      // Any authenticated user can read (to fetch pre-key bundle for session setup).
+      // Only the owner can create or update their device keys.
+      match /devices/{deviceId} {
+        allow read: if isAuthenticated();
+        allow create, update: if isOwner(userId);
+        allow delete: if isOwner(userId);
+
+        // One-Time Pre-Keys: uploaded by owner, consumed (deleted) by any
+        // authenticated user during X3DH session establishment.
+        // Deletion by others is intentional — it marks the OTP as "used".
+        match /oneTimePreKeys/{keyId} {
+          allow read: if isAuthenticated();
+          allow create: if isOwner(userId);
+          allow delete: if isAuthenticated(); // consumed during X3DH
+          allow update: if false;             // OTPs are immutable
+        }
+      }
+    }
+
+    // Admin: read user key metadata for support
+    match /user_keys/{userId} {
+      allow read: if isAdmin();
+    }
+
+    // =========================================================================
+    // GROUP SENDER KEYS — Signal Protocol E2EE for group chats
+    // =========================================================================
+
+    // Sender Key distribution documents: only sender and recipient may access.
+    match /group_sender_keys/{groupId}/distributions/{distributionId} {
+      // A distribution doc is named "{senderId}_{recipientId}"
+      allow read, delete: if isAuthenticated() && (
+        resource.data.senderId == request.auth.uid ||
+        resource.data.recipientId == request.auth.uid
+      );
+      // Only the sender may create their own distribution
+      allow create: if isAuthenticated() &&
+        request.resource.data.senderId == request.auth.uid;
+      // No updates — distributions are immutable once created
+      allow update: if false;
+    }
+
+    // Default deny all other collections
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

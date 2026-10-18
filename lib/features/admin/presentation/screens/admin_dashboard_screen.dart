@@ -24,6 +24,7 @@ import 'admin_analytics_screen.dart';
 import 'admin_campagnes_screen.dart';
 import '../widgets/bloc_a_traiter.dart';
 import 'admin_securite_screen.dart';
+import 'admin_referentiel_screen.dart';
 import 'admin_settings_screen.dart';
 import 'admin_feature_flags_screen.dart';
 import 'admin_audit_screen.dart';
@@ -242,6 +243,14 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
         selectedIcon: const Icon(Icons.shield),
         superAdminOnly: true,
         contentBuilder: (_, __) => const AdminSecuriteScreen(),
+      ),
+      _NavDestination(
+        id: 'referentiel',
+        label: l10n.refAdmTitle,
+        icon: const Icon(Icons.public_outlined),
+        selectedIcon: const Icon(Icons.public),
+        superAdminOnly: true,
+        contentBuilder: (_, __) => const AdminReferentielScreen(),
       ),
       _NavDestination(
         id: 'roles',

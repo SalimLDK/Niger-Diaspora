@@ -34363,6 +34363,390 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Chargement impossible : {detail}'**
   String mbrAdmLoadError(String detail);
+
+  /// No description provided for @refAdmTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Référentiel géographique'**
+  String get refAdmTitle;
+
+  /// No description provided for @refAdmSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Villes, doublons, pays. Réservé au super-administrateur : une ville fausse peut ouvrir des groupes officiels.'**
+  String get refAdmSubtitle;
+
+  /// No description provided for @refAdmNoAccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous n\'avez pas accès à cette rubrique.'**
+  String get refAdmNoAccess;
+
+  /// No description provided for @refAdmTabCities.
+  ///
+  /// In fr, this message translates to:
+  /// **'Villes'**
+  String get refAdmTabCities;
+
+  /// No description provided for @refAdmTabDuplicates.
+  ///
+  /// In fr, this message translates to:
+  /// **'Doublons'**
+  String get refAdmTabDuplicates;
+
+  /// No description provided for @refAdmTabCountries.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pays'**
+  String get refAdmTabCountries;
+
+  /// No description provided for @refAdmLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chargement impossible : {detail}'**
+  String refAdmLoadError(String detail);
+
+  /// No description provided for @refAdmRetry.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réessayer'**
+  String get refAdmRetry;
+
+  /// No description provided for @refAdmReason.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif (conservé dans l\'historique)'**
+  String get refAdmReason;
+
+  /// No description provided for @refAdmCancel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annuler'**
+  String get refAdmCancel;
+
+  /// No description provided for @refAdmConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confirmer'**
+  String get refAdmConfirm;
+
+  /// No description provided for @refAdmSave.
+  ///
+  /// In fr, this message translates to:
+  /// **'Enregistrer'**
+  String get refAdmSave;
+
+  /// No description provided for @refAdmSaved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Enregistré.'**
+  String get refAdmSaved;
+
+  /// No description provided for @refAdmSearchCity.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rechercher une ville (2 lettres au moins)'**
+  String get refAdmSearchCity;
+
+  /// No description provided for @refAdmSearchHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cherchez une ville ou choisissez un pays : le référentiel compte plus de 33 000 villes.'**
+  String get refAdmSearchHint;
+
+  /// No description provided for @refAdmCountry.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pays'**
+  String get refAdmCountry;
+
+  /// No description provided for @refAdmAllCountries.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tous les pays'**
+  String get refAdmAllCountries;
+
+  /// No description provided for @refAdmNewCity.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouvelle ville'**
+  String get refAdmNewCity;
+
+  /// No description provided for @refAdmEdit.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier'**
+  String get refAdmEdit;
+
+  /// No description provided for @refAdmDelete.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer'**
+  String get refAdmDelete;
+
+  /// No description provided for @refAdmPopulation.
+  ///
+  /// In fr, this message translates to:
+  /// **'{n} hab.'**
+  String refAdmPopulation(String n);
+
+  /// No description provided for @refAdmDeleteTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer {name} ?'**
+  String refAdmDeleteTitle(String name);
+
+  /// No description provided for @refAdmDeleteWarn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Refusé tant qu\'un profil ou un groupe s\'appuie sur cette ville : fusionnez-la plutôt. Seul l\'historique est conservé.'**
+  String get refAdmDeleteWarn;
+
+  /// No description provided for @refAdmDeleted.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ville supprimée.'**
+  String get refAdmDeleted;
+
+  /// No description provided for @refAdmFieldName.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nom'**
+  String get refAdmFieldName;
+
+  /// No description provided for @refAdmFieldRegion.
+  ///
+  /// In fr, this message translates to:
+  /// **'Région (facultatif)'**
+  String get refAdmFieldRegion;
+
+  /// No description provided for @refAdmFieldLat.
+  ///
+  /// In fr, this message translates to:
+  /// **'Latitude'**
+  String get refAdmFieldLat;
+
+  /// No description provided for @refAdmFieldLon.
+  ///
+  /// In fr, this message translates to:
+  /// **'Longitude'**
+  String get refAdmFieldLon;
+
+  /// No description provided for @refAdmFieldPopulation.
+  ///
+  /// In fr, this message translates to:
+  /// **'Population'**
+  String get refAdmFieldPopulation;
+
+  /// No description provided for @refAdmFieldAliases.
+  ///
+  /// In fr, this message translates to:
+  /// **'Autres noms, séparés par des virgules (facultatif)'**
+  String get refAdmFieldAliases;
+
+  /// No description provided for @refAdmDuplicatesHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Même nom dans le même pays, à moins de 20 km. Fusionner reporte les profils sur la ville conservée ; refusé si la ville retirée porte un groupe.'**
+  String get refAdmDuplicatesHelp;
+
+  /// No description provided for @refAdmNoDuplicates.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun doublon probable.'**
+  String get refAdmNoDuplicates;
+
+  /// No description provided for @refAdmDistance.
+  ///
+  /// In fr, this message translates to:
+  /// **'{km} km'**
+  String refAdmDistance(String km);
+
+  /// No description provided for @refAdmKeepA.
+  ///
+  /// In fr, this message translates to:
+  /// **'Garder {id} ({profils} profil(s), {groupes} groupe(s)) — retirer {other}'**
+  String refAdmKeepA(String id, String profils, String groupes, String other);
+
+  /// No description provided for @refAdmMergeTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fusionner ces deux villes'**
+  String get refAdmMergeTitle;
+
+  /// No description provided for @refAdmMergeWarn.
+  ///
+  /// In fr, this message translates to:
+  /// **'La ville retirée disparaît : ses profils passent à la ville conservée, ses autres noms sont réunis, son identifiant GeoNames est tracé dans l\'historique.'**
+  String get refAdmMergeWarn;
+
+  /// No description provided for @refAdmMerged.
+  ///
+  /// In fr, this message translates to:
+  /// **'Villes fusionnées.'**
+  String get refAdmMerged;
+
+  /// No description provided for @refAdmCountriesHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'ajout est possible ; le renommage et la suppression ne le sont pas : des profils, fiches et événements portent le nom du pays en toutes lettres.'**
+  String get refAdmCountriesHelp;
+
+  /// No description provided for @refAdmSearchCountry.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rechercher un pays'**
+  String get refAdmSearchCountry;
+
+  /// No description provided for @refAdmNewCountry.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouveau pays'**
+  String get refAdmNewCountry;
+
+  /// No description provided for @refAdmFieldIso.
+  ///
+  /// In fr, this message translates to:
+  /// **'Code ISO (deux lettres majuscules)'**
+  String get refAdmFieldIso;
+
+  /// No description provided for @rgHistTooltip.
+  ///
+  /// In fr, this message translates to:
+  /// **'Historique des réglages'**
+  String get rgHistTooltip;
+
+  /// No description provided for @rgHistTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Historique des réglages'**
+  String get rgHistTitle;
+
+  /// No description provided for @rgHistSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chaque changement garde l\'ancienne et la nouvelle valeur, qui l\'a fait et quand. Rien ne s\'y réécrit ni ne s\'y supprime.'**
+  String get rgHistSubtitle;
+
+  /// No description provided for @rgHistEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun changement enregistré depuis la mise en place de l\'historique.'**
+  String get rgHistEmpty;
+
+  /// No description provided for @rgHistLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de lire l\'historique : {detail}'**
+  String rgHistLoadError(String detail);
+
+  /// No description provided for @rgHistRetry.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réessayer'**
+  String get rgHistRetry;
+
+  /// No description provided for @rgHistClose.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fermer'**
+  String get rgHistClose;
+
+  /// No description provided for @rgHistKindUpdate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modification'**
+  String get rgHistKindUpdate;
+
+  /// No description provided for @rgHistKindRestore.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retour arrière'**
+  String get rgHistKindRestore;
+
+  /// No description provided for @rgHistBy.
+  ///
+  /// In fr, this message translates to:
+  /// **'Par {who}'**
+  String rgHistBy(String who);
+
+  /// No description provided for @rgHistReason.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif : {reason}'**
+  String rgHistReason(String reason);
+
+  /// No description provided for @rgHistChange.
+  ///
+  /// In fr, this message translates to:
+  /// **'{key} : {from} → {to}'**
+  String rgHistChange(String key, String from, String to);
+
+  /// No description provided for @rgHistAbsent.
+  ///
+  /// In fr, this message translates to:
+  /// **'(absent)'**
+  String get rgHistAbsent;
+
+  /// No description provided for @rgHistNoDiff.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune valeur n\'a changé.'**
+  String get rgHistNoDiff;
+
+  /// No description provided for @rgHistRestore.
+  ///
+  /// In fr, this message translates to:
+  /// **'Restaurer l\'ancienne valeur'**
+  String get rgHistRestore;
+
+  /// No description provided for @rgHistNoBefore.
+  ///
+  /// In fr, this message translates to:
+  /// **'Première valeur enregistrée de cette section : pas d\'ancienne valeur à restaurer.'**
+  String get rgHistNoBefore;
+
+  /// No description provided for @rgHistRestoreTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Restaurer « {section} » ?'**
+  String rgHistRestoreTitle(String section);
+
+  /// No description provided for @rgHistRestoreBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'La section reprend les valeurs d\'avant cette modification. Le retour arrière est lui-même enregistré.'**
+  String get rgHistRestoreBody;
+
+  /// No description provided for @rgHistRestoreReason.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif du retour arrière'**
+  String get rgHistRestoreReason;
+
+  /// No description provided for @rgHistRestoreCancel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annuler'**
+  String get rgHistRestoreCancel;
+
+  /// No description provided for @rgHistRestoreConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Restaurer'**
+  String get rgHistRestoreConfirm;
+
+  /// No description provided for @rgHistRestored.
+  ///
+  /// In fr, this message translates to:
+  /// **'Section restaurée.'**
+  String get rgHistRestored;
+
+  /// No description provided for @rgHistRestoreFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retour arrière impossible : {detail}'**
+  String rgHistRestoreFailed(String detail);
 }
 
 class _AppLocalizationsDelegate

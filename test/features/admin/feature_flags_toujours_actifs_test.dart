@@ -41,13 +41,11 @@ class _FakeAppSettingsDataSource implements AppSettingsDataSource {
   Future<void> updateSection(
     String section,
     Map<String, dynamic> data,
-    String updatedBy,
-  ) async {}
-
-  @override
-  Future<void> updateSettings(AppSettingsModel settings, String updatedBy) {
-    throw UnimplementedError();
-  }
+    String updatedBy, {
+    String? reason,
+    String kind = 'update',
+    String? restoredFrom,
+  }) async {}
 
   @override
   Stream<AppSettingsModel> watchSettings() => Stream.value(_settings);
