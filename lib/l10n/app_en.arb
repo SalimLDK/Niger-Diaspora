@@ -7627,5 +7627,10 @@
   "demAdmPublished": "Published, version {n}.",
   "demAdmUnpublished": "Unpublished.",
   "demAdmUnsaved": "Some changes are not saved. Leave?",
-  "demAdmRemovePiece": "Remove the document"
+  "demAdmRemovePiece": "Remove the document",
+  "evtAdmCancelTitle": "Cancel the event",
+  "evtAdmDeleteTitle": "Delete the event",
+  "evtAdmReasonLabel": "Reason (kept in the history)",
+  "evtAdmCancelWarn": "Attendees are not notified yet: they will see \"cancelled\" when opening the event.",
+  "evtAdmDeleteWarn": "Registrations are deleted with the event; only the history is kept. Super-admin only."
 }

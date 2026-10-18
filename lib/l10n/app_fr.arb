@@ -8976,5 +8976,10 @@
   "@demAdmPublished": {"placeholders": {"n": {"type": "String"}}},
   "demAdmUnpublished": "Dépubliée.",
   "demAdmUnsaved": "Des modifications ne sont pas enregistrées. Quitter ?",
-  "demAdmRemovePiece": "Retirer la pièce"
+  "demAdmRemovePiece": "Retirer la pièce",
+  "evtAdmCancelTitle": "Annuler l'événement",
+  "evtAdmDeleteTitle": "Supprimer l'événement",
+  "evtAdmReasonLabel": "Motif (conservé dans l'historique)",
+  "evtAdmCancelWarn": "Les inscrits ne reçoivent pas encore de notification : ils verront « annulé » en ouvrant l'événement.",
+  "evtAdmDeleteWarn": "Les inscriptions sont supprimées avec l'événement ; seul l'historique est conservé. Réservé au super-administrateur."
 }

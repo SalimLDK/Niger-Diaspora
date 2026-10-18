@@ -32257,6 +32257,36 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Retirer la pièce'**
   String get demAdmRemovePiece;
+
+  /// No description provided for @evtAdmCancelTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annuler l\'événement'**
+  String get evtAdmCancelTitle;
+
+  /// No description provided for @evtAdmDeleteTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer l\'événement'**
+  String get evtAdmDeleteTitle;
+
+  /// No description provided for @evtAdmReasonLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif (conservé dans l\'historique)'**
+  String get evtAdmReasonLabel;
+
+  /// No description provided for @evtAdmCancelWarn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les inscrits ne reçoivent pas encore de notification : ils verront « annulé » en ouvrant l\'événement.'**
+  String get evtAdmCancelWarn;
+
+  /// No description provided for @evtAdmDeleteWarn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les inscriptions sont supprimées avec l\'événement ; seul l\'historique est conservé. Réservé au super-administrateur.'**
+  String get evtAdmDeleteWarn;
 }
 
 class _AppLocalizationsDelegate

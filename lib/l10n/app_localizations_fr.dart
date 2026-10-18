@@ -17756,4 +17756,21 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get demAdmRemovePiece => 'Retirer la pièce';
+
+  @override
+  String get evtAdmCancelTitle => 'Annuler l\'événement';
+
+  @override
+  String get evtAdmDeleteTitle => 'Supprimer l\'événement';
+
+  @override
+  String get evtAdmReasonLabel => 'Motif (conservé dans l\'historique)';
+
+  @override
+  String get evtAdmCancelWarn =>
+      'Les inscrits ne reçoivent pas encore de notification : ils verront « annulé » en ouvrant l\'événement.';
+
+  @override
+  String get evtAdmDeleteWarn =>
+      'Les inscriptions sont supprimées avec l\'événement ; seul l\'historique est conservé. Réservé au super-administrateur.';
 }

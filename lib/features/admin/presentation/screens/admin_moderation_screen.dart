@@ -9,6 +9,7 @@ import '../../../groups/domain/entities/group_entity.dart';
 import '../providers/admin_provider.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:diaspo_niger/core/theme/design_kit.dart';
+import '../providers/dossier_moderation_provider.dart' show adminAPermissionProvider;
 
 /// Ce que la carte d'un événement dit de son organisateur : son nom, et
 /// l'identifiant seulement quand le nom manque. Elle affichait toujours
@@ -217,6 +218,10 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
   }
 
   Widget _buildEventCard(EventEntity event) {
+    // Supprimer est le droit du superAdmin seul (`events.delete`) ; le serveur
+    // le redit, le menu ne propose que ce qui peut réussir.
+    final peutSupprimer =
+        ref.watch(adminAPermissionProvider('events.delete')).valueOrNull ?? false;
     final statusColor = _getStatusColor(event.status);
 
     return Container(
@@ -314,23 +319,24 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
                       ],
                     ),
                   ),
-                PopupMenuItem(
-                  value: 'delete',
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: AdminColors.statusRed.withAlpha(20),
-                          borderRadius: BorderRadius.circular(6),
+                if (peutSupprimer)
+                  PopupMenuItem(
+                    value: 'delete',
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: AdminColors.statusRed.withAlpha(20),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: const Icon(Icons.delete_rounded, color: AdminColors.statusRed, size: 16),
                         ),
-                        child: const Icon(Icons.delete_rounded, color: AdminColors.statusRed, size: 16),
-                      ),
-                      const SizedBox(width: 12),
-                      Text(l10n.adminDelete),
-                    ],
+                        const SizedBox(width: 12),
+                        Text(l10n.adminDelete),
+                      ],
+                    ),
                   ),
-                ),
               ],
             ),
           ],
@@ -635,22 +641,22 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
 
     switch (action) {
       case 'cancel':
-        final confirm = await _showConfirmation(
-          'Annuler l\'événement',
-          l10n.adminCancelEventMsg,
+        final motif = await _demanderMotif(
+          l10n.evtAdmCancelTitle,
+          l10n.evtAdmCancelWarn,
         );
-        if (confirm == true) {
-          final ok = await notifier.cancelEvent(event.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
+        if (motif != null) {
+          final ok = await notifier.cancelEvent(event.id, motif: motif);
           _montrerBilan(ok, l10n.adminEventCancelled);
         }
         break;
       case 'delete':
-        final confirm = await _showConfirmation(
-          'Supprimer l\'événement',
-          l10n.adminDeleteEventMsg,
+        final motif = await _demanderMotif(
+          l10n.evtAdmDeleteTitle,
+          l10n.evtAdmDeleteWarn,
         );
-        if (confirm == true) {
-          final ok = await notifier.deleteEvent(event.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
+        if (motif != null) {
+          final ok = await notifier.deleteEvent(event.id, motif: motif);
           _montrerBilan(ok, l10n.adminEventDeleted);
         }
         break;
@@ -686,6 +692,55 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
         }
         break;
     }
+  }
+
+  /// Un motif d'au moins 5 caractères, ou `null` si l'action est abandonnée.
+  Future<String?> _demanderMotif(String titre, String avertissement) {
+    final controller = TextEditingController();
+    return showDialog<String>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setLocal) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Text(titre),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(avertissement,
+                  style: const TextStyle(fontSize: 12, color: AdminColors.statusAmberStrong)),
+              const SizedBox(height: 12),
+              TextField(
+                controller: controller,
+                onChanged: (_) => setLocal(() {}),
+                maxLines: 3,
+                maxLength: 1000,
+                decoration: InputDecoration(
+                  labelText: l10n.evtAdmReasonLabel,
+                  border: const OutlineInputBorder(),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(l10n.adminCancelAction),
+            ),
+            ElevatedButton(
+              onPressed: controller.text.trim().length < 5
+                  ? null
+                  : () => Navigator.pop(ctx, controller.text.trim()),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AdminColors.statusRed,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+              child: Text(l10n.adminConfirmAction),
+            ),
+          ],
+        ),
+      ),
+    ).whenComplete(controller.dispose);
   }
 
   Future<bool?> _showConfirmation(String title, String content) {

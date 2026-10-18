@@ -950,85 +950,56 @@ class AdminContentNotifier extends Notifier<AdminContentState> {
     }
   }
 
-  Future<bool> deleteEvent(
-    String eventId, {
-    required String adminId,
-    String? adminName,
-  }) async {
+  /// Supprime un événement par `event_admin_delete` : superAdmin seul, motif
+  /// obligatoire, historique conservé. Plus de `DELETE` direct (la policy est
+  /// retirée) ; le serveur écrit l'audit dans la même transaction.
+  Future<bool> deleteEvent(String eventId, {required String motif}) async {
     try {
-      // Sans `.select()`, un refus RLS efface zéro ligne sans erreur, et
-      // l'écran annonçait « Événement supprimé » pendant que l'événement
-      // restait en base et à l'accueil. La policy admin vient de
-      // `20260912200000_evenements_notifications_obsoletes.sql`.
-      final deleted = await _supabase
-          .from('events')
-          .delete()
-          .eq('id', eventId)
-          .select('id');
-      if ((deleted as List).isEmpty) {
-        state = state.copyWith(error: 'Événement non supprimé');
-        return false;
-      }
+      await _supabase.rpc('event_admin_delete',
+          params: {'p_id': eventId, 'p_reason': motif});
       await CacheService.instance.removeCachedEvent(eventId);
       forgetDeletedEvent(ref, eventId);
-
-      final echecJournal = await AdminAuditHelper.log(
-        adminId: adminId,
-        adminName: adminName,
-        action: 'delete_event',
-        targetType: 'event',
-        targetId: eventId,
-      );
-
       await fetchAllContent();
-      if (echecJournal != null) {
-        state = state.copyWith(error: echecJournal);
-        return false;
-      }
       return true;
+    } on PostgrestException catch (e) {
+      // Recharger d'abord : `fetchAllContent` efface `error`.
+      await fetchAllContent();
+      state = state.copyWith(error: messageEvenementAdmin(e));
+      return false;
     } catch (e) {
       state = state.copyWith(error: e.toString());
       return false;
     }
   }
 
-  Future<bool> cancelEvent(
-    String eventId, {
-    required String adminId,
-    String? adminName,
-  }) async {
+  /// Annule un événement par `event_admin_cancel` : motif obligatoire, ancienne
+  /// et nouvelle valeur consignées dans l'historique de l'événement.
+  Future<bool> cancelEvent(String eventId, {required String motif}) async {
     try {
-      // Pas de `updated_at` : la table `events` n'a pas cette colonne, et la
-      // nommer faisait échouer toute l'annulation (PGRST204).
-      final updated = await _supabase
-          .from('events')
-          .update({'status': 'cancelled'})
-          .eq('id', eventId)
-          .select('id');
-      if ((updated as List).isEmpty) {
-        state = state.copyWith(error: 'Événement non annulé');
-        return false;
-      }
-
-      final echecJournal = await AdminAuditHelper.log(
-        adminId: adminId,
-        adminName: adminName,
-        action: 'cancel_event',
-        targetType: 'event',
-        targetId: eventId,
-      );
-
+      await _supabase.rpc('event_admin_cancel',
+          params: {'p_id': eventId, 'p_reason': motif});
       await fetchAllContent();
-      if (echecJournal != null) {
-        state = state.copyWith(error: echecJournal);
-        return false;
-      }
       return true;
+    } on PostgrestException catch (e) {
+      await fetchAllContent();
+      state = state.copyWith(error: messageEvenementAdmin(e));
+      return false;
     } catch (e) {
       state = state.copyWith(error: e.toString());
       return false;
     }
   }
+
+  /// Le refus du serveur, en clair. Le texte du serveur n'est repris que pour
+  /// une saisie refusée (22023), où il dit quoi corriger.
+  static String messageEvenementAdmin(PostgrestException e) => switch (e.code) {
+        '42501' => "Vous n'avez pas la permission d'effectuer cette action.",
+        '55000' =>
+          "L'événement a changé entre-temps (déjà annulé ou terminé). Liste rechargée.",
+        'P0002' => 'Événement introuvable.',
+        '22023' || '22001' => e.message,
+        _ => 'Action impossible : ${e.message}',
+      };
 
   Future<bool> deleteGroup(
     String groupId, {

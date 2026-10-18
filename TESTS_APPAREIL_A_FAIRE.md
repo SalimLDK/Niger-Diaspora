@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1392 cases à cocher, 55 cochées** — 307 entrées sur 321 ont encore des cases ouvertes.
+**1398 cases à cocher, 55 cochées** — 308 entrées sur 322 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -224,7 +224,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (96)
+**P2 — fonction secondaire ou cas limite** (97)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -284,6 +284,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⬜ Le sigle DN est le même partout (2026-09-13)](#-le-sigle-dn-est-le-même-partout-2026-09-13) · *Design, thème, langue et mise en page*
 - 1 · [Thème sombre — jetons clairs codés en dur](#thème-sombre--jetons-clairs-codés-en-dur) · *Design, thème, langue et mise en page*
 - 4 · [Bascule design_v2 → production, famille 2 : les services (2026-08-03)](#bascule-design_v2--production-famille-2--les-services-2026-08-03) · *Design, thème, langue et mise en page*
+- 6 · [⬜ Panneau admin : annuler / supprimer un événement avec motif, historique des changements (2026-10-18)](#-panneau-admin--annuler--supprimer-un-événement-avec-motif-historique-des-changements-2026-10-18) · *Backend, sécurité et observabilité*
 - 9 · [⬜ Panneau admin : demandes d'informations et recours dans le dossier de signalement (2026-10-18)](#-panneau-admin--demandes-dinformations-et-recours-dans-le-dossier-de-signalement-2026-10-18) · *Backend, sécurité et observabilité*
 - 5 · [⬜ Avis sur les entreprises : basculés de Firestore vers Supabase (2026-09-21)](#-avis-sur-les-entreprises--basculés-de-firestore-vers-supabase-2026-09-21) · *Backend, sécurité et observabilité*
 - 5 · [Fuseau horaire — heures affichées en UTC (2026-08-04)](#fuseau-horaire--heures-affichées-en-utc-2026-08-04) · *Backend, sécurité et observabilité*
@@ -379,7 +380,7 @@ Par domaine :
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 67 à faire, 0 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 58 à faire, 5 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 108 à faire, 5 faites
-- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 129 à faire, 2 faites
+- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 135 à faire, 2 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 46 à faire, 1 faites
 - [15. Site web](#15-site-web) — 69 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 23 à faire, 0 faites
@@ -9306,6 +9307,22 @@ parce qu'il change un **comportement**, pas seulement un habillage :
 # 13. Backend, sécurité et observabilité
 
 Supabase et Firebase côté serveur, accès anon, stockage, journaux, Crashlytics, back-office.
+
+---
+## ⬜ Panneau admin : annuler / supprimer un événement avec motif, historique des changements (2026-10-18)
+
+**Priorité P2** · importance 3/5 — Un administrateur sans droit ne doit plus pouvoir annuler ou effacer l'événement de quelqu'un ; un déplacement ou une annulation doit laisser une trace lisible.
+
+*Bloqué : migration 20261018170000 appliquée, panneau web avec un compte contentMod et le superAdmin, un téléphone avec un compte organisateur.*
+
+Fichiers : `lib/features/admin/presentation/screens/admin_moderation_screen.dart` (onglet Événements), `supabase/migrations/20261018170000_evenements_moderation.sql`.
+
+- [ ] contentMod : le menu d'un événement propose « Annuler » mais pas « Supprimer » ; superAdmin propose les deux.
+- [ ] « Annuler » refuse de confirmer sans motif d'au moins 5 caractères ; après confirmation l'événement passe « annulé » et le motif est dans l'audit.
+- [ ] Téléphone : l'événement annulé s'affiche « annulé » à l'ouverture (les inscrits ne reçoivent PAS de notification : à confirmer, et à signaler comme manque).
+- [ ] Téléphone, organisateur : déplacer son événement (date ou adresse) fonctionne comme avant ; changer seulement l'image ne crée rien dans l'historique.
+- [ ] Un événement déjà annulé ne se ré-annule pas : message « a changé entre-temps », liste rechargée.
+- [ ] Thème sombre : boîte de dialogue du motif lisible.
 
 ---
 ## ⬜ Panneau admin : démarches consulaires, du brouillon à la publication (2026-10-18)

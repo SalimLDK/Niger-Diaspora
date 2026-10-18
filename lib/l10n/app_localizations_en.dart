@@ -17588,4 +17588,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get demAdmRemovePiece => 'Remove the document';
+
+  @override
+  String get evtAdmCancelTitle => 'Cancel the event';
+
+  @override
+  String get evtAdmDeleteTitle => 'Delete the event';
+
+  @override
+  String get evtAdmReasonLabel => 'Reason (kept in the history)';
+
+  @override
+  String get evtAdmCancelWarn =>
+      'Attendees are not notified yet: they will see \"cancelled\" when opening the event.';
+
+  @override
+  String get evtAdmDeleteWarn =>
+      'Registrations are deleted with the event; only the history is kept. Super-admin only.';
 }
