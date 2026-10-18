@@ -19674,4 +19674,55 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get rchAdmRetry => 'Réessayer';
+
+  @override
+  String get srcAdmTitle => 'Sources consulaires';
+
+  @override
+  String get srcAdmSubtitle =>
+      'Ce qui manque ou a vieilli dans les démarches et les ambassades. Lecture seule : on corrige depuis l\'écran concerné.';
+
+  @override
+  String get srcAdmRetry => 'Réessayer';
+
+  @override
+  String get srcAdmAll => 'Tout';
+
+  @override
+  String get srcAdmNoSource => 'Sans source';
+
+  @override
+  String get srcAdmNeverChecked => 'Jamais vérifiée';
+
+  @override
+  String get srcAdmReviewOverdue => 'Révision dépassée';
+
+  @override
+  String get srcAdmNoReviewPlanned => 'Aucune révision prévue';
+
+  @override
+  String srcAdmProcedures(String n, String total) {
+    return 'Démarches à revoir : $n sur $total';
+  }
+
+  @override
+  String srcAdmEmbassies(String n, String total) {
+    return 'Ambassades à revoir : $n sur $total';
+  }
+
+  @override
+  String get srcAdmNothing => 'Rien à revoir.';
+
+  @override
+  String srcAdmReviewOn(String date) {
+    return 'Révision prévue le $date';
+  }
+
+  @override
+  String get srcAdmUnpublished => 'Non publiée';
+
+  @override
+  String srcAdmLoadError(String detail) {
+    return 'Chargement impossible : $detail';
+  }
 }

@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1518 cases à cocher, 55 cochées** — 326 entrées sur 340 ont encore des cases ouvertes.
+**1522 cases à cocher, 55 cochées** — 327 entrées sur 341 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -341,7 +341,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [✅ Bulle de chargement d'une vidéo pendant l'upload (2026-08-30)](#-bulle-de-chargement-dune-vidéo-pendant-lupload-2026-08-30) · *Messagerie*
 - 21 · [Refonte Fil & Discussion — Priorité basse — cosmétique, faible risque](#refonte-fil--discussion--priorité-basse--cosmétique-faible-risque) · *Fil, stories, salons audio et podcasts*
 
-**P3 — confort, cosmétique, fonction en pause** (40)
+**P3 — confort, cosmétique, fonction en pause** (41)
 
 - 3 · [⬜ Polices embarquées : plus de téléchargement au premier affichage (2026-09-11)](#-polices-embarquées--plus-de-téléchargement-au-premier-affichage-2026-09-11) · *Design, thème, langue et mise en page* · bloqué
 - 2 · [⬜ Icône du lanceur repeinte en vert (2026-09-07)](#-icône-du-lanceur-repeinte-en-vert-2026-09-07) · *Design, thème, langue et mise en page*
@@ -368,6 +368,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⬜ Deux textes du fil que `font_scale` 1.3 abime — corrigés, à revoir (2026-09-14)](#-deux-textes-du-fil-que-font_scale-13-abime--corrigés-à-revoir-2026-09-14) · *Design, thème, langue et mise en page*
 - 2 · [⬜ Une couleur par service dans les deux grilles (2026-09-14)](#-une-couleur-par-service-dans-les-deux-grilles-2026-09-14) · *Design, thème, langue et mise en page*
 - 3 · [Débordement du champ « Type * » — création d'ambassade (2026-08-04)](#débordement-du-champ--type----création-dambassade-2026-08-04) · *Design, thème, langue et mise en page* · bloqué
+- 4 · [⬜ Panneau admin : sources consulaires à revoir (2026-10-19)](#-panneau-admin--sources-consulaires-à-revoir-2026-10-19) · *Backend, sécurité et observabilité*
 - 4 · [⬜ Panneau admin : Statistiques — fini les zéros qui cachent une erreur et l'export factice (2026-10-19)](#-panneau-admin--statistiques--fini-les-zéros-qui-cachent-une-erreur-et-lexport-factice-2026-10-19) · *Backend, sécurité et observabilité*
 - 1 · [Cartographie des accès `anon` réellement nécessaires (2026-08-13)](#cartographie-des-accès-anon-réellement-nécessaires-2026-08-13) · *Backend, sécurité et observabilité*
 - 3 · [⬜ Panneau admin : textes passés en l10n et infobulles sur les boutons-icônes (2026-10-15)](#-panneau-admin--textes-passés-en-l10n-et-infobulles-sur-les-boutons-icônes-2026-10-15) · *Site web*
@@ -398,7 +399,7 @@ Par domaine :
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 67 à faire, 0 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 58 à faire, 5 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 108 à faire, 5 faites
-- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 255 à faire, 2 faites
+- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 259 à faire, 2 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 46 à faire, 1 faites
 - [15. Site web](#15-site-web) — 69 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 23 à faire, 0 faites
@@ -9340,6 +9341,20 @@ Fichiers : `admin_moderation_screen.dart`, `admin_provider.dart` (`setGroupPriva
 - [ ] « Supprimer » exige un motif ; le message dit combien d'événements sont partis avec le groupe ; le groupe disparaît de la liste.
 - [ ] Un groupe officiel : un contentMod est refusé (message de permission), un superAdmin réussit.
 - [ ] Le Journal d'audit montre `GROUP_PRIVACY_CHANGED` / `GROUP_DELETED` sans le motif ; le motif reste dans l'historique du groupe.
+## ⬜ Panneau admin : sources consulaires à revoir (2026-10-19)
+
+**Priorité P3** · importance 2/5 — Écran en lecture seule, sans migration : il ne lit que les tables que `consular.view` ouvre déjà.
+
+*Bloqué : le panneau web avec un compte contentMod ou superAdmin.*
+
+Fichiers : `lib/features/admin/presentation/screens/admin_sources_consulaires_screen.dart`, `lib/features/admin/presentation/providers/sources_consulaires_provider.dart`.
+
+- [ ] Les démarches sans source, jamais vérifiées, à révision dépassée ou publiées sans révision prévue sont listées avec la bonne étiquette.
+- [ ] Les ambassades sans source ou jamais vérifiées sont listées ; toucher une ligne ouvre l'écran Démarches ou Ambassades.
+- [ ] Couper le réseau puis actualiser : l'erreur s'affiche, pas « Rien à revoir ».
+- [ ] Un compte sans accès consulaire voit « pas d'accès », pas une liste vide.
+
+---
 ## ⬜ Panneau admin : « À traiter » et recherche globale (2026-10-19)
 
 **Priorité P2** · importance 3/5 — Écran d'administration seulement ; la recherche touche des données personnelles de membres, donc ce qu'elle rend selon le rôle compte.

@@ -19497,4 +19497,55 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get rchAdmRetry => 'Retry';
+
+  @override
+  String get srcAdmTitle => 'Consular sources';
+
+  @override
+  String get srcAdmSubtitle =>
+      'What is missing or has aged in procedures and embassies. Read-only: fix it from the relevant screen.';
+
+  @override
+  String get srcAdmRetry => 'Retry';
+
+  @override
+  String get srcAdmAll => 'All';
+
+  @override
+  String get srcAdmNoSource => 'No source';
+
+  @override
+  String get srcAdmNeverChecked => 'Never checked';
+
+  @override
+  String get srcAdmReviewOverdue => 'Review overdue';
+
+  @override
+  String get srcAdmNoReviewPlanned => 'No review planned';
+
+  @override
+  String srcAdmProcedures(String n, String total) {
+    return 'Procedures to review: $n of $total';
+  }
+
+  @override
+  String srcAdmEmbassies(String n, String total) {
+    return 'Embassies to review: $n of $total';
+  }
+
+  @override
+  String get srcAdmNothing => 'Nothing to review.';
+
+  @override
+  String srcAdmReviewOn(String date) {
+    return 'Review planned on $date';
+  }
+
+  @override
+  String get srcAdmUnpublished => 'Unpublished';
+
+  @override
+  String srcAdmLoadError(String detail) {
+    return 'Could not load: $detail';
+  }
 }

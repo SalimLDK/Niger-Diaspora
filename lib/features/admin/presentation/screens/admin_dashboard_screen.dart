@@ -30,6 +30,7 @@ import 'admin_settings_screen.dart';
 import 'admin_feature_flags_screen.dart';
 import 'admin_audit_screen.dart';
 import 'admin_recherche_screen.dart';
+import 'admin_sources_consulaires_screen.dart';
 import 'admin_role_management_screen.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:diaspo_niger/core/theme/design_kit.dart';
@@ -187,6 +188,16 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
         // droit réel, `consular.view`, est relu par l'écran et par la base.
         requiredPermission: AdminPermission.viewReports,
         contentBuilder: (_, __) => const AdminDemarchesScreen(),
+      ),
+      _NavDestination(
+        id: 'sources',
+        label: l10n.srcAdmTitle,
+        icon: const Icon(Icons.fact_check_outlined),
+        selectedIcon: const Icon(Icons.fact_check),
+        // Même population que les démarches ; le droit réel, `consular.view`,
+        // est relu par l'écran et par la base.
+        requiredPermission: AdminPermission.viewReports,
+        contentBuilder: (_, __) => AdminSourcesConsulairesScreen(onOuvrir: _ouvrirDestination),
       ),
       _NavDestination(
         id: 'marketplace',

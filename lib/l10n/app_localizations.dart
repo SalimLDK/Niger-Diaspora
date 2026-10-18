@@ -35635,6 +35635,90 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Réessayer'**
   String get rchAdmRetry;
+
+  /// No description provided for @srcAdmTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sources consulaires'**
+  String get srcAdmTitle;
+
+  /// No description provided for @srcAdmSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce qui manque ou a vieilli dans les démarches et les ambassades. Lecture seule : on corrige depuis l\'écran concerné.'**
+  String get srcAdmSubtitle;
+
+  /// No description provided for @srcAdmRetry.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réessayer'**
+  String get srcAdmRetry;
+
+  /// No description provided for @srcAdmAll.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tout'**
+  String get srcAdmAll;
+
+  /// No description provided for @srcAdmNoSource.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sans source'**
+  String get srcAdmNoSource;
+
+  /// No description provided for @srcAdmNeverChecked.
+  ///
+  /// In fr, this message translates to:
+  /// **'Jamais vérifiée'**
+  String get srcAdmNeverChecked;
+
+  /// No description provided for @srcAdmReviewOverdue.
+  ///
+  /// In fr, this message translates to:
+  /// **'Révision dépassée'**
+  String get srcAdmReviewOverdue;
+
+  /// No description provided for @srcAdmNoReviewPlanned.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune révision prévue'**
+  String get srcAdmNoReviewPlanned;
+
+  /// No description provided for @srcAdmProcedures.
+  ///
+  /// In fr, this message translates to:
+  /// **'Démarches à revoir : {n} sur {total}'**
+  String srcAdmProcedures(String n, String total);
+
+  /// No description provided for @srcAdmEmbassies.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ambassades à revoir : {n} sur {total}'**
+  String srcAdmEmbassies(String n, String total);
+
+  /// No description provided for @srcAdmNothing.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rien à revoir.'**
+  String get srcAdmNothing;
+
+  /// No description provided for @srcAdmReviewOn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Révision prévue le {date}'**
+  String srcAdmReviewOn(String date);
+
+  /// No description provided for @srcAdmUnpublished.
+  ///
+  /// In fr, this message translates to:
+  /// **'Non publiée'**
+  String get srcAdmUnpublished;
+
+  /// No description provided for @srcAdmLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chargement impossible : {detail}'**
+  String srcAdmLoadError(String detail);
 }
 
 class _AppLocalizationsDelegate
