@@ -31327,6 +31327,378 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Dossier pris en charge.'**
   String get modoReportTaken;
+
+  /// No description provided for @supAdmTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Support'**
+  String get supAdmTitle;
+
+  /// No description provided for @supAdmSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tickets des membres : prise en charge, réponses, notes internes.'**
+  String get supAdmSubtitle;
+
+  /// No description provided for @supAdmFilterOpen.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ouverts'**
+  String get supAdmFilterOpen;
+
+  /// No description provided for @supAdmFilterInProgress.
+  ///
+  /// In fr, this message translates to:
+  /// **'En cours'**
+  String get supAdmFilterInProgress;
+
+  /// No description provided for @supAdmFilterResolved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Résolus'**
+  String get supAdmFilterResolved;
+
+  /// No description provided for @supAdmFilterClosed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Clos'**
+  String get supAdmFilterClosed;
+
+  /// No description provided for @supAdmFilterAll.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tous'**
+  String get supAdmFilterAll;
+
+  /// No description provided for @supAdmSearchHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rechercher un sujet ou un membre'**
+  String get supAdmSearchHint;
+
+  /// No description provided for @supAdmEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun ticket dans cette vue.'**
+  String get supAdmEmpty;
+
+  /// No description provided for @supAdmLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chargement impossible : {detail}'**
+  String supAdmLoadError(String detail);
+
+  /// No description provided for @supAdmRetry.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réessayer'**
+  String get supAdmRetry;
+
+  /// No description provided for @supAdmNoAccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous n\'avez pas accès aux tickets du support.'**
+  String get supAdmNoAccess;
+
+  /// No description provided for @supAdmPriorityLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Priorité'**
+  String get supAdmPriorityLabel;
+
+  /// No description provided for @supAdmPrioLow.
+  ///
+  /// In fr, this message translates to:
+  /// **'Basse'**
+  String get supAdmPrioLow;
+
+  /// No description provided for @supAdmPrioNormal.
+  ///
+  /// In fr, this message translates to:
+  /// **'Normale'**
+  String get supAdmPrioNormal;
+
+  /// No description provided for @supAdmPrioHigh.
+  ///
+  /// In fr, this message translates to:
+  /// **'Haute'**
+  String get supAdmPrioHigh;
+
+  /// No description provided for @supAdmPrioUrgent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Urgente'**
+  String get supAdmPrioUrgent;
+
+  /// No description provided for @supAdmCatTransaction.
+  ///
+  /// In fr, this message translates to:
+  /// **'Transfert'**
+  String get supAdmCatTransaction;
+
+  /// No description provided for @supAdmCatAccount.
+  ///
+  /// In fr, this message translates to:
+  /// **'Compte'**
+  String get supAdmCatAccount;
+
+  /// No description provided for @supAdmCatTechnical.
+  ///
+  /// In fr, this message translates to:
+  /// **'Technique'**
+  String get supAdmCatTechnical;
+
+  /// No description provided for @supAdmCatOther.
+  ///
+  /// In fr, this message translates to:
+  /// **'Autre'**
+  String get supAdmCatOther;
+
+  /// No description provided for @supAdmCatDirectory.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annuaire ou événement'**
+  String get supAdmCatDirectory;
+
+  /// No description provided for @supAdmCatPrivacy.
+  ///
+  /// In fr, this message translates to:
+  /// **'Données personnelles'**
+  String get supAdmCatPrivacy;
+
+  /// No description provided for @supAdmCatComplaint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réclamation'**
+  String get supAdmCatComplaint;
+
+  /// No description provided for @supAdmCatAppeal.
+  ///
+  /// In fr, this message translates to:
+  /// **'Recours'**
+  String get supAdmCatAppeal;
+
+  /// No description provided for @supAdmCatSecurity.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sécurité'**
+  String get supAdmCatSecurity;
+
+  /// No description provided for @supAdmStatusOpen.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ouvert'**
+  String get supAdmStatusOpen;
+
+  /// No description provided for @supAdmStatusInProgress.
+  ///
+  /// In fr, this message translates to:
+  /// **'En cours'**
+  String get supAdmStatusInProgress;
+
+  /// No description provided for @supAdmStatusResolved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Résolu'**
+  String get supAdmStatusResolved;
+
+  /// No description provided for @supAdmStatusClosed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Clos'**
+  String get supAdmStatusClosed;
+
+  /// No description provided for @supAdmMember.
+  ///
+  /// In fr, this message translates to:
+  /// **'Membre : {name}'**
+  String supAdmMember(String name);
+
+  /// No description provided for @supAdmMemberUnnamed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Membre sans nom'**
+  String get supAdmMemberUnnamed;
+
+  /// No description provided for @supAdmUpdated.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mis à jour le {date}'**
+  String supAdmUpdated(String date);
+
+  /// No description provided for @supAdmUnread.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouveau message du membre'**
+  String get supAdmUnread;
+
+  /// No description provided for @supAdmUnassigned.
+  ///
+  /// In fr, this message translates to:
+  /// **'Non attribué'**
+  String get supAdmUnassigned;
+
+  /// No description provided for @supAdmAssignedToYou.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pris en charge par vous'**
+  String get supAdmAssignedToYou;
+
+  /// No description provided for @supAdmAssignedToOther.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pris en charge par un autre agent'**
+  String get supAdmAssignedToOther;
+
+  /// No description provided for @supAdmConversation.
+  ///
+  /// In fr, this message translates to:
+  /// **'Conversation avec le membre'**
+  String get supAdmConversation;
+
+  /// No description provided for @supAdmFromSupport.
+  ///
+  /// In fr, this message translates to:
+  /// **'Support'**
+  String get supAdmFromSupport;
+
+  /// No description provided for @supAdmFromMember.
+  ///
+  /// In fr, this message translates to:
+  /// **'Membre'**
+  String get supAdmFromMember;
+
+  /// No description provided for @supAdmReplyLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre réponse au membre'**
+  String get supAdmReplyLabel;
+
+  /// No description provided for @supAdmReplyHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Visible par le membre.'**
+  String get supAdmReplyHint;
+
+  /// No description provided for @supAdmSendReply.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoyer la réponse'**
+  String get supAdmSendReply;
+
+  /// No description provided for @supAdmMustTake.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prenez le ticket en charge pour répondre.'**
+  String get supAdmMustTake;
+
+  /// No description provided for @supAdmNotesTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Notes internes'**
+  String get supAdmNotesTitle;
+
+  /// No description provided for @supAdmNotesHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Invisibles pour le membre.'**
+  String get supAdmNotesHint;
+
+  /// No description provided for @supAdmNotesEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune note.'**
+  String get supAdmNotesEmpty;
+
+  /// No description provided for @supAdmNoteLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouvelle note'**
+  String get supAdmNoteLabel;
+
+  /// No description provided for @supAdmAddNote.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter la note'**
+  String get supAdmAddNote;
+
+  /// No description provided for @supAdmTake.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prendre en charge'**
+  String get supAdmTake;
+
+  /// No description provided for @supAdmTakeOver.
+  ///
+  /// In fr, this message translates to:
+  /// **'Reprendre'**
+  String get supAdmTakeOver;
+
+  /// No description provided for @supAdmResolve.
+  ///
+  /// In fr, this message translates to:
+  /// **'Marquer résolu'**
+  String get supAdmResolve;
+
+  /// No description provided for @supAdmClose.
+  ///
+  /// In fr, this message translates to:
+  /// **'Clôturer'**
+  String get supAdmClose;
+
+  /// No description provided for @supAdmReopen.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rouvrir'**
+  String get supAdmReopen;
+
+  /// No description provided for @supAdmReasonTakeOver.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pourquoi reprenez-vous ce ticket ?'**
+  String get supAdmReasonTakeOver;
+
+  /// No description provided for @supAdmReasonResolve.
+  ///
+  /// In fr, this message translates to:
+  /// **'Résolution apportée'**
+  String get supAdmReasonResolve;
+
+  /// No description provided for @supAdmReasonClose.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif de clôture'**
+  String get supAdmReasonClose;
+
+  /// No description provided for @supAdmReasonReopen.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pourquoi rouvrir ce ticket ?'**
+  String get supAdmReasonReopen;
+
+  /// No description provided for @supAdmResolution.
+  ///
+  /// In fr, this message translates to:
+  /// **'Résolution : {note}'**
+  String supAdmResolution(String note);
+
+  /// No description provided for @supAdmDone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fait.'**
+  String get supAdmDone;
+
+  /// No description provided for @supAdmReplySent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réponse envoyée.'**
+  String get supAdmReplySent;
+
+  /// No description provided for @supAdmNoteAdded.
+  ///
+  /// In fr, this message translates to:
+  /// **'Note ajoutée.'**
+  String get supAdmNoteAdded;
 }
 
 class _AppLocalizationsDelegate

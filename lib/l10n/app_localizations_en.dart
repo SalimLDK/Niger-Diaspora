@@ -17091,4 +17091,199 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get modoReportTaken => 'Case taken.';
+
+  @override
+  String get supAdmTitle => 'Support';
+
+  @override
+  String get supAdmSubtitle =>
+      'Member tickets: assignment, replies, internal notes.';
+
+  @override
+  String get supAdmFilterOpen => 'Open';
+
+  @override
+  String get supAdmFilterInProgress => 'In progress';
+
+  @override
+  String get supAdmFilterResolved => 'Resolved';
+
+  @override
+  String get supAdmFilterClosed => 'Closed';
+
+  @override
+  String get supAdmFilterAll => 'All';
+
+  @override
+  String get supAdmSearchHint => 'Search a subject or a member';
+
+  @override
+  String get supAdmEmpty => 'No ticket in this view.';
+
+  @override
+  String supAdmLoadError(String detail) {
+    return 'Could not load: $detail';
+  }
+
+  @override
+  String get supAdmRetry => 'Retry';
+
+  @override
+  String get supAdmNoAccess => 'You do not have access to support tickets.';
+
+  @override
+  String get supAdmPriorityLabel => 'Priority';
+
+  @override
+  String get supAdmPrioLow => 'Low';
+
+  @override
+  String get supAdmPrioNormal => 'Normal';
+
+  @override
+  String get supAdmPrioHigh => 'High';
+
+  @override
+  String get supAdmPrioUrgent => 'Urgent';
+
+  @override
+  String get supAdmCatTransaction => 'Transfer';
+
+  @override
+  String get supAdmCatAccount => 'Account';
+
+  @override
+  String get supAdmCatTechnical => 'Technical';
+
+  @override
+  String get supAdmCatOther => 'Other';
+
+  @override
+  String get supAdmCatDirectory => 'Directory or event';
+
+  @override
+  String get supAdmCatPrivacy => 'Personal data';
+
+  @override
+  String get supAdmCatComplaint => 'Complaint';
+
+  @override
+  String get supAdmCatAppeal => 'Appeal';
+
+  @override
+  String get supAdmCatSecurity => 'Security';
+
+  @override
+  String get supAdmStatusOpen => 'Open';
+
+  @override
+  String get supAdmStatusInProgress => 'In progress';
+
+  @override
+  String get supAdmStatusResolved => 'Resolved';
+
+  @override
+  String get supAdmStatusClosed => 'Closed';
+
+  @override
+  String supAdmMember(String name) {
+    return 'Member: $name';
+  }
+
+  @override
+  String get supAdmMemberUnnamed => 'Unnamed member';
+
+  @override
+  String supAdmUpdated(String date) {
+    return 'Updated $date';
+  }
+
+  @override
+  String get supAdmUnread => 'New message from the member';
+
+  @override
+  String get supAdmUnassigned => 'Unassigned';
+
+  @override
+  String get supAdmAssignedToYou => 'Assigned to you';
+
+  @override
+  String get supAdmAssignedToOther => 'Assigned to another agent';
+
+  @override
+  String get supAdmConversation => 'Conversation with the member';
+
+  @override
+  String get supAdmFromSupport => 'Support';
+
+  @override
+  String get supAdmFromMember => 'Member';
+
+  @override
+  String get supAdmReplyLabel => 'Your reply to the member';
+
+  @override
+  String get supAdmReplyHint => 'Visible to the member.';
+
+  @override
+  String get supAdmSendReply => 'Send reply';
+
+  @override
+  String get supAdmMustTake => 'Take the ticket to reply.';
+
+  @override
+  String get supAdmNotesTitle => 'Internal notes';
+
+  @override
+  String get supAdmNotesHint => 'Not visible to the member.';
+
+  @override
+  String get supAdmNotesEmpty => 'No note.';
+
+  @override
+  String get supAdmNoteLabel => 'New note';
+
+  @override
+  String get supAdmAddNote => 'Add note';
+
+  @override
+  String get supAdmTake => 'Take the ticket';
+
+  @override
+  String get supAdmTakeOver => 'Take over';
+
+  @override
+  String get supAdmResolve => 'Mark resolved';
+
+  @override
+  String get supAdmClose => 'Close';
+
+  @override
+  String get supAdmReopen => 'Reopen';
+
+  @override
+  String get supAdmReasonTakeOver => 'Why are you taking over this ticket?';
+
+  @override
+  String get supAdmReasonResolve => 'Resolution provided';
+
+  @override
+  String get supAdmReasonClose => 'Reason for closing';
+
+  @override
+  String get supAdmReasonReopen => 'Why reopen this ticket?';
+
+  @override
+  String supAdmResolution(String note) {
+    return 'Resolution: $note';
+  }
+
+  @override
+  String get supAdmDone => 'Done.';
+
+  @override
+  String get supAdmReplySent => 'Reply sent.';
+
+  @override
+  String get supAdmNoteAdded => 'Note added.';
 }

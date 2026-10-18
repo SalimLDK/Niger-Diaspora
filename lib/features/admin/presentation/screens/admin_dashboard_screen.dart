@@ -15,6 +15,7 @@ import 'admin_create_embassy_screen.dart';
 import 'admin_businesses_screen.dart';
 import 'admin_moderation_screen.dart';
 import 'admin_reports_screen.dart';
+import 'admin_support_tickets_screen.dart';
 import 'admin_marketplace_screen.dart';
 import 'admin_users_management_screen.dart';
 import 'admin_transactions_screen.dart';
@@ -142,6 +143,17 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
         // Le badge des signalements en attente était posé sur l'entrée
         // Utilisateurs (audit du 2026-10-14, § 8).
         badgeCount: (state) => state.pendingReports,
+      ),
+      _NavDestination(
+        id: 'support',
+        label: l10n.supAdmTitle,
+        icon: const Icon(Icons.support_agent_outlined),
+        selectedIcon: const Icon(Icons.support_agent),
+        // Même population que les signalements (contentMod, superAdmin) ; le
+        // droit réel, `support.tickets.view`, est relu par l'écran et par la
+        // base — le menu n'est qu'un indice.
+        requiredPermission: AdminPermission.viewReports,
+        contentBuilder: (_, __) => const AdminSupportTicketsScreen(),
       ),
       _NavDestination(
         id: 'marketplace',
