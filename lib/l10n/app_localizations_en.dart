@@ -18330,4 +18330,96 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mesDonneesAnswerLabel => 'Team\'s reply';
+
+  @override
+  String cmpAdmScheduledFor(String date) {
+    return 'Scheduled for $date';
+  }
+
+  @override
+  String get cmpAdmSchedule => 'Schedule';
+
+  @override
+  String get cmpAdmReschedule => 'Change time';
+
+  @override
+  String get cmpAdmUnschedule => 'Remove schedule';
+
+  @override
+  String get cmpAdmScheduleHelp =>
+      'An approved, scheduled campaign goes out by itself at its time (checked every 5 minutes). The approval covers the time too.';
+
+  @override
+  String get cmpAdmScheduledNoManual =>
+      'Scheduled: it goes out at its time, or is cancelled.';
+
+  @override
+  String get cmpAdmScheduleSaved => 'Time saved.';
+
+  @override
+  String get cmpAdmFieldSchedule => 'Sending time (optional)';
+
+  @override
+  String get cmpAdmPickWhen => 'Pick date and time';
+
+  @override
+  String get cmpAdmNoSchedule2 => 'Manual send';
+
+  @override
+  String get cmpAdmTemplates => 'Templates';
+
+  @override
+  String get cmpAdmTemplateUse => 'Start from a template';
+
+  @override
+  String get cmpAdmTemplateNone => 'No template';
+
+  @override
+  String get cmpAdmTemplateNew => 'New template';
+
+  @override
+  String get cmpAdmTemplateName => 'Template name (3 to 60 characters)';
+
+  @override
+  String get cmpAdmTemplateSaved => 'Template saved.';
+
+  @override
+  String get cmpAdmTemplateArchived => 'Template archived.';
+
+  @override
+  String get cmpAdmTemplateArchive => 'Archive';
+
+  @override
+  String get cmpAdmTemplatesEmpty => 'No template.';
+
+  @override
+  String get cmpAdmTemplateHelp =>
+      'A template has no audience or time and approves nothing: the campaign built from it follows the usual approval.';
+
+  @override
+  String get cmpAdmReportTitle => 'Sending report';
+
+  @override
+  String cmpAdmReportCounts(String created, String skipped, String remaining) {
+    return '$created notifications created · $skipped skipped (preferences) · $remaining remaining';
+  }
+
+  @override
+  String cmpAdmReportPush(String n) {
+    return '$n recipients reachable by push (token holders).';
+  }
+
+  @override
+  String cmpAdmReportDelay(String s) {
+    return 'Started $s s after the scheduled time.';
+  }
+
+  @override
+  String cmpAdmReportDuration(String s) {
+    return 'Sent in $s s.';
+  }
+
+  @override
+  String get cmpAdmReportCaveat =>
+      'Created is not delivered, and delivered is not read: neither delivery nor reading is measured here.';
 }

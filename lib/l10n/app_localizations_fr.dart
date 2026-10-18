@@ -18503,4 +18503,96 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get mesDonneesAnswerLabel => 'Réponse de l\'équipe';
+
+  @override
+  String cmpAdmScheduledFor(String date) {
+    return 'Programmée le $date';
+  }
+
+  @override
+  String get cmpAdmSchedule => 'Programmer';
+
+  @override
+  String get cmpAdmReschedule => 'Modifier l\'heure';
+
+  @override
+  String get cmpAdmUnschedule => 'Retirer la programmation';
+
+  @override
+  String get cmpAdmScheduleHelp =>
+      'Une campagne approuvée et programmée part toute seule à son heure (vérification toutes les 5 minutes). L\'approbation porte aussi sur l\'heure.';
+
+  @override
+  String get cmpAdmScheduledNoManual =>
+      'Programmée : elle part à son heure, ou s\'annule.';
+
+  @override
+  String get cmpAdmScheduleSaved => 'Heure enregistrée.';
+
+  @override
+  String get cmpAdmFieldSchedule => 'Heure d\'envoi (facultatif)';
+
+  @override
+  String get cmpAdmPickWhen => 'Choisir la date et l\'heure';
+
+  @override
+  String get cmpAdmNoSchedule2 => 'Envoi manuel';
+
+  @override
+  String get cmpAdmTemplates => 'Modèles';
+
+  @override
+  String get cmpAdmTemplateUse => 'Partir d\'un modèle';
+
+  @override
+  String get cmpAdmTemplateNone => 'Aucun modèle';
+
+  @override
+  String get cmpAdmTemplateNew => 'Nouveau modèle';
+
+  @override
+  String get cmpAdmTemplateName => 'Nom du modèle (3 à 60 caractères)';
+
+  @override
+  String get cmpAdmTemplateSaved => 'Modèle enregistré.';
+
+  @override
+  String get cmpAdmTemplateArchived => 'Modèle archivé.';
+
+  @override
+  String get cmpAdmTemplateArchive => 'Archiver';
+
+  @override
+  String get cmpAdmTemplatesEmpty => 'Aucun modèle.';
+
+  @override
+  String get cmpAdmTemplateHelp =>
+      'Un modèle ne contient ni audience ni heure, et n\'approuve rien : la campagne qui en part suit l\'approbation habituelle.';
+
+  @override
+  String get cmpAdmReportTitle => 'Rapport d\'envoi';
+
+  @override
+  String cmpAdmReportCounts(String created, String skipped, String remaining) {
+    return '$created notifications créées · $skipped ignorées (préférences) · $remaining restantes';
+  }
+
+  @override
+  String cmpAdmReportPush(String n) {
+    return '$n destinataires joignables par push (porteurs d\'un jeton).';
+  }
+
+  @override
+  String cmpAdmReportDelay(String s) {
+    return 'Départ $s s après l\'heure programmée.';
+  }
+
+  @override
+  String cmpAdmReportDuration(String s) {
+    return 'Envoi en $s s.';
+  }
+
+  @override
+  String get cmpAdmReportCaveat =>
+      'Créée n\'est pas livrée, et livrée n\'est pas lue : ni la livraison ni la lecture ne sont mesurées ici.';
 }

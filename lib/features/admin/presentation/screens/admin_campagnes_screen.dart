@@ -63,6 +63,12 @@ class AdminCampagnesScreen extends ConsumerWidget {
             icon: const Icon(Icons.refresh_rounded),
           ),
           if (peutRediger)
+            TextButton.icon(
+              onPressed: () => _gererModeles(context, ref),
+              icon: const Icon(Icons.copy_all_outlined, size: 18),
+              label: Text(l10n.cmpAdmTemplates),
+            ),
+          if (peutRediger)
             ElevatedButton.icon(
               onPressed: () => _editer(context, ref, null),
               icon: const Icon(Icons.add_rounded, size: 18),
@@ -118,26 +124,49 @@ class AdminCampagnesScreen extends ConsumerWidget {
   }
 
   Future<void> _editer(BuildContext context, WidgetRef ref, Campagne? existante) async {
+    // Les modèles sont un confort : s'ils ne se lisent pas, l'éditeur s'ouvre.
+    final modeles = await ref
+        .read(modelesCampagnesProvider.future)
+        .catchError((_) => const <ModeleCampagne>[]);
+    if (!context.mounted) return;
     final res = await showDialog<_Saisie>(
       context: context,
       barrierDismissible: false,
-      builder: (_) => _EditeurCampagne(existante: existante),
+      builder: (_) => _EditeurCampagne(existante: existante, modeles: modeles),
     );
     if (res == null || !context.mounted) return;
+    final acts = ref.read(campagnesAdminActionsProvider);
     await _lancer(
       context,
       ref,
-      () => ref.read(campagnesAdminActionsProvider).enregistrer(
-            id: existante?.id,
-            type: res.type,
-            titre: res.titre,
-            texte: res.texte,
-            audience: res.audience,
-          ),
+      () async {
+        final id = await acts.enregistrer(
+          id: existante?.id,
+          type: res.type,
+          titre: res.titre,
+          texte: res.texte,
+          audience: res.audience,
+        );
+        // L'heure se fixe par sa propre fonction, seulement si elle change.
+        if (res.programmeeLe != existante?.programmeeLe) {
+          await acts.programmer(id, res.programmeeLe);
+        }
+      },
       AppLocalizations.of(context)!.cmpAdmSaved,
     );
   }
+
+  Future<void> _gererModeles(BuildContext context, WidgetRef ref) async {
+    await showDialog<void>(
+      context: context,
+      builder: (_) => const _DialogueModeles(),
+    );
+  }
 }
+
+String _quand(DateTime d) =>
+    '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year} '
+    '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
 
 String _libelleStatut(AppLocalizations l, String s) => switch (s) {
       'draft' => l.cmpAdmStatusDraft,
@@ -294,6 +323,12 @@ class _CarteCampagne extends ConsumerWidget {
                   style: const TextStyle(fontSize: 12, color: AdminColors.text3)),
               Text(_libelleAudience(l10n, c.audience),
                   style: const TextStyle(fontSize: 12, color: AdminColors.text3)),
+              if (c.programmeeLe != null)
+                Text(l10n.cmpAdmScheduledFor(_quand(c.programmeeLe!)),
+                    style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AdminColors.actionBlue)),
             ],
           ),
         ),
@@ -305,6 +340,12 @@ class _CarteCampagne extends ConsumerWidget {
             _Decompte(id: c.id),
           if (c.statut == 'sending' || c.statut == 'sent' || c.statut == 'cancelled')
             _Bilan(id: c.id),
+          if (c.statut == 'approved' && c.programmeeAVenir)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 6),
+              child: Text(l10n.cmpAdmScheduledNoManual,
+                  style: const TextStyle(fontSize: 12, color: AdminColors.text3)),
+            ),
           if (c.noteRelecture != null)
             Text(l10n.cmpAdmReviewNote(c.noteRelecture!),
                 style: const TextStyle(fontSize: 12, color: AdminColors.text3)),
@@ -355,7 +396,10 @@ class _CarteCampagne extends ConsumerWidget {
                   label: Text(l10n.cmpAdmReject),
                 ),
               ],
-              if (peutEnvoyer && (c.statut == 'approved' || c.statut == 'sending'))
+              // Une campagne programmée ne se lance pas à la main avant son heure.
+              if (peutEnvoyer &&
+                  (c.statut == 'approved' || c.statut == 'sending') &&
+                  !c.programmeeAVenir)
                 ElevatedButton.icon(
                   onPressed: () => _envoyer(context, ref, c),
                   icon: const Icon(Icons.campaign_rounded, size: 16),
@@ -506,16 +550,31 @@ class _Bilan extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
-    final b = ref.watch(bilanEnvoiProvider(id));
+    final b = ref.watch(rapportCampagneProvider(id));
     return b.when(
       loading: () => const LinearProgressIndicator(minHeight: 2),
       error: (e, _) => Text(l10n.cmpAdmLoadError(detailCampagne(e)),
           style: const TextStyle(color: AdminColors.statusRed, fontSize: 12)),
       data: (v) => Padding(
         padding: const EdgeInsets.only(bottom: 6),
-        child: Text(
-          l10n.cmpAdmRecipients('${v.creees}', '${v.ignorees}'),
-          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(l10n.cmpAdmReportTitle,
+                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+            Text(l10n.cmpAdmReportCounts('${v.creees}', '${v.ignorees}', '${v.restantes}'),
+                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+            Text(l10n.cmpAdmReportPush('${v.joignablesPush}'),
+                style: const TextStyle(fontSize: 12)),
+            if (v.delaiDepartS != null)
+              Text(l10n.cmpAdmReportDelay('${v.delaiDepartS}'),
+                  style: const TextStyle(fontSize: 12)),
+            if (v.dureeS != null)
+              Text(l10n.cmpAdmReportDuration('${v.dureeS}'),
+                  style: const TextStyle(fontSize: 12)),
+            Text(l10n.cmpAdmReportCaveat,
+                style: const TextStyle(fontSize: 11, color: AdminColors.text3)),
+          ],
         ),
       ),
     );
@@ -523,7 +582,8 @@ class _Bilan extends ConsumerWidget {
 }
 
 class _Saisie {
-  const _Saisie(this.type, this.titre, this.texte, this.audience);
+  const _Saisie(this.type, this.titre, this.texte, this.audience, this.programmeeLe);
+  final DateTime? programmeeLe;
   final String type;
   final String titre;
   final String texte;
@@ -531,8 +591,9 @@ class _Saisie {
 }
 
 class _EditeurCampagne extends StatefulWidget {
-  const _EditeurCampagne({required this.existante});
+  const _EditeurCampagne({required this.existante, required this.modeles});
   final Campagne? existante;
+  final List<ModeleCampagne> modeles;
 
   @override
   State<_EditeurCampagne> createState() => _EditeurCampagneState();
@@ -545,6 +606,7 @@ class _EditeurCampagneState extends State<_EditeurCampagne> {
   final _comptes = TextEditingController();
   String _type = 'official_info';
   String _audience = 'country';
+  DateTime? _quand;
   bool _modifie = false;
 
   @override
@@ -558,6 +620,7 @@ class _EditeurCampagneState extends State<_EditeurCampagne> {
       _audience = c.audienceKind.isEmpty ? 'country' : c.audienceKind;
       _pays.text = c.audience['country'] as String? ?? '';
       _comptes.text = ((c.audience['user_ids'] as List?) ?? const []).join('\n');
+      _quand = c.programmeeLe;
     }
   }
 
@@ -590,6 +653,26 @@ class _EditeurCampagneState extends State<_EditeurCampagne> {
       };
 
   void _touch() => setState(() => _modifie = true);
+
+  Future<void> _choisirHeure() async {
+    final now = DateTime.now();
+    final jour = await showDatePicker(
+      context: context,
+      initialDate: _quand ?? now.add(const Duration(days: 1)),
+      firstDate: now,
+      lastDate: now.add(const Duration(days: 90)),
+    );
+    if (jour == null || !mounted) return;
+    final heure = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(_quand ?? now.add(const Duration(hours: 1))),
+    );
+    if (heure == null || !mounted) return;
+    setState(() {
+      _quand = DateTime(jour.year, jour.month, jour.day, heure.hour, heure.minute);
+      _modifie = true;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -629,6 +712,28 @@ class _EditeurCampagneState extends State<_EditeurCampagne> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                if (widget.existante == null && widget.modeles.isNotEmpty) ...[
+                  DropdownButtonFormField<String>(
+                    initialValue: null,
+                    isExpanded: true,
+                    decoration: InputDecoration(
+                        labelText: l10n.cmpAdmTemplateUse,
+                        border: const OutlineInputBorder()),
+                    items: [
+                      for (final m in widget.modeles)
+                        DropdownMenuItem(value: m.id, child: Text(m.nom)),
+                    ],
+                    onChanged: (id) {
+                      final m = widget.modeles.where((x) => x.id == id).firstOrNull;
+                      if (m == null) return;
+                      _type = m.type;
+                      _titre.text = m.titre;
+                      _texte.text = m.texte;
+                      _touch();
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                ],
                 DropdownButtonFormField<String>(
                   initialValue: _type,
                   isExpanded: true,
@@ -703,6 +808,29 @@ class _EditeurCampagneState extends State<_EditeurCampagne> {
                         border: const OutlineInputBorder()),
                   ),
                 ],
+                const SizedBox(height: 12),
+                Text(l10n.cmpAdmFieldSchedule,
+                    style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Text(_quand == null ? l10n.cmpAdmNoSchedule2 : _quand!.toString().substring(0, 16)),
+                    OutlinedButton(
+                        onPressed: _choisirHeure, child: Text(l10n.cmpAdmPickWhen)),
+                    if (_quand != null)
+                      TextButton(
+                        onPressed: () => setState(() {
+                          _quand = null;
+                          _modifie = true;
+                        }),
+                        child: Text(l10n.cmpAdmUnschedule),
+                      ),
+                  ],
+                ),
+                Text(l10n.cmpAdmScheduleHelp,
+                    style: const TextStyle(fontSize: 11, color: AdminColors.text3)),
               ],
             ),
           ),
@@ -715,12 +843,204 @@ class _EditeurCampagneState extends State<_EditeurCampagne> {
             onPressed: _valide
                 ? () => Navigator.pop(
                     context,
-                    _Saisie(_type, _titre.text.trim(), _texte.text.trim(), _audienceJson))
+                    _Saisie(_type, _titre.text.trim(), _texte.text.trim(), _audienceJson, _quand))
                 : null,
             child: Text(l10n.cmpAdmSaveDraft),
           ),
         ],
       ),
+    );
+  }
+}
+
+
+/// Les modèles de messages : liste, création, archivage. Un modèle n'approuve
+/// rien et ne porte ni audience ni heure.
+class _DialogueModeles extends ConsumerWidget {
+  const _DialogueModeles();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+    final modeles = ref.watch(modelesCampagnesProvider);
+    final acts = ref.read(campagnesAdminActionsProvider);
+    return AlertDialog(
+      title: Text(l10n.cmpAdmTemplates),
+      content: SizedBox(
+        width: 520,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(l10n.cmpAdmTemplateHelp,
+                style: const TextStyle(fontSize: 12, color: AdminColors.text3)),
+            const SizedBox(height: 12),
+            modeles.when(
+              loading: () => const LinearProgressIndicator(minHeight: 2),
+              error: (e, _) => Text(l10n.cmpAdmLoadError(detailCampagne(e)),
+                  style: const TextStyle(color: AdminColors.statusRed)),
+              data: (liste) => liste.isEmpty
+                  ? Text(l10n.cmpAdmTemplatesEmpty)
+                  : Flexible(
+                      child: ListView(
+                        shrinkWrap: true,
+                        children: [
+                          for (final m in liste)
+                            ListTile(
+                              dense: true,
+                              title: Text(m.nom),
+                              subtitle: Text(m.titre, maxLines: 1, overflow: TextOverflow.ellipsis),
+                              trailing: TextButton(
+                                onPressed: () async {
+                                  await _lancer(context, ref, () => acts.archiverModele(m.id),
+                                      l10n.cmpAdmTemplateArchived);
+                                  ref.invalidate(modelesCampagnesProvider);
+                                },
+                                child: Text(l10n.cmpAdmTemplateArchive),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(l10n.cmpAdmCancelAction),
+        ),
+        ElevatedButton.icon(
+          onPressed: () async {
+            final saisie = await showDialog<_SaisieModele>(
+              context: context,
+              builder: (_) => const _EditeurModele(),
+            );
+            if (saisie == null || !context.mounted) return;
+            await _lancer(
+              context,
+              ref,
+              () => acts.enregistrerModele(
+                nom: saisie.nom,
+                type: saisie.type,
+                titre: saisie.titre,
+                texte: saisie.texte,
+              ),
+              l10n.cmpAdmTemplateSaved,
+            );
+            ref.invalidate(modelesCampagnesProvider);
+          },
+          icon: const Icon(Icons.add_rounded, size: 16),
+          label: Text(l10n.cmpAdmTemplateNew),
+        ),
+      ],
+    );
+  }
+}
+
+class _SaisieModele {
+  const _SaisieModele(this.nom, this.type, this.titre, this.texte);
+  final String nom;
+  final String type;
+  final String titre;
+  final String texte;
+}
+
+class _EditeurModele extends StatefulWidget {
+  const _EditeurModele();
+
+  @override
+  State<_EditeurModele> createState() => _EditeurModeleState();
+}
+
+class _EditeurModeleState extends State<_EditeurModele> {
+  final _nom = TextEditingController();
+  final _titre = TextEditingController();
+  final _texte = TextEditingController();
+  String _type = 'official_info';
+
+  @override
+  void dispose() {
+    _nom.dispose();
+    _titre.dispose();
+    _texte.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final valide = _nom.text.trim().length >= 3 &&
+        _titre.text.trim().length >= 3 &&
+        _texte.text.trim().length >= 10;
+    final types = {
+      'official_info': l10n.cmpAdmTypeOfficial,
+      'promotional': l10n.cmpAdmTypePromotional,
+      'security': l10n.cmpAdmTypeSecurity,
+      'transactional': l10n.cmpAdmTypeTransactional,
+    };
+    return AlertDialog(
+      title: Text(l10n.cmpAdmTemplateNew),
+      content: SizedBox(
+        width: 480,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: _nom,
+                onChanged: (_) => setState(() {}),
+                maxLength: 60,
+                decoration: InputDecoration(
+                    labelText: l10n.cmpAdmTemplateName, border: const OutlineInputBorder()),
+              ),
+              const SizedBox(height: 8),
+              DropdownButtonFormField<String>(
+                initialValue: _type,
+                isExpanded: true,
+                decoration: InputDecoration(
+                    labelText: l10n.cmpAdmFieldType, border: const OutlineInputBorder()),
+                items: [
+                  for (final e in types.entries)
+                    DropdownMenuItem(value: e.key, child: Text(e.value)),
+                ],
+                onChanged: (v) => setState(() => _type = v ?? _type),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _titre,
+                onChanged: (_) => setState(() {}),
+                maxLength: 80,
+                decoration: InputDecoration(
+                    labelText: l10n.cmpAdmFieldTitle, border: const OutlineInputBorder()),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _texte,
+                onChanged: (_) => setState(() {}),
+                maxLength: 300,
+                maxLines: 4,
+                decoration: InputDecoration(
+                    labelText: l10n.cmpAdmFieldBody, border: const OutlineInputBorder()),
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+            onPressed: () => Navigator.pop(context), child: Text(l10n.cmpAdmCancelAction)),
+        ElevatedButton(
+          onPressed: valide
+              ? () => Navigator.pop(
+                    context,
+                    _SaisieModele(_nom.text.trim(), _type, _titre.text.trim(), _texte.text.trim()),
+                  )
+              : null,
+          child: Text(l10n.cmpAdmSaveDraft),
+        ),
+      ],
     );
   }
 }
