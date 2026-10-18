@@ -9318,9 +9318,9 @@ Supabase et Firebase côté serveur, accès anon, stockage, journaux, Crashlytic
 
 **Priorité P1** · importance 4/5 — La notification doit arriver sur un vrai téléphone et son aperçu, affiché écran verrouillé, ne doit rien révéler de la demande.
 
-*Bloqué : migration 20261018270000 appliquée, un téléphone avec un compte de test (notifications autorisées), le panneau web avec un superAdmin.*
+*Bloqué : migration 20261019100000 appliquée, un téléphone avec un compte de test (notifications autorisées), le panneau web avec un superAdmin.*
 
-Fichiers : `supabase/migrations/20261018270000_demandes_donnees_reponse_et_avancement.sql`, `mes_demandes_donnees_screen.dart`, `admin_securite_screen.dart`.
+Fichiers : `supabase/migrations/20261019100000_demandes_donnees_reponse_et_avancement.sql`, `mes_demandes_donnees_screen.dart`, `admin_securite_screen.dart`.
 
 - [ ] Téléphone verrouillé : à chaque étape décidée au panneau (identité vérifiée, traitement, traitée), un push « Votre demande sur vos données » arrive, SANS la nature de la demande ni le motif.
 - [ ] Relire `net._http_response` (recette du 2026-09-15) : un 200 portant `skipped` veut dire « créée mais pas poussée » ; le noter.
