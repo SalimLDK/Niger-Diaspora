@@ -1,5 +1,5 @@
 -- Banc : notification du demandeur, réponse écrite, état des lieux
--- (migration 20261018270000).
+-- (migration 20261019100000).
 --
 --   supabase db query --linked -f tools/rls_tests/demandes_donnees_reponse_et_avancement.sql
 --
