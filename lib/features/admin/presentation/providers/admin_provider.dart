@@ -3519,18 +3519,37 @@ class AdminAuditNotifier extends Notifier<AdminAuditState> {
     Map<String, dynamic>? details,
   }) async {
     try {
-      await _supabase.from('admin_audit_logs').insert({
-        'admin_id': adminId,
-        'admin_name': adminName,
-        'action': action,
-        'target_type': targetType,
-        'target_id': targetId,
-        'details': details ?? {},
-      });
+      await _ecrireAudit(
+        action: action,
+        targetType: targetType,
+        targetId: targetId,
+        details: details,
+      );
     } catch (e) {
       // Silently fail for audit logs
     }
   }
+}
+
+/// Écrit une ligne du journal par la RPC `write_admin_audit`.
+///
+/// L'acteur et son nom viennent de la session côté serveur : `adminId` et
+/// `adminName`, que les appelants passent encore, ne sont plus envoyés — un
+/// client qui pouvait nommer l'auteur pouvait aussi en nommer un autre.
+/// L'`INSERT` direct sur la table est fermé par supabase/
+/// admin-audit-ecriture-par-rpc-cible.sql, à appliquer une fois ce build déployé.
+Future<void> _ecrireAudit({
+  required String action,
+  required String targetType,
+  String? targetId,
+  Map<String, dynamic>? details,
+}) async {
+  await _supabase.rpc('write_admin_audit', params: {
+    'p_action': action,
+    'p_resource_type': targetType,
+    'p_resource_id': targetId,
+    'p_metadata': details ?? <String, dynamic>{},
+  });
 }
 
 // ============================================================================
@@ -3558,14 +3577,12 @@ class AdminAuditHelper {
     Map<String, dynamic>? details,
   }) async {
     try {
-      await _supabase.from('admin_audit_logs').insert({
-        'admin_id': adminId,
-        'admin_name': adminName,
-        'action': action,
-        'target_type': targetType,
-        'target_id': targetId,
-        'details': details ?? {},
-      });
+      await _ecrireAudit(
+        action: action,
+        targetType: targetType,
+        targetId: targetId,
+        details: details,
+      );
       return null;
     } catch (e) {
       final motif =
