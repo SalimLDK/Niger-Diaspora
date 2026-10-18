@@ -19214,6 +19214,120 @@ class AppLocalizationsEn extends AppLocalizations {
   String get jrnAudEntryId => 'Entry id';
 
   @override
+  String get supAdmFilterEscalated => 'Escalated';
+
+  @override
+  String get supSlaEscalatedBadge => 'Escalated';
+
+  @override
+  String get supSlaLateBadge => 'Overdue';
+
+  @override
+  String supSlaEscalationReason(String reason) {
+    return 'Escalation: $reason';
+  }
+
+  @override
+  String supSlaDueFirst(String date) {
+    return 'First reply before $date';
+  }
+
+  @override
+  String supSlaDueResolution(String date) {
+    return 'Resolution before $date';
+  }
+
+  @override
+  String get supSlaEscalate => 'Escalate';
+
+  @override
+  String get supSlaEscalateReason => 'Why is this ticket beyond your remit?';
+
+  @override
+  String get supSlaEscalationLift => 'Lift escalation';
+
+  @override
+  String get supSlaInsertTemplate => 'Insert a template';
+
+  @override
+  String get supSlaSettings => 'Templates and deadlines';
+
+  @override
+  String get supSlaSettingsTitle => 'Support settings';
+
+  @override
+  String get supSlaClose => 'Close';
+
+  @override
+  String get supSlaTemplatesTitle => 'Reply templates';
+
+  @override
+  String get supSlaTemplatesEmpty => 'No template.';
+
+  @override
+  String get supSlaTemplateNew => 'New template';
+
+  @override
+  String get supSlaTemplateEdit => 'Edit';
+
+  @override
+  String get supSlaTemplateDelete => 'Delete';
+
+  @override
+  String get supSlaTemplateTitleLabel => 'Title';
+
+  @override
+  String get supSlaTemplateBodyLabel => 'Text';
+
+  @override
+  String get supSlaTemplateCategoryLabel => 'Category';
+
+  @override
+  String get supSlaTemplateAnyCategory => 'All categories';
+
+  @override
+  String get supSlaTemplateSave => 'Save';
+
+  @override
+  String supSlaTemplateDeleteConfirm(String title) {
+    return 'Delete the template \"$title\"?';
+  }
+
+  @override
+  String get supSlaTargetsTitle => 'Service deadlines';
+
+  @override
+  String get supSlaTargetsNote =>
+      'Clock hours, not business hours. With no deadline set, a ticket has no due date and is never overdue. An existing target is replaced for the same category and priority.';
+
+  @override
+  String get supSlaTargetsEmpty => 'No deadline set.';
+
+  @override
+  String get supSlaFirstHours => '1st reply (h)';
+
+  @override
+  String get supSlaResolutionHours => 'Resolution (h)';
+
+  @override
+  String get supSlaTargetSave => 'Set';
+
+  @override
+  String get supSlaTargetRemove => 'Remove this deadline';
+
+  @override
+  String supSlaTargetLine(String first, String res) {
+    return 'First reply: $first h · Resolution: $res h';
+  }
+
+  @override
+  String get supSlaNoValue => '—';
+
+  @override
+  String get supSlaHoursInvalid =>
+      'Enter whole hours, from 1 to 8760, in at least one of the two fields.';
+
+  @override
   String get statTitle => 'Statistics';
 
   @override

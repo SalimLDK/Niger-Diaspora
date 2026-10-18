@@ -68,8 +68,8 @@ INSERT INTO public.support_tickets (id, user_id, subject, status, assigned_to, m
 
 -- ═══ 1. Catalogue et droits ════════════════════════════════════════════════
 SELECT pg_temp.verifie(1, 'les 4 permissions sont au catalogue, contentMod les porte, financeMod aucune', '4/4/0',
-  (SELECT count(*) FROM public.admin_permissions WHERE key LIKE 'support.tickets.%') || '/' ||
-  (SELECT count(*) FROM public.admin_role_permissions WHERE role = 'contentMod' AND permission LIKE 'support.tickets.%') || '/' ||
+  (SELECT count(*) FROM public.admin_permissions WHERE key LIKE 'support.tickets.%' AND key NOT LIKE '%escalat%') || '/' ||
+  (SELECT count(*) FROM public.admin_role_permissions WHERE role = 'contentMod' AND permission LIKE 'support.tickets.%' AND permission NOT LIKE '%escalat%') || '/' ||
   (SELECT count(*) FROM public.admin_role_permissions WHERE role = 'financeMod' AND permission LIKE 'support.%'));
 SELECT pg_temp.verifie(2, 'anon n''exécute aucune des cinq RPC', 'false',
   (has_function_privilege('anon', 'public.support_ticket_transition(uuid,text,text)', 'EXECUTE')

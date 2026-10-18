@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1501 cases à cocher, 55 cochées** — 323 entrées sur 337 ont encore des cases ouvertes.
+**1507 cases à cocher, 55 cochées** — 324 entrées sur 338 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -233,7 +233,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (102)
+**P2 — fonction secondaire ou cas limite** (103)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -293,6 +293,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⬜ Le sigle DN est le même partout (2026-09-13)](#-le-sigle-dn-est-le-même-partout-2026-09-13) · *Design, thème, langue et mise en page*
 - 1 · [Thème sombre — jetons clairs codés en dur](#thème-sombre--jetons-clairs-codés-en-dur) · *Design, thème, langue et mise en page*
 - 4 · [Bascule design_v2 → production, famille 2 : les services (2026-08-03)](#bascule-design_v2--production-famille-2--les-services-2026-08-03) · *Design, thème, langue et mise en page*
+- 6 · [⬜ Support : délais de service, escalade, modèles de réponse (2026-10-19)](#-support--délais-de-service-escalade-modèles-de-réponse-2026-10-19) · *Backend, sécurité et observabilité*
 - 7 · [⬜ Panneau admin : Journal d'audit — filtres côté serveur, détail, export audité (2026-10-19)](#-panneau-admin--journal-daudit--filtres-côté-serveur-détail-export-audité-2026-10-19) · *Backend, sécurité et observabilité*
 - 6 · [⬜ Panneau admin : Membres — avertir, suspendre, vérifier, déconnecter avec motif et historique (2026-10-19)](#-panneau-admin--membres--avertir-suspendre-vérifier-déconnecter-avec-motif-et-historique-2026-10-19) · *Backend, sécurité et observabilité*
 - 5 · [⬜ Panneau admin : Transferts et Marketplace — l'écran était vide et ses gestes échouaient (2026-10-19)](#-panneau-admin--transferts-et-marketplace--lécran-était-vide-et-ses-gestes-échouaient-2026-10-19) · *Backend, sécurité et observabilité*
@@ -395,7 +396,7 @@ Par domaine :
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 67 à faire, 0 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 58 à faire, 5 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 108 à faire, 5 faites
-- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 238 à faire, 2 faites
+- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 244 à faire, 2 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 46 à faire, 1 faites
 - [15. Site web](#15-site-web) — 69 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 23 à faire, 0 faites
@@ -9324,6 +9325,21 @@ parce qu'il change un **comportement**, pas seulement un habillage :
 Supabase et Firebase côté serveur, accès anon, stockage, journaux, Crashlytics, back-office.
 
 ---
+## ⬜ Support : délais de service, escalade, modèles de réponse (2026-10-19)
+
+**Priorité P2** · importance 3/5 — Écran d'administration seulement, mais la garde du déclencheur `support_tickets_guard` a été réécrite : un membre doit toujours pouvoir créer et suivre son ticket depuis l'application.
+
+*Bloqué : migration 20261019210000 appliquée, le panneau web avec contentMod et superAdmin, un téléphone avec un compte membre.*
+
+Fichiers : `lib/features/admin/presentation/screens/admin_support_tickets_screen.dart`, `lib/features/admin/presentation/widgets/reglages_support_dialog.dart`, `supabase/migrations/20261019210000_support_sla_escalade_modeles.sql`.
+
+- [ ] Téléphone, membre : créer un ticket, lire la réponse du support, répondre, le clore — tout fonctionne comme avant.
+- [ ] superAdmin : « Modèles et délais » arrête un délai ; un ticket plus ancien que ce délai affiche « En retard » en rouge, et ses deux échéances.
+- [ ] Retirer le délai : le badge « En retard » disparaît.
+- [ ] contentMod : voit la section modèles mais pas celle des délais ; crée un modèle, l'insère dans une réponse (le texte remplace le brouillon et reste modifiable).
+- [ ] contentMod escalade un ticket avec un motif : badge « Escaladé », filtre « Escaladés », motif visible ; le bouton Lever l'escalade n'apparaît que pour le superAdmin.
+- [ ] Largeur tablette : le dialogue des réglages reste utilisable (défilement, champs numériques).
+
 ## ⬜ Panneau admin : Statistiques — fini les zéros qui cachent une erreur et l'export factice (2026-10-19)
 
 **Priorité P3** · importance 2/5 — Un échec de lecture s'affichait « 0 » (courbe de croissance vide), les répartitions s'arrêtaient à 1000 lignes, et trois boutons « Exporter » annonçaient « Export en cours » sans rien produire. Les chiffres portent maintenant leur définition et l'heure de lecture.

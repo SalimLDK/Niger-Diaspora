@@ -35138,6 +35138,210 @@ abstract class AppLocalizations {
   /// **'Identifiant de l\'entrée'**
   String get jrnAudEntryId;
 
+  /// No description provided for @supAdmFilterEscalated.
+  ///
+  /// In fr, this message translates to:
+  /// **'Escaladés'**
+  String get supAdmFilterEscalated;
+
+  /// No description provided for @supSlaEscalatedBadge.
+  ///
+  /// In fr, this message translates to:
+  /// **'Escaladé'**
+  String get supSlaEscalatedBadge;
+
+  /// No description provided for @supSlaLateBadge.
+  ///
+  /// In fr, this message translates to:
+  /// **'En retard'**
+  String get supSlaLateBadge;
+
+  /// No description provided for @supSlaEscalationReason.
+  ///
+  /// In fr, this message translates to:
+  /// **'Escalade : {reason}'**
+  String supSlaEscalationReason(String reason);
+
+  /// No description provided for @supSlaDueFirst.
+  ///
+  /// In fr, this message translates to:
+  /// **'Première réponse avant le {date}'**
+  String supSlaDueFirst(String date);
+
+  /// No description provided for @supSlaDueResolution.
+  ///
+  /// In fr, this message translates to:
+  /// **'Résolution avant le {date}'**
+  String supSlaDueResolution(String date);
+
+  /// No description provided for @supSlaEscalate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Escalader'**
+  String get supSlaEscalate;
+
+  /// No description provided for @supSlaEscalateReason.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pourquoi ce ticket dépasse-t-il votre périmètre ?'**
+  String get supSlaEscalateReason;
+
+  /// No description provided for @supSlaEscalationLift.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lever l\'escalade'**
+  String get supSlaEscalationLift;
+
+  /// No description provided for @supSlaInsertTemplate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Insérer un modèle'**
+  String get supSlaInsertTemplate;
+
+  /// No description provided for @supSlaSettings.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modèles et délais'**
+  String get supSlaSettings;
+
+  /// No description provided for @supSlaSettingsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réglages du support'**
+  String get supSlaSettingsTitle;
+
+  /// No description provided for @supSlaClose.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fermer'**
+  String get supSlaClose;
+
+  /// No description provided for @supSlaTemplatesTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modèles de réponse'**
+  String get supSlaTemplatesTitle;
+
+  /// No description provided for @supSlaTemplatesEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun modèle.'**
+  String get supSlaTemplatesEmpty;
+
+  /// No description provided for @supSlaTemplateNew.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouveau modèle'**
+  String get supSlaTemplateNew;
+
+  /// No description provided for @supSlaTemplateEdit.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier'**
+  String get supSlaTemplateEdit;
+
+  /// No description provided for @supSlaTemplateDelete.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer'**
+  String get supSlaTemplateDelete;
+
+  /// No description provided for @supSlaTemplateTitleLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Titre'**
+  String get supSlaTemplateTitleLabel;
+
+  /// No description provided for @supSlaTemplateBodyLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Texte'**
+  String get supSlaTemplateBodyLabel;
+
+  /// No description provided for @supSlaTemplateCategoryLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Catégorie'**
+  String get supSlaTemplateCategoryLabel;
+
+  /// No description provided for @supSlaTemplateAnyCategory.
+  ///
+  /// In fr, this message translates to:
+  /// **'Toutes catégories'**
+  String get supSlaTemplateAnyCategory;
+
+  /// No description provided for @supSlaTemplateSave.
+  ///
+  /// In fr, this message translates to:
+  /// **'Enregistrer'**
+  String get supSlaTemplateSave;
+
+  /// No description provided for @supSlaTemplateDeleteConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer le modèle « {title} » ?'**
+  String supSlaTemplateDeleteConfirm(String title);
+
+  /// No description provided for @supSlaTargetsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Délais de service'**
+  String get supSlaTargetsTitle;
+
+  /// No description provided for @supSlaTargetsNote.
+  ///
+  /// In fr, this message translates to:
+  /// **'Heures d\'horloge, pas ouvrées. Sans délai arrêté, un ticket n\'a pas d\'échéance et n\'est jamais en retard. Une cible existante est remplacée par la même catégorie et priorité.'**
+  String get supSlaTargetsNote;
+
+  /// No description provided for @supSlaTargetsEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun délai arrêté.'**
+  String get supSlaTargetsEmpty;
+
+  /// No description provided for @supSlaFirstHours.
+  ///
+  /// In fr, this message translates to:
+  /// **'1re réponse (h)'**
+  String get supSlaFirstHours;
+
+  /// No description provided for @supSlaResolutionHours.
+  ///
+  /// In fr, this message translates to:
+  /// **'Résolution (h)'**
+  String get supSlaResolutionHours;
+
+  /// No description provided for @supSlaTargetSave.
+  ///
+  /// In fr, this message translates to:
+  /// **'Arrêter'**
+  String get supSlaTargetSave;
+
+  /// No description provided for @supSlaTargetRemove.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retirer ce délai'**
+  String get supSlaTargetRemove;
+
+  /// No description provided for @supSlaTargetLine.
+  ///
+  /// In fr, this message translates to:
+  /// **'Première réponse : {first} h · Résolution : {res} h'**
+  String supSlaTargetLine(String first, String res);
+
+  /// No description provided for @supSlaNoValue.
+  ///
+  /// In fr, this message translates to:
+  /// **'—'**
+  String get supSlaNoValue;
+
+  /// No description provided for @supSlaHoursInvalid.
+  ///
+  /// In fr, this message translates to:
+  /// **'Saisissez des heures entières, de 1 à 8760, dans au moins un des deux champs.'**
+  String get supSlaHoursInvalid;
+
   /// No description provided for @statTitle.
   ///
   /// In fr, this message translates to:
