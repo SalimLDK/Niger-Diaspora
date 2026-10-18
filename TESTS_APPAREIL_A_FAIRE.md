@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1398 cases à cocher, 55 cochées** — 308 entrées sur 322 ont encore des cases ouvertes.
+**1404 cases à cocher, 55 cochées** — 309 entrées sur 323 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -97,7 +97,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 6 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (124)
+**P1 — fonction importante, jamais vérifiée** (125)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -174,6 +174,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [⬜ Photo de profil : on choisit son cadrage (2026-09-14)](#-photo-de-profil--on-choisit-son-cadrage-2026-09-14) · *Accueil, profil et réglages*
 - 6 · [⬜ Champ ville : recherche dans le référentiel (2026-09-13)](#-champ-ville--recherche-dans-le-référentiel-2026-09-13) · *Accueil, profil et réglages*
 - 7 · [Bascule en anglais — ~1 600 chaînes branchées, rien vu à l'écran (2026-08-06)](#bascule-en-anglais--1-600-chaînes-branchées-rien-vu-à-lécran-2026-08-06) · *Design, thème, langue et mise en page* · bloqué
+- 6 · [⬜ Panneau admin : annuaire — badge motivé, archivage, historique (2026-10-18)](#-panneau-admin--annuaire--badge-motivé-archivage-historique-2026-10-18) · *Backend, sécurité et observabilité*
 - 10 · [⬜ Panneau admin : démarches consulaires, du brouillon à la publication (2026-10-18)](#-panneau-admin--démarches-consulaires-du-brouillon-à-la-publication-2026-10-18) · *Backend, sécurité et observabilité*
 - 9 · [⬜ Panneau admin : l'écran Support et la création d'un ticket côté application (2026-10-18)](#-panneau-admin--lécran-support-et-la-création-dun-ticket-côté-application-2026-10-18) · *Backend, sécurité et observabilité*
 - 6 · [⬜ Crashlytics : clés et journaux de diagnostic des OutOfMemoryError (2026-10-15)](#-crashlytics--clés-et-journaux-de-diagnostic-des-outofmemoryerror-2026-10-15) · *Backend, sécurité et observabilité*
@@ -380,7 +381,7 @@ Par domaine :
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 67 à faire, 0 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 58 à faire, 5 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 108 à faire, 5 faites
-- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 135 à faire, 2 faites
+- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 141 à faire, 2 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 46 à faire, 1 faites
 - [15. Site web](#15-site-web) — 69 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 23 à faire, 0 faites
@@ -9307,6 +9308,22 @@ parce qu'il change un **comportement**, pas seulement un habillage :
 # 13. Backend, sécurité et observabilité
 
 Supabase et Firebase côté serveur, accès anon, stockage, journaux, Crashlytics, back-office.
+
+---
+## ⬜ Panneau admin : annuaire — badge motivé, archivage, historique (2026-10-18)
+
+**Priorité P1** · importance 4/5 — Le badge « vérifié » et la promotion payante ne se posent plus que par le serveur, avec une base ou un motif ; et l'application doit continuer d'enregistrer les fiches de leurs propriétaires.
+
+*Bloqué : migration 20261018190000 appliquée, panneau web avec un compte businessMod, un téléphone avec un compte propriétaire d'une fiche.*
+
+Fichiers : `lib/features/admin/presentation/screens/admin_businesses_screen.dart`, `supabase/migrations/20261018190000_annuaire_moderation.sql`.
+
+- [ ] Téléphone, propriétaire : créer une fiche, modifier son nom, ses horaires, ses photos → tout s'enregistre comme avant (le serveur compare des valeurs, il ne refuse pas la réécriture complète de la ligne).
+- [ ] Panneau, « Vérifier » : refuse de confirmer sans base de 5 caractères au moins ; la fiche passe « vérifiée » ; « Retirer le badge » exige un motif.
+- [ ] « Archiver » : la fiche disparaît de l'annuaire de l'application pour les autres membres, sa promotion s'arrête, une mention « Archivée » apparaît dans le panneau ; « Restaurer » la remet.
+- [ ] Téléphone, propriétaire d'une fiche archivée : il la voit encore ; il ne peut pas la réactiver lui-même.
+- [ ] Un compte financeMod ou contentMod ne peut ni vérifier, ni promouvoir, ni archiver, ni supprimer (message de permission lisible).
+- [ ] Les 7 fiches existantes (nom vide, « 200000 », ville « carte »…) : décider lesquelles archiver — c'est du contenu, pas du code.
 
 ---
 ## ⬜ Panneau admin : annuler / supprimer un événement avec motif, historique des changements (2026-10-18)

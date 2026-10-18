@@ -8981,5 +8981,22 @@
   "evtAdmDeleteTitle": "Supprimer l'événement",
   "evtAdmReasonLabel": "Motif (conservé dans l'historique)",
   "evtAdmCancelWarn": "Les inscrits ne reçoivent pas encore de notification : ils verront « annulé » en ouvrant l'événement.",
-  "evtAdmDeleteWarn": "Les inscriptions sont supprimées avec l'événement ; seul l'historique est conservé. Réservé au super-administrateur."
+  "evtAdmDeleteWarn": "Les inscriptions sont supprimées avec l'événement ; seul l'historique est conservé. Réservé au super-administrateur.",
+  "annAdmArchive": "Archiver",
+  "annAdmRestore": "Restaurer",
+  "annAdmArchived": "Archivée",
+  "annAdmReasonLabel": "Motif (conservé dans l'historique)",
+  "annAdmSourceLabel": "Base de la vérification (registre, document, contact…)",
+  "annAdmVerifyTitle": "Vérifier la fiche",
+  "annAdmVerifyWarn": "Le badge dit au public que la fiche a été contrôlée : indiquez sur quoi, c'est conservé avec votre nom.",
+  "annAdmUnverifyTitle": "Retirer le badge",
+  "annAdmBoostTitle": "Promouvoir 30 jours",
+  "annAdmUnboostTitle": "Retirer la promotion",
+  "annAdmArchiveTitle": "Archiver la fiche",
+  "annAdmArchiveWarn": "La fiche disparaît du public et perd son badge de promotion. Le propriétaire la voit et lit le motif. Réversible.",
+  "annAdmRestoreTitle": "Restaurer la fiche",
+  "annAdmDeleteTitle": "Supprimer la fiche",
+  "annAdmDeleteWarn": "Suppression définitive (avis, abonnés, vues). Préférez l'archivage ; seul l'historique est conservé.",
+  "annAdmArchivedDone": "Fiche archivée",
+  "annAdmRestoredDone": "Fiche restaurée"
 }

@@ -17605,4 +17605,59 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get evtAdmDeleteWarn =>
       'Registrations are deleted with the event; only the history is kept. Super-admin only.';
+
+  @override
+  String get annAdmArchive => 'Archive';
+
+  @override
+  String get annAdmRestore => 'Restore';
+
+  @override
+  String get annAdmArchived => 'Archived';
+
+  @override
+  String get annAdmReasonLabel => 'Reason (kept in the history)';
+
+  @override
+  String get annAdmSourceLabel =>
+      'Basis of the verification (register, document, contact…)';
+
+  @override
+  String get annAdmVerifyTitle => 'Verify the listing';
+
+  @override
+  String get annAdmVerifyWarn =>
+      'The badge tells the public the listing was checked: say on what basis, it is kept with your name.';
+
+  @override
+  String get annAdmUnverifyTitle => 'Remove the badge';
+
+  @override
+  String get annAdmBoostTitle => 'Promote for 30 days';
+
+  @override
+  String get annAdmUnboostTitle => 'Remove the promotion';
+
+  @override
+  String get annAdmArchiveTitle => 'Archive the listing';
+
+  @override
+  String get annAdmArchiveWarn =>
+      'The listing disappears from the public and loses its promotion. The owner sees it and reads the reason. Reversible.';
+
+  @override
+  String get annAdmRestoreTitle => 'Restore the listing';
+
+  @override
+  String get annAdmDeleteTitle => 'Delete the listing';
+
+  @override
+  String get annAdmDeleteWarn =>
+      'Permanent deletion (reviews, followers, views). Prefer archiving; only the history is kept.';
+
+  @override
+  String get annAdmArchivedDone => 'Listing archived';
+
+  @override
+  String get annAdmRestoredDone => 'Listing restored';
 }

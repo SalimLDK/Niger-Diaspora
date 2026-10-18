@@ -574,6 +574,11 @@ class AdminBusinessState extends Equatable {
   ];
 }
 
+/// Les fiches archivées parmi celles chargées (`is_active = false`). L'entité
+/// partagée avec l'application ne porte pas ce drapeau ; le panneau le tient à
+/// part plutôt que d'élargir un modèle généré qui n'est pas le sien.
+final commercesArchivesProvider = StateProvider<Set<String>>((ref) => {});
+
 final adminBusinessNotifierProvider =
     NotifierProvider<AdminBusinessNotifier, AdminBusinessState>(
       AdminBusinessNotifier.new,
@@ -677,187 +682,86 @@ class AdminBusinessNotifier extends Notifier<AdminBusinessState> {
         .range(decalage, decalage + taillePageCommerces - 1) as List;
 
     final commerces = <BusinessEntity>[];
+    final archivees = {...ref.read(commercesArchivesProvider)};
     for (final row in rows) {
+      final id = row['id'] as String?;
+      if (id != null) {
+        if (row['is_active'] == false) {
+          archivees.add(id);
+        } else {
+          archivees.remove(id);
+        }
+      }
       try {
         commerces.add(BusinessModel.fromJson(_mapBusiness(row)).toEntity());
       } catch (e) {
         // Ligne illisible : sautée de l'affichage, comptée dans `_lues`.
       }
     }
+    ref.read(commercesArchivesProvider.notifier).state = archivees;
     _lues[filtre] = decalage + rows.length;
     return (commerces: commerces, lues: rows.length);
   }
 
-  Future<bool> verifyBusiness(
-    String businessId, {
-    required String adminId,
-    String? adminName,
-  }) async {
+  /// Appelle une RPC d'administration de l'annuaire, recharge, et dit pourquoi
+  /// en cas de refus. Les écritures directes sur `businesses` n'existent plus
+  /// pour un administrateur (policies et exemption du déclencheur retirées par
+  /// la migration 20261018190000) : tout passe par ces fonctions, qui exigent
+  /// la permission, une base ou un motif, et écrivent l'audit.
+  Future<bool> _rpcAnnuaire(String fonction, Map<String, dynamic> params) async {
     try {
-      final updated = await _supabase
-          .from('businesses')
-          .update({
-            'is_verified': true,
-            'updated_at': DateTime.now().toUtc().toIso8601String(),
-          })
-          .eq('id', businessId)
-          .select('id');
-      if ((updated as List).isEmpty) {
-        state = state.copyWith(error: 'Entreprise non vérifiée : $_aucuneLigne');
-        return false;
-      }
-
-      final echecJournal = await AdminAuditHelper.log(
-        adminId: adminId,
-        adminName: adminName,
-        action: 'verify_business',
-        targetType: 'business',
-        targetId: businessId,
-      );
-
+      await _supabase.rpc(fonction, params: params);
       await fetchAllBusinesses();
-      if (echecJournal != null) {
-        state = state.copyWith(error: echecJournal);
-        return false;
-      }
       return true;
+    } on PostgrestException catch (e) {
+      // Recharger d'abord : `fetchAllBusinesses` efface `error`.
+      await fetchAllBusinesses();
+      state = state.copyWith(error: messageAnnuaireAdmin(e));
+      return false;
     } catch (e) {
       state = state.copyWith(error: e.toString());
       return false;
     }
   }
 
-  Future<bool> unverifyBusiness(
-    String businessId, {
-    required String adminId,
-    String? adminName,
-  }) async {
-    try {
-      final updated = await _supabase
-          .from('businesses')
-          .update({
-            'is_verified': false,
-            'updated_at': DateTime.now().toUtc().toIso8601String(),
-          })
-          .eq('id', businessId)
-          .select('id');
-      if ((updated as List).isEmpty) {
-        state = state.copyWith(
-          error: 'Vérification non retirée : $_aucuneLigne',
-        );
-        return false;
-      }
+  /// Le refus du serveur, en clair. Son texte n'est repris que pour une saisie
+  /// refusée (22023), où il dit quoi corriger.
+  static String messageAnnuaireAdmin(PostgrestException e) => switch (e.code) {
+        '42501' => "Vous n'avez pas la permission d'effectuer cette action.",
+        '55000' => 'La fiche a changé entre-temps (${e.message}). Liste rechargée.',
+        'P0002' => 'Fiche introuvable.',
+        '22023' || '22001' => e.message,
+        _ => 'Action impossible : ${e.message}',
+      };
 
-      final echecJournal = await AdminAuditHelper.log(
-        adminId: adminId,
-        adminName: adminName,
-        action: 'unverify_business',
-        targetType: 'business',
-        targetId: businessId,
-      );
+  /// Pose le badge « vérifié » ; [source] dit sur quoi (obligatoire).
+  Future<bool> verifyBusiness(String businessId, {required String source}) =>
+      _rpcAnnuaire('business_admin_verify', {'p_id': businessId, 'p_source': source});
 
-      await fetchAllBusinesses();
-      if (echecJournal != null) {
-        state = state.copyWith(error: echecJournal);
-        return false;
-      }
-      return true;
-    } catch (e) {
-      state = state.copyWith(error: e.toString());
-      return false;
-    }
-  }
+  Future<bool> unverifyBusiness(String businessId, {required String motif}) =>
+      _rpcAnnuaire('business_admin_unverify', {'p_id': businessId, 'p_reason': motif});
 
   Future<bool> toggleBoost(
     String businessId,
     bool boost, {
     int days = 30,
-    required String adminId,
-    String? adminName,
-  }) async {
-    try {
-      final updates = <String, dynamic>{
-        'is_boosted': boost,
-        'updated_at': DateTime.now().toUtc().toIso8601String(),
-      };
+    required String motif,
+  }) =>
+      _rpcAnnuaire('business_admin_set_boost', {
+        'p_id': businessId,
+        'p_boosted': boost,
+        'p_days': boost ? days : null,
+        'p_reason': motif,
+      });
 
-      if (boost) {
-        updates['boost_expires_at'] = DateTime.now()
-            .add(Duration(days: days))
-            .toUtc().toIso8601String();
-      } else {
-        updates['boost_expires_at'] = null;
-      }
+  Future<bool> archiveBusiness(String businessId, {required String motif}) =>
+      _rpcAnnuaire('business_admin_archive', {'p_id': businessId, 'p_reason': motif});
 
-      final updated = await _supabase
-          .from('businesses')
-          .update(updates)
-          .eq('id', businessId)
-          .select('id');
-      if ((updated as List).isEmpty) {
-        state = state.copyWith(
-          error: '${boost ? 'Boost non activé' : 'Boost non retiré'} : '
-              '$_aucuneLigne',
-        );
-        return false;
-      }
+  Future<bool> restoreBusiness(String businessId, {required String motif}) =>
+      _rpcAnnuaire('business_admin_restore', {'p_id': businessId, 'p_reason': motif});
 
-      final echecJournal = await AdminAuditHelper.log(
-        adminId: adminId,
-        adminName: adminName,
-        action: 'toggle_boost',
-        targetType: 'business',
-        targetId: businessId,
-        details: {'boost': boost, 'days': days},
-      );
-
-      await fetchAllBusinesses();
-      if (echecJournal != null) {
-        state = state.copyWith(error: echecJournal);
-        return false;
-      }
-      return true;
-    } catch (e) {
-      state = state.copyWith(error: e.toString());
-      return false;
-    }
-  }
-
-  Future<bool> deleteBusiness(
-    String businessId, {
-    required String adminId,
-    String? adminName,
-  }) async {
-    try {
-      final deleted = await _supabase
-          .from('businesses')
-          .delete()
-          .eq('id', businessId)
-          .select('id');
-      if ((deleted as List).isEmpty) {
-        state = state.copyWith(error: 'Entreprise non supprimée : $_aucuneLigne');
-        return false;
-      }
-
-      final echecJournal = await AdminAuditHelper.log(
-        adminId: adminId,
-        adminName: adminName,
-        action: 'delete_business',
-        targetType: 'business',
-        targetId: businessId,
-      );
-
-      await fetchAllBusinesses();
-      if (echecJournal != null) {
-        state = state.copyWith(error: echecJournal);
-        return false;
-      }
-      return true;
-    } catch (e) {
-      state = state.copyWith(error: e.toString());
-      return false;
-    }
-  }
+  Future<bool> deleteBusiness(String businessId, {required String motif}) =>
+      _rpcAnnuaire('business_admin_delete', {'p_id': businessId, 'p_reason': motif});
 }
 
 // ============================================================================

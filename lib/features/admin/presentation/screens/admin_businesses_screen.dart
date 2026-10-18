@@ -207,6 +207,7 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
   }
 
   Widget _buildBusinessCard(BusinessEntity business) {
+    final estActive = !ref.watch(commercesArchivesProvider).contains(business.id);
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
@@ -307,6 +308,14 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
                       ),
                     ),
                   ),
+                  if (!estActive) ...[
+                    const SizedBox(height: 4),
+                    Text(l10n.annAdmArchived,
+                        style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: AdminColors.statusAmber)),
+                  ],
                 ],
               ),
             ),
@@ -374,6 +383,30 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
                         ),
                       ),
                     const PopupMenuDivider(),
+                    if (estActive)
+                      PopupMenuItem(
+                        value: 'archive',
+                        child: Row(
+                          children: [
+                            const Icon(Icons.archive_outlined,
+                                color: AdminColors.statusAmber, size: 20),
+                            const SizedBox(width: 12),
+                            Text(l10n.annAdmArchive),
+                          ],
+                        ),
+                      )
+                    else
+                      PopupMenuItem(
+                        value: 'restore',
+                        child: Row(
+                          children: [
+                            const Icon(Icons.unarchive_outlined,
+                                color: AdminColors.statusGreen, size: 20),
+                            const SizedBox(width: 12),
+                            Text(l10n.annAdmRestore),
+                          ],
+                        ),
+                      ),
                     PopupMenuItem(
                       value: 'delete',
                       child: Row(
@@ -404,89 +437,128 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
       return;
     }
 
+    // Chaque geste demande ce que le serveur exige : une base pour le badge,
+    // un motif pour le reste. Les deux sont conservés avec le nom de l'agent.
     switch (action) {
       case 'verify':
-        final ok = await notifier.verifyBusiness(
-          business.id,
-          adminId: currentAdmin.id,
-          adminName: currentAdmin.name,
+        final source = await _demanderTexte(
+          l10n.annAdmVerifyTitle,
+          l10n.annAdmSourceLabel,
+          avertissement: l10n.annAdmVerifyWarn,
         );
+        if (source == null) return;
+        final ok = await notifier.verifyBusiness(business.id, source: source);
         _montrerBilan(ok, l10n.adminBusinessVerified);
         break;
       case 'unverify':
-        final ok = await notifier.unverifyBusiness(
-          business.id,
-          adminId: currentAdmin.id,
-          adminName: currentAdmin.name,
-        );
+        final motif = await _demanderTexte(
+            l10n.annAdmUnverifyTitle, l10n.annAdmReasonLabel);
+        if (motif == null) return;
+        final ok = await notifier.unverifyBusiness(business.id, motif: motif);
         _montrerBilan(ok, l10n.adminVerificationRemoved);
         break;
       case 'boost':
-        final ok = await notifier.toggleBoost(
-          business.id,
-          true,
-          adminId: currentAdmin.id,
-          adminName: currentAdmin.name,
-        );
+        final motif =
+            await _demanderTexte(l10n.annAdmBoostTitle, l10n.annAdmReasonLabel);
+        if (motif == null) return;
+        final ok = await notifier.toggleBoost(business.id, true, motif: motif);
         _montrerBilan(ok, l10n.adminBusinessBoosted);
         break;
       case 'unboost':
-        final ok = await notifier.toggleBoost(
-          business.id,
-          false,
-          adminId: currentAdmin.id,
-          adminName: currentAdmin.name,
-        );
+        final motif = await _demanderTexte(
+            l10n.annAdmUnboostTitle, l10n.annAdmReasonLabel);
+        if (motif == null) return;
+        final ok = await notifier.toggleBoost(business.id, false, motif: motif);
         _montrerBilan(ok, l10n.adminBoostRemoved);
         break;
+      case 'archive':
+        final motif = await _demanderTexte(
+          l10n.annAdmArchiveTitle,
+          l10n.annAdmReasonLabel,
+          avertissement: l10n.annAdmArchiveWarn,
+        );
+        if (motif == null) return;
+        final ok = await notifier.archiveBusiness(business.id, motif: motif);
+        _montrerBilan(ok, l10n.annAdmArchivedDone);
+        break;
+      case 'restore':
+        final motif = await _demanderTexte(
+            l10n.annAdmRestoreTitle, l10n.annAdmReasonLabel);
+        if (motif == null) return;
+        final ok = await notifier.restoreBusiness(business.id, motif: motif);
+        _montrerBilan(ok, l10n.annAdmRestoredDone);
+        break;
       case 'delete':
-        final confirm = await _showDeleteConfirmation();
-        if (confirm == true) {
-          final ok = await notifier.deleteBusiness(
-            business.id,
-            adminId: currentAdmin.id,
-            adminName: currentAdmin.name,
-          );
-          _montrerBilan(ok, l10n.adminBusinessDeleted);
-        }
+        final motif = await _demanderTexte(
+          l10n.annAdmDeleteTitle,
+          l10n.annAdmReasonLabel,
+          avertissement: l10n.annAdmDeleteWarn,
+          destructif: true,
+        );
+        if (motif == null) return;
+        final ok = await notifier.deleteBusiness(business.id, motif: motif);
+        _montrerBilan(ok, l10n.adminBusinessDeleted);
         break;
     }
   }
 
-  Future<bool?> _showDeleteConfirmation() {
-    return showDialog<bool>(
+  /// Une saisie d'au moins 5 caractères (le serveur l'exige aussi), ou `null`
+  /// si l'action est abandonnée.
+  Future<String?> _demanderTexte(
+    String titre,
+    String libelle, {
+    String? avertissement,
+    bool destructif = false,
+  }) {
+    final controller = TextEditingController();
+    return showDialog<String>(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            title: Text(l10n.adminConfirmDelete),
-            content: Text(
-              l10n.adminDeleteBusinessConfirm,
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: Text(l10n.adminCancelAction),
-              ),
-              ElevatedButton(
-                onPressed: () => Navigator.pop(context, true),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AdminColors.statusRed,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: Text(
-                  l10n.adminDelete,
-                  style: TextStyle(color: Colors.white),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setLocal) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Text(titre),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (avertissement != null) ...[
+                Text(avertissement,
+                    style: const TextStyle(
+                        fontSize: 12, color: AdminColors.statusAmberStrong)),
+                const SizedBox(height: 12),
+              ],
+              TextField(
+                controller: controller,
+                onChanged: (_) => setLocal(() {}),
+                maxLines: 3,
+                maxLength: 500,
+                decoration: InputDecoration(
+                  labelText: libelle,
+                  border: const OutlineInputBorder(),
                 ),
               ),
             ],
           ),
-    );
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(l10n.adminCancelAction),
+            ),
+            ElevatedButton(
+              onPressed: controller.text.trim().length < 5
+                  ? null
+                  : () => Navigator.pop(ctx, controller.text.trim()),
+              style: destructif
+                  ? ElevatedButton.styleFrom(backgroundColor: AdminColors.statusRed)
+                  : null,
+              child: Text(l10n.adminConfirmAction),
+            ),
+          ],
+        ),
+      ),
+    ).whenComplete(controller.dispose);
   }
+
 
   /// Le libellé de succès ne s'affiche que si le notifier a rendu vrai ;
   /// sinon son `state.error` (zéro ligne sous RLS, journal d'audit refusé…).

@@ -32287,6 +32287,108 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Les inscriptions sont supprimées avec l\'événement ; seul l\'historique est conservé. Réservé au super-administrateur.'**
   String get evtAdmDeleteWarn;
+
+  /// No description provided for @annAdmArchive.
+  ///
+  /// In fr, this message translates to:
+  /// **'Archiver'**
+  String get annAdmArchive;
+
+  /// No description provided for @annAdmRestore.
+  ///
+  /// In fr, this message translates to:
+  /// **'Restaurer'**
+  String get annAdmRestore;
+
+  /// No description provided for @annAdmArchived.
+  ///
+  /// In fr, this message translates to:
+  /// **'Archivée'**
+  String get annAdmArchived;
+
+  /// No description provided for @annAdmReasonLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif (conservé dans l\'historique)'**
+  String get annAdmReasonLabel;
+
+  /// No description provided for @annAdmSourceLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Base de la vérification (registre, document, contact…)'**
+  String get annAdmSourceLabel;
+
+  /// No description provided for @annAdmVerifyTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vérifier la fiche'**
+  String get annAdmVerifyTitle;
+
+  /// No description provided for @annAdmVerifyWarn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le badge dit au public que la fiche a été contrôlée : indiquez sur quoi, c\'est conservé avec votre nom.'**
+  String get annAdmVerifyWarn;
+
+  /// No description provided for @annAdmUnverifyTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retirer le badge'**
+  String get annAdmUnverifyTitle;
+
+  /// No description provided for @annAdmBoostTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Promouvoir 30 jours'**
+  String get annAdmBoostTitle;
+
+  /// No description provided for @annAdmUnboostTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retirer la promotion'**
+  String get annAdmUnboostTitle;
+
+  /// No description provided for @annAdmArchiveTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Archiver la fiche'**
+  String get annAdmArchiveTitle;
+
+  /// No description provided for @annAdmArchiveWarn.
+  ///
+  /// In fr, this message translates to:
+  /// **'La fiche disparaît du public et perd son badge de promotion. Le propriétaire la voit et lit le motif. Réversible.'**
+  String get annAdmArchiveWarn;
+
+  /// No description provided for @annAdmRestoreTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Restaurer la fiche'**
+  String get annAdmRestoreTitle;
+
+  /// No description provided for @annAdmDeleteTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer la fiche'**
+  String get annAdmDeleteTitle;
+
+  /// No description provided for @annAdmDeleteWarn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suppression définitive (avis, abonnés, vues). Préférez l\'archivage ; seul l\'historique est conservé.'**
+  String get annAdmDeleteWarn;
+
+  /// No description provided for @annAdmArchivedDone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fiche archivée'**
+  String get annAdmArchivedDone;
+
+  /// No description provided for @annAdmRestoredDone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fiche restaurée'**
+  String get annAdmRestoredDone;
 }
 
 class _AppLocalizationsDelegate

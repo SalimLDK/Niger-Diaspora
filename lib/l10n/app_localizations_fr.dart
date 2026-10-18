@@ -17773,4 +17773,59 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get evtAdmDeleteWarn =>
       'Les inscriptions sont supprimées avec l\'événement ; seul l\'historique est conservé. Réservé au super-administrateur.';
+
+  @override
+  String get annAdmArchive => 'Archiver';
+
+  @override
+  String get annAdmRestore => 'Restaurer';
+
+  @override
+  String get annAdmArchived => 'Archivée';
+
+  @override
+  String get annAdmReasonLabel => 'Motif (conservé dans l\'historique)';
+
+  @override
+  String get annAdmSourceLabel =>
+      'Base de la vérification (registre, document, contact…)';
+
+  @override
+  String get annAdmVerifyTitle => 'Vérifier la fiche';
+
+  @override
+  String get annAdmVerifyWarn =>
+      'Le badge dit au public que la fiche a été contrôlée : indiquez sur quoi, c\'est conservé avec votre nom.';
+
+  @override
+  String get annAdmUnverifyTitle => 'Retirer le badge';
+
+  @override
+  String get annAdmBoostTitle => 'Promouvoir 30 jours';
+
+  @override
+  String get annAdmUnboostTitle => 'Retirer la promotion';
+
+  @override
+  String get annAdmArchiveTitle => 'Archiver la fiche';
+
+  @override
+  String get annAdmArchiveWarn =>
+      'La fiche disparaît du public et perd son badge de promotion. Le propriétaire la voit et lit le motif. Réversible.';
+
+  @override
+  String get annAdmRestoreTitle => 'Restaurer la fiche';
+
+  @override
+  String get annAdmDeleteTitle => 'Supprimer la fiche';
+
+  @override
+  String get annAdmDeleteWarn =>
+      'Suppression définitive (avis, abonnés, vues). Préférez l\'archivage ; seul l\'historique est conservé.';
+
+  @override
+  String get annAdmArchivedDone => 'Fiche archivée';
+
+  @override
+  String get annAdmRestoredDone => 'Fiche restaurée';
 }
