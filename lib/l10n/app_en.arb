@@ -7403,5 +7403,22 @@
   "adminAuditHistoryTitle": "Audit history",
   "adminBoostChanged": "Boost changed",
   "adminExportLabel": "Export {label}",
-  "@adminExportLabel": {"placeholders": {"label": {"type": "String"}}}
+  "@adminExportLabel": {"placeholders": {"label": {"type": "String"}}},
+  "adminDecisionReasonLabel": "Reason",
+  "adminDecisionNoteLabel": "Factual justification",
+  "adminDecisionNoteHint": "The observed facts, without personal judgement.",
+  "adminDecisionPickReason": "Pick a reason",
+  "adminDecisionNoteRequired": "A justification is required.",
+  "adminMotifDismissRuleNotViolated": "Rule not violated",
+  "adminMotifDismissInsufficientEvidence": "Insufficient evidence",
+  "adminMotifDismissContentUnavailable": "Content unavailable",
+  "adminMotifDismissDuplicate": "Duplicate",
+  "adminMotifDismissOutOfScope": "Out of scope",
+  "adminMotifResolveContentRemoved": "Content removed",
+  "adminMotifResolveUserWarned": "Member warned",
+  "adminMotifResolveUserSuspended": "Account suspended",
+  "adminMotifResolveUserBanned": "Account banned",
+  "adminMotifResolveCorrectionRequested": "Correction requested",
+  "adminReviewingLabel": "Under review",
+  "adminEscalatedLabel": "Escalated"
 }

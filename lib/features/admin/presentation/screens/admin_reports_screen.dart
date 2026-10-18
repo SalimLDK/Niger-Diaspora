@@ -10,6 +10,7 @@ import 'package:diaspo_niger/core/theme/design_kit.dart';
 import 'package:diaspo_niger/features/admin/presentation/widgets/admin_charger_plus.dart';
 import 'package:diaspo_niger/features/admin/presentation/widgets/apercu_contenu_signale.dart';
 import 'package:diaspo_niger/features/admin/presentation/widgets/carte_stat_signalement.dart';
+import 'package:diaspo_niger/features/admin/domain/constants/moderation_signalements.dart';
 import 'package:diaspo_niger/features/admin/presentation/signalement_presentation.dart';
 
 class AdminReportsScreen extends ConsumerStatefulWidget {
@@ -536,7 +537,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
             ),
           ),
         ],
-        if (report.status == 'pending') ...[
+        if (statutsSignalementEnAttente.contains(report.status)) ...[
           const SizedBox(height: 20),
           _buildActionButtons(report),
         ],
@@ -687,7 +688,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
     return DesignBadge(
       libelleStatutSignalement(l10n, status),
       tone: switch (status) {
-        'pending' => DesignBadgeTone.review,
+        'pending' || 'reviewing' || 'escalated' => DesignBadgeTone.review,
         'resolved' => DesignBadgeTone.verified,
         _ => DesignBadgeTone.archived,
       },
@@ -844,17 +845,17 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
       return;
     }
 
-    final reason = await _showTextDialog(
+    final decision = await _showDecisionDialog(
       l10n.adminRejectReport,
-      l10n.adminDismissReportPrompt,
-      hintText: l10n.adminRejectHint,
+      motifsClassementSansSuite,
     );
-    if (reason != null && reason.isNotEmpty) {
+    if (decision != null) {
       final ok = await ref.read(adminReportsNotifierProvider.notifier).dismissReport(
         report.id,
-        reason,
+        decision.note,
         adminId: currentAdmin.id,
         adminName: currentAdmin.name,
+        reasonCode: decision.motif,
       );
       _montrerBilan(ok, l10n.adminReportDismissed);
     }
@@ -867,19 +868,19 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
       return;
     }
 
-    final note = await _showTextDialog(
+    final decision = await _showDecisionDialog(
       l10n.adminProcessReport,
-      l10n.adminProcessReportPrompt,
-      hintText: l10n.adminProcessHint,
+      motifsDecisionAvecAction,
     );
-    if (note != null) {
+    if (decision != null) {
       final ok = await ref.read(adminReportsNotifierProvider.notifier).resolveReport(
         report.id,
-        note,
-        'resolved',
+        decision.note,
+        decision.motif,
         adminId: currentAdmin.id,
         adminName: currentAdmin.name,
         reportedUserId: report.reportedUserId,
+        reasonCode: decision.motif,
       );
       _montrerBilan(ok, 'Signalement traité${report.reportedUserId != null ? ' (utilisateur notifié)' : ''}');
     }
@@ -1005,50 +1006,109 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
         adminName: currentAdmin.name,
         reportedUserId: null, // Déjà notifié par deleteReportedContent
         notifyUser: false,
+        reasonCode: 'content_removed',
       );
       _montrerBilan(clos, 'Contenu supprimé${report.reportedUserId != null ? ' (utilisateur notifié)' : ''}');
     }
   }
 
-  Future<String?> _showTextDialog(String title, String label, {String? hintText}) {
+  String _libelleMotif(String code) => switch (code) {
+        'rule_not_violated' => l10n.adminMotifDismissRuleNotViolated,
+        'insufficient_evidence' => l10n.adminMotifDismissInsufficientEvidence,
+        'content_unavailable' => l10n.adminMotifDismissContentUnavailable,
+        'duplicate' => l10n.adminMotifDismissDuplicate,
+        'out_of_scope' => l10n.adminMotifDismissOutOfScope,
+        'content_removed' => l10n.adminMotifResolveContentRemoved,
+        'user_warned' => l10n.adminMotifResolveUserWarned,
+        'user_suspended' => l10n.adminMotifResolveUserSuspended,
+        'user_banned' => l10n.adminMotifResolveUserBanned,
+        'correction_requested' => l10n.adminMotifResolveCorrectionRequested,
+        _ => code,
+      };
+
+  /// Une décision : motif normalisé + justification factuelle, tous deux
+  /// obligatoires (le serveur les exige aussi — 22023 sinon). Rend null si
+  /// l'administrateur annule.
+  Future<({String motif, String note})?> _showDecisionDialog(
+    String title,
+    List<String> motifs,
+  ) {
     final controller = TextEditingController();
-    return showDialog<String>(
+    String? motif;
+    return showDialog<({String motif, String note})>(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(title),
-        content: TextField(
-          controller: controller,
-          decoration: InputDecoration(
-            labelText: label,
-            hintText: hintText,
-            hintStyle: const TextStyle(fontSize: 13, color: _textSecondary),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: _primaryColor, width: 2),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setLocal) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Text(title),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                DropdownButtonFormField<String>(
+                  initialValue: motif,
+                  isExpanded: true,
+                  decoration: InputDecoration(
+                    labelText: l10n.adminDecisionReasonLabel,
+                    hintText: l10n.adminDecisionPickReason,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  items: [
+                    for (final m in motifs)
+                      DropdownMenuItem(value: m, child: Text(_libelleMotif(m))),
+                  ],
+                  onChanged: (v) => setLocal(() => motif = v),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: controller,
+                  onChanged: (_) => setLocal(() {}),
+                  decoration: InputDecoration(
+                    labelText: l10n.adminDecisionNoteLabel,
+                    hintText: l10n.adminDecisionNoteHint,
+                    hintStyle:
+                        const TextStyle(fontSize: 13, color: _textSecondary),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide:
+                          const BorderSide(color: _primaryColor, width: 2),
+                    ),
+                  ),
+                  maxLines: 3,
+                  maxLength: 2000,
+                ),
+              ],
             ),
           ),
-          maxLines: 3,
-          autofocus: true,
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(l10n.adminCancelAction),
+            ),
+            ElevatedButton(
+              onPressed: motif == null || controller.text.trim().isEmpty
+                  ? null
+                  : () => Navigator.pop(
+                        context,
+                        (motif: motif!, note: controller.text.trim()),
+                      ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _primaryColor,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: Text(l10n.adminConfirmAction),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l10n.adminCancelAction),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, controller.text),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _primaryColor,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            ),
-            child: Text(l10n.adminConfirmAction),
-          ),
-        ],
       ),
     );
   }

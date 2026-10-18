@@ -26,6 +26,7 @@ import '../../../marketplace/data/models/product_model.dart';
 import '../../../marketplace/domain/entities/product_entity.dart';
 import '../../../transfers/data/models/transaction_model.dart';
 import '../../../transfers/domain/entities/transaction_entity.dart';
+import '../../domain/constants/moderation_signalements.dart';
 import '../fusion_paginee.dart';
 import '../signalement_firestore.dart';
 import 'refus_callable.dart';
@@ -361,7 +362,7 @@ class AdminDashboardNotifier extends Notifier<AdminDashboardState> {
           _supabase
               .from('reports')
               .select('id')
-              .eq('status', 'pending')
+              .inFilter('status', statutsSignalementEnAttente)
               .count(CountOption.exact)
               .then((r) => r.count)
               .catchError((_) => 0),
@@ -1233,6 +1234,17 @@ class ReportEntity extends Equatable {
   ];
 }
 
+/// Statuts d'un signalement tant qu'il n'est pas décidé : l'onglet « En
+/// attente » les réunit (le workflow a ajouté `reviewing` et `escalated`).
+const List<String> statutsSignalementEnAttente = [
+  'pending',
+  'reviewing',
+  'escalated',
+];
+
+/// Statuts d'un signalement décidé : l'onglet « Traités ».
+const List<String> statutsSignalementDecides = ['resolved', 'dismissed'];
+
 /// Les trois onglets de l'écran Signalements, chacun une requête paginée.
 enum FiltreSignalements { enAttente, traites, tous }
 
@@ -1569,9 +1581,9 @@ class AdminReportsNotifier extends Notifier<AdminReportsState> {
     var requete = _supabase.from('reports').select();
     switch (filtre) {
       case FiltreSignalements.enAttente:
-        requete = requete.eq('status', 'pending');
+        requete = requete.inFilter('status', statutsSignalementEnAttente);
       case FiltreSignalements.traites:
-        requete = requete.neq('status', 'pending');
+        requete = requete.inFilter('status', statutsSignalementDecides);
       case FiltreSignalements.tous:
         break;
     }
@@ -1589,10 +1601,10 @@ class AdminReportsNotifier extends Notifier<AdminReportsState> {
   /// Compteurs réels des deux sources, additionnés. Une source qui répond
   /// mal compte zéro : les cartes ne tombent pas pour autant.
   Future<CompteursSignalements> _compteursSignalements() async {
-    Future<int> supabase([String? statut]) async {
+    Future<int> supabase([List<String>? statuts]) async {
       try {
         var requete = _supabase.from('reports').select('id');
-        if (statut != null) requete = requete.eq('status', statut);
+        if (statuts != null) requete = requete.inFilter('status', statuts);
         return (await requete.count(CountOption.exact)).count;
       } catch (_) {
         return 0;
@@ -1601,9 +1613,9 @@ class AdminReportsNotifier extends Notifier<AdminReportsState> {
 
     final r = await Future.wait([
       supabase(),
-      supabase('pending'),
-      supabase('resolved'),
-      supabase('dismissed'),
+      supabase(statutsSignalementEnAttente),
+      supabase(['resolved']),
+      supabase(['dismissed']),
       compterSignalementsFirestore(),
       compterSignalementsFirestore('pending'),
       compterSignalementsFirestore('resolved'),
@@ -1651,9 +1663,11 @@ class AdminReportsNotifier extends Notifier<AdminReportsState> {
     String? adminName,
     String? reportedUserId,
     bool notifyUser = true,
+    String? reasonCode,
   }) async {
     try {
-      if (_estFirestore(reportId)) {
+      final firestore = _estFirestore(reportId);
+      if (firestore) {
         // Un document absent LÈVE (not-found) : pas de « zéro ligne » muet.
         await FirebaseFirestore.instance
             .collection('reports')
@@ -1667,32 +1681,30 @@ class AdminReportsNotifier extends Notifier<AdminReportsState> {
               'reviewedAt': FieldValue.serverTimestamp(),
             });
       } else {
-        final updated = await _supabase
-            .from('reports')
-            .update({
-              'status': 'resolved',
-              'admin_note': adminNote,
-              'action_taken': action,
-              'reviewed_by': adminId,
-              'reviewed_at': DateTime.now().toUtc().toIso8601String(),
-            })
-            .eq('id', reportId)
-            .select('id');
-        if ((updated as List).isEmpty) {
-          state =
-              state.copyWith(error: 'Signalement non traité : $_aucuneLigne');
+        // Le serveur contrôle la transition, impose motif et justification,
+        // et écrit l'audit dans la même transaction (`signalement_transition`).
+        if (!await _decider(
+          reportId,
+          'resolved',
+          motif: reasonCode,
+          note: adminNote,
+          action: action,
+        )) {
           return false;
         }
       }
 
-      final echecJournal = await AdminAuditHelper.log(
-        adminId: adminId,
-        adminName: adminName,
-        action: 'resolve_report',
-        targetType: 'report',
-        targetId: reportId,
-        details: {'actionTaken': action, 'note': adminNote},
-      );
+      // Firestore : pas de RPC, le journal reste écrit par le panneau.
+      final echecJournal = firestore
+          ? await AdminAuditHelper.log(
+              adminId: adminId,
+              adminName: adminName,
+              action: 'resolve_report',
+              targetType: 'report',
+              targetId: reportId,
+              details: {'actionTaken': action, 'note': adminNote},
+            )
+          : null;
 
       if (notifyUser && reportedUserId != null) {
         await _notifyReportedUser(
@@ -1711,6 +1723,68 @@ class AdminReportsNotifier extends Notifier<AdminReportsState> {
       return true;
     } catch (e) {
       state = state.copyWith(error: e.toString());
+      return false;
+    }
+  }
+
+  /// Le statut du signalement dans les trois onglets chargés, ou null.
+  String? _statutConnu(String reportId) {
+    for (final f in FiltreSignalements.values) {
+      for (final r in state.liste(f)) {
+        if (r.id == reportId) return r.status;
+      }
+    }
+    return null;
+  }
+
+  /// Une transition de `signalement_transition`. Lève [PostgrestException].
+  Future<void> _transitionner(
+    String reportId,
+    String vers, {
+    String? motif,
+    String? note,
+    String? action,
+  }) async {
+    await _supabase.rpc('signalement_transition', params: {
+      'p_report_id': reportId,
+      'p_to': vers,
+      'p_reason_code': motif,
+      'p_note': note,
+      'p_action_taken': action,
+    });
+  }
+
+  /// Décide d'un signalement Supabase. Le workflow veut un dossier pris en
+  /// charge avant d'être décidé : un dossier `pending` ou `escalated` passe
+  /// d'abord à `reviewing` au nom de l'appelant. Si la prise en charge réussit
+  /// et pas la décision, le message le dit — le dossier est alors à son nom.
+  /// Rend vrai seulement si la décision est enregistrée.
+  Future<bool> _decider(
+    String reportId,
+    String vers, {
+    String? motif,
+    String? note,
+    String? action,
+  }) async {
+    var priseEnCharge = false;
+    try {
+      final statut = _statutConnu(reportId);
+      if (statut == 'pending' || statut == 'escalated') {
+        await _transitionner(reportId, 'reviewing');
+        priseEnCharge = true;
+      }
+      await _transitionner(reportId, vers,
+          motif: motif, note: note, action: action);
+      return true;
+    } on PostgrestException catch (e) {
+      var message = messageTransitionSignalement(e);
+      if (priseEnCharge) {
+        message = '$message Le dossier est pris en charge à votre nom, '
+            'mais pas décidé.';
+      }
+      // Recharger d'abord : `fetchAllReports` efface `error`.
+      await fetchAllReports();
+      state = state.copyWith(error: message);
       return false;
     }
   }
@@ -1778,9 +1852,11 @@ class AdminReportsNotifier extends Notifier<AdminReportsState> {
     String reason, {
     required String adminId,
     String? adminName,
+    String? reasonCode,
   }) async {
     try {
-      if (_estFirestore(reportId)) {
+      final firestore = _estFirestore(reportId);
+      if (firestore) {
         await FirebaseFirestore.instance
             .collection('reports')
             .doc(reportId)
@@ -1792,31 +1868,26 @@ class AdminReportsNotifier extends Notifier<AdminReportsState> {
               'reviewedAt': FieldValue.serverTimestamp(),
             });
       } else {
-        final updated = await _supabase
-            .from('reports')
-            .update({
-              'status': 'dismissed',
-              'admin_note': reason,
-              'reviewed_by': adminId,
-              'reviewed_at': DateTime.now().toUtc().toIso8601String(),
-            })
-            .eq('id', reportId)
-            .select('id');
-        if ((updated as List).isEmpty) {
-          state =
-              state.copyWith(error: 'Signalement non rejeté : $_aucuneLigne');
+        if (!await _decider(
+          reportId,
+          'dismissed',
+          motif: reasonCode,
+          note: reason,
+        )) {
           return false;
         }
       }
 
-      final echecJournal = await AdminAuditHelper.log(
-        adminId: adminId,
-        adminName: adminName,
-        action: 'dismiss_report',
-        targetType: 'report',
-        targetId: reportId,
-        details: {'reason': reason},
-      );
+      final echecJournal = firestore
+          ? await AdminAuditHelper.log(
+              adminId: adminId,
+              adminName: adminName,
+              action: 'dismiss_report',
+              targetType: 'report',
+              targetId: reportId,
+              details: {'reason': reason},
+            )
+          : null;
 
       await fetchAllReports();
       if (echecJournal != null) {

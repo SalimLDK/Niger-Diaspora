@@ -63,7 +63,10 @@ String? destinationContenuSignale(String targetType) {
 Color couleurStatutSignalement(String status) {
   switch (status) {
     case 'pending':
+    case 'reviewing':
       return AdminColors.statusAmber;
+    case 'escalated':
+      return AdminColors.statusRed;
     case 'resolved':
       return AdminColors.statusGreen;
     case 'dismissed':
@@ -77,6 +80,10 @@ String libelleStatutSignalement(AppLocalizations l10n, String status) {
   switch (status) {
     case 'pending':
       return l10n.adminPending;
+    case 'reviewing':
+      return l10n.adminReviewingLabel;
+    case 'escalated':
+      return l10n.adminEscalatedLabel;
     case 'resolved':
       return l10n.adminResolvedLabel;
     case 'dismissed':

@@ -30913,6 +30913,108 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Exporter {label}'**
   String adminExportLabel(String label);
+
+  /// No description provided for @adminDecisionReasonLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif'**
+  String get adminDecisionReasonLabel;
+
+  /// No description provided for @adminDecisionNoteLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Justification factuelle'**
+  String get adminDecisionNoteLabel;
+
+  /// No description provided for @adminDecisionNoteHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les faits observés, sans jugement personnel.'**
+  String get adminDecisionNoteHint;
+
+  /// No description provided for @adminDecisionPickReason.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisissez un motif'**
+  String get adminDecisionPickReason;
+
+  /// No description provided for @adminDecisionNoteRequired.
+  ///
+  /// In fr, this message translates to:
+  /// **'La justification est obligatoire.'**
+  String get adminDecisionNoteRequired;
+
+  /// No description provided for @adminMotifDismissRuleNotViolated.
+  ///
+  /// In fr, this message translates to:
+  /// **'Règle non enfreinte'**
+  String get adminMotifDismissRuleNotViolated;
+
+  /// No description provided for @adminMotifDismissInsufficientEvidence.
+  ///
+  /// In fr, this message translates to:
+  /// **'Preuves insuffisantes'**
+  String get adminMotifDismissInsufficientEvidence;
+
+  /// No description provided for @adminMotifDismissContentUnavailable.
+  ///
+  /// In fr, this message translates to:
+  /// **'Contenu inaccessible'**
+  String get adminMotifDismissContentUnavailable;
+
+  /// No description provided for @adminMotifDismissDuplicate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Doublon'**
+  String get adminMotifDismissDuplicate;
+
+  /// No description provided for @adminMotifDismissOutOfScope.
+  ///
+  /// In fr, this message translates to:
+  /// **'Hors périmètre'**
+  String get adminMotifDismissOutOfScope;
+
+  /// No description provided for @adminMotifResolveContentRemoved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Contenu retiré'**
+  String get adminMotifResolveContentRemoved;
+
+  /// No description provided for @adminMotifResolveUserWarned.
+  ///
+  /// In fr, this message translates to:
+  /// **'Membre averti'**
+  String get adminMotifResolveUserWarned;
+
+  /// No description provided for @adminMotifResolveUserSuspended.
+  ///
+  /// In fr, this message translates to:
+  /// **'Compte suspendu'**
+  String get adminMotifResolveUserSuspended;
+
+  /// No description provided for @adminMotifResolveUserBanned.
+  ///
+  /// In fr, this message translates to:
+  /// **'Compte banni'**
+  String get adminMotifResolveUserBanned;
+
+  /// No description provided for @adminMotifResolveCorrectionRequested.
+  ///
+  /// In fr, this message translates to:
+  /// **'Correction demandée'**
+  String get adminMotifResolveCorrectionRequested;
+
+  /// No description provided for @adminReviewingLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'En cours d\'examen'**
+  String get adminReviewingLabel;
+
+  /// No description provided for @adminEscalatedLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Escaladé'**
+  String get adminEscalatedLabel;
 }
 
 class _AppLocalizationsDelegate

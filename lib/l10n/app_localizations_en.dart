@@ -16864,4 +16864,56 @@ class AppLocalizationsEn extends AppLocalizations {
   String adminExportLabel(String label) {
     return 'Export $label';
   }
+
+  @override
+  String get adminDecisionReasonLabel => 'Reason';
+
+  @override
+  String get adminDecisionNoteLabel => 'Factual justification';
+
+  @override
+  String get adminDecisionNoteHint =>
+      'The observed facts, without personal judgement.';
+
+  @override
+  String get adminDecisionPickReason => 'Pick a reason';
+
+  @override
+  String get adminDecisionNoteRequired => 'A justification is required.';
+
+  @override
+  String get adminMotifDismissRuleNotViolated => 'Rule not violated';
+
+  @override
+  String get adminMotifDismissInsufficientEvidence => 'Insufficient evidence';
+
+  @override
+  String get adminMotifDismissContentUnavailable => 'Content unavailable';
+
+  @override
+  String get adminMotifDismissDuplicate => 'Duplicate';
+
+  @override
+  String get adminMotifDismissOutOfScope => 'Out of scope';
+
+  @override
+  String get adminMotifResolveContentRemoved => 'Content removed';
+
+  @override
+  String get adminMotifResolveUserWarned => 'Member warned';
+
+  @override
+  String get adminMotifResolveUserSuspended => 'Account suspended';
+
+  @override
+  String get adminMotifResolveUserBanned => 'Account banned';
+
+  @override
+  String get adminMotifResolveCorrectionRequested => 'Correction requested';
+
+  @override
+  String get adminReviewingLabel => 'Under review';
+
+  @override
+  String get adminEscalatedLabel => 'Escalated';
 }

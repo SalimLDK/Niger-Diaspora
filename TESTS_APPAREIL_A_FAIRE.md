@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1358 cases à cocher, 55 cochées** — 303 entrées sur 317 ont encore des cases ouvertes.
+**1364 cases à cocher, 55 cochées** — 304 entrées sur 318 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -97,7 +97,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 6 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (121)
+**P1 — fonction importante, jamais vérifiée** (122)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -186,6 +186,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [⬜ Storage : on dépose, on ne réécrit plus (2026-09-21)](#-storage--on-dépose-on-ne-réécrit-plus-2026-09-21) · *Publication et plateformes*
 - 2 · [⛔ « Diaspo Niger s'arrête systématiquement » sur Android 15+ (2026-09-09)](#--diaspo-niger-sarrête-systématiquement--sur-android-15-2026-09-09) · *Publication et plateformes*
 - 4 · [⚠️ Rapatriement iOS : deux dépendances **Android** changent de version majeure (2026-09-08)](#-rapatriement-ios--deux-dépendances-android-changent-de-version-majeure-2026-09-08) · *Publication et plateformes*
+- 6 · [⬜ Panneau admin, Signalements : décision par `signalement_transition` (2026-10-17)](#-panneau-admin-signalements--décision-par-signalement_transition-2026-10-17) · *Site web*
 - 6 · [⬜ Panneau admin, Signalements : lit Firestore (ce que l'app signale) en plus de Supabase (2026-10-15)](#-panneau-admin-signalements--lit-firestore-ce-que-lapp-signale-en-plus-de-supabase-2026-10-15) · *Site web*
 - 9 · [⬜ La page de suppression de compte demande la suppression au lieu de l'exécuter (2026-09-19)](#-la-page-de-suppression-de-compte-demande-la-suppression-au-lieu-de-lexécuter-2026-09-19) · *Site web*
 - 9 · [⬜ Accusés, réactions, modifications et suppressions reçus en direct, discussion en clair (2026-09-21)](#-accusés-réactions-modifications-et-suppressions-reçus-en-direct-discussion-en-clair-2026-09-21) · *Messagerie*
@@ -377,7 +378,7 @@ Par domaine :
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 108 à faire, 5 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 101 à faire, 2 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 46 à faire, 1 faites
-- [15. Site web](#15-site-web) — 63 à faire, 0 faites
+- [15. Site web](#15-site-web) — 69 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 23 à faire, 0 faites
 
 <!-- sommaire:fin -->
@@ -10593,6 +10594,29 @@ Firebase App Check Debug Token: E42FC20C-8AE4-4474-BCFC-9A52B36DECEB
 diasponiger.web.app : pages, palette, menu, aperçus de partage.
 
 ---
+
+## ⬜ Panneau admin, Signalements : décision par `signalement_transition` (2026-10-17)
+
+**Priorité P1** · importance 4/5 — « Rejeter » et « Traiter » demandent un
+motif normalisé (liste déroulante) et une justification obligatoires ; pour un
+signalement Supabase la décision passe par la RPC (prise en charge puis
+décision, audit écrit par le serveur). Les signalements Firestore gardent leur
+chemin. Jamais vu dans le panneau ; l'UPDATE direct n'est PAS encore fermé
+(`supabase/moderation-signalements-update-ferme-cible.sql`, à appliquer après
+le déploiement de ce build).
+
+- [ ] Dialogue de décision : bouton « Confirmer » grisé tant que motif et
+      justification ne sont pas remplis ; lisible en sombre et à grande police.
+- [ ] Rejeter un signalement `pending` : il passe à Traités, le motif choisi
+      est dans `reports.reason_code`, `assigned_to` est le modérateur, une ligne
+      `MODERATION_DECIDED` est dans `admin_audit_logs`.
+- [ ] Deux modérateurs sur le même dossier : le second voit « a changé de
+      statut entre-temps » et la liste se recharge.
+- [ ] Dossier attribué à un autre modérateur : refus lisible (compte
+      `contentMod`) ; le `superAdmin` passe.
+- [ ] Compte `financeMod` : refus de permission lisible, pas de succès à vide.
+- [ ] Un dossier `reviewing` ou `escalated` reste dans « En attente », avec
+      ses boutons et son badge.
 
 ## ⬜ Panneau admin, Signalements : lit Firestore (ce que l'app signale) en plus de Supabase (2026-10-15)
 
