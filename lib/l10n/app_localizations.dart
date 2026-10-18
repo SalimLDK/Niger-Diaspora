@@ -31699,6 +31699,564 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Note ajoutée.'**
   String get supAdmNoteAdded;
+
+  /// No description provided for @demAdmTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Démarches consulaires'**
+  String get demAdmTitle;
+
+  /// No description provided for @demAdmSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rédaction, relecture, publication. Aucune démarche n\'est publiée sans source ni date de vérification.'**
+  String get demAdmSubtitle;
+
+  /// No description provided for @demAdmNew.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouvelle démarche'**
+  String get demAdmNew;
+
+  /// No description provided for @demAdmFilterAll.
+  ///
+  /// In fr, this message translates to:
+  /// **'Toutes'**
+  String get demAdmFilterAll;
+
+  /// No description provided for @demAdmFilterWork.
+  ///
+  /// In fr, this message translates to:
+  /// **'À traiter'**
+  String get demAdmFilterWork;
+
+  /// No description provided for @demAdmFilterPublished.
+  ///
+  /// In fr, this message translates to:
+  /// **'Publiées'**
+  String get demAdmFilterPublished;
+
+  /// No description provided for @demAdmFilterUnpublished.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dépubliées'**
+  String get demAdmFilterUnpublished;
+
+  /// No description provided for @demAdmFilterOverdue.
+  ///
+  /// In fr, this message translates to:
+  /// **'Révision en retard'**
+  String get demAdmFilterOverdue;
+
+  /// No description provided for @demAdmSearchHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rechercher une démarche'**
+  String get demAdmSearchHint;
+
+  /// No description provided for @demAdmEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune démarche dans cette vue.'**
+  String get demAdmEmpty;
+
+  /// No description provided for @demAdmLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chargement impossible : {detail}'**
+  String demAdmLoadError(String detail);
+
+  /// No description provided for @demAdmRetry.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réessayer'**
+  String get demAdmRetry;
+
+  /// No description provided for @demAdmNoAccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous n\'avez pas accès aux démarches consulaires.'**
+  String get demAdmNoAccess;
+
+  /// No description provided for @demAdmStatusPublished.
+  ///
+  /// In fr, this message translates to:
+  /// **'Publiée'**
+  String get demAdmStatusPublished;
+
+  /// No description provided for @demAdmStatusUnpublished.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dépubliée'**
+  String get demAdmStatusUnpublished;
+
+  /// No description provided for @demAdmDraftDraft.
+  ///
+  /// In fr, this message translates to:
+  /// **'Brouillon'**
+  String get demAdmDraftDraft;
+
+  /// No description provided for @demAdmDraftPending.
+  ///
+  /// In fr, this message translates to:
+  /// **'À relire'**
+  String get demAdmDraftPending;
+
+  /// No description provided for @demAdmDraftApproved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Approuvée, à publier'**
+  String get demAdmDraftApproved;
+
+  /// No description provided for @demAdmVersion.
+  ///
+  /// In fr, this message translates to:
+  /// **'Version {n}'**
+  String demAdmVersion(String n);
+
+  /// No description provided for @demAdmVerified.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vérifiée le {date}'**
+  String demAdmVerified(String date);
+
+  /// No description provided for @demAdmNextReview.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prochaine révision : {date}'**
+  String demAdmNextReview(String date);
+
+  /// No description provided for @demAdmReviewUnplanned.
+  ///
+  /// In fr, this message translates to:
+  /// **'Révision à planifier'**
+  String get demAdmReviewUnplanned;
+
+  /// No description provided for @demAdmReviewOverdue.
+  ///
+  /// In fr, this message translates to:
+  /// **'Révision en retard'**
+  String get demAdmReviewOverdue;
+
+  /// No description provided for @demAdmSource.
+  ///
+  /// In fr, this message translates to:
+  /// **'Source : {publisher}'**
+  String demAdmSource(String publisher);
+
+  /// No description provided for @demAdmSummary.
+  ///
+  /// In fr, this message translates to:
+  /// **'Résumé'**
+  String get demAdmSummary;
+
+  /// No description provided for @demAdmCost.
+  ///
+  /// In fr, this message translates to:
+  /// **'Coût'**
+  String get demAdmCost;
+
+  /// No description provided for @demAdmCostUnknown.
+  ///
+  /// In fr, this message translates to:
+  /// **'Non publié par la source'**
+  String get demAdmCostUnknown;
+
+  /// No description provided for @demAdmPieces.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pièces à fournir'**
+  String get demAdmPieces;
+
+  /// No description provided for @demAdmWarnings.
+  ///
+  /// In fr, this message translates to:
+  /// **'Avertissements'**
+  String get demAdmWarnings;
+
+  /// No description provided for @demAdmHistory.
+  ///
+  /// In fr, this message translates to:
+  /// **'Historique'**
+  String get demAdmHistory;
+
+  /// No description provided for @demAdmHistoryEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune version enregistrée.'**
+  String get demAdmHistoryEmpty;
+
+  /// No description provided for @demAdmHistoryPublished.
+  ///
+  /// In fr, this message translates to:
+  /// **'Publiée'**
+  String get demAdmHistoryPublished;
+
+  /// No description provided for @demAdmHistoryUnpublished.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dépubliée'**
+  String get demAdmHistoryUnpublished;
+
+  /// No description provided for @demAdmDraftBy.
+  ///
+  /// In fr, this message translates to:
+  /// **'Brouillon de {author}'**
+  String demAdmDraftBy(String author);
+
+  /// No description provided for @demAdmDraftByYou.
+  ///
+  /// In fr, this message translates to:
+  /// **'vous'**
+  String get demAdmDraftByYou;
+
+  /// No description provided for @demAdmDraftByOther.
+  ///
+  /// In fr, this message translates to:
+  /// **'un autre administrateur'**
+  String get demAdmDraftByOther;
+
+  /// No description provided for @demAdmChangeReason.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif : {reason}'**
+  String demAdmChangeReason(String reason);
+
+  /// No description provided for @demAdmReviewNote.
+  ///
+  /// In fr, this message translates to:
+  /// **'Remarque de la relecture : {note}'**
+  String demAdmReviewNote(String note);
+
+  /// No description provided for @demAdmWaitingReview.
+  ///
+  /// In fr, this message translates to:
+  /// **'En attente de la relecture d\'un autre administrateur : vous ne pouvez pas approuver votre propre texte.'**
+  String get demAdmWaitingReview;
+
+  /// No description provided for @demAdmEdit.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier'**
+  String get demAdmEdit;
+
+  /// No description provided for @demAdmSubmit.
+  ///
+  /// In fr, this message translates to:
+  /// **'Soumettre à relecture'**
+  String get demAdmSubmit;
+
+  /// No description provided for @demAdmWithdraw.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retirer le brouillon'**
+  String get demAdmWithdraw;
+
+  /// No description provided for @demAdmApprove.
+  ///
+  /// In fr, this message translates to:
+  /// **'Approuver'**
+  String get demAdmApprove;
+
+  /// No description provided for @demAdmReject.
+  ///
+  /// In fr, this message translates to:
+  /// **'Refuser'**
+  String get demAdmReject;
+
+  /// No description provided for @demAdmPublish.
+  ///
+  /// In fr, this message translates to:
+  /// **'Publier'**
+  String get demAdmPublish;
+
+  /// No description provided for @demAdmUnpublish.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dépublier'**
+  String get demAdmUnpublish;
+
+  /// No description provided for @demAdmRejectReason.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif du refus'**
+  String get demAdmRejectReason;
+
+  /// No description provided for @demAdmUnpublishReason.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif de dépublication'**
+  String get demAdmUnpublishReason;
+
+  /// No description provided for @demAdmUnpublishWarn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les téléphones qui ont déjà chargé le catalogue, ou qui sont hors ligne, continuent d\'afficher cette démarche jusqu\'à leur prochaine synchronisation.'**
+  String get demAdmUnpublishWarn;
+
+  /// No description provided for @demAdmConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confirmer'**
+  String get demAdmConfirm;
+
+  /// No description provided for @demAdmCancel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annuler'**
+  String get demAdmCancel;
+
+  /// No description provided for @demAdmEditorNewTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouvelle démarche'**
+  String get demAdmEditorNewTitle;
+
+  /// No description provided for @demAdmEditorEditTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier la démarche'**
+  String get demAdmEditorEditTitle;
+
+  /// No description provided for @demAdmFieldId.
+  ///
+  /// In fr, this message translates to:
+  /// **'Identifiant (minuscules, chiffres, _)'**
+  String get demAdmFieldId;
+
+  /// No description provided for @demAdmFieldTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Titre'**
+  String get demAdmFieldTitle;
+
+  /// No description provided for @demAdmFieldRubrique.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rubrique'**
+  String get demAdmFieldRubrique;
+
+  /// No description provided for @demAdmFieldRequestType.
+  ///
+  /// In fr, this message translates to:
+  /// **'Type de demande dans l\'application'**
+  String get demAdmFieldRequestType;
+
+  /// No description provided for @demAdmFieldLieu.
+  ///
+  /// In fr, this message translates to:
+  /// **'Où se fait la démarche'**
+  String get demAdmFieldLieu;
+
+  /// No description provided for @demAdmLieuConsulat.
+  ///
+  /// In fr, this message translates to:
+  /// **'Au consulat'**
+  String get demAdmLieuConsulat;
+
+  /// No description provided for @demAdmLieuTribunal.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tribunal au Niger'**
+  String get demAdmLieuTribunal;
+
+  /// No description provided for @demAdmFieldSummary.
+  ///
+  /// In fr, this message translates to:
+  /// **'Résumé'**
+  String get demAdmFieldSummary;
+
+  /// No description provided for @demAdmFieldDelai.
+  ///
+  /// In fr, this message translates to:
+  /// **'Délai annoncé (laisser vide si la source n\'en publie aucun)'**
+  String get demAdmFieldDelai;
+
+  /// No description provided for @demAdmFieldCostLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Libellé du coût'**
+  String get demAdmFieldCostLabel;
+
+  /// No description provided for @demAdmFieldCostAmount.
+  ///
+  /// In fr, this message translates to:
+  /// **'Montant en FCFA (vide si inconnu)'**
+  String get demAdmFieldCostAmount;
+
+  /// No description provided for @demAdmFieldCostStatus.
+  ///
+  /// In fr, this message translates to:
+  /// **'État de l\'information sur le coût'**
+  String get demAdmFieldCostStatus;
+
+  /// No description provided for @demAdmCostStatusKnown.
+  ///
+  /// In fr, this message translates to:
+  /// **'Connu'**
+  String get demAdmCostStatusKnown;
+
+  /// No description provided for @demAdmCostStatusUnknown.
+  ///
+  /// In fr, this message translates to:
+  /// **'Inconnu'**
+  String get demAdmCostStatusUnknown;
+
+  /// No description provided for @demAdmCostStatusNotMentioned.
+  ///
+  /// In fr, this message translates to:
+  /// **'Non mentionné par la source'**
+  String get demAdmCostStatusNotMentioned;
+
+  /// No description provided for @demAdmCostStatusVariable.
+  ///
+  /// In fr, this message translates to:
+  /// **'Variable selon le pays'**
+  String get demAdmCostStatusVariable;
+
+  /// No description provided for @demAdmPiecesTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pièces à fournir'**
+  String get demAdmPiecesTitle;
+
+  /// No description provided for @demAdmPieceLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pièce'**
+  String get demAdmPieceLabel;
+
+  /// No description provided for @demAdmPieceRequired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Obligatoire'**
+  String get demAdmPieceRequired;
+
+  /// No description provided for @demAdmPieceQuantity.
+  ///
+  /// In fr, this message translates to:
+  /// **'Qté'**
+  String get demAdmPieceQuantity;
+
+  /// No description provided for @demAdmAddPiece.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter une pièce'**
+  String get demAdmAddPiece;
+
+  /// No description provided for @demAdmWarningsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Avertissements affichés à l\'usager (un par ligne)'**
+  String get demAdmWarningsTitle;
+
+  /// No description provided for @demAdmSourceTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Source officielle (obligatoire pour publier)'**
+  String get demAdmSourceTitle;
+
+  /// No description provided for @demAdmFieldSourceUrl.
+  ///
+  /// In fr, this message translates to:
+  /// **'Adresse de la source (https://…)'**
+  String get demAdmFieldSourceUrl;
+
+  /// No description provided for @demAdmFieldSourcePublisher.
+  ///
+  /// In fr, this message translates to:
+  /// **'Éditeur de la source'**
+  String get demAdmFieldSourcePublisher;
+
+  /// No description provided for @demAdmFieldVerifiedAt.
+  ///
+  /// In fr, this message translates to:
+  /// **'Date de vérification'**
+  String get demAdmFieldVerifiedAt;
+
+  /// No description provided for @demAdmFieldNextReview.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prochaine révision (facultatif)'**
+  String get demAdmFieldNextReview;
+
+  /// No description provided for @demAdmPickDate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisir'**
+  String get demAdmPickDate;
+
+  /// No description provided for @demAdmFieldChangeReason.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif de la modification'**
+  String get demAdmFieldChangeReason;
+
+  /// No description provided for @demAdmFieldChangeReasonNew.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif (facultatif pour une nouvelle démarche)'**
+  String get demAdmFieldChangeReasonNew;
+
+  /// No description provided for @demAdmSaveDraft.
+  ///
+  /// In fr, this message translates to:
+  /// **'Enregistrer le brouillon'**
+  String get demAdmSaveDraft;
+
+  /// No description provided for @demAdmDraftSaved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Brouillon enregistré.'**
+  String get demAdmDraftSaved;
+
+  /// No description provided for @demAdmSubmitted.
+  ///
+  /// In fr, this message translates to:
+  /// **'Soumise à relecture.'**
+  String get demAdmSubmitted;
+
+  /// No description provided for @demAdmWithdrawn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Brouillon retiré.'**
+  String get demAdmWithdrawn;
+
+  /// No description provided for @demAdmApproved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Approuvée.'**
+  String get demAdmApproved;
+
+  /// No description provided for @demAdmRejected.
+  ///
+  /// In fr, this message translates to:
+  /// **'Refusée.'**
+  String get demAdmRejected;
+
+  /// No description provided for @demAdmPublished.
+  ///
+  /// In fr, this message translates to:
+  /// **'Publiée, version {n}.'**
+  String demAdmPublished(String n);
+
+  /// No description provided for @demAdmUnpublished.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dépubliée.'**
+  String get demAdmUnpublished;
+
+  /// No description provided for @demAdmUnsaved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Des modifications ne sont pas enregistrées. Quitter ?'**
+  String get demAdmUnsaved;
+
+  /// No description provided for @demAdmRemovePiece.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retirer la pièce'**
+  String get demAdmRemovePiece;
 }
 
 class _AppLocalizationsDelegate

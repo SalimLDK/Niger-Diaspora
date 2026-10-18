@@ -17450,4 +17450,310 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get supAdmNoteAdded => 'Note ajoutée.';
+
+  @override
+  String get demAdmTitle => 'Démarches consulaires';
+
+  @override
+  String get demAdmSubtitle =>
+      'Rédaction, relecture, publication. Aucune démarche n\'est publiée sans source ni date de vérification.';
+
+  @override
+  String get demAdmNew => 'Nouvelle démarche';
+
+  @override
+  String get demAdmFilterAll => 'Toutes';
+
+  @override
+  String get demAdmFilterWork => 'À traiter';
+
+  @override
+  String get demAdmFilterPublished => 'Publiées';
+
+  @override
+  String get demAdmFilterUnpublished => 'Dépubliées';
+
+  @override
+  String get demAdmFilterOverdue => 'Révision en retard';
+
+  @override
+  String get demAdmSearchHint => 'Rechercher une démarche';
+
+  @override
+  String get demAdmEmpty => 'Aucune démarche dans cette vue.';
+
+  @override
+  String demAdmLoadError(String detail) {
+    return 'Chargement impossible : $detail';
+  }
+
+  @override
+  String get demAdmRetry => 'Réessayer';
+
+  @override
+  String get demAdmNoAccess =>
+      'Vous n\'avez pas accès aux démarches consulaires.';
+
+  @override
+  String get demAdmStatusPublished => 'Publiée';
+
+  @override
+  String get demAdmStatusUnpublished => 'Dépubliée';
+
+  @override
+  String get demAdmDraftDraft => 'Brouillon';
+
+  @override
+  String get demAdmDraftPending => 'À relire';
+
+  @override
+  String get demAdmDraftApproved => 'Approuvée, à publier';
+
+  @override
+  String demAdmVersion(String n) {
+    return 'Version $n';
+  }
+
+  @override
+  String demAdmVerified(String date) {
+    return 'Vérifiée le $date';
+  }
+
+  @override
+  String demAdmNextReview(String date) {
+    return 'Prochaine révision : $date';
+  }
+
+  @override
+  String get demAdmReviewUnplanned => 'Révision à planifier';
+
+  @override
+  String get demAdmReviewOverdue => 'Révision en retard';
+
+  @override
+  String demAdmSource(String publisher) {
+    return 'Source : $publisher';
+  }
+
+  @override
+  String get demAdmSummary => 'Résumé';
+
+  @override
+  String get demAdmCost => 'Coût';
+
+  @override
+  String get demAdmCostUnknown => 'Non publié par la source';
+
+  @override
+  String get demAdmPieces => 'Pièces à fournir';
+
+  @override
+  String get demAdmWarnings => 'Avertissements';
+
+  @override
+  String get demAdmHistory => 'Historique';
+
+  @override
+  String get demAdmHistoryEmpty => 'Aucune version enregistrée.';
+
+  @override
+  String get demAdmHistoryPublished => 'Publiée';
+
+  @override
+  String get demAdmHistoryUnpublished => 'Dépubliée';
+
+  @override
+  String demAdmDraftBy(String author) {
+    return 'Brouillon de $author';
+  }
+
+  @override
+  String get demAdmDraftByYou => 'vous';
+
+  @override
+  String get demAdmDraftByOther => 'un autre administrateur';
+
+  @override
+  String demAdmChangeReason(String reason) {
+    return 'Motif : $reason';
+  }
+
+  @override
+  String demAdmReviewNote(String note) {
+    return 'Remarque de la relecture : $note';
+  }
+
+  @override
+  String get demAdmWaitingReview =>
+      'En attente de la relecture d\'un autre administrateur : vous ne pouvez pas approuver votre propre texte.';
+
+  @override
+  String get demAdmEdit => 'Modifier';
+
+  @override
+  String get demAdmSubmit => 'Soumettre à relecture';
+
+  @override
+  String get demAdmWithdraw => 'Retirer le brouillon';
+
+  @override
+  String get demAdmApprove => 'Approuver';
+
+  @override
+  String get demAdmReject => 'Refuser';
+
+  @override
+  String get demAdmPublish => 'Publier';
+
+  @override
+  String get demAdmUnpublish => 'Dépublier';
+
+  @override
+  String get demAdmRejectReason => 'Motif du refus';
+
+  @override
+  String get demAdmUnpublishReason => 'Motif de dépublication';
+
+  @override
+  String get demAdmUnpublishWarn =>
+      'Les téléphones qui ont déjà chargé le catalogue, ou qui sont hors ligne, continuent d\'afficher cette démarche jusqu\'à leur prochaine synchronisation.';
+
+  @override
+  String get demAdmConfirm => 'Confirmer';
+
+  @override
+  String get demAdmCancel => 'Annuler';
+
+  @override
+  String get demAdmEditorNewTitle => 'Nouvelle démarche';
+
+  @override
+  String get demAdmEditorEditTitle => 'Modifier la démarche';
+
+  @override
+  String get demAdmFieldId => 'Identifiant (minuscules, chiffres, _)';
+
+  @override
+  String get demAdmFieldTitle => 'Titre';
+
+  @override
+  String get demAdmFieldRubrique => 'Rubrique';
+
+  @override
+  String get demAdmFieldRequestType => 'Type de demande dans l\'application';
+
+  @override
+  String get demAdmFieldLieu => 'Où se fait la démarche';
+
+  @override
+  String get demAdmLieuConsulat => 'Au consulat';
+
+  @override
+  String get demAdmLieuTribunal => 'Tribunal au Niger';
+
+  @override
+  String get demAdmFieldSummary => 'Résumé';
+
+  @override
+  String get demAdmFieldDelai =>
+      'Délai annoncé (laisser vide si la source n\'en publie aucun)';
+
+  @override
+  String get demAdmFieldCostLabel => 'Libellé du coût';
+
+  @override
+  String get demAdmFieldCostAmount => 'Montant en FCFA (vide si inconnu)';
+
+  @override
+  String get demAdmFieldCostStatus => 'État de l\'information sur le coût';
+
+  @override
+  String get demAdmCostStatusKnown => 'Connu';
+
+  @override
+  String get demAdmCostStatusUnknown => 'Inconnu';
+
+  @override
+  String get demAdmCostStatusNotMentioned => 'Non mentionné par la source';
+
+  @override
+  String get demAdmCostStatusVariable => 'Variable selon le pays';
+
+  @override
+  String get demAdmPiecesTitle => 'Pièces à fournir';
+
+  @override
+  String get demAdmPieceLabel => 'Pièce';
+
+  @override
+  String get demAdmPieceRequired => 'Obligatoire';
+
+  @override
+  String get demAdmPieceQuantity => 'Qté';
+
+  @override
+  String get demAdmAddPiece => 'Ajouter une pièce';
+
+  @override
+  String get demAdmWarningsTitle =>
+      'Avertissements affichés à l\'usager (un par ligne)';
+
+  @override
+  String get demAdmSourceTitle =>
+      'Source officielle (obligatoire pour publier)';
+
+  @override
+  String get demAdmFieldSourceUrl => 'Adresse de la source (https://…)';
+
+  @override
+  String get demAdmFieldSourcePublisher => 'Éditeur de la source';
+
+  @override
+  String get demAdmFieldVerifiedAt => 'Date de vérification';
+
+  @override
+  String get demAdmFieldNextReview => 'Prochaine révision (facultatif)';
+
+  @override
+  String get demAdmPickDate => 'Choisir';
+
+  @override
+  String get demAdmFieldChangeReason => 'Motif de la modification';
+
+  @override
+  String get demAdmFieldChangeReasonNew =>
+      'Motif (facultatif pour une nouvelle démarche)';
+
+  @override
+  String get demAdmSaveDraft => 'Enregistrer le brouillon';
+
+  @override
+  String get demAdmDraftSaved => 'Brouillon enregistré.';
+
+  @override
+  String get demAdmSubmitted => 'Soumise à relecture.';
+
+  @override
+  String get demAdmWithdrawn => 'Brouillon retiré.';
+
+  @override
+  String get demAdmApproved => 'Approuvée.';
+
+  @override
+  String get demAdmRejected => 'Refusée.';
+
+  @override
+  String demAdmPublished(String n) {
+    return 'Publiée, version $n.';
+  }
+
+  @override
+  String get demAdmUnpublished => 'Dépubliée.';
+
+  @override
+  String get demAdmUnsaved =>
+      'Des modifications ne sont pas enregistrées. Quitter ?';
+
+  @override
+  String get demAdmRemovePiece => 'Retirer la pièce';
 }

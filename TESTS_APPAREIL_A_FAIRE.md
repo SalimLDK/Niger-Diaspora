@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1382 cases à cocher, 55 cochées** — 306 entrées sur 320 ont encore des cases ouvertes.
+**1391 cases à cocher, 55 cochées** — 307 entrées sur 321 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -97,7 +97,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 6 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (123)
+**P1 — fonction importante, jamais vérifiée** (124)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -174,6 +174,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [⬜ Photo de profil : on choisit son cadrage (2026-09-14)](#-photo-de-profil--on-choisit-son-cadrage-2026-09-14) · *Accueil, profil et réglages*
 - 6 · [⬜ Champ ville : recherche dans le référentiel (2026-09-13)](#-champ-ville--recherche-dans-le-référentiel-2026-09-13) · *Accueil, profil et réglages*
 - 7 · [Bascule en anglais — ~1 600 chaînes branchées, rien vu à l'écran (2026-08-06)](#bascule-en-anglais--1-600-chaînes-branchées-rien-vu-à-lécran-2026-08-06) · *Design, thème, langue et mise en page* · bloqué
+- 9 · [⬜ Panneau admin : démarches consulaires, du brouillon à la publication (2026-10-18)](#-panneau-admin--démarches-consulaires-du-brouillon-à-la-publication-2026-10-18) · *Backend, sécurité et observabilité*
 - 9 · [⬜ Panneau admin : l'écran Support et la création d'un ticket côté application (2026-10-18)](#-panneau-admin--lécran-support-et-la-création-dun-ticket-côté-application-2026-10-18) · *Backend, sécurité et observabilité*
 - 6 · [⬜ Crashlytics : clés et journaux de diagnostic des OutOfMemoryError (2026-10-15)](#-crashlytics--clés-et-journaux-de-diagnostic-des-outofmemoryerror-2026-10-15) · *Backend, sécurité et observabilité*
 - 9 · [⬜ Second facteur TOTP obligatoire sur le panneau admin (2026-10-14)](#-second-facteur-totp-obligatoire-sur-le-panneau-admin-2026-10-14) · *Backend, sécurité et observabilité*
@@ -378,7 +379,7 @@ Par domaine :
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 67 à faire, 0 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 58 à faire, 5 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 108 à faire, 5 faites
-- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 119 à faire, 2 faites
+- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 128 à faire, 2 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 46 à faire, 1 faites
 - [15. Site web](#15-site-web) — 69 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 23 à faire, 0 faites
@@ -9305,6 +9306,25 @@ parce qu'il change un **comportement**, pas seulement un habillage :
 # 13. Backend, sécurité et observabilité
 
 Supabase et Firebase côté serveur, accès anon, stockage, journaux, Crashlytics, back-office.
+
+---
+## ⬜ Panneau admin : démarches consulaires, du brouillon à la publication (2026-10-18)
+
+**Priorité P1** · importance 4/5 — L'usager monte son dossier consulaire d'après ces pièces et ces montants : un texte publié sans relecture, ou une dépublication qui n'atteint pas les téléphones, a un coût réel.
+
+*Bloqué : migration 20261018150000 appliquée, panneau web avec deux comptes contentMod, un téléphone avec l'application.*
+
+Fichiers : `lib/features/admin/presentation/screens/admin_demarches_screen.dart`, `widgets/editeur_demarche.dart`, `supabase/migrations/20261018150000_demarches_workflow.sql`.
+
+- [ ] Le catalogue de l'application s'affiche toujours (20 démarches) : la lecture publique n'a pas été cassée.
+- [ ] Panneau, « Démarches consulaires » : 20 démarches « Publiée », version 1, vérifiées le 07/09/2026, « Révision à planifier ».
+- [ ] « Modifier » sans motif : le bouton d'enregistrement reste grisé. Avec motif : brouillon enregistré, la démarche publiée ne change pas.
+- [ ] Une pièce modifiée garde ses autres propriétés (forme, groupe alternatif, note) après publication.
+- [ ] « Soumettre » sans source ou sans date de vérification est refusé avec un message lisible.
+- [ ] L'auteur du brouillon ne voit pas « Approuver » et lit la phrase d'attente ; le second compte peut approuver ou refuser (motif obligatoire).
+- [ ] Publier : version 2, l'historique montre les versions 1 et 2 et le motif ; le téléphone voit le nouveau texte après relance de l'application.
+- [ ] Dépublier : la démarche disparaît de l'application, y compris après vidage du cache ; noter ce qui reste affiché hors ligne (copie embarquée dans l'APK).
+- [ ] Fermer l'éditeur modifié demande confirmation. Thème sombre et largeur étroite : formulaire lisible.
 
 ---
 ## ⬜ Panneau admin : l'écran Support et la création d'un ticket côté application (2026-10-18)

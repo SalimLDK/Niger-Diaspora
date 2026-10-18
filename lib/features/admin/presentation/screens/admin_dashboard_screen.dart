@@ -16,6 +16,7 @@ import 'admin_businesses_screen.dart';
 import 'admin_moderation_screen.dart';
 import 'admin_reports_screen.dart';
 import 'admin_support_tickets_screen.dart';
+import 'admin_demarches_screen.dart';
 import 'admin_marketplace_screen.dart';
 import 'admin_users_management_screen.dart';
 import 'admin_transactions_screen.dart';
@@ -154,6 +155,16 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
         // base — le menu n'est qu'un indice.
         requiredPermission: AdminPermission.viewReports,
         contentBuilder: (_, __) => const AdminSupportTicketsScreen(),
+      ),
+      _NavDestination(
+        id: 'demarches',
+        label: l10n.demAdmTitle,
+        icon: const AppIcon(AppIcon.bank),
+        selectedIcon: const AppIcon(AppIcon.bank),
+        // Même population que les signalements (contentMod, superAdmin) ; le
+        // droit réel, `consular.view`, est relu par l'écran et par la base.
+        requiredPermission: AdminPermission.viewReports,
+        contentBuilder: (_, __) => const AdminDemarchesScreen(),
       ),
       _NavDestination(
         id: 'marketplace',

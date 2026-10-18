@@ -17286,4 +17286,306 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get supAdmNoteAdded => 'Note added.';
+
+  @override
+  String get demAdmTitle => 'Consular procedures';
+
+  @override
+  String get demAdmSubtitle =>
+      'Drafting, review, publication. No procedure is published without a source and a verification date.';
+
+  @override
+  String get demAdmNew => 'New procedure';
+
+  @override
+  String get demAdmFilterAll => 'All';
+
+  @override
+  String get demAdmFilterWork => 'To handle';
+
+  @override
+  String get demAdmFilterPublished => 'Published';
+
+  @override
+  String get demAdmFilterUnpublished => 'Unpublished';
+
+  @override
+  String get demAdmFilterOverdue => 'Review overdue';
+
+  @override
+  String get demAdmSearchHint => 'Search a procedure';
+
+  @override
+  String get demAdmEmpty => 'No procedure in this view.';
+
+  @override
+  String demAdmLoadError(String detail) {
+    return 'Could not load: $detail';
+  }
+
+  @override
+  String get demAdmRetry => 'Retry';
+
+  @override
+  String get demAdmNoAccess => 'You do not have access to consular procedures.';
+
+  @override
+  String get demAdmStatusPublished => 'Published';
+
+  @override
+  String get demAdmStatusUnpublished => 'Unpublished';
+
+  @override
+  String get demAdmDraftDraft => 'Draft';
+
+  @override
+  String get demAdmDraftPending => 'To review';
+
+  @override
+  String get demAdmDraftApproved => 'Approved, to publish';
+
+  @override
+  String demAdmVersion(String n) {
+    return 'Version $n';
+  }
+
+  @override
+  String demAdmVerified(String date) {
+    return 'Verified on $date';
+  }
+
+  @override
+  String demAdmNextReview(String date) {
+    return 'Next review: $date';
+  }
+
+  @override
+  String get demAdmReviewUnplanned => 'Review to be scheduled';
+
+  @override
+  String get demAdmReviewOverdue => 'Review overdue';
+
+  @override
+  String demAdmSource(String publisher) {
+    return 'Source: $publisher';
+  }
+
+  @override
+  String get demAdmSummary => 'Summary';
+
+  @override
+  String get demAdmCost => 'Cost';
+
+  @override
+  String get demAdmCostUnknown => 'Not published by the source';
+
+  @override
+  String get demAdmPieces => 'Documents to provide';
+
+  @override
+  String get demAdmWarnings => 'Warnings';
+
+  @override
+  String get demAdmHistory => 'History';
+
+  @override
+  String get demAdmHistoryEmpty => 'No recorded version.';
+
+  @override
+  String get demAdmHistoryPublished => 'Published';
+
+  @override
+  String get demAdmHistoryUnpublished => 'Unpublished';
+
+  @override
+  String demAdmDraftBy(String author) {
+    return 'Draft by $author';
+  }
+
+  @override
+  String get demAdmDraftByYou => 'you';
+
+  @override
+  String get demAdmDraftByOther => 'another administrator';
+
+  @override
+  String demAdmChangeReason(String reason) {
+    return 'Reason: $reason';
+  }
+
+  @override
+  String demAdmReviewNote(String note) {
+    return 'Reviewer\'s remark: $note';
+  }
+
+  @override
+  String get demAdmWaitingReview =>
+      'Waiting for another administrator to review: you cannot approve your own text.';
+
+  @override
+  String get demAdmEdit => 'Edit';
+
+  @override
+  String get demAdmSubmit => 'Submit for review';
+
+  @override
+  String get demAdmWithdraw => 'Withdraw draft';
+
+  @override
+  String get demAdmApprove => 'Approve';
+
+  @override
+  String get demAdmReject => 'Reject';
+
+  @override
+  String get demAdmPublish => 'Publish';
+
+  @override
+  String get demAdmUnpublish => 'Unpublish';
+
+  @override
+  String get demAdmRejectReason => 'Reason for rejection';
+
+  @override
+  String get demAdmUnpublishReason => 'Reason for unpublishing';
+
+  @override
+  String get demAdmUnpublishWarn =>
+      'Phones that already loaded the catalogue, or are offline, keep showing this procedure until their next sync.';
+
+  @override
+  String get demAdmConfirm => 'Confirm';
+
+  @override
+  String get demAdmCancel => 'Cancel';
+
+  @override
+  String get demAdmEditorNewTitle => 'New procedure';
+
+  @override
+  String get demAdmEditorEditTitle => 'Edit the procedure';
+
+  @override
+  String get demAdmFieldId => 'Identifier (lowercase, digits, _)';
+
+  @override
+  String get demAdmFieldTitle => 'Title';
+
+  @override
+  String get demAdmFieldRubrique => 'Category';
+
+  @override
+  String get demAdmFieldRequestType => 'Request type in the app';
+
+  @override
+  String get demAdmFieldLieu => 'Where it is done';
+
+  @override
+  String get demAdmLieuConsulat => 'At the consulate';
+
+  @override
+  String get demAdmLieuTribunal => 'Court in Niger';
+
+  @override
+  String get demAdmFieldSummary => 'Summary';
+
+  @override
+  String get demAdmFieldDelai =>
+      'Announced delay (leave empty if the source gives none)';
+
+  @override
+  String get demAdmFieldCostLabel => 'Cost label';
+
+  @override
+  String get demAdmFieldCostAmount => 'Amount in XOF (empty if unknown)';
+
+  @override
+  String get demAdmFieldCostStatus => 'State of the cost information';
+
+  @override
+  String get demAdmCostStatusKnown => 'Known';
+
+  @override
+  String get demAdmCostStatusUnknown => 'Unknown';
+
+  @override
+  String get demAdmCostStatusNotMentioned => 'Not mentioned by the source';
+
+  @override
+  String get demAdmCostStatusVariable => 'Varies by country';
+
+  @override
+  String get demAdmPiecesTitle => 'Documents to provide';
+
+  @override
+  String get demAdmPieceLabel => 'Document';
+
+  @override
+  String get demAdmPieceRequired => 'Required';
+
+  @override
+  String get demAdmPieceQuantity => 'Qty';
+
+  @override
+  String get demAdmAddPiece => 'Add a document';
+
+  @override
+  String get demAdmWarningsTitle => 'Warnings shown to the user (one per line)';
+
+  @override
+  String get demAdmSourceTitle => 'Official source (required to publish)';
+
+  @override
+  String get demAdmFieldSourceUrl => 'Source address (https://…)';
+
+  @override
+  String get demAdmFieldSourcePublisher => 'Source publisher';
+
+  @override
+  String get demAdmFieldVerifiedAt => 'Verification date';
+
+  @override
+  String get demAdmFieldNextReview => 'Next review (optional)';
+
+  @override
+  String get demAdmPickDate => 'Pick';
+
+  @override
+  String get demAdmFieldChangeReason => 'Reason for the change';
+
+  @override
+  String get demAdmFieldChangeReasonNew =>
+      'Reason (optional for a new procedure)';
+
+  @override
+  String get demAdmSaveDraft => 'Save draft';
+
+  @override
+  String get demAdmDraftSaved => 'Draft saved.';
+
+  @override
+  String get demAdmSubmitted => 'Submitted for review.';
+
+  @override
+  String get demAdmWithdrawn => 'Draft withdrawn.';
+
+  @override
+  String get demAdmApproved => 'Approved.';
+
+  @override
+  String get demAdmRejected => 'Rejected.';
+
+  @override
+  String demAdmPublished(String n) {
+    return 'Published, version $n.';
+  }
+
+  @override
+  String get demAdmUnpublished => 'Unpublished.';
+
+  @override
+  String get demAdmUnsaved => 'Some changes are not saved. Leave?';
+
+  @override
+  String get demAdmRemovePiece => 'Remove the document';
 }
