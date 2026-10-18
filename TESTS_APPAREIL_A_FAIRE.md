@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1451 cases à cocher, 55 cochées** — 315 entrées sur 329 ont encore des cases ouvertes.
+**1456 cases à cocher, 55 cochées** — 316 entrées sur 330 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -230,7 +230,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (98)
+**P2 — fonction secondaire ou cas limite** (99)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -290,6 +290,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⬜ Le sigle DN est le même partout (2026-09-13)](#-le-sigle-dn-est-le-même-partout-2026-09-13) · *Design, thème, langue et mise en page*
 - 1 · [Thème sombre — jetons clairs codés en dur](#thème-sombre--jetons-clairs-codés-en-dur) · *Design, thème, langue et mise en page*
 - 4 · [Bascule design_v2 → production, famille 2 : les services (2026-08-03)](#bascule-design_v2--production-famille-2--les-services-2026-08-03) · *Design, thème, langue et mise en page*
+- 5 · [⬜ Panneau admin : Transferts et Marketplace — l'écran était vide et ses gestes échouaient (2026-10-19)](#-panneau-admin--transferts-et-marketplace--lécran-était-vide-et-ses-gestes-échouaient-2026-10-19) · *Backend, sécurité et observabilité*
 - 7 · [⬜ Panneau admin : demandes relatives aux données et incidents de sécurité (2026-10-18)](#-panneau-admin--demandes-relatives-aux-données-et-incidents-de-sécurité-2026-10-18) · *Backend, sécurité et observabilité*
 - 6 · [⬜ Panneau admin : annuler / supprimer un événement avec motif, historique des changements (2026-10-18)](#-panneau-admin--annuler--supprimer-un-événement-avec-motif-historique-des-changements-2026-10-18) · *Backend, sécurité et observabilité*
 - 9 · [⬜ Panneau admin : demandes d'informations et recours dans le dossier de signalement (2026-10-18)](#-panneau-admin--demandes-dinformations-et-recours-dans-le-dossier-de-signalement-2026-10-18) · *Backend, sécurité et observabilité*
@@ -387,7 +388,7 @@ Par domaine :
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 67 à faire, 0 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 58 à faire, 5 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 108 à faire, 5 faites
-- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 188 à faire, 2 faites
+- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 193 à faire, 2 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 46 à faire, 1 faites
 - [15. Site web](#15-site-web) — 69 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 23 à faire, 0 faites
@@ -9314,6 +9315,21 @@ parce qu'il change un **comportement**, pas seulement un habillage :
 # 13. Backend, sécurité et observabilité
 
 Supabase et Firebase côté serveur, accès anon, stockage, journaux, Crashlytics, back-office.
+
+---
+## ⬜ Panneau admin : Transferts et Marketplace — l'écran était vide et ses gestes échouaient (2026-10-19)
+
+**Priorité P2** · importance 3/5 — Les tables sont vides et les paiements éteints, ce qui a masqué le défaut : un administrateur ne lisait aucun transfert. À vérifier avec de vraies lignes de test avant de rallumer la fonction.
+
+*Bloqué : migration 20261019130000 appliquée, deux comptes financeMod, un businessMod, un superAdmin, et des lignes de test (transferts, produits, une commande en litige) insérées par SQL.*
+
+Fichiers : `admin_transactions_screen.dart`, `admin_marketplace_screen.dart`, `supabase/migrations/20261019130000_transferts_marketplace_admin.sql`.
+
+- [ ] financeMod voit les transferts de test dans l'écran Transferts (avant : liste toujours vide) ; businessMod et contentMod n'en voient aucun.
+- [ ] « Terminer » exige une preuve du règlement ; « Échec » un motif ; un transfert terminé ne s'échoue plus.
+- [ ] « Demander le remboursement » : l'écran répète qu'aucun fonds ne bouge ; le transfert reste « terminé » ; le demandeur lit qu'il ne peut pas décider sa propre demande ; un autre financeMod voit « Approuver / Refuser ».
+- [ ] Marketplace : masquer / rétablir / supprimer un produit demandent un motif ; la suppression d'un produit qui a des commandes est refusée ; un vendeur ne rétablit pas un produit masqué par la modération.
+- [ ] Un litige se tranche avec un motif ; l'écran rappelle que le séquestre n'est ni libéré ni remboursé.
 
 ---
 ## ⬜ Panneau admin : ambassades — vérification sourcée, suspension motivée, historique (2026-10-19)

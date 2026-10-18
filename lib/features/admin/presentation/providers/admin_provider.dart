@@ -2116,125 +2116,52 @@ class AdminMarketplaceNotifier extends Notifier<AdminMarketplaceState> {
     }
   }
 
+  /// Masque ou rétablit un produit par `product_admin_set_availability` : motif
+  /// obligatoire, conservé avec le nom de l'agent. Un vendeur ne rétablit pas
+  /// lui-même un produit masqué par la modération (déclencheur de garde).
   Future<bool> toggleProductAvailability(
     String productId,
     bool isAvailable, {
-    required String adminId,
-    String? adminName,
-  }) async {
-    try {
-      final updated = await _supabase
-          .from('products')
-          .update({
-            'is_available': isAvailable,
-            'updated_at': DateTime.now().toUtc().toIso8601String(),
-          })
-          .eq('id', productId)
-          .select('id');
-      if ((updated as List).isEmpty) {
-        state = state.copyWith(
-          error: 'Disponibilité du produit non modifiée : $_aucuneLigne',
-        );
-        return false;
-      }
-
-      final echecJournal = await AdminAuditHelper.log(
-        adminId: adminId,
-        adminName: adminName,
-        action: 'toggle_product',
-        targetType: 'product',
-        targetId: productId,
-        details: {'isAvailable': isAvailable},
+    required String motif,
+  }) =>
+      _rpcMarketplace(
+        'product_admin_set_availability',
+        {'p_id': productId, 'p_available': isAvailable, 'p_reason': motif},
+        fetchAllProducts,
       );
 
-      await fetchAllProducts();
-      if (echecJournal != null) {
-        state = state.copyWith(error: echecJournal);
-        return false;
-      }
+  /// Suppression exceptionnelle (superAdmin, motif) ; refusée si des commandes
+  /// y sont rattachées : on masque, on n'efface pas.
+  Future<bool> deleteProduct(String productId, {required String motif}) =>
+      _rpcMarketplace(
+        'product_admin_delete',
+        {'p_id': productId, 'p_reason': motif},
+        fetchAllProducts,
+      );
+
+  /// Consigne la décision d'un litige (`order_admin_resolve_dispute`). Le
+  /// séquestre n'est ni libéré ni remboursé : aucun appel prestataire n'existe.
+  Future<bool> resolveDispute(String orderId, String resolution, String adminNote) =>
+      _rpcMarketplace(
+        'order_admin_resolve_dispute',
+        {'p_id': orderId, 'p_resolution': resolution, 'p_note': adminNote},
+        fetchDisputes,
+      );
+
+  Future<bool> _rpcMarketplace(
+    String fonction,
+    Map<String, dynamic> params,
+    Future<void> Function() recharger,
+  ) async {
+    try {
+      await _supabase.rpc(fonction, params: params);
+      await recharger();
       return true;
-    } catch (e) {
-      state = state.copyWith(error: e.toString());
+    } on PostgrestException catch (e) {
+      // Recharger d'abord : les chargements effacent `error`.
+      await recharger();
+      state = state.copyWith(error: messageRefusRpcAdmin(e));
       return false;
-    }
-  }
-
-  Future<bool> deleteProduct(
-    String productId, {
-    required String adminId,
-    String? adminName,
-  }) async {
-    try {
-      final deleted = await _supabase
-          .from('products')
-          .delete()
-          .eq('id', productId)
-          .select('id');
-      if ((deleted as List).isEmpty) {
-        state = state.copyWith(error: 'Produit non supprimé : $_aucuneLigne');
-        return false;
-      }
-
-      final echecJournal = await AdminAuditHelper.log(
-        adminId: adminId,
-        adminName: adminName,
-        action: 'delete_product',
-        targetType: 'product',
-        targetId: productId,
-      );
-
-      await fetchAllProducts();
-      if (echecJournal != null) {
-        state = state.copyWith(error: echecJournal);
-        return false;
-      }
-      return true;
-    } catch (e) {
-      state = state.copyWith(error: e.toString());
-      return false;
-    }
-  }
-
-  Future<bool> resolveDispute(
-    String orderId,
-    String resolution,
-    String adminNote, {
-    required String adminId,
-    String? adminName,
-  }) async {
-    try {
-      final updated = await _supabase
-          .from('orders')
-          .update({
-            'dispute_resolution': resolution,
-            'dispute_note': adminNote,
-            'dispute_resolved_by': adminId,
-            'dispute_resolved_at': DateTime.now().toUtc().toIso8601String(),
-            'is_in_dispute': false,
-            'has_dispute': false,
-          })
-          .eq('id', orderId)
-          .select('id');
-      if ((updated as List).isEmpty) {
-        state = state.copyWith(error: 'Litige non résolu : $_aucuneLigne');
-        return false;
-      }
-
-      final echecJournal = await AdminAuditHelper.log(
-        adminId: adminId,
-        adminName: adminName,
-        action: 'resolve_dispute',
-        targetType: 'order',
-        targetId: orderId,
-        details: {'resolution': resolution, 'note': adminNote},
-      );
-
-      await fetchDisputes();
-      if (echecJournal != null) {
-        state = state.copyWith(error: echecJournal);
-        return false;
-      }
-      return true;
     } catch (e) {
       state = state.copyWith(error: e.toString());
       return false;
@@ -2741,6 +2668,37 @@ final adminTransactionsNotifierProvider =
       AdminTransactionsNotifier.new,
     );
 
+/// Le refus d'une fonction d'administration, en clair. Le texte du serveur
+/// n'est repris que pour une saisie refusée (22023), où il dit quoi corriger.
+String messageRefusRpcAdmin(Object e) {
+  if (e is! PostgrestException) return e.toString();
+  return switch (e.code) {
+    '42501' => "Vous n'avez pas la permission d'effectuer cette action.",
+    '55000' => 'La situation a changé (${e.message}). Liste rechargée.',
+    'P0002' => 'Élément introuvable.',
+    '22023' || '22001' => e.message,
+    _ => 'Action impossible : ${e.message}',
+  };
+}
+
+/// Les remboursements demandés et en attente d'une décision, par transfert.
+/// Une erreur de lecture reste une erreur : jamais « aucune demande ».
+final demandesRemboursementProvider =
+    FutureProvider.autoDispose<Map<String, ({String par, String motif})>>((ref) async {
+  final rows = await _supabase
+      .from('transactions')
+      .select('id, refund_requested_by, refund_request_reason')
+      .eq('status', 'completed')
+      .not('refund_requested_at', 'is', null);
+  return {
+    for (final r in rows)
+      r['id'] as String: (
+        par: r['refund_requested_by'] as String? ?? '',
+        motif: r['refund_request_reason'] as String? ?? '',
+      ),
+  };
+});
+
 class AdminTransactionsNotifier extends Notifier<AdminTransactionsState> {
   /// Referme le bandeau d'erreur d'un écran qui a encore sa liste.
   /// `copyWith` efface `error` dès qu'on ne le repasse pas — c'est le seul
@@ -2870,131 +2828,36 @@ class AdminTransactionsNotifier extends Notifier<AdminTransactionsState> {
     );
   }
 
-  Future<bool> refundTransaction(
-    String transactionId,
-    String reason, {
-    required String adminId,
-    String? adminName,
-  }) async {
+  /// Marque un transfert terminé (`transaction_admin_complete`) : la preuve du
+  /// règlement est obligatoire. N'écrit que le registre.
+  Future<bool> markAsCompleted(String transactionId, {required String preuve}) =>
+      _rpcTransferts('transaction_admin_complete', {'p_id': transactionId, 'p_proof': preuve});
+
+  Future<bool> markAsFailed(String transactionId, String reason) =>
+      _rpcTransferts('transaction_admin_fail', {'p_id': transactionId, 'p_reason': reason});
+
+  /// Premier temps du remboursement : une demande motivée. Le registre ne
+  /// change qu'après la décision d'un AUTRE administrateur ; aucun fonds ne
+  /// bouge dans aucun cas.
+  Future<bool> requestRefund(String transactionId, String reason) => _rpcTransferts(
+      'transaction_admin_request_refund', {'p_id': transactionId, 'p_reason': reason});
+
+  Future<bool> decideRefund(String transactionId,
+          {required bool approve, String? note}) =>
+      _rpcTransferts('transaction_admin_decide_refund',
+          {'p_id': transactionId, 'p_approve': approve, 'p_note': note});
+
+  Future<bool> _rpcTransferts(String fonction, Map<String, dynamic> params) async {
     try {
-      final updated = await _supabase
-          .from('transactions')
-          .update({
-            'status': 'refunded',
-            'refund_reason': reason,
-            'refunded_by': adminId,
-            'refunded_at': DateTime.now().toUtc().toIso8601String(),
-          })
-          .eq('id', transactionId)
-          .select('id');
-      if ((updated as List).isEmpty) {
-        state = state.copyWith(
-          error: 'Transaction non marquée remboursée : $_aucuneLigne',
-        );
-        return false;
-      }
-
-      final echecJournal = await AdminAuditHelper.log(
-        adminId: adminId,
-        adminName: adminName,
-        action: 'refund_transaction',
-        targetType: 'transaction',
-        targetId: transactionId,
-        details: {'reason': reason},
-      );
-
+      await _supabase.rpc(fonction, params: params);
+      ref.invalidate(demandesRemboursementProvider);
       await fetchAllTransactions();
-      if (echecJournal != null) {
-        state = state.copyWith(error: echecJournal);
-        return false;
-      }
       return true;
-    } catch (e) {
-      state = state.copyWith(error: e.toString());
+    } on PostgrestException catch (e) {
+      ref.invalidate(demandesRemboursementProvider);
+      await fetchAllTransactions();
+      state = state.copyWith(error: messageRefusRpcAdmin(e));
       return false;
-    }
-  }
-
-  Future<bool> markAsCompleted(
-    String transactionId, {
-    required String adminId,
-    String? adminName,
-  }) async {
-    try {
-      final updated = await _supabase
-          .from('transactions')
-          .update({
-            'status': 'completed',
-            'completed_by': adminId,
-            'completed_at': DateTime.now().toUtc().toIso8601String(),
-          })
-          .eq('id', transactionId)
-          .select('id');
-      if ((updated as List).isEmpty) {
-        state = state.copyWith(
-          error: 'Transaction non marquée complétée : $_aucuneLigne',
-        );
-        return false;
-      }
-
-      final echecJournal = await AdminAuditHelper.log(
-        adminId: adminId,
-        adminName: adminName,
-        action: 'complete_transaction',
-        targetType: 'transaction',
-        targetId: transactionId,
-      );
-
-      await fetchAllTransactions();
-      if (echecJournal != null) {
-        state = state.copyWith(error: echecJournal);
-        return false;
-      }
-      return true;
-    } catch (e) {
-      state = state.copyWith(error: e.toString());
-      return false;
-    }
-  }
-
-  Future<bool> markAsFailed(
-    String transactionId,
-    String reason, {
-    required String adminId,
-    String? adminName,
-  }) async {
-    try {
-      final updated = await _supabase
-          .from('transactions')
-          .update({
-            'status': 'failed',
-            'failure_reason': reason,
-            'failed_by': adminId,
-          })
-          .eq('id', transactionId)
-          .select('id');
-      if ((updated as List).isEmpty) {
-        state = state.copyWith(
-          error: 'Transaction non marquée échouée : $_aucuneLigne',
-        );
-        return false;
-      }
-
-      final echecJournal = await AdminAuditHelper.log(
-        adminId: adminId,
-        adminName: adminName,
-        action: 'fail_transaction',
-        targetType: 'transaction',
-        targetId: transactionId,
-        details: {'reason': reason},
-      );
-
-      await fetchAllTransactions();
-      if (echecJournal != null) {
-        state = state.copyWith(error: echecJournal);
-        return false;
-      }
-      return true;
     } catch (e) {
       state = state.copyWith(error: e.toString());
       return false;

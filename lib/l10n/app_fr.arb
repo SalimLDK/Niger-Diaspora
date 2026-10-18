@@ -9672,5 +9672,24 @@
       }
     }
   },
-  "cmpAdmReportCaveat": "Créée n'est pas livrée, et livrée n'est pas lue : ni la livraison ni la lecture ne sont mesurées ici."
+  "cmpAdmReportCaveat": "Créée n'est pas livrée, et livrée n'est pas lue : ni la livraison ni la lecture ne sont mesurées ici.",
+  "trfAdmProofLabel": "Preuve du règlement (n° de reçu, référence bancaire…)",
+  "trfAdmRequestRefund": "Demander le remboursement",
+  "trfAdmRequestRefundTitle": "Demander le remboursement (registre)",
+  "trfAdmRefundWarn": "Aucun remboursement n'est déclenché ici : seul le registre change, après la décision d'un AUTRE administrateur. Le remboursement réel se fait chez le prestataire de paiement, à part.",
+  "trfAdmRefundPending": "Remboursement demandé : {reason}",
+  "@trfAdmRefundPending": {"placeholders": {"reason": {"type": "String"}}},
+  "trfAdmRefundWaiting": "En attente de la décision d'un autre administrateur : vous ne pouvez pas décider votre propre demande.",
+  "trfAdmApproveRefund": "Approuver",
+  "trfAdmRejectRefund": "Refuser",
+  "trfAdmRejectRefundTitle": "Refuser le remboursement",
+  "trfAdmRejectRefundNote": "Motif du refus",
+  "trfAdmRefundRequested": "Remboursement demandé.",
+  "trfAdmRefundDecided": "Décision enregistrée.",
+  "marAdmReasonLabel": "Motif (conservé avec votre nom)",
+  "marAdmHideTitle": "Masquer le produit",
+  "marAdmRestoreTitle": "Rétablir le produit",
+  "marAdmDeleteTitle": "Supprimer le produit",
+  "marAdmDeleteWarn": "Suppression définitive, réservée au super-administrateur. Un produit qui a des commandes se masque, il ne s'efface pas.",
+  "marAdmDisputeWarn": "La décision est consignée. Le séquestre n'est ni libéré ni remboursé ici : cela se fait chez le prestataire de paiement."
 }
