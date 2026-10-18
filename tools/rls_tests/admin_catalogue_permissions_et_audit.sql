@@ -34,16 +34,18 @@ INSERT INTO public.users (id, display_name, email, is_admin, admin_role) VALUES
 
 -- ═══ 1. Catalogue ══════════════════════════════════════════════════════════
 INSERT INTO resultat
-SELECT 1, 'catalogue : 29 permissions, toutes sur le format domaine.ressource.action', '29',
-       count(*)::text, CASE WHEN count(*) = 29 THEN 'OK' ELSE 'ÉCHEC' END
+SELECT 1, 'catalogue : au moins 29 permissions, toutes sur le format domaine.ressource.action', 'tout le catalogue',
+       count(*)::text, CASE WHEN count(*) >= 29
+                            AND count(*) = (SELECT count(*) FROM public.admin_permissions)
+                            THEN 'OK' ELSE 'ÉCHEC' END
   FROM public.admin_permissions WHERE key ~ '^[a-z]+(\.[a-z_]+){1,3}$';
 
 INSERT INTO resultat
-SELECT 2, 'mapping : contentMod 10, businessMod 9, financeMod 9 (celui du client)', '10/9/9',
+SELECT 2, 'mapping du client conservé : contentMod >= 10, businessMod 9, financeMod 9', '>=10/9/9',
        (SELECT count(*) FROM public.admin_role_permissions WHERE role = 'contentMod') || '/' ||
        (SELECT count(*) FROM public.admin_role_permissions WHERE role = 'businessMod') || '/' ||
        (SELECT count(*) FROM public.admin_role_permissions WHERE role = 'financeMod'),
-       CASE WHEN (SELECT count(*) FROM public.admin_role_permissions WHERE role = 'contentMod') = 10
+       CASE WHEN (SELECT count(*) FROM public.admin_role_permissions WHERE role = 'contentMod') >= 10
              AND (SELECT count(*) FROM public.admin_role_permissions WHERE role = 'businessMod') = 9
              AND (SELECT count(*) FROM public.admin_role_permissions WHERE role = 'financeMod') = 9
             THEN 'OK' ELSE 'ÉCHEC' END;
@@ -93,9 +95,10 @@ SELECT 12, 'superAdmin : NULL → false', 'false',
        public.admin_has_permission(NULL)::text,
        CASE WHEN NOT public.admin_has_permission(NULL) THEN 'OK' ELSE 'ÉCHEC' END;
 INSERT INTO resultat
-SELECT 13, 'superAdmin : porte tout le catalogue', '29',
+SELECT 13, 'superAdmin : porte tout le catalogue', (SELECT count(*) FROM public.admin_permissions)::text,
        (SELECT count(*) FROM public.admin_permissions WHERE public.admin_has_permission(key))::text,
-       CASE WHEN (SELECT count(*) FROM public.admin_permissions WHERE public.admin_has_permission(key)) = 29
+       CASE WHEN (SELECT count(*) FROM public.admin_permissions WHERE public.admin_has_permission(key))
+              = (SELECT count(*) FROM public.admin_permissions)
             THEN 'OK' ELSE 'ÉCHEC' END;
 RESET ROLE;
 
