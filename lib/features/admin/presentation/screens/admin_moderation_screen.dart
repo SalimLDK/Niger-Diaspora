@@ -665,31 +665,27 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
 
   Future<void> _handleGroupAction(String action, GroupEntity group) async {
     final notifier = ref.read(adminContentNotifierProvider.notifier);
-    final currentAdmin = ref.read(currentAdminProvider);
-
-    if (currentAdmin == null) {
-      _showSnackBar(l10n.adminNotConnected);
-      return;
-    }
 
     switch (action) {
       case 'make_public':
-        final ok = await notifier.toggleGroupPrivacy(group.id, false, adminId: currentAdmin.id, adminName: currentAdmin.name);
-        _montrerBilan(ok, l10n.adminGroupPublic);
-        break;
       case 'make_private':
-        final ok = await notifier.toggleGroupPrivacy(group.id, true, adminId: currentAdmin.id, adminName: currentAdmin.name);
-        _montrerBilan(ok, l10n.adminGroupPrivate);
+        final enPrive = action == 'make_private';
+        final motif = await _demanderMotif(
+          enPrive ? l10n.grpAdmPrivateTitle : l10n.grpAdmPublicTitle,
+          enPrive ? l10n.grpAdmPrivateWarn : l10n.grpAdmPublicWarn,
+        );
+        if (motif == null) return;
+        final ok = await notifier.setGroupPrivacy(group.id, enPrive, motif: motif);
+        _montrerBilan(ok, enPrive ? l10n.adminGroupPrivate : l10n.adminGroupPublic);
         break;
       case 'delete':
-        final confirm = await _showConfirmation(
+        final motif = await _demanderMotif(
           l10n.adminDeleteGroupTitle,
-          l10n.adminDeleteGroupConfirm,
+          l10n.grpAdmDeleteWarn,
         );
-        if (confirm == true) {
-          final ok = await notifier.deleteGroup(group.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
-          _montrerBilan(ok, l10n.adminGroupDeleted);
-        }
+        if (motif == null) return;
+        final n = await notifier.deleteGroup(group.id, motif: motif);
+        _montrerBilan(n != null, n == null ? '' : l10n.grpAdmDeleted('$n'));
         break;
     }
   }
@@ -741,31 +737,6 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
         ),
       ),
     ).whenComplete(controller.dispose);
-  }
-
-  Future<bool?> _showConfirmation(String title, String content) {
-    return showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(title),
-        content: Text(content),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(l10n.adminCancelAction),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AdminColors.statusRed,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            ),
-            child: Text(l10n.adminConfirmAction),
-          ),
-        ],
-      ),
-    );
   }
 
   /// Le libellé de succès ne s'affiche que si le notifier a rendu vrai ;

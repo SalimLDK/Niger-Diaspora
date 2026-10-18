@@ -901,79 +901,41 @@ class AdminContentNotifier extends Notifier<AdminContentState> {
         _ => 'Action impossible : ${e.message}',
       };
 
-  Future<bool> deleteGroup(
-    String groupId, {
-    required String adminId,
-    String? adminName,
-  }) async {
+  /// Supprime un groupe par `group_admin_delete` : permission, motif de 5 à
+  /// 500 caractères, historique et audit écrits avant la suppression ; un
+  /// groupe officiel n'est supprimé que par un superAdmin. Rend le nombre
+  /// d'événements emportés avec le groupe (clé étrangère en cascade), ou
+  /// `null` en cas de refus (l'erreur est dans `state`).
+  Future<int?> deleteGroup(String groupId, {required String motif}) async {
     try {
-      final deleted = await _supabase
-          .from('groups')
-          .delete()
-          .eq('id', groupId)
-          .select('id');
-      if ((deleted as List).isEmpty) {
-        state = state.copyWith(error: 'Groupe non supprimé : $_aucuneLigne');
-        return false;
-      }
-
-      final echecJournal = await AdminAuditHelper.log(
-        adminId: adminId,
-        adminName: adminName,
-        action: 'delete_group',
-        targetType: 'group',
-        targetId: groupId,
-      );
-
+      final n = await _supabase.rpc('group_admin_delete',
+          params: {'p_id': groupId, 'p_reason': motif});
       await fetchAllContent();
-      if (echecJournal != null) {
-        state = state.copyWith(error: echecJournal);
-        return false;
-      }
-      return true;
+      return n is int ? n : int.tryParse('$n') ?? 0;
+    } on PostgrestException catch (e) {
+      await fetchAllContent();
+      state = state.copyWith(error: messageRefusRpcAdmin(e));
+      return null;
     } catch (e) {
       state = state.copyWith(error: e.toString());
-      return false;
+      return null;
     }
   }
 
-  Future<bool> toggleGroupPrivacy(
-    String groupId,
-    bool isPrivate, {
-    required String adminId,
-    String? adminName,
-  }) async {
+  /// Change la confidentialité par `group_admin_set_privacy` (mêmes garanties
+  /// que la suppression). Remplace l'`UPDATE` direct, que les policies ne
+  /// laissaient passer que pour l'administrateur du groupe.
+  Future<bool> setGroupPrivacy(String groupId, bool isPrivate,
+      {required String motif}) async {
     try {
-      final updated = await _supabase
-          .from('groups')
-          .update({
-            'is_private': isPrivate,
-            'updated_at': DateTime.now().toUtc().toIso8601String(),
-          })
-          .eq('id', groupId)
-          .select('id');
-      if ((updated as List).isEmpty) {
-        state = state.copyWith(
-          error: 'Confidentialité du groupe non modifiée : $_aucuneLigne',
-        );
-        return false;
-      }
-
-      final echecJournal = await AdminAuditHelper.log(
-        adminId: adminId,
-        adminName: adminName,
-        action: 'toggle_privacy',
-        targetType: 'group',
-        targetId: groupId,
-        details: {'isPrivate': isPrivate},
-      );
-
+      await _supabase.rpc('group_admin_set_privacy',
+          params: {'p_id': groupId, 'p_private': isPrivate, 'p_reason': motif});
       await fetchAllContent();
-      if (echecJournal != null) {
-        state = state.copyWith(error: echecJournal);
-        return false;
-      }
       return true;
+    } on PostgrestException catch (e) {
+      await fetchAllContent();
+      state = state.copyWith(error: messageRefusRpcAdmin(e));
+      return false;
     } catch (e) {
       state = state.copyWith(error: e.toString());
       return false;

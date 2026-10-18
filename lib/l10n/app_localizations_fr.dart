@@ -19546,6 +19546,29 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get grpAdmPrivateTitle => 'Rendre le groupe privé';
+
+  @override
+  String get grpAdmPrivateWarn =>
+      'Le groupe disparaît de la recherche et des listes publiques ; seuls ses membres le voient. Le motif est conservé dans l\'historique du groupe.';
+
+  @override
+  String get grpAdmPublicTitle => 'Rendre le groupe public';
+
+  @override
+  String get grpAdmPublicWarn =>
+      'Le groupe devient visible et joignable par tous les membres de l\'application. Le motif est conservé dans l\'historique du groupe.';
+
+  @override
+  String get grpAdmDeleteWarn =>
+      'Irréversible. Les événements et sondages du groupe sont supprimés avec lui, et le groupe n\'est pas prévenu. Un groupe officiel ne se supprime que par un superAdmin. Le motif est conservé dans l\'historique.';
+
+  @override
+  String grpAdmDeleted(String n) {
+    return 'Groupe supprimé ($n événement(s) supprimé(s) avec lui).';
+  }
+
+  @override
   String get rchAdmTitle => 'À traiter et recherche';
 
   @override
