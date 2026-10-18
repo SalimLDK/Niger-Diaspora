@@ -160,15 +160,40 @@ void main() {
       }
     });
 
-    test("la console emprunte la constante d'expulsion, et n'écrit plus le ban",
+    test("la console n'écrit plus aucune sentinelle : elle appelle le serveur",
         () {
       final source = File(console).readAsStringSync();
-      expect(source.contains('\${SessionService.prefixeForceLogout}'), isTrue);
       expect(
         source.contains('\${SessionService.prefixeBanni}'),
         isFalse,
         reason: 'Le bannissement est serveur (setUserBanned) : la console '
             "n'écrit plus la sentinelle, elle appelle la callable.",
+      );
+      expect(
+        source.contains('\${SessionService.prefixeForceLogout}'),
+        isFalse,
+        reason: "L'expulsion forcée passe par member_admin_force_logout : "
+            "la sentinelle s'écrit dans Postgres, plus dans la console.",
+      );
+      expect(source.contains('member_admin_force_logout'), isTrue);
+    });
+
+    test("la migration des membres écrit les sentinelles que l'app lit", () {
+      // Même raisonnement que pour le serveur JavaScript : une fonction SQL
+      // est hors de portée du compilateur Dart, seul ce test relie les deux.
+      final source = File(
+        'supabase/migrations/20261019170000_membres_moderation.sql',
+      ).readAsStringSync();
+      expect(
+        source.contains("'${SessionService.prefixeForceLogout}' ||"),
+        isTrue,
+        reason: 'member_admin_force_logout doit poser '
+            "'${SessionService.prefixeForceLogout}' || <ms>",
+      );
+      expect(
+        source.contains("'${SessionService.prefixeBanni}' ||"),
+        isTrue,
+        reason: "member_admin_suspend doit poser '${SessionService.prefixeBanni}' || <ms>",
       );
     });
 
