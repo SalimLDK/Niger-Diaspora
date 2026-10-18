@@ -526,9 +526,10 @@ class _CarteDemarche extends ConsumerWidget {
                   style: const TextStyle(color: AdminColors.statusRed)),
               data: (liste) => liste.isEmpty
                   ? Text(l10n.demAdmHistoryEmpty)
-                  : ListView(
-                      shrinkWrap: true,
-                      children: [
+                  : SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                         for (final v in liste)
                           ListTile(
                             dense: true,
@@ -537,7 +538,8 @@ class _CarteDemarche extends ConsumerWidget {
                             subtitle: Text(
                                 '${_jour(v.date)}${v.motif != null ? ' — ${v.motif}' : ''}'),
                           ),
-                      ],
+                        ],
+                      ),
                     ),
             ),
           ),

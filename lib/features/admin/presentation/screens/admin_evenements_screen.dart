@@ -335,15 +335,17 @@ class _LigneEvenement extends ConsumerWidget {
                     Text(l10n.evtCalAttendeesEmpty)
                   else
                     Flexible(
-                      child: ListView(
-                        shrinkWrap: true,
-                        children: [
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
                           for (final i in liste)
                             ListTile(
                               dense: true,
                               title: Text(i.nom.isEmpty ? i.userId : i.nom),
                             ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                 ],

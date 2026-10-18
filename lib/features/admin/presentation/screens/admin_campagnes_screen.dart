@@ -882,9 +882,10 @@ class _DialogueModeles extends ConsumerWidget {
               data: (liste) => liste.isEmpty
                   ? Text(l10n.cmpAdmTemplatesEmpty)
                   : Flexible(
-                      child: ListView(
-                        shrinkWrap: true,
-                        children: [
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
                           for (final m in liste)
                             ListTile(
                               dense: true,
@@ -899,7 +900,8 @@ class _DialogueModeles extends ConsumerWidget {
                                 child: Text(l10n.cmpAdmTemplateArchive),
                               ),
                             ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
             ),
