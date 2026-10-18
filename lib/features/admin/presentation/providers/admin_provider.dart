@@ -248,6 +248,10 @@ class AdminDashboardState extends Equatable {
   final int totalProducts;
   final int totalTransactions;
   final int pendingReports;
+
+  /// Compteurs dont la lecture a échoué. Un compteur illisible n'est pas à 0 :
+  /// l'écran le montre « — » (un refus de permission devenait « 0 signalement »).
+  final Set<String> compteursIndisponibles;
   final List<UserEntity> recentUsers;
   final List<dynamic> recentContent;
   final bool isLoading;
@@ -262,6 +266,7 @@ class AdminDashboardState extends Equatable {
     this.totalProducts = 0,
     this.totalTransactions = 0,
     this.pendingReports = 0,
+    this.compteursIndisponibles = const {},
     this.recentUsers = const [],
     this.recentContent = const [],
     this.isLoading = false,
@@ -277,6 +282,7 @@ class AdminDashboardState extends Equatable {
     int? totalProducts,
     int? totalTransactions,
     int? pendingReports,
+    Set<String>? compteursIndisponibles,
     List<UserEntity>? recentUsers,
     List<dynamic>? recentContent,
     bool? isLoading,
@@ -291,6 +297,8 @@ class AdminDashboardState extends Equatable {
       totalProducts: totalProducts ?? this.totalProducts,
       totalTransactions: totalTransactions ?? this.totalTransactions,
       pendingReports: pendingReports ?? this.pendingReports,
+      compteursIndisponibles:
+          compteursIndisponibles ?? this.compteursIndisponibles,
       recentUsers: recentUsers ?? this.recentUsers,
       recentContent: recentContent ?? this.recentContent,
       isLoading: isLoading ?? this.isLoading,
@@ -308,6 +316,7 @@ class AdminDashboardState extends Equatable {
     totalProducts,
     totalTransactions,
     pendingReports,
+    compteursIndisponibles,
     recentUsers,
     recentContent,
     isLoading,
@@ -334,6 +343,9 @@ class AdminDashboardNotifier extends Notifier<AdminDashboardState> {
   Future<void> loadDashboardStats() async {
     state = state.copyWith(isLoading: true, error: null);
     try {
+      // Un compteur dont la lecture échoue est noté, pas rendu à 0.
+      final indisponibles = <String>{};
+
       Future<int> tableCount(String table) async {
         try {
           final resp = await _supabase
@@ -342,6 +354,7 @@ class AdminDashboardNotifier extends Notifier<AdminDashboardState> {
               .count(CountOption.exact);
           return resp.count;
         } catch (_) {
+          indisponibles.add(table);
           return 0;
         }
       }
@@ -365,7 +378,10 @@ class AdminDashboardNotifier extends Notifier<AdminDashboardState> {
               .inFilter('status', statutsSignalementEnAttente)
               .count(CountOption.exact)
               .then((r) => r.count)
-              .catchError((_) => 0),
+              .catchError((_) {
+            indisponibles.add('reports');
+            return 0;
+          }),
           compterSignalementsFirestore('pending'),
         ]).then((n) => n[0] + n[1]),
         // active sessions: users active in last 24 h
@@ -375,10 +391,14 @@ class AdminDashboardNotifier extends Notifier<AdminDashboardState> {
             .gte('last_active_at', yesterday.toUtc().toIso8601String())
             .count(CountOption.exact)
             .then((r) => r.count)
-            .catchError((_) => 0),
+            .catchError((_) {
+          indisponibles.add('active_sessions');
+          return 0;
+        }),
       ]);
 
       state = state.copyWith(
+        compteursIndisponibles: indisponibles,
         totalUsers: results[0],
         totalEvents: results[1],
         totalGroups: results[2],

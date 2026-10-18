@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1444 cases à cocher, 55 cochées** — 314 entrées sur 328 ont encore des cases ouvertes.
+**1451 cases à cocher, 55 cochées** — 315 entrées sur 329 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -229,7 +229,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (98)
+**P2 — fonction secondaire ou cas limite** (99)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -289,6 +289,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⬜ Le sigle DN est le même partout (2026-09-13)](#-le-sigle-dn-est-le-même-partout-2026-09-13) · *Design, thème, langue et mise en page*
 - 1 · [Thème sombre — jetons clairs codés en dur](#thème-sombre--jetons-clairs-codés-en-dur) · *Design, thème, langue et mise en page*
 - 4 · [Bascule design_v2 → production, famille 2 : les services (2026-08-03)](#bascule-design_v2--production-famille-2--les-services-2026-08-03) · *Design, thème, langue et mise en page*
+- 7 · [⬜ Tableau de bord : « À traiter » par droit, et des compteurs qui n'affichent plus 0 en cas d'erreur (2026-10-19)](#-tableau-de-bord---à-traiter--par-droit-et-des-compteurs-qui-naffichent-plus-0-en-cas-derreur-2026-10-19) · *Backend, sécurité et observabilité*
 - 7 · [⬜ Panneau admin : demandes relatives aux données et incidents de sécurité (2026-10-18)](#-panneau-admin--demandes-relatives-aux-données-et-incidents-de-sécurité-2026-10-18) · *Backend, sécurité et observabilité*
 - 6 · [⬜ Panneau admin : annuler / supprimer un événement avec motif, historique des changements (2026-10-18)](#-panneau-admin--annuler--supprimer-un-événement-avec-motif-historique-des-changements-2026-10-18) · *Backend, sécurité et observabilité*
 - 9 · [⬜ Panneau admin : demandes d'informations et recours dans le dossier de signalement (2026-10-18)](#-panneau-admin--demandes-dinformations-et-recours-dans-le-dossier-de-signalement-2026-10-18) · *Backend, sécurité et observabilité*
@@ -386,7 +387,7 @@ Par domaine :
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 67 à faire, 0 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 58 à faire, 5 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 108 à faire, 5 faites
-- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 181 à faire, 2 faites
+- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 188 à faire, 2 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 46 à faire, 1 faites
 - [15. Site web](#15-site-web) — 69 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 23 à faire, 0 faites
@@ -9313,6 +9314,23 @@ parce qu'il change un **comportement**, pas seulement un habillage :
 # 13. Backend, sécurité et observabilité
 
 Supabase et Firebase côté serveur, accès anon, stockage, journaux, Crashlytics, back-office.
+
+---
+## ⬜ Tableau de bord : « À traiter » par droit, et des compteurs qui n'affichent plus 0 en cas d'erreur (2026-10-19)
+
+**Priorité P2** · importance 3/5 — Un tableau de bord qui dit « 0 » quand il n'a pas pu lire est pire qu'un tableau de bord vide ; et un agent ne doit voir que les files de ses droits.
+
+*Bloqué : migration 20261019130000 appliquée, le panneau web avec un superAdmin, un contentMod, un businessMod et un financeMod.*
+
+Fichiers : `lib/features/admin/presentation/widgets/bloc_a_traiter.dart`, `admin_dashboard_screen.dart`, `supabase/migrations/20261019130000_tableau_de_bord_a_traiter.sql`.
+
+- [ ] superAdmin : le bloc « À traiter » montre sept files (signalements, support, démarches, campagnes, demandes de données, incidents, fiches à vérifier), triées urgentes d'abord ; chaque ligne dit sa définition, ce qui y est urgent et la date du plus ancien.
+- [ ] « Calculé à HH:mm » est affiché ; « Recalculer » le met à jour.
+- [ ] contentMod ne voit que signalements, support, démarches ; businessMod seulement « Fiches à vérifier » ; financeMod : « Aucune file à traiter n'est rattachée à votre rôle » (et non une liste de zéros).
+- [ ] Toucher une ligne ouvre la bonne rubrique (campagnes → Notifications, demandes et incidents → Sécurité et conformité).
+- [ ] Coupez le réseau puis rechargez : le bloc affiche l'erreur et un bouton, pas des zéros ; les compteurs illisibles du haut affichent « — » et une phrase les nomme.
+- [ ] Les chiffres du bloc correspondent à ce que montrent les écrans de chaque rubrique (même file, même nombre).
+- [ ] Thème sombre et largeur étroite : le bloc reste lisible.
 
 ---
 ## ⬜ Campagnes : programmation, modèles et rapport d'envoi (2026-10-18)

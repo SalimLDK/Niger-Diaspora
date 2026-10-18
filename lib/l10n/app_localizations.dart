@@ -33751,6 +33751,198 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Créée n\'est pas livrée, et livrée n\'est pas lue : ni la livraison ni la lecture ne sont mesurées ici.'**
   String get cmpAdmReportCaveat;
+
+  /// No description provided for @tbAdmTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'À traiter'**
+  String get tbAdmTitle;
+
+  /// No description provided for @tbAdmSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce qui attend en ce moment, selon vos droits. Un état courant, pas une période : voir l\'heure du calcul.'**
+  String get tbAdmSubtitle;
+
+  /// No description provided for @tbAdmComputedAt.
+  ///
+  /// In fr, this message translates to:
+  /// **'Calculé à {time}'**
+  String tbAdmComputedAt(String time);
+
+  /// No description provided for @tbAdmRefresh.
+  ///
+  /// In fr, this message translates to:
+  /// **'Recalculer'**
+  String get tbAdmRefresh;
+
+  /// No description provided for @tbAdmLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de calculer cette liste : {detail}'**
+  String tbAdmLoadError(String detail);
+
+  /// No description provided for @tbAdmRetry.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réessayer'**
+  String get tbAdmRetry;
+
+  /// No description provided for @tbAdmNothingForRole.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune file à traiter n\'est rattachée à votre rôle.'**
+  String get tbAdmNothingForRole;
+
+  /// No description provided for @tbAdmCalm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rien en attente'**
+  String get tbAdmCalm;
+
+  /// No description provided for @tbAdmOldest.
+  ///
+  /// In fr, this message translates to:
+  /// **'plus ancien : {date}'**
+  String tbAdmOldest(String date);
+
+  /// No description provided for @tbAdmUrgentPrefix.
+  ///
+  /// In fr, this message translates to:
+  /// **'dont {n} {label}'**
+  String tbAdmUrgentPrefix(String n, String label);
+
+  /// No description provided for @tbAdmOpen.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ouvrir'**
+  String get tbAdmOpen;
+
+  /// No description provided for @tbAdmReports.
+  ///
+  /// In fr, this message translates to:
+  /// **'Signalements'**
+  String get tbAdmReports;
+
+  /// No description provided for @tbAdmReportsDef.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouveaux, en examen ou escaladés.'**
+  String get tbAdmReportsDef;
+
+  /// No description provided for @tbAdmReportsUrgent.
+  ///
+  /// In fr, this message translates to:
+  /// **'non pris en charge'**
+  String get tbAdmReportsUrgent;
+
+  /// No description provided for @tbAdmSupport.
+  ///
+  /// In fr, this message translates to:
+  /// **'Support'**
+  String get tbAdmSupport;
+
+  /// No description provided for @tbAdmSupportDef.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tickets ouverts ou en cours.'**
+  String get tbAdmSupportDef;
+
+  /// No description provided for @tbAdmSupportUrgent.
+  ///
+  /// In fr, this message translates to:
+  /// **'non pris en charge'**
+  String get tbAdmSupportUrgent;
+
+  /// No description provided for @tbAdmDemarches.
+  ///
+  /// In fr, this message translates to:
+  /// **'Démarches consulaires'**
+  String get tbAdmDemarches;
+
+  /// No description provided for @tbAdmDemarchesDef.
+  ///
+  /// In fr, this message translates to:
+  /// **'Textes à relire ou à publier, et démarches publiées dont la révision datée est dépassée.'**
+  String get tbAdmDemarchesDef;
+
+  /// No description provided for @tbAdmDemarchesUrgent.
+  ///
+  /// In fr, this message translates to:
+  /// **'en retard de révision'**
+  String get tbAdmDemarchesUrgent;
+
+  /// No description provided for @tbAdmCampaigns.
+  ///
+  /// In fr, this message translates to:
+  /// **'Campagnes'**
+  String get tbAdmCampaigns;
+
+  /// No description provided for @tbAdmCampaignsDef.
+  ///
+  /// In fr, this message translates to:
+  /// **'Messages soumis qui attendent l\'approbation d\'un autre administrateur.'**
+  String get tbAdmCampaignsDef;
+
+  /// No description provided for @tbAdmPrivacy.
+  ///
+  /// In fr, this message translates to:
+  /// **'Demandes de données'**
+  String get tbAdmPrivacy;
+
+  /// No description provided for @tbAdmPrivacyDef.
+  ///
+  /// In fr, this message translates to:
+  /// **'Demandes ouvertes (reçues, identité vérifiée, en traitement).'**
+  String get tbAdmPrivacyDef;
+
+  /// No description provided for @tbAdmPrivacyUrgent.
+  ///
+  /// In fr, this message translates to:
+  /// **'au-delà de l\'échéance interne'**
+  String get tbAdmPrivacyUrgent;
+
+  /// No description provided for @tbAdmIncidents.
+  ///
+  /// In fr, this message translates to:
+  /// **'Incidents de sécurité'**
+  String get tbAdmIncidents;
+
+  /// No description provided for @tbAdmIncidentsDef.
+  ///
+  /// In fr, this message translates to:
+  /// **'Incidents non clos.'**
+  String get tbAdmIncidentsDef;
+
+  /// No description provided for @tbAdmIncidentsUrgent.
+  ///
+  /// In fr, this message translates to:
+  /// **'de gravité élevée ou critique'**
+  String get tbAdmIncidentsUrgent;
+
+  /// No description provided for @tbAdmListings.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fiches à vérifier'**
+  String get tbAdmListings;
+
+  /// No description provided for @tbAdmListingsDef.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fiches actives sans badge « vérifié ».'**
+  String get tbAdmListingsDef;
+
+  /// No description provided for @tbAdmCounterUnavailable.
+  ///
+  /// In fr, this message translates to:
+  /// **'indisponible'**
+  String get tbAdmCounterUnavailable;
+
+  /// No description provided for @tbAdmCountersUnavailable.
+  ///
+  /// In fr, this message translates to:
+  /// **'Certains compteurs n\'ont pas pu être lus et sont marqués « — » plutôt que 0 : {names}.'**
+  String tbAdmCountersUnavailable(String names);
 }
 
 class _AppLocalizationsDelegate
