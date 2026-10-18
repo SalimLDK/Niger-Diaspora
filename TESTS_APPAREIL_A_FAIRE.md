@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1420 cases à cocher, 55 cochées** — 311 entrées sur 325 ont encore des cases ouvertes.
+**1429 cases à cocher, 55 cochées** — 312 entrées sur 326 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -98,7 +98,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 6 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (125)
+**P1 — fonction importante, jamais vérifiée** (126)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -175,6 +175,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [⬜ Photo de profil : on choisit son cadrage (2026-09-14)](#-photo-de-profil--on-choisit-son-cadrage-2026-09-14) · *Accueil, profil et réglages*
 - 6 · [⬜ Champ ville : recherche dans le référentiel (2026-09-13)](#-champ-ville--recherche-dans-le-référentiel-2026-09-13) · *Accueil, profil et réglages*
 - 7 · [Bascule en anglais — ~1 600 chaînes branchées, rien vu à l'écran (2026-08-06)](#bascule-en-anglais--1-600-chaînes-branchées-rien-vu-à-lécran-2026-08-06) · *Design, thème, langue et mise en page* · bloqué
+- 9 · [⬜ « Mes demandes sur mes données » : faire une demande depuis l'application (2026-10-18)](#--mes-demandes-sur-mes-données---faire-une-demande-depuis-lapplication-2026-10-18) · *Backend, sécurité et observabilité*
 - 6 · [⬜ Panneau admin : annuaire — badge motivé, archivage, historique (2026-10-18)](#-panneau-admin--annuaire--badge-motivé-archivage-historique-2026-10-18) · *Backend, sécurité et observabilité*
 - 10 · [⬜ Panneau admin : démarches consulaires, du brouillon à la publication (2026-10-18)](#-panneau-admin--démarches-consulaires-du-brouillon-à-la-publication-2026-10-18) · *Backend, sécurité et observabilité*
 - 9 · [⬜ Panneau admin : l'écran Support et la création d'un ticket côté application (2026-10-18)](#-panneau-admin--lécran-support-et-la-création-dun-ticket-côté-application-2026-10-18) · *Backend, sécurité et observabilité*
@@ -383,7 +384,7 @@ Par domaine :
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 67 à faire, 0 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 58 à faire, 5 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 108 à faire, 5 faites
-- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 157 à faire, 2 faites
+- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 166 à faire, 2 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 46 à faire, 1 faites
 - [15. Site web](#15-site-web) — 69 à faire, 0 faites
 - [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 23 à faire, 0 faites
@@ -9310,6 +9311,25 @@ parce qu'il change un **comportement**, pas seulement un habillage :
 # 13. Backend, sécurité et observabilité
 
 Supabase et Firebase côté serveur, accès anon, stockage, journaux, Crashlytics, back-office.
+
+---
+## ⬜ « Mes demandes sur mes données » : faire une demande depuis l'application (2026-10-18)
+
+**Priorité P1** · importance 4/5 — Premier point d'entrée utilisateur pour les droits d'accès, de rectification et d'opposition ; l'écran touche des données personnelles et doit se lire correctement sur un vrai téléphone.
+
+*Bloqué : migration 20261018250000 appliquée, un téléphone avec un compte de test, le panneau web avec un superAdmin.*
+
+Fichiers : `lib/features/settings/presentation/screens/mes_demandes_donnees_screen.dart`, tuile dans `settings_screen.dart`, route `/settings/mes-donnees`.
+
+- [ ] Réglages → tuile « Mes demandes sur mes données » → l'écran s'ouvre ; la flèche de retour est visible, y compris ouvert par lien profond.
+- [ ] Faire une demande d'accès avec un texte court (< 10 caractères) : le bouton d'envoi reste grisé ; avec 10 caractères ou plus : « Demande envoyée » et la ligne apparaît, « Reçue ».
+- [ ] Refaire une demande d'accès tant que la première est ouverte : message « déjà en cours ou limite atteinte », rien n'est créé.
+- [ ] « Retirer » une demande ouverte : elle passe « Retirée ou annulée ».
+- [ ] L'écran dit où faire la suppression et l'export, et ne propose pas ces deux natures.
+- [ ] Panneau : la demande arrive « Depuis l'application », « À prendre en charge » ; seul « Prendre en charge » est offert avant ; après, la vérification d'identité ; le téléphone lit « Identité vérifiée ».
+- [ ] Panneau, demande d'effacement liée à un compte existant : la carte montre « Compte : présent », « Terminer » est refusé avec un message lisible tant que le compte n'est pas effacé.
+- [ ] Coupez le réseau : l'écran affiche « Impossible de charger vos demandes » et un bouton, jamais « Vous n'avez fait aucune demande ».
+- [ ] Thème sombre, grande police, anglais : textes lisibles sans débordement.
 
 ---
 ## ⬜ Panneau admin : demandes relatives aux données et incidents de sécurité (2026-10-18)

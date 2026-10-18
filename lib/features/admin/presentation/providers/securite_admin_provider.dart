@@ -24,6 +24,8 @@ class DemandeDonnees {
     this.perimetre,
     this.methodeIdentite,
     this.resultat,
+    this.nonAttribuee = false,
+    this.depuisApp = false,
   });
 
   final String id;
@@ -35,6 +37,11 @@ class DemandeDonnees {
   final String? perimetre;
   final String? methodeIdentite;
   final String? resultat;
+
+  /// Une demande de l'application attend dans la file tant que personne ne
+  /// l'a prise : le serveur refuse de la traiter avant.
+  final bool nonAttribuee;
+  final bool depuisApp;
 
   bool get ouverte =>
       statut == 'received' || statut == 'identity_verified' || statut == 'in_progress';
@@ -50,8 +57,29 @@ class DemandeDonnees {
         perimetre: r['scope'] as String?,
         methodeIdentite: r['identity_method'] as String?,
         resultat: r['result_note'] as String?,
+        nonAttribuee: r['assigned_to'] == null,
+        depuisApp: r['source'] == 'app',
       );
 }
+
+/// Où en est la suppression du compte visé par une demande d'effacement.
+class EtatSuppression {
+  const EtatSuppression({required this.lie, this.comptePresent, this.statut});
+  final bool lie;
+  final bool? comptePresent;
+  final String? statut;
+}
+
+final etatSuppressionProvider =
+    FutureProvider.autoDispose.family<EtatSuppression, String>((ref, id) async {
+  final r = await _supabase.rpc('privacy_request_erasure_status', params: {'p_id': id});
+  final m = Map<String, dynamic>.from(r as Map);
+  return EtatSuppression(
+    lie: m['linked'] == true,
+    comptePresent: m['account_exists'] as bool?,
+    statut: m['deletion_status'] as String?,
+  );
+});
 
 enum VueSecurite { enCours, closes, toutes }
 
@@ -185,6 +213,9 @@ class SecuriteAdminActions {
       'p_due_at': echeance.toUtc().toIso8601String(),
     });
   }
+
+  Future<void> prendreDemande(String id) =>
+      _supabase.rpc('privacy_request_take', params: {'p_id': id});
 
   Future<void> verifierIdentite(String id, String methode) =>
       _supabase.rpc('privacy_request_verify_identity',

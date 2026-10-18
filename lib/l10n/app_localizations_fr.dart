@@ -18322,4 +18322,121 @@ class AppLocalizationsFr extends AppLocalizations {
   String secAdmIncDetected(String date) {
     return 'Détecté le $date';
   }
+
+  @override
+  String get secAdmReqFromApp => 'Depuis l\'application';
+
+  @override
+  String get secAdmReqUnassigned => 'À prendre en charge';
+
+  @override
+  String get secAdmReqTake => 'Prendre en charge';
+
+  @override
+  String secAdmReqErasureState(String account, String deletion) {
+    return 'Compte : $account · suppression : $deletion';
+  }
+
+  @override
+  String get secAdmReqAccountPresent => 'présent';
+
+  @override
+  String get secAdmReqAccountGone => 'effacé';
+
+  @override
+  String get secAdmReqDeletionNone => 'aucune demande';
+
+  @override
+  String get secAdmReqErasureHelp =>
+      'Une demande d\'effacement ne se termine qu\'une fois le compte réellement effacé : la suppression se lance depuis le compte de la personne, avec son délai de grâce.';
+
+  @override
+  String get mesDonneesTitle => 'Mes demandes sur mes données';
+
+  @override
+  String get mesDonneesTileSubtitle =>
+      'Accès, rectification, opposition : suivre ou faire une demande';
+
+  @override
+  String get mesDonneesIntro =>
+      'Vous pouvez demander l\'accès aux données que nous détenons sur vous, leur rectification, ou vous opposer à un usage. Une personne de l\'équipe lit votre demande et vous répond.';
+
+  @override
+  String get mesDonneesOtherFlows =>
+      'Pour supprimer votre compte ou exporter vos données, utilisez « Supprimer mon compte » et « Exporter mes données » dans les réglages : ils font tout de suite ce qu\'une demande réclamerait.';
+
+  @override
+  String get mesDonneesNoTimeline =>
+      'Nous ne promettons pas de délai ici ; l\'équipe traite les demandes dans l\'ordre.';
+
+  @override
+  String get mesDonneesKindAccess => 'Demander l\'accès à mes données';
+
+  @override
+  String get mesDonneesKindRectification => 'Demander une rectification';
+
+  @override
+  String get mesDonneesKindObjection => 'M\'opposer à un usage';
+
+  @override
+  String get mesDonneesDetailsLabel =>
+      'Précisez votre demande (10 caractères au moins)';
+
+  @override
+  String get mesDonneesSend => 'Envoyer la demande';
+
+  @override
+  String get mesDonneesCancel => 'Annuler';
+
+  @override
+  String get mesDonneesSent => 'Demande envoyée.';
+
+  @override
+  String get mesDonneesWithdraw => 'Retirer';
+
+  @override
+  String get mesDonneesWithdrawn => 'Demande retirée.';
+
+  @override
+  String get mesDonneesListTitle => 'Mes demandes';
+
+  @override
+  String get mesDonneesEmpty => 'Vous n\'avez fait aucune demande.';
+
+  @override
+  String get mesDonneesStatusReceived => 'Reçue';
+
+  @override
+  String get mesDonneesStatusIdentity => 'Identité vérifiée';
+
+  @override
+  String get mesDonneesStatusInProgress => 'En cours de traitement';
+
+  @override
+  String get mesDonneesStatusCompleted => 'Traitée';
+
+  @override
+  String get mesDonneesStatusRefused => 'Refusée';
+
+  @override
+  String get mesDonneesStatusCancelled => 'Retirée ou annulée';
+
+  @override
+  String mesDonneesDate(String date) {
+    return 'Faite le $date';
+  }
+
+  @override
+  String get mesDonneesLoadError => 'Impossible de charger vos demandes.';
+
+  @override
+  String get mesDonneesRetry => 'Réessayer';
+
+  @override
+  String get mesDonneesAlreadyOpen =>
+      'Une demande de cette nature est déjà en cours, ou vous avez atteint la limite de trois demandes par jour.';
+
+  @override
+  String get mesDonneesFailed =>
+      'La demande n\'a pas pu être envoyée. Réessayez plus tard.';
 }

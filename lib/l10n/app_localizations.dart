@@ -33265,6 +33265,216 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Détecté le {date}'**
   String secAdmIncDetected(String date);
+
+  /// No description provided for @secAdmReqFromApp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Depuis l\'application'**
+  String get secAdmReqFromApp;
+
+  /// No description provided for @secAdmReqUnassigned.
+  ///
+  /// In fr, this message translates to:
+  /// **'À prendre en charge'**
+  String get secAdmReqUnassigned;
+
+  /// No description provided for @secAdmReqTake.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prendre en charge'**
+  String get secAdmReqTake;
+
+  /// No description provided for @secAdmReqErasureState.
+  ///
+  /// In fr, this message translates to:
+  /// **'Compte : {account} · suppression : {deletion}'**
+  String secAdmReqErasureState(String account, String deletion);
+
+  /// No description provided for @secAdmReqAccountPresent.
+  ///
+  /// In fr, this message translates to:
+  /// **'présent'**
+  String get secAdmReqAccountPresent;
+
+  /// No description provided for @secAdmReqAccountGone.
+  ///
+  /// In fr, this message translates to:
+  /// **'effacé'**
+  String get secAdmReqAccountGone;
+
+  /// No description provided for @secAdmReqDeletionNone.
+  ///
+  /// In fr, this message translates to:
+  /// **'aucune demande'**
+  String get secAdmReqDeletionNone;
+
+  /// No description provided for @secAdmReqErasureHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Une demande d\'effacement ne se termine qu\'une fois le compte réellement effacé : la suppression se lance depuis le compte de la personne, avec son délai de grâce.'**
+  String get secAdmReqErasureHelp;
+
+  /// No description provided for @mesDonneesTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mes demandes sur mes données'**
+  String get mesDonneesTitle;
+
+  /// No description provided for @mesDonneesTileSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Accès, rectification, opposition : suivre ou faire une demande'**
+  String get mesDonneesTileSubtitle;
+
+  /// No description provided for @mesDonneesIntro.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous pouvez demander l\'accès aux données que nous détenons sur vous, leur rectification, ou vous opposer à un usage. Une personne de l\'équipe lit votre demande et vous répond.'**
+  String get mesDonneesIntro;
+
+  /// No description provided for @mesDonneesOtherFlows.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pour supprimer votre compte ou exporter vos données, utilisez « Supprimer mon compte » et « Exporter mes données » dans les réglages : ils font tout de suite ce qu\'une demande réclamerait.'**
+  String get mesDonneesOtherFlows;
+
+  /// No description provided for @mesDonneesNoTimeline.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nous ne promettons pas de délai ici ; l\'équipe traite les demandes dans l\'ordre.'**
+  String get mesDonneesNoTimeline;
+
+  /// No description provided for @mesDonneesKindAccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Demander l\'accès à mes données'**
+  String get mesDonneesKindAccess;
+
+  /// No description provided for @mesDonneesKindRectification.
+  ///
+  /// In fr, this message translates to:
+  /// **'Demander une rectification'**
+  String get mesDonneesKindRectification;
+
+  /// No description provided for @mesDonneesKindObjection.
+  ///
+  /// In fr, this message translates to:
+  /// **'M\'opposer à un usage'**
+  String get mesDonneesKindObjection;
+
+  /// No description provided for @mesDonneesDetailsLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Précisez votre demande (10 caractères au moins)'**
+  String get mesDonneesDetailsLabel;
+
+  /// No description provided for @mesDonneesSend.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoyer la demande'**
+  String get mesDonneesSend;
+
+  /// No description provided for @mesDonneesCancel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annuler'**
+  String get mesDonneesCancel;
+
+  /// No description provided for @mesDonneesSent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Demande envoyée.'**
+  String get mesDonneesSent;
+
+  /// No description provided for @mesDonneesWithdraw.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retirer'**
+  String get mesDonneesWithdraw;
+
+  /// No description provided for @mesDonneesWithdrawn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Demande retirée.'**
+  String get mesDonneesWithdrawn;
+
+  /// No description provided for @mesDonneesListTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mes demandes'**
+  String get mesDonneesListTitle;
+
+  /// No description provided for @mesDonneesEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous n\'avez fait aucune demande.'**
+  String get mesDonneesEmpty;
+
+  /// No description provided for @mesDonneesStatusReceived.
+  ///
+  /// In fr, this message translates to:
+  /// **'Reçue'**
+  String get mesDonneesStatusReceived;
+
+  /// No description provided for @mesDonneesStatusIdentity.
+  ///
+  /// In fr, this message translates to:
+  /// **'Identité vérifiée'**
+  String get mesDonneesStatusIdentity;
+
+  /// No description provided for @mesDonneesStatusInProgress.
+  ///
+  /// In fr, this message translates to:
+  /// **'En cours de traitement'**
+  String get mesDonneesStatusInProgress;
+
+  /// No description provided for @mesDonneesStatusCompleted.
+  ///
+  /// In fr, this message translates to:
+  /// **'Traitée'**
+  String get mesDonneesStatusCompleted;
+
+  /// No description provided for @mesDonneesStatusRefused.
+  ///
+  /// In fr, this message translates to:
+  /// **'Refusée'**
+  String get mesDonneesStatusRefused;
+
+  /// No description provided for @mesDonneesStatusCancelled.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retirée ou annulée'**
+  String get mesDonneesStatusCancelled;
+
+  /// No description provided for @mesDonneesDate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Faite le {date}'**
+  String mesDonneesDate(String date);
+
+  /// No description provided for @mesDonneesLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de charger vos demandes.'**
+  String get mesDonneesLoadError;
+
+  /// No description provided for @mesDonneesRetry.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réessayer'**
+  String get mesDonneesRetry;
+
+  /// No description provided for @mesDonneesAlreadyOpen.
+  ///
+  /// In fr, this message translates to:
+  /// **'Une demande de cette nature est déjà en cours, ou vous avez atteint la limite de trois demandes par jour.'**
+  String get mesDonneesAlreadyOpen;
+
+  /// No description provided for @mesDonneesFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'La demande n\'a pas pu être envoyée. Réessayez plus tard.'**
+  String get mesDonneesFailed;
 }
 
 class _AppLocalizationsDelegate

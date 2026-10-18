@@ -18149,4 +18149,121 @@ class AppLocalizationsEn extends AppLocalizations {
   String secAdmIncDetected(String date) {
     return 'Detected on $date';
   }
+
+  @override
+  String get secAdmReqFromApp => 'From the app';
+
+  @override
+  String get secAdmReqUnassigned => 'To take';
+
+  @override
+  String get secAdmReqTake => 'Take the request';
+
+  @override
+  String secAdmReqErasureState(String account, String deletion) {
+    return 'Account: $account · deletion: $deletion';
+  }
+
+  @override
+  String get secAdmReqAccountPresent => 'present';
+
+  @override
+  String get secAdmReqAccountGone => 'erased';
+
+  @override
+  String get secAdmReqDeletionNone => 'no request';
+
+  @override
+  String get secAdmReqErasureHelp =>
+      'An erasure request only completes once the account is actually erased: deletion starts from the person\'s own account, with its grace period.';
+
+  @override
+  String get mesDonneesTitle => 'My data requests';
+
+  @override
+  String get mesDonneesTileSubtitle =>
+      'Access, rectification, objection: follow or make a request';
+
+  @override
+  String get mesDonneesIntro =>
+      'You can ask for access to the data we hold about you, ask for it to be corrected, or object to a use. Someone on the team reads your request and replies.';
+
+  @override
+  String get mesDonneesOtherFlows =>
+      'To delete your account or export your data, use \"Delete my account\" and \"Export my data\" in settings: they do right away what a request would ask for.';
+
+  @override
+  String get mesDonneesNoTimeline =>
+      'We do not promise a deadline here; the team handles requests in order.';
+
+  @override
+  String get mesDonneesKindAccess => 'Ask for access to my data';
+
+  @override
+  String get mesDonneesKindRectification => 'Ask for a correction';
+
+  @override
+  String get mesDonneesKindObjection => 'Object to a use';
+
+  @override
+  String get mesDonneesDetailsLabel =>
+      'Describe your request (10 characters at least)';
+
+  @override
+  String get mesDonneesSend => 'Send the request';
+
+  @override
+  String get mesDonneesCancel => 'Cancel';
+
+  @override
+  String get mesDonneesSent => 'Request sent.';
+
+  @override
+  String get mesDonneesWithdraw => 'Withdraw';
+
+  @override
+  String get mesDonneesWithdrawn => 'Request withdrawn.';
+
+  @override
+  String get mesDonneesListTitle => 'My requests';
+
+  @override
+  String get mesDonneesEmpty => 'You have not made any request.';
+
+  @override
+  String get mesDonneesStatusReceived => 'Received';
+
+  @override
+  String get mesDonneesStatusIdentity => 'Identity verified';
+
+  @override
+  String get mesDonneesStatusInProgress => 'Being processed';
+
+  @override
+  String get mesDonneesStatusCompleted => 'Handled';
+
+  @override
+  String get mesDonneesStatusRefused => 'Refused';
+
+  @override
+  String get mesDonneesStatusCancelled => 'Withdrawn or cancelled';
+
+  @override
+  String mesDonneesDate(String date) {
+    return 'Made on $date';
+  }
+
+  @override
+  String get mesDonneesLoadError => 'Could not load your requests.';
+
+  @override
+  String get mesDonneesRetry => 'Retry';
+
+  @override
+  String get mesDonneesAlreadyOpen =>
+      'A request of this kind is already open, or you reached the limit of three requests per day.';
+
+  @override
+  String get mesDonneesFailed =>
+      'The request could not be sent. Try again later.';
 }

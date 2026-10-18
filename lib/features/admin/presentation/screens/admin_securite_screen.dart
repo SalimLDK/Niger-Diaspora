@@ -347,6 +347,11 @@ class _CarteDemande extends ConsumerWidget {
             },
           ),
           if (d.enRetard) DesignBadge(l10n.secAdmReqOverdue, tone: DesignBadgeTone.failed),
+          if (d.depuisApp)
+            Text(l10n.secAdmReqFromApp,
+                style: const TextStyle(fontSize: 12, color: AdminColors.text3)),
+          if (d.ouverte && d.nonAttribuee)
+            DesignBadge(l10n.secAdmReqUnassigned, tone: DesignBadgeTone.review),
           Text(l10n.secAdmReqDueInternal(_jour(d.echeance)),
               style: const TextStyle(fontSize: 12, color: AdminColors.text3)),
         ],
@@ -362,14 +367,27 @@ class _CarteDemande extends ConsumerWidget {
               style: const TextStyle(fontSize: 13)),
         if (d.resultat != null)
           Text(l10n.secAdmReqResult(d.resultat!), style: const TextStyle(fontSize: 13)),
-        if (d.statut == 'received')
+        if (d.nature == 'erasure' && d.compte != null) _EtatSuppression(id: d.id),
+        if (d.statut == 'received' && !d.nonAttribuee)
           Padding(
             padding: const EdgeInsets.only(top: 6),
             child: Text(l10n.secAdmReqNeedsIdentity,
                 style: const TextStyle(fontSize: 12, color: AdminColors.text3)),
           ),
         const SizedBox(height: 12),
-        if (d.ouverte)
+        // Tant que personne ne l'a prise, une demande de l'application n'offre
+        // que cela : le serveur refuse d'en faire davantage.
+        if (d.ouverte && d.nonAttribuee)
+          Align(
+            alignment: Alignment.centerLeft,
+            child: ElevatedButton.icon(
+              onPressed: () => unawaited(_lancer(context, ref, () => acts.prendreDemande(d.id),
+                  l10n.secAdmDone, relecture)),
+              icon: const Icon(Icons.person_add_alt_1_rounded, size: 16),
+              label: Text(l10n.secAdmReqTake),
+            ),
+          )
+        else if (d.ouverte)
           Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -449,6 +467,43 @@ class _CarteDemande extends ConsumerWidget {
             ],
           ),
       ],
+    );
+  }
+}
+
+class _EtatSuppression extends ConsumerWidget {
+  const _EtatSuppression({required this.id});
+  final String id;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
+    final e = ref.watch(etatSuppressionProvider(id));
+    return e.when(
+      loading: () => const LinearProgressIndicator(minHeight: 2),
+      error: (err, _) => Text(l10n.secAdmLoadError(detailSecurite(err)),
+          style: const TextStyle(color: AdminColors.statusRed, fontSize: 12)),
+      data: (v) => v.lie
+          ? Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.secAdmReqErasureState(
+                      v.comptePresent == false
+                          ? l10n.secAdmReqAccountGone
+                          : l10n.secAdmReqAccountPresent,
+                      v.statut ?? l10n.secAdmReqDeletionNone,
+                    ),
+                    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                  ),
+                  Text(l10n.secAdmReqErasureHelp,
+                      style: const TextStyle(fontSize: 11, color: AdminColors.text3)),
+                ],
+              ),
+            )
+          : const SizedBox.shrink(),
     );
   }
 }
