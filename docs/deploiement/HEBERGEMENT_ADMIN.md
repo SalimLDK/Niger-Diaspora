@@ -249,13 +249,14 @@ hachages, eux, se recalculent.
 Ce qui **n'est pas** listé, et pourquoi : Firebase Storage, RTDB, Analytics
 (`googletagmanager.com`), Messaging — leurs plugins s'enregistrent mais le
 panneau n'en appelle aucun ; les ajouter élargirait la CSP sans consommateur.
-Ni `https://apis.google.com` (script) ni `https://diaspo-niger.firebaseapp.com`
-(iframe `/__/auth/iframe`) : ils ne servent qu'aux `signInWithPopup` /
-`signInWithRedirect` de Firebase Auth, que le panneau n'utilise pas — « Se
-connecter avec Google » passe par Google Identity Services puis
-`signInWithCredential` (`auth_remote_datasource.dart`). Mesuré au démarrage
-(§ 7) : aucune requête vers ces deux origines. `apis.google.com` est de plus
-une origine très large (JSONP), à ne pas ouvrir sans consommateur.
+`https://apis.google.com/js/api.js` (script, **ce fichier seul** : une source
+CSP avec chemin ne vaut que pour lui, pas pour l'origine JSONP entière) et
+`https://diaspo-niger.firebaseapp.com/__/auth/` (iframe) servent au
+`signInWithPopup` de Firebase Auth, utilisé par « Se connecter avec Google »
+depuis le 2026-10-15 (`auth_remote_datasource.dart`). Le 2026-10-18 la
+connexion Google échouait en `internal-error` : `frame-src` avait été ouvert,
+pas `script-src`, et la console disait « Loading the script
+'https://apis.google.com/js/api.js' violates … script-src ».
 Si un écran admin se met à en utiliser un, l'erreur est lisible en console
 (« Refused to connect to … because it violates … connect-src ») : ajouter
 l'origine ici et dans `firebase.json`.
