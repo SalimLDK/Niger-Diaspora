@@ -249,8 +249,10 @@ hachages, eux, se recalculent.
 Ce qui **n'est pas** listé, et pourquoi : Firebase Storage, RTDB, Analytics
 (`googletagmanager.com`), Messaging — leurs plugins s'enregistrent mais le
 panneau n'en appelle aucun ; les ajouter élargirait la CSP sans consommateur.
-`https://apis.google.com/js/api.js` (script, **ce fichier seul** : une source
-CSP avec chemin ne vaut que pour lui, pas pour l'origine JSONP entière) et
+`https://apis.google.com/js/api.js` (script, ce fichier seul) et son second
+script `https://apis.google.com/_/scs/abc-static/_/js/` (préfixe : le nom porte
+une version, `k=gapi.lb.en.<hash>`, qui change ; c'est le chemin statique de
+gapi, pas l'origine JSONP entière) et
 `https://diaspo-niger.firebaseapp.com/__/auth/` (iframe) servent au
 `signInWithPopup` de Firebase Auth, utilisé par « Se connecter avec Google »
 depuis le 2026-10-15 (`auth_remote_datasource.dart`). Le 2026-10-18 la
