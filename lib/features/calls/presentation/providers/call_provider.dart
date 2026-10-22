@@ -970,7 +970,7 @@ class CurrentCallNotifier extends Notifier<CurrentCallState> {
     try {
       final result = await op().timeout(_remoteBookkeepingTimeout);
       if (result is Either) {
-        return result.fold(
+        return result.fold<bool>(
           (failure) {
             debugPrint('CurrentCallNotifier: $label a échoué: $failure');
             return false;

@@ -47,6 +47,27 @@ class AppSettingsNotifier extends _$AppSettingsNotifier {
     return model.toEntity();
   }
 
+  /// Retour arrière : remet [valeur] (l'« avant » d'une entrée d'historique)
+  /// dans [section]. Le retour arrière est lui-même une entrée de l'historique,
+  /// qui cite [entreeId]. Lève en cas de refus : l'écran le dit.
+  Future<void> restaurerSection({
+    required String section,
+    required Map<String, dynamic> valeur,
+    required String entreeId,
+    required String motif,
+    required String updatedBy,
+  }) async {
+    await _dataSource.updateSection(
+      section,
+      valeur,
+      updatedBy,
+      reason: motif,
+      kind: 'restore',
+      restoredFrom: entreeId,
+    );
+    ref.invalidateSelf();
+  }
+
   /// Update fee settings
   Future<void> updateFees(FeeSettingsEntity fees, String updatedBy) async {
     state = const AsyncValue.loading();

@@ -25,7 +25,10 @@ class CatalogueCharge {
   final DemarchesCatalogue catalogue;
   final OrigineCatalogue origine;
 
-  const CatalogueCharge(this.catalogue, this.origine);
+  /// Date du dernier chargement serveur réussi, quand l'origine est le cache.
+  final DateTime? synchroniseLe;
+
+  const CatalogueCharge(this.catalogue, this.origine, [this.synchroniseLe]);
 }
 
 /// Chargement du catalogue des démarches, du plus frais au plus sûr :
@@ -84,10 +87,18 @@ class DemarchesRepositoryImpl {
     if (enCache != null && embarque != null) {
       return embarque.version > enCache.version
           ? CatalogueCharge(embarque, OrigineCatalogue.embarque)
-          : CatalogueCharge(enCache, OrigineCatalogue.cache);
+          : CatalogueCharge(
+              enCache,
+              OrigineCatalogue.cache,
+              await localDataSource.getCacheDate(),
+            );
     }
     if (enCache != null) {
-      return CatalogueCharge(enCache, OrigineCatalogue.cache);
+      return CatalogueCharge(
+        enCache,
+        OrigineCatalogue.cache,
+        await localDataSource.getCacheDate(),
+      );
     }
     if (embarque != null) {
       return CatalogueCharge(embarque, OrigineCatalogue.embarque);

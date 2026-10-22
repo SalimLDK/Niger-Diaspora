@@ -68,6 +68,7 @@ import '../../features/settings/presentation/screens/security_backup_screen.dart
 import '../../features/settings/presentation/screens/key_transfer_receive_screen.dart';
 import '../../features/settings/presentation/screens/key_transfer_send_screen.dart';
 import '../../features/settings/presentation/screens/devices_screen.dart';
+import '../../features/settings/presentation/screens/mes_demandes_donnees_screen.dart';
 import '../../features/reports/presentation/screens/my_reports_screen.dart';
 import '../../features/friends/presentation/screens/friends_screen.dart';
 import '../shell/main_shell.dart';
@@ -773,6 +774,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/settings/security/devices',
         builder: (context, state) => const DevicesScreen(),
+      ),
+      GoRoute(
+        path: '/settings/mes-donnees',
+        builder: (context, state) => const MesDemandesDonneesScreen(),
       ),
       GoRoute(
         path: '/settings/security/transfer/receive',

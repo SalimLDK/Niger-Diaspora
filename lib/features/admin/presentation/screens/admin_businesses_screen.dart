@@ -4,10 +4,12 @@ import 'package:diaspo_niger/core/theme/admin_colors.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../widgets/admin_bandeau_erreur.dart';
 import '../providers/admin_provider.dart';
 import '../../../businesses/domain/entities/business_entity.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:diaspo_niger/core/theme/design_kit.dart';
+import 'package:diaspo_niger/features/admin/presentation/widgets/admin_charger_plus.dart';
 
 class AdminBusinessesScreen extends ConsumerStatefulWidget {
   const AdminBusinessesScreen({super.key});
@@ -21,6 +23,8 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
   AppLocalizations get l10n => AppLocalizations.of(context)!;
 
   int _selectedFilter = 0;
+  final _searchController = TextEditingController();
+  Timer? _debounceRecherche;
 
   // Couleurs cohérentes avec le dashboard
   static const Color _primaryColor = AdminColors.actionBlue;
@@ -37,25 +41,31 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
   }
 
   @override
+  void dispose() {
+    _debounceRecherche?.cancel();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  /// La recherche part au serveur, un court instant après la dernière frappe.
+  void _surRecherche(String value) {
+    setState(() {});
+    _debounceRecherche?.cancel();
+    _debounceRecherche = Timer(const Duration(milliseconds: 400), () {
+      unawaited(ref.read(adminBusinessNotifierProvider.notifier).rechercher(value));
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final state = ref.watch(adminBusinessNotifierProvider);
 
-    final allBusinesses = state.businesses;
-    final pendingBusinesses = state.pendingVerification;
-    final boostedBusinesses =
-        state.businesses.where((b) => b.isBoosted).toList();
+    final filtreActif = FiltreCommerces.values[_selectedFilter];
+    final filteredList = state.liste(filtreActif);
+    final encorePlus = state.encorePlus.contains(filtreActif);
 
-    List<BusinessEntity> filteredList;
-    switch (_selectedFilter) {
-      case 1:
-        filteredList = pendingBusinesses;
-        break;
-      case 2:
-        filteredList = boostedBusinesses;
-        break;
-      default:
-        filteredList = allBusinesses;
-    }
+    String compte(FiltreCommerces f) =>
+        '${state.liste(f).length}${state.encorePlus.contains(f) ? '+' : ''}';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -74,6 +84,7 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
               accent: AdminColors.titleDot,
             ),
             IconButton(
+              tooltip: l10n.adminRefresh,
               icon: const AppIcon(AppIcon.refresh, color: _textSecondary),
               onPressed: () {
                 unawaited(ref
@@ -83,24 +94,36 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
             ),
           ],
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 16),
+
+        DesignSearchField(
+          controller: _searchController,
+          hintText: l10n.searchPlaceholder,
+          onChanged: _surRecherche,
+          onClear: () {
+            _searchController.clear();
+            _surRecherche('');
+          },
+          active: _searchController.text.isNotEmpty,
+        ),
+        const SizedBox(height: 16),
 
         // Filter chips
         Wrap(
           spacing: 12,
           children: [
             _buildFilterChip(
-              label: 'Tous (${allBusinesses.length})',
+              label: l10n.adminTabWithCount(l10n.all, compte(FiltreCommerces.tous)),
               isSelected: _selectedFilter == 0,
               onTap: () => setState(() => _selectedFilter = 0),
             ),
             _buildFilterChip(
-              label: 'En attente (${pendingBusinesses.length})',
+              label: l10n.adminTabWithCount(l10n.statusPending, compte(FiltreCommerces.enAttente)),
               isSelected: _selectedFilter == 1,
               onTap: () => setState(() => _selectedFilter = 1),
             ),
             _buildFilterChip(
-              label: 'Boostés (${boostedBusinesses.length})',
+              label: l10n.adminTabWithCount(l10n.adminBoosted, compte(FiltreCommerces.boostes)),
               isSelected: _selectedFilter == 2,
               onTap: () => setState(() => _selectedFilter = 2),
             ),
@@ -110,31 +133,66 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
 
         // Content
         Expanded(
-          child:
-              state.isLoading
-                  ? const Center(
-                    child: CircularProgressIndicator(color: _primaryColor),
-                  )
-                  : state.error != null
-                  ? Center(
-                    child: Text(
-                      'Erreur: ${state.error}',
-                      style: const TextStyle(color: AdminColors.statusRed),
-                    ),
-                  )
-                  : filteredList.isEmpty
-                  ? const Center(
-                    child: Text(
-                      'Aucun commerce trouvé',
-                      style: TextStyle(color: _textSecondary, fontSize: 16),
-                    ),
-                  )
-                  : ListView.builder(
-                    itemCount: filteredList.length,
-                    itemBuilder: (context, index) {
-                      return _buildBusinessCard(filteredList[index]);
-                    },
-                  ),
+          child: Column(
+            children: [
+              // Une erreur posée après une action (zéro ligne, journal
+              // refusé) ne doit pas effacer la liste : page pleine seulement
+              // quand il n'y a rien d'autre à montrer.
+              if (state.error != null && state.businesses.isNotEmpty)
+                AdminBandeauErreur(
+                  message: state.error!,
+                  onFermer: ref
+                      .read(adminBusinessNotifierProvider.notifier)
+                      .effacerErreur,
+                ),
+              Expanded(
+                child:
+                    state.isLoading
+                        ? const Center(
+                          child: CircularProgressIndicator(
+                            color: _primaryColor,
+                          ),
+                        )
+                        : state.error != null && state.businesses.isEmpty
+                        ? Center(
+                          child: Text(
+                            l10n.errorLabel(state.error!),
+                            style: const TextStyle(
+                              color: AdminColors.statusRed,
+                            ),
+                          ),
+                        )
+                        : filteredList.isEmpty
+                        ? const Center(
+                          child: Text(
+                            'Aucun commerce trouvé',
+                            style: TextStyle(
+                              color: _textSecondary,
+                              fontSize: 16,
+                            ),
+                          ),
+                        )
+                        : ListView.builder(
+                          itemCount: filteredList.length + (encorePlus ? 1 : 0),
+                          itemBuilder: (context, index) {
+                            if (index == filteredList.length) {
+                              return AdminChargerPlus(
+                                enCours: state.chargementPlus == filtreActif,
+                                onPressed: () => unawaited(
+                                  ref
+                                      .read(
+                                        adminBusinessNotifierProvider.notifier,
+                                      )
+                                      .chargerPlus(filtreActif),
+                                ),
+                              );
+                            }
+                            return _buildBusinessCard(filteredList[index]);
+                          },
+                        ),
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -145,39 +203,11 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
     required bool isSelected,
     required VoidCallback onTap,
   }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        decoration: BoxDecoration(
-          color: isSelected ? _primaryColor : _cardColor,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isSelected ? _primaryColor : AdminColors.border,
-          ),
-          boxShadow:
-              isSelected
-                  ? [
-                    BoxShadow(
-                      color: _primaryColor.withValues(alpha: 0.3),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ]
-                  : null,
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: isSelected ? Colors.white : _textSecondary,
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-          ),
-        ),
-      ),
-    );
+    return DesignFilterChip(label: label, selected: isSelected, onTap: onTap);
   }
 
   Widget _buildBusinessCard(BusinessEntity business) {
+    final estActive = !ref.watch(commercesArchivesProvider).contains(business.id);
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
@@ -278,12 +308,21 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
                       ),
                     ),
                   ),
+                  if (!estActive) ...[
+                    const SizedBox(height: 4),
+                    Text(l10n.annAdmArchived,
+                        style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: AdminColors.statusAmber)),
+                  ],
                 ],
               ),
             ),
 
             // Actions
             PopupMenuButton<String>(
+              tooltip: l10n.moreActions,
               icon: const Icon(Icons.more_vert, color: _textSecondary),
               onSelected: (value) => _handleAction(value, business),
               shape: RoundedRectangleBorder(
@@ -344,6 +383,30 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
                         ),
                       ),
                     const PopupMenuDivider(),
+                    if (estActive)
+                      PopupMenuItem(
+                        value: 'archive',
+                        child: Row(
+                          children: [
+                            const Icon(Icons.archive_outlined,
+                                color: AdminColors.statusAmber, size: 20),
+                            const SizedBox(width: 12),
+                            Text(l10n.annAdmArchive),
+                          ],
+                        ),
+                      )
+                    else
+                      PopupMenuItem(
+                        value: 'restore',
+                        child: Row(
+                          children: [
+                            const Icon(Icons.unarchive_outlined,
+                                color: AdminColors.statusGreen, size: 20),
+                            const SizedBox(width: 12),
+                            Text(l10n.annAdmRestore),
+                          ],
+                        ),
+                      ),
                     PopupMenuItem(
                       value: 'delete',
                       child: Row(
@@ -374,94 +437,150 @@ class _AdminBusinessesScreenState extends ConsumerState<AdminBusinessesScreen> {
       return;
     }
 
+    // Chaque geste demande ce que le serveur exige : une base pour le badge,
+    // un motif pour le reste. Les deux sont conservés avec le nom de l'agent.
     switch (action) {
       case 'verify':
-        await notifier.verifyBusiness(
-          business.id,
-          adminId: currentAdmin.id,
-          adminName: currentAdmin.name,
+        final source = await _demanderTexte(
+          l10n.annAdmVerifyTitle,
+          l10n.annAdmSourceLabel,
+          avertissement: l10n.annAdmVerifyWarn,
         );
-        _showSnackBar(l10n.adminBusinessVerified);
+        if (source == null) return;
+        final ok = await notifier.verifyBusiness(business.id, source: source);
+        _montrerBilan(ok, l10n.adminBusinessVerified);
         break;
       case 'unverify':
-        await notifier.unverifyBusiness(
-          business.id,
-          adminId: currentAdmin.id,
-          adminName: currentAdmin.name,
-        );
-        _showSnackBar(l10n.adminVerificationRemoved);
+        final motif = await _demanderTexte(
+            l10n.annAdmUnverifyTitle, l10n.annAdmReasonLabel);
+        if (motif == null) return;
+        final ok = await notifier.unverifyBusiness(business.id, motif: motif);
+        _montrerBilan(ok, l10n.adminVerificationRemoved);
         break;
       case 'boost':
-        await notifier.toggleBoost(
-          business.id,
-          true,
-          adminId: currentAdmin.id,
-          adminName: currentAdmin.name,
-        );
-        _showSnackBar(l10n.adminBusinessBoosted);
+        final motif =
+            await _demanderTexte(l10n.annAdmBoostTitle, l10n.annAdmReasonLabel);
+        if (motif == null) return;
+        final ok = await notifier.toggleBoost(business.id, true, motif: motif);
+        _montrerBilan(ok, l10n.adminBusinessBoosted);
         break;
       case 'unboost':
-        await notifier.toggleBoost(
-          business.id,
-          false,
-          adminId: currentAdmin.id,
-          adminName: currentAdmin.name,
+        final motif = await _demanderTexte(
+            l10n.annAdmUnboostTitle, l10n.annAdmReasonLabel);
+        if (motif == null) return;
+        final ok = await notifier.toggleBoost(business.id, false, motif: motif);
+        _montrerBilan(ok, l10n.adminBoostRemoved);
+        break;
+      case 'archive':
+        final motif = await _demanderTexte(
+          l10n.annAdmArchiveTitle,
+          l10n.annAdmReasonLabel,
+          avertissement: l10n.annAdmArchiveWarn,
         );
-        _showSnackBar(l10n.adminBoostRemoved);
+        if (motif == null) return;
+        final ok = await notifier.archiveBusiness(business.id, motif: motif);
+        _montrerBilan(ok, l10n.annAdmArchivedDone);
+        break;
+      case 'restore':
+        final motif = await _demanderTexte(
+            l10n.annAdmRestoreTitle, l10n.annAdmReasonLabel);
+        if (motif == null) return;
+        final ok = await notifier.restoreBusiness(business.id, motif: motif);
+        _montrerBilan(ok, l10n.annAdmRestoredDone);
         break;
       case 'delete':
-        final confirm = await _showDeleteConfirmation();
-        if (confirm == true) {
-          await notifier.deleteBusiness(
-            business.id,
-            adminId: currentAdmin.id,
-            adminName: currentAdmin.name,
-          );
-          _showSnackBar(l10n.adminBusinessDeleted);
-        }
+        final motif = await _demanderTexte(
+          l10n.annAdmDeleteTitle,
+          l10n.annAdmReasonLabel,
+          avertissement: l10n.annAdmDeleteWarn,
+          destructif: true,
+        );
+        if (motif == null) return;
+        final ok = await notifier.deleteBusiness(business.id, motif: motif);
+        _montrerBilan(ok, l10n.adminBusinessDeleted);
         break;
     }
   }
 
-  Future<bool?> _showDeleteConfirmation() {
-    return showDialog<bool>(
+  /// Une saisie d'au moins 5 caractères (le serveur l'exige aussi), ou `null`
+  /// si l'action est abandonnée.
+  Future<String?> _demanderTexte(
+    String titre,
+    String libelle, {
+    String? avertissement,
+    bool destructif = false,
+  }) {
+    final controller = TextEditingController();
+    return showDialog<String>(
       context: context,
-      builder:
-          (context) => AlertDialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            title: Text(l10n.adminConfirmDelete),
-            content: Text(
-              l10n.adminDeleteBusinessConfirm,
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: Text(l10n.adminCancelAction),
-              ),
-              ElevatedButton(
-                onPressed: () => Navigator.pop(context, true),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AdminColors.statusRed,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: Text(
-                  l10n.adminDelete,
-                  style: TextStyle(color: Colors.white),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setLocal) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Text(titre),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (avertissement != null) ...[
+                Text(avertissement,
+                    style: const TextStyle(
+                        fontSize: 12, color: AdminColors.statusAmberStrong)),
+                const SizedBox(height: 12),
+              ],
+              TextField(
+                controller: controller,
+                onChanged: (_) => setLocal(() {}),
+                maxLines: 3,
+                maxLength: 500,
+                decoration: InputDecoration(
+                  labelText: libelle,
+                  border: const OutlineInputBorder(),
                 ),
               ),
             ],
           ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(l10n.adminCancelAction),
+            ),
+            ElevatedButton(
+              onPressed: controller.text.trim().length < 5
+                  ? null
+                  : () => Navigator.pop(ctx, controller.text.trim()),
+              style: destructif
+                  ? ElevatedButton.styleFrom(backgroundColor: AdminColors.statusRed)
+                  : null,
+              child: Text(l10n.adminConfirmAction),
+            ),
+          ],
+        ),
+      ),
+    ).whenComplete(controller.dispose);
+  }
+
+
+  /// Le libellé de succès ne s'affiche que si le notifier a rendu vrai ;
+  /// sinon son `state.error` (zéro ligne sous RLS, journal d'audit refusé…).
+  /// Avant, le succès s'affichait quoi qu'il arrive (audit du 2026-10-14,
+  /// § 5).
+  void _montrerBilan(bool ok, String succes) {
+    if (!mounted) return;
+    if (ok) {
+      _showSnackBar(succes);
+      return;
+    }
+    _showSnackBar(
+      ref.read(adminBusinessNotifierProvider).error ?? l10n.loadingError,
+      isError: true,
     );
   }
 
-  void _showSnackBar(String message) {
+  void _showSnackBar(String message, {bool isError = false}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
+        backgroundColor: isError ? AdminColors.statusRed : null,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),

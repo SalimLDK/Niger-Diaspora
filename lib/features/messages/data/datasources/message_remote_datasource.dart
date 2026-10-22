@@ -13,6 +13,8 @@ import 'package:video_thumbnail/video_thumbnail.dart';
 
 import '../../../../core/constants/firebase_collections.dart';
 import '../../../../core/errors/exceptions.dart';
+import '../../../../core/services/supabase_auth_bridge.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' show Supabase, PostgrestException;
 import '../../../../core/services/encryption_service.dart';
 import '../../../../core/services/e2ee/message_crypto_service.dart';
 import '../../../../core/utils/retry_helper.dart';
@@ -1167,7 +1169,7 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
         videoDuration = thumbnailResult.$2;
       }
 
-      return sendMediaMessage(
+      return await sendMediaMessage(
         conversationId: conversationId,
         senderId: senderId,
         senderName: senderName,
@@ -1833,8 +1835,33 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
     }
   }
 
-  firestore.CollectionReference get _reportsCollection =>
-      _firestore.collection('reports');
+  /// Dépose un signalement dans `public.reports` (Supabase), là où le panneau
+  /// admin les lit : l'écriture Firestore d'avant n'y arrivait jamais. Voir la
+  /// migration `20261015100000_signalements_sur_supabase.sql`. Un second
+  /// signalement du même contenu est refusé par le serveur (23505) : on le
+  /// tient pour fait, l'utilisateur voulait le même résultat.
+  Future<void> _deposerSignalement({
+    required String targetType,
+    required String targetId,
+    String? conversationId,
+    required String reason,
+  }) async {
+    try {
+      await SupabaseAuthBridge.instance.exigerSession();
+      await Supabase.instance.client.rpc<dynamic>(
+        'signalement_creer',
+        params: {
+          'p_target_type': targetType,
+          'p_target_id': targetId,
+          'p_reason': reason,
+          'p_conversation_id': conversationId,
+        },
+      );
+    } on PostgrestException catch (e) {
+      if (e.code == '23505') return;
+      throw ServerException(e.message);
+    }
+  }
 
   @override
   Future<void> promoteToAdmin({
@@ -1945,16 +1972,13 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
     required String reason,
   }) async {
     try {
-      // 1. Add to reports collection for Global Admin
-      await _reportsCollection.add({
-        'type': 'message',
-        'targetId': messageId,
-        'conversationId': conversationId,
-        'reportedBy': userId,
-        'reason': reason,
-        'createdAt': firestore.FieldValue.serverTimestamp(),
-        'status': 'pending',
-      });
+      // 1. Signalement pour l'administrateur global
+      await _deposerSignalement(
+        targetType: 'message',
+        targetId: messageId,
+        conversationId: conversationId,
+        reason: reason,
+      );
 
       // 2. Mark message as reported (Optional, if we want to show it in UI)
       // RTDB update
@@ -1989,16 +2013,13 @@ class MessageRemoteDataSourceImpl implements MessageRemoteDataSource {
     required String reason,
   }) async {
     try {
-      // 1. Add to reports collection
-      await _reportsCollection.add({
-        'type': 'group',
-        'targetId': conversationId,
-        'conversationId': conversationId,
-        'reportedBy': userId,
-        'reason': reason,
-        'createdAt': firestore.FieldValue.serverTimestamp(),
-        'status': 'pending',
-      });
+      // 1. Signalement pour l'administrateur global
+      await _deposerSignalement(
+        targetType: 'group',
+        targetId: conversationId,
+        conversationId: conversationId,
+        reason: reason,
+      );
 
       // 2. Update conversation doc
       await _conversationsCollection.doc(conversationId).update({

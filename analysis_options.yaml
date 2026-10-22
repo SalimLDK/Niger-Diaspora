@@ -14,6 +14,11 @@ analyzer:
     - archive/**
 
     - rust_builder/cargokit/**
+  # Un Future lâché échoue sans que personne ne le voie : ces deux règles
+  # bloquent, elles ne conseillent pas.
+  errors:
+    unawaited_futures: error
+    discarded_futures: error
 linter:
   # The lint rules applied to this project can be customized in the
   # section below to disable rules from the `package:flutter_lints/flutter.yaml`

@@ -22,6 +22,7 @@ import '../errors/journal_echecs.dart';
 import 'e2ee/notification_decryption_service.dart';
 import 'background_location_service.dart';
 import 'background_reply_service.dart';
+import 'diagnostic_memoire.dart';
 import 'notification_pref_keys.dart';
 import 'notification_pile_messages.dart';
 import 'native_call_service.dart';
@@ -294,6 +295,11 @@ Future<void> notificationActionBackgroundHandler(
     await Firebase.initializeApp();
   }
 
+  try {
+    await DiagnosticMemoire.ouvrirIsolat(Isolat.reponseRapide);
+    await DiagnosticMemoire.journaliser('action de notification : début');
+  } catch (_) {}
+
   final actionId = response.actionId;
   final payload = response.payload;
   final input = response.input; // Texte de la réponse directe
@@ -558,6 +564,26 @@ Future<void> _cancelNotificationsForConversation(
 /// Background message handler - must be top-level function
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  // Diagnostic OOM : qui tourne, combien de tas reste. Après Firebase (sinon
+  // Crashlytics lève) ; jamais bloquant ni fatal. Ni identifiant ni texte :
+  // seulement le type, une étiquette serveur courte.
+  try {
+    await Firebase.initializeApp();
+    final type = '${message.data['type'] ?? 'inconnu'}';
+    await DiagnosticMemoire.ouvrirIsolat(Isolat.fcmArrierePlan, auPremierPlan: false);
+    await DiagnosticMemoire.journaliser(
+      'fcm début : ${type.length > 30 ? type.substring(0, 30) : type}',
+    );
+  } catch (_) {}
+  try {
+    await _traiterMessageArrierePlan(message);
+  } finally {
+    unawaited(DiagnosticMemoire.journaliser('fcm fin'));
+    unawaited(DiagnosticMemoire.poser());
+  }
+}
+
+Future<void> _traiterMessageArrierePlan(RemoteMessage message) async {
   // Initialize Firebase if needed (required for background)
   await Firebase.initializeApp();
 
@@ -2251,6 +2277,7 @@ class NotificationService {
             senderId,
             cryptoPayload,
             messageType,
+            data['messageId'] as String?,
           );
         } catch (e) {
           // En cas d'erreur, garder le body générique de FCM
@@ -3077,6 +3104,7 @@ class NotificationService {
     String senderId,
     Map<String, dynamic> cryptoPayload,
     String messageType,
+    String? messageId,
   )?
   _e2eeDecryptionCallback;
 
@@ -3147,6 +3175,7 @@ class NotificationService {
       String senderId,
       Map<String, dynamic> cryptoPayload,
       String messageType,
+      String? messageId,
     )
     callback,
   ) {

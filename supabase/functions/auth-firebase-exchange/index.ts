@@ -116,7 +116,12 @@ Deno.serve(async (req) => {
     return new Response(null, {
       headers: {
         'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'authorization, content-type',
+        // `apikey` et `x-client-info` : supabase-js les joint à chaque
+        // `functions.invoke`. Un navigateur les refuse au contrôle préalable
+        // si la fonction ne les annonce pas (statut 0 côté page, aucune
+        // session Supabase : tout le panneau admin web rendait 401). Le
+        // mobile n'a pas de CORS, d'où l'oubli jusqu'au 2026-10-15.
+        'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
       },
     })
   }
