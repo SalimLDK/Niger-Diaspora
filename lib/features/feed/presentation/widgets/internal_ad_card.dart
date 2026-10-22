@@ -29,6 +29,8 @@ class _InternalAd {
   /// Destination du bouton d'appel à l'action. Sans elle le bouton était un
   /// `onPressed: () {}` : l'encart vantait une fonctionnalité sans y mener.
   final String route;
+
+  bool get isShellTab => route == '/groups';
 }
 
 final _kAds = [
@@ -168,7 +170,9 @@ class InternalAdCard extends ConsumerWidget {
                 ),
                 const SizedBox(width: 8),
                 FilledButton.tonal(
-                  onPressed: () => context.push(ad.route),
+                  // Les onglets du shell (/groups…) se rejoignent par go : un push les
+                  // empile à plat par-dessus le fil, d'où un écran noir.
+                  onPressed: () => ad.isShellTab ? context.go(ad.route) : context.push(ad.route),
                   style: FilledButton.styleFrom(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 10,
