@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1285 cases à cocher, 55 cochées** — 287 entrées sur 301 ont encore des cases ouvertes.
+**1295 cases à cocher, 55 cochées** — 288 entrées sur 302 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -93,7 +93,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 6 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (115)
+**P1 — fonction importante, jamais vérifiée** (116)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -155,6 +155,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [⬜ Types, libellés et bascules : trois écarts entre ce qui est écrit et ce qui est lu (2026-09-16)](#-types-libellés-et-bascules--trois-écarts-entre-ce-qui-est-écrit-et-ce-qui-est-lu-2026-09-16) · *Notifications et push*
 - 9 · [⬜ Aperçu des notifications MLS sur iOS : une extension, pas un isolate (phase 4, moitié iOS)](#-aperçu-des-notifications-mls-sur-ios--une-extension-pas-un-isolate-phase-4-moitié-ios) · *Notifications et push* · bloqué
 - 6 · [Page Notifications à plat + heure sur le seul dernier message d'une rafale (2026-08-23)](#page-notifications-à-plat--heure-sur-le-seul-dernier-message-dune-rafale-2026-08-23) · *Notifications et push*
+- 10 · [⬜ Barre du bas : onglets « Feeds » (centre) et « Discussions » (2026-10-22)](#-barre-du-bas--onglets--feeds--centre-et--discussions--2026-10-22) · *Liens profonds, navigation et QR codes*
 - 2 · [✅ Lien `diasponiger://` au démarrage à froid — corrigé, vérifié SM A515F (2026-09-14)](#-lien-diasponiger-au-démarrage-à-froid--corrigé-vérifié-sm-a515f-2026-09-14) · *Liens profonds, navigation et QR codes*
 - 4 · [⬜ Le scanner de l'accueil lit tous les QR du projet (2026-09-09)](#-le-scanner-de-laccueil-lit-tous-les-qr-du-projet-2026-09-09) · *Liens profonds, navigation et QR codes*
 - 1 · [✅ Trois routes plantaient sur un cast non nullable — corrigées et vérifiées SM A515F (2026-09-08)](#-trois-routes-plantaient-sur-un-cast-non-nullable--corrigées-et-vérifiées-sm-a515f-2026-09-08) · *Liens profonds, navigation et QR codes*
@@ -350,7 +351,7 @@ Par domaine :
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 121 à faire, 4 faites
 - [5. Appels](#5-appels) — 24 à faire, 1 faites
 - [6. Notifications et push](#6-notifications-et-push) — 115 à faire, 6 faites
-- [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 36 à faire, 0 faites
+- [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 46 à faire, 0 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 63 à faire, 0 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 101 à faire, 0 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 67 à faire, 0 faites
@@ -5980,6 +5981,25 @@ cochée sans un Mac et un appareil iOS.
 # 7. Liens profonds, navigation et QR codes
 
 Liens d'app, routes et gardes du routeur, flèche retour, scanner et QR.
+
+---
+
+## ⬜ Barre du bas : onglets « Feeds » (centre) et « Discussions » (2026-10-22)
+
+**Priorité P1** · importance 4/5 — La barre passe de Accueil/Carte/Groupes/Messages/Profil à Accueil/Carte/**Feeds**/**Discussions**/Profil ; un lien ou un geste qui tombe sur le mauvais onglet se verrait tout de suite.
+
+À vérifier sur appareil (`bottom_navigation.dart`, `tablet_navigation_rail.dart`, `app_router.dart`, `discussions_segment.dart`, `feed_screen.dart`) :
+
+- [ ] Phone : les cinq onglets tiennent sans libellé tronqué, y compris police agrandie ; « Feeds » est au centre et s'allume sur `/feeds`.
+- [ ] « Discussions » s'ouvre sur Messages ; le segment bascule vers Groupes sans transition ni clignotement, et l'onglet rouvre sur la dernière vue choisie.
+- [ ] Badge rouge de la barre = non lus ; sur le segment, Messages porte les non lus et Groupes les invitations en attente.
+- [ ] Recherche des messages : le segment disparaît avec l'en-tête, le clavier monte au premier tap (clé du champ inchangée).
+- [ ] Feeds en onglet : pas de flèche de retour ; le bouton retour système quitte l'app (comme les autres onglets). Un hashtag touché dans un post ouvre toujours un fil filtré AVEC flèche.
+- [ ] Tuile « Feeds » de l'accueil et « Tous les services » mènent à l'onglet, pas à un second fil empilé.
+- [ ] Lien profond `/groups` : tombe sur Discussions > Groupes. Notification de message : ouvre toujours la conversation.
+- [ ] Tablette / paysage : le rail gauche affiche les mêmes cinq entrées, sans débordement.
+- [ ] Thème sombre : segment lisible (pilule pleine = texte du fond).
+- [ ] Les écrans Messages et Groupes gardent leurs titres propres (« Messages », « Groupes ») : décider si l'en-tête doit dire « Discussions ».
 
 ---
 

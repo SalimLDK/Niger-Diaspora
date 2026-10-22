@@ -29327,8 +29327,20 @@ abstract class AppLocalizations {
   /// Tuile de service : le fil
   ///
   /// In fr, this message translates to:
-  /// **'Le fil'**
+  /// **'Feeds'**
   String get homeServiceFeed;
+
+  /// No description provided for @navFeeds.
+  ///
+  /// In fr, this message translates to:
+  /// **'Feeds'**
+  String get navFeeds;
+
+  /// No description provided for @navDiscussions.
+  ///
+  /// In fr, this message translates to:
+  /// **'Discussions'**
+  String get navDiscussions;
 
   /// Etat vide de la section autour de vous
   ///

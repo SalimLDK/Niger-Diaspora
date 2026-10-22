@@ -232,7 +232,7 @@ class _MyPostsScreenState extends ConsumerState<MyPostsScreen> {
                     : l10n.repostsEmptyBody,
             ctaLabel: l10n.exploreFeed,
             ctaIcon: Icons.explore_outlined,
-            onCta: () => context.push('/feed'),
+            onCta: () => context.go('/feeds'),
           );
         }
         return RefreshIndicator(

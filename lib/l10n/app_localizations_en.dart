@@ -15918,7 +15918,13 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get homeServiceFeed => 'The feed';
+  String get homeServiceFeed => 'Feeds';
+
+  @override
+  String get navFeeds => 'Feeds';
+
+  @override
+  String get navDiscussions => 'Chats';
 
   @override
   String homeNobodyWithin(int km) {

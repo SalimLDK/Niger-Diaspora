@@ -102,7 +102,7 @@ class _FollowsScreenState extends ConsumerState<FollowsScreen> {
                         emptyTitle: l10n.followersEmptyTitle,
                         emptyBody: l10n.followersEmptyBody,
                         ctaLabel: l10n.exploreFeed,
-                        onCta: () => context.push('/feed'),
+                        onCta: () => context.go('/feeds'),
                       )
                       : _FollowList(
                         usersAsync: ref.watch(followingProvider(targetId)),
@@ -112,7 +112,7 @@ class _FollowsScreenState extends ConsumerState<FollowsScreen> {
                         emptyTitle: l10n.followingEmptyTitle,
                         emptyBody: l10n.followingEmptyBody,
                         ctaLabel: l10n.exploreFeed,
-                        onCta: () => context.push('/feed'),
+                        onCta: () => context.go('/feeds'),
                         // Les hashtags suivis ne concernent que mon propre
                         // réseau : sur le profil d'un tiers, ils n'existent pas.
                         showHashtags:

@@ -58,7 +58,7 @@ class RepostsScreen extends ConsumerWidget {
               body: l10n.repostsEmptyBody,
               ctaLabel: l10n.exploreFeed,
               ctaIcon: Icons.explore_outlined,
-              onCta: () => context.push('/feed'),
+              onCta: () => context.go('/feeds'),
             );
           }
           return RefreshIndicator(

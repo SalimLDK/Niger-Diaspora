@@ -7846,7 +7846,9 @@
       }
     }
   },
-  "homeServiceFeed": "Le fil",
+  "homeServiceFeed": "Feeds",
+  "navFeeds": "Feeds",
+  "navDiscussions": "Discussions",
   "@homeServiceFeed": {
     "description": "Tuile de service : le fil"
   },

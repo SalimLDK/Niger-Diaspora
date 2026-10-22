@@ -16076,7 +16076,13 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get homeServiceFeed => 'Le fil';
+  String get homeServiceFeed => 'Feeds';
+
+  @override
+  String get navFeeds => 'Feeds';
+
+  @override
+  String get navDiscussions => 'Discussions';
 
   @override
   String homeNobodyWithin(int km) {

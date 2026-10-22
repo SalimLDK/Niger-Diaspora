@@ -6644,7 +6644,9 @@
       }
     }
   },
-  "homeServiceFeed": "The feed",
+  "homeServiceFeed": "Feeds",
+  "navFeeds": "Feeds",
+  "navDiscussions": "Chats",
   "@homeServiceFeed": {
     "description": "Tuile de service : le fil"
   },

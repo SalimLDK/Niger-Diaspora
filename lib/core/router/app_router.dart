@@ -1216,20 +1216,25 @@ final routerProvider = Provider<GoRouter>((ref) {
               ),
             ],
           ),
-          // Groups Branch
+          // Feeds Branch (onglet central). `/feed` reste une route à part,
+          // poussée au-dessus du shell : filtre par hashtag, retour système.
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: '/groups',
+                path: '/feeds',
                 pageBuilder:
                     (context, state) => NoTransitionPage(
                       key: state.pageKey,
-                      child: const GroupsScreen(),
+                      child: const FeedScreen(isTab: true),
                     ),
               ),
             ],
           ),
-          // Messages Branch
+          // Discussions Branch : Messages et Groupes dans un seul onglet.
+          // Deux routes sœurs, reliées par le segment `DiscussionsSegment` ;
+          // la branche retient la dernière vue ouverte, et `/groups` comme
+          // `/messages` (liens profonds) tombent sur le même onglet. Le
+          // premier chemin est celui où la branche s'ouvre par défaut.
           StatefulShellBranch(
             routes: [
               GoRoute(
@@ -1238,6 +1243,14 @@ final routerProvider = Provider<GoRouter>((ref) {
                     (context, state) => NoTransitionPage(
                       key: state.pageKey,
                       child: const MessagesScreen(),
+                    ),
+              ),
+              GoRoute(
+                path: '/groups',
+                pageBuilder:
+                    (context, state) => NoTransitionPage(
+                      key: state.pageKey,
+                      child: const GroupsScreen(),
                     ),
               ),
             ],
