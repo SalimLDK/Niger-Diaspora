@@ -1229,7 +1229,7 @@ class PaginatedMessagesNotifier extends StateNotifier<MessagePaginationState> {
             newContent: newContent,
             oldContent: oldContent,
           );
-      return resultat.fold(
+      return resultat.fold<ResultatModification>(
         // Le `Failure` remonte intact : réseau, refus serveur et échec de la
         // passerelle MLS portent chacun leur phrase. L'ancien code les
         // transformait tous en `false`, et l'écran les annonçait « délai de
@@ -1342,7 +1342,12 @@ class SendMessageNotifier extends StateNotifier<AsyncValue<void>> {
         'id': replyToMessage.id,
         'senderId': replyToMessage.senderId,
         'senderName': replyToMessage.senderName,
-        'content': replyToMessage.content,
+        // Jamais le marqueur technique : il resterait dans `data` pour toujours,
+        // même si le message cité redevenait lisible.
+        'content':
+            isUndecryptableContent(replyToMessage.content)
+                ? ''
+                : replyToMessage.content,
         'type': replyToMessage.type.name,
         'fileUrl': replyToMessage.fileUrl,
         'fileName': replyToMessage.fileName,

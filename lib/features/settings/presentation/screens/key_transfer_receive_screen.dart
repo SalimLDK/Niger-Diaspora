@@ -107,7 +107,13 @@ class _KeyTransferReceiveScreenState
 
   Future<void> _restart() async {
     setState(() => _state = _ReceiveState.scanning);
-    await _controller.start();
+    // `start()` lève si la caméra est refusée ou déjà en marche ; depuis un
+    // bouton, l'exception n'avait aucun récepteur.
+    try {
+      await _controller.start();
+    } on MobileScannerException {
+      // Le widget MobileScanner reprendra le démarrage à sa reconstruction.
+    }
   }
 
   @override

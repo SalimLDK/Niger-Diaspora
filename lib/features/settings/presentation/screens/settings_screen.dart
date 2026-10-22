@@ -395,6 +395,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         onTap:
                             _isExportingData ? null : () => _exportMyData(l10n),
                       ),
+                      // Accès, rectification, opposition : la demande et son suivi.
+                      DesignSettingsTile(
+                        icon: const Icon(Icons.fact_check_outlined),
+                        title: l10n.mesDonneesTitle,
+                        subtitle: l10n.mesDonneesTileSubtitle,
+                        onTap: () => context.push('/settings/mes-donnees'),
+                      ),
                     ],
                   ),
 

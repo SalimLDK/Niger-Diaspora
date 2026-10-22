@@ -14,6 +14,7 @@ import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../domain/entities/event_audience.dart';
 import '../../domain/entities/event_entity.dart';
 import '../providers/event_provider.dart';
+import '../widgets/event_validation_banner.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../core/services/notification_read_sync.dart';
 import '../../../../core/services/analytics_service.dart';
@@ -424,6 +425,7 @@ class _EventDetailScreenState extends ConsumerState<EventDetailScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     if (isOrganizer) _BandeauAudienceVide(eventId: event.id),
+                    if (isOrganizer) BandeauValidationEvenement(eventId: event.id),
 
                     // Titre
                     Text(

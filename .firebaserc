@@ -4,7 +4,11 @@
   },
   "targets": {
     "diaspo-niger": {
-      "hosting": {}
+      "hosting": {
+        "admin": [
+          "diaspo-niger-admin"
+        ]
+      }
     }
   },
   "etags": {}

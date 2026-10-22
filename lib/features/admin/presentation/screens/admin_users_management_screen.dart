@@ -5,11 +5,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../auth/domain/entities/user_entity.dart';
 import '../providers/admin_provider.dart';
+import '../widgets/avatar_admin.dart';
+import '../widgets/admin_bandeau_erreur.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:diaspo_niger/core/theme/design_kit.dart';
+import 'package:diaspo_niger/features/admin/presentation/widgets/admin_charger_plus.dart';
 
 class AdminUsersManagementScreen extends ConsumerStatefulWidget {
-  const AdminUsersManagementScreen({super.key});
+  const AdminUsersManagementScreen({super.key, this.onGererRoles});
+
+  /// Mène à l'écran Rôles, seul chemin de promotion. Les entrées « Promouvoir
+  /// admin » / « Retirer admin » de ce menu n'écrivaient que `is_admin`, sans
+  /// `admin_role` ni Firestore : des admins fantômes, tous les pouvoirs RLS
+  /// et invisibles comme admins dans l'app — un tel compte existe en
+  /// production (audit du 2026-10-14, § 2). Nul quand l'écran est monté hors
+  /// du tableau de bord.
+  final VoidCallback? onGererRoles;
 
   @override
   ConsumerState<AdminUsersManagementScreen> createState() =>
@@ -24,6 +35,7 @@ class _AdminUsersManagementScreenState
   late TabController _tabController;
   final _searchController = TextEditingController();
   String _searchQuery = '';
+  Timer? _debounceRecherche;
 
   // Modern color palette (matching dashboard)
   static const Color _primaryColor = AdminColors.actionBlue;
@@ -35,6 +47,11 @@ class _AdminUsersManagementScreenState
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    // Une recherche posée avant l'ouverture (« Voir l'utilisateur » d'un
+    // signalement) doit s'afficher dans le champ, pas seulement filtrer.
+    final recherche = ref.read(adminUsersNotifierProvider).recherche;
+    _searchController.text = recherche;
+    _searchQuery = recherche;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       unawaited(ref.read(adminUsersNotifierProvider.notifier).fetchAllUsers());
     });
@@ -42,6 +59,7 @@ class _AdminUsersManagementScreenState
 
   @override
   void dispose() {
+    _debounceRecherche?.cancel();
     _tabController.dispose();
     _searchController.dispose();
     super.dispose();
@@ -80,9 +98,9 @@ class _AdminUsersManagementScreenState
             indicatorWeight: 3,
             labelStyle: const TextStyle(fontWeight: FontWeight.w600),
             tabs: [
-              Tab(text: 'Tous (${state.users.length})'),
-              Tab(text: 'Admins (${state.admins.length})'),
-              Tab(text: 'Bannis (${state.bannedUsers.length})'),
+              Tab(text: l10n.adminTabWithCount(l10n.all, '${state.users.length}${state.encorePlus.contains(FiltreUtilisateurs.tous) ? '+' : ''}')),
+              Tab(text: l10n.adminTabWithCount(l10n.admins, '${state.admins.length}${state.encorePlus.contains(FiltreUtilisateurs.admins) ? '+' : ''}')),
+              Tab(text: l10n.adminTabWithCount(l10n.adminBannedName, '${state.bannedUsers.length}${state.encorePlus.contains(FiltreUtilisateurs.bannis) ? '+' : ''}')),
             ],
           ),
         ),
@@ -90,14 +108,29 @@ class _AdminUsersManagementScreenState
         Expanded(
           child: state.isLoading
               ? _buildLoadingState()
-              : state.error != null
+              : state.error != null && state.users.isEmpty
                   ? _buildErrorState(state.error!)
-                  : TabBarView(
-                      controller: _tabController,
+                  : Column(
                       children: [
-                        _buildUsersList(_filterUsers(state.users)),
-                        _buildUsersList(_filterUsers(state.admins)),
-                        _buildUsersList(_filterUsers(state.bannedUsers)),
+                        // Une erreur posée après une action (zéro ligne,
+                        // journal refusé) ne doit pas effacer la liste.
+                        if (state.error != null)
+                          AdminBandeauErreur(
+                            message: state.error!,
+                            onFermer: ref
+                                .read(adminUsersNotifierProvider.notifier)
+                                .effacerErreur,
+                          ),
+                        Expanded(
+                          child: TabBarView(
+                            controller: _tabController,
+                            children: [
+                              _buildUsersList(state, FiltreUtilisateurs.tous),
+                              _buildUsersList(state, FiltreUtilisateurs.admins),
+                              _buildUsersList(state, FiltreUtilisateurs.bannis),
+                            ],
+                          ),
+                        ),
                       ],
                     ),
         ),
@@ -137,7 +170,12 @@ class _AdminUsersManagementScreenState
     );
   }
 
-  Widget _buildRefreshButton() {
+  Widget _buildRefreshButton() => Tooltip(
+    message: l10n.adminRefresh,
+    child: _boutonActualiser(),
+  );
+
+  Widget _boutonActualiser() {
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -162,64 +200,46 @@ class _AdminUsersManagementScreenState
   }
 
   Widget _buildSearchBar() {
-    return Container(
-      decoration: BoxDecoration(
-        color: _cardColor,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(8),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: TextField(
-        controller: _searchController,
-        onChanged: (value) => setState(() => _searchQuery = value),
-        decoration: InputDecoration(
-          hintText: l10n.adminSearchUser,
-          prefixIcon: const Icon(Icons.search_rounded, color: _textSecondary),
-          suffixIcon: _searchQuery.isNotEmpty
-              ? IconButton(
-                  icon: const Icon(Icons.clear_rounded, color: _textSecondary),
-                  onPressed: () {
-                    _searchController.clear();
-                    setState(() => _searchQuery = '');
-                  },
-                )
-              : null,
-          filled: true,
-          fillColor: _cardColor,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
-          ),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        ),
-      ),
+    return DesignSearchField(
+      controller: _searchController,
+      hintText: l10n.adminSearchUser,
+      onChanged: _surRecherche,
+      onClear: () {
+        _searchController.clear();
+        _surRecherche('');
+      },
+      active: _searchQuery.isNotEmpty,
     );
   }
 
-  List<UserEntity> _filterUsers(List<UserEntity> users) {
-    if (_searchQuery.isEmpty) return users;
-    final query = _searchQuery.toLowerCase();
-    return users.where((user) {
-      return (user.displayName?.toLowerCase().contains(query) ?? false) ||
-          (user.email?.toLowerCase().contains(query) ?? false);
-    }).toList();
+  /// La recherche part au serveur, un court instant après la dernière frappe.
+  void _surRecherche(String value) {
+    setState(() => _searchQuery = value);
+    _debounceRecherche?.cancel();
+    _debounceRecherche = Timer(const Duration(milliseconds: 400), () {
+      unawaited(ref.read(adminUsersNotifierProvider.notifier).rechercher(value));
+    });
   }
 
-  Widget _buildUsersList(List<UserEntity> users) {
+  Widget _buildUsersList(AdminUsersState state, FiltreUtilisateurs filtre) {
+    final users = state.liste(filtre);
     if (users.isEmpty) {
       return _buildEmptyState();
     }
+    final encorePlus = state.encorePlus.contains(filtre);
 
     return ListView.builder(
-      itemCount: users.length,
+      itemCount: users.length + (encorePlus ? 1 : 0),
       itemBuilder: (context, index) {
-        final user = users[index];
-        return _buildUserCard(user);
+        if (index == users.length) {
+          return AdminChargerPlus(
+            enCours: state.chargementPlus == filtre,
+            onPressed: () => unawaited(
+              ref.read(adminUsersNotifierProvider.notifier).chargerPlus(filtre),
+            ),
+          );
+        }
+        return _buildUserCard(users[index]);
       },
     );
   }
@@ -245,33 +265,9 @@ class _AdminUsersManagementScreenState
             // Avatar
             Stack(
               children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    gradient: user.photoUrl == null
-                        ? const LinearGradient(colors: [_primaryColor, AdminColors.actionBlueLight])
-                        : null,
-                    image: user.photoUrl != null
-                        ? DecorationImage(
-                            image: NetworkImage(user.photoUrl!),
-                            fit: BoxFit.cover,
-                          )
-                        : null,
-                  ),
-                  child: user.photoUrl == null
-                      ? Center(
-                          child: Text(
-                            (user.displayName ?? user.email ?? 'U')[0].toUpperCase(),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                            ),
-                          ),
-                        )
-                      : null,
+                AvatarAdmin(
+                  nom: user.displayName ?? user.email,
+                  photoUrl: user.photoUrl,
                 ),
                 if (user.isBanned)
                   Positioned(
@@ -306,8 +302,8 @@ class _AdminUsersManagementScreenState
                           ),
                         ),
                       ),
-                      if (user.isAdmin) _buildBadge(l10n.adminAdminBadge, AdminColors.statusPurple),
-                      if (user.isBanned) _buildBadge(l10n.adminBannedBadge, AdminColors.statusRed),
+                      if (user.isAdmin) _badge(DesignTag(l10n.adminAdminBadge, tone: DesignTagTone.accent)),
+                      if (user.isBanned) _badge(DesignBadge(l10n.adminBannedBadge, tone: DesignBadgeTone.failed)),
                     ],
                   ),
                   const SizedBox(height: 4),
@@ -341,6 +337,7 @@ class _AdminUsersManagementScreenState
             ),
             // Actions
             PopupMenuButton<String>(
+              tooltip: l10n.moreActions,
               onSelected: (value) => _handleUserAction(value, user),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               icon: Container(
@@ -356,13 +353,20 @@ class _AdminUsersManagementScreenState
                   _buildPopupMenuItem('ban', 'Bannir', Icons.block_rounded, AdminColors.statusRed)
                 else
                   _buildPopupMenuItem('unban', 'Débannir', Icons.check_circle_rounded, AdminColors.statusGreen),
-                if (!user.isAdmin)
-                  _buildPopupMenuItem('promote', 'Promouvoir admin', Icons.arrow_upward_rounded, AdminColors.statusPurple)
-                else
-                  _buildPopupMenuItem('demote', 'Retirer admin', Icons.arrow_downward_rounded, AdminColors.statusAmber),
-                _buildPopupMenuItem('verify_profile', 'Vérifier profil', Icons.verified_rounded, AdminColors.actionBlueLight),
-                _buildPopupMenuItem('force_logout', 'Forcer déconnexion', Icons.logout_rounded, _textSecondary),
-                _buildPopupMenuItem('activity', 'Voir activité', Icons.history_rounded, _primaryColor),
+                _buildPopupMenuItem('roles', l10n.adminMenuRolesScreen, Icons.admin_panel_settings_outlined, AdminColors.statusPurple),
+                _buildPopupMenuItem('warn', l10n.mbrAdmWarn, Icons.report_gmailerrorred_rounded, AdminColors.statusAmber),
+                if (!user.isBanned)
+                  _buildPopupMenuItem('suspend', l10n.mbrAdmSuspend, Icons.pause_circle_outline_rounded, AdminColors.statusAmber)
+                else if ((user.banReason ?? '').startsWith('Suspension : '))
+                  _buildPopupMenuItem('unsuspend', l10n.mbrAdmUnsuspend, Icons.play_circle_outline_rounded, AdminColors.statusGreen),
+                // L'écran ne sait pas si le profil porte déjà le badge : les
+                // deux gestes restent offerts, le serveur refuse l'inutile
+                // (déjà vérifié / pas vérifié) en le disant.
+                _buildPopupMenuItem('verify_profile', l10n.mbrAdmVerify, Icons.verified_rounded, AdminColors.actionBlueLight),
+                _buildPopupMenuItem('unverify_profile', l10n.mbrAdmUnverify, Icons.verified_outlined, _textSecondary),
+                _buildPopupMenuItem('force_logout', l10n.adminMenuForceLogout, Icons.logout_rounded, _textSecondary),
+                _buildPopupMenuItem('moderation_history', l10n.mbrAdmHistory, Icons.history_rounded, _primaryColor),
+                _buildPopupMenuItem('activity', l10n.adminMenuViewActivity, Icons.list_alt_rounded, _primaryColor),
               ],
             ),
           ],
@@ -391,25 +395,9 @@ class _AdminUsersManagementScreenState
     );
   }
 
-  Widget _buildBadge(String label, Color color) {
-    return Container(
-      margin: const EdgeInsets.only(left: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: color.withAlpha(20),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: color.withAlpha(50)),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.w600,
-          color: color,
-        ),
-      ),
-    );
-  }
+  /// Les pastilles du kit, décalées de la ligne de nom.
+  Widget _badge(Widget pastille) =>
+      Padding(padding: const EdgeInsets.only(left: 8), child: pastille);
 
   String _formatDate(DateTime date) {
     return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
@@ -475,13 +463,15 @@ class _AdminUsersManagementScreenState
 
   Widget _buildEmptyState() {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.people_outline_rounded, size: 64, color: _textSecondary.withAlpha(100)),
-          const SizedBox(height: 16),
-          Text(l10n.adminNoUserFound, style: TextStyle(color: _textSecondary, fontSize: 16)),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: DesignEmptyState(
+          icon: Icons.people_outline_rounded,
+          title: l10n.adminNoUserFound,
+          body: _searchQuery.isEmpty
+              ? l10n.adminUsersEmptyBody
+              : l10n.adminUsersNoMatchBody,
+        ),
       ),
     );
   }
@@ -500,46 +490,219 @@ class _AdminUsersManagementScreenState
       case 'ban':
         final reason = await _showTextDialog('Bannir l\'utilisateur', l10n.adminBanReasonLabel);
         if (reason != null && reason.isNotEmpty) {
-          await notifier.banUser(user.id, reason, adminId: currentAdmin.id, adminName: currentAdmin.name);
-          _showSnackBar(l10n.adminUserBanned);
+          final ok = await notifier.banUser(user.id, reason);
+          _montrerBilan(ok, l10n.adminUserBanned);
         }
         break;
       case 'unban':
         final confirm = await _showConfirmation('Débannir l\'utilisateur', l10n.adminUnbanConfirm);
         if (confirm == true) {
-          await notifier.unbanUser(user.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
-          _showSnackBar(l10n.adminUserUnbanned);
+          final ok = await notifier.unbanUser(user.id);
+          _montrerBilan(ok, l10n.adminUserUnbanned);
         }
         break;
-      case 'promote':
-        final confirm = await _showConfirmation(l10n.adminPromoteToAdminTitle, l10n.adminPromoteConfirm);
-        if (confirm == true) {
-          await notifier.promoteToAdmin(user.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
-          _showSnackBar(l10n.adminUserPromoted);
-        }
-        break;
-      case 'demote':
-        final confirm = await _showConfirmation(l10n.adminRevokeAdminTitle, l10n.adminRevokeAdminConfirm);
-        if (confirm == true) {
-          await notifier.demoteFromAdmin(user.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
-          _showSnackBar(l10n.adminAdminRightsRevoked);
+      case 'roles':
+        // Un seul chemin de promotion : l'écran Rôles écrit les trois
+        // registres (Postgres, Firestore, RTDB), ce menu n'en écrivait qu'un.
+        final ouvrirRoles = widget.onGererRoles;
+        if (ouvrirRoles != null) {
+          ouvrirRoles();
+        } else {
+          _showSnackBar("Les rôles admin se gèrent depuis l'écran Rôles.");
         }
         break;
       case 'verify_profile':
-        await notifier.verifyProfile(user.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
-        _showSnackBar('Profil vérifié');
+        final v = await _saisir(
+          l10n.mbrAdmVerifyTitle,
+          [l10n.mbrAdmVerifySource],
+          avertissement: l10n.mbrAdmVerifyWarn,
+        );
+        if (v == null) return;
+        final ok = await notifier.verifyProfile(user.id, source: v[0]);
+        _montrerBilan(ok, l10n.adminProfileVerifiedSuccess);
+        break;
+      case 'unverify_profile':
+        final v = await _saisir(l10n.mbrAdmUnverifyTitle, [l10n.mbrAdmReason]);
+        if (v == null) return;
+        final ok = await notifier.revokeVerification(user.id, motif: v[0]);
+        _montrerBilan(ok, l10n.mbrAdmUnverified);
+        break;
+      case 'warn':
+        final v = await _saisir(
+          l10n.mbrAdmWarnTitle,
+          [l10n.mbrAdmWarnReason, l10n.mbrAdmWarnMessage],
+          avertissement: l10n.mbrAdmWarnWarn,
+          minimums: const [5, 10],
+        );
+        if (v == null) return;
+        final n = await notifier.warnUser(user.id, motif: v[0], message: v[1]);
+        _montrerBilan(n != null, l10n.mbrAdmWarned('${n ?? 0}'));
+        break;
+      case 'suspend':
+        final s = await showDialog<({int jours, String motif})>(
+          context: context,
+          builder: (_) => const _DialogueSuspension(),
+        );
+        if (s == null) return;
+        final ok = await notifier.suspendUser(user.id, jours: s.jours, motif: s.motif);
+        _montrerBilan(ok, l10n.mbrAdmSuspended);
+        break;
+      case 'unsuspend':
+        final v = await _saisir(l10n.mbrAdmUnsuspendTitle, [l10n.mbrAdmReason]);
+        if (v == null) return;
+        final ok = await notifier.unsuspendUser(user.id, motif: v[0]);
+        _montrerBilan(ok, l10n.mbrAdmUnsuspended);
         break;
       case 'force_logout':
-        final confirm = await _showConfirmation('Forcer la déconnexion', 'Cela déconnectera l\'utilisateur de tous ses appareils.');
-        if (confirm == true) {
-          await dashboardNotifier.forceLogoutUser(user.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
-          _showSnackBar(l10n.adminUserDisconnected);
-        }
+        final v = await _saisir(
+          l10n.adminForceLogoutTitle,
+          [l10n.mbrAdmForceLogoutReason],
+          avertissement: l10n.adminForceLogoutBody,
+        );
+        if (v == null) return;
+        final ok = await dashboardNotifier.forceLogoutUser(user.id, motif: v[0]);
+        // L'erreur vit dans le notifier du tableau de bord, pas dans celui
+        // des utilisateurs.
+        _montrerBilan(
+          ok,
+          l10n.adminUserDisconnected,
+          erreur: ref.read(adminDashboardNotifierProvider).error,
+        );
+        break;
+      case 'moderation_history':
+        await _showModerationHistory(user);
         break;
       case 'activity':
         await _showUserActivity(user);
         break;
     }
+  }
+
+  /// Un ou plusieurs champs obligatoires (5 caractères au moins, ou
+  /// [minimums]) ; `null` si annulé.
+  Future<List<String>?> _saisir(
+    String titre,
+    List<String> libelles, {
+    String? avertissement,
+    List<int>? minimums,
+  }) {
+    final controllers = [for (final _ in libelles) TextEditingController()];
+    return showDialog<List<String>>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setLocal) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Text(titre),
+          content: SizedBox(
+            width: 460,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (avertissement != null)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Text(avertissement,
+                          style: const TextStyle(
+                              fontSize: 12, color: AdminColors.statusAmberStrong)),
+                    ),
+                  for (var i = 0; i < libelles.length; i++) ...[
+                    TextField(
+                      controller: controllers[i],
+                      onChanged: (_) => setLocal(() {}),
+                      maxLines: 3,
+                      maxLength: 500,
+                      decoration: InputDecoration(
+                        labelText: libelles[i],
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                  ],
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(ctx), child: Text(l10n.mbrAdmCancel)),
+            ElevatedButton(
+              onPressed: [
+                for (var i = 0; i < controllers.length; i++)
+                  controllers[i].text.trim().length >= (minimums != null ? minimums[i] : 5),
+              ].every((b) => b)
+                  ? () => Navigator.pop(ctx, [for (final c in controllers) c.text.trim()])
+                  : null,
+              child: Text(l10n.mbrAdmConfirm),
+            ),
+          ],
+        ),
+      ),
+    ).whenComplete(() {
+      for (final c in controllers) {
+        c.dispose();
+      }
+    });
+  }
+
+  Future<void> _showModerationHistory(UserEntity user) async {
+    List<Map<String, dynamic>> events = const [];
+    String? erreur;
+    try {
+      events = await ref.read(adminUsersNotifierProvider.notifier).getModerationHistory(user.id);
+    } catch (e) {
+      erreur = '$e';
+    }
+    if (!mounted) return;
+    String libelle(String k) => switch (k) {
+          'verified' => l10n.mbrAdmKindVerified,
+          'unverified' => l10n.mbrAdmKindUnverified,
+          'warned' => l10n.mbrAdmKindWarned,
+          'suspended' => l10n.mbrAdmKindSuspended,
+          'unsuspended' => l10n.mbrAdmKindUnsuspended,
+          _ => l10n.mbrAdmKindRevoked,
+        };
+    String jour(Object? v) {
+      final d = DateTime.tryParse('$v')?.toLocal();
+      return d == null
+          ? ''
+          : '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
+    }
+
+    await showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(l10n.mbrAdmHistoryTitle),
+        content: SizedBox(
+          width: 460,
+          height: 320,
+          child: erreur != null
+              ? Text(l10n.mbrAdmLoadError(erreur),
+                  style: const TextStyle(color: AdminColors.statusRed))
+              : events.isEmpty
+                  ? Center(child: Text(l10n.mbrAdmHistoryEmpty))
+                  : ListView(
+                      children: [
+                        for (final e in events)
+                          ListTile(
+                            dense: true,
+                            title: Text('${libelle('${e['kind']}')} · ${jour(e['occurred_at'])}'),
+                            subtitle: Text(
+                              e['actor_id'] == null
+                                  ? '${l10n.mbrAdmBySystem} — ${e['reason'] ?? ''}'
+                                  : '${e['reason'] ?? ''}',
+                            ),
+                          ),
+                      ],
+                    ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.mbrAdmClose)),
+        ],
+      ),
+    );
   }
 
   Future<void> _showUserActivity(UserEntity user) async {
@@ -551,7 +714,7 @@ class _AdminUsersManagementScreenState
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text('Activité de ${user.displayName ?? user.email}'),
+        title: Text(l10n.adminUserActivityTitle(user.displayName ?? user.email ?? '')),
         content: SizedBox(
           width: 400,
           height: 300,
@@ -628,13 +791,104 @@ class _AdminUsersManagementScreenState
     );
   }
 
-  void _showSnackBar(String message) {
+  /// Le libellé de succès ne s'affiche que si le notifier a rendu vrai ;
+  /// sinon son `state.error` (zéro ligne sous RLS, journal d'audit refusé…).
+  /// Avant, le succès s'affichait quoi qu'il arrive (audit du 2026-10-14,
+  /// § 5).
+  void _montrerBilan(bool ok, String succes, {String? erreur}) {
+    if (!mounted) return;
+    if (ok) {
+      _showSnackBar(succes);
+      return;
+    }
+    _showSnackBar(
+      erreur ?? ref.read(adminUsersNotifierProvider).error ?? l10n.loadingError,
+      isError: true,
+    );
+  }
+
+  void _showSnackBar(String message, {bool isError = false}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
+        backgroundColor: isError ? AdminColors.statusRed : null,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
+    );
+  }
+}
+
+/// Durée (1 à 30 jours) et motif d'une suspension.
+class _DialogueSuspension extends StatefulWidget {
+  const _DialogueSuspension();
+
+  @override
+  State<_DialogueSuspension> createState() => _DialogueSuspensionState();
+}
+
+class _DialogueSuspensionState extends State<_DialogueSuspension> {
+  final _motif = TextEditingController();
+  int _jours = 7;
+
+  @override
+  void dispose() {
+    _motif.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      title: Text(l10n.mbrAdmSuspendTitle),
+      content: SizedBox(
+        width: 460,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(l10n.mbrAdmSuspendWarn,
+                  style: const TextStyle(fontSize: 12, color: AdminColors.statusAmberStrong)),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<int>(
+                initialValue: _jours,
+                decoration: InputDecoration(
+                  labelText: l10n.mbrAdmSuspendDays,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+                items: [
+                  for (final j in const [1, 3, 7, 14, 30])
+                    DropdownMenuItem(value: j, child: Text(l10n.mbrAdmDays('$j'))),
+                ],
+                onChanged: (v) => setState(() => _jours = v ?? _jours),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _motif,
+                onChanged: (_) => setState(() {}),
+                maxLines: 3,
+                maxLength: 500,
+                decoration: InputDecoration(
+                  labelText: l10n.mbrAdmReason,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.mbrAdmCancel)),
+        ElevatedButton(
+          onPressed: _motif.text.trim().length >= 5
+              ? () => Navigator.pop(context, (jours: _jours, motif: _motif.text.trim()))
+              : null,
+          child: Text(l10n.mbrAdmConfirm),
+        ),
+      ],
     );
   }
 }

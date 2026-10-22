@@ -199,7 +199,7 @@ class AppReviewService {
     final uri = Uri.parse(Platform.isIOS ? appStoreUrl : playStoreUrl);
     try {
       if (await canLaunchUrl(uri)) {
-        return launchUrl(uri, mode: LaunchMode.externalApplication);
+        return await launchUrl(uri, mode: LaunchMode.externalApplication);
       }
       return false;
     } catch (e) {

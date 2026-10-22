@@ -27,6 +27,7 @@ import '../../../stickers/domain/entities/sticker_entity.dart';
 import '../../../feed/domain/entities/post_entity.dart'
     show MentionCandidate, MentionedUser;
 import '../widgets/mention_suggestion_overlay.dart';
+import '../widgets/undecryptable_message_bubble.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 
 /// Hauteur du picker emoji/GIF, bornée à l'espace réellement libre.
@@ -2133,7 +2134,9 @@ class _MessageInputState extends State<MessageInput>
                 const SizedBox(height: 2),
                 Text(
                   widget.replyToMessage!.type == MessageType.text
-                      ? widget.replyToMessage!.content
+                      ? contenuCitationAffichable(
+                        widget.replyToMessage!.content,
+                      )
                       : _getMediaTypeLabel(widget.replyToMessage!.type),
                   style: TextStyle(
                     fontSize: 13,

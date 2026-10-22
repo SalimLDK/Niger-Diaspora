@@ -24,7 +24,21 @@ class CreateGroupScreen extends ConsumerStatefulWidget {
   /// Nom pré-rempli, venant du « Créer « X » » de la recherche sans résultat.
   final String? initialName;
 
-  const CreateGroupScreen({super.key, this.initialName});
+  /// Points d'injection des tests : l'envoi passe par un service Firebase
+  /// unique, impossible à jouer sans appareil. `null` = le vrai service.
+  @visibleForTesting
+  final Future<String?> Function(File image, String id)? envoyerImage;
+
+  /// Photo déjà choisie (le sélecteur de galerie est un canal de plateforme).
+  @visibleForTesting
+  final File? imageInitiale;
+
+  const CreateGroupScreen({
+    super.key,
+    this.initialName,
+    this.envoyerImage,
+    this.imageInitiale,
+  });
 
   @override
   ConsumerState<CreateGroupScreen> createState() => _CreateGroupScreenState();
@@ -79,6 +93,7 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
   @override
   void initState() {
     super.initState();
+    _selectedImage = widget.imageInitiale;
     if (widget.initialName != null && widget.initialName!.trim().isNotEmpty) {
       _nameController.text = widget.initialName!.trim();
     }
@@ -135,6 +150,12 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
 
     setState(() => _isLoading = true);
 
+    // Lu AVANT tout `await` : `ref` est inutilisable une fois l'écran détruit
+    // (« Cannot use "ref" after the widget was disposed », fatal vu sur 1.2.2).
+    // Quitter l'écran pendant l'envoi de la photo ne doit pas tuer l'app — et
+    // le groupe est créé quand même : l'utilisateur a appuyé sur « Créer ».
+    final groupes = ref.read(myGroupsNotifierProvider.notifier);
+
     // `currentUserAsyncProvider` est un StreamProvider **autoDispose** que cet
     // écran ne regarde jamais : un `ref.read(...).valueOrNull` démarrait
     // l'abonnement à l'instant du tap et rendait `AsyncLoading`, donc `null`.
@@ -154,14 +175,17 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
     // Upload image if selected
     String? imageUrl;
     if (_selectedImage != null) {
-      final imageService = ImageUploadService();
       // Use a temporary ID for upload, will be replaced with actual group ID
       final tempId = DateTime.now().millisecondsSinceEpoch.toString();
-      imageUrl = await imageService.uploadImage(
-        file: _selectedImage!,
-        type: ImageUploadType.group,
-        id: tempId,
-      );
+      final envoyer = widget.envoyerImage;
+      imageUrl =
+          envoyer != null
+              ? await envoyer(_selectedImage!, tempId)
+              : await ImageUploadService().uploadImage(
+                file: _selectedImage!,
+                type: ImageUploadType.group,
+                id: tempId,
+              );
     }
 
     final tags =
@@ -201,9 +225,7 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
       originRegion: _selectedOriginRegion,
     );
 
-    final success = await ref
-        .read(myGroupsNotifierProvider.notifier)
-        .createGroup(group);
+    final success = await groupes.createGroup(group);
 
     if (success) {
       unawaited(AnalyticsService.instance.logEvent(
@@ -227,7 +249,7 @@ class _CreateGroupScreenState extends ConsumerState<CreateGroupScreen> {
     } else {
       // La raison remonte du dépôt : « Erreur lors de la création » tout court
       // n'apprenait rien, ni à l'utilisateur ni au diagnostic.
-      final reason = ref.read(myGroupsNotifierProvider.notifier).lastError;
+      final reason = groupes.lastError;
       ToastUtils.showError(
         context,
         reason == null || reason.isEmpty

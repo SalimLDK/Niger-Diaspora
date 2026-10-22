@@ -45,6 +45,31 @@ import '../../../../core/errors/message_erreur.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import 'package:diaspo_niger/core/theme/design_kit.dart';
 
+/// Anime la caméra sans jamais toucher un contrôleur détruit ; `true` si
+/// l'animation a été lancée.
+///
+/// Le `GoogleMapController` est détruit avec l'écran : s'en servir ensuite
+/// lève « used after the associated GoogleMap widget had already been
+/// disposed » (fatal vu sur 1.2.2, depuis un résultat de recherche arrivé
+/// après la sortie de l'écran). [estMonte] est revérifié après l'attente du
+/// contrôleur, et l'erreur d'un contrôleur détruit entre-temps est avalée.
+Future<bool> animerCameraSure(
+  Future<GoogleMapController> futurControleur,
+  bool Function() estMonte,
+  CameraUpdate update,
+) async {
+  if (!estMonte()) return false;
+  try {
+    final controller = await futurControleur;
+    if (!estMonte()) return false;
+    await controller.animateCamera(update);
+    return true;
+  } catch (e, stackTrace) {
+    LoggerService.w('MapScreen: animation de caméra ignorée', e, stackTrace);
+    return false;
+  }
+}
+
 class MapScreen extends ConsumerStatefulWidget {
   const MapScreen({super.key});
 
@@ -507,10 +532,7 @@ class _MapScreenState extends ConsumerState<MapScreen>
 
       // Déplacer la caméra vers la position actuelle
       if (_controller.isCompleted) {
-        final controller = await _controller.future;
-        await controller.animateCamera(
-          CameraUpdate.newLatLngZoom(_currentPosition!, 12),
-        );
+        await _animerCamera(CameraUpdate.newLatLngZoom(_currentPosition!, 12));
       }
 
       // Charger les membres à proximité
@@ -2149,11 +2171,9 @@ class _MapScreenState extends ConsumerState<MapScreen>
                   icon: icon,
                   onTap: () {
                     // Zoom sur le cluster
-                    unawaited(_controller.future.then((c) {
-                      unawaited(c.animateCamera(
-                        CameraUpdate.newLatLngZoom(center, _currentZoom + 2),
-                      ));
-                    }));
+                    unawaited(_animerCamera(
+                      CameraUpdate.newLatLngZoom(center, _currentZoom + 2),
+                    ));
                   },
                 ),
               );
@@ -2842,11 +2862,14 @@ class _MapScreenState extends ConsumerState<MapScreen>
   /// Recul de 3 crans depuis la carte « zone vide » — assez pour changer de
   /// catégorie de zoom et déclencher un rechargement des marqueurs.
   Future<void> _zoomOut() async {
-    final controller = await _controller.future;
-    await controller.animateCamera(
+    await _animerCamera(
       CameraUpdate.zoomTo((_currentZoom - 3).clamp(3.0, 20.0)),
     );
   }
+
+  /// Voir [animerCameraSure] : le contrôleur est détruit avec l'écran.
+  Future<void> _animerCamera(CameraUpdate update) =>
+      animerCameraSure(_controller.future, () => mounted, update);
 
   /// Feuille de légende ouverte par le bouton « ? » de la barre d'actions
   /// (remplace la légende flottante et son calcul de position conditionnel).
@@ -3949,11 +3972,9 @@ class _MapScreenState extends ConsumerState<MapScreen>
                               }
                             },
                             onPlaceSelected: (latLng, _) {
-                              unawaited(_controller.future.then((c) {
-                                unawaited(c.animateCamera(
-                                  CameraUpdate.newLatLngZoom(latLng, 14),
-                                ));
-                              }));
+                              unawaited(_animerCamera(
+                                CameraUpdate.newLatLngZoom(latLng, 14),
+                              ));
                             },
                           ),
                         ),

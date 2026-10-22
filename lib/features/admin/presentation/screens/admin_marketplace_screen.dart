@@ -2,12 +2,14 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../widgets/admin_bandeau_erreur.dart';
 import 'package:diaspo_niger/core/theme/admin_colors.dart';
 import '../../../marketplace/domain/entities/product_entity.dart';
 import '../providers/admin_provider.dart';
 import '../../../../shared/widgets/app_icon.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:diaspo_niger/core/theme/design_kit.dart';
+import 'package:diaspo_niger/features/admin/presentation/widgets/admin_charger_plus.dart';
 
 class AdminMarketplaceScreen extends ConsumerStatefulWidget {
   const AdminMarketplaceScreen({super.key});
@@ -21,6 +23,8 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
   AppLocalizations get l10n => AppLocalizations.of(context)!;
 
   late TabController _tabController;
+  final _searchController = TextEditingController();
+  Timer? _debounceRecherche;
 
   // Modern color palette (matching dashboard)
   static const Color _primaryColor = AdminColors.actionBlue;
@@ -41,8 +45,19 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
 
   @override
   void dispose() {
+    _debounceRecherche?.cancel();
     _tabController.dispose();
+    _searchController.dispose();
     super.dispose();
+  }
+
+  /// La recherche part au serveur, un court instant après la dernière frappe.
+  void _surRecherche(String value) {
+    setState(() {});
+    _debounceRecherche?.cancel();
+    _debounceRecherche = Timer(const Duration(milliseconds: 400), () {
+      unawaited(ref.read(adminMarketplaceNotifierProvider.notifier).rechercher(value));
+    });
   }
 
   @override
@@ -53,7 +68,18 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildPageHeader(state),
-        const SizedBox(height: 24),
+        const SizedBox(height: 16),
+        DesignSearchField(
+          controller: _searchController,
+          hintText: l10n.searchPlaceholder,
+          onChanged: _surRecherche,
+          onClear: () {
+            _searchController.clear();
+            _surRecherche('');
+          },
+          active: _searchController.text.isNotEmpty,
+        ),
+        const SizedBox(height: 16),
         // Tabs
         Container(
           decoration: BoxDecoration(
@@ -81,7 +107,7 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
                   children: [
                     const Icon(Icons.shopping_bag_rounded, size: 18),
                     const SizedBox(width: 8),
-                    Text('Produits (${state.products.length})'),
+                    Text(l10n.adminTabWithCount(l10n.adminProducts, '${state.products.length}${state.encorePlus.contains(ListeMarketplace.produits) ? '+' : ''}')),
                   ],
                 ),
               ),
@@ -91,7 +117,7 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
                   children: [
                     const Icon(Icons.receipt_rounded, size: 18),
                     const SizedBox(width: 8),
-                    Text('Commandes (${state.orders.length})'),
+                    Text(l10n.adminTabWithCount(l10n.adminOrdersName, '${state.orders.length}${state.encorePlus.contains(ListeMarketplace.commandes) ? '+' : ''}')),
                   ],
                 ),
               ),
@@ -101,7 +127,7 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
                   children: [
                     const Icon(Icons.gavel_rounded, size: 18),
                     const SizedBox(width: 8),
-                    Text('Litiges (${state.disputes.length})'),
+                    Text(l10n.adminTabWithCount(l10n.adminDisputesName, '${state.disputes.length}${state.encorePlus.contains(ListeMarketplace.litiges) ? '+' : ''}')),
                   ],
                 ),
               ),
@@ -112,14 +138,32 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
         Expanded(
           child: state.isLoading
               ? _buildLoadingState()
-              : state.error != null
+              : state.error != null &&
+                      state.products.isEmpty &&
+                      state.orders.isEmpty &&
+                      state.disputes.isEmpty
                   ? _buildErrorState(state.error!)
-                  : TabBarView(
-                      controller: _tabController,
+                  : Column(
                       children: [
-                        _buildProductsList(state.products),
-                        _buildOrdersList(state.orders),
-                        _buildDisputesList(state.disputes),
+                        // Une erreur posée après une action (zéro ligne,
+                        // journal refusé) ne doit pas effacer la liste.
+                        if (state.error != null)
+                          AdminBandeauErreur(
+                            message: state.error!,
+                            onFermer: ref
+                                .read(adminMarketplaceNotifierProvider.notifier)
+                                .effacerErreur,
+                          ),
+                        Expanded(
+                          child: TabBarView(
+                            controller: _tabController,
+                            children: [
+                              _buildProductsList(state),
+                              _buildOrdersList(state),
+                              _buildDisputesList(state),
+                            ],
+                          ),
+                        ),
                       ],
                     ),
         ),
@@ -190,7 +234,12 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
     );
   }
 
-  Widget _buildRefreshButton() {
+  Widget _buildRefreshButton() => Tooltip(
+    message: l10n.adminRefresh,
+    child: _boutonActualiser(),
+  );
+
+  Widget _boutonActualiser() {
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -216,14 +265,29 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
     );
   }
 
-  Widget _buildProductsList(List<ProductEntity> products) {
+  /// Dernière ligne d'une liste : « Charger plus », ou le sablier en cours.
+  Widget _ligneChargerPlus(AdminMarketplaceState state, ListeMarketplace liste) {
+    return AdminChargerPlus(
+      enCours: state.chargementPlus == liste,
+      onPressed: () => unawaited(
+        ref.read(adminMarketplaceNotifierProvider.notifier).chargerPlus(liste),
+      ),
+    );
+  }
+
+  Widget _buildProductsList(AdminMarketplaceState state) {
+    final products = state.products;
     if (products.isEmpty) {
       return _buildEmptyState(Icons.shopping_bag_rounded, l10n.noProductFound);
     }
 
+    final encorePlus = state.encorePlus.contains(ListeMarketplace.produits);
     return ListView.builder(
-      itemCount: products.length,
+      itemCount: products.length + (encorePlus ? 1 : 0),
       itemBuilder: (context, index) {
+        if (index == products.length) {
+          return _ligneChargerPlus(state, ListeMarketplace.produits);
+        }
         final product = products[index];
         return _buildProductCard(product);
       },
@@ -309,6 +373,7 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
             ),
             // Actions
             PopupMenuButton<String>(
+              tooltip: l10n.moreActions,
               onSelected: (value) => _handleProductAction(value, product),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               icon: Container(
@@ -367,33 +432,25 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
   }
 
   Widget _buildAvailabilityBadge(bool isAvailable) {
-    final color = isAvailable ? AdminColors.statusGreen : AdminColors.statusRed;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withAlpha(20),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withAlpha(50)),
-      ),
-      child: Text(
-        isAvailable ? l10n.adminAvailable : l10n.adminUnavailable,
-        style: TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.w600,
-          color: color,
-        ),
-      ),
+    return DesignBadge(
+      isAvailable ? l10n.adminAvailable : l10n.adminUnavailable,
+      tone: isAvailable ? DesignBadgeTone.verified : DesignBadgeTone.failed,
     );
   }
 
-  Widget _buildOrdersList(List<Map<String, dynamic>> orders) {
+  Widget _buildOrdersList(AdminMarketplaceState state) {
+    final orders = state.orders;
     if (orders.isEmpty) {
       return _buildEmptyState(Icons.receipt_rounded, l10n.adminNoOrders);
     }
 
+    final encorePlus = state.encorePlus.contains(ListeMarketplace.commandes);
     return ListView.builder(
-      itemCount: orders.length,
+      itemCount: orders.length + (encorePlus ? 1 : 0),
       itemBuilder: (context, index) {
+        if (index == orders.length) {
+          return _ligneChargerPlus(state, ListeMarketplace.commandes);
+        }
         final order = orders[index];
         final status = order['status'] as String? ?? 'pending';
         return _buildOrderCard(order, status);
@@ -462,8 +519,8 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
                             color: AdminColors.statusRed,
                             borderRadius: BorderRadius.circular(20),
                           ),
-                          child: const Text(
-                            'LITIGE',
+                          child: Text(
+                            l10n.adminDisputeBadge,
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.w600,
@@ -503,7 +560,8 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
     );
   }
 
-  Widget _buildDisputesList(List<Map<String, dynamic>> disputes) {
+  Widget _buildDisputesList(AdminMarketplaceState state) {
+    final disputes = state.disputes;
     if (disputes.isEmpty) {
       return Center(
         child: Column(
@@ -535,9 +593,13 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
       );
     }
 
+    final encorePlus = state.encorePlus.contains(ListeMarketplace.litiges);
     return ListView.builder(
-      itemCount: disputes.length,
+      itemCount: disputes.length + (encorePlus ? 1 : 0),
       itemBuilder: (context, index) {
+        if (index == disputes.length) {
+          return _ligneChargerPlus(state, ListeMarketplace.litiges);
+        }
         final dispute = disputes[index];
         return _buildDisputeCard(dispute);
       },
@@ -565,7 +627,7 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
           child: const Icon(Icons.gavel_rounded, color: AdminColors.statusRed, size: 20),
         ),
         title: Text(
-          'Litige #${dispute['id']?.substring(0, 8) ?? 'N/A'}',
+          l10n.adminDisputeNumber(dispute['id']?.substring(0, 8) ?? 'N/A'),
           style: const TextStyle(
             fontWeight: FontWeight.w600,
             fontSize: 15,
@@ -782,13 +844,13 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
 
   Widget _buildEmptyState(IconData icon, String message) {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, size: 64, color: _textSecondary.withAlpha(100)),
-          const SizedBox(height: 16),
-          Text(message, style: const TextStyle(color: _textSecondary, fontSize: 16)),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: DesignEmptyState(
+          icon: icon,
+          title: message,
+          body: l10n.adminEmptyListBody,
+        ),
       ),
     );
   }
@@ -804,22 +866,26 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
 
     switch (action) {
       case 'enable':
-        await notifier.toggleProductAvailability(product.id, true, adminId: currentAdmin.id, adminName: currentAdmin.name);
-        _showSnackBar(l10n.adminProductActivated);
+        final motif = await _showTextDialog(l10n.marAdmRestoreTitle, l10n.marAdmReasonLabel);
+        if (motif == null || motif.isEmpty) return;
+        final ok = await notifier.toggleProductAvailability(product.id, true, motif: motif);
+        _montrerBilan(ok, l10n.adminProductActivated);
         break;
       case 'disable':
-        await notifier.toggleProductAvailability(product.id, false, adminId: currentAdmin.id, adminName: currentAdmin.name);
-        _showSnackBar(l10n.adminProductDeactivated);
+        final motif = await _showTextDialog(l10n.marAdmHideTitle, l10n.marAdmReasonLabel);
+        if (motif == null || motif.isEmpty) return;
+        final ok = await notifier.toggleProductAvailability(product.id, false, motif: motif);
+        _montrerBilan(ok, l10n.adminProductDeactivated);
         break;
       case 'delete':
-        final confirm = await _showConfirmation(
-          l10n.adminDeleteProductTitle,
-          l10n.adminDeleteProductConfirm,
+        final motif = await _showTextDialog(
+          l10n.marAdmDeleteTitle,
+          l10n.marAdmReasonLabel,
+          aide: l10n.marAdmDeleteWarn,
         );
-        if (confirm == true) {
-          await notifier.deleteProduct(product.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
-          _showSnackBar(l10n.adminProductDeleted);
-        }
+        if (motif == null || motif.isEmpty) return;
+        final ok = await notifier.deleteProduct(product.id, motif: motif);
+        _montrerBilan(ok, l10n.adminProductDeleted);
         break;
     }
   }
@@ -831,55 +897,46 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
       return;
     }
 
-    final note = await _showTextDialog(l10n.adminResolveDisputeTitle, l10n.adminProcessReportPrompt);
-    if (note != null) {
-      await ref.read(adminMarketplaceNotifierProvider.notifier).resolveDispute(
+    final note = await _showTextDialog(
+      l10n.adminResolveDisputeTitle,
+      l10n.adminProcessReportPrompt,
+      aide: l10n.marAdmDisputeWarn,
+    );
+    if (note != null && note.isNotEmpty) {
+      final ok = await ref.read(adminMarketplaceNotifierProvider.notifier).resolveDispute(
         dispute['id'],
         resolution,
         note,
-        adminId: currentAdmin.id,
-        adminName: currentAdmin.name,
       );
-      _showSnackBar(l10n.adminDisputeResolved);
+      _montrerBilan(ok, l10n.adminDisputeResolved);
     }
   }
 
-  Future<bool?> _showConfirmation(String title, String content) {
-    return showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(title),
-        content: Text(content),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l10n.adminCancelAction)),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AdminColors.statusRed,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            ),
-            child: Text(l10n.adminConfirmAction),
-          ),
-        ],
-      ),
-    );
-  }
 
-  Future<String?> _showTextDialog(String title, String label) {
+  Future<String?> _showTextDialog(String title, String label, {String? aide}) {
     final controller = TextEditingController();
     return showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(title),
-        content: TextField(
-          controller: controller,
-          decoration: InputDecoration(
-            labelText: label,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-          ),
-          maxLines: 3,
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (aide != null) ...[
+              Text(aide, style: const TextStyle(fontSize: 12, color: AdminColors.text2)),
+              const SizedBox(height: 12),
+            ],
+            TextField(
+              controller: controller,
+              decoration: InputDecoration(
+                labelText: label,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+              maxLines: 3,
+            ),
+          ],
         ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.adminCancelAction)),
@@ -896,10 +953,27 @@ class _AdminMarketplaceScreenState extends ConsumerState<AdminMarketplaceScreen>
     );
   }
 
-  void _showSnackBar(String message) {
+  /// Le libellé de succès ne s'affiche que si le notifier a rendu vrai ;
+  /// sinon son `state.error` (zéro ligne sous RLS, journal d'audit refusé…).
+  /// Avant, le succès s'affichait quoi qu'il arrive (audit du 2026-10-14,
+  /// § 5).
+  void _montrerBilan(bool ok, String succes) {
+    if (!mounted) return;
+    if (ok) {
+      _showSnackBar(succes);
+      return;
+    }
+    _showSnackBar(
+      ref.read(adminMarketplaceNotifierProvider).error ?? l10n.loadingError,
+      isError: true,
+    );
+  }
+
+  void _showSnackBar(String message, {bool isError = false}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
+        backgroundColor: isError ? AdminColors.statusRed : null,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
