@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1548 cases à cocher, 55 cochées** — 331 entrées sur 345 ont encore des cases ouvertes.
+**1554 cases à cocher, 55 cochées** — 333 entrées sur 347 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -235,7 +235,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (107)
+**P2 — fonction secondaire ou cas limite** (108)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -246,6 +246,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [Reprise du design (2026-08-03, suite) — Éco, accueil, carte, discussion](#reprise-du-design-2026-08-03-suite--éco-accueil-carte-discussion) · *Design, thème, langue et mise en page* · bloqué
 - 5 · [Bascule design_v2 → production, famille 4 : messagerie, groupes, recherche, profil (2026-08-03)](#bascule-design_v2--production-famille-4--messagerie-groupes-recherche-profil-2026-08-03) · *Design, thème, langue et mise en page*
 - 7 · [⬜ Site web entièrement refait sur cahier des charges (2026-09-08)](#-site-web-entièrement-refait-sur-cahier-des-charges-2026-09-08) · *Site web*
+- 4 · [⬜ Photo de profil : ouverture depuis la fiche, la liste de discussions et les membres de groupe (2026-10-22)](#-photo-de-profil--ouverture-depuis-la-fiche-la-liste-de-discussions-et-les-membres-de-groupe-2026-10-22) · *Messagerie*
 - 5 · [⬜ Discussion : « Délivré » dès l'arrivée du push (MLS), accents de la barre de saisie, « En ligne » (2026-10-22)](#-discussion---délivré--dès-larrivée-du-push-mls-accents-de-la-barre-de-saisie--en-ligne--2026-10-22) · *Messagerie*
 - 3 · [⬜ Le séparateur « N messages non lus » part quand tout est lu (2026-09-17)](#-le-séparateur--n-messages-non-lus--part-quand-tout-est-lu-2026-09-17) · *Messagerie*
 - 3 · [⬜ « Distribué » et « Lu » ne tombent plus à la même seconde (2026-09-16)](#--distribué--et--lu--ne-tombent-plus-à-la-même-seconde-2026-09-16) · *Messagerie*
@@ -345,7 +346,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [✅ Bulle de chargement d'une vidéo pendant l'upload (2026-08-30)](#-bulle-de-chargement-dune-vidéo-pendant-lupload-2026-08-30) · *Messagerie*
 - 21 · [Refonte Fil & Discussion — Priorité basse — cosmétique, faible risque](#refonte-fil--discussion--priorité-basse--cosmétique-faible-risque) · *Fil, stories, salons audio et podcasts*
 
-**P3 — confort, cosmétique, fonction en pause** (41)
+**P3 — confort, cosmétique, fonction en pause** (42)
 
 - 3 · [⬜ Polices embarquées : plus de téléchargement au premier affichage (2026-09-11)](#-polices-embarquées--plus-de-téléchargement-au-premier-affichage-2026-09-11) · *Design, thème, langue et mise en page* · bloqué
 - 2 · [⬜ Icône du lanceur repeinte en vert (2026-09-07)](#-icône-du-lanceur-repeinte-en-vert-2026-09-07) · *Design, thème, langue et mise en page*
@@ -358,6 +359,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⬜ Écran de démarrage repeint en vert (2026-09-07)](#-écran-de-démarrage-repeint-en-vert-2026-09-07) · *Design, thème, langue et mise en page*
 - 5 · [Guide de style — alignement des jetons (2026-08-03)](#guide-de-style--alignement-des-jetons-2026-08-03) · *Design, thème, langue et mise en page*
 - 3 · [⬜ Les ~920 `debugPrint` restants neutralisés en release (2026-09-09)](#-les-920-debugprint-restants-neutralisés-en-release-2026-09-09) · *Backend, sécurité et observabilité* · bloqué
+- 2 · [⬜ Vert des coches de lecture et du point « en ligne » alignés sur les bulles (2026-10-23)](#-vert-des-coches-de-lecture-et-du-point--en-ligne--alignés-sur-les-bulles-2026-10-23) · *Messagerie*
 - 2 · [⬜ Fiches de partage : libellés sur une ligne, vrais logos, bouton (2026-09-20)](#-fiches-de-partage--libellés-sur-une-ligne-vrais-logos-bouton-2026-09-20) · *Messagerie*
 - 6 · [⬜ Squelette de chargement de la messagerie (2026-09-15)](#-squelette-de-chargement-de-la-messagerie-2026-09-15) · *Messagerie*
 - 7 · [⬜ Une couleur par pièce jointe dans le « + » (2026-09-14)](#-une-couleur-par-pièce-jointe-dans-le----2026-09-14) · *Messagerie*
@@ -392,7 +394,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 0 faites
-- [2. Messagerie](#2-messagerie) — 306 à faire, 31 faites
+- [2. Messagerie](#2-messagerie) — 312 à faire, 31 faites
 - [3. Groupes](#3-groupes) — 128 à faire, 0 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 121 à faire, 4 faites
 - [5. Appels](#5-appels) — 24 à faire, 1 faites
@@ -493,6 +495,30 @@ du SM A515F (compte « Sim A », non-admin, sans pays renseigné).
 # 2. Messagerie
 
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
+
+---
+
+## ⬜ Vert des coches de lecture et du point « en ligne » alignés sur les bulles (2026-10-23)
+
+**Priorité P3** · importance 2/5
+
+Fichiers : `conversation_item.dart`, `new_conversation_screen.dart`.
+
+- [ ] Liste des discussions : la double coche « lu » est du même vert (`#0E7C3A`) que les bulles envoyées, en thème clair et sombre.
+- [ ] Nouvelle conversation : le point « en ligne » sur l'avatar a ce même vert et reste visible sur le fond.
+
+---
+
+## ⬜ Photo de profil : ouverture depuis la fiche, la liste de discussions et les membres de groupe (2026-10-22)
+
+**Priorité P2** · importance 3/5
+
+Fichiers : `profile_view_screen.dart`, `conversation_item.dart`, `group_members_screen.dart`.
+
+- [ ] Fiche d'un utilisateur dont `avatar_url` vaut `''` : le tap sur l'avatar ne fait rien (plus de visionneuse noire), initiales affichées.
+- [ ] Liste des discussions : tap sur la photo d'un contact ouvre la photo plein écran ; tap ailleurs sur la ligne ouvre la discussion ; sans photo, tap sur l'avatar ouvre la discussion.
+- [ ] Liste des discussions en mode sélection : tap sur l'avatar coche la ligne, n'ouvre pas la photo.
+- [ ] Membres d'un groupe : tap sur la photo l'ouvre ; sans photo, tap sur l'avatar ouvre la fiche profil comme avant.
 
 ---
 

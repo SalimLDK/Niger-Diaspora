@@ -740,7 +740,10 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                       children: [
                         GestureDetector(
                           onTap: () {
-                            if (profile.photoUrl != null) {
+                            // `avatar_url` peut valoir '' (photo retirée) : non
+                            // nul, donc l'ancien test ouvrait une visionneuse
+                            // noire « image indisponible ».
+                            if (profile.photoUrl?.trim().isNotEmpty == true) {
                               unawaited(HapticFeedback.mediumImpact());
                               FullScreenImageViewer.show(
                                 context,
@@ -766,7 +769,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                               ),
                               clipBehavior: Clip.antiAlias,
                               child:
-                                  profile.photoUrl != null
+                                  profile.photoUrl?.trim().isNotEmpty == true
                                       // `contain` : une photo d'avant le
                                       // recadrage au choix n'est pas carrée,
                                       // autant la montrer entière (voir
@@ -866,29 +869,27 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                                   dotSize: 9,
                                 ),
                               ],
-
-                              // Puces du §10c : trajet migratoire et métier
-                              // remplacent les lignes à pictogramme centrées.
-                              if (journeyTag != null ||
-                                  (profile.profession?.isNotEmpty ??
-                                      false)) ...[
-                                const SizedBox(height: 10),
-                                Wrap(
-                                  spacing: 8,
-                                  runSpacing: 8,
-                                  children: [
-                                    if (journeyTag != null)
-                                      DesignTag(journeyTag),
-                                    if (profile.profession?.isNotEmpty ?? false)
-                                      DesignTag(profile.profession!),
-                                  ],
-                                ),
-                              ],
                             ],
                           ),
                         ),
                       ],
                     ),
+
+                    // Puces du §10c : trajet migratoire et métier, sous la
+                    // photo (pleine largeur) plutôt qu'à côté du nom.
+                    if (journeyTag != null ||
+                        (profile.profession?.isNotEmpty ?? false)) ...[
+                      const SizedBox(height: 12),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          if (journeyTag != null) DesignTag(journeyTag),
+                          if (profile.profession?.isNotEmpty ?? false)
+                            DesignTag(profile.profession!),
+                        ],
+                      ),
+                    ],
 
                     // Groupes en commun (§10c)
                     if (!isBlocked) _buildCommonGroups(context, profile.id),

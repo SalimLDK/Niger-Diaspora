@@ -324,43 +324,45 @@ class _GroupDetailScreenState extends ConsumerState<GroupDetailScreen> {
                                   color: context.textPrimaryColor,
                                 ),
                               ),
-                              const SizedBox(height: 3),
-                              Row(
-                                children: [
-                                  Icon(
-                                    group.isPrivate
-                                        ? Icons.lock_outline_rounded
-                                        : Icons.public,
-                                    size: 13,
-                                    color: context.textTertiaryColor,
-                                  ),
-                                  const SizedBox(width: 7),
-                                  Expanded(
-                                    child: Text(
-                                      // Fiche 9d : « Privé · Montréal ·
-                                      // depuis 2023 ». La catégorie sort de
-                                      // cette ligne — elle dit moins que le
-                                      // lieu et l'ancienneté du groupe.
-                                      [
-                                        group.isPrivate
-                                            ? l10n.private
-                                            : l10n.public,
-                                        if ((group.location ?? '').isNotEmpty)
-                                          group.location!,
-                                        if (group.createdAt != null)
-                                          'depuis ${group.createdAt!.toLocal().year}',
-                                      ].join(' · '),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                        fontSize: 12.5,
-                                        color: context.textTertiaryColor,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
                             ],
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    // Sous la pastille, pleine largeur : à côté du nom elle
+                    // laissait un titre long sur deux lignes et une méta
+                    // coincée dans une colonne étroite.
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Icon(
+                          group.isPrivate
+                              ? Icons.lock_outline_rounded
+                              : Icons.public,
+                          size: 13,
+                          color: context.textTertiaryColor,
+                        ),
+                        const SizedBox(width: 7),
+                        Expanded(
+                          child: Text(
+                            // Fiche 9d : « Privé · Montréal ·
+                            // depuis 2023 ». La catégorie sort de
+                            // cette ligne — elle dit moins que le
+                            // lieu et l'ancienneté du groupe.
+                            [
+                              group.isPrivate ? l10n.private : l10n.public,
+                              if ((group.location ?? '').isNotEmpty)
+                                group.location!,
+                              if (group.createdAt != null)
+                                'depuis ${group.createdAt!.toLocal().year}',
+                            ].join(' · '),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 12.5,
+                              color: context.textTertiaryColor,
+                            ),
                           ),
                         ),
                       ],
