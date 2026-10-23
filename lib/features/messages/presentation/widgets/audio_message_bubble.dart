@@ -247,9 +247,9 @@ class _AudioMessageBubbleState extends State<AudioMessageBubble>
   }
 
   // ── Palette de la bulle audio (cf. handoff « Bulle audio ») ───────────────
-  // Vert de bulle : #009600 (clair) / #009600 (sombre).
+  // Vert de bulle : #0E7C3A, le même que la bulle texte.
   Color _accentGreen(bool isDark) =>
-      isDark ? const Color(0xFF009600) : const Color(0xFF009600);
+      isDark ? const Color(0xFF0E7C3A) : const Color(0xFF0E7C3A);
 
   /// Couleur de fond de la bulle qui héberge ce lecteur (pour cercler la
   /// tête de lecture).

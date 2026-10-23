@@ -1285,14 +1285,13 @@ class _MessageInputState extends State<MessageInput>
   /// pastel deviendrait un pavé lumineux, on le remplace par l'accent teinté.
   Widget _buildEmojiButton(BuildContext context) {
     final isDark = context.isDarkMode;
-    // Le vert de la marque, comme le bouton vocal et les bulles : la barre
-    // mêlait ce vert fixe à un orange (glyphe en dur ici, accent du thème sur
-    // le « + »), deux accents dans une même rangée.
-    const glyph = AppColors.secondary;
-    final fill =
-        isDark
-            ? glyph.withValues(alpha: _showPicker ? 0.28 : 0.18)
-            : (_showPicker ? const Color(0xFFCFE6CF) : const Color(0xFFE6F2E6));
+    // L'accent du thème, comme le « + » et le bouton vocal : la barre entière
+    // suit un seul accent (le glyphe était un orange en dur, le micro un vert
+    // fixe, deux accents dans une même rangée).
+    final glyph = context.adaptivePrimaryColor;
+    final fill = glyph.withValues(
+      alpha: _showPicker ? (isDark ? 0.28 : 0.22) : (isDark ? 0.18 : 0.12),
+    );
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
@@ -1320,8 +1319,7 @@ class _MessageInputState extends State<MessageInput>
   /// Appui long = ancien sheet complet (repli avec audio/vidéo dédiés).
   Widget _buildPlusButton(BuildContext context) {
     final active = _showAttachPanel;
-    // Vert de la marque, pas l'accent du thème : voir [_buildEmojiButton].
-    const accent = AppColors.secondary;
+    final accent = context.adaptivePrimaryColor;
     final isDark = context.isDarkMode;
 
     // En clair, l'accent à 12 % posé sur le fond crème de la page donnait deux
@@ -2333,9 +2331,6 @@ class _MessageInputState extends State<MessageInput>
   static const Color _kE2eeBlue = Color(0xFF2F6BE0);
   static const Color _kE2eeBlueLight = Color(0xFF5B9BFF);
 
-  /// Vert du bouton vocal, indépendant du thème.
-  static const Color _kVoiceGreen = Color(0xFF009600);
-  static const Color _kVoiceGreenLight = Color(0xFF009600);
 
   /// Chrome de la barre flottante et du bandeau d'enregistrement.
   ///
@@ -2369,7 +2364,7 @@ class _MessageInputState extends State<MessageInput>
       // couleur signifiante a sa variante claire pour le thème sombre.
       final sombre = context.isDarkMode;
       if (_hasText) return sombre ? _kE2eeBlueLight : _kE2eeBlue;
-      return sombre ? _kVoiceGreenLight : _kVoiceGreen;
+      return context.adaptivePrimaryColor;
     }
     return null;
   }
@@ -2394,7 +2389,7 @@ class _MessageInputState extends State<MessageInput>
       final base =
           _hasText
               ? (context.isDarkMode ? _kE2eeBlueLight : _kE2eeBlue)
-              : (context.isDarkMode ? _kVoiceGreenLight : _kVoiceGreen);
+              : context.adaptivePrimaryColor;
       return base.withValues(alpha: 0.35);
     }
     return Colors.black.withValues(alpha: 0.1);

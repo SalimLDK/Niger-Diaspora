@@ -504,8 +504,8 @@ Discussions : bulles, composeur, médias, épingles, réactions, accusés, reche
   - [ ] Vérifier aussi B sur l'écran d'accueil, app tuée (push seul) : le cas le moins sûr, l'isolate d'arrière-plan doit avoir sa session.
 - **« En ligne » en police de texte** (`conversation_screen.dart`, `_buildStatusWithLock`) : il héritait du serif du titre. Le nom reste en serif, voulu.
   - [ ] En-tête : « Sim A » en serif, « En ligne » / « Vu il y a… » en sans-serif.
-- **Barre de saisie** (`message_input.dart`) : « + » et emoji au vert de la marque (comme le micro), marges latérales 6 → 12.
-  - [ ] Thème Orange et thème vert, clair et sombre : plus d'orange dans la barre ; « + » et micro ne touchent plus le bord.
+- **Barre de saisie** (`message_input.dart`) : « + », emoji et micro suivent l'accent du thème (un seul accent), marges latérales 12 au lieu de 6; bulles envoyées en #0E7C3A.
+  - [ ] Thème Orange et thème vert, clair et sombre : barre d'un seul accent (celui du thème) ; « + » et micro ne touchent plus le bord.
 - **Heure et accusé en sombre** : gris secondaire au lieu du tertiaire (`message_bubble.dart`).
   - [ ] Thème sombre : « 10:41 · Lu » lisible sur le fond.
 

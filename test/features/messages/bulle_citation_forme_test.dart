@@ -37,11 +37,11 @@ MessageEntity _msg(
   audioDuration: type == MessageType.voiceNote ? 12 : null,
 );
 
-/// Bulle envoyée : l'aplat `#009600` (`_kSentBubbleLight`).
+/// Bulle envoyée : l'aplat `#0E7C3A` (`_kSentBubbleLight`).
 Finder _bulleEnvoyee() => find.byWidgetPredicate((w) {
   if (w is! Container) return false;
   final d = w.decoration;
-  return d is BoxDecoration && d.color == const Color(0xFF009600);
+  return d is BoxDecoration && d.color == const Color(0xFF0E7C3A);
 });
 
 /// Bloc de citation : le seul `Container` dont la bordure n'a qu'un côté.
