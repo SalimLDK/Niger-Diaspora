@@ -314,7 +314,7 @@ class TransferRepositoryImpl implements TransferRepository {
     try {
       // Get rate to XOF for fee calculation
       final rateResult = await getExchangeRate(currency, 'XOF');
-      return rateResult.fold((failure) => Left(failure), (rate) {
+      return rateResult.fold<Either<Failure, double>>((failure) => Left(failure), (rate) {
         // Round rate to reasonable precision (4 decimal places for exchange rates)
         final roundedRate = (rate * 10000).round() / 10000;
 

@@ -44,8 +44,11 @@ class _FakeAppSettingsDataSource implements AppSettingsDataSource {
   Future<void> updateSection(
     String section,
     Map<String, dynamic> data,
-    String updatedBy,
-  ) async {
+    String updatedBy, {
+    String? reason,
+    String kind = 'update',
+    String? restoredFrom,
+  }) async {
     sectionWrites.add((section: section, data: data, updatedBy: updatedBy));
     if (section == 'featureFlags') {
       _settings = AppSettingsModel.fromEntity(
@@ -54,11 +57,6 @@ class _FakeAppSettingsDataSource implements AppSettingsDataSource {
         ),
       );
     }
-  }
-
-  @override
-  Future<void> updateSettings(AppSettingsModel settings, String updatedBy) {
-    throw UnimplementedError();
   }
 
   @override

@@ -1,0 +1,19 @@
+name: diagnostic_memoire
+description: "Lit le tas Java du processus (Runtime + ActivityManager) pour les clés Crashlytics. Android seulement."
+version: 0.0.1
+publish_to: none
+
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+  flutter: '>=3.3.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: com.diasponiger.diagnostic_memoire
+        pluginClass: DiagnosticMemoirePlugin
