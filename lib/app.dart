@@ -16,6 +16,7 @@ import 'core/services/notification_service.dart';
 import 'core/services/e2ee/notification_decryption_service.dart';
 import 'core/services/tracking_consent_service.dart';
 import 'core/providers/app_settings_provider.dart';
+import 'core/providers/historique_auto_provider.dart';
 import 'core/providers/lecture_a_l_arrivee_provider.dart';
 import 'features/calls/presentation/providers/call_provider.dart';
 import 'shared/widgets/reconnection_summary.dart';
@@ -228,6 +229,10 @@ class _NigerDiasporaAppState extends ConsumerState<NigerDiasporaApp> {
     // marque lue une notification arrivée sur son propre écran ne s'ouvrirait
     // jamais. Voir `LectureALArrivee`.
     ref.watch(lectureALArriveeProvider);
+
+    // Sauvegarde automatique de l'historique chiffré (si l'utilisateur l'a
+    // activée) : aucun écran ne la lit, il faut la surveiller ici.
+    ref.watch(historiqueAutoProvider);
 
     return MaterialApp.router(
       title: 'Diaspo Niger',

@@ -5878,8 +5878,8 @@
   "mlsBackupNewPhone": "On a new phone, or after reinstalling the app, you will read messages sent after it was set up; earlier ones cannot be read there. They remain readable on the old device as long as the app stays installed.",
   "mlsBackupRevokeHint": "Then revoke the old device.",
   "historyBackupSection": "Message history",
-  "historyBackupBody": "Back up the text of your encrypted conversations, protected by a passphrase. After a reinstall you can restore it here. Photos, videos, disappearing messages and deleted messages are not included.",
-  "historyBackupAction": "Back up history",
+  "historyBackupBody": "Without a backup, the history of your encrypted conversations does not survive a reinstall. Turn on automatic backup: the text is sent encrypted with a recovery key that only you hold. Photos, videos, disappearing and deleted messages are not included.",
+  "historyBackupAction": "Turn on automatic backup",
   "historyRestoreAction": "Restore history",
   "historyBackupNone": "No backup yet",
   "historyBackupLast": "Last backup: {date} · {count} messages",
@@ -5893,7 +5893,6 @@
       }
     }
   },
-  "historyBackupDialogHint": "Choose a passphrase for this backup. It is separate from the key passphrase, and without it the history cannot be recovered.",
   "historyBackupDone": "{count} messages backed up",
   "@historyBackupDone": {
     "placeholders": {
@@ -5904,7 +5903,7 @@
   },
   "historyBackupTruncated": "The oldest messages could not be included: the file was too large.",
   "historyBackupNothing": "There are no messages to back up on this device.",
-  "historyRestoreHint": "Enter the passphrase of the history backup.",
+  "historyRestoreHint": "Enter the history recovery key.",
   "historyRestoreDone": "{count} messages restored",
   "@historyRestoreDone": {
     "placeholders": {
@@ -5914,6 +5913,36 @@
     }
   },
   "historyRestoreNothingNew": "Nothing new to restore.",
+  "historyAutoTitle": "Automatic backup",
+  "historyAutoOn": "On",
+  "historyAutoOnLast": "On · last: {date} · {count} messages",
+  "@historyAutoOnLast": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "historyBackupNowAction": "Back up now",
+  "historyKeyTitle": "Your recovery key",
+  "historyKeyBody": "Write these words down and keep them somewhere safe. They will never be shown again. Without this key the history cannot be recovered after a reinstall: nobody, not even us, can retrieve it.",
+  "historyKeySaved": "I have written this key down",
+  "historyKeyActivate": "Turn on",
+  "historyOverwriteWarning": "A backup already exists for this account. Turning on with a new key will replace it and its content will be lost. To keep it, cancel and restore it first with its old key.",
+  "historyDisableAction": "Turn off automatic backup",
+  "historyDisableConfirm": "Turn off automatic backup? The key stored on this phone will be forgotten. The backup already sent stays recoverable with the key you wrote down.",
+  "historyUnreadable": "The existing backup cannot be opened with this phone's key. Nothing was changed.",
+  "historyRestoreAutoOn": "{count} messages restored. Automatic backup stays on with this key.",
+  "@historyRestoreAutoOn": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "historyDeleteConfirm": "Delete the history backup? This cannot be undone.",
   "historyDeleteDone": "History backup deleted",
   "mlsDeviceRevokeConfirm": "This device will no longer be able to join encrypted conversations. Continue?",

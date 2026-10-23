@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1562 cases à cocher, 55 cochées** — 334 entrées sur 348 ont encore des cases ouvertes.
+**1566 cases à cocher, 55 cochées** — 334 entrées sur 348 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -143,7 +143,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [⬜ Exclure un membre d'un groupe échouait toujours (2026-09-17)](#-exclure-un-membre-dun-groupe-échouait-toujours-2026-09-17) · *Groupes*
 - 4 · [⬜ Noms des candidats à l'invitation et à l'ajout en appel (2026-09-14)](#-noms-des-candidats-à-linvitation-et-à-lajout-en-appel-2026-09-14) · *Groupes*
 - 3 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
-- 8 · [⬜ Sauvegarde manuelle de l'historique MLS : survit-elle à une réinstallation ? (2026-10-22)](#-sauvegarde-manuelle-de-lhistorique-mls--survit-elle-à-une-réinstallation--2026-10-22) · *Chiffrement de bout en bout et clés*
+- 12 · [⬜ Sauvegarde automatique de l'historique MLS : survit-elle à une réinstallation ? (2026-10-23)](#-sauvegarde-automatique-de-lhistorique-mls--survit-elle-à-une-réinstallation--2026-10-23) · *Chiffrement de bout en bout et clés*
 - 5 · [⬜ Pixel réinstallé : la discussion MLS avec Sim A se rouvre malgré des Welcome périmés (2026-09-21)](#-pixel-réinstallé--la-discussion-mls-avec-sim-a-se-rouvre-malgré-des-welcome-périmés-2026-09-21) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ L'app lancée sans son écran n'inscrit plus d'appareil fantôme (2026-09-16)](#-lapp-lancée-sans-son-écran-ninscrit-plus-dappareil-fantôme-2026-09-16) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ « Chiffré de bout en bout » corrigé sur 8 surfaces, dont la politique de confidentialité (2026-09-16)](#--chiffré-de-bout-en-bout--corrigé-sur-8-surfaces-dont-la-politique-de-confidentialité-2026-09-16) · *Chiffrement de bout en bout et clés*
@@ -397,7 +397,7 @@ Par domaine :
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 0 faites
 - [2. Messagerie](#2-messagerie) — 312 à faire, 31 faites
 - [3. Groupes](#3-groupes) — 128 à faire, 0 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 129 à faire, 4 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 133 à faire, 4 faites
 - [5. Appels](#5-appels) — 24 à faire, 1 faites
 - [6. Notifications et push](#6-notifications-et-push) — 115 à faire, 6 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 46 à faire, 0 faites
@@ -3817,19 +3817,23 @@ Signal 1:1 et groupes, repli AES, clés dérivées, sauvegarde et transfert des 
 
 ---
 
-## ⬜ Sauvegarde manuelle de l'historique MLS : survit-elle à une réinstallation ? (2026-10-22)
+## ⬜ Sauvegarde automatique de l'historique MLS : survit-elle à une réinstallation ? (2026-10-23)
 
-**Priorité P1** · importance 4/5 — Un compte MLS qui désinstalle puis réinstalle perd tout son historique (le moteur ne relit pas ce qu'il a déjà déchiffré, et sa base ne part dans aucune sauvegarde). Nouveau : Sécurité → « Historique des messages » sauvegarde le texte déjà déchiffré du cache, chiffré par passphrase (`historique_backup_service.dart`, `historique_backup_section.dart`). Jamais vu sur téléphone.
+**Priorité P1** · importance 4/5 — Un compte MLS qui désinstalle puis réinstalle perd tout son historique : le moteur ne relit pas ce qu'il a déjà déchiffré (la clé de chaque message est effacée après usage) et ni sa base ni le cache du clair ne partent dans une sauvegarde. Nouveau : Sécurité → « Historique des messages ». Une clé de récupération (six mots) est affichée UNE fois, le texte déjà déchiffré est envoyé chiffré avec elle (`historique_backup_service.dart`, `historique_backup_section.dart`, déclencheur `historique_auto_provider.dart`). Jamais vu sur téléphone.
 
 À vérifier à l'écran, sur un compte MLS qui a de vrais messages :
-- [ ] « Sauvegarder l'historique » : le dialogue exige 8 caractères et une confirmation identique ; le message de succès donne un nombre plausible ; la ligne affiche ensuite date et nombre.
-- [ ] **Désinstaller, réinstaller, se reconnecter, « Restaurer l'historique »** avec la passphrase : les messages texte reviennent dans la discussion **après avoir rouvert la discussion** (le cache est relu à l'ouverture). Ils s'affichent dans le bon ordre, avec les messages reçus depuis la réinstallation.
-- [ ] Les messages d'**avant la réinstallation** ne sont pas masqués par le filtre « avant l'arrivée » (`ea212c9`) une fois restaurés — c'est le point le plus douteux.
-- [ ] Mauvaise passphrase → « passphrase invalide », rien n'est écrit.
+- [ ] « Activer la sauvegarde automatique » : la clé s'affiche, « Activer » reste grisé tant que « J'ai noté cette clé » n'est pas coché ; un envoi part tout de suite, la ligne affiche ensuite date et nombre de messages.
+- [ ] **Désinstaller, réinstaller, se reconnecter, « Restaurer l'historique »** avec la clé notée : les messages texte reviennent dans la discussion **après l'avoir rouverte** (le cache est relu à l'ouverture), dans le bon ordre, avec ceux reçus depuis la réinstallation. La sauvegarde automatique est de nouveau activée (la ligne le dit).
+- [ ] Les messages d'**avant la réinstallation** ne sont pas masqués par le filtre « avant l'arrivée » (`ea212c9`) une fois restaurés — le point le plus douteux.
+- [ ] Mauvaise clé → « passphrase invalide », rien n'est écrit.
+- [ ] **Après réinstallation, AVANT de restaurer** : activer avec une clé neuve affiche l'avertissement « une sauvegarde existe déjà… sera remplacée ». Annuler la laisse intacte.
 - [ ] Une seconde restauration ne duplique rien et n'écrase pas un message modifié depuis.
+- [ ] La sauvegarde ne rétrécit pas : après une restauration, « Sauvegarder maintenant » garde le même nombre de messages (ou plus).
+- [ ] Un message « supprimé pour tous » après la première sauvegarde ne revient pas à la restauration suivante.
+- [ ] Envoi automatique : app laissée 3 minutes au premier plan, puis mise en arrière-plan ; la date de la ligne avance (au plus une fois par 24 h).
 - [ ] Photos, vidéos, éphémères et « supprimé pour tous » ne reviennent pas (voulu).
-- [ ] « Supprimer » retire le fichier (la ligne repasse à « Aucune sauvegarde »).
-- [ ] Thème sombre : tuiles, dialogue et message d'erreur lisibles.
+- [ ] « Désactiver » oublie la clé (la ligne repasse à « Activer ») mais la sauvegarde reste restaurable ; « Supprimer » retire le fichier.
+- [ ] Thème sombre : tuiles, dialogue de la clé et messages d'erreur lisibles ; clé lisible en police 130 %.
 
 ---
 

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/errors/error_handler.dart';
@@ -11,7 +12,8 @@ import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../core/theme/design_kit.dart';
 import '../../../../l10n/app_localizations.dart';
 
-/// Sauvegarde et restauration manuelles du texte des discussions chiffrées.
+/// Sauvegarde automatique et restauration de l'historique des discussions
+/// chiffrées.
 ///
 /// Réservé aux comptes passés à MLS : leurs clés ne quittent pas le téléphone
 /// (`mls_chemin_base.dart`), donc ce que le cache local a gardé en clair est
@@ -31,23 +33,29 @@ class _HistoriqueBackupSectionState
 
   /// `null` après lecture = aucune sauvegarde sur Storage.
   InfosHistorique? _infos;
-  bool _infosLues = false;
+  bool _actif = false;
+  bool _lu = false;
   bool _occupe = false;
 
   @override
   void initState() {
     super.initState();
-    unawaited(_lireInfos());
+    unawaited(_lireEtat());
   }
 
-  Future<void> _lireInfos() async {
+  HistoriqueBackupService get _service =>
+      ref.read(historiqueBackupServiceProvider);
+
+  Future<void> _lireEtat() async {
     final uid = ref.read(uidFirebaseProvider);
     if (uid == null) return;
-    final infos = await ref.read(historiqueBackupServiceProvider).infos(uid);
+    final actif = await _service.estActive(uid);
+    final infos = await _service.infos(uid);
     if (!mounted) return;
     setState(() {
+      _actif = actif;
       _infos = infos;
-      _infosLues = true;
+      _lu = true;
     });
   }
 
@@ -65,59 +73,17 @@ class _HistoriqueBackupSectionState
     ErrorHandler.instance.handleException(e),
   );
 
-  Future<String?> _demanderPassphrase({
-    required String texte,
-    required bool confirmer,
-  }) => showDialog<String>(
-    context: context,
-    builder: (_) => _DialoguePassphrase(texte: texte, confirmer: confirmer),
-  );
-
-  Future<void> _sauvegarder() async {
+  /// Exécute [action] avec le verrou « occupé », et traduit les échecs connus.
+  Future<void> _faire(Future<void> Function(String uid) action) async {
     final uid = ref.read(uidFirebaseProvider);
     if (uid == null || _occupe) return;
-    final passphrase = await _demanderPassphrase(
-      texte: l10n.historyBackupDialogHint,
-      confirmer: true,
-    );
-    if (passphrase == null) return;
-
     setState(() => _occupe = true);
     try {
-      final r = await ref
-          .read(historiqueBackupServiceProvider)
-          .sauvegarder(uid, passphrase);
-      final fait = l10n.historyBackupDone(r.messages);
-      _message(r.tronque ? '$fait\n${l10n.historyBackupTruncated}' : fait);
-      await _lireInfos();
+      await action(uid);
     } on RienASauvegarderException {
       _message(l10n.historyBackupNothing, erreur: true);
-    } catch (e) {
-      _message(_echec(e), erreur: true);
-    } finally {
-      if (mounted) setState(() => _occupe = false);
-    }
-  }
-
-  Future<void> _restaurer() async {
-    final uid = ref.read(uidFirebaseProvider);
-    if (uid == null || _occupe) return;
-    final passphrase = await _demanderPassphrase(
-      texte: l10n.historyRestoreHint,
-      confirmer: false,
-    );
-    if (passphrase == null) return;
-
-    setState(() => _occupe = true);
-    try {
-      final ajoutes = await ref
-          .read(historiqueBackupServiceProvider)
-          .restaurer(uid, passphrase);
-      _message(
-        ajoutes == 0
-            ? l10n.historyRestoreNothingNew
-            : l10n.historyRestoreDone(ajoutes),
-      );
+    } on SauvegardeIllisibleException {
+      _message(l10n.historyUnreadable, erreur: true);
     } on PassphraseException {
       _message(l10n.invalidPassphrase, erreur: true);
     } on BackupNotFoundException {
@@ -126,16 +92,104 @@ class _HistoriqueBackupSectionState
       _message(_echec(e), erreur: true);
     } finally {
       if (mounted) setState(() => _occupe = false);
+      unawaited(_lireEtat());
     }
   }
 
+  String _resume(ResultatSauvegardeHistorique r) {
+    final fait = l10n.historyBackupDone(r.messages);
+    return r.tronque ? '$fait\n${l10n.historyBackupTruncated}' : fait;
+  }
+
+  Future<void> _activer() async {
+    // Une sauvegarde existe déjà : une clé neuve la remplacerait. Le dire AVANT
+    // de montrer la clé, pour qu'annuler reste possible et gratuit.
+    if (_infos != null) {
+      final continuer = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          content: Text(l10n.historyOverwriteWarning),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(l10n.cancel),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              style: TextButton.styleFrom(foregroundColor: ctx.errorColor),
+              child: Text(l10n.historyKeyActivate),
+            ),
+          ],
+        ),
+      );
+      if (continuer != true || !mounted) return;
+    }
+
+    final cle = HistoriqueBackupService.genererCle();
+    final note = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => _DialogueCle(cle: cle),
+    );
+    if (note != true) return;
+
+    final ecraser = _infos != null;
+    await _faire((uid) async {
+      await _service.activer(uid, cle: cle);
+      // Activée même si l'envoi échoue (hors ligne) : le déclencheur
+      // automatique reprendra.
+      final r = await _service.sauvegarderMaintenant(uid, ecraser: ecraser);
+      _message(_resume(r));
+    });
+  }
+
+  Future<void> _sauvegarderMaintenant() => _faire((uid) async {
+    final r = await _service.sauvegarderMaintenant(uid);
+    _message(_resume(r));
+  });
+
+  Future<void> _restaurer() async {
+    final cle = await showDialog<String>(
+      context: context,
+      builder: (_) => _DialogueCleSaisie(texte: l10n.historyRestoreHint),
+    );
+    if (cle == null) return;
+    await _faire((uid) async {
+      final ajoutes = await _service.restaurer(uid, cle);
+      // La clé qui vient d'ouvrir la sauvegarde sert aux suivantes : sans quoi
+      // le téléphone restauré ne sauvegarderait plus rien.
+      await _service.activer(uid, cle: cle);
+      _message(
+        ajoutes == 0
+            ? l10n.historyRestoreNothingNew
+            : l10n.historyRestoreAutoOn(ajoutes),
+      );
+    });
+  }
+
+  Future<void> _desactiver() async {
+    final confirme = await _confirmer(
+      l10n.historyDisableConfirm,
+      l10n.historyDisableAction,
+    );
+    if (!confirme) return;
+    await _faire((uid) => _service.desactiver(uid));
+  }
+
   Future<void> _supprimer() async {
-    final uid = ref.read(uidFirebaseProvider);
-    if (uid == null || _occupe) return;
-    final confirme = await showDialog<bool>(
+    final confirme = await _confirmer(l10n.historyDeleteConfirm, l10n.delete);
+    if (!confirme) return;
+    await _faire((uid) async {
+      await _service.supprimer(uid);
+      _message(l10n.historyDeleteDone);
+    });
+  }
+
+  Future<bool> _confirmer(String texte, String libelle) async {
+    final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        content: Text(l10n.historyDeleteConfirm),
+        content: Text(texte),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -144,36 +198,30 @@ class _HistoriqueBackupSectionState
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: TextButton.styleFrom(foregroundColor: ctx.errorColor),
-            child: Text(l10n.delete),
+            child: Text(libelle),
           ),
         ],
       ),
     );
-    if (confirme != true) return;
-
-    setState(() => _occupe = true);
-    try {
-      await ref.read(historiqueBackupServiceProvider).supprimer(uid);
-      _message(l10n.historyDeleteDone);
-      await _lireInfos();
-    } catch (e) {
-      _message(_echec(e), erreur: true);
-    } finally {
-      if (mounted) setState(() => _occupe = false);
-    }
+    return ok == true && mounted;
   }
 
   String _dateCourte(DateTime d) =>
       '${d.day}/${d.month}/${d.year} ${d.hour}:${d.minute.toString().padLeft(2, '0')}';
 
+  String? get _sousTitre {
+    if (!_lu) return null;
+    if (!_actif) return l10n.historyBackupNone;
+    final creeLe = _infos?.creeLe;
+    if (creeLe == null) return l10n.historyAutoOn;
+    return l10n.historyAutoOnLast(
+      _dateCourte(creeLe),
+      _infos?.messages ?? 0,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final infos = _infos;
-    final creeLe = infos?.creeLe;
-    final dernier = creeLe == null
-        ? l10n.historyBackupNone
-        : l10n.historyBackupLast(_dateCourte(creeLe), infos?.messages ?? 0);
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -188,18 +236,36 @@ class _HistoriqueBackupSectionState
         else
           DesignSettingsCard(
             children: [
-              DesignSettingsTile(
-                icon: const Icon(Icons.cloud_upload_outlined),
-                title: l10n.historyBackupAction,
-                subtitle: _infosLues ? dernier : null,
-                onTap: _sauvegarder,
-              ),
+              if (_actif) ...[
+                DesignSettingsTile(
+                  icon: const Icon(Icons.cloud_done_outlined),
+                  title: l10n.historyAutoTitle,
+                  subtitle: _sousTitre,
+                ),
+                DesignSettingsTile(
+                  icon: const Icon(Icons.cloud_upload_outlined),
+                  title: l10n.historyBackupNowAction,
+                  onTap: _sauvegarderMaintenant,
+                ),
+              ] else
+                DesignSettingsTile(
+                  icon: const Icon(Icons.cloud_upload_outlined),
+                  title: l10n.historyBackupAction,
+                  subtitle: _sousTitre,
+                  onTap: _lu ? _activer : null,
+                ),
               DesignSettingsTile(
                 icon: const Icon(Icons.cloud_download_outlined),
                 title: l10n.historyRestoreAction,
                 onTap: _restaurer,
               ),
-              if (infos != null)
+              if (_actif)
+                DesignSettingsTile(
+                  icon: const Icon(Icons.cloud_off_outlined),
+                  title: l10n.historyDisableAction,
+                  onTap: _desactiver,
+                ),
+              if (_infos != null)
                 DesignSettingsTile(
                   icon: const Icon(Icons.delete_outline),
                   title: l10n.delete,
@@ -214,43 +280,117 @@ class _HistoriqueBackupSectionState
   }
 }
 
-/// Saisie de passphrase. Les contrôleurs vivent dans l'état du dialogue : les
-/// libérer depuis l'appelant, pendant l'animation de fermeture, les ferait
-/// utiliser après `dispose`.
-class _DialoguePassphrase extends StatefulWidget {
-  final String texte;
-  final bool confirmer;
-
-  const _DialoguePassphrase({required this.texte, required this.confirmer});
+/// Montre la clé de récupération **une seule fois**. On ne la quitte qu'en
+/// affirmant l'avoir notée : fermer à côté la perdrait pour de bon.
+class _DialogueCle extends StatefulWidget {
+  final String cle;
+  const _DialogueCle({required this.cle});
 
   @override
-  State<_DialoguePassphrase> createState() => _DialoguePassphraseState();
+  State<_DialogueCle> createState() => _DialogueCleState();
 }
 
-class _DialoguePassphraseState extends State<_DialoguePassphrase> {
+class _DialogueCleState extends State<_DialogueCle> {
+  bool _note = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return AlertDialog(
+      title: Text(l10n.historyKeyTitle),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(l10n.historyKeyBody),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: SelectableText(
+                      widget.cle,
+                      style: const TextStyle(
+                        fontFamily: 'monospace',
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.copy),
+                    onPressed: () async {
+                      await Clipboard.setData(ClipboardData(text: widget.cle));
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(l10n.passphraseCopied)),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+            CheckboxListTile(
+              contentPadding: EdgeInsets.zero,
+              controlAffinity: ListTileControlAffinity.leading,
+              value: _note,
+              onChanged: (v) => setState(() => _note = v ?? false),
+              title: Text(l10n.historyKeySaved),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(false),
+          child: Text(l10n.cancel),
+        ),
+        TextButton(
+          onPressed: _note ? () => Navigator.of(context).pop(true) : null,
+          child: Text(l10n.historyKeyActivate),
+        ),
+      ],
+    );
+  }
+}
+
+/// Saisie de la clé de récupération. Le contrôleur vit dans l'état du
+/// dialogue : le libérer depuis l'appelant, pendant l'animation de fermeture,
+/// le ferait utiliser après `dispose`.
+class _DialogueCleSaisie extends StatefulWidget {
+  final String texte;
+  const _DialogueCleSaisie({required this.texte});
+
+  @override
+  State<_DialogueCleSaisie> createState() => _DialogueCleSaisieState();
+}
+
+class _DialogueCleSaisieState extends State<_DialogueCleSaisie> {
   final _saisie = TextEditingController();
-  final _confirmation = TextEditingController();
-  bool _visible = false;
   String? _erreur;
 
   @override
   void dispose() {
     _saisie.dispose();
-    _confirmation.dispose();
     super.dispose();
   }
 
   void _valider() {
-    final l10n = AppLocalizations.of(context)!;
-    if (_saisie.text.length < 8) {
-      setState(() => _erreur = l10n.passphraseMinLength);
+    // Espaces et casse ne font pas partie de la clé : on la recopie à la main.
+    final cle = _saisie.text.trim().toLowerCase().replaceAll(RegExp(r'\s+'), '-');
+    if (cle.length < 8) {
+      setState(
+        () => _erreur = AppLocalizations.of(context)!.passphraseMinLength,
+      );
       return;
     }
-    if (widget.confirmer && _saisie.text != _confirmation.text) {
-      setState(() => _erreur = 'Les passphrases ne correspondent pas');
-      return;
-    }
-    Navigator.of(context).pop(_saisie.text);
+    Navigator.of(context).pop(cle);
   }
 
   @override
@@ -266,34 +406,15 @@ class _DialoguePassphraseState extends State<_DialoguePassphrase> {
             const SizedBox(height: 16),
             TextField(
               controller: _saisie,
-              obscureText: !_visible,
               autofocus: true,
+              autocorrect: false,
+              enableSuggestions: false,
               decoration: InputDecoration(
                 labelText: l10n.passphrase,
                 border: const OutlineInputBorder(),
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    _visible ? Icons.visibility_off : Icons.visibility,
-                  ),
-                  onPressed: () => setState(() => _visible = !_visible),
-                ),
+                errorText: _erreur,
               ),
             ),
-            if (widget.confirmer) ...[
-              const SizedBox(height: 12),
-              TextField(
-                controller: _confirmation,
-                obscureText: !_visible,
-                decoration: InputDecoration(
-                  labelText: l10n.confirmPassphraseLabel,
-                  border: const OutlineInputBorder(),
-                ),
-              ),
-            ],
-            if (_erreur != null) ...[
-              const SizedBox(height: 8),
-              Text(_erreur!, style: TextStyle(color: context.errorColor)),
-            ],
           ],
         ),
       ),

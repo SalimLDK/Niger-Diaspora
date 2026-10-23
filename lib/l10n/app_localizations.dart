@@ -23153,13 +23153,13 @@ abstract class AppLocalizations {
   /// No description provided for @historyBackupBody.
   ///
   /// In fr, this message translates to:
-  /// **'Sauvegardez le texte de vos discussions chiffrées, protégé par une passphrase. Après une réinstallation, vous pourrez le restaurer ici. Les photos, vidéos, messages éphémères et messages supprimés ne sont pas inclus.'**
+  /// **'Sans sauvegarde, l\'historique de vos discussions chiffrées ne survit pas à une réinstallation. Activez la sauvegarde automatique : le texte est envoyé chiffré avec une clé de récupération que vous seul détenez. Photos, vidéos, messages éphémères et supprimés ne sont pas inclus.'**
   String get historyBackupBody;
 
   /// No description provided for @historyBackupAction.
   ///
   /// In fr, this message translates to:
-  /// **'Sauvegarder l\'historique'**
+  /// **'Activer la sauvegarde automatique'**
   String get historyBackupAction;
 
   /// No description provided for @historyRestoreAction.
@@ -23179,12 +23179,6 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Dernière sauvegarde : {date} · {count} messages'**
   String historyBackupLast(String date, int count);
-
-  /// No description provided for @historyBackupDialogHint.
-  ///
-  /// In fr, this message translates to:
-  /// **'Choisissez une passphrase pour cette sauvegarde. Elle est distincte de celle des clés, et sans elle l\'historique est irrécupérable.'**
-  String get historyBackupDialogHint;
 
   /// No description provided for @historyBackupDone.
   ///
@@ -23207,7 +23201,7 @@ abstract class AppLocalizations {
   /// No description provided for @historyRestoreHint.
   ///
   /// In fr, this message translates to:
-  /// **'Entrez la passphrase de la sauvegarde de l\'historique.'**
+  /// **'Entrez la clé de récupération de l\'historique.'**
   String get historyRestoreHint;
 
   /// No description provided for @historyRestoreDone.
@@ -23221,6 +23215,84 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Rien de nouveau à restaurer.'**
   String get historyRestoreNothingNew;
+
+  /// No description provided for @historyAutoTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sauvegarde automatique'**
+  String get historyAutoTitle;
+
+  /// No description provided for @historyAutoOn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Activée'**
+  String get historyAutoOn;
+
+  /// No description provided for @historyAutoOnLast.
+  ///
+  /// In fr, this message translates to:
+  /// **'Activée · dernière : {date} · {count} messages'**
+  String historyAutoOnLast(String date, int count);
+
+  /// No description provided for @historyBackupNowAction.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sauvegarder maintenant'**
+  String get historyBackupNowAction;
+
+  /// No description provided for @historyKeyTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre clé de récupération'**
+  String get historyKeyTitle;
+
+  /// No description provided for @historyKeyBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Notez ces mots et gardez-les en lieu sûr. Ils ne seront plus jamais affichés. Sans cette clé, l\'historique est irrécupérable après une réinstallation : personne, pas même nous, ne peut la retrouver.'**
+  String get historyKeyBody;
+
+  /// No description provided for @historyKeySaved.
+  ///
+  /// In fr, this message translates to:
+  /// **'J\'ai noté cette clé'**
+  String get historyKeySaved;
+
+  /// No description provided for @historyKeyActivate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Activer'**
+  String get historyKeyActivate;
+
+  /// No description provided for @historyOverwriteWarning.
+  ///
+  /// In fr, this message translates to:
+  /// **'Une sauvegarde existe déjà pour ce compte. Activer avec une nouvelle clé la remplacera et son contenu sera perdu. Pour le garder, annulez et restaurez-la d\'abord avec son ancienne clé.'**
+  String get historyOverwriteWarning;
+
+  /// No description provided for @historyDisableAction.
+  ///
+  /// In fr, this message translates to:
+  /// **'Désactiver la sauvegarde automatique'**
+  String get historyDisableAction;
+
+  /// No description provided for @historyDisableConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Désactiver la sauvegarde automatique ? La clé enregistrée sur ce téléphone sera oubliée. La sauvegarde déjà envoyée reste récupérable avec la clé que vous avez notée.'**
+  String get historyDisableConfirm;
+
+  /// No description provided for @historyUnreadable.
+  ///
+  /// In fr, this message translates to:
+  /// **'La sauvegarde existante ne s\'ouvre pas avec la clé de ce téléphone. Rien n\'a été modifié.'**
+  String get historyUnreadable;
+
+  /// No description provided for @historyRestoreAutoOn.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count} messages restaurés. La sauvegarde automatique reste activée avec cette clé.'**
+  String historyRestoreAutoOn(int count);
 
   /// No description provided for @historyDeleteConfirm.
   ///
