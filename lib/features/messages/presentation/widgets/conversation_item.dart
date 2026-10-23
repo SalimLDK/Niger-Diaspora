@@ -17,6 +17,7 @@ import '../../../profile/presentation/widgets/online_status_indicator.dart';
 import '../../../settings/presentation/providers/blocked_users_provider.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import '../../../../core/theme/design_kit.dart';
+import 'full_screen_image_viewer.dart';
 import 'messages_skeleton.dart';
 import '../utils/accuse_de_groupe.dart';
 
@@ -273,12 +274,29 @@ class _ConversationItemState extends ConsumerState<ConversationItem>
               if (identiteEnAttente)
                 const SkeletonBlock(width: 50, height: 50, radius: 17)
               else
-                _buildAvatar(
-                  context,
-                  photoUrl,
-                  displayName,
-                  otherUserId,
-                  isVerified: otherProfile?.isVerified ?? false,
+                GestureDetector(
+                  // Un tap sur la photo l'ouvre ; ailleurs sur la ligne, il
+                  // ouvre la discussion. Sans photo (ou en mode sélection),
+                  // le tap retombe sur la ligne.
+                  behavior: HitTestBehavior.opaque,
+                  onTap:
+                      !widget.isSelectionMode &&
+                              photoUrl != null &&
+                              photoUrl.trim().isNotEmpty
+                          ? () => FullScreenImageViewer.show(
+                            context,
+                            imageUrl: photoUrl!,
+                            senderName: displayName,
+                            showActions: false,
+                          )
+                          : null,
+                  child: _buildAvatar(
+                    context,
+                    photoUrl,
+                    displayName,
+                    otherUserId,
+                    isVerified: otherProfile?.isVerified ?? false,
+                  ),
                 ),
               const SizedBox(width: 14),
               // Contenu

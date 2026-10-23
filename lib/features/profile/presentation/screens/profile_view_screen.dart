@@ -740,7 +740,10 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                       children: [
                         GestureDetector(
                           onTap: () {
-                            if (profile.photoUrl != null) {
+                            // `avatar_url` peut valoir '' (photo retirée) : non
+                            // nul, donc l'ancien test ouvrait une visionneuse
+                            // noire « image indisponible ».
+                            if (profile.photoUrl?.trim().isNotEmpty == true) {
                               unawaited(HapticFeedback.mediumImpact());
                               FullScreenImageViewer.show(
                                 context,
@@ -766,7 +769,7 @@ class _ProfileViewScreenState extends ConsumerState<ProfileViewScreen>
                               ),
                               clipBehavior: Clip.antiAlias,
                               child:
-                                  profile.photoUrl != null
+                                  profile.photoUrl?.trim().isNotEmpty == true
                                       // `contain` : une photo d'avant le
                                       // recadrage au choix n'est pas carrée,
                                       // autant la montrer entière (voir

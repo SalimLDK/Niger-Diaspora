@@ -12,6 +12,7 @@ import '../../../../features/messages/presentation/providers/media_gallery_provi
     show groupConversationIdProvider;
 import '../../../../core/providers/connectivity_provider.dart';
 import '../../../../core/theme/adaptive_colors.dart';
+import '../../../messages/presentation/widgets/full_screen_image_viewer.dart';
 import '../../domain/entities/group_entity.dart';
 import '../providers/group_provider.dart';
 import '../widgets/invite_members_sheet.dart';
@@ -440,7 +441,18 @@ class _MemberListItem extends ConsumerWidget {
             onTap: isOfficialCreator ? null : onTap,
             onLongPress:
                 canModerate ? () => _showMemberOptions(context, ref) : null,
-            leading: Container(
+            leading: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap:
+                  photoUrl != null && photoUrl.trim().isNotEmpty
+                      ? () => FullScreenImageViewer.show(
+                        context,
+                        imageUrl: photoUrl,
+                        senderName: displayName,
+                        showActions: false,
+                      )
+                      : onTap,
+              child: Container(
               width: 44,
               height: 44,
               decoration: BoxDecoration(
@@ -467,6 +479,7 @@ class _MemberListItem extends ConsumerWidget {
                         ),
                       )
                       : Icon(Icons.person, color: context.adaptivePrimaryColor),
+              ),
             ),
             title: Row(
               children: [
