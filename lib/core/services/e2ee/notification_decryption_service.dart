@@ -3,8 +3,10 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../cache_service.dart';
 import 'message_crypto_service.dart';
 import 'messaging_e2ee_service.dart';
+import 'undecryptable_placeholders.dart';
 
 /// Provider pour le service de déchiffrement des notifications
 final notificationDecryptionServiceProvider =
@@ -16,10 +18,6 @@ final notificationDecryptionServiceProvider =
     cryptoService: cryptoService,
   );
 });
-
-/// Marqueur interne de MessageCryptoService.decrypt() quand aucune session
-/// Signal locale ne permet de déchiffrer (pas une vraie donnée de message).
-const _kE2EESessionRequise = '[🔐 E2EE — session requise]';
 
 /// Service de déchiffrement des notifications E2EE
 ///
@@ -33,11 +31,16 @@ class NotificationDecryptionService {
   final MessagingE2EEService _e2eeService;
   final MessageCryptoService _cryptoService;
 
+  final Future<void> Function(String messageId, String contenu) _conserver;
+
   NotificationDecryptionService({
     required MessagingE2EEService e2eeService,
     required MessageCryptoService cryptoService,
+    Future<void> Function(String messageId, String contenu)? conserver,
   })  : _e2eeService = e2eeService,
-        _cryptoService = cryptoService;
+        _cryptoService = cryptoService,
+        _conserver =
+            conserver ?? CacheService.instance.cacheContenuDechiffre;
 
   /// Tente de déchiffrer le preview d'un message pour une notification
   ///
@@ -48,10 +51,15 @@ class NotificationDecryptionService {
   /// [messageType] - Le type de message (text, image, video, etc.)
   ///
   /// Retourne le texte déchiffré ou un fallback générique si le déchiffrement échoue
+  ///
+  /// [messageId] - L'ID du message : déchiffrer ici **consomme** la clé de
+  /// message (ratchet à sens unique). Le texte clair est donc gardé sous cet id
+  /// pour que le fil le retrouve, sans quoi il afficherait « indisponible ».
   Future<String> decryptPreview({
     required String senderId,
     required Map<String, dynamic> cryptoPayload,
     required String messageType,
+    String? messageId,
   }) async {
     if (cryptoPayload.isEmpty) {
       return getFallbackPreview(messageType);
@@ -69,7 +77,14 @@ class NotificationDecryptionService {
         senderId: senderId,
       );
 
-      if (decrypted.isNotEmpty && decrypted != _kE2EESessionRequise) {
+      if (decrypted.isNotEmpty && !isUndecryptableContent(decrypted)) {
+        if (messageId != null) {
+          try {
+            await _conserver(messageId, decrypted);
+          } catch (e) {
+            debugPrint('NotificationDecryption: texte clair non conservé: $e');
+          }
+        }
         // Limiter la longueur pour la notification
         if (decrypted.length > 100) {
           return '${decrypted.substring(0, 100)}...';

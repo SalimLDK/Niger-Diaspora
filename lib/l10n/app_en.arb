@@ -131,14 +131,20 @@
   "devicesRegisteredCount": "Registered: {count} of {max}",
   "@devicesRegisteredCount": {
     "placeholders": {
-      "count": { "type": "int" },
-      "max": { "type": "int" }
+      "count": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
     }
   },
   "devicesLimitNotice": "Past {max}, a new device will not be able to register its keys until another one is deleted.",
   "@devicesLimitNotice": {
     "placeholders": {
-      "max": { "type": "int" }
+      "max": {
+        "type": "int"
+      }
     }
   },
   "deviceLimitReached": "Limit reached",
@@ -561,7 +567,13 @@
   },
   "audioRoomSeeAllListeners": "See all",
   "audioRoomHandsRaisedCount": "{count} hands raised",
-  "@audioRoomHandsRaisedCount": {"placeholders": {"count": {"type": "int"}}},
+  "@audioRoomHandsRaisedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "audioRoomElapsedMinutes": "{minutes} MIN",
   "@audioRoomElapsedMinutes": {
     "placeholders": {
@@ -990,19 +1002,25 @@
   "minutesAgo": "{count, plural, =1{1 minute ago} other{{count} minutes ago}}",
   "@minutesAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "hoursAgo": "{count, plural, =1{1 hour ago} other{{count} hours ago}}",
   "@hoursAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "daysAgo": "{count, plural, =1{1 day ago} other{{count} days ago}}",
   "@daysAgo": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "weeksAgo": "{count} week(s) ago",
@@ -1155,14 +1173,18 @@
   "accountDeletionScheduled": "Account deactivated. Permanent deletion on {date}. Sign back in before then to cancel.",
   "@accountDeletionScheduled": {
     "placeholders": {
-      "date": { "type": "String" }
+      "date": {
+        "type": "String"
+      }
     }
   },
   "accountDeletionPendingTitle": "Account deletion scheduled",
   "accountDeletionPendingBody": "Your account is deactivated and will be permanently deleted on {date}.\n\nYou can cancel the deletion until then: your profile and posts will become visible again.",
   "@accountDeletionPendingBody": {
     "placeholders": {
-      "date": { "type": "String" }
+      "date": {
+        "type": "String"
+      }
     }
   },
   "accountDeletionInProgressTitle": "Deletion in progress",
@@ -2411,7 +2433,13 @@
   "requestRejected": "Request rejected",
   "accessDenied": "Access Denied",
   "errorWithDetails": "Error: {error}",
-  "@errorWithDetails": {"placeholders": {"error": {"type": "String"}}},
+  "@errorWithDetails": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "deleteConversationWarning": "Warning: The other person can still send you messages. The conversation will reappear if you receive a new message.",
   "deleteAndBlock": "Delete and block",
   "messageWillBeDeleted": "Message will be deleted",
@@ -2478,20 +2506,26 @@
   "minTicketPrice": "Minimum ticket price is {price} XOF",
   "@minTicketPrice": {
     "placeholders": {
-      "price": {"type": "int"}
+      "price": {
+        "type": "int"
+      }
     }
   },
   "maxTicketPrice": "Maximum ticket price is {price} XOF",
   "@maxTicketPrice": {
     "placeholders": {
-      "price": {"type": "int"}
+      "price": {
+        "type": "int"
+      }
     }
   },
   "defaultUserName": "User",
   "errorCreating": "Error creating: {error}",
   "@errorCreating": {
     "placeholders": {
-      "error": {"type": "String"}
+      "error": {
+        "type": "String"
+      }
     }
   },
   "roomNotFound": "Room not found",
@@ -2500,26 +2534,34 @@
   "errorConnecting": "Connection error: {error}",
   "@errorConnecting": {
     "placeholders": {
-      "error": {"type": "String"}
+      "error": {
+        "type": "String"
+      }
     }
   },
   "unauthorizedAccess": "Unauthorized access",
   "tomorrowAt": "Tomorrow at {time}",
   "@tomorrowAt": {
     "placeholders": {
-      "time": {"type": "String"}
+      "time": {
+        "type": "String"
+      }
     }
   },
   "forBeneficiary": "For: {beneficiary}",
   "@forBeneficiary": {
     "placeholders": {
-      "beneficiary": {"type": "String"}
+      "beneficiary": {
+        "type": "String"
+      }
     }
   },
   "goalAmount": "Goal: {amount}",
   "@goalAmount": {
     "placeholders": {
-      "amount": {"type": "String"}
+      "amount": {
+        "type": "String"
+      }
     }
   },
   "contribute": "Contribute",
@@ -2539,21 +2581,27 @@
   "userMuted": "{userName} has been muted",
   "@userMuted": {
     "placeholders": {
-      "userName": {"type": "String"}
+      "userName": {
+        "type": "String"
+      }
     }
   },
   "kickFromRoom": "Kick from room",
   "userKicked": "{userName} has been kicked",
   "@userKicked": {
     "placeholders": {
-      "userName": {"type": "String"}
+      "userName": {
+        "type": "String"
+      }
     }
   },
   "blockFromRoom": "Block from this room",
   "userBlockedFromRoom": "{userName} has been blocked",
   "@userBlockedFromRoom": {
     "placeholders": {
-      "userName": {"type": "String"}
+      "userName": {
+        "type": "String"
+      }
     }
   },
   "videoEnabled": "Video enabled",
@@ -2562,7 +2610,9 @@
   "errorLabel": "Error: {error}",
   "@errorLabel": {
     "placeholders": {
-      "error": {"type": "String"}
+      "error": {
+        "type": "String"
+      }
     }
   },
   "noEventFound": "No event found",
@@ -2600,7 +2650,9 @@
   "sleepTimerMinutes": "Timer: {minutes} minutes",
   "@sleepTimerMinutes": {
     "placeholders": {
-      "minutes": {"type": "int"}
+      "minutes": {
+        "type": "int"
+      }
     }
   },
   "myPodcasts": "My Podcasts",
@@ -2609,7 +2661,9 @@
   "viewAllEpisodes": "View all {count} episodes",
   "@viewAllEpisodes": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "newEpisode": "New episode",
@@ -2619,8 +2673,12 @@
   "episodeListenInfo": "{duration} • {count} listens",
   "@episodeListenInfo": {
     "placeholders": {
-      "duration": {"type": "String"},
-      "count": {"type": "int"}
+      "duration": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
     }
   },
   "viewPodcast": "View podcast",
@@ -2633,7 +2691,9 @@
   "deletePodcastWarning": "Are you sure you want to delete \"{title}\" and all its episodes? This action is irreversible.",
   "@deletePodcastWarning": {
     "placeholders": {
-      "title": {"type": "String"}
+      "title": {
+        "type": "String"
+      }
     }
   },
   "podcastDeleted": "Podcast deleted",
@@ -2677,7 +2737,9 @@
   "taxRate": "Tax ({rate}%)",
   "@taxRate": {
     "placeholders": {
-      "rate": {"type": "String"}
+      "rate": {
+        "type": "String"
+      }
     }
   },
   "myOrders": "My orders",
@@ -2687,7 +2749,9 @@
   "paymentError": "Payment error: {error}",
   "@paymentError": {
     "placeholders": {
-      "error": {"type": "String"}
+      "error": {
+        "type": "String"
+      }
     }
   },
   "deliveryConfirmed": "Delivery confirmed",
@@ -2697,7 +2761,9 @@
   "cartWithCount": "Cart ({count})",
   "@cartWithCount": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "emptyCart": "Empty",
@@ -2733,7 +2799,9 @@
   "viewAllReviews": "View all {count} reviews",
   "@viewAllReviews": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "mustBeLoggedInToReview": "You must be logged in to leave a review",
@@ -2822,7 +2890,6 @@
   "muteForever": "Always",
   "conversationMuted": "Conversation muted",
   "mutedUntil": "Muted until {time}",
-
   "emptyStateNoDataTitle": "No data",
   "emptyStateNoDataMessage": "There's nothing to display at the moment.",
   "emptyStateNoResultsTitle": "No results",
@@ -2859,7 +2926,6 @@
   "emptyStateErrorAction": "Retry",
   "emptyStateMaintenanceTitle": "Maintenance in progress",
   "emptyStateMaintenanceMessage": "The app is under maintenance. Please check back later.",
-
   "transferSelectRecipientFirst": "Please select a recipient",
   "transferSelectPaymentMethodFirst": "Please select a payment method",
   "transferInitiated": "Transfer initiated successfully",
@@ -2881,7 +2947,6 @@
   "selectAudioFile": "Please select an audio file",
   "episodePublished": "Episode published successfully",
   "downloadRemoved": "Download removed",
-
   "transactionStatusPending": "Pending",
   "transactionStatusDebiting": "Debiting",
   "transactionStatusProcessing": "Processing",
@@ -2891,7 +2956,6 @@
   "transactionStatusRefunding": "Refunding",
   "transactionStatusRefunded": "Refunded",
   "transactionStatusCancelled": "Cancelled",
-
   "businessCategoryRestaurant": "Restaurant",
   "businessCategoryGrocery": "Grocery",
   "businessCategoryBeauty": "Beauty",
@@ -2902,7 +2966,6 @@
   "businessCategoryTechnology": "Technology",
   "businessCategoryTravel": "Travel",
   "businessCategoryOther": "Other",
-
   "callAudio": "Audio call",
   "callVideo": "Video call",
   "callRinging": "Ringing",
@@ -2910,14 +2973,14 @@
   "callMissed": "Missed",
   "callDeclined": "Declined",
   "callFailed": "Failed",
-
   "errorWithMessage": "Error: {message}",
   "@errorWithMessage": {
     "placeholders": {
-      "message": {"type": "String"}
+      "message": {
+        "type": "String"
+      }
     }
   },
-
   "consentWelcome": "Welcome!",
   "consentAcceptConditions": "Before continuing, please accept our conditions.",
   "consentTermsAccept": "I accept the terms and conditions of the Diaspo Niger application.",
@@ -2925,7 +2988,6 @@
   "consentCodeOfConductAccept": "I commit to respecting the code of conduct and community rules.",
   "consentDataProtection": "Your data is protected and will never be shared without your consent.",
   "readDetails": "Read details →",
-
   "forgotPasswordTitle": "Forgot password?",
   "forgotPasswordDescription": "Enter your email address to receive a reset link.",
   "sendLink": "Send link",
@@ -2934,12 +2996,13 @@
   "resetLinkSentTo": "We sent a reset link to {email}",
   "@resetLinkSentTo": {
     "placeholders": {
-      "email": {"type": "String"}
+      "email": {
+        "type": "String"
+      }
     }
   },
   "checkSpamFolder": "Also check your spam folder if you can't find the email.",
   "resendLink": "Resend link",
-
   "enableNotifications": "Enable notifications",
   "notificationsMasterOnDesc": "You receive the app's notifications",
   "notificationsMasterOffDesc": "All notifications are turned off",
@@ -2949,10 +3012,8 @@
   "openSettings": "Open settings",
   "permissionBlocked": "Permission blocked",
   "typeYourReply": "Type your reply...",
-
   "openPlayStore": "Open Play Store",
   "understood": "Understood",
-
   "connectedElsewhere": "Connected elsewhere",
   "connectedElsewhereMessage": "Your account has been connected on another device. You have been logged out from this device for security.",
   "sessionClosedByAdmin": "Session closed",
@@ -2960,13 +3021,11 @@
   "accountSuspended": "Account suspended",
   "accountSuspendedMessage": "Your account has been suspended. Contact support to find out why.",
   "ok": "OK",
-
   "taxAutomatic": "Automatic",
   "taxExempt": "Tax exempt",
   "taxStandard": "Standard VAT (19%)",
   "taxReduced": "Reduced VAT (10%)",
   "taxCustom": "Custom",
-
   "views": "views",
   "reviews": "Reviews",
   "contactAction": "Contact",
@@ -2974,13 +3033,11 @@
   "viewAll": "View all",
   "modify": "Modify",
   "retryAction": "Retry",
-
   "tooltipFavorites": "Favorites",
   "tooltipForward": "Forward",
   "tooltipDelete": "Delete",
   "tooltipVoiceCall": "Voice call",
   "tooltipVideoCall": "Video call",
-
   "addCaption": "Add a caption...",
   "photosLabel": "Photos",
   "videosLabel": "Videos",
@@ -2990,21 +3047,16 @@
   "videoLabel": "Video",
   "positionLabel": "Position",
   "microphonePermissionRequired": "Microphone permission required",
-
   "cannotDeleteAfter1Hour": "Cannot delete message after 1 hour",
   "deleteForEveryoneFailed": "This message could not be deleted for everyone.",
   "sendAction": "Send",
-
   "forwardError": "Error forwarding message",
   "cannotStartCall": "Cannot start the call",
-
   "remindMeLater": "Remind me later",
   "in1Hour": "In 1 hour",
   "tomorrowMorning": "Tomorrow morning (9am)",
-
   "flipCamera": "Flip",
   "permissionRequired": "Permission required",
-
   "adminOverview": "Overview",
   "adminUsers": "Users",
   "adminBusinesses": "Businesses",
@@ -3039,19 +3091,35 @@
   "adminRevokeAccess": "Revoke admin access",
   "adminAccessDenied": "Access denied. Administrator account required.",
   "adminBack": "Back",
-
   "adminAllTab": "All ({count})",
-  "@adminAllTab": {"placeholders": {"count": {"type": "int"}}},
+  "@adminAllTab": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "adminPendingTab": "Pending ({count})",
-  "@adminPendingTab": {"placeholders": {"count": {"type": "int"}}},
+  "@adminPendingTab": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "adminBoostedTab": "Boosted ({count})",
-  "@adminBoostedTab": {"placeholders": {"count": {"type": "int"}}},
+  "@adminBoostedTab": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "adminVerify": "Verify",
   "adminRemoveVerification": "Remove verification",
   "adminBoost30Days": "Boost (30 days)",
   "adminRemoveBoost": "Remove boost",
   "adminConfirmDeletion": "Confirm deletion",
-
   "adminGroupPrivate": "Group made private",
   "adminGroupPublic": "Group made public",
   "makePublic": "Make public",
@@ -3060,7 +3128,6 @@
   "adminEmailHint": "user@example.com",
   "adminEmbassyCreated": "Embassy created successfully!",
   "adminConnectionError": "Error connecting to room",
-
   "adminSearchPlaceholder": "Search by name, reason, ID...",
   "adminAllActions": "All actions",
   "adminActionUsers": "Users",
@@ -3069,28 +3136,47 @@
   "adminActionReports": "Reports",
   "adminActionTransactions": "Transactions",
   "adminActionSettings": "Settings",
-
   "adminFeatureFlagsUpdated": "Feature flags updated",
   "adminMaintenanceHint": "Ex: Application under maintenance...",
-
   "adminSignInWithGoogle": "Sign in with Google",
   "adminEmailField": "Email",
   "adminPasswordField": "Password",
   "adminLogin": "Login",
-
   "adminProductsTab": "Products ({count})",
-  "@adminProductsTab": {"placeholders": {"count": {"type": "int"}}},
+  "@adminProductsTab": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "adminOrdersTab": "Orders ({count})",
-  "@adminOrdersTab": {"placeholders": {"count": {"type": "int"}}},
+  "@adminOrdersTab": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "adminDisputesTab": "Disputes ({count})",
-  "@adminDisputesTab": {"placeholders": {"count": {"type": "int"}}},
+  "@adminDisputesTab": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "adminBuyer": "Buyer",
   "adminSeller": "Seller",
-  "adminRefund": "Refund",
-
+  "adminRefund": "Mark as refunded",
   "adminGroupsTab": "Groups ({count})",
-  "@adminGroupsTab": {"placeholders": {"count": {"type": "int"}}},
-
+  "@adminGroupsTab": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "adminSendTab": "Send",
   "adminHistoryTab": "History",
   "adminTitleLabel": "Title",
@@ -3099,21 +3185,36 @@
   "adminConfirmSend": "Confirm send",
   "adminSendingNotificationTo": "You are about to send a notification to:",
   "adminMessagePreview": "Message: {message}",
-  "@adminMessagePreview": {"placeholders": {"message": {"type": "String"}}},
-
+  "@adminMessagePreview": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
   "adminSearchReportsPlaceholder": "Search by name, reason, ID...",
   "adminViewTarget": "View {type}",
-  "@adminViewTarget": {"placeholders": {"type": {"type": "String"}}},
+  "@adminViewTarget": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
   "adminReject": "Reject",
   "adminProcess": "Process",
   "adminDeleteContent": "Delete content",
   "adminClearFilters": "Clear filters",
   "adminRejectReasonHint": "Ex: Report unfounded, content compliant...",
   "adminProcessNoteHint": "Ex: Warning sent, content modified...",
-
   "adminChangeToRole": "Change to {role}",
-  "@adminChangeToRole": {"placeholders": {"role": {"type": "String"}}},
-
+  "@adminChangeToRole": {
+    "placeholders": {
+      "role": {
+        "type": "String"
+      }
+    }
+  },
   "adminFeesTab": "Fees",
   "adminBoostsTab": "Boosts",
   "adminTaxesTab": "Taxes",
@@ -3151,40 +3252,92 @@
   "adminTicketPrices": "Ticket prices (XOF)",
   "adminTipAmounts": "Tip amounts (XOF)",
   "adminPriceHint": "Ex: 1, 2, 5, 10, 20",
-
-  "adminComplete": "Complete",
+  "adminComplete": "Mark as completed",
   "adminSearchUserPlaceholder": "Search for a user...",
   "adminLoadingText": "Loading...",
   "adminNoUserFound": "No user found",
   "adminUserActivity": "Activity of {name}",
-  "@adminUserActivity": {"placeholders": {"name": {"type": "String"}}},
+  "@adminUserActivity": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "adminNoActivity": "No activity recorded",
   "adminConfirmLogout": "Confirm logout",
   "adminDisconnect": "Disconnect",
-
   "adminReactivate": "Reactivate",
   "adminApprove": "Approve",
   "adminSuspend": "Suspend",
   "adminEmbassyApproved": "Embassy {name} approved",
-  "@adminEmbassyApproved": {"placeholders": {"name": {"type": "String"}}},
+  "@adminEmbassyApproved": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "adminEmbassyRejected": "Embassy {name} rejected",
-  "@adminEmbassyRejected": {"placeholders": {"name": {"type": "String"}}},
+  "@adminEmbassyRejected": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "adminEmbassySuspended": "Embassy {name} suspended",
-  "@adminEmbassySuspended": {"placeholders": {"name": {"type": "String"}}},
+  "@adminEmbassySuspended": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "adminEmbassyReactivated": "Embassy {name} reactivated",
-  "@adminEmbassyReactivated": {"placeholders": {"name": {"type": "String"}}},
+  "@adminEmbassyReactivated": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "adminRejectRequest": "Reject request",
   "adminRejectReason": "Reason for rejection",
-
   "adminExportInProgress": "Export of {type} in progress...",
-  "@adminExportInProgress": {"placeholders": {"type": {"type": "String"}}},
-
+  "@adminExportInProgress": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
   "audioRoomWarnHost": "Warn the host",
   "audioRoomTicketHelper": "Min: {min} {currency} - Max: {max} {currency}",
-  "@audioRoomTicketHelper": {"placeholders": {"min": {"type": "String"}, "max": {"type": "String"}, "currency": {"type": "String"}}},
+  "@audioRoomTicketHelper": {
+    "placeholders": {
+      "min": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      },
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
   "audioRoomGoalHelper": "Min: {min} XOF - Max: {max} XOF",
-  "@audioRoomGoalHelper": {"placeholders": {"min": {"type": "String"}, "max": {"type": "String"}}},
-
+  "@audioRoomGoalHelper": {
+    "placeholders": {
+      "min": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  },
   "heritageStories": "Stories",
   "heritageProverbs": "Proverbs",
   "heritageHistory": "History",
@@ -3193,11 +3346,9 @@
   "heritageCraft": "Craft",
   "heritageRecipes": "Recipes",
   "heritageMedicine": "Medicine",
-
   "boostType": "Type:",
   "boostDuration": "Duration:",
   "boostTotal": "Total:",
-
   "businessViews": "Views",
   "businessReviews": "Reviews",
   "businessContact": "Contact",
@@ -3210,8 +3361,13 @@
   "businessPostContentHint": "Describe your news...",
   "businessDeletePost": "Delete",
   "businessSeeAllReviews": "View {count} other reviews",
-  "@businessSeeAllReviews": {"placeholders": {"count": {"type": "int"}}},
-
+  "@businessSeeAllReviews": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "reviewMustBeLoggedIn": "You must be logged in to leave a review",
   "reviewDeleteTitle": "Delete review",
   "reviewDeleteConfirm": "Do you really want to delete this review? This action is irreversible.",
@@ -3226,7 +3382,6 @@
   "reviewTitleHint": "Ex: Excellent service",
   "reviewYourReview": "Your review",
   "reviewShareExperience": "Share your experience...",
-
   "businessSearchCountry": "Search for a country",
   "businessCityHint": "Ex: Paris, Niamey, New York...",
   "businessNewTitle": "New business",
@@ -3246,14 +3401,18 @@
   "businessServicesSection": "Services offered",
   "businessAddServiceHint": "Add a service",
   "businessCreateButton": "Create business",
-
   "callPermissionTitle": "Permission required",
   "callClose": "Close",
-
   "embassyRequestSubmitted": "Request submitted successfully!",
   "embassyNewRequest": "New request",
   "embassyReopenDate": "Expected reopening: {date}",
-  "@embassyReopenDate": {"placeholders": {"date": {"type": "String"}}},
+  "@embassyReopenDate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "embassyContact": "Contact",
   "embassyRequest": "Request",
   "embassyStaff": "Staff",
@@ -3269,9 +3428,14 @@
   "embassyCallAction": "Call",
   "embassyRoute": "Route",
   "embassyDetails": "Details",
-
   "eventImageSelectionError": "Error selecting images: {error}",
-  "@eventImageSelectionError": {"placeholders": {"error": {"type": "String"}}},
+  "@eventImageSelectionError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "eventSelectImages": "Select images",
   "eventPosterLimit": "Limit of 5 posters reached",
   "eventShareRecap": "Share recap",
@@ -3279,8 +3443,13 @@
   "eventAddPhotoMin": "Please add at least one photo",
   "eventSelectPhotos": "Select photos",
   "eventAddPhotos": "Add photos ({count}/10)",
-  "@eventAddPhotos": {"placeholders": {"count": {"type": "int"}}},
-
+  "@eventAddPhotos": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "friendSendMessage": "Send message",
   "friendRemoveTitle": "Remove friend",
   "friendRemoveAction": "Remove",
@@ -3290,7 +3459,6 @@
   "friendAccept": "Accept",
   "friendRequestCancelled": "Request cancelled",
   "friendCancelRequest": "Cancel request",
-
   "groupCreateTitle": "Create group",
   "groupEditTitle": "Edit group",
   "groupPromoteAdmin": "Promote to Admin",
@@ -3301,28 +3469,30 @@
   "groupApproveTooltip": "Approve",
   "groupFilterAll": "All",
   "groupFilterAllFeminine": "All",
-
   "shareWhatsApp": "WhatsApp",
   "shareFacebook": "Facebook",
   "shareX": "X",
   "shareMore": "More",
-
   "homeMessages": "Messages",
   "homeGroups": "Groups",
   "homeMarketplace": "Marketplace",
   "homeTransfers": "Transfers",
   "homeDirectory": "Directory",
-
   "mapEnable": "ENABLE",
   "mapTestTitle": "Simple Map Test",
-
   "marketplaceAddImageMin": "Add at least one image",
   "marketplaceCustomTaxRate": "Custom rate (%)",
   "marketplaceCustomTaxHint": "Ex: 15",
   "marketplacePriceTTC": "Price including tax",
   "marketplaceSubtotal": "Subtotal",
   "marketplaceTaxRate": "Tax ({rate}%)",
-  "@marketplaceTaxRate": {"placeholders": {"rate": {"type": "String"}}},
+  "@marketplaceTaxRate": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
   "marketplaceTitleLabel": "Title",
   "marketplaceTitleHint": "Ex: iPhone 13 Pro Max",
   "marketplaceDescriptionLabel": "Description",
@@ -3341,7 +3511,13 @@
   "marketplacePaymentSuccess": "Payment successful!",
   "marketplaceOrderUpdateError": "Error updating order",
   "marketplacePaymentError": "Payment error: {error}",
-  "@marketplacePaymentError": {"placeholders": {"error": {"type": "String"}}},
+  "@marketplacePaymentError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "marketplaceDeliveryConfirmed": "Delivery confirmed",
   "marketplaceMarkedAsShipped": "Order marked as shipped",
   "marketplaceTrackingNumber": "Tracking number",
@@ -3354,19 +3530,42 @@
   "marketplaceAddToCart": "Add to cart",
   "marketplaceDeleteProduct": "Delete product",
   "marketplaceConversationError": "Error creating conversation",
-
   "messageVideoPlayError": "Video playback error",
   "messageVideoSaved": "Video saved to gallery",
   "messageVideoSaveError": "Error saving video",
   "messageInfo": "Info",
   "messageBackgroundError": "Error selecting image: {error}",
-  "@messageBackgroundError": {"placeholders": {"error": {"type": "String"}}},
+  "@messageBackgroundError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "messageBackgroundApplyError": "Error applying: {error}",
-  "@messageBackgroundApplyError": {"placeholders": {"error": {"type": "String"}}},
+  "@messageBackgroundApplyError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "messagePhotosCount": "Photos ({count})",
-  "@messagePhotosCount": {"placeholders": {"count": {"type": "int"}}},
+  "@messagePhotosCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "messageFilesCount": "Files ({count})",
-  "@messageFilesCount": {"placeholders": {"count": {"type": "int"}}},
+  "@messageFilesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "messageLocationSearchHint": "Search for a place...",
   "messageLocationError": "Unable to get location",
   "messageSendThisPosition": "Send this location",
@@ -3377,20 +3576,55 @@
   "shareDownloadingMedia": "Preparing media...",
   "messageInfoTitle": "Message info",
   "messageSentAt": "Sent · {time}",
-  "@messageSentAt": {"placeholders": {"time": {"type": "String"}}},
+  "@messageSentAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "tabReadBy": "Read · {n}",
-  "@tabReadBy": {"placeholders": {"n": {"type": "int"}}},
+  "@tabReadBy": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "tabDeliveredTo": "Received · {n}",
-  "@tabDeliveredTo": {"placeholders": {"n": {"type": "int"}}},
+  "@tabDeliveredTo": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "tabReactions": "Reactions · {n}",
-  "@tabReactions": {"placeholders": {"n": {"type": "int"}}},
+  "@tabReactions": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
   "allReactions": "All",
   "noReactionsYet": "No reactions yet",
   "notReadYet": "No one has read this message yet",
   "notDeliveredYet": "Not delivered yet",
-  "@today": {"placeholders": {"time": {"type": "String"}}},
-  "@yesterday": {"placeholders": {"time": {"type": "String"}}},
-
+  "@today": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "@yesterday": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "documentPDF": "PDF",
   "documentDOC": "DOC",
   "documentXLS": "XLS",
@@ -3399,14 +3633,11 @@
   "documentTXT": "TXT",
   "documentCSV": "CSV",
   "documentJSON": "JSON",
-
   "notificationIn1Hour": "In 1 hour",
   "notificationTomorrowMorning": "Tomorrow morning (9am)",
   "notificationReminderScheduled": "Reminder scheduled",
-
   "paymentBankHint": "Ex: BCEAO, Ecobank...",
   "paymentIbanHint": "NEXX XXXX XXXX XXXX",
-
   "podcastTitleLabel": "Podcast title *",
   "podcastDescriptionLabel": "Description",
   "podcastCategoryLabel": "Category *",
@@ -3420,7 +3651,13 @@
   "podcastSleepTimerEnabled": "Stop at end of episode enabled",
   "podcastSleepTimerEnded": "Sleep timer ended",
   "podcastTimerMinutes": "Timer: {minutes} minutes",
-  "@podcastTimerMinutes": {"placeholders": {"minutes": {"type": "int"}}},
+  "@podcastTimerMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
   "podcastAddChapter": "Add chapter",
   "podcastChapterTitle": "Chapter title",
   "podcastMinutes": "Minutes",
@@ -3442,7 +3679,6 @@
   "podcastEpisodeDescriptionHint": "Episode description (optional)",
   "podcastPublish": "Publish",
   "podcastCreateNew": "Create a podcast",
-
   "profileSpecifyProfession": "Specify your profession",
   "profileSpecifyCountry": "Or enter your country",
   "profileRegion": "Region",
@@ -3450,7 +3686,13 @@
   "profileSpecifyOriginCity": "Specify your city of origin",
   "profilePhoneVerified": "Number verified successfully!",
   "profileCodeSent": "Code sent to {phone}",
-  "@profileCodeSent": {"placeholders": {"phone": {"type": "String"}}},
+  "@profileCodeSent": {
+    "placeholders": {
+      "phone": {
+        "type": "String"
+      }
+    }
+  },
   "profileConfigTitle": "Profile configuration",
   "profilePrevious": "Previous",
   "profileFullNameLabel": "Full name",
@@ -3487,11 +3729,9 @@
   "profileRequestAccepted": "Friend request accepted",
   "profileAcceptAction": "Accept",
   "profileQRScanned": "QR code scanned successfully",
-
   "reportMyReports": "My reports",
   "reportDescribeIssue": "Describe the issue...",
   "reportSendReport": "Send report",
-
   "settingsRenameDevice": "Rename device",
   "settingsDeviceName": "Device name",
   "settingsRenameAction": "Rename",
@@ -3510,7 +3750,6 @@
   "settingsBugDescriptionLabel": "Bug description",
   "settingsBugDescriptionHint": "Describe the issue you encountered...",
   "settingsCurrencySearchHint": "Search for a currency...",
-
   "transferFullNameLabel": "Full name *",
   "transferFullNameHint": "Ex: Amadou Boubacar",
   "transferPhoneLabel": "Phone number *",
@@ -3535,7 +3774,13 @@
   "transferAddRecipientTooltip": "Add a recipient",
   "transferEditRecipient": "Edit",
   "transferDeleteConfirm": "Delete {name}?",
-  "@transferDeleteConfirm": {"placeholders": {"name": {"type": "String"}}},
+  "@transferDeleteConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "transferAccountNumber": "Account number / IBAN *",
   "transferAccountHint": "XXXX XXXX XXXX XXXX",
   "transferCurrencyLabel": "Currency",
@@ -3543,7 +3788,13 @@
   "transferSelectRecipient": "Select a recipient",
   "transferTotal": "Total:",
   "transferDebitInProgress": "{provider} debit in progress...",
-  "@transferDebitInProgress": {"placeholders": {"provider": {"type": "String"}}},
+  "@transferDebitInProgress": {
+    "placeholders": {
+      "provider": {
+        "type": "String"
+      }
+    }
+  },
   "transferDetails": "Transfer details",
   "transferAmountSentLabel": "Amount sent",
   "transferCopied": "Copied to clipboard",
@@ -3569,26 +3820,28 @@
   "paymentDetailsTitle": "Payment details",
   "locationTitle": "Location",
   "mobileTransferInfo": "The transfer will be made via {service} to the recipient's phone number.",
-  "@mobileTransferInfo": {"placeholders": {"service": {"type": "String"}}},
+  "@mobileTransferInfo": {
+    "placeholders": {
+      "service": {
+        "type": "String"
+      }
+    }
+  },
   "cashPickupInfo": "The recipient can withdraw the money at a NITA service point with an ID.",
   "addRecipientButton": "Add recipient",
   "recipientModified": "Recipient modified successfully",
   "recipientAdded": "Recipient added successfully",
-
   "supportEmailTitle": "Email",
   "supportLiveChat": "Live chat",
   "supportAvailable247": "Available 24/7",
   "supportChatUnavailable": "Chat unavailable at the moment",
   "supportPhone": "Phone",
-
   "imagePickerCamera": "Camera",
   "imagePickerGallery": "Gallery",
-
   "notificationEnableDescription": "Receive alerts when you have new messages, incoming calls or important activities.\n\nYou can change this setting at any time.",
   "notificationDisabledDescription": "Notifications are disabled. You won't receive alerts for new messages and calls.\n\nTo enable them, go to the app settings.",
   "notificationBlockedDescription": "You have blocked notifications for this app.\n\nTo receive notifications for new messages and calls, you need to enable them manually in system settings.",
   "installFromPlayStore": "To access this feature, please install the app from Google Play Store.",
-
   "accessRestricted": "Access restricted",
   "securityCheckFailed": "Unable to verify security: {error}",
   "@securityCheckFailed": {
@@ -3602,7 +3855,6 @@
   "deviceSecurityFailed": "This device does not meet security requirements.",
   "playStoreRequired": "This feature requires installation from Google Play Store.",
   "highSecurityFailed": "This device does not meet high security requirements.",
-
   "signedInElsewhere": "Signed in elsewhere",
   "signedInElsewhereDescription": "Your account was signed in on another device. You have been signed out of this device for security.",
   "cameraPermissionRestricted": "Camera access is restricted on this device.",
@@ -3610,10 +3862,8 @@
   "photoLibraryPermissionDenied": "Photo library access was denied. Please enable it in app settings.",
   "photoLibraryPermissionRestricted": "Photo library access is restricted on this device.",
   "photoLibraryPermissionRequired": "Photo library access is required to select images.",
-
   "selectAnElement": "Select an element",
   "cameraPermissionRequiredTitle": "Camera permission required",
-
   "specifyYourProfession": "Specify your profession",
   "orEnterYourCountry": "Or enter your country",
   "profileConfiguration": "Profile configuration",
@@ -3675,7 +3925,6 @@
   "cannotGetPosition": "Cannot get position",
   "searchPlace": "Search a place...",
   "modifyGroup": "Edit group",
-
   "themeMode": "Mode",
   "themeAppearance": "Appearance",
   "themeGreenDefault": "Green (Default)",
@@ -3687,7 +3936,9 @@
   "cameraErrorCode": "Camera error: {errorCode}",
   "@cameraErrorCode": {
     "placeholders": {
-      "errorCode": {"type": "String"}
+      "errorCode": {
+        "type": "String"
+      }
     }
   },
   "invalidQrCode": "Invalid QR code",
@@ -3704,14 +3955,18 @@
   "discoverMyProfile": "Discover my profile on Diaspo Niger: {url}",
   "@discoverMyProfile": {
     "placeholders": {
-      "url": {"type": "String"}
+      "url": {
+        "type": "String"
+      }
     }
   },
   "myProfileOnDiaspoNiger": "My Diaspo Niger profile",
   "atTime": "at {time}",
   "@atTime": {
     "placeholders": {
-      "time": {"type": "String"}
+      "time": {
+        "type": "String"
+      }
     }
   },
   "saveVideoError": "Error saving video",
@@ -3721,7 +3976,6 @@
   "live": "Live",
   "waiting": "Waiting",
   "endToEndEncrypted": "End-to-End Encrypted",
-
   "noPhotos": "No photos",
   "noFiles": "No files",
   "loadingVideo": "Loading video...",
@@ -3731,7 +3985,9 @@
   "sendToConversations": "Send to {count} conversation(s)",
   "@sendToConversations": {
     "placeholders": {
-      "count": {"type": "int"}
+      "count": {
+        "type": "int"
+      }
     }
   },
   "cannotResendMessage": "Cannot resend this type of message. Please resend manually.",
@@ -3739,18 +3995,18 @@
   "applyError": "Error applying: {error}",
   "@applyError": {
     "placeholders": {
-      "error": {"type": "String"}
+      "error": {
+        "type": "String"
+      }
     }
   },
   "deleteForMeSubtitle": "The message will be deleted only from your view",
   "deleteForEveryoneSubtitle": "The message will be deleted for all participants",
-
   "audioNotAvailable": "Audio not available",
   "invalidAudioUrl": "Invalid audio URL",
   "audioPlaybackError": "Playback error",
   "audioNotFound": "Audio not found",
   "insufficientPermissionMessage": "You do not have permission to access this page.",
-
   "shareALocation": "Share a location",
   "searchLocation": "Search a location...",
   "selectedPosition": "Selected position",
@@ -3759,7 +4015,6 @@
   "orSelectOnMap": "or select on map",
   "loadingMap": "Loading map...",
   "sendThisLocation": "Send this location",
-
   "thisGroupWasDeleted": "This group was deleted",
   "thisUserWasDeleted": "This user was deleted",
   "youBlockedThisUser": "You have blocked this user",
@@ -3768,12 +4023,13 @@
   "encrypted": "Encrypted",
   "typeYourMessageBelow": "Type your message below",
   "sendFirstMessageGroup": "Be the first to send a message in this group!",
-
   "accept": "Accept",
   "confirmRemoveFriend": "Do you really want to remove {name} from your friends?",
   "@confirmRemoveFriend": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "groupCreatedSuccess": "Group created successfully",
@@ -3791,7 +4047,6 @@
   "tagsHint": "Separate tags with commas",
   "membersNeedApproval": "Members need approval",
   "createTheGroup": "Create the group",
-
   "sendFileTitle": "Send a file",
   "cameraSection": "Camera",
   "locationSection": "Location",
@@ -3800,20 +4055,50 @@
   "finish": "Finish",
   "connectionErrorRetry": "Connection error. Please try again.",
   "errorGeneric": "Error: {error}",
-  "@errorGeneric": {"placeholders": {"error": {"type": "String"}}},
+  "@errorGeneric": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "blockUserConfirmMessage": "Do you really want to block {name}? You will no longer receive messages from them.",
-  "@blockUserConfirmMessage": {"placeholders": {"name": {"type": "String"}}},
+  "@blockUserConfirmMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "blockingError": "Error while blocking",
   "infoLabel": "Info",
   "viewCart": "View",
   "selectImages": "Select images",
   "selectPhotos": "Select photos",
   "addPhotosCount": "Add photos ({count}/10)",
-  "@addPhotosCount": {"placeholders": {"count": {"type": "int"}}},
+  "@addPhotosCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "photosLimitReached": "Limit of {count} photos reached",
-  "@photosLimitReached": {"placeholders": {"count": {"type": "int"}}},
+  "@photosLimitReached": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "selectionError": "Error during selection: {error}",
-  "@selectionError": {"placeholders": {"error": {"type": "String"}}},
+  "@selectionError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "addAtLeastOnePhoto": "Please add at least one photo",
   "shareRecap": "Share recap",
   "okButton": "OK",
@@ -3841,7 +4126,6 @@
   "gallerySubtitle": "Select an existing image",
   "deletePhotoTitle": "Delete photo",
   "deletePhotoSubtitle": "Use default initials",
-
   "adminHistoryAudit": "Audit History",
   "adminGoBack": "Go back",
   "adminAll": "All",
@@ -3867,31 +4151,96 @@
   "adminLoginWithGoogle": "Sign in with Google",
   "adminPasswordLabel": "Password",
   "adminLoginButton": "Login",
+  "adminMfaEnrolTitle": "Second factor required",
+  "adminMfaEnrolIntro": "Scan this QR code with an authenticator app (Google Authenticator, Aegis, 1Password…), then enter the 6-digit code it shows. Without this second factor, the dashboard stays closed.",
+  "adminMfaManualKey": "Or type this key by hand:",
+  "adminMfaConfirmBefore": "Confirm before {heure}",
+  "@adminMfaConfirmBefore": {
+    "placeholders": {
+      "heure": {
+        "type": "String"
+      }
+    }
+  },
+  "adminMfaCodeField": "6-digit code",
+  "adminMfaCodeMissing": "Enter the 6-digit code shown by your app.",
+  "adminMfaActivateButton": "Enable second factor",
+  "adminMfaRetry": "Retry",
+  "adminMfaSignOut": "Sign out",
+  "adminMfaChallengeTitle": "Verification code",
+  "adminMfaChallengeIntro": "Enter the 6-digit code shown by your authenticator app.",
+  "adminMfaVerifyButton": "Verify",
+  "adminMfaBackToLogin": "Back to sign-in",
+  "adminMfaNoTotp": "This account only has an SMS second factor, which the panel does not support.",
   "adminProductsCount": "Products ({count})",
-  "@adminProductsCount": {"placeholders": {"count": {"type": "int"}}},
+  "@adminProductsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "adminOrdersCount": "Orders ({count})",
-  "@adminOrdersCount": {"placeholders": {"count": {"type": "int"}}},
+  "@adminOrdersCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "adminDisputesCount": "Disputes ({count})",
-  "@adminDisputesCount": {"placeholders": {"count": {"type": "int"}}},
+  "@adminDisputesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "adminDelete": "Delete",
   "adminGroupsCount": "Groups ({count})",
-  "@adminGroupsCount": {"placeholders": {"count": {"type": "int"}}},
+  "@adminGroupsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "adminSearchUser": "Search for a user...",
   "adminLoading": "Loading...",
   "adminNoUsersFound": "No users found",
   "adminActivityOf": "Activity of {name}",
-  "@adminActivityOf": {"placeholders": {"name": {"type": "String"}}},
+  "@adminActivityOf": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "adminSearchReports": "Search by name, reason, ID...",
   "adminViewType": "View the {type}",
-  "@adminViewType": {"placeholders": {"type": {"type": "String"}}},
+  "@adminViewType": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
   "adminRejectionHint": "Ex: Report unfounded, content compliant with rules...",
   "adminResolutionHint": "Ex: Warning sent, content modified...",
   "adminDeleteContentTitle": "Delete content",
   "adminCreateEmbassyTitle": "Create an embassy",
   "adminWarnHost": "Warn host",
   "adminGoalHint": "Min: {min} XOF - Max: {max} XOF",
-  "@adminGoalHint": {"placeholders": {"min": {"type": "String"}, "max": {"type": "String"}}},
-
+  "@adminGoalHint": {
+    "placeholders": {
+      "min": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  },
   "interestCulture": "Culture",
   "interestSport": "Sport",
   "interestBusiness": "Business",
@@ -3900,7 +4249,6 @@
   "interestArts": "Arts",
   "interestHealth": "Health",
   "interestPolitics": "Politics",
-
   "noBusinessFound": "No business found",
   "beFirstToAddBusiness": "Be the first to add your business!",
   "filterByLocation": "Filter by location",
@@ -3911,7 +4259,16 @@
   "verifiedBadge": "Verified",
   "premiumBadge": "Premium",
   "reviewsCountLabel": "{rating} ({count} reviews)",
-  "@reviewsCountLabel": {"placeholders": {"rating": {"type": "String"}, "count": {"type": "int"}}},
+  "@reviewsCountLabel": {
+    "placeholders": {
+      "rating": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "contactSectionTitle": "Contact",
   "servicesSectionTitle": "Services",
   "viewsStatLabel": "Views",
@@ -3928,7 +4285,13 @@
   "currentOffersTitle": "Current offers",
   "noCurrentOffersMessage": "No current offers",
   "validUntilLabel": "Valid until {date}",
-  "@validUntilLabel": {"placeholders": {"date": {"type": "String"}}},
+  "@validUntilLabel": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "newsSectionTitle": "News",
   "addActionButton": "Add",
   "noNewsMessage": "No news",
@@ -3947,7 +4310,13 @@
   "writeFirstReviewAction": "Write the first review",
   "writeReviewAction": "Write a review",
   "seeOtherReviewsLabel": "See {count} other reviews",
-  "@seeOtherReviewsLabel": {"placeholders": {"count": {"type": "int"}}},
+  "@seeOtherReviewsLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "loginRequiredForReview": "You must be logged in to leave a review",
   "editAction": "Edit",
   "boostAction": "Boost",
@@ -3965,29 +4334,70 @@
   "loadingErrorMessage": "Loading error",
   "retryButtonLabel": "Retry",
   "nReviewsLabel": "{count} reviews",
-  "@nReviewsLabel": {"placeholders": {"count": {"type": "int"}}},
-
+  "@nReviewsLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "allCountriesOption": "All countries",
   "chooseCountryDialogTitle": "Choose a country",
   "noProductAvailableMessage": "No product available",
   "beFirstToSellMessage": "Be the first to sell!",
   "noSearchResultsForQuery": "No results for \"{query}\"",
-  "@noSearchResultsForQuery": {"placeholders": {"query": {"type": "String"}}},
+  "@noSearchResultsForQuery": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
   "myOrdersScreenTitle": "My orders",
   "myPurchasesTabLabel": "My purchases",
   "mySalesTabLabel": "My sales",
   "noOrdersYetMessage": "You haven't placed any orders yet",
   "noOrdersReceivedMessage": "You haven't received any orders yet",
   "sellerWithNameLabel": "Seller: {name}",
-  "@sellerWithNameLabel": {"placeholders": {"name": {"type": "String"}}},
+  "@sellerWithNameLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "buyerWithNameLabel": "Buyer: {name}",
-  "@buyerWithNameLabel": {"placeholders": {"name": {"type": "String"}}},
+  "@buyerWithNameLabel": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "articlesCountLabel": "{count} item{count, plural, =1{} other{s}}",
-  "@articlesCountLabel": {"placeholders": {"count": {"type": "int"}}},
+  "@articlesCountLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "quantityShortLabel": "Qty: {qty}",
-  "@quantityShortLabel": {"placeholders": {"qty": {"type": "int"}}},
+  "@quantityShortLabel": {
+    "placeholders": {
+      "qty": {
+        "type": "int"
+      }
+    }
+  },
   "payAmountLabel": "Pay {amount}",
-  "@payAmountLabel": {"placeholders": {"amount": {"type": "String"}}},
+  "@payAmountLabel": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "confirmReceiptAction": "Confirm receipt",
   "markAsShippedAction": "Mark as shipped",
   "trackingNumberDialogTitle": "Tracking number",
@@ -3996,10 +4406,22 @@
   "paymentSuccessfulMessage": "Payment successful!",
   "orderUpdateErrorOccurred": "Error updating order",
   "paymentErrorWithDetails": "Payment error: {error}",
-  "@paymentErrorWithDetails": {"placeholders": {"error": {"type": "String"}}},
+  "@paymentErrorWithDetails": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "deliveryConfirmedSuccess": "Delivery confirmed",
   "availableQuantityInfo": "{qty} available",
-  "@availableQuantityInfo": {"placeholders": {"qty": {"type": "int"}}},
+  "@availableQuantityInfo": {
+    "placeholders": {
+      "qty": {
+        "type": "int"
+      }
+    }
+  },
   "descriptionSectionTitle": "Description",
   "sellerSectionTitle": "Seller",
   "loadingLabel": "Loading...",
@@ -4038,7 +4460,13 @@
   "taxSettingsSectionTitle": "Tax settings",
   "taxExemptCategoryMessage": "This category is tax-exempt by default",
   "defaultTaxForCategoryInfo": "Default tax for this category: {rate}%",
-  "@defaultTaxForCategoryInfo": {"placeholders": {"rate": {"type": "String"}}},
+  "@defaultTaxForCategoryInfo": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
   "customRateField": "Custom rate (%)",
   "customRateHintExample": "Ex: 15",
   "priceTtcToggle": "Price includes tax",
@@ -4047,7 +4475,13 @@
   "previewSectionTitle": "Preview",
   "subtotalLine": "Subtotal",
   "taxRateLine": "Tax ({rate}%)",
-  "@taxRateLine": {"placeholders": {"rate": {"type": "String"}}},
+  "@taxRateLine": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
   "totalLine": "Total",
   "publishProductAction": "Publish",
   "saveProductAction": "Save",
@@ -4062,51 +4496,82 @@
   "publishedDateLabel": "published",
   "unknownUserLabel": "Unknown",
   "allCategoryFilter": "All",
-
   "replyAction": "Reply",
   "readAction": "Read",
-
   "taxAutomaticDesc": "Tax calculated based on product category",
   "taxExemptDesc": "No tax on this product",
   "taxStandardDesc": "Standard VAT rate",
   "taxReducedDesc": "Reduced rate for essential products",
   "taxCustomDesc": "Define a custom rate",
-
   "adminSearchByAdminOrAction": "Search by admin or action...",
   "adminTransactions": "Transactions",
   "adminAllCount": "All ({count})",
-  "@adminAllCount": {"placeholders": {"count": {"type": "int"}}},
+  "@adminAllCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "adminPendingCount": "{count} pending",
-  "@adminPendingCount": {"placeholders": {"count": {"type": "int"}}},
+  "@adminPendingCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "adminBoostedCount": "Boosted ({count})",
-  "@adminBoostedCount": {"placeholders": {"count": {"type": "int"}}},
+  "@adminBoostedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "adminGroupType": "Group • {type}",
-  "@adminGroupType": {"placeholders": {"type": {"type": "String"}}},
-
+  "@adminGroupType": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
   "adminEmailAddress": "Email address",
   "adminRoomConnectionError": "Error connecting to room",
-
   "adminSend": "Send",
   "adminHistory": "History",
   "adminTitle": "Title",
   "adminMessage": "Message",
   "adminRejectHint": "Ex: Unfounded report, content complies with rules...",
   "adminProcessHint": "Ex: Warning sent, content modified...",
-  "@adminChangeRole": {"placeholders": {"role": {"type": "String"}}},
+  "@adminChangeRole": {
+    "placeholders": {
+      "role": {
+        "type": "String"
+      }
+    }
+  },
   "adminChangeRoleTitle": "Change role",
   "adminRevokeAction": "Revoke",
-
   "adminFees": "Fees",
   "adminBoosts": "Boosts",
   "adminMedia": "Media",
   "adminMaxImagesPerUpload": "Max images/upload",
   "adminMaxCharsPerMessage": "Max chars per message",
   "adminCustomAmountsHint": "Ex: 1, 2, 5, 10, 20",
-
   "adminNoActivityRecorded": "No activity recorded",
-
   "audioRoomCollectionHelper": "Min: {min} XOF - Max: {max} XOF",
-  "@audioRoomCollectionHelper": {"placeholders": {"min": {"type": "int"}, "max": {"type": "int"}}},
+  "@audioRoomCollectionHelper": {
+    "placeholders": {
+      "min": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
   "audioRoomStoriesLabel": "Stories",
   "audioRoomProverbsLabel": "Proverbs",
   "audioRoomHistoryLabel": "History",
@@ -4115,7 +4580,6 @@
   "audioRoomCraftLabel": "Craft",
   "audioRoomRecipesLabel": "Recipes",
   "audioRoomMedicineLabel": "Medicine",
-
   "businessBoostActivated": "Boost activated successfully!",
   "businessBoostError": "Error purchasing boost",
   "businessBoostTitle": "Boost your business",
@@ -4142,21 +4606,37 @@
   "businessYourReview": "Your review",
   "businessShareExperience": "Share your experience...",
   "businessAddReview": "Add",
-
   "callPermissionRequired": "Permission required",
   "callSettings": "Settings",
   "callEnd": "End",
   "eventImageSelectionErrorMsg": "Error selecting images: {error}",
-  "@eventImageSelectionErrorMsg": {"placeholders": {"error": {"type": "String"}}},
+  "@eventImageSelectionErrorMsg": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "eventPosterLimitReached": "Limit of 5 posters reached",
   "eventSelectionError": "Selection error: {error}",
-  "@eventSelectionError": {"placeholders": {"error": {"type": "String"}}},
+  "@eventSelectionError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "eventPhotoLimitReached": "Limit of 10 photos reached",
   "eventAddAtLeastOnePhoto": "Please add at least one photo",
   "eventRecapShareTooltip": "Share recap",
   "eventPhotosAddCount": "Add photos ({count}/10)",
-  "@eventPhotosAddCount": {"placeholders": {"count": {"type": "int"}}},
-
+  "@eventPhotosAddCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "groupRequestSentSuccess": "Request sent successfully",
   "groupPromoteAdminTitle": "Promote to Admin",
   "groupDemoteAdminTitle": "Remove Admin",
@@ -4167,20 +4647,36 @@
   "groupRejectAction": "Reject",
   "groupApproveAction": "Approve",
   "groupAllFilter": "All",
-
   "mediaGalleryPhotos": "Photos ({count})",
-  "@mediaGalleryPhotos": {"placeholders": {"count": {"type": "int"}}},
+  "@mediaGalleryPhotos": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "mediaGalleryFiles": "Files ({count})",
-  "@mediaGalleryFiles": {"placeholders": {"count": {"type": "int"}}},
+  "@mediaGalleryFiles": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "mediaCaptionHint": "Add a caption...",
   "messageConversationError": "Error: {error}",
-  "@messageConversationError": {"placeholders": {"error": {"type": "String"}}},
+  "@messageConversationError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "messageInfoLabel": "Info",
   "notificationRemindLater": "Remind me later",
   "notificationIn1HourOption": "In 1 hour",
   "notificationScheduled": "Reminder scheduled",
   "notificationTomorrowOption": "Tomorrow morning (9am)",
-
   "podcastDisabledOption": "Disabled",
   "podcastEndOfEpisodeOption": "End of episode",
   "podcastSleepEndActivated": "Stop at end of episode enabled",
@@ -4231,15 +4727,18 @@
   "podcastEpisodeDescInput": "Episode description (optional)",
   "podcastPublishAction": "Publish",
   "podcastCreateAction": "Create a podcast",
-
   "profileCodeSentTo": "Code sent to {phone}",
-  "@profileCodeSentTo": {"placeholders": {"phone": {"type": "String"}}},
+  "@profileCodeSentTo": {
+    "placeholders": {
+      "phone": {
+        "type": "String"
+      }
+    }
+  },
   "profileTravelModeTitle": "Travel Mode",
-
   "reportMyReportsTitle": "My reports",
   "reportDescribeProblem": "Describe the problem...",
   "reportSendAction": "Send report",
-
   "settingsRenameDeviceTitle": "Rename device",
   "settingsDeviceNameLabel": "Device name",
   "settingsRename": "Rename",
@@ -4259,10 +4758,15 @@
   "settingsBugDescHint": "Describe the issue you encountered...",
   "settingsCurrencySearch": "Search for a currency...",
   "settingsOk": "OK",
-
   "transferAddRecipientTitle": "Add a recipient",
   "transferErrorPrefix": "Error: {error}",
-  "@transferErrorPrefix": {"placeholders": {"error": {"type": "String"}}},
+  "@transferErrorPrefix": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "transferNewAction": "New",
   "transferAddManuallyAction": "Add manually",
   "transferChooseRecipientTitle": "Choose a recipient",
@@ -4271,7 +4775,13 @@
   "transferEditAction": "Edit",
   "transferDeleteTitle": "Delete?",
   "transferDeleteMsg": "Delete {name}?",
-  "@transferDeleteMsg": {"placeholders": {"name": {"type": "String"}}},
+  "@transferDeleteMsg": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "transferDetailsTitle": "Transfer details",
   "transferAmountSentLine": "Amount sent",
   "transferFeesLine": "Fees",
@@ -4308,11 +4818,9 @@
   "transferClearAllAction": "Clear all",
   "transferChoosePeriodAction": "Choose a period",
   "transferApplyFiltersAction": "Apply filters",
-
   "widgetRetryAction": "Retry",
   "widgetCameraOption": "Camera",
   "widgetGalleryOption": "Gallery",
-
   "adminDashboardTitle": "Dashboard",
   "adminDashboardWelcome": "Welcome to DiaspoNiger administration panel",
   "adminGeneralStats": "General Statistics",
@@ -4337,19 +4845,37 @@
   "eventPostersLabel": "Event posters",
   "eventPostersUpTo5": "Add up to 5 posters for your event",
   "eventManagePosters": "Manage posters ({count}/5)",
-  "@eventManagePosters": {"placeholders": {"count": {"type": "int"}}},
+  "@eventManagePosters": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "eventCurrentPosters": "Current posters",
   "eventNewPosters": "New posters",
   "eventAddImages": "Add images",
   "eventAddPosterCount": "Add ({count}/5)",
-  "@eventAddPosterCount": {"placeholders": {"count": {"type": "int"}}},
+  "@eventAddPosterCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "eventRecapTitle": "Recap",
   "eventCreateRecap": "Create a recap",
   "eventEditRecap": "Edit recap",
   "eventRecapInfo": "Share the best moments of your event with photos and a description.",
   "eventRecapPhotosLabel": "Recap photos",
   "eventRecapUpTo10Photos": "Add up to 10 photos ({count}/10)",
-  "@eventRecapUpTo10Photos": {"placeholders": {"count": {"type": "int"}}},
+  "@eventRecapUpTo10Photos": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "eventExistingPhotos": "Existing photos",
   "eventNewPhotos": "New photos",
   "eventRecapDescriptionHint": "Tell us how the event went...",
@@ -4360,21 +4886,30 @@
   "eventRecapUpdatedSuccess": "Recap updated successfully",
   "eventRecapCreatedSuccess": "Recap created successfully",
   "eventRecapError": "Error: {error}",
-  "@eventRecapError": {"placeholders": {"error": {"type": "String"}}},
-
+  "@eventRecapError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "noConnection": "No connection",
   "weakConnection": "Weak connection",
   "unstableConnection": "Unstable connection",
   "goodConnection": "Good connection",
   "noInternetConnection": "No internet connection",
   "poorConnectionLimitedFunctions": "Weak connection - some features may be limited",
-
   "chooseAnImage": "Choose an image",
   "chooseImages": "Choose images",
   "permissionDeniedGeneric": "Permission denied",
   "maximumImages": "Maximum {count} images",
-  "@maximumImages": {"placeholders": {"count": {"type": "int"}}},
-
+  "@maximumImages": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "callPermissionMicrophone": "microphone",
   "callPermissionCamera": "camera",
   "callPermissionDenied": "{permissions} access is required to make calls. Please allow it in settings.",
@@ -4405,7 +4940,6 @@
   "callVideoLabel": "Video",
   "callCloseButton": "Close",
   "callPermissionAnd": "and",
-
   "businessBoostVisibilityTitle": "Increase your visibility",
   "businessBoostVisibilityDesc": "Appear first in search results and attract more customers.",
   "businessBoostTypeLabel": "Boost type",
@@ -4423,7 +4957,13 @@
   "businessTypeCountryName": "Type the country name",
   "reviewHelpful": "Helpful",
   "reviewHelpfulCount": "Helpful ({count})",
-  "@reviewHelpfulCount": {"placeholders": {"count": {"type": "int"}}},
+  "@reviewHelpfulCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "reviewPleaseWriteReview": "Please write a review",
   "reviewModifiedSuccess": "Review modified successfully",
   "reviewPublishedSuccess": "Review published successfully",
@@ -4432,7 +4972,16 @@
   "reviewYourRating": "Your rating",
   "reviewPublish": "Publish",
   "reviewPhotosCount": "Photos ({current}/{max})",
-  "@reviewPhotosCount": {"placeholders": {"current": {"type": "int"}, "max": {"type": "int"}}},
+  "@reviewPhotosCount": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
   "activateCamera": "Activate",
   "deactivateCamera": "Deactivate",
   "minAmountIs": "The minimum amount is",
@@ -4448,19 +4997,49 @@
   "marketplaceTaxIncluded": "The displayed price already includes tax",
   "marketplaceTaxAdded": "Tax will be added to the displayed price",
   "marketplaceErrorWithMessage": "Error: {error}",
-  "@marketplaceErrorWithMessage": {"placeholders": {"error": {"type": "String"}}},
+  "@marketplaceErrorWithMessage": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "marketplaceNoResultFor": "No results for \"{query}\"",
-  "@marketplaceNoResultFor": {"placeholders": {"query": {"type": "String"}}},
+  "@marketplaceNoResultFor": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
   "marketplaceNoProductAvailable": "No product available",
   "marketplaceBeFirstToSell": "Be the first to sell!",
   "marketplaceTodayLabel": "Today",
   "marketplaceYesterdayLabel": "Yesterday",
   "marketplaceDaysAgoLabel": "{days} days ago",
-  "@marketplaceDaysAgoLabel": {"placeholders": {"days": {"type": "int"}}},
+  "@marketplaceDaysAgoLabel": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
   "marketplaceWeeksAgoLabel": "{weeks} week(s) ago",
-  "@marketplaceWeeksAgoLabel": {"placeholders": {"weeks": {"type": "int"}}},
+  "@marketplaceWeeksAgoLabel": {
+    "placeholders": {
+      "weeks": {
+        "type": "int"
+      }
+    }
+  },
   "marketplaceMonthsAgoLabel": "{months} month(s) ago",
-  "@marketplaceMonthsAgoLabel": {"placeholders": {"months": {"type": "int"}}},
+  "@marketplaceMonthsAgoLabel": {
+    "placeholders": {
+      "months": {
+        "type": "int"
+      }
+    }
+  },
   "marketplaceUserNotConnected": "User not connected",
   "marketplaceAllCountries": "All countries",
   "mapSimpleTestTitle": "Simple Map Test",
@@ -4495,7 +5074,13 @@
   "removalError": "Error during removal",
   "confirmTitle": "Confirm",
   "viewAllMembers": "View all {count} members",
-  "@viewAllMembers": {"placeholders": {"count": {"type": "int"}}},
+  "@viewAllMembers": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "allFeminine": "All",
   "originRegionLabel": "Region of origin",
   "toutes": "All",
@@ -4584,7 +5169,6 @@
   "podcastsCreateFirstPodcast": "Create your first podcast to add episodes",
   "podcastsCreateNewPodcast": "Create a new podcast",
   "podcastsStartSeries": "Start your podcast series",
-
   "notificationReplySent": "Message sent",
   "notificationReplyConfirmation": "Your reply has been sent",
   "notificationPendingMessage": "Pending message",
@@ -4618,9 +5202,21 @@
   "imageSelected": "Image selected",
   "chooseImage": "Choose an image",
   "errorImageSelection": "Error selecting image: {error}",
-  "@errorImageSelection": {"placeholders": {"error": {"type": "String"}}},
+  "@errorImageSelection": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "errorApplication": "Error applying: {error}",
-  "@errorApplication": {"placeholders": {"error": {"type": "String"}}},
+  "@errorApplication": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "receivedMessage": "Received message",
   "sentMessage": "Sent message",
   "messageDeleted": "Message deleted",
@@ -4665,7 +5261,13 @@
   "embassyNotesSection": "Remarks / Additional information",
   "embassyNotesPlaceholder": "Add additional details if necessary...",
   "embassyCharacterCount": "{count} characters",
-  "@embassyCharacterCount": {"placeholders": {"count": {"type": "int"}}},
+  "@embassyCharacterCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "embassyWarningMessage": "You may need to visit the embassy with original documents. Keep your tracking number.",
   "embassySending": "Sending...",
   "embassySubmitRequest": "Submit request",
@@ -4673,7 +5275,13 @@
   "embassyFieldRequiredShort": "Required",
   "embassyUserNotConnected": "User not logged in",
   "embassyErrorPrefix": "Error: {error}",
-  "@embassyErrorPrefix": {"placeholders": {"error": {"type": "String"}}},
+  "@embassyErrorPrefix": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "embassyPassportRenewal": "Passport renewal",
   "embassyPassportNewRequest": "New passport application",
   "embassyVisaApplication": "Visa application",
@@ -4708,7 +5316,13 @@
   "embassyMessageRequired": "Message is required",
   "embassyMessageMinLength": "Message must contain at least 20 characters",
   "embassyMessageCharacterCount": "{count}/1000 characters",
-  "@embassyMessageCharacterCount": {"placeholders": {"count": {"type": "int"}}},
+  "@embassyMessageCharacterCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "embassyMessageGeneral": "General question",
   "embassyMessageRequest": "Service request",
   "embassyMessageComplaint": "Complaint",
@@ -4716,7 +5330,13 @@
   "embassyMessageFollowUp": "File follow-up",
   "embassySearchTitle": "Search employee",
   "embassyStaffTitle": "Staff - {name}",
-  "@embassyStaffTitle": {"placeholders": {"name": {"type": "String"}}},
+  "@embassyStaffTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "embassyAllDepartments": "All departments",
   "embassyDepartmentDirection": "Direction",
   "embassyDepartmentConsular": "Consular services",
@@ -4730,7 +5350,6 @@
   "embassyRetry": "Retry",
   "embassyNoEmployeeFound": "No employee found",
   "embassyModifySearch": "Try modifying your search criteria",
-
   "adminAnalyticsAndReports": "Analytics & Reports",
   "adminAnalyticsSubtitle": "Application statistics and metrics",
   "adminLoadingError": "Loading error",
@@ -4756,9 +5375,21 @@
   "adminContentModeration": "Content Moderation",
   "adminContentSubtitle": "Manage community events and groups",
   "adminEventsTabCount": "Events ({count})",
-  "@adminEventsTabCount": {"placeholders": {"count": {"type": "int"}}},
+  "@adminEventsTabCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "adminGroupsTabCount": "Groups ({count})",
-  "@adminGroupsTabCount": {"placeholders": {"count": {"type": "int"}}},
+  "@adminGroupsTabCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "adminLoadingContent": "Loading content...",
   "adminOrganizerLabel": "Organizer",
   "adminMembersCount": "members",
@@ -4787,7 +5418,13 @@
   "adminDismissedLabel": "Dismissed",
   "adminTotalLabel": "Total",
   "adminProcessedTabCount": "Processed ({count})",
-  "@adminProcessedTabCount": {"placeholders": {"count": {"type": "int"}}},
+  "@adminProcessedTabCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "adminTypeFilterLabel": "Type:",
   "adminAllTypesOption": "All",
   "adminReportedOnLabel": "Reported on:",
@@ -4807,7 +5444,13 @@
   "adminProcessReportPrompt": "Resolution note:",
   "adminDeleteContentMsg": "Are you sure you want to delete this content?",
   "adminDeleteIrreversibleMsg": "This action is irreversible and will permanently delete the {type}.",
-  "@adminDeleteIrreversibleMsg": {"placeholders": {"type": {"type": "String"}}},
+  "@adminDeleteIrreversibleMsg": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
   "adminNoResultsSearch": "No results for this search",
   "adminNoReportsAvailable": "No reports",
   "adminTargetIdLabel": "Target ID",
@@ -4868,7 +5511,6 @@
   "podcastsSubscribersLabel": "subscribers",
   "podcastsEpisodesLabel": "episodes",
   "podcastsPlaysLabel": "plays",
-
   "securityDeleteBackupTitle": "Delete backup?",
   "securityDeleteBackupContent": "This action is irreversible. If you lose your keys and no longer have a backup, you will not be able to read your old messages.",
   "securityBackupDeleted": "Backup deleted",
@@ -4937,8 +5579,13 @@
   "securityPassphraseMin": "Minimum 8 characters",
   "securityConfirmPassphrase": "Confirm passphrase",
   "securityDeletionError": "Error during deletion: {error}",
-  "@securityDeletionError": {"placeholders": {"error": {"type": "String"}}},
-
+  "@securityDeletionError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "bugReportDescription": "Bug description",
   "bugReportDescriptionHint": "Describe the problem encountered...",
   "bugReportDescriptionRequired": "Please describe the bug",
@@ -4947,7 +5594,6 @@
   "bugReportEmailOpened": "Email app opened",
   "bugReportEmailFailed": "Unable to open email app",
   "reminder": "Reminder",
-
   "confirmSend": "Confirm sending",
   "titleLabel": "Title",
   "adminGlobalNotifications": "Global Notifications",
@@ -4972,7 +5618,6 @@
   "adminNoNotificationsSent": "No notifications sent",
   "adminFillTitleAndMessage": "Please fill in the title and message",
   "adminNotConnected": "Error: Admin not connected",
-
   "typeLabel": "Type:",
   "contentDeleted": "Content deleted",
   "contentDeletedUserNotified": "Content deleted (user notified)",
@@ -4985,7 +5630,6 @@
   "adminRejectionReasonLabel": "Rejection reason:",
   "adminProcessReport": "Process report",
   "adminResolutionNoteLabel": "Resolution note:",
-
   "adminMinimumFee": "Minimum fee (XOF)",
   "adminMaximumFee": "Maximum fee (XOF)",
   "adminBoostRatesUpdated": "Boost rates updated",
@@ -4995,9 +5639,21 @@
   "adminExampleValues": "Ex: 1, 2, 5, 10, 20",
   "adminSearchUserHint": "Search for a user...",
   "adminUserActivityTitle": "Activity of {name}",
-  "@adminUserActivityTitle": {"placeholders": {"name": {"type": "String"}}},
+  "@adminUserActivityTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "adminChangeTo": "Change to {role}",
-  "@adminChangeTo": {"placeholders": {"role": {"type": "String"}}},
+  "@adminChangeTo": {
+    "placeholders": {
+      "role": {
+        "type": "String"
+      }
+    }
+  },
   "revoke": "Revoke",
   "refresh": "Refresh",
   "adminRoleManagementTitle": "Admin Role Management",
@@ -5007,15 +5663,41 @@
   "lastLoginAt": "Last login: {lastLogin}",
   "@lastLoginAt": {
     "placeholders": {
-      "lastLogin": { "type": "String" }
+      "lastLogin": {
+        "type": "String"
+      }
     }
   },
   "adminChangeRoleConfirm": "Do you want to change {name}'s role from {oldRole} to {newRole}?",
-  "@adminChangeRoleConfirm": {"placeholders": {"name": {"type": "String"}, "oldRole": {"type": "String"}, "newRole": {"type": "String"}}},
+  "@adminChangeRoleConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "oldRole": {
+        "type": "String"
+      },
+      "newRole": {
+        "type": "String"
+      }
+    }
+  },
   "adminRevokeAccessConfirm": "Do you really want to revoke {name}'s admin access? This person will no longer be able to access the admin panel.",
-  "@adminRevokeAccessConfirm": {"placeholders": {"name": {"type": "String"}}},
+  "@adminRevokeAccessConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "groupsCount": "Groups ({count})",
-  "@groupsCount": {"placeholders": {"count": {"type": "int"}}},
+  "@groupsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "groupLabel": "Group",
   "refund": "Refund",
   "adminFeesPercentageLabel": "Fees percentage",
@@ -5026,7 +5708,13 @@
   "adminMaxCommissionLabel": "Max commission (XOF)",
   "adminMaxDimensionLabel": "Max dimension (px)",
   "adminUserActivityTitleParam": "Activity of {name}",
-  "@adminUserActivityTitleParam": {"placeholders": {"name": {"type": "String"}}},
+  "@adminUserActivityTitleParam": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "myReports": "My reports",
   "myReportsSubtitle": "View your reports history",
   "calls": "Calls",
@@ -5070,9 +5758,21 @@
   "tryModifyingFilters": "Try modifying filters",
   "addFirstRecipient": "Add your first recipient",
   "confirmDeleteRecipient": "Are you sure you want to delete {name}?",
-  "@confirmDeleteRecipient": {"placeholders": {"name": {"type": "String"}}},
+  "@confirmDeleteRecipient": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "recipientDeletedSuccess": "{name} has been deleted",
-  "@recipientDeletedSuccess": {"placeholders": {"name": {"type": "String"}}},
+  "@recipientDeletedSuccess": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "removeFromFavorites": "Remove from favorites",
   "confirmDeleteTitle": "Confirm deletion",
   "amountSent": "Amount sent",
@@ -5097,7 +5797,13 @@
   "clearAll": "Clear all",
   "unknownDate": "Unknown date",
   "reviewedOn": "Reviewed on {date}",
-  "@reviewedOn": {"placeholders": {"date": {"type": "String"}}},
+  "@reviewedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "unknownRecipient": "Unknown recipient",
   "noTransferFound": "No transfer found",
   "noTransferCompleted": "No transfer completed yet",
@@ -5145,15 +5851,27 @@
   "mlsDevicesLoadError": "The registry could not be read. Try again later.",
   "mlsDeviceRevokedOn": "Revoked on {date}",
   "@mlsDeviceRevokedOn": {
-    "placeholders": { "date": { "type": "String" } }
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
   },
   "mlsDeviceLastSeen": "Last seen {date}",
   "@mlsDeviceLastSeen": {
-    "placeholders": { "date": { "type": "String" } }
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
   },
   "mlsDevicesRevokedCount": "{count, plural, =1{1 revoked device} other{{count} revoked devices}}",
   "@mlsDevicesRevokedCount": {
-    "placeholders": { "count": { "type": "int" } }
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "mlsBackupTitle": "Your encrypted conversations",
   "mlsBackupKeysStay": "Their keys stay on this phone: they are neither backed up online nor transferable to another device. There is nothing to back up here.",
@@ -5163,7 +5881,13 @@
   "rename": "Rename",
   "revokeDeviceQuestion": "Delete these keys?",
   "revokeDeviceConfirmMessage": "Delete the keys registered by \"{deviceName}\"?",
-  "@revokeDeviceConfirmMessage": {"placeholders": {"deviceName": {"type": "String"}}},
+  "@revokeDeviceConfirmMessage": {
+    "placeholders": {
+      "deviceName": {
+        "type": "String"
+      }
+    }
+  },
   "deviceRenameSuccess": "Device renamed",
   "deviceRenameError": "Error renaming device",
   "restoreOnThisDevice": "Restore on this device",
@@ -5176,7 +5900,13 @@
   "more": "More",
   "travelMode": "Travel Mode",
   "codeSentTo": "Code sent to {phoneNumber}",
-  "@codeSentTo": {"placeholders": {"phoneNumber": {"type": "String"}}},
+  "@codeSentTo": {
+    "placeholders": {
+      "phoneNumber": {
+        "type": "String"
+      }
+    }
+  },
   "addParticipant": "Add participant",
   "addToCall": "Add to call",
   "convertingToGroupCall": "Converting to group call...",
@@ -5186,18 +5916,28 @@
   "recentConversations": "Recent conversations",
   "callConvertedToGroup": "Converted to group call",
   "participantBusy": "{name} is on a call",
-  "@participantBusy": {"placeholders": {"name": {"type": "String"}}},
+  "@participantBusy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "conversionFailed": "Failed to add participant",
-
   "slideToCancel": "Cancel",
   "releaseToCancel": "Cancel",
   "recordingLocked": "Recording locked",
   "releaseToLock": "Release to lock",
   "slideUpToLock": "Slide up",
   "timeRemaining": "Time remaining: {time}",
-  "@timeRemaining": {"placeholders": {"time": {"type": "String"}}},
+  "@timeRemaining": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
   "lock": "Lock",
-
   "localEvents": "Local events",
   "localEventsSubtitle": "Receive notifications for new events in my city",
   "systemMessages": "System messages",
@@ -5205,15 +5945,32 @@
   "confidentiality": "Privacy",
   "messagePreview": "Message preview",
   "messagePreviewSubtitle": "Show message content in notifications",
-
   "onlineStatus": "Online",
   "seenAgo": "Seen {ago}",
-  "@seenAgo": {"placeholders": {"ago": {"type": "String"}}},
+  "@seenAgo": {
+    "placeholders": {
+      "ago": {
+        "type": "String"
+      }
+    }
+  },
   "offline": "Offline",
   "discoverProfile": "Discover my profile on Diaspo Niger: {link}",
-  "@discoverProfile": {"placeholders": {"link": {"type": "String"}}},
+  "@discoverProfile": {
+    "placeholders": {
+      "link": {
+        "type": "String"
+      }
+    }
+  },
   "profileOf": "Profile of {name}",
-  "@profileOf": {"placeholders": {"name": {"type": "String"}}},
+  "@profileOf": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "unableToGenerateLink": "Unable to generate share link",
   "profileSendFriendRequest": "Send friend request",
   "profileFriendRequestSent": "Friend request sent",
@@ -5226,7 +5983,6 @@
   "profileReport": "Report",
   "profileSettings": "Settings",
   "profileSendingRequest": "Sending...",
-
   "profileTravelModeSubtitle": "Allow location even when the app is closed (updates every 5 min)",
   "profileShowOnlineStatusSubtitle": "Allows you to see and be seen online. If disabled, you won't see others' status.",
   "whoSeesYou": "Who sees you",
@@ -5235,13 +5991,23 @@
   "displayCurrency": "Currency",
   "displayCurrencySubtitle": "Prices will be displayed in this currency",
   "profileUpdateError": "Error updating: {error}",
-  "@profileUpdateError": {"placeholders": {"error": {"type": "String"}}},
+  "@profileUpdateError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "profileLoadingText": "Loading...",
   "profileLoadError": "Loading error",
-
   "conversationYouPrefix": "You: {message}",
-  "@conversationYouPrefix": {"placeholders": {"message": {"type": "String"}}},
-
+  "@conversationYouPrefix": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
   "emojis": "Emojis",
   "gifs": "GIFs",
   "searchGifs": "Search GIFs",
@@ -5280,7 +6046,6 @@
   "noStickerPacks": "No sticker packs",
   "officialPacks": "Official packs",
   "communityPacks": "Community packs",
-
   "serviceFeed": "Social Feed",
   "feedTitle": "Social Feed",
   "storyTakePhoto": "Take a photo",
@@ -5374,26 +6139,56 @@
   "publishSuccess": "Post created successfully",
   "publishError": "Error while publishing",
   "followers": "{count} followers",
-  "@followers": {"placeholders": {"count": {"type": "int"}}},
+  "@followers": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "following": "{count} following",
-  "@following": {"placeholders": {"count": {"type": "int"}}},
+  "@following": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "postLikes": "{count} like(s)",
-  "@postLikes": {"placeholders": {"count": {"type": "int"}}},
+  "@postLikes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "postComments": "{count} comment(s)",
-  "@postComments": {"placeholders": {"count": {"type": "int"}}},
+  "@postComments": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "mentionSuggestionHint": "Mention a member",
   "mentionNotificationTitle": "You were mentioned",
   "mentionNotificationBody": "{senderName} mentioned you in {groupName}",
   "@mentionNotificationBody": {
     "placeholders": {
-      "senderName": {"type": "String"},
-      "groupName": {"type": "String"}
+      "senderName": {
+        "type": "String"
+      },
+      "groupName": {
+        "type": "String"
+      }
     }
   },
   "mentionedBy": "Mentioned by {name}",
   "@mentionedBy": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "loadingEllipsis": "Loading...",
@@ -5414,7 +6209,13 @@
   "changeRole": "Change role",
   "revokeAccess": "Revoke access",
   "exportInProgress": "Export of {type} in progress...",
-  "@exportInProgress": {"placeholders": {"type": {"type": "String"}}},
+  "@exportInProgress": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
   "embassyCreated": "Embassy created successfully!",
   "createEmbassy": "Create an embassy",
   "joinAction": "Join",
@@ -5434,12 +6235,30 @@
   "confirmSending": "Confirm sending",
   "aboutToSend": "You are about to send a notification to:",
   "messageLabel": "Message: {message}",
-  "@messageLabel": {"placeholders": {"message": {"type": "String"}}},
+  "@messageLabel": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
   "searchBy": "Search by name, reason, ID...",
   "viewTheItem": "View the {item}",
-  "@viewTheItem": {"placeholders": {"item": {"type": "String"}}},
+  "@viewTheItem": {
+    "placeholders": {
+      "item": {
+        "type": "String"
+      }
+    }
+  },
   "changeToRole": "Change to {role}",
-  "@changeToRole": {"placeholders": {"role": {"type": "String"}}},
+  "@changeToRole": {
+    "placeholders": {
+      "role": {
+        "type": "String"
+      }
+    }
+  },
   "revokeAdminAccess": "Revoke admin access",
   "revokeAction": "Revoke",
   "feesUpdated": "Fees updated",
@@ -5474,29 +6293,77 @@
   "noUserFound": "No user found",
   "noActivityRecorded": "No activity recorded",
   "activityOf": "Activity of {name}",
-  "@activityOf": {"placeholders": {"name": {"type": "String"}}},
+  "@activityOf": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "confirmLogoutTitle": "Confirm logout",
   "disconnect": "Disconnect",
   "publicGroup": "Public",
   "embassyApproved": "Embassy {name} approved",
-  "@embassyApproved": {"placeholders": {"name": {"type": "String"}}},
+  "@embassyApproved": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "embassyRejected": "Embassy {name} rejected",
-  "@embassyRejected": {"placeholders": {"name": {"type": "String"}}},
+  "@embassyRejected": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "embassySuspended": "Embassy {name} suspended",
-  "@embassySuspended": {"placeholders": {"name": {"type": "String"}}},
+  "@embassySuspended": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "embassyReactivated": "Embassy {name} reactivated",
-  "@embassyReactivated": {"placeholders": {"name": {"type": "String"}}},
+  "@embassyReactivated": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "rejectRequest": "Reject the request",
   "featureFlagsUpdated": "Feature flags updated",
   "maintenanceMessage": "Ex: Application under maintenance...",
   "signInWithGoogle": "Sign in with Google",
   "loginButton": "Login",
   "products": "Products ({count})",
-  "@products": {"placeholders": {"count": {"type": "int"}}},
+  "@products": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "orders": "Orders ({count})",
-  "@orders": {"placeholders": {"count": {"type": "int"}}},
+  "@orders": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "disputes": "Disputes ({count})",
-  "@disputes": {"placeholders": {"count": {"type": "int"}}},
+  "@disputes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sendButton": "Send",
   "emailAddress": "Email address",
   "emailPlaceholder": "user@example.com",
@@ -5521,7 +6388,16 @@
   "imageLimitReached": "Limit of 5 posters reached",
   "photoLimitReached": "Limit of 10 photos reached",
   "addPhotos": "Add photos ({current}/{max})",
-  "@addPhotos": {"placeholders": {"current": {"type": "int"}, "max": {"type": "int"}}},
+  "@addPhotos": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
   "requestSubmitted": "Request submitted successfully!",
   "exampleRequest": "Ex: Inquiry about passport",
   "describeRequest": "Describe your request in detail...",
@@ -5543,7 +6419,13 @@
   "customRate": "Custom rate (%)",
   "rateExample": "Ex: 15",
   "tax": "Tax ({rate}%)",
-  "@tax": {"placeholders": {"rate": {"type": "String"}}},
+  "@tax": {
+    "placeholders": {
+      "rate": {
+        "type": "String"
+      }
+    }
+  },
   "titlePlaceholder": "Ex: iPhone 13 Pro Max",
   "descriptionPlaceholder": "Describe your product...",
   "quantity": "Quantity",
@@ -5575,7 +6457,13 @@
   "likes": "Likes",
   "sleepTimerEnded": "Sleep timer ended",
   "timerMinutes": "Timer: {minutes} minutes",
-  "@timerMinutes": {"placeholders": {"minutes": {"type": "int"}}},
+  "@timerMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
   "episodeTitle": "Episode title *",
   "episodeDescription": "Description / Notes",
   "reservedForSubscribers": "Reserved for paying subscribers",
@@ -5585,7 +6473,13 @@
   "episodeTitlePlaceholder": "Episode title",
   "episodeDescriptionPlaceholder": "Episode description (optional)",
   "codeSent": "Code sent to {phone}",
-  "@codeSent": {"placeholders": {"phone": {"type": "String"}}},
+  "@codeSent": {
+    "placeholders": {
+      "phone": {
+        "type": "String"
+      }
+    }
+  },
   "describeIssue": "Describe the issue...",
   "connectedDevicesTitle": "Connected devices",
   "backupKeys": "Key backup",
@@ -5599,11 +6493,23 @@
   "newRecipient": "New",
   "deleteRecipientQuestion": "Delete recipient?",
   "deleteRecipientConfirm": "Do you want to delete {name}?",
-  "@deleteRecipientConfirm": {"placeholders": {"name": {"type": "String"}}},
+  "@deleteRecipientConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "deleteQuestion": "Delete?",
   "sendMoney": "Send money",
   "deleteConfirm": "Delete {name}?",
-  "@deleteConfirm": {"placeholders": {"name": {"type": "String"}}},
+  "@deleteConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "retryTransfer": "Retry the transfer",
   "contactSupport": "Contact support",
   "debitInProgress": "Debit in progress",
@@ -5619,9 +6525,24 @@
   "chatNotAvailable": "Chat not available at the moment",
   "sendMoneyButton": "Send money",
   "applicationError": "Error during application: {error}",
-  "@applicationError": {"placeholders": {"error": {"type": "String"}}},
+  "@applicationError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "helperText": "Min: {min} XOF - Max: {max} XOF",
-  "@helperText": {"placeholders": {"min": {"type": "String"}, "max": {"type": "String"}}},
+  "@helperText": {
+    "placeholders": {
+      "min": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  },
   "tales": "Tales",
   "proverbs": "Proverbs",
   "ceremonies": "Ceremonies",
@@ -5638,28 +6559,79 @@
   "followingTab": "Following",
   "recentTab": "Recent",
   "audioRoomsAvailableCount": "{count} rooms available",
-  "@audioRoomsAvailableCount": {"placeholders": {"count": {"type": "int"}}},
+  "@audioRoomsAvailableCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "audioRoomsLiveTabLabel": "Live ({count})",
-  "@audioRoomsLiveTabLabel": {"placeholders": {"count": {"type": "int"}}},
+  "@audioRoomsLiveTabLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "audioRoomsScheduledTabLabel": "Scheduled ({count})",
-  "@audioRoomsScheduledTabLabel": {"placeholders": {"count": {"type": "int"}}},
+  "@audioRoomsScheduledTabLabel": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "audioRoomsNoLiveRooms": "No live rooms",
   "audioRoomsNoLiveSubtitle": "Be the first to start",
   "audioRoomsNoScheduledRooms": "No scheduled rooms",
   "audioRoomsNoScheduledSubtitle": "Plan a session",
   "audioRoomsLiveListeners": "LIVE · {count} listeners",
-  "@audioRoomsLiveListeners": {"placeholders": {"count": {"type": "int"}}},
+  "@audioRoomsLiveListeners": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "audioRoomsRegisteredCount": "{count} registered",
-  "@audioRoomsRegisteredCount": {"placeholders": {"count": {"type": "int"}}},
+  "@audioRoomsRegisteredCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "audioRoomsScheduleButton": "Schedule",
   "audioRoomConnecting": "Connecting...",
   "audioRoomDefaultTitle": "Audio room",
   "audioRoomParticipantsOnStage": "On stage · {count}/{max}",
-  "@audioRoomParticipantsOnStage": {"placeholders": {"count": {"type": "int"}, "max": {"type": "int"}}},
+  "@audioRoomParticipantsOnStage": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
   "audioRoomListenersCount": "Listeners · {count}",
-  "@audioRoomListenersCount": {"placeholders": {"count": {"type": "int"}}},
+  "@audioRoomListenersCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "audioRoomHandsRaisedSection": "Hands raised · {count}",
-  "@audioRoomHandsRaisedSection": {"placeholders": {"count": {"type": "int"}}},
+  "@audioRoomHandsRaisedSection": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "audioRoomEndConfirmTitle": "End the room?",
   "audioRoomEndConfirmMessage": "All participants will be disconnected.",
   "audioRoomGhostMode": "Ghost mode · invisible admin",
@@ -5711,7 +6683,9 @@
   "adminDisconnectDevicesConfirm": "Do you really want to disconnect {userName} from all their devices?",
   "@adminDisconnectDevicesConfirm": {
     "placeholders": {
-      "userName": { "type": "String" }
+      "userName": {
+        "type": "String"
+      }
     }
   },
   "adminNotConnectedError": "Error: Admin not connected",
@@ -5737,7 +6711,9 @@
   "adminMaxValueConstraint": "Max: {max}",
   "@adminMaxValueConstraint": {
     "placeholders": {
-      "max": { "type": "int" }
+      "max": {
+        "type": "int"
+      }
     }
   },
   "adminUrlsAndContactTitle": "URLs & Contact",
@@ -5812,7 +6788,6 @@
   "laterButton": "Later",
   "bankNameHint": "Ex: BCEAO, Ecobank...",
   "ibanHint": "NEXX XXXX XXXX XXXX",
-
   "adTransferTitle": "Send money to Niger",
   "adTransferSubtitle": "Fast and secure transfers to your loved ones",
   "adTransferCta": "Send now",
@@ -5825,7 +6800,6 @@
   "adAudioRoomsTitle": "Live audio rooms",
   "adAudioRoomsSubtitle": "Join real-time discussions",
   "adAudioRoomsCta": "View rooms",
-
   "notifGroupOrders": "Orders",
   "notifGroupProximity": "Proximity alerts",
   "notifGroupCalls": "Calls",
@@ -5834,37 +6808,73 @@
   "notifGroupTransfers": "Transfers",
   "notifGroupAll": "Notifications",
   "notifNewMessagesCount": "{count} new messages",
-  "@notifNewMessagesCount": { "placeholders": { "count": { "type": "int" } } },
+  "@notifNewMessagesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "notifMessagesFrom": "{count} messages from {conversations} conversations",
-  "@notifMessagesFrom": { "placeholders": { "count": { "type": "int" }, "conversations": { "type": "int" } } },
+  "@notifMessagesFrom": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "conversations": {
+        "type": "int"
+      }
+    }
+  },
   "notifFriendRequestsCount": "{count} friend requests",
-  "@notifFriendRequestsCount": { "placeholders": { "count": { "type": "int" } } },
+  "@notifFriendRequestsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "notifNow": "now",
-
   "imageSaved": "Image saved",
   "saveFailed": "Save failed",
   "videoSaved": "Video saved",
   "embassiesFoundCount": "{count} embassy(ies) found",
-  "@embassiesFoundCount": { "placeholders": { "count": { "type": "int" } } },
+  "@embassiesFoundCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "embassiesHelperText": "Available embassies and consulates will appear here.",
-
   "startNowLabel": "Start now",
   "recipientReceives": "{name} receives",
-  "@recipientReceives": { "placeholders": { "name": { "type": "String" } } },
+  "@recipientReceives": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sendTipYouSend": "You send",
   "sendTipShownInRoomNote": "Your tip appears in the room with your name.",
   "ticketPaymentMethodCard": "Bank card",
   "ticketPinRequired": "PIN code required to confirm",
   "ticketReplayAccessNote": "The ticket gives access to the room and its replay.",
   "ticketBuyAndJoin": "Pay {amount} and join",
-  "@ticketBuyAndJoin": { "placeholders": { "amount": { "type": "String" } } },
+  "@ticketBuyAndJoin": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "configCompleteLabel": "complete configuration",
   "familyEventLabel": "Family event",
   "eventLabel": "Event",
   "sessionRecorded": "Recorded session",
   "incompleteStripeConfig": "Incomplete configuration. Complete your Stripe profile.",
   "userNotLoggedIn": "User not logged in",
-
   "adminBanUserTitle": "Ban user",
   "adminBanReasonLabel": "Reason for ban:",
   "adminUserBanned": "User banned",
@@ -5879,16 +6889,34 @@
   "adminAdminRightsRevoked": "Admin rights removed",
   "adminCertifyUserTitle": "Certify user",
   "adminCertifyConfirm": "Grant certification to {name}?",
-  "@adminCertifyConfirm": { "placeholders": { "name": { "type": "String" } } },
+  "@adminCertifyConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "adminUserCertified": "User certified",
   "adminRevokeCertTitle": "Revoke certification",
   "adminRevokeCertConfirm": "Remove certification from {name}?",
-  "@adminRevokeCertConfirm": { "placeholders": { "name": { "type": "String" } } },
+  "@adminRevokeCertConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "adminCertRevoked": "Certification revoked",
   "adminForceDisconnectConfirm": "This will disconnect the user from all their devices.",
   "adminUserDisconnected": "User disconnected",
   "adminDisconnectedSuccess": "{name} has been disconnected.",
-  "@adminDisconnectedSuccess": { "placeholders": { "name": { "type": "String" } } },
+  "@adminDisconnectedSuccess": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "adminBusinessVerified": "Business verified",
   "adminVerificationRemoved": "Verification removed",
   "adminBusinessBoosted": "Business boosted for 30 days",
@@ -5910,24 +6938,48 @@
   "adminTransactionFailReasonLabel": "Failure reason:",
   "adminTransactionFailed": "Transaction marked as failed",
   "adminMarkCompleteTitle": "Mark as completed",
-  "adminMarkCompleteConfirm": "Are you sure you want to mark this transaction as completed?",
-  "adminTransactionCompleted": "Transaction completed",
+  "adminMarkCompleteConfirm": "Mark this transaction as completed? Nothing is checked with the payment provider: it will show as successful to the user, even if no money ever moved.",
+  "adminTransactionCompleted": "Transaction marked as completed",
   "adminRefundReasonLabel": "Refund reason:",
-  "adminTransactionRefunded": "Transaction refunded",
+  "adminTransactionRefunded": "Transaction marked as refunded",
   "adminUnknownAdmin": "Unknown admin",
   "adminUnknownDate": "Unknown date",
   "adminEventByOrganizer": "Event by {id}",
-  "@adminEventByOrganizer": { "placeholders": { "id": { "type": "String" } } },
+  "@adminEventByOrganizer": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
   "adminEventsTab": "Events ({count})",
-  "@adminEventsTab": { "placeholders": { "count": { "type": "int" } } },
+  "@adminEventsTab": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "adminAvailable": "Available",
   "adminUnavailable": "Unavailable",
   "adminNoOrders": "No orders found",
   "adminNoDisputes": "No ongoing disputes",
   "adminDisputeId": "Dispute #{id}",
-  "@adminDisputeId": { "placeholders": { "id": { "type": "String" } } },
+  "@adminDisputeId": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
   "adminDisputeReasonLabel": "Reason: {reason}",
-  "@adminDisputeReasonLabel": { "placeholders": { "reason": { "type": "String" } } },
+  "@adminDisputeReasonLabel": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
   "adminReasonUnspecified": "Unspecified",
   "adminAmountHeader": "Amount",
   "adminAmountXofHeader": "Amount in XOF",
@@ -5938,25 +6990,51 @@
   "adminMaxDurationLabel": "Max duration (minutes)",
   "adminPredefinedTipsTitle": "Predefined tip amounts",
   "adminPredefinedTipsSubtitle": "Separated by comma (in units, not cents)",
-
   "wifiAndMobileData": "WiFi and mobile data",
   "wifiOnly": "WiFi only",
   "autoDownloads": "Automatic downloads",
-
   "passphraseMinLength": "Passphrase must contain at least 8 characters",
   "backupCreatedSuccess": "Backup created successfully",
   "backupCreateError": "Error creating backup: {error}",
-  "@backupCreateError": { "placeholders": { "error": { "type": "String" } } },
+  "@backupCreateError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
   "keysRestoredSuccess": "Keys restored successfully",
   "backupCreatedOn": "Created on: {date}",
-  "@backupCreatedOn": { "placeholders": { "date": { "type": "String" } } },
+  "@backupCreatedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "passphraseRequiredNote": "Without it, your keys cannot be restored.",
-
   "minTipAmountError": "Minimum amount: {amount} {currency}",
-  "@minTipAmountError": { "placeholders": { "amount": { "type": "int" }, "currency": { "type": "String" } } },
+  "@minTipAmountError": {
+    "placeholders": {
+      "amount": {
+        "type": "int"
+      },
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
   "maxTipAmountError": "Maximum amount: {amount} {currency}",
-  "@maxTipAmountError": { "placeholders": { "amount": { "type": "int" }, "currency": { "type": "String" } } },
-
+  "@maxTipAmountError": {
+    "placeholders": {
+      "amount": {
+        "type": "int"
+      },
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
   "ghostSuperAdminBadge": "GHOST · SuperAdmin",
   "ghostInvisibleNotice": "You are invisible: neither the host nor the participants can see you. Every action you take is logged.",
   "ghostActionsTitle": "GHOST ACTIONS",
@@ -5991,7 +7069,6 @@
   },
   "audioRoomCapacityNote": "10 speakers · 1,000 listeners",
   "audioRoomAdminLockNote": "🔒 Features subject to administrator rules.",
-
   "payoutHistoryTitle": "Payout history",
   "noWithdrawalsYet": "No withdrawals made yet",
   "availableBalance": "Available balance",
@@ -6004,7 +7081,6 @@
   "createStripePrompt": "Create a Stripe Connect account to receive your payments.",
   "continueSetupButton": "Continue setup",
   "createStripeButton": "Create Stripe account",
-
   "podcastCoverLabel": "Cover",
   "podcastVisibilityLabel": "Visibility",
   "podcastFollowersVisibility": "Followers",
@@ -6013,11 +7089,8 @@
   "podcastVideoProcessing": "Video processing…",
   "podcastEpisodeTitleLabel": "Episode title",
   "podcastAiChaptersLabel": "AI-detected chapters",
-
   "scheduleRoomCaveat": "Displayed to each member in their local timezone during the reminder.",
-
   "filesLabel": "Files",
-
   "embassyFormIntro": "Fill in this form to create a new embassy. The request will be verified before publication.",
   "embassyBasicInfoSection": "Basic information",
   "embassySelectType": "Select establishment type",
@@ -6042,7 +7115,6 @@
   "embassyHoursHint": "Ex: 09:00 - 17:00 or Closed",
   "embassyCreateButton": "Create embassy",
   "emailInvalidError": "Invalid email",
-
   "adminDemoted": "Demoted",
   "adminPrivacyChanged": "Privacy changed",
   "adminReportResolved": "Report resolved",
@@ -6053,7 +7125,6 @@
   "adminForceLogoutAction": "Forced logout",
   "adminAuditEmptyState": "Administrator actions will appear here",
   "adminDetailsLabel": "Details:",
-
   "adminTransferMonitoringTitle": "Transfer Monitoring",
   "adminTransferMonitoringSubtitle": "Real-time transaction and volume tracking",
   "adminTransferVolume": "Transfer Volume",
@@ -6061,19 +7132,61 @@
   "adminTotalVolumeUSD": "Total Volume (USD)",
   "adminFeesCollectedUSD": "Fees Collected (USD)",
   "adminFailedTab": "Failed ({count})",
-  "@adminFailedTab": { "placeholders": { "count": { "type": "int" } } },
+  "@adminFailedTab": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "adminCompletedTab": "Completed ({count})",
-  "@adminCompletedTab": { "placeholders": { "count": { "type": "int" } } },
+  "@adminCompletedTab": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "adminProcessedTab": "Processed ({count})",
-  "@adminProcessedTab": { "placeholders": { "count": { "type": "int" } } },
+  "@adminProcessedTab": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "adminAdminsTab": "Admins ({count})",
-  "@adminAdminsTab": { "placeholders": { "count": { "type": "int" } } },
+  "@adminAdminsTab": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "adminBannedTab": "Banned ({count})",
-  "@adminBannedTab": { "placeholders": { "count": { "type": "int" } } },
+  "@adminBannedTab": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "adminActiveTab": "Active ({count})",
-  "@adminActiveTab": { "placeholders": { "count": { "type": "int" } } },
+  "@adminActiveTab": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "adminSuspendedTab": "Suspended ({count})",
-  "@adminSuspendedTab": { "placeholders": { "count": { "type": "int" } } },
+  "@adminSuspendedTab": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "adminMarkFailedAction": "Fail",
   "adminMarkAsFailedTitle": "Mark as failed",
   "adminTransactionDebiting": "Debiting",
@@ -6096,9 +7209,21 @@
   "adminNoName": "No name",
   "adminNoEmail": "No email",
   "adminLastLogin": "Last login: {date}",
-  "@adminLastLogin": { "placeholders": { "date": { "type": "String" } } },
+  "@adminLastLogin": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "adminBanReason": "Reason: {reason}",
-  "@adminBanReason": { "placeholders": { "reason": { "type": "String" } } },
+  "@adminBanReason": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
   "adminCertifiedBadge": "CERTIFIED",
   "adminAdminBadge": "ADMIN",
   "adminBannedBadge": "BANNED",
@@ -6129,8 +7254,13 @@
   "stickerFavoritesLoadError": "Error loading favorites",
   "stickerPackEmpty": "No stickers in this pack",
   "priceConvertedFrom": "Converted from {currency}",
-  "@priceConvertedFrom": { "placeholders": { "currency": { "type": "String" } } },
-
+  "@priceConvertedFrom": {
+    "placeholders": {
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
   "onboardingWelcomeTitle": "Welcome to\nDiaspo Niger",
   "onboardingWelcomeDesc": "Connect with the Nigerien diaspora around the world. Find your compatriots and share together.",
   "onboardingDiscoverTitle": "Discover members",
@@ -6166,7 +7296,6 @@
   "reportMessageSubtitle": "Report this message to administrators",
   "reportMotifLabel": "Reason for report:",
   "violenceThreats": "Violence or threats",
-
   "disable": "Disable",
   "noProductFound": "No product found",
   "comingSoonShort": "Coming soon",
@@ -6176,7 +7305,13 @@
   "notVerifiedLabel": "Not verified",
   "deleteContentConfirmTitle": "Are you sure you want to delete this content?",
   "deleteContentIrreversibleDesc": "This action is irreversible and will permanently delete the {type}.",
-  "@deleteContentIrreversibleDesc": { "placeholders": { "type": { "type": "String" } } },
+  "@deleteContentIrreversibleDesc": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
   "reportTypeConversation": "Conversation",
   "reportTypeEvent": "Event",
   "reportTypeGroup": "Group",
@@ -6189,26 +7324,59 @@
   "categoryRealEstate": "Real estate",
   "categoryOther": "Other (standard)",
   "callDeleteError": "Error during deletion",
-
   "typingOneName": "{name} is typing...",
-  "@typingOneName": { "placeholders": { "name": { "type": "String" } } },
+  "@typingOneName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "typingTwoNames": "{name1} and {name2} are typing...",
-  "@typingTwoNames": { "placeholders": { "name1": { "type": "String" }, "name2": { "type": "String" } } },
+  "@typingTwoNames": {
+    "placeholders": {
+      "name1": {
+        "type": "String"
+      },
+      "name2": {
+        "type": "String"
+      }
+    }
+  },
   "typingManyNames": "{name} and {count} others are typing...",
-  "@typingManyNames": { "placeholders": { "name": { "type": "String" }, "count": { "type": "int" } } },
+  "@typingManyNames": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "typingSomeone": "Someone is typing...",
   "typingManyPeople": "{count} people are typing...",
-  "@typingManyPeople": { "placeholders": { "count": { "type": "int" } } },
-
+  "@typingManyPeople": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "messageTypePhoto": "📷 Photo",
   "messageTypeVideo": "🎥 Video",
   "messageTypeFile": "📄 Document",
   "messageTypeCall": "📞 Call",
   "messageTypeLocation": "📍 Location",
   "messageTypeSticker": "🎭 Sticker",
-
   "reportContentTitle": "Report {target}",
-  "@reportContentTitle": { "placeholders": { "target": { "type": "String" } } },
+  "@reportContentTitle": {
+    "placeholders": {
+      "target": {
+        "type": "String"
+      }
+    }
+  },
   "reportTargetUser": "this user",
   "reportTargetMessage": "this message",
   "reportTargetConversation": "this conversation",
@@ -6231,21 +7399,37 @@
   "reportReasonScam": "Scam",
   "reportReasonImpersonation": "Identity theft",
   "reportReasonOther": "Other",
-
   "maintenanceInProgress": "Maintenance in progress",
   "maintenanceDefaultMessage": "The application is temporarily unavailable for maintenance. Please try again later.",
   "maintenanceImprovingExperience": "We are working to improve your experience.",
-
   "phoneVerifTitle": "Phone number verification",
   "phoneVerifEnterCodeHint": "Enter the code sent to\n{phone}",
-  "@phoneVerifEnterCodeHint": { "placeholders": { "phone": { "type": "String" } } },
+  "@phoneVerifEnterCodeHint": {
+    "placeholders": {
+      "phone": {
+        "type": "String"
+      }
+    }
+  },
   "phoneVerifSendCodeHint": "We will send a verification code to\n{phone}",
-  "@phoneVerifSendCodeHint": { "placeholders": { "phone": { "type": "String" } } },
+  "@phoneVerifSendCodeHint": {
+    "placeholders": {
+      "phone": {
+        "type": "String"
+      }
+    }
+  },
   "sendCode": "Send code",
   "verify": "Verify",
   "resendCode": "Resend code",
   "resendCodeIn": "Resend in {seconds}s",
-  "@resendCodeIn": { "placeholders": { "seconds": { "type": "int" } } },
+  "@resendCodeIn": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
   "phoneVerifSendError": "Error sending code",
   "phoneVerifEnterComplete": "Please enter the complete code",
   "phoneVerifResendRequired": "Verification error. Please resend the code.",
@@ -6265,7 +7449,9 @@
   "invitedByName": "Invited by {name}",
   "@invitedByName": {
     "placeholders": {
-      "name": { "type": "String" }
+      "name": {
+        "type": "String"
+      }
     }
   },
   "noInvitationsReceived": "No pending invitations",
@@ -6323,17 +7509,19 @@
   "reopenExpected": "Reopening expected",
   "posts": "posts",
   "postSingle": "post",
-
   "shareToConversation": "Send to...",
   "sharedFromAnotherApp": "Shared from another app",
   "sharedContentSent": "Shared content sent successfully",
   "someSharedContentNotSent": "Some items could not be shared",
   "sharedFileCount": "+{count} file{count, plural, =1{} other{s}}",
   "@sharedFileCount": {
-    "placeholders": {"count": {"type": "int"}}
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "sharedTextCount": "1 text",
-
   "exportConversation": "Export conversation",
   "exportFormatTxt": "Text (.txt)",
   "exportFormatJson": "JSON (.json)",
@@ -6644,7 +7832,9 @@
       }
     }
   },
-  "homeServiceFeed": "The feed",
+  "homeServiceFeed": "Feeds",
+  "navFeeds": "Feeds",
+  "navDiscussions": "Chats",
   "@homeServiceFeed": {
     "description": "Tuile de service : le fil"
   },
@@ -6894,7 +8084,11 @@
   "profileCompletionPercent": "Your profile is {percent}% complete",
   "@profileCompletionPercent": {
     "description": "Titre du bandeau de complétude du profil (§11f)",
-    "placeholders": { "percent": { "type": "int" } }
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
   },
   "profileCompletionPitch": "A complete profile makes you visible in search and on the members map.",
   "@profileCompletionPitch": {
@@ -7252,7 +8446,6 @@
   "locationPermissionOpenSettings": "Permission permanently denied. Turn it on in your phone settings.",
   "locationDisclosureChatTitle": "Your location in this conversation",
   "locationDisclosureChatBody": "Diaspo Niger reads your location to centre the map on you and let you send it in this conversation. It is only shared with the people in that conversation, and only if you send the message: it does not go to the member map.",
-
   "pollCreateTitle": "Create a poll",
   "pollQuestionLabel": "Question",
   "pollOptionNumbered": "Option {index}",
@@ -7306,7 +8499,6 @@
   "pollVoteFailed": "Could not record your vote",
   "pollBubbleFailed": "The poll was created, but posting it to the conversation failed.",
   "pollClosedToVotes": "Poll closed",
-
   "pollAnonymous": "Anonymous poll",
   "pollAnonymousSubtitle": "Nobody will see who voted for what, not even you",
   "pollVotesArePublic": "Public vote: your name will be visible",
@@ -7314,5 +8506,924 @@
   "pollVotersVisibleToAll": "Votes are not anonymous: everyone can see who voted for what.",
   "pollVotersHidden": "Anonymous poll: nobody can see who voted for what.",
   "updateAvailableMessage": "Diaspo Niger {version} is available.",
-  "updateAvailableAction": "Update"
+  "updateAvailableAction": "Update",
+  "adminLoadMore": "Load more",
+  "adminTabWithCount": "{label} ({count})",
+  "@adminTabWithCount": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "adminOrdersName": "Orders",
+  "adminDisputesName": "Disputes",
+  "adminCompletedName": "Completed",
+  "adminBannedName": "Banned",
+  "adminProcessedName": "Processed",
+  "adminStatResolved": "Resolved",
+  "adminStatDismissed": "Dismissed",
+  "adminAuditEmptyTitle": "No audit logs",
+  "adminNoTransactionsTitle": "No transactions found",
+  "adminEmptyTabBody": "Nothing in this tab yet.",
+  "adminEmptyListBody": "Nothing in this list yet.",
+  "adminUsersEmptyBody": "No account in this list.",
+  "adminUsersNoMatchBody": "No account matches this search.",
+  "adminReportsEmptyBody": "Nothing to review here yet.",
+  "adminReportsNoMatchBody": "Try another word, or remove the filters.",
+  "adminReportViewContent": "View {type}",
+  "@adminReportViewContent": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "adminChangeRoleTo": "Change to {role}",
+  "@adminChangeRoleTo": {
+    "placeholders": {
+      "role": {
+        "type": "String"
+      }
+    }
+  },
+  "adminRevokeAccessShort": "Revoke access",
+  "adminMessageWithText": "Message: {text}",
+  "@adminMessageWithText": {
+    "placeholders": {
+      "text": {
+        "type": "String"
+      }
+    }
+  },
+  "adminScreenNotAllowed": "This screen is not available with your role.",
+  "adminWelcomePanel": "Welcome to the DiaspoNiger admin panel",
+  "adminMenuVerifyProfile": "Verify profile",
+  "adminMenuViewActivity": "View activity",
+  "adminMenuForceLogout": "Force sign-out",
+  "adminMenuRolesScreen": "Admin role: Roles screen",
+  "adminProfileVerifiedSuccess": "Profile verified",
+  "adminForceLogoutTitle": "Force sign-out",
+  "adminForceLogoutBody": "This will sign the user out of all their devices.",
+  "adminDetailSender": "Sender",
+  "adminDetailRecipient": "Recipient",
+  "adminDetailRecipientPhone": "Recipient phone",
+  "adminDetailProvider": "Provider",
+  "adminDetailMynitaRef": "MyNita ref.",
+  "adminDetailCreatedOn": "Created on",
+  "adminDetailCompletedOn": "Completed on",
+  "adminFailureReasonPrompt": "Failure reason:",
+  "adminReportTypeLine": "Type: {type}",
+  "@adminReportTypeLine": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "adminDisputeBadge": "DISPUTE",
+  "adminDisputeNumber": "Dispute #{id}",
+  "@adminDisputeNumber": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "adminAuditHistoryTitle": "Audit history",
+  "adminBoostChanged": "Boost changed",
+  "adminExportLabel": "Export {label}",
+  "@adminExportLabel": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "adminDecisionReasonLabel": "Reason",
+  "adminDecisionNoteLabel": "Factual justification",
+  "adminDecisionNoteHint": "The observed facts, without personal judgement.",
+  "adminDecisionPickReason": "Pick a reason",
+  "adminDecisionNoteRequired": "A justification is required.",
+  "adminMotifDismissRuleNotViolated": "Rule not violated",
+  "adminMotifDismissInsufficientEvidence": "Insufficient evidence",
+  "adminMotifDismissContentUnavailable": "Content unavailable",
+  "adminMotifDismissDuplicate": "Duplicate",
+  "adminMotifDismissOutOfScope": "Out of scope",
+  "adminMotifResolveContentRemoved": "Content removed",
+  "adminMotifResolveUserWarned": "Member warned",
+  "adminMotifResolveUserSuspended": "Account suspended",
+  "adminMotifResolveUserBanned": "Account banned",
+  "adminMotifResolveCorrectionRequested": "Correction requested",
+  "adminReviewingLabel": "Under review",
+  "adminEscalatedLabel": "Escalated",
+  "modoInfoTitle": "Information requests",
+  "modoInfoEmpty": "No request for this case.",
+  "modoInfoNew": "New request",
+  "modoInfoRecipientLabel": "Recipient",
+  "modoInfoRecipientReporter": "The reporter",
+  "modoInfoRecipientReported": "The reported member",
+  "modoInfoQuestionsLabel": "Specific questions",
+  "modoInfoQuestionsHint": "Without revealing the reporter's identity or third-party data.",
+  "modoInfoDueLabel": "Time to answer",
+  "modoInfoDueDays": "{days} days",
+  "modoInfoCreate": "Save draft",
+  "modoInfoSend": "Send",
+  "modoInfoSendTitle": "Send this request?",
+  "modoInfoSendBody": "The text can no longer be edited. Check that it reveals neither the reporter nor third-party data.",
+  "modoInfoRecordResponse": "Record the answer",
+  "modoInfoResponseLabel": "Answer received",
+  "modoInfoStatusDraft": "Draft",
+  "modoInfoStatusSent": "Sent",
+  "modoInfoStatusAnswered": "Answered",
+  "modoInfoStatusOverdue": "Overdue",
+  "modoInfoStatusCancelled": "Cancelled",
+  "modoInfoDue": "Due: {date}",
+  "modoInfoNoChannel": "Recipients are not yet notified in the app: pass the request on by another channel, then record the answer here.",
+  "modoInfoDraftSaved": "Draft saved.",
+  "modoInfoSentOk": "Request marked as sent.",
+  "modoInfoResponseSaved": "Answer recorded.",
+  "modoAppealTitle": "Appeals",
+  "modoAppealRegister": "Register an appeal",
+  "modoAppealArgumentLabel": "Member's arguments",
+  "modoAppealContested": "Contested decision: {action} ({reason})",
+  "modoAppealTake": "Start review",
+  "modoAppealDecide": "Decide",
+  "modoAppealOutcomeLabel": "Outcome",
+  "modoAppealOutcomeUpheld": "Uphold the decision",
+  "modoAppealOutcomeReduced": "Reduce the measure",
+  "modoAppealOutcomeAnnulled": "Annul the decision",
+  "modoAppealOutcomeSentBack": "Send back for re-examination",
+  "modoAppealNoteLabel": "Final reason",
+  "modoAppealStatusReceived": "Received",
+  "modoAppealStatusUnderReview": "Under review",
+  "modoAppealSelfConflict": "You made the contested decision: another administrator must review this appeal.",
+  "modoAppealOutcomeNote": "The outcome is recorded; it does not yet lift the measure.",
+  "modoAppealRegistered": "Appeal registered.",
+  "modoAppealTaken": "Appeal under review.",
+  "modoAppealDecided": "Appeal decided.",
+  "modoErrDenied": "You do not have permission to perform this action.",
+  "modoErrConflict": "The case changed in the meantime. Reload and try again.",
+  "modoErrInput": "Input refused: {detail}",
+  "modoErrGeneric": "Action failed: {detail}",
+  "modoLoadError": "Could not load: {detail}",
+  "modoReportTake": "Take the case",
+  "modoReportTaken": "Case taken.",
+  "supAdmTitle": "Support",
+  "supAdmSubtitle": "Member tickets: assignment, replies, internal notes.",
+  "supAdmFilterOpen": "Open",
+  "supAdmFilterInProgress": "In progress",
+  "supAdmFilterResolved": "Resolved",
+  "supAdmFilterClosed": "Closed",
+  "supAdmFilterAll": "All",
+  "supAdmSearchHint": "Search a subject or a member",
+  "supAdmEmpty": "No ticket in this view.",
+  "supAdmLoadError": "Could not load: {detail}",
+  "supAdmRetry": "Retry",
+  "supAdmNoAccess": "You do not have access to support tickets.",
+  "supAdmPriorityLabel": "Priority",
+  "supAdmPrioLow": "Low",
+  "supAdmPrioNormal": "Normal",
+  "supAdmPrioHigh": "High",
+  "supAdmPrioUrgent": "Urgent",
+  "supAdmCatTransaction": "Transfer",
+  "supAdmCatAccount": "Account",
+  "supAdmCatTechnical": "Technical",
+  "supAdmCatOther": "Other",
+  "supAdmCatDirectory": "Directory or event",
+  "supAdmCatPrivacy": "Personal data",
+  "supAdmCatComplaint": "Complaint",
+  "supAdmCatAppeal": "Appeal",
+  "supAdmCatSecurity": "Security",
+  "supAdmStatusOpen": "Open",
+  "supAdmStatusInProgress": "In progress",
+  "supAdmStatusResolved": "Resolved",
+  "supAdmStatusClosed": "Closed",
+  "supAdmMember": "Member: {name}",
+  "supAdmMemberUnnamed": "Unnamed member",
+  "supAdmUpdated": "Updated {date}",
+  "supAdmUnread": "New message from the member",
+  "supAdmUnassigned": "Unassigned",
+  "supAdmAssignedToYou": "Assigned to you",
+  "supAdmAssignedToOther": "Assigned to another agent",
+  "supAdmConversation": "Conversation with the member",
+  "supAdmFromSupport": "Support",
+  "supAdmFromMember": "Member",
+  "supAdmReplyLabel": "Your reply to the member",
+  "supAdmReplyHint": "Visible to the member.",
+  "supAdmSendReply": "Send reply",
+  "supAdmMustTake": "Take the ticket to reply.",
+  "supAdmNotesTitle": "Internal notes",
+  "supAdmNotesHint": "Not visible to the member.",
+  "supAdmNotesEmpty": "No note.",
+  "supAdmNoteLabel": "New note",
+  "supAdmAddNote": "Add note",
+  "supAdmTake": "Take the ticket",
+  "supAdmTakeOver": "Take over",
+  "supAdmResolve": "Mark resolved",
+  "supAdmClose": "Close",
+  "supAdmReopen": "Reopen",
+  "supAdmReasonTakeOver": "Why are you taking over this ticket?",
+  "supAdmReasonResolve": "Resolution provided",
+  "supAdmReasonClose": "Reason for closing",
+  "supAdmReasonReopen": "Why reopen this ticket?",
+  "supAdmResolution": "Resolution: {note}",
+  "supAdmDone": "Done.",
+  "supAdmReplySent": "Reply sent.",
+  "supAdmNoteAdded": "Note added.",
+  "demAdmTitle": "Consular procedures",
+  "demAdmSubtitle": "Drafting, review, publication. No procedure is published without a source and a verification date.",
+  "demAdmNew": "New procedure",
+  "demAdmFilterAll": "All",
+  "demAdmFilterWork": "To handle",
+  "demAdmFilterPublished": "Published",
+  "demAdmFilterUnpublished": "Unpublished",
+  "demAdmFilterOverdue": "Review overdue",
+  "demAdmSearchHint": "Search a procedure",
+  "demAdmEmpty": "No procedure in this view.",
+  "demAdmLoadError": "Could not load: {detail}",
+  "demAdmRetry": "Retry",
+  "demAdmNoAccess": "You do not have access to consular procedures.",
+  "demAdmStatusPublished": "Published",
+  "demAdmStatusUnpublished": "Unpublished",
+  "demAdmDraftDraft": "Draft",
+  "demAdmDraftPending": "To review",
+  "demAdmDraftApproved": "Approved, to publish",
+  "demAdmVersion": "Version {n}",
+  "demAdmVerified": "Verified on {date}",
+  "demAdmNextReview": "Next review: {date}",
+  "demAdmReviewUnplanned": "Review to be scheduled",
+  "demAdmReviewOverdue": "Review overdue",
+  "demAdmSource": "Source: {publisher}",
+  "demAdmSummary": "Summary",
+  "demAdmCost": "Cost",
+  "demAdmCostUnknown": "Not published by the source",
+  "demAdmPieces": "Documents to provide",
+  "demAdmWarnings": "Warnings",
+  "demAdmHistory": "History",
+  "demAdmHistoryEmpty": "No recorded version.",
+  "demAdmHistoryPublished": "Published",
+  "demAdmHistoryUnpublished": "Unpublished",
+  "demAdmDraftBy": "Draft by {author}",
+  "demAdmDraftByYou": "you",
+  "demAdmDraftByOther": "another administrator",
+  "demAdmChangeReason": "Reason: {reason}",
+  "demAdmReviewNote": "Reviewer's remark: {note}",
+  "demAdmWaitingReview": "Waiting for another administrator to review: you cannot approve your own text.",
+  "demAdmEdit": "Edit",
+  "demAdmSubmit": "Submit for review",
+  "demAdmWithdraw": "Withdraw draft",
+  "demAdmApprove": "Approve",
+  "demAdmReject": "Reject",
+  "demAdmPublish": "Publish",
+  "demAdmUnpublish": "Unpublish",
+  "demAdmRejectReason": "Reason for rejection",
+  "demAdmUnpublishReason": "Reason for unpublishing",
+  "demAdmUnpublishWarn": "Phones that already loaded the catalogue, or are offline, keep showing this procedure until their next sync.",
+  "demAdmConfirm": "Confirm",
+  "demAdmCancel": "Cancel",
+  "demAdmEditorNewTitle": "New procedure",
+  "demAdmEditorEditTitle": "Edit the procedure",
+  "demAdmFieldId": "Identifier (lowercase, digits, _)",
+  "demAdmFieldTitle": "Title",
+  "demAdmFieldRubrique": "Category",
+  "demAdmFieldRequestType": "Request type in the app",
+  "demAdmFieldLieu": "Where it is done",
+  "demAdmLieuConsulat": "At the consulate",
+  "demAdmLieuTribunal": "Court in Niger",
+  "demAdmFieldSummary": "Summary",
+  "demAdmFieldDelai": "Announced delay (leave empty if the source gives none)",
+  "demAdmFieldCostLabel": "Cost label",
+  "demAdmFieldCostAmount": "Amount in XOF (empty if unknown)",
+  "demAdmFieldCostStatus": "State of the cost information",
+  "demAdmCostStatusKnown": "Known",
+  "demAdmCostStatusUnknown": "Unknown",
+  "demAdmCostStatusNotMentioned": "Not mentioned by the source",
+  "demAdmCostStatusVariable": "Varies by country",
+  "demAdmPiecesTitle": "Documents to provide",
+  "demAdmPieceLabel": "Document",
+  "demAdmPieceRequired": "Required",
+  "demAdmPieceQuantity": "Qty",
+  "demAdmAddPiece": "Add a document",
+  "demAdmWarningsTitle": "Warnings shown to the user (one per line)",
+  "demAdmSourceTitle": "Official source (required to publish)",
+  "demAdmFieldSourceUrl": "Source address (https://…)",
+  "demAdmFieldSourcePublisher": "Source publisher",
+  "demAdmFieldVerifiedAt": "Verification date",
+  "demAdmFieldNextReview": "Next review (optional)",
+  "demAdmPickDate": "Pick",
+  "demAdmFieldChangeReason": "Reason for the change",
+  "demAdmFieldChangeReasonNew": "Reason (optional for a new procedure)",
+  "demAdmSaveDraft": "Save draft",
+  "demAdmDraftSaved": "Draft saved.",
+  "demAdmSubmitted": "Submitted for review.",
+  "demAdmWithdrawn": "Draft withdrawn.",
+  "demAdmApproved": "Approved.",
+  "demAdmRejected": "Rejected.",
+  "demAdmPublished": "Published, version {n}.",
+  "demAdmUnpublished": "Unpublished.",
+  "demAdmUnsaved": "Some changes are not saved. Leave?",
+  "demAdmRemovePiece": "Remove the document",
+  "evtAdmCancelTitle": "Cancel the event",
+  "evtAdmDeleteTitle": "Delete the event",
+  "evtAdmReasonLabel": "Reason (kept in the history)",
+  "evtAdmCancelWarn": "Attendees are not notified yet: they will see \"cancelled\" when opening the event.",
+  "evtAdmDeleteWarn": "Registrations are deleted with the event; only the history is kept. Super-admin only.",
+  "annAdmArchive": "Archive",
+  "annAdmRestore": "Restore",
+  "annAdmArchived": "Archived",
+  "annAdmReasonLabel": "Reason (kept in the history)",
+  "annAdmSourceLabel": "Basis of the verification (register, document, contact…)",
+  "annAdmVerifyTitle": "Verify the listing",
+  "annAdmVerifyWarn": "The badge tells the public the listing was checked: say on what basis, it is kept with your name.",
+  "annAdmUnverifyTitle": "Remove the badge",
+  "annAdmBoostTitle": "Promote for 30 days",
+  "annAdmUnboostTitle": "Remove the promotion",
+  "annAdmArchiveTitle": "Archive the listing",
+  "annAdmArchiveWarn": "The listing disappears from the public and loses its promotion. The owner sees it and reads the reason. Reversible.",
+  "annAdmRestoreTitle": "Restore the listing",
+  "annAdmDeleteTitle": "Delete the listing",
+  "annAdmDeleteWarn": "Permanent deletion (reviews, followers, views). Prefer archiving; only the history is kept.",
+  "annAdmArchivedDone": "Listing archived",
+  "annAdmRestoredDone": "Listing restored",
+  "cmpAdmTitle": "Notifications",
+  "cmpAdmSubtitle": "Campaigns: drafting, approval by another administrator, sending. Created is not delivered, and delivered is not read.",
+  "cmpAdmNoSchedule": "No scheduling: a campaign goes out when sending is started.",
+  "cmpAdmNew": "New campaign",
+  "cmpAdmFilterWork": "To handle",
+  "cmpAdmFilterSent": "Sent",
+  "cmpAdmFilterClosed": "Rejected or cancelled",
+  "cmpAdmFilterAll": "All",
+  "cmpAdmEmpty": "No campaign in this view.",
+  "cmpAdmLoadError": "Could not load: {detail}",
+  "cmpAdmRetry": "Retry",
+  "cmpAdmNoAccess": "You do not have access to campaigns.",
+  "cmpAdmTypeTransactional": "Transactional",
+  "cmpAdmTypeSecurity": "Security",
+  "cmpAdmTypeOfficial": "Official information",
+  "cmpAdmTypePromotional": "Promotional",
+  "cmpAdmTypeHelp": "Security and transactional go through even if the account turned system messages off; official and promotional respect that choice.",
+  "cmpAdmStatusDraft": "Draft",
+  "cmpAdmStatusPending": "To approve",
+  "cmpAdmStatusApproved": "Approved, to send",
+  "cmpAdmStatusSending": "Sending",
+  "cmpAdmStatusSent": "Sent",
+  "cmpAdmStatusRejected": "Rejected",
+  "cmpAdmStatusCancelled": "Cancelled",
+  "cmpAdmAudienceAll": "All accounts",
+  "cmpAdmAudienceCountry": "Country: {country}",
+  "cmpAdmAudienceUsers": "{n} specific accounts",
+  "cmpAdmAudienceCount": "{total} accounts targeted, {skipped} turned these messages off, {notify} will be notified.",
+  "cmpAdmRecipients": "{created} notifications created, {skipped} accounts skipped (preferences).",
+  "cmpAdmReviewNote": "Reviewer's remark: {note}",
+  "cmpAdmCancelReason": "Cancellation reason: {reason}",
+  "cmpAdmWaiting": "Waiting for another administrator to approve: you cannot approve your own message.",
+  "cmpAdmEdit": "Edit",
+  "cmpAdmSubmit": "Submit for approval",
+  "cmpAdmApprove": "Approve",
+  "cmpAdmReject": "Reject",
+  "cmpAdmRejectReason": "Reason for rejection",
+  "cmpAdmSend": "Start sending",
+  "cmpAdmResume": "Resume sending",
+  "cmpAdmCancel": "Cancel the campaign",
+  "cmpAdmCancelReasonLabel": "Reason for cancelling",
+  "cmpAdmCancelWarnSending": "Notifications already created stay sent; only the following ones are stopped.",
+  "cmpAdmSendConfirmTitle": "Start sending?",
+  "cmpAdmSendConfirmBody": "{notify} accounts will be notified. A send cannot be recalled.",
+  "cmpAdmSendProgress": "Sending: {done} processed, {left} left…",
+  "cmpAdmSendDone": "Sending finished: {created} notifications created.",
+  "cmpAdmSendStopped": "Sending interrupted ({detail}). Accounts already processed will not be notified again; resume sending.",
+  "cmpAdmConfirm": "Confirm",
+  "cmpAdmCancelAction": "Cancel",
+  "cmpAdmEditorNew": "New campaign",
+  "cmpAdmEditorEdit": "Edit the campaign",
+  "cmpAdmFieldType": "Message type",
+  "cmpAdmFieldTitle": "Title (80 characters max)",
+  "cmpAdmFieldBody": "Text (10 to 300 characters)",
+  "cmpAdmFieldAudience": "Audience",
+  "cmpAdmFieldCountry": "Country (full name, as stored)",
+  "cmpAdmFieldUsers": "Account identifiers (one per line, 100 max)",
+  "cmpAdmSaveDraft": "Save draft",
+  "cmpAdmSaved": "Draft saved.",
+  "cmpAdmSubmitted": "Submitted for approval.",
+  "cmpAdmApproved": "Approved.",
+  "cmpAdmRejected": "Rejected.",
+  "cmpAdmCancelled": "Campaign cancelled.",
+  "cmpAdmUnsaved": "Some changes are not saved. Leave?",
+  "secAdmTitle": "Security and compliance",
+  "secAdmSubtitle": "Personal data requests and security incidents. Super-admin only.",
+  "secAdmTabRequests": "Data requests",
+  "secAdmTabIncidents": "Incidents",
+  "secAdmNoAccess": "You do not have access to this section.",
+  "secAdmLoadError": "Could not load: {detail}",
+  "secAdmRetry": "Retry",
+  "secAdmEmpty": "Nothing in this view.",
+  "secAdmFilterOpen": "In progress",
+  "secAdmFilterClosed": "Closed",
+  "secAdmFilterAll": "All",
+  "secAdmConfirm": "Confirm",
+  "secAdmCancelAction": "Cancel",
+  "secAdmSave": "Save",
+  "secAdmDone": "Done.",
+  "secAdmReqNew": "New request",
+  "secAdmReqKindAccess": "Access",
+  "secAdmReqKindRectification": "Rectification",
+  "secAdmReqKindErasure": "Erasure",
+  "secAdmReqKindPortability": "Portability",
+  "secAdmReqKindObjection": "Objection",
+  "secAdmReqStatusReceived": "Received",
+  "secAdmReqStatusIdentity": "Identity verified",
+  "secAdmReqStatusInProgress": "In progress",
+  "secAdmReqStatusCompleted": "Completed",
+  "secAdmReqStatusRefused": "Refused",
+  "secAdmReqStatusCancelled": "Cancelled",
+  "secAdmReqDueInternal": "Internal due date: {date}",
+  "secAdmReqOverdue": "Overdue",
+  "secAdmReqDueHelp": "The due date is an internal target you choose. The legal deadline depends on the applicable law: it is not computed here.",
+  "secAdmReqFieldKind": "Kind of request",
+  "secAdmReqFieldAccount": "Account identifier (if known)",
+  "secAdmReqFieldContact": "Requester's contact (email…)",
+  "secAdmReqFieldScope": "Scope (systems concerned)",
+  "secAdmReqFieldDue": "Internal due date",
+  "secAdmReqDays": "{n} days",
+  "secAdmReqRequester": "Requester: {who}",
+  "secAdmReqScope": "Scope: {scope}",
+  "secAdmReqIdentity": "Identity verified: {method}",
+  "secAdmReqResult": "Result: {note}",
+  "secAdmReqNeedsIdentity": "Processing only starts once the identity is verified.",
+  "secAdmReqVerify": "Verify identity",
+  "secAdmReqVerifyMethod": "How the identity was verified",
+  "secAdmReqStart": "Start processing",
+  "secAdmReqComplete": "Complete",
+  "secAdmReqCompleteNote": "Report (systems processed, result)",
+  "secAdmReqCompleteWarn": "This tracking executes nothing: deletion or export go through their own flows, then are recorded here.",
+  "secAdmReqRefuse": "Refuse",
+  "secAdmReqRefuseNote": "Reason for refusal",
+  "secAdmReqCancel": "Cancel the request",
+  "secAdmReqCancelNote": "Reason for cancelling",
+  "secAdmReqCreated": "Request recorded.",
+  "secAdmIncNew": "Open an incident",
+  "secAdmIncSevLow": "Low",
+  "secAdmIncSevMedium": "Medium",
+  "secAdmIncSevHigh": "High",
+  "secAdmIncSevCritical": "Critical",
+  "secAdmIncStatusOpen": "Open",
+  "secAdmIncStatusContained": "Contained",
+  "secAdmIncStatusResolved": "Resolved",
+  "secAdmIncStatusClosed": "Closed",
+  "secAdmIncFieldTitle": "Title",
+  "secAdmIncFieldSeverity": "Severity",
+  "secAdmIncFieldSummary": "What happened (10 characters at least)",
+  "secAdmIncFieldImpact": "Impact (accounts, data, services)",
+  "secAdmIncTimeline": "Timeline",
+  "secAdmIncTimelineHint": "Evidence goes in the timeline notes, never in the audit.",
+  "secAdmIncNoteLabel": "Add a note",
+  "secAdmIncAddNote": "Add",
+  "secAdmIncSetSeverity": "Change severity",
+  "secAdmIncSeverityReason": "Reason for the change",
+  "secAdmIncContain": "Contain",
+  "secAdmIncResolve": "Mark resolved",
+  "secAdmIncClose": "Close",
+  "secAdmIncTransitionNote": "What was done",
+  "secAdmIncCloseCause": "Cause",
+  "secAdmIncCloseActions": "Corrective actions",
+  "secAdmIncCloseLessons": "Lessons learned",
+  "secAdmIncCloseHelp": "Closing requires the analysis: cause, corrective actions, lessons (10 characters each at least).",
+  "secAdmIncOpened": "Incident opened.",
+  "secAdmIncImpact": "Impact: {impact}",
+  "secAdmIncDetected": "Detected on {date}",
+  "secAdmReqFromApp": "From the app",
+  "secAdmReqUnassigned": "To take",
+  "secAdmReqTake": "Take the request",
+  "secAdmReqErasureState": "Account: {account} · deletion: {deletion}",
+  "secAdmReqAccountPresent": "present",
+  "secAdmReqAccountGone": "erased",
+  "secAdmReqDeletionNone": "no request",
+  "secAdmReqErasureHelp": "An erasure request only completes once the account is actually erased: deletion starts from the person's own account, with its grace period.",
+  "mesDonneesTitle": "My data requests",
+  "mesDonneesTileSubtitle": "Access, rectification, objection: follow or make a request",
+  "mesDonneesIntro": "You can ask for access to the data we hold about you, ask for it to be corrected, or object to a use. Someone on the team reads your request and replies.",
+  "mesDonneesOtherFlows": "To delete your account or export your data, use \"Delete my account\" and \"Export my data\" in settings: they do right away what a request would ask for.",
+  "mesDonneesNoTimeline": "We do not promise a deadline here; the team handles requests in order.",
+  "mesDonneesKindAccess": "Ask for access to my data",
+  "mesDonneesKindRectification": "Ask for a correction",
+  "mesDonneesKindObjection": "Object to a use",
+  "mesDonneesDetailsLabel": "Describe your request (10 characters at least)",
+  "mesDonneesSend": "Send the request",
+  "mesDonneesCancel": "Cancel",
+  "mesDonneesSent": "Request sent.",
+  "mesDonneesWithdraw": "Withdraw",
+  "mesDonneesWithdrawn": "Request withdrawn.",
+  "mesDonneesListTitle": "My requests",
+  "mesDonneesEmpty": "You have not made any request.",
+  "mesDonneesStatusReceived": "Received",
+  "mesDonneesStatusIdentity": "Identity verified",
+  "mesDonneesStatusInProgress": "Being processed",
+  "mesDonneesStatusCompleted": "Handled",
+  "mesDonneesStatusRefused": "Refused",
+  "mesDonneesStatusCancelled": "Withdrawn or cancelled",
+  "mesDonneesDate": "Made on {date}",
+  "mesDonneesLoadError": "Could not load your requests.",
+  "mesDonneesRetry": "Retry",
+  "mesDonneesAlreadyOpen": "A request of this kind is already open, or you reached the limit of three requests per day.",
+  "mesDonneesFailed": "The request could not be sent. Try again later.",
+  "secAdmReqAnswerLabel": "Reply to the requester (they read it in the app)",
+  "secAdmReqAnswerHelp": "The internal note never leaves; only this reply is read by the requester. The notification preview does not contain it.",
+  "secAdmReqInternalCompleteNote": "Internal report (systems processed, result)",
+  "secAdmReqInternalRefuseNote": "Internal reason for refusal",
+  "secAdmReqSummary": "Data overview",
+  "secAdmReqSummaryHelp": "Counts, never content. Available once the identity is verified.",
+  "secAdmSumMessages": "Messages sent (encrypted)",
+  "secAdmSumPosts": "Posts",
+  "secAdmSumComments": "Comments",
+  "secAdmSumStories": "Stories",
+  "secAdmSumFriends": "Friends",
+  "secAdmSumGroups": "Groups",
+  "secAdmSumNotifications": "Notifications",
+  "secAdmSumEvents": "Events organized",
+  "secAdmSumBusinesses": "Business listings",
+  "secAdmSumTickets": "Support tickets",
+  "secAdmSumReports": "Reports filed",
+  "secAdmSumBlocked": "Blocked accounts",
+  "secAdmSumDevices": "Devices",
+  "mesDonneesAnswerLabel": "Team's reply",
+  "ambAdmVerifyTitle": "Verify the embassy",
+  "ambAdmVerifyWarn": "The badge tells the public the listing was checked: give the official source consulted. It is kept with the date and your name.",
+  "ambAdmSourceUrl": "Source address (https://…)",
+  "ambAdmSourcePublisher": "Source publisher (ministry, official site…)",
+  "ambAdmReasonLabel": "Reason (kept in the history)",
+  "ambAdmRejectTitle": "Reject the listing",
+  "ambAdmSuspendTitle": "Suspend the embassy",
+  "ambAdmSuspendWarn": "The listing stays in the database but is no longer shown as active. Reversible.",
+  "ambAdmReactivateTitle": "Reactivate the embassy",
+  "ambAdmConfirm": "Confirm",
+  "ambAdmCancel": "Cancel",
+  "ambAdmSuspendedReason": "Suspended: {reason}",
+  "ambAdmRejectedReason": "Rejected: {reason}",
+  "ambAdmSourceLine": "Source: {source}",
+  "cmpAdmScheduledFor": "Scheduled for {date}",
+  "cmpAdmSchedule": "Schedule",
+  "cmpAdmReschedule": "Change time",
+  "cmpAdmUnschedule": "Remove schedule",
+  "cmpAdmScheduleHelp": "An approved, scheduled campaign goes out by itself at its time (checked every 5 minutes). The approval covers the time too.",
+  "cmpAdmScheduledNoManual": "Scheduled: it goes out at its time, or is cancelled.",
+  "cmpAdmScheduleSaved": "Time saved.",
+  "cmpAdmFieldSchedule": "Sending time (optional)",
+  "cmpAdmPickWhen": "Pick date and time",
+  "cmpAdmNoSchedule2": "Manual send",
+  "cmpAdmTemplates": "Templates",
+  "cmpAdmTemplateUse": "Start from a template",
+  "cmpAdmTemplateNone": "No template",
+  "cmpAdmTemplateNew": "New template",
+  "cmpAdmTemplateName": "Template name (3 to 60 characters)",
+  "cmpAdmTemplateSaved": "Template saved.",
+  "cmpAdmTemplateArchived": "Template archived.",
+  "cmpAdmTemplateArchive": "Archive",
+  "cmpAdmTemplatesEmpty": "No template.",
+  "cmpAdmTemplateHelp": "A template has no audience or time and approves nothing: the campaign built from it follows the usual approval.",
+  "cmpAdmReportTitle": "Sending report",
+  "cmpAdmReportCounts": "{created} notifications created · {skipped} skipped (preferences) · {remaining} remaining",
+  "cmpAdmReportPush": "{n} recipients reachable by push (token holders).",
+  "cmpAdmReportDelay": "Started {s} s after the scheduled time.",
+  "cmpAdmReportDuration": "Sent in {s} s.",
+  "cmpAdmReportCaveat": "Created is not delivered, and delivered is not read: neither delivery nor reading is measured here.",
+  "trfAdmProofLabel": "Proof of settlement (receipt no., bank reference…)",
+  "trfAdmRequestRefund": "Request a refund",
+  "trfAdmRequestRefundTitle": "Request a refund (ledger)",
+  "trfAdmRefundWarn": "No refund is triggered here: only the ledger changes, after ANOTHER administrator decides. The actual refund is made with the payment provider, separately.",
+  "trfAdmRefundPending": "Refund requested: {reason}",
+  "trfAdmRefundWaiting": "Waiting for another administrator to decide: you cannot decide your own request.",
+  "trfAdmApproveRefund": "Approve",
+  "trfAdmRejectRefund": "Reject",
+  "trfAdmRejectRefundTitle": "Reject the refund",
+  "trfAdmRejectRefundNote": "Reason for rejection",
+  "trfAdmRefundRequested": "Refund requested.",
+  "trfAdmRefundDecided": "Decision recorded.",
+  "marAdmReasonLabel": "Reason (kept with your name)",
+  "marAdmHideTitle": "Hide the product",
+  "marAdmRestoreTitle": "Restore the product",
+  "marAdmDeleteTitle": "Delete the product",
+  "marAdmDeleteWarn": "Permanent deletion, super-admin only. A product with orders is hidden, not erased.",
+  "marAdmDisputeWarn": "The decision is recorded. The escrow is neither released nor refunded here: that is done with the payment provider.",
+  "tbAdmTitle": "To handle",
+  "tbAdmSubtitle": "What is waiting right now, according to your permissions. A current state, not a period: see the time of calculation.",
+  "tbAdmComputedAt": "Calculated at {time}",
+  "tbAdmRefresh": "Recalculate",
+  "tbAdmLoadError": "Could not calculate this list: {detail}",
+  "tbAdmRetry": "Retry",
+  "tbAdmNothingForRole": "No queue is attached to your role.",
+  "tbAdmCalm": "Nothing waiting",
+  "tbAdmOldest": "oldest: {date}",
+  "tbAdmUrgentPrefix": "including {n} {label}",
+  "tbAdmOpen": "Open",
+  "tbAdmReports": "Reports",
+  "tbAdmReportsDef": "New, under review or escalated.",
+  "tbAdmReportsUrgent": "not taken yet",
+  "tbAdmSupport": "Support",
+  "tbAdmSupportDef": "Open or in-progress tickets.",
+  "tbAdmSupportUrgent": "not taken yet",
+  "tbAdmDemarches": "Consular procedures",
+  "tbAdmDemarchesDef": "Texts to review or publish, and published procedures whose dated review is overdue.",
+  "tbAdmDemarchesUrgent": "overdue for review",
+  "tbAdmCampaigns": "Campaigns",
+  "tbAdmCampaignsDef": "Submitted messages waiting for another administrator's approval.",
+  "tbAdmPrivacy": "Data requests",
+  "tbAdmPrivacyDef": "Open requests (received, identity verified, in progress).",
+  "tbAdmPrivacyUrgent": "past the internal due date",
+  "tbAdmIncidents": "Security incidents",
+  "tbAdmIncidentsDef": "Incidents not closed.",
+  "tbAdmIncidentsUrgent": "high or critical severity",
+  "tbAdmListings": "Listings to verify",
+  "tbAdmListingsDef": "Active listings without the \"verified\" badge.",
+  "tbAdmCounterUnavailable": "unavailable",
+  "tbAdmCountersUnavailable": "Some counters could not be read and show \"—\" rather than 0: {names}.",
+  "mbrAdmVerify": "Verify the profile",
+  "mbrAdmUnverify": "Remove the badge",
+  "mbrAdmWarn": "Warn",
+  "mbrAdmSuspend": "Suspend",
+  "mbrAdmUnsuspend": "Reactivate (end suspension)",
+  "mbrAdmHistory": "Moderation history",
+  "mbrAdmVerifyTitle": "Verify the profile",
+  "mbrAdmVerifyWarn": "The badge tells the public this member was checked: say on what basis, it is kept with your name.",
+  "mbrAdmVerifySource": "Basis of the verification",
+  "mbrAdmUnverifyTitle": "Remove the badge",
+  "mbrAdmReason": "Reason (kept in the history)",
+  "mbrAdmWarnTitle": "Warn the member",
+  "mbrAdmWarnWarn": "The member receives a \"Moderation warning\" notification with the text below. Do not reveal the reporter or third-party data.",
+  "mbrAdmWarnReason": "Internal reason (not sent to the member)",
+  "mbrAdmWarnMessage": "Message to the member (10 to 300 characters)",
+  "mbrAdmSuspendTitle": "Suspend the account",
+  "mbrAdmSuspendWarn": "The member is signed out and cannot return before the end of the duration. The suspension lifts by itself at expiry. For a permanent ban, use \"Ban\".",
+  "mbrAdmSuspendDays": "Duration",
+  "mbrAdmDays": "{n} days",
+  "mbrAdmUnsuspendTitle": "Reactivate the account",
+  "mbrAdmForceLogoutReason": "Reason for signing out",
+  "mbrAdmHistoryTitle": "Moderation history",
+  "mbrAdmHistoryEmpty": "No moderation event for this member.",
+  "mbrAdmKindVerified": "Profile verified",
+  "mbrAdmKindUnverified": "Badge removed",
+  "mbrAdmKindWarned": "Warning",
+  "mbrAdmKindSuspended": "Suspension",
+  "mbrAdmKindUnsuspended": "Suspension lifted",
+  "mbrAdmKindRevoked": "Forced sign-out",
+  "mbrAdmBySystem": "the system",
+  "mbrAdmWarned": "Warning sent ({n} in total).",
+  "mbrAdmSuspended": "Account suspended.",
+  "mbrAdmUnsuspended": "Account reactivated.",
+  "mbrAdmUnverified": "Badge removed.",
+  "mbrAdmCancel": "Cancel",
+  "mbrAdmConfirm": "Confirm",
+  "mbrAdmClose": "Close",
+  "mbrAdmLoadError": "Could not load: {detail}",
+  "refAdmTitle": "Geographic reference",
+  "refAdmSubtitle": "Cities, duplicates, countries. Super-admin only: a wrong city can open official groups.",
+  "refAdmNoAccess": "You do not have access to this section.",
+  "refAdmTabCities": "Cities",
+  "refAdmTabDuplicates": "Duplicates",
+  "refAdmTabCountries": "Countries",
+  "refAdmLoadError": "Could not load: {detail}",
+  "refAdmRetry": "Retry",
+  "refAdmReason": "Reason (kept in the history)",
+  "refAdmCancel": "Cancel",
+  "refAdmConfirm": "Confirm",
+  "refAdmSave": "Save",
+  "refAdmSaved": "Saved.",
+  "refAdmSearchCity": "Search a city (2 letters at least)",
+  "refAdmSearchHint": "Search a city or pick a country: the reference holds over 33,000 cities.",
+  "refAdmCountry": "Country",
+  "refAdmAllCountries": "All countries",
+  "refAdmNewCity": "New city",
+  "refAdmEdit": "Edit",
+  "refAdmDelete": "Delete",
+  "refAdmPopulation": "{n} inh.",
+  "refAdmDeleteTitle": "Delete {name}?",
+  "refAdmDeleteWarn": "Refused while a profile or group relies on this city: merge it instead. Only the history is kept.",
+  "refAdmDeleted": "City deleted.",
+  "refAdmFieldName": "Name",
+  "refAdmFieldRegion": "Region (optional)",
+  "refAdmFieldLat": "Latitude",
+  "refAdmFieldLon": "Longitude",
+  "refAdmFieldPopulation": "Population",
+  "refAdmFieldAliases": "Other names, comma-separated (optional)",
+  "refAdmDuplicatesHelp": "Same name in the same country, within 20 km. Merging moves profiles to the kept city; refused if the removed city carries a group.",
+  "refAdmNoDuplicates": "No probable duplicate.",
+  "refAdmDistance": "{km} km",
+  "refAdmKeepA": "Keep {id} ({profils} profile(s), {groupes} group(s)) — remove {other}",
+  "refAdmMergeTitle": "Merge these two cities",
+  "refAdmMergeWarn": "The removed city disappears: its profiles move to the kept city, its other names are merged, its GeoNames id is recorded in the history.",
+  "refAdmMerged": "Cities merged.",
+  "refAdmCountriesHelp": "Adding is possible; renaming and deleting are not: profiles, listings and events carry the country name spelled out.",
+  "refAdmSearchCountry": "Search a country",
+  "refAdmNewCountry": "New country",
+  "refAdmFieldIso": "ISO code (two capital letters)",
+  "rgHistTooltip": "Settings history",
+  "rgHistTitle": "Settings history",
+  "rgHistSubtitle": "Each change keeps the old and new value, who made it and when. Nothing in it can be rewritten or deleted.",
+  "rgHistEmpty": "No change recorded since the history was set up.",
+  "rgHistLoadError": "Could not read the history: {detail}",
+  "rgHistRetry": "Retry",
+  "rgHistClose": "Close",
+  "rgHistKindUpdate": "Change",
+  "rgHistKindRestore": "Rollback",
+  "rgHistBy": "By {who}",
+  "rgHistReason": "Reason: {reason}",
+  "rgHistChange": "{key}: {from} → {to}",
+  "rgHistAbsent": "(absent)",
+  "rgHistNoDiff": "No value changed.",
+  "rgHistRestore": "Restore the old value",
+  "rgHistNoBefore": "First recorded value of this section: no old value to restore.",
+  "rgHistRestoreTitle": "Restore \"{section}\"?",
+  "rgHistRestoreBody": "The section takes back the values from before this change. The rollback is itself recorded.",
+  "rgHistRestoreReason": "Reason for the rollback",
+  "rgHistRestoreCancel": "Cancel",
+  "rgHistRestoreConfirm": "Restore",
+  "rgHistRestored": "Section restored.",
+  "rgHistRestoreFailed": "Rollback failed: {detail}",
+  "evtCalTitle": "Events",
+  "evtCalSubtitle": "Calendar, attendees and figures. Cancelling or deleting is done from \"Content\".",
+  "evtCalTabCalendar": "Calendar",
+  "evtCalTabStats": "Statistics",
+  "evtCalNoAccess": "You do not have access to events.",
+  "evtCalLoadError": "Could not load: {detail}",
+  "evtCalRetry": "Retry",
+  "evtCalPrevMonth": "Previous month",
+  "evtCalNextMonth": "Next month",
+  "evtCalTimezone": "Times shown in this device's time zone ({zone}).",
+  "evtCalPrivateHidden": "{n} non-public or draft event(s) in the period: counted, not listed.",
+  "evtCalNoEventsDay": "No public event that day.",
+  "evtCalNoEventsMonth": "No public event this month.",
+  "evtCalAllMonth": "Whole month",
+  "evtCalAttendees": "{n} attendee(s)",
+  "evtCalAttendeesOf": "{n} / {max} attendees",
+  "evtCalOnline": "Online",
+  "evtCalSeeAttendees": "See attendees",
+  "evtCalAttendeesTitle": "Attendees: {title}",
+  "evtCalAttendeesWarn": "This lookup is logged (who, which event, how many rows — never the names).",
+  "evtCalAttendeesEmpty": "No attendee.",
+  "evtCalStatusDraft": "Draft",
+  "evtCalStatusUpcoming": "Upcoming",
+  "evtCalStatusOngoing": "Ongoing",
+  "evtCalStatusEnded": "Ended",
+  "evtCalStatusCancelled": "Cancelled",
+  "evtCalWindow": "Window",
+  "evtCalDays": "{n} days",
+  "evtCalStatCreated": "Events created",
+  "evtCalStatUpcoming": "Upcoming events",
+  "evtCalStatRegistrations": "Registrations",
+  "evtCalStatCancelled": "Events cancelled",
+  "evtCalStatFill": "Average fill (upcoming, capacity set)",
+  "evtCalStatNone": "—",
+  "evtCalStatNotMeasured": "Not measured: {list}.",
+  "evtCalStatDefinitions": "Definitions",
+  "evtCalDone": "Done.",
+  "jrnAudSubtitle": "Every administrator action, read-only: the log can be neither edited nor erased.",
+  "jrnAudExport": "Export",
+  "jrnAudExportTitle": "Export the log",
+  "jrnAudExportBody": "The rows matching the current filters (5,000 at most) are copied as CSV to the clipboard. This export is itself written to the log, with your filters.",
+  "jrnAudExported": "{n} rows copied as CSV. The export is written to the log.",
+  "jrnAudExportTruncated": "{n} rows copied, limit reached: narrow the filters for the rest. The export is written to the log.",
+  "jrnAudActor": "Actor (name or id)",
+  "jrnAudAction": "Action",
+  "jrnAudResource": "Resource type",
+  "jrnAudResourceId": "Resource id",
+  "jrnAudResult": "Result",
+  "jrnAudAll": "All",
+  "jrnAudFrom": "From",
+  "jrnAudTo": "To",
+  "jrnAudReset": "Reset",
+  "jrnAudPeriodInverted": "The start date is after the end date: no row can match.",
+  "jrnAudResultSuccess": "Succeeded",
+  "jrnAudResultDenied": "Denied",
+  "jrnAudResultFailed": "Failed",
+  "jrnAudResultPartial": "Partial",
+  "jrnAudLoadMore": "Load more",
+  "jrnAudEnd": "End of the log for these filters.",
+  "jrnAudDetailTitle": "Entry detail",
+  "jrnAudWhen": "Date",
+  "jrnAudActorId": "Actor id",
+  "jrnAudReason": "Reason code",
+  "jrnAudCorrelation": "Correlation",
+  "jrnAudEntryId": "Entry id",
+  "supAdmFilterEscalated": "Escalated",
+  "supSlaEscalatedBadge": "Escalated",
+  "supSlaLateBadge": "Overdue",
+  "supSlaEscalationReason": "Escalation: {reason}",
+  "supSlaDueFirst": "First reply before {date}",
+  "supSlaDueResolution": "Resolution before {date}",
+  "supSlaEscalate": "Escalate",
+  "supSlaEscalateReason": "Why is this ticket beyond your remit?",
+  "supSlaEscalationLift": "Lift escalation",
+  "supSlaInsertTemplate": "Insert a template",
+  "supSlaSettings": "Templates and deadlines",
+  "supSlaSettingsTitle": "Support settings",
+  "supSlaClose": "Close",
+  "supSlaTemplatesTitle": "Reply templates",
+  "supSlaTemplatesEmpty": "No template.",
+  "supSlaTemplateNew": "New template",
+  "supSlaTemplateEdit": "Edit",
+  "supSlaTemplateDelete": "Delete",
+  "supSlaTemplateTitleLabel": "Title",
+  "supSlaTemplateBodyLabel": "Text",
+  "supSlaTemplateCategoryLabel": "Category",
+  "supSlaTemplateAnyCategory": "All categories",
+  "supSlaTemplateSave": "Save",
+  "supSlaTemplateDeleteConfirm": "Delete the template \"{title}\"?",
+  "supSlaTargetsTitle": "Service deadlines",
+  "supSlaTargetsNote": "Clock hours, not business hours. With no deadline set, a ticket has no due date and is never overdue. An existing target is replaced for the same category and priority.",
+  "supSlaTargetsEmpty": "No deadline set.",
+  "supSlaFirstHours": "1st reply (h)",
+  "supSlaResolutionHours": "Resolution (h)",
+  "supSlaTargetSave": "Set",
+  "supSlaTargetRemove": "Remove this deadline",
+  "supSlaTargetLine": "First reply: {first} h · Resolution: {res} h",
+  "supSlaNoValue": "—",
+  "supSlaHoursInvalid": "Enter whole hours, from 1 to 8760, in at least one of the two fields.",
+  "statTitle": "Statistics",
+  "statSubtitle": "Figures read live from the database, with their definition.",
+  "statToday": "Today",
+  "statDefTitle": "What these figures measure",
+  "statDefToday": "Today: accounts created since midnight, this device's time.",
+  "statDefWeek": "This week: accounts created since Monday midnight, this device's time.",
+  "statDefMonth": "This month: accounts created since the 1st, this device's time.",
+  "statDefGrowth": "Growth: accounts created per calendar month over the last six months. Sign-ups, not active members; accounts deleted since no longer appear.",
+  "statDefCategories": "Events and businesses by category: those your permissions let you read, any status (an inactive business or a cancelled event counts).",
+  "statDefNoExport": "No export is offered here: the panel's only export is the audit log's.",
+  "statReadAt": "Data read on {date}",
+  "grpAdmPrivateTitle": "Make the group private",
+  "grpAdmPrivateWarn": "The group disappears from search and public lists; only its members see it. The reason is kept in the group's history.",
+  "grpAdmPublicTitle": "Make the group public",
+  "grpAdmPublicWarn": "The group becomes visible and joinable by every member of the app. The reason is kept in the group's history.",
+  "grpAdmDeleteWarn": "Irreversible. The group's events and polls are deleted with it, and the group is not notified. An official group can only be deleted by a superAdmin. The reason is kept in the history.",
+  "grpAdmDeleted": "Group deleted ({n} event(s) deleted with it).",
+  "rchAdmTitle": "To handle and search",
+  "rchAdmSubtitle": "What awaits your decision, and a search across what your role may read.",
+  "rchAdmTabQueue": "To handle",
+  "rchAdmTabSearch": "Search",
+  "rchAdmRefresh": "Refresh",
+  "rchAdmQueueEmpty": "Nothing awaits your decision right now.",
+  "rchAdmOldest": "Oldest: {date}",
+  "rchAdmLate": "{n} overdue",
+  "rchAdmQReports": "Reports pending",
+  "rchAdmQAppeals": "Appeals to review",
+  "rchAdmQTickets": "Open or in-progress tickets",
+  "rchAdmQTicketsEscalated": "Escalated tickets",
+  "rchAdmQTicketsOverdue": "Tickets past their service deadline",
+  "rchAdmQPrivacy": "Personal-data requests",
+  "rchAdmQProcedures": "Procedures to approve",
+  "rchAdmQCampaigns": "Campaigns to approve",
+  "rchAdmQBusinessesReview": "Business listings to re-verify",
+  "rchAdmSearchLabel": "Search a name or a title",
+  "rchAdmSearchHelp": "Press enter to search. The search is logged, without the searched word.",
+  "rchAdmSearchGo": "Search",
+  "rchAdmSkipped": "Not searched (missing permission): {list}.",
+  "rchAdmNoResult": "No result.",
+  "rchAdmKindMembers": "Members",
+  "rchAdmKindTickets": "Tickets",
+  "rchAdmKindReports": "Reports",
+  "rchAdmKindBusinesses": "Businesses",
+  "rchAdmKindEvents": "Events",
+  "rchAdmKindProcedures": "Procedures",
+  "rchAdmKindEmbassies": "Embassies",
+  "rchAdmKindCampaigns": "Campaigns",
+  "rchAdmLoadError": "Could not load: {detail}",
+  "rchAdmRetry": "Retry",
+  "srcAdmTitle": "Consular sources",
+  "srcAdmSubtitle": "What is missing or has aged in procedures and embassies. Read-only: fix it from the relevant screen.",
+  "srcAdmRetry": "Retry",
+  "srcAdmAll": "All",
+  "srcAdmNoSource": "No source",
+  "srcAdmNeverChecked": "Never checked",
+  "srcAdmReviewOverdue": "Review overdue",
+  "srcAdmNoReviewPlanned": "No review planned",
+  "srcAdmProcedures": "Procedures to review: {n} of {total}",
+  "srcAdmEmbassies": "Embassies to review: {n} of {total}",
+  "srcAdmNothing": "Nothing to review.",
+  "srcAdmReviewOn": "Review planned on {date}",
+  "srcAdmUnpublished": "Unpublished",
+  "srcAdmLoadError": "Could not load: {detail}",
+  "evtValTab": "To validate",
+  "evtValSetting": "Validation before publication",
+  "evtValSettingOn": "On: a public event is visible only to its organizer until it is approved.",
+  "evtValSettingOff": "Off: events are published immediately.",
+  "evtValEnableTitle": "Turn validation on?",
+  "evtValEnableBody": "New public events will stay invisible to other members until approved. The organizer sees \"pending\" or \"rejected\" (with the reason) on their event page.",
+  "evtValDisableTitle": "Turn validation off?",
+  "evtValDisableBody": "New events will be published immediately. Those already pending stay pending.",
+  "evtValConfirm": "Confirm",
+  "evtValNoAccess": "You cannot validate events.",
+  "evtValEmpty": "No event to validate.",
+  "evtValLoadError": "Could not load: {detail}",
+  "evtValApprove": "Approve",
+  "evtValReject": "Reject",
+  "evtValRejectReason": "Reason for rejection (visible to the organizer)",
+  "rchAdmQEventsPending": "Events to validate",
+  "evtOrgPendingTitle": "Awaiting validation",
+  "evtOrgPendingBody": "Other members cannot see this event yet: the team must approve it before it is published.",
+  "evtOrgRejectedTitle": "Event rejected",
+  "evtOrgRejectedBody": "Reason: {reason}. Fix the event, then submit it again.",
+  "evtOrgResubmit": "Submit again",
+  "evtOrgResubmitted": "Event submitted again."
 }

@@ -1,0 +1,3 @@
+# Les scripts shell restent en LF : avec core.autocrlf=true, un .sh en CRLF
+# casse Bash des la premiere ligne. Pose avec tools/build_admin_web.sh.
+*.sh text eol=lf

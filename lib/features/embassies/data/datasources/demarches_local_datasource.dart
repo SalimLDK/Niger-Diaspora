@@ -7,6 +7,7 @@ import '../../../../core/errors/exceptions.dart';
 import '../models/demarche_model.dart';
 
 const String cachedDemarchesCatalogue = 'CACHED_DEMARCHES_CATALOGUE';
+const String cachedDemarchesCatalogueLe = 'CACHED_DEMARCHES_CATALOGUE_LE';
 
 /// Les deux sources locales du catalogue des démarches.
 ///
@@ -25,6 +26,19 @@ class DemarchesLocalDataSource {
       cachedDemarchesCatalogue,
       jsonEncode(catalogue.toJson()),
     );
+    await prefs.setString(
+      cachedDemarchesCatalogueLe,
+      DateTime.now().toUtc().toIso8601String(),
+    );
+  }
+
+  /// Quand le cache a été écrit ; nul pour un cache d'une version qui ne le
+  /// datait pas. Une démarche dépubliée reste lisible hors ligne jusqu'à la
+  /// prochaine synchronisation : l'usager doit voir de quand date sa liste.
+  Future<DateTime?> getCacheDate() async {
+    final prefs = await SharedPreferences.getInstance();
+    final brut = prefs.getString(cachedDemarchesCatalogueLe);
+    return brut == null ? null : DateTime.tryParse(brut)?.toLocal();
   }
 
   /// Dernier catalogue chargé depuis Supabase.

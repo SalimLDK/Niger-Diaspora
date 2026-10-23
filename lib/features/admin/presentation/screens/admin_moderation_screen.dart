@@ -2,12 +2,22 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../widgets/admin_bandeau_erreur.dart';
 import 'package:diaspo_niger/core/theme/admin_colors.dart';
 import '../../../events/domain/entities/event_entity.dart';
 import '../../../groups/domain/entities/group_entity.dart';
 import '../providers/admin_provider.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:diaspo_niger/core/theme/design_kit.dart';
+import '../providers/dossier_moderation_provider.dart' show adminAPermissionProvider;
+
+/// Ce que la carte d'un événement dit de son organisateur : son nom, et
+/// l'identifiant seulement quand le nom manque. Elle affichait toujours
+/// l'identifiant brut (`ZPXVytz…`), illisible pour qui modère.
+String libelleOrganisateur(String? nom, String id) {
+  final propre = nom?.trim() ?? '';
+  return propre.isNotEmpty ? propre : id;
+}
 
 class AdminModerationScreen extends ConsumerStatefulWidget {
   const AdminModerationScreen({super.key});
@@ -80,7 +90,7 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
                   children: [
                     const Icon(Icons.event_rounded, size: 18),
                     const SizedBox(width: 8),
-                    Text('Événements (${state.events.length})'),
+                    Text(l10n.adminTabWithCount(l10n.eventsTitle, '${state.events.length}')),
                   ],
                 ),
               ),
@@ -90,7 +100,7 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
                   children: [
                     const Icon(Icons.group_rounded, size: 18),
                     const SizedBox(width: 8),
-                    Text('Groupes (${state.groups.length})'),
+                    Text(l10n.adminTabWithCount(l10n.groupsTitle, '${state.groups.length}')),
                   ],
                 ),
               ),
@@ -101,13 +111,30 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
         Expanded(
           child: state.isLoading
               ? _buildLoadingState()
-              : state.error != null
+              : state.error != null &&
+                      state.events.isEmpty &&
+                      state.groups.isEmpty
                   ? _buildErrorState(state.error!)
-                  : TabBarView(
-                      controller: _tabController,
+                  : Column(
                       children: [
-                        _buildEventsList(state.events),
-                        _buildGroupsList(state.groups),
+                        // Une erreur posée après une action (zéro ligne,
+                        // journal refusé) ne doit pas effacer la liste.
+                        if (state.error != null)
+                          AdminBandeauErreur(
+                            message: state.error!,
+                            onFermer: ref
+                                .read(adminContentNotifierProvider.notifier)
+                                .effacerErreur,
+                          ),
+                        Expanded(
+                          child: TabBarView(
+                            controller: _tabController,
+                            children: [
+                              _buildEventsList(state.events),
+                              _buildGroupsList(state.groups),
+                            ],
+                          ),
+                        ),
                       ],
                     ),
         ),
@@ -147,7 +174,12 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
     );
   }
 
-  Widget _buildRefreshButton() {
+  Widget _buildRefreshButton() => Tooltip(
+    message: l10n.adminRefresh,
+    child: _boutonActualiser(),
+  );
+
+  Widget _boutonActualiser() {
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -186,6 +218,10 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
   }
 
   Widget _buildEventCard(EventEntity event) {
+    // Supprimer est le droit du superAdmin seul (`events.delete`) ; le serveur
+    // le redit, le menu ne propose que ce qui peut réussir.
+    final peutSupprimer =
+        ref.watch(adminAPermissionProvider('events.delete')).valueOrNull ?? false;
     final statusColor = _getStatusColor(event.status);
 
     return Container(
@@ -234,7 +270,7 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Organisateur: ${event.organizerId}',
+                    'Organisateur: ${libelleOrganisateur(event.organizerName, event.organizerId)}',
                     style: const TextStyle(
                       fontSize: 13,
                       color: _textSecondary,
@@ -243,7 +279,7 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      _buildStatusBadge(event.status.name.toUpperCase(), statusColor),
+                      _buildStatusBadge(event.status),
                       const SizedBox(width: 8),
                       _buildCategoryBadge(event.category.name),
                     ],
@@ -253,6 +289,7 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
             ),
             // Actions
             PopupMenuButton<String>(
+              tooltip: l10n.moreActions,
               onSelected: (value) => _handleEventAction(value, event),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               icon: Container(
@@ -282,23 +319,24 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
                       ],
                     ),
                   ),
-                PopupMenuItem(
-                  value: 'delete',
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: AdminColors.statusRed.withAlpha(20),
-                          borderRadius: BorderRadius.circular(6),
+                if (peutSupprimer)
+                  PopupMenuItem(
+                    value: 'delete',
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: AdminColors.statusRed.withAlpha(20),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: const Icon(Icons.delete_rounded, color: AdminColors.statusRed, size: 16),
                         ),
-                        child: const Icon(Icons.delete_rounded, color: AdminColors.statusRed, size: 16),
-                      ),
-                      const SizedBox(width: 12),
-                      Text(l10n.adminDelete),
-                    ],
+                        const SizedBox(width: 12),
+                        Text(l10n.adminDelete),
+                      ],
+                    ),
                   ),
-                ),
               ],
             ),
           ],
@@ -405,6 +443,7 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
             ),
             // Actions
             PopupMenuButton<String>(
+              tooltip: l10n.moreActions,
               onSelected: (value) => _handleGroupAction(value, group),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               icon: Container(
@@ -462,42 +501,19 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
     );
   }
 
-  Widget _buildStatusBadge(String label, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withAlpha(20),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: color.withAlpha(50)),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.w600,
-          color: color,
-        ),
-      ),
-    );
+  /// Statut d'un événement : pastille du kit pour les états de cycle de vie,
+  /// étiquette d'accent pour « à venir » (ce n'est pas une décision en attente).
+  Widget _buildStatusBadge(EventStatus status) {
+    final label = status.name;
+    return switch (status) {
+      EventStatus.upcoming => DesignTag(label, tone: DesignTagTone.accent),
+      EventStatus.ongoing => DesignBadge(label, tone: DesignBadgeTone.verified),
+      EventStatus.completed => DesignBadge(label, tone: DesignBadgeTone.archived),
+      EventStatus.cancelled => DesignBadge(label, tone: DesignBadgeTone.failed),
+    };
   }
 
-  Widget _buildCategoryBadge(String category) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: _textSecondary.withAlpha(15),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Text(
-        category,
-        style: TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.w500,
-          color: _textSecondary,
-        ),
-      ),
-    );
-  }
+  Widget _buildCategoryBadge(String category) => DesignTag(category);
 
   Color _getStatusColor(EventStatus status) {
     switch (status) {
@@ -603,23 +619,13 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
 
   Widget _buildEmptyState(IconData icon, String message) {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            icon,
-            size: 64,
-            color: _textSecondary.withAlpha(100),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            message,
-            style: const TextStyle(
-              color: _textSecondary,
-              fontSize: 16,
-            ),
-          ),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: DesignEmptyState(
+          icon: icon,
+          title: message,
+          body: l10n.adminEmptyListBody,
+        ),
       ),
     );
   }
@@ -635,25 +641,23 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
 
     switch (action) {
       case 'cancel':
-        final confirm = await _showConfirmation(
-          'Annuler l\'événement',
-          l10n.adminCancelEventMsg,
+        final motif = await _demanderMotif(
+          l10n.evtAdmCancelTitle,
+          l10n.evtAdmCancelWarn,
         );
-        if (confirm == true) {
-          final ok = await notifier.cancelEvent(event.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
-          if (!mounted) return;
-          _showSnackBar(ok ? l10n.adminEventCancelled : l10n.loadingError);
+        if (motif != null) {
+          final ok = await notifier.cancelEvent(event.id, motif: motif);
+          _montrerBilan(ok, l10n.adminEventCancelled);
         }
         break;
       case 'delete':
-        final confirm = await _showConfirmation(
-          'Supprimer l\'événement',
-          l10n.adminDeleteEventMsg,
+        final motif = await _demanderMotif(
+          l10n.evtAdmDeleteTitle,
+          l10n.evtAdmDeleteWarn,
         );
-        if (confirm == true) {
-          final ok = await notifier.deleteEvent(event.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
-          if (!mounted) return;
-          _showSnackBar(ok ? l10n.adminEventDeleted : l10n.deleteError);
+        if (motif != null) {
+          final ok = await notifier.deleteEvent(event.id, motif: motif);
+          _montrerBilan(ok, l10n.adminEventDeleted);
         }
         break;
     }
@@ -661,64 +665,102 @@ class _AdminModerationScreenState extends ConsumerState<AdminModerationScreen>
 
   Future<void> _handleGroupAction(String action, GroupEntity group) async {
     final notifier = ref.read(adminContentNotifierProvider.notifier);
-    final currentAdmin = ref.read(currentAdminProvider);
-
-    if (currentAdmin == null) {
-      _showSnackBar(l10n.adminNotConnected);
-      return;
-    }
 
     switch (action) {
       case 'make_public':
-        await notifier.toggleGroupPrivacy(group.id, false, adminId: currentAdmin.id, adminName: currentAdmin.name);
-        _showSnackBar(l10n.adminGroupPublic);
-        break;
       case 'make_private':
-        await notifier.toggleGroupPrivacy(group.id, true, adminId: currentAdmin.id, adminName: currentAdmin.name);
-        _showSnackBar(l10n.adminGroupPrivate);
+        final enPrive = action == 'make_private';
+        final motif = await _demanderMotif(
+          enPrive ? l10n.grpAdmPrivateTitle : l10n.grpAdmPublicTitle,
+          enPrive ? l10n.grpAdmPrivateWarn : l10n.grpAdmPublicWarn,
+        );
+        if (motif == null) return;
+        final ok = await notifier.setGroupPrivacy(group.id, enPrive, motif: motif);
+        _montrerBilan(ok, enPrive ? l10n.adminGroupPrivate : l10n.adminGroupPublic);
         break;
       case 'delete':
-        final confirm = await _showConfirmation(
+        final motif = await _demanderMotif(
           l10n.adminDeleteGroupTitle,
-          l10n.adminDeleteGroupConfirm,
+          l10n.grpAdmDeleteWarn,
         );
-        if (confirm == true) {
-          await notifier.deleteGroup(group.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
-          _showSnackBar(l10n.adminGroupDeleted);
-        }
+        if (motif == null) return;
+        final n = await notifier.deleteGroup(group.id, motif: motif);
+        _montrerBilan(n != null, n == null ? '' : l10n.grpAdmDeleted('$n'));
         break;
     }
   }
 
-  Future<bool?> _showConfirmation(String title, String content) {
-    return showDialog<bool>(
+  /// Un motif d'au moins 5 caractères, ou `null` si l'action est abandonnée.
+  Future<String?> _demanderMotif(String titre, String avertissement) {
+    final controller = TextEditingController();
+    return showDialog<String>(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(title),
-        content: Text(content),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(l10n.adminCancelAction),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setLocal) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Text(titre),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(avertissement,
+                  style: const TextStyle(fontSize: 12, color: AdminColors.statusAmberStrong)),
+              const SizedBox(height: 12),
+              TextField(
+                controller: controller,
+                onChanged: (_) => setLocal(() {}),
+                maxLines: 3,
+                maxLength: 1000,
+                decoration: InputDecoration(
+                  labelText: l10n.evtAdmReasonLabel,
+                  border: const OutlineInputBorder(),
+                ),
+              ),
+            ],
           ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AdminColors.statusRed,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(l10n.adminCancelAction),
             ),
-            child: Text(l10n.adminConfirmAction),
-          ),
-        ],
+            ElevatedButton(
+              onPressed: controller.text.trim().length < 5
+                  ? null
+                  : () => Navigator.pop(ctx, controller.text.trim()),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AdminColors.statusRed,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+              child: Text(l10n.adminConfirmAction),
+            ),
+          ],
+        ),
       ),
+    ).whenComplete(controller.dispose);
+  }
+
+  /// Le libellé de succès ne s'affiche que si le notifier a rendu vrai ;
+  /// sinon son `state.error` (zéro ligne sous RLS, journal d'audit refusé…).
+  /// Avant, le succès s'affichait quoi qu'il arrive pour les groupes, et un
+  /// « Erreur de chargement » sans motif pour les événements (audit du
+  /// 2026-10-14, § 5).
+  void _montrerBilan(bool ok, String succes) {
+    if (!mounted) return;
+    if (ok) {
+      _showSnackBar(succes);
+      return;
+    }
+    _showSnackBar(
+      ref.read(adminContentNotifierProvider).error ?? l10n.loadingError,
+      isError: true,
     );
   }
 
-  void _showSnackBar(String message) {
+  void _showSnackBar(String message, {bool isError = false}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
+        backgroundColor: isError ? AdminColors.statusRed : null,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),

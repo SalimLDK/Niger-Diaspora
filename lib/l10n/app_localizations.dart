@@ -12557,7 +12557,7 @@ abstract class AppLocalizations {
   /// No description provided for @adminRefund.
   ///
   /// In fr, this message translates to:
-  /// **'Rembourser'**
+  /// **'Marquer remboursée'**
   String get adminRefund;
 
   /// No description provided for @adminGroupsTab.
@@ -12893,7 +12893,7 @@ abstract class AppLocalizations {
   /// No description provided for @adminComplete.
   ///
   /// In fr, this message translates to:
-  /// **'Compléter'**
+  /// **'Marquer complétée'**
   String get adminComplete;
 
   /// No description provided for @adminSearchUserPlaceholder.
@@ -16339,6 +16339,90 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Login'**
   String get adminLoginButton;
+
+  /// No description provided for @adminMfaEnrolTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Second facteur requis'**
+  String get adminMfaEnrolTitle;
+
+  /// No description provided for @adminMfaEnrolIntro.
+  ///
+  /// In fr, this message translates to:
+  /// **'Scannez ce QR code avec une application d\'authentification (Google Authenticator, Aegis, 1Password…), puis entrez le code à 6 chiffres qu\'elle affiche. Sans ce second facteur, le tableau de bord reste fermé.'**
+  String get adminMfaEnrolIntro;
+
+  /// No description provided for @adminMfaManualKey.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ou saisissez cette clé à la main :'**
+  String get adminMfaManualKey;
+
+  /// No description provided for @adminMfaConfirmBefore.
+  ///
+  /// In fr, this message translates to:
+  /// **'À confirmer avant {heure}'**
+  String adminMfaConfirmBefore(String heure);
+
+  /// No description provided for @adminMfaCodeField.
+  ///
+  /// In fr, this message translates to:
+  /// **'Code à 6 chiffres'**
+  String get adminMfaCodeField;
+
+  /// No description provided for @adminMfaCodeMissing.
+  ///
+  /// In fr, this message translates to:
+  /// **'Entrez le code à 6 chiffres affiché par votre application.'**
+  String get adminMfaCodeMissing;
+
+  /// No description provided for @adminMfaActivateButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Activer le second facteur'**
+  String get adminMfaActivateButton;
+
+  /// No description provided for @adminMfaRetry.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réessayer'**
+  String get adminMfaRetry;
+
+  /// No description provided for @adminMfaSignOut.
+  ///
+  /// In fr, this message translates to:
+  /// **'Se déconnecter'**
+  String get adminMfaSignOut;
+
+  /// No description provided for @adminMfaChallengeTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Code de vérification'**
+  String get adminMfaChallengeTitle;
+
+  /// No description provided for @adminMfaChallengeIntro.
+  ///
+  /// In fr, this message translates to:
+  /// **'Entrez le code à 6 chiffres affiché par votre application d\'authentification.'**
+  String get adminMfaChallengeIntro;
+
+  /// No description provided for @adminMfaVerifyButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vérifier'**
+  String get adminMfaVerifyButton;
+
+  /// No description provided for @adminMfaBackToLogin.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retour à la connexion'**
+  String get adminMfaBackToLogin;
+
+  /// No description provided for @adminMfaNoTotp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce compte n\'a qu\'un second facteur par SMS, que le panneau ne prend pas en charge.'**
+  String get adminMfaNoTotp;
 
   /// No description provided for @adminProductsCount.
   ///
@@ -26861,13 +26945,13 @@ abstract class AppLocalizations {
   /// No description provided for @adminMarkCompleteConfirm.
   ///
   /// In fr, this message translates to:
-  /// **'Êtes-vous sûr de vouloir marquer cette transaction comme complétée ?'**
+  /// **'Marquer cette transaction complétée ? Rien n\'est vérifié auprès du prestataire de paiement : elle apparaîtra comme réussie pour l\'utilisateur, même si l\'argent n\'est jamais parti.'**
   String get adminMarkCompleteConfirm;
 
   /// No description provided for @adminTransactionCompleted.
   ///
   /// In fr, this message translates to:
-  /// **'Transaction complétée'**
+  /// **'Transaction marquée complétée'**
   String get adminTransactionCompleted;
 
   /// No description provided for @adminRefundReasonLabel.
@@ -26879,7 +26963,7 @@ abstract class AppLocalizations {
   /// No description provided for @adminTransactionRefunded.
   ///
   /// In fr, this message translates to:
-  /// **'Transaction remboursée'**
+  /// **'Transaction marquée remboursée'**
   String get adminTransactionRefunded;
 
   /// No description provided for @adminUnknownAdmin.
@@ -29327,8 +29411,20 @@ abstract class AppLocalizations {
   /// Tuile de service : le fil
   ///
   /// In fr, this message translates to:
-  /// **'Le fil'**
+  /// **'Feeds'**
   String get homeServiceFeed;
+
+  /// No description provided for @navFeeds.
+  ///
+  /// In fr, this message translates to:
+  /// **'Feeds'**
+  String get navFeeds;
+
+  /// No description provided for @navDiscussions.
+  ///
+  /// In fr, this message translates to:
+  /// **'Discussions'**
+  String get navDiscussions;
 
   /// Etat vide de la section autour de vous
   ///
@@ -30565,6 +30661,5208 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Mettre à jour'**
   String get updateAvailableAction;
+
+  /// No description provided for @adminLoadMore.
+  ///
+  /// In fr, this message translates to:
+  /// **'Charger plus'**
+  String get adminLoadMore;
+
+  /// No description provided for @adminTabWithCount.
+  ///
+  /// In fr, this message translates to:
+  /// **'{label} ({count})'**
+  String adminTabWithCount(String label, String count);
+
+  /// No description provided for @adminOrdersName.
+  ///
+  /// In fr, this message translates to:
+  /// **'Commandes'**
+  String get adminOrdersName;
+
+  /// No description provided for @adminDisputesName.
+  ///
+  /// In fr, this message translates to:
+  /// **'Litiges'**
+  String get adminDisputesName;
+
+  /// No description provided for @adminCompletedName.
+  ///
+  /// In fr, this message translates to:
+  /// **'Complétées'**
+  String get adminCompletedName;
+
+  /// No description provided for @adminBannedName.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bannis'**
+  String get adminBannedName;
+
+  /// No description provided for @adminProcessedName.
+  ///
+  /// In fr, this message translates to:
+  /// **'Traités'**
+  String get adminProcessedName;
+
+  /// No description provided for @adminStatResolved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Résolus'**
+  String get adminStatResolved;
+
+  /// No description provided for @adminStatDismissed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rejetés'**
+  String get adminStatDismissed;
+
+  /// No description provided for @adminAuditEmptyTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun log d\'audit'**
+  String get adminAuditEmptyTitle;
+
+  /// No description provided for @adminNoTransactionsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune transaction trouvée'**
+  String get adminNoTransactionsTitle;
+
+  /// No description provided for @adminEmptyTabBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rien dans cet onglet pour le moment.'**
+  String get adminEmptyTabBody;
+
+  /// No description provided for @adminEmptyListBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rien dans cette liste pour le moment.'**
+  String get adminEmptyListBody;
+
+  /// No description provided for @adminUsersEmptyBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun compte dans cette liste.'**
+  String get adminUsersEmptyBody;
+
+  /// No description provided for @adminUsersNoMatchBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun compte ne correspond à cette recherche.'**
+  String get adminUsersNoMatchBody;
+
+  /// No description provided for @adminReportsEmptyBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rien à traiter ici pour le moment.'**
+  String get adminReportsEmptyBody;
+
+  /// No description provided for @adminReportsNoMatchBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Essayez un autre mot, ou retirez les filtres.'**
+  String get adminReportsNoMatchBody;
+
+  /// No description provided for @adminReportViewContent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir le {type}'**
+  String adminReportViewContent(String type);
+
+  /// No description provided for @adminChangeRoleTo.
+  ///
+  /// In fr, this message translates to:
+  /// **'Changer en {role}'**
+  String adminChangeRoleTo(String role);
+
+  /// No description provided for @adminRevokeAccessShort.
+  ///
+  /// In fr, this message translates to:
+  /// **'Révoquer l\'accès'**
+  String get adminRevokeAccessShort;
+
+  /// No description provided for @adminMessageWithText.
+  ///
+  /// In fr, this message translates to:
+  /// **'Message : {text}'**
+  String adminMessageWithText(String text);
+
+  /// No description provided for @adminScreenNotAllowed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cet écran n\'est pas accessible avec votre rôle.'**
+  String get adminScreenNotAllowed;
+
+  /// No description provided for @adminWelcomePanel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bienvenue dans le panneau d\'administration DiaspoNiger'**
+  String get adminWelcomePanel;
+
+  /// No description provided for @adminMenuVerifyProfile.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vérifier profil'**
+  String get adminMenuVerifyProfile;
+
+  /// No description provided for @adminMenuViewActivity.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir activité'**
+  String get adminMenuViewActivity;
+
+  /// No description provided for @adminMenuForceLogout.
+  ///
+  /// In fr, this message translates to:
+  /// **'Forcer déconnexion'**
+  String get adminMenuForceLogout;
+
+  /// No description provided for @adminMenuRolesScreen.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rôle admin : écran Rôles'**
+  String get adminMenuRolesScreen;
+
+  /// No description provided for @adminProfileVerifiedSuccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Profil vérifié'**
+  String get adminProfileVerifiedSuccess;
+
+  /// No description provided for @adminForceLogoutTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Forcer la déconnexion'**
+  String get adminForceLogoutTitle;
+
+  /// No description provided for @adminForceLogoutBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cela déconnectera l\'utilisateur de tous ses appareils.'**
+  String get adminForceLogoutBody;
+
+  /// No description provided for @adminDetailSender.
+  ///
+  /// In fr, this message translates to:
+  /// **'Expéditeur'**
+  String get adminDetailSender;
+
+  /// No description provided for @adminDetailRecipient.
+  ///
+  /// In fr, this message translates to:
+  /// **'Destinataire'**
+  String get adminDetailRecipient;
+
+  /// No description provided for @adminDetailRecipientPhone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Téléphone destinataire'**
+  String get adminDetailRecipientPhone;
+
+  /// No description provided for @adminDetailProvider.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fournisseur'**
+  String get adminDetailProvider;
+
+  /// No description provided for @adminDetailMynitaRef.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réf. MyNita'**
+  String get adminDetailMynitaRef;
+
+  /// No description provided for @adminDetailCreatedOn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Créée le'**
+  String get adminDetailCreatedOn;
+
+  /// No description provided for @adminDetailCompletedOn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Complétée le'**
+  String get adminDetailCompletedOn;
+
+  /// No description provided for @adminFailureReasonPrompt.
+  ///
+  /// In fr, this message translates to:
+  /// **'Raison de l\'échec :'**
+  String get adminFailureReasonPrompt;
+
+  /// No description provided for @adminReportTypeLine.
+  ///
+  /// In fr, this message translates to:
+  /// **'Type : {type}'**
+  String adminReportTypeLine(String type);
+
+  /// No description provided for @adminDisputeBadge.
+  ///
+  /// In fr, this message translates to:
+  /// **'LITIGE'**
+  String get adminDisputeBadge;
+
+  /// No description provided for @adminDisputeNumber.
+  ///
+  /// In fr, this message translates to:
+  /// **'Litige #{id}'**
+  String adminDisputeNumber(String id);
+
+  /// No description provided for @adminAuditHistoryTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Historique d\'Audit'**
+  String get adminAuditHistoryTitle;
+
+  /// No description provided for @adminBoostChanged.
+  ///
+  /// In fr, this message translates to:
+  /// **'Boost modifié'**
+  String get adminBoostChanged;
+
+  /// No description provided for @adminExportLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Exporter {label}'**
+  String adminExportLabel(String label);
+
+  /// No description provided for @adminDecisionReasonLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif'**
+  String get adminDecisionReasonLabel;
+
+  /// No description provided for @adminDecisionNoteLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Justification factuelle'**
+  String get adminDecisionNoteLabel;
+
+  /// No description provided for @adminDecisionNoteHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les faits observés, sans jugement personnel.'**
+  String get adminDecisionNoteHint;
+
+  /// No description provided for @adminDecisionPickReason.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisissez un motif'**
+  String get adminDecisionPickReason;
+
+  /// No description provided for @adminDecisionNoteRequired.
+  ///
+  /// In fr, this message translates to:
+  /// **'La justification est obligatoire.'**
+  String get adminDecisionNoteRequired;
+
+  /// No description provided for @adminMotifDismissRuleNotViolated.
+  ///
+  /// In fr, this message translates to:
+  /// **'Règle non enfreinte'**
+  String get adminMotifDismissRuleNotViolated;
+
+  /// No description provided for @adminMotifDismissInsufficientEvidence.
+  ///
+  /// In fr, this message translates to:
+  /// **'Preuves insuffisantes'**
+  String get adminMotifDismissInsufficientEvidence;
+
+  /// No description provided for @adminMotifDismissContentUnavailable.
+  ///
+  /// In fr, this message translates to:
+  /// **'Contenu inaccessible'**
+  String get adminMotifDismissContentUnavailable;
+
+  /// No description provided for @adminMotifDismissDuplicate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Doublon'**
+  String get adminMotifDismissDuplicate;
+
+  /// No description provided for @adminMotifDismissOutOfScope.
+  ///
+  /// In fr, this message translates to:
+  /// **'Hors périmètre'**
+  String get adminMotifDismissOutOfScope;
+
+  /// No description provided for @adminMotifResolveContentRemoved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Contenu retiré'**
+  String get adminMotifResolveContentRemoved;
+
+  /// No description provided for @adminMotifResolveUserWarned.
+  ///
+  /// In fr, this message translates to:
+  /// **'Membre averti'**
+  String get adminMotifResolveUserWarned;
+
+  /// No description provided for @adminMotifResolveUserSuspended.
+  ///
+  /// In fr, this message translates to:
+  /// **'Compte suspendu'**
+  String get adminMotifResolveUserSuspended;
+
+  /// No description provided for @adminMotifResolveUserBanned.
+  ///
+  /// In fr, this message translates to:
+  /// **'Compte banni'**
+  String get adminMotifResolveUserBanned;
+
+  /// No description provided for @adminMotifResolveCorrectionRequested.
+  ///
+  /// In fr, this message translates to:
+  /// **'Correction demandée'**
+  String get adminMotifResolveCorrectionRequested;
+
+  /// No description provided for @adminReviewingLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'En cours d\'examen'**
+  String get adminReviewingLabel;
+
+  /// No description provided for @adminEscalatedLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Escaladé'**
+  String get adminEscalatedLabel;
+
+  /// No description provided for @modoInfoTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Demandes d\'informations'**
+  String get modoInfoTitle;
+
+  /// No description provided for @modoInfoEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune demande pour ce dossier.'**
+  String get modoInfoEmpty;
+
+  /// No description provided for @modoInfoNew.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouvelle demande'**
+  String get modoInfoNew;
+
+  /// No description provided for @modoInfoRecipientLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Destinataire'**
+  String get modoInfoRecipientLabel;
+
+  /// No description provided for @modoInfoRecipientReporter.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le signalant'**
+  String get modoInfoRecipientReporter;
+
+  /// No description provided for @modoInfoRecipientReported.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le membre signalé'**
+  String get modoInfoRecipientReported;
+
+  /// No description provided for @modoInfoQuestionsLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Questions précises'**
+  String get modoInfoQuestionsLabel;
+
+  /// No description provided for @modoInfoQuestionsHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sans révéler l\'identité du signalant ni de données de tiers.'**
+  String get modoInfoQuestionsHint;
+
+  /// No description provided for @modoInfoDueLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Délai de réponse'**
+  String get modoInfoDueLabel;
+
+  /// No description provided for @modoInfoDueDays.
+  ///
+  /// In fr, this message translates to:
+  /// **'{days} jours'**
+  String modoInfoDueDays(int days);
+
+  /// No description provided for @modoInfoCreate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Enregistrer le brouillon'**
+  String get modoInfoCreate;
+
+  /// No description provided for @modoInfoSend.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoyer'**
+  String get modoInfoSend;
+
+  /// No description provided for @modoInfoSendTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoyer cette demande ?'**
+  String get modoInfoSendTitle;
+
+  /// No description provided for @modoInfoSendBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le texte ne pourra plus être modifié. Vérifiez qu\'il ne révèle ni le signalant ni des données de tiers.'**
+  String get modoInfoSendBody;
+
+  /// No description provided for @modoInfoRecordResponse.
+  ///
+  /// In fr, this message translates to:
+  /// **'Consigner la réponse'**
+  String get modoInfoRecordResponse;
+
+  /// No description provided for @modoInfoResponseLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réponse reçue'**
+  String get modoInfoResponseLabel;
+
+  /// No description provided for @modoInfoStatusDraft.
+  ///
+  /// In fr, this message translates to:
+  /// **'Brouillon'**
+  String get modoInfoStatusDraft;
+
+  /// No description provided for @modoInfoStatusSent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoyée'**
+  String get modoInfoStatusSent;
+
+  /// No description provided for @modoInfoStatusAnswered.
+  ///
+  /// In fr, this message translates to:
+  /// **'Répondue'**
+  String get modoInfoStatusAnswered;
+
+  /// No description provided for @modoInfoStatusOverdue.
+  ///
+  /// In fr, this message translates to:
+  /// **'En retard'**
+  String get modoInfoStatusOverdue;
+
+  /// No description provided for @modoInfoStatusCancelled.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annulée'**
+  String get modoInfoStatusCancelled;
+
+  /// No description provided for @modoInfoDue.
+  ///
+  /// In fr, this message translates to:
+  /// **'Échéance : {date}'**
+  String modoInfoDue(String date);
+
+  /// No description provided for @modoInfoNoChannel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les destinataires ne sont pas encore notifiés dans l\'application : transmettez la demande par un autre moyen, puis consignez ici la réponse reçue.'**
+  String get modoInfoNoChannel;
+
+  /// No description provided for @modoInfoDraftSaved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Brouillon enregistré.'**
+  String get modoInfoDraftSaved;
+
+  /// No description provided for @modoInfoSentOk.
+  ///
+  /// In fr, this message translates to:
+  /// **'Demande marquée comme envoyée.'**
+  String get modoInfoSentOk;
+
+  /// No description provided for @modoInfoResponseSaved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réponse consignée.'**
+  String get modoInfoResponseSaved;
+
+  /// No description provided for @modoAppealTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Recours'**
+  String get modoAppealTitle;
+
+  /// No description provided for @modoAppealRegister.
+  ///
+  /// In fr, this message translates to:
+  /// **'Enregistrer un recours'**
+  String get modoAppealRegister;
+
+  /// No description provided for @modoAppealArgumentLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Arguments du membre'**
+  String get modoAppealArgumentLabel;
+
+  /// No description provided for @modoAppealContested.
+  ///
+  /// In fr, this message translates to:
+  /// **'Décision contestée : {action} ({reason})'**
+  String modoAppealContested(String action, String reason);
+
+  /// No description provided for @modoAppealTake.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prendre en examen'**
+  String get modoAppealTake;
+
+  /// No description provided for @modoAppealDecide.
+  ///
+  /// In fr, this message translates to:
+  /// **'Trancher'**
+  String get modoAppealDecide;
+
+  /// No description provided for @modoAppealOutcomeLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Issue'**
+  String get modoAppealOutcomeLabel;
+
+  /// No description provided for @modoAppealOutcomeUpheld.
+  ///
+  /// In fr, this message translates to:
+  /// **'Maintenir la décision'**
+  String get modoAppealOutcomeUpheld;
+
+  /// No description provided for @modoAppealOutcomeReduced.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réduire la mesure'**
+  String get modoAppealOutcomeReduced;
+
+  /// No description provided for @modoAppealOutcomeAnnulled.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annuler la décision'**
+  String get modoAppealOutcomeAnnulled;
+
+  /// No description provided for @modoAppealOutcomeSentBack.
+  ///
+  /// In fr, this message translates to:
+  /// **'Renvoyer pour réexamen'**
+  String get modoAppealOutcomeSentBack;
+
+  /// No description provided for @modoAppealNoteLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif final'**
+  String get modoAppealNoteLabel;
+
+  /// No description provided for @modoAppealStatusReceived.
+  ///
+  /// In fr, this message translates to:
+  /// **'Reçu'**
+  String get modoAppealStatusReceived;
+
+  /// No description provided for @modoAppealStatusUnderReview.
+  ///
+  /// In fr, this message translates to:
+  /// **'En examen'**
+  String get modoAppealStatusUnderReview;
+
+  /// No description provided for @modoAppealSelfConflict.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous avez pris la décision contestée : un autre administrateur doit examiner ce recours.'**
+  String get modoAppealSelfConflict;
+
+  /// No description provided for @modoAppealOutcomeNote.
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'issue est consignée ; elle n\'exécute pas encore la levée de la mesure.'**
+  String get modoAppealOutcomeNote;
+
+  /// No description provided for @modoAppealRegistered.
+  ///
+  /// In fr, this message translates to:
+  /// **'Recours enregistré.'**
+  String get modoAppealRegistered;
+
+  /// No description provided for @modoAppealTaken.
+  ///
+  /// In fr, this message translates to:
+  /// **'Recours pris en examen.'**
+  String get modoAppealTaken;
+
+  /// No description provided for @modoAppealDecided.
+  ///
+  /// In fr, this message translates to:
+  /// **'Recours tranché.'**
+  String get modoAppealDecided;
+
+  /// No description provided for @modoErrDenied.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous n\'avez pas la permission d\'effectuer cette action.'**
+  String get modoErrDenied;
+
+  /// No description provided for @modoErrConflict.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le dossier a changé entre-temps. Rechargez puis réessayez.'**
+  String get modoErrConflict;
+
+  /// No description provided for @modoErrInput.
+  ///
+  /// In fr, this message translates to:
+  /// **'Saisie refusée : {detail}'**
+  String modoErrInput(String detail);
+
+  /// No description provided for @modoErrGeneric.
+  ///
+  /// In fr, this message translates to:
+  /// **'Action impossible : {detail}'**
+  String modoErrGeneric(String detail);
+
+  /// No description provided for @modoLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chargement impossible : {detail}'**
+  String modoLoadError(String detail);
+
+  /// No description provided for @modoReportTake.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prendre en charge'**
+  String get modoReportTake;
+
+  /// No description provided for @modoReportTaken.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dossier pris en charge.'**
+  String get modoReportTaken;
+
+  /// No description provided for @supAdmTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Support'**
+  String get supAdmTitle;
+
+  /// No description provided for @supAdmSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tickets des membres : prise en charge, réponses, notes internes.'**
+  String get supAdmSubtitle;
+
+  /// No description provided for @supAdmFilterOpen.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ouverts'**
+  String get supAdmFilterOpen;
+
+  /// No description provided for @supAdmFilterInProgress.
+  ///
+  /// In fr, this message translates to:
+  /// **'En cours'**
+  String get supAdmFilterInProgress;
+
+  /// No description provided for @supAdmFilterResolved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Résolus'**
+  String get supAdmFilterResolved;
+
+  /// No description provided for @supAdmFilterClosed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Clos'**
+  String get supAdmFilterClosed;
+
+  /// No description provided for @supAdmFilterAll.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tous'**
+  String get supAdmFilterAll;
+
+  /// No description provided for @supAdmSearchHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rechercher un sujet ou un membre'**
+  String get supAdmSearchHint;
+
+  /// No description provided for @supAdmEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun ticket dans cette vue.'**
+  String get supAdmEmpty;
+
+  /// No description provided for @supAdmLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chargement impossible : {detail}'**
+  String supAdmLoadError(String detail);
+
+  /// No description provided for @supAdmRetry.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réessayer'**
+  String get supAdmRetry;
+
+  /// No description provided for @supAdmNoAccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous n\'avez pas accès aux tickets du support.'**
+  String get supAdmNoAccess;
+
+  /// No description provided for @supAdmPriorityLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Priorité'**
+  String get supAdmPriorityLabel;
+
+  /// No description provided for @supAdmPrioLow.
+  ///
+  /// In fr, this message translates to:
+  /// **'Basse'**
+  String get supAdmPrioLow;
+
+  /// No description provided for @supAdmPrioNormal.
+  ///
+  /// In fr, this message translates to:
+  /// **'Normale'**
+  String get supAdmPrioNormal;
+
+  /// No description provided for @supAdmPrioHigh.
+  ///
+  /// In fr, this message translates to:
+  /// **'Haute'**
+  String get supAdmPrioHigh;
+
+  /// No description provided for @supAdmPrioUrgent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Urgente'**
+  String get supAdmPrioUrgent;
+
+  /// No description provided for @supAdmCatTransaction.
+  ///
+  /// In fr, this message translates to:
+  /// **'Transfert'**
+  String get supAdmCatTransaction;
+
+  /// No description provided for @supAdmCatAccount.
+  ///
+  /// In fr, this message translates to:
+  /// **'Compte'**
+  String get supAdmCatAccount;
+
+  /// No description provided for @supAdmCatTechnical.
+  ///
+  /// In fr, this message translates to:
+  /// **'Technique'**
+  String get supAdmCatTechnical;
+
+  /// No description provided for @supAdmCatOther.
+  ///
+  /// In fr, this message translates to:
+  /// **'Autre'**
+  String get supAdmCatOther;
+
+  /// No description provided for @supAdmCatDirectory.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annuaire ou événement'**
+  String get supAdmCatDirectory;
+
+  /// No description provided for @supAdmCatPrivacy.
+  ///
+  /// In fr, this message translates to:
+  /// **'Données personnelles'**
+  String get supAdmCatPrivacy;
+
+  /// No description provided for @supAdmCatComplaint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réclamation'**
+  String get supAdmCatComplaint;
+
+  /// No description provided for @supAdmCatAppeal.
+  ///
+  /// In fr, this message translates to:
+  /// **'Recours'**
+  String get supAdmCatAppeal;
+
+  /// No description provided for @supAdmCatSecurity.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sécurité'**
+  String get supAdmCatSecurity;
+
+  /// No description provided for @supAdmStatusOpen.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ouvert'**
+  String get supAdmStatusOpen;
+
+  /// No description provided for @supAdmStatusInProgress.
+  ///
+  /// In fr, this message translates to:
+  /// **'En cours'**
+  String get supAdmStatusInProgress;
+
+  /// No description provided for @supAdmStatusResolved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Résolu'**
+  String get supAdmStatusResolved;
+
+  /// No description provided for @supAdmStatusClosed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Clos'**
+  String get supAdmStatusClosed;
+
+  /// No description provided for @supAdmMember.
+  ///
+  /// In fr, this message translates to:
+  /// **'Membre : {name}'**
+  String supAdmMember(String name);
+
+  /// No description provided for @supAdmMemberUnnamed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Membre sans nom'**
+  String get supAdmMemberUnnamed;
+
+  /// No description provided for @supAdmUpdated.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mis à jour le {date}'**
+  String supAdmUpdated(String date);
+
+  /// No description provided for @supAdmUnread.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouveau message du membre'**
+  String get supAdmUnread;
+
+  /// No description provided for @supAdmUnassigned.
+  ///
+  /// In fr, this message translates to:
+  /// **'Non attribué'**
+  String get supAdmUnassigned;
+
+  /// No description provided for @supAdmAssignedToYou.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pris en charge par vous'**
+  String get supAdmAssignedToYou;
+
+  /// No description provided for @supAdmAssignedToOther.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pris en charge par un autre agent'**
+  String get supAdmAssignedToOther;
+
+  /// No description provided for @supAdmConversation.
+  ///
+  /// In fr, this message translates to:
+  /// **'Conversation avec le membre'**
+  String get supAdmConversation;
+
+  /// No description provided for @supAdmFromSupport.
+  ///
+  /// In fr, this message translates to:
+  /// **'Support'**
+  String get supAdmFromSupport;
+
+  /// No description provided for @supAdmFromMember.
+  ///
+  /// In fr, this message translates to:
+  /// **'Membre'**
+  String get supAdmFromMember;
+
+  /// No description provided for @supAdmReplyLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre réponse au membre'**
+  String get supAdmReplyLabel;
+
+  /// No description provided for @supAdmReplyHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Visible par le membre.'**
+  String get supAdmReplyHint;
+
+  /// No description provided for @supAdmSendReply.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoyer la réponse'**
+  String get supAdmSendReply;
+
+  /// No description provided for @supAdmMustTake.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prenez le ticket en charge pour répondre.'**
+  String get supAdmMustTake;
+
+  /// No description provided for @supAdmNotesTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Notes internes'**
+  String get supAdmNotesTitle;
+
+  /// No description provided for @supAdmNotesHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Invisibles pour le membre.'**
+  String get supAdmNotesHint;
+
+  /// No description provided for @supAdmNotesEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune note.'**
+  String get supAdmNotesEmpty;
+
+  /// No description provided for @supAdmNoteLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouvelle note'**
+  String get supAdmNoteLabel;
+
+  /// No description provided for @supAdmAddNote.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter la note'**
+  String get supAdmAddNote;
+
+  /// No description provided for @supAdmTake.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prendre en charge'**
+  String get supAdmTake;
+
+  /// No description provided for @supAdmTakeOver.
+  ///
+  /// In fr, this message translates to:
+  /// **'Reprendre'**
+  String get supAdmTakeOver;
+
+  /// No description provided for @supAdmResolve.
+  ///
+  /// In fr, this message translates to:
+  /// **'Marquer résolu'**
+  String get supAdmResolve;
+
+  /// No description provided for @supAdmClose.
+  ///
+  /// In fr, this message translates to:
+  /// **'Clôturer'**
+  String get supAdmClose;
+
+  /// No description provided for @supAdmReopen.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rouvrir'**
+  String get supAdmReopen;
+
+  /// No description provided for @supAdmReasonTakeOver.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pourquoi reprenez-vous ce ticket ?'**
+  String get supAdmReasonTakeOver;
+
+  /// No description provided for @supAdmReasonResolve.
+  ///
+  /// In fr, this message translates to:
+  /// **'Résolution apportée'**
+  String get supAdmReasonResolve;
+
+  /// No description provided for @supAdmReasonClose.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif de clôture'**
+  String get supAdmReasonClose;
+
+  /// No description provided for @supAdmReasonReopen.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pourquoi rouvrir ce ticket ?'**
+  String get supAdmReasonReopen;
+
+  /// No description provided for @supAdmResolution.
+  ///
+  /// In fr, this message translates to:
+  /// **'Résolution : {note}'**
+  String supAdmResolution(String note);
+
+  /// No description provided for @supAdmDone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fait.'**
+  String get supAdmDone;
+
+  /// No description provided for @supAdmReplySent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réponse envoyée.'**
+  String get supAdmReplySent;
+
+  /// No description provided for @supAdmNoteAdded.
+  ///
+  /// In fr, this message translates to:
+  /// **'Note ajoutée.'**
+  String get supAdmNoteAdded;
+
+  /// No description provided for @demAdmTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Démarches consulaires'**
+  String get demAdmTitle;
+
+  /// No description provided for @demAdmSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rédaction, relecture, publication. Aucune démarche n\'est publiée sans source ni date de vérification.'**
+  String get demAdmSubtitle;
+
+  /// No description provided for @demAdmNew.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouvelle démarche'**
+  String get demAdmNew;
+
+  /// No description provided for @demAdmFilterAll.
+  ///
+  /// In fr, this message translates to:
+  /// **'Toutes'**
+  String get demAdmFilterAll;
+
+  /// No description provided for @demAdmFilterWork.
+  ///
+  /// In fr, this message translates to:
+  /// **'À traiter'**
+  String get demAdmFilterWork;
+
+  /// No description provided for @demAdmFilterPublished.
+  ///
+  /// In fr, this message translates to:
+  /// **'Publiées'**
+  String get demAdmFilterPublished;
+
+  /// No description provided for @demAdmFilterUnpublished.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dépubliées'**
+  String get demAdmFilterUnpublished;
+
+  /// No description provided for @demAdmFilterOverdue.
+  ///
+  /// In fr, this message translates to:
+  /// **'Révision en retard'**
+  String get demAdmFilterOverdue;
+
+  /// No description provided for @demAdmSearchHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rechercher une démarche'**
+  String get demAdmSearchHint;
+
+  /// No description provided for @demAdmEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune démarche dans cette vue.'**
+  String get demAdmEmpty;
+
+  /// No description provided for @demAdmLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chargement impossible : {detail}'**
+  String demAdmLoadError(String detail);
+
+  /// No description provided for @demAdmRetry.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réessayer'**
+  String get demAdmRetry;
+
+  /// No description provided for @demAdmNoAccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous n\'avez pas accès aux démarches consulaires.'**
+  String get demAdmNoAccess;
+
+  /// No description provided for @demAdmStatusPublished.
+  ///
+  /// In fr, this message translates to:
+  /// **'Publiée'**
+  String get demAdmStatusPublished;
+
+  /// No description provided for @demAdmStatusUnpublished.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dépubliée'**
+  String get demAdmStatusUnpublished;
+
+  /// No description provided for @demAdmDraftDraft.
+  ///
+  /// In fr, this message translates to:
+  /// **'Brouillon'**
+  String get demAdmDraftDraft;
+
+  /// No description provided for @demAdmDraftPending.
+  ///
+  /// In fr, this message translates to:
+  /// **'À relire'**
+  String get demAdmDraftPending;
+
+  /// No description provided for @demAdmDraftApproved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Approuvée, à publier'**
+  String get demAdmDraftApproved;
+
+  /// No description provided for @demAdmVersion.
+  ///
+  /// In fr, this message translates to:
+  /// **'Version {n}'**
+  String demAdmVersion(String n);
+
+  /// No description provided for @demAdmVerified.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vérifiée le {date}'**
+  String demAdmVerified(String date);
+
+  /// No description provided for @demAdmNextReview.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prochaine révision : {date}'**
+  String demAdmNextReview(String date);
+
+  /// No description provided for @demAdmReviewUnplanned.
+  ///
+  /// In fr, this message translates to:
+  /// **'Révision à planifier'**
+  String get demAdmReviewUnplanned;
+
+  /// No description provided for @demAdmReviewOverdue.
+  ///
+  /// In fr, this message translates to:
+  /// **'Révision en retard'**
+  String get demAdmReviewOverdue;
+
+  /// No description provided for @demAdmSource.
+  ///
+  /// In fr, this message translates to:
+  /// **'Source : {publisher}'**
+  String demAdmSource(String publisher);
+
+  /// No description provided for @demAdmSummary.
+  ///
+  /// In fr, this message translates to:
+  /// **'Résumé'**
+  String get demAdmSummary;
+
+  /// No description provided for @demAdmCost.
+  ///
+  /// In fr, this message translates to:
+  /// **'Coût'**
+  String get demAdmCost;
+
+  /// No description provided for @demAdmCostUnknown.
+  ///
+  /// In fr, this message translates to:
+  /// **'Non publié par la source'**
+  String get demAdmCostUnknown;
+
+  /// No description provided for @demAdmPieces.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pièces à fournir'**
+  String get demAdmPieces;
+
+  /// No description provided for @demAdmWarnings.
+  ///
+  /// In fr, this message translates to:
+  /// **'Avertissements'**
+  String get demAdmWarnings;
+
+  /// No description provided for @demAdmHistory.
+  ///
+  /// In fr, this message translates to:
+  /// **'Historique'**
+  String get demAdmHistory;
+
+  /// No description provided for @demAdmHistoryEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune version enregistrée.'**
+  String get demAdmHistoryEmpty;
+
+  /// No description provided for @demAdmHistoryPublished.
+  ///
+  /// In fr, this message translates to:
+  /// **'Publiée'**
+  String get demAdmHistoryPublished;
+
+  /// No description provided for @demAdmHistoryUnpublished.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dépubliée'**
+  String get demAdmHistoryUnpublished;
+
+  /// No description provided for @demAdmDraftBy.
+  ///
+  /// In fr, this message translates to:
+  /// **'Brouillon de {author}'**
+  String demAdmDraftBy(String author);
+
+  /// No description provided for @demAdmDraftByYou.
+  ///
+  /// In fr, this message translates to:
+  /// **'vous'**
+  String get demAdmDraftByYou;
+
+  /// No description provided for @demAdmDraftByOther.
+  ///
+  /// In fr, this message translates to:
+  /// **'un autre administrateur'**
+  String get demAdmDraftByOther;
+
+  /// No description provided for @demAdmChangeReason.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif : {reason}'**
+  String demAdmChangeReason(String reason);
+
+  /// No description provided for @demAdmReviewNote.
+  ///
+  /// In fr, this message translates to:
+  /// **'Remarque de la relecture : {note}'**
+  String demAdmReviewNote(String note);
+
+  /// No description provided for @demAdmWaitingReview.
+  ///
+  /// In fr, this message translates to:
+  /// **'En attente de la relecture d\'un autre administrateur : vous ne pouvez pas approuver votre propre texte.'**
+  String get demAdmWaitingReview;
+
+  /// No description provided for @demAdmEdit.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier'**
+  String get demAdmEdit;
+
+  /// No description provided for @demAdmSubmit.
+  ///
+  /// In fr, this message translates to:
+  /// **'Soumettre à relecture'**
+  String get demAdmSubmit;
+
+  /// No description provided for @demAdmWithdraw.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retirer le brouillon'**
+  String get demAdmWithdraw;
+
+  /// No description provided for @demAdmApprove.
+  ///
+  /// In fr, this message translates to:
+  /// **'Approuver'**
+  String get demAdmApprove;
+
+  /// No description provided for @demAdmReject.
+  ///
+  /// In fr, this message translates to:
+  /// **'Refuser'**
+  String get demAdmReject;
+
+  /// No description provided for @demAdmPublish.
+  ///
+  /// In fr, this message translates to:
+  /// **'Publier'**
+  String get demAdmPublish;
+
+  /// No description provided for @demAdmUnpublish.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dépublier'**
+  String get demAdmUnpublish;
+
+  /// No description provided for @demAdmRejectReason.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif du refus'**
+  String get demAdmRejectReason;
+
+  /// No description provided for @demAdmUnpublishReason.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif de dépublication'**
+  String get demAdmUnpublishReason;
+
+  /// No description provided for @demAdmUnpublishWarn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les téléphones qui ont déjà chargé le catalogue, ou qui sont hors ligne, continuent d\'afficher cette démarche jusqu\'à leur prochaine synchronisation.'**
+  String get demAdmUnpublishWarn;
+
+  /// No description provided for @demAdmConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confirmer'**
+  String get demAdmConfirm;
+
+  /// No description provided for @demAdmCancel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annuler'**
+  String get demAdmCancel;
+
+  /// No description provided for @demAdmEditorNewTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouvelle démarche'**
+  String get demAdmEditorNewTitle;
+
+  /// No description provided for @demAdmEditorEditTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier la démarche'**
+  String get demAdmEditorEditTitle;
+
+  /// No description provided for @demAdmFieldId.
+  ///
+  /// In fr, this message translates to:
+  /// **'Identifiant (minuscules, chiffres, _)'**
+  String get demAdmFieldId;
+
+  /// No description provided for @demAdmFieldTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Titre'**
+  String get demAdmFieldTitle;
+
+  /// No description provided for @demAdmFieldRubrique.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rubrique'**
+  String get demAdmFieldRubrique;
+
+  /// No description provided for @demAdmFieldRequestType.
+  ///
+  /// In fr, this message translates to:
+  /// **'Type de demande dans l\'application'**
+  String get demAdmFieldRequestType;
+
+  /// No description provided for @demAdmFieldLieu.
+  ///
+  /// In fr, this message translates to:
+  /// **'Où se fait la démarche'**
+  String get demAdmFieldLieu;
+
+  /// No description provided for @demAdmLieuConsulat.
+  ///
+  /// In fr, this message translates to:
+  /// **'Au consulat'**
+  String get demAdmLieuConsulat;
+
+  /// No description provided for @demAdmLieuTribunal.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tribunal au Niger'**
+  String get demAdmLieuTribunal;
+
+  /// No description provided for @demAdmFieldSummary.
+  ///
+  /// In fr, this message translates to:
+  /// **'Résumé'**
+  String get demAdmFieldSummary;
+
+  /// No description provided for @demAdmFieldDelai.
+  ///
+  /// In fr, this message translates to:
+  /// **'Délai annoncé (laisser vide si la source n\'en publie aucun)'**
+  String get demAdmFieldDelai;
+
+  /// No description provided for @demAdmFieldCostLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Libellé du coût'**
+  String get demAdmFieldCostLabel;
+
+  /// No description provided for @demAdmFieldCostAmount.
+  ///
+  /// In fr, this message translates to:
+  /// **'Montant en FCFA (vide si inconnu)'**
+  String get demAdmFieldCostAmount;
+
+  /// No description provided for @demAdmFieldCostStatus.
+  ///
+  /// In fr, this message translates to:
+  /// **'État de l\'information sur le coût'**
+  String get demAdmFieldCostStatus;
+
+  /// No description provided for @demAdmCostStatusKnown.
+  ///
+  /// In fr, this message translates to:
+  /// **'Connu'**
+  String get demAdmCostStatusKnown;
+
+  /// No description provided for @demAdmCostStatusUnknown.
+  ///
+  /// In fr, this message translates to:
+  /// **'Inconnu'**
+  String get demAdmCostStatusUnknown;
+
+  /// No description provided for @demAdmCostStatusNotMentioned.
+  ///
+  /// In fr, this message translates to:
+  /// **'Non mentionné par la source'**
+  String get demAdmCostStatusNotMentioned;
+
+  /// No description provided for @demAdmCostStatusVariable.
+  ///
+  /// In fr, this message translates to:
+  /// **'Variable selon le pays'**
+  String get demAdmCostStatusVariable;
+
+  /// No description provided for @demAdmPiecesTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pièces à fournir'**
+  String get demAdmPiecesTitle;
+
+  /// No description provided for @demAdmPieceLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pièce'**
+  String get demAdmPieceLabel;
+
+  /// No description provided for @demAdmPieceRequired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Obligatoire'**
+  String get demAdmPieceRequired;
+
+  /// No description provided for @demAdmPieceQuantity.
+  ///
+  /// In fr, this message translates to:
+  /// **'Qté'**
+  String get demAdmPieceQuantity;
+
+  /// No description provided for @demAdmAddPiece.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter une pièce'**
+  String get demAdmAddPiece;
+
+  /// No description provided for @demAdmWarningsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Avertissements affichés à l\'usager (un par ligne)'**
+  String get demAdmWarningsTitle;
+
+  /// No description provided for @demAdmSourceTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Source officielle (obligatoire pour publier)'**
+  String get demAdmSourceTitle;
+
+  /// No description provided for @demAdmFieldSourceUrl.
+  ///
+  /// In fr, this message translates to:
+  /// **'Adresse de la source (https://…)'**
+  String get demAdmFieldSourceUrl;
+
+  /// No description provided for @demAdmFieldSourcePublisher.
+  ///
+  /// In fr, this message translates to:
+  /// **'Éditeur de la source'**
+  String get demAdmFieldSourcePublisher;
+
+  /// No description provided for @demAdmFieldVerifiedAt.
+  ///
+  /// In fr, this message translates to:
+  /// **'Date de vérification'**
+  String get demAdmFieldVerifiedAt;
+
+  /// No description provided for @demAdmFieldNextReview.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prochaine révision (facultatif)'**
+  String get demAdmFieldNextReview;
+
+  /// No description provided for @demAdmPickDate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisir'**
+  String get demAdmPickDate;
+
+  /// No description provided for @demAdmFieldChangeReason.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif de la modification'**
+  String get demAdmFieldChangeReason;
+
+  /// No description provided for @demAdmFieldChangeReasonNew.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif (facultatif pour une nouvelle démarche)'**
+  String get demAdmFieldChangeReasonNew;
+
+  /// No description provided for @demAdmSaveDraft.
+  ///
+  /// In fr, this message translates to:
+  /// **'Enregistrer le brouillon'**
+  String get demAdmSaveDraft;
+
+  /// No description provided for @demAdmDraftSaved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Brouillon enregistré.'**
+  String get demAdmDraftSaved;
+
+  /// No description provided for @demAdmSubmitted.
+  ///
+  /// In fr, this message translates to:
+  /// **'Soumise à relecture.'**
+  String get demAdmSubmitted;
+
+  /// No description provided for @demAdmWithdrawn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Brouillon retiré.'**
+  String get demAdmWithdrawn;
+
+  /// No description provided for @demAdmApproved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Approuvée.'**
+  String get demAdmApproved;
+
+  /// No description provided for @demAdmRejected.
+  ///
+  /// In fr, this message translates to:
+  /// **'Refusée.'**
+  String get demAdmRejected;
+
+  /// No description provided for @demAdmPublished.
+  ///
+  /// In fr, this message translates to:
+  /// **'Publiée, version {n}.'**
+  String demAdmPublished(String n);
+
+  /// No description provided for @demAdmUnpublished.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dépubliée.'**
+  String get demAdmUnpublished;
+
+  /// No description provided for @demAdmUnsaved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Des modifications ne sont pas enregistrées. Quitter ?'**
+  String get demAdmUnsaved;
+
+  /// No description provided for @demAdmRemovePiece.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retirer la pièce'**
+  String get demAdmRemovePiece;
+
+  /// No description provided for @evtAdmCancelTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annuler l\'événement'**
+  String get evtAdmCancelTitle;
+
+  /// No description provided for @evtAdmDeleteTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer l\'événement'**
+  String get evtAdmDeleteTitle;
+
+  /// No description provided for @evtAdmReasonLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif (conservé dans l\'historique)'**
+  String get evtAdmReasonLabel;
+
+  /// No description provided for @evtAdmCancelWarn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les inscrits ne reçoivent pas encore de notification : ils verront « annulé » en ouvrant l\'événement.'**
+  String get evtAdmCancelWarn;
+
+  /// No description provided for @evtAdmDeleteWarn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les inscriptions sont supprimées avec l\'événement ; seul l\'historique est conservé. Réservé au super-administrateur.'**
+  String get evtAdmDeleteWarn;
+
+  /// No description provided for @annAdmArchive.
+  ///
+  /// In fr, this message translates to:
+  /// **'Archiver'**
+  String get annAdmArchive;
+
+  /// No description provided for @annAdmRestore.
+  ///
+  /// In fr, this message translates to:
+  /// **'Restaurer'**
+  String get annAdmRestore;
+
+  /// No description provided for @annAdmArchived.
+  ///
+  /// In fr, this message translates to:
+  /// **'Archivée'**
+  String get annAdmArchived;
+
+  /// No description provided for @annAdmReasonLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif (conservé dans l\'historique)'**
+  String get annAdmReasonLabel;
+
+  /// No description provided for @annAdmSourceLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Base de la vérification (registre, document, contact…)'**
+  String get annAdmSourceLabel;
+
+  /// No description provided for @annAdmVerifyTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vérifier la fiche'**
+  String get annAdmVerifyTitle;
+
+  /// No description provided for @annAdmVerifyWarn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le badge dit au public que la fiche a été contrôlée : indiquez sur quoi, c\'est conservé avec votre nom.'**
+  String get annAdmVerifyWarn;
+
+  /// No description provided for @annAdmUnverifyTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retirer le badge'**
+  String get annAdmUnverifyTitle;
+
+  /// No description provided for @annAdmBoostTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Promouvoir 30 jours'**
+  String get annAdmBoostTitle;
+
+  /// No description provided for @annAdmUnboostTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retirer la promotion'**
+  String get annAdmUnboostTitle;
+
+  /// No description provided for @annAdmArchiveTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Archiver la fiche'**
+  String get annAdmArchiveTitle;
+
+  /// No description provided for @annAdmArchiveWarn.
+  ///
+  /// In fr, this message translates to:
+  /// **'La fiche disparaît du public et perd son badge de promotion. Le propriétaire la voit et lit le motif. Réversible.'**
+  String get annAdmArchiveWarn;
+
+  /// No description provided for @annAdmRestoreTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Restaurer la fiche'**
+  String get annAdmRestoreTitle;
+
+  /// No description provided for @annAdmDeleteTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer la fiche'**
+  String get annAdmDeleteTitle;
+
+  /// No description provided for @annAdmDeleteWarn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suppression définitive (avis, abonnés, vues). Préférez l\'archivage ; seul l\'historique est conservé.'**
+  String get annAdmDeleteWarn;
+
+  /// No description provided for @annAdmArchivedDone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fiche archivée'**
+  String get annAdmArchivedDone;
+
+  /// No description provided for @annAdmRestoredDone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fiche restaurée'**
+  String get annAdmRestoredDone;
+
+  /// No description provided for @cmpAdmTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Notifications'**
+  String get cmpAdmTitle;
+
+  /// No description provided for @cmpAdmSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Campagnes : rédaction, approbation par un autre administrateur, envoi. Créée n\'est pas livrée, et livrée n\'est pas lue.'**
+  String get cmpAdmSubtitle;
+
+  /// No description provided for @cmpAdmNoSchedule.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pas de programmation : une campagne part quand l\'envoi est lancé.'**
+  String get cmpAdmNoSchedule;
+
+  /// No description provided for @cmpAdmNew.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouvelle campagne'**
+  String get cmpAdmNew;
+
+  /// No description provided for @cmpAdmFilterWork.
+  ///
+  /// In fr, this message translates to:
+  /// **'À traiter'**
+  String get cmpAdmFilterWork;
+
+  /// No description provided for @cmpAdmFilterSent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoyées'**
+  String get cmpAdmFilterSent;
+
+  /// No description provided for @cmpAdmFilterClosed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Refusées ou annulées'**
+  String get cmpAdmFilterClosed;
+
+  /// No description provided for @cmpAdmFilterAll.
+  ///
+  /// In fr, this message translates to:
+  /// **'Toutes'**
+  String get cmpAdmFilterAll;
+
+  /// No description provided for @cmpAdmEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune campagne dans cette vue.'**
+  String get cmpAdmEmpty;
+
+  /// No description provided for @cmpAdmLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chargement impossible : {detail}'**
+  String cmpAdmLoadError(String detail);
+
+  /// No description provided for @cmpAdmRetry.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réessayer'**
+  String get cmpAdmRetry;
+
+  /// No description provided for @cmpAdmNoAccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous n\'avez pas accès aux campagnes.'**
+  String get cmpAdmNoAccess;
+
+  /// No description provided for @cmpAdmTypeTransactional.
+  ///
+  /// In fr, this message translates to:
+  /// **'Transactionnel'**
+  String get cmpAdmTypeTransactional;
+
+  /// No description provided for @cmpAdmTypeSecurity.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sécurité'**
+  String get cmpAdmTypeSecurity;
+
+  /// No description provided for @cmpAdmTypeOfficial.
+  ///
+  /// In fr, this message translates to:
+  /// **'Information officielle'**
+  String get cmpAdmTypeOfficial;
+
+  /// No description provided for @cmpAdmTypePromotional.
+  ///
+  /// In fr, this message translates to:
+  /// **'Promotionnel'**
+  String get cmpAdmTypePromotional;
+
+  /// No description provided for @cmpAdmTypeHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sécurité et transactionnel passent même si le compte a coupé les messages système ; officiel et promotionnel respectent ce choix.'**
+  String get cmpAdmTypeHelp;
+
+  /// No description provided for @cmpAdmStatusDraft.
+  ///
+  /// In fr, this message translates to:
+  /// **'Brouillon'**
+  String get cmpAdmStatusDraft;
+
+  /// No description provided for @cmpAdmStatusPending.
+  ///
+  /// In fr, this message translates to:
+  /// **'À approuver'**
+  String get cmpAdmStatusPending;
+
+  /// No description provided for @cmpAdmStatusApproved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Approuvée, à envoyer'**
+  String get cmpAdmStatusApproved;
+
+  /// No description provided for @cmpAdmStatusSending.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoi en cours'**
+  String get cmpAdmStatusSending;
+
+  /// No description provided for @cmpAdmStatusSent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoyée'**
+  String get cmpAdmStatusSent;
+
+  /// No description provided for @cmpAdmStatusRejected.
+  ///
+  /// In fr, this message translates to:
+  /// **'Refusée'**
+  String get cmpAdmStatusRejected;
+
+  /// No description provided for @cmpAdmStatusCancelled.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annulée'**
+  String get cmpAdmStatusCancelled;
+
+  /// No description provided for @cmpAdmAudienceAll.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tous les comptes'**
+  String get cmpAdmAudienceAll;
+
+  /// No description provided for @cmpAdmAudienceCountry.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pays : {country}'**
+  String cmpAdmAudienceCountry(String country);
+
+  /// No description provided for @cmpAdmAudienceUsers.
+  ///
+  /// In fr, this message translates to:
+  /// **'{n} comptes précis'**
+  String cmpAdmAudienceUsers(String n);
+
+  /// No description provided for @cmpAdmAudienceCount.
+  ///
+  /// In fr, this message translates to:
+  /// **'{total} comptes visés, {skipped} ont coupé ces messages, {notify} seront notifiés.'**
+  String cmpAdmAudienceCount(String total, String skipped, String notify);
+
+  /// No description provided for @cmpAdmRecipients.
+  ///
+  /// In fr, this message translates to:
+  /// **'{created} notifications créées, {skipped} comptes ignorés (préférences).'**
+  String cmpAdmRecipients(String created, String skipped);
+
+  /// No description provided for @cmpAdmReviewNote.
+  ///
+  /// In fr, this message translates to:
+  /// **'Remarque de la relecture : {note}'**
+  String cmpAdmReviewNote(String note);
+
+  /// No description provided for @cmpAdmCancelReason.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif de l\'annulation : {reason}'**
+  String cmpAdmCancelReason(String reason);
+
+  /// No description provided for @cmpAdmWaiting.
+  ///
+  /// In fr, this message translates to:
+  /// **'En attente de l\'approbation d\'un autre administrateur : vous ne pouvez pas approuver votre propre message.'**
+  String get cmpAdmWaiting;
+
+  /// No description provided for @cmpAdmEdit.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier'**
+  String get cmpAdmEdit;
+
+  /// No description provided for @cmpAdmSubmit.
+  ///
+  /// In fr, this message translates to:
+  /// **'Soumettre à approbation'**
+  String get cmpAdmSubmit;
+
+  /// No description provided for @cmpAdmApprove.
+  ///
+  /// In fr, this message translates to:
+  /// **'Approuver'**
+  String get cmpAdmApprove;
+
+  /// No description provided for @cmpAdmReject.
+  ///
+  /// In fr, this message translates to:
+  /// **'Refuser'**
+  String get cmpAdmReject;
+
+  /// No description provided for @cmpAdmRejectReason.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif du refus'**
+  String get cmpAdmRejectReason;
+
+  /// No description provided for @cmpAdmSend.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lancer l\'envoi'**
+  String get cmpAdmSend;
+
+  /// No description provided for @cmpAdmResume.
+  ///
+  /// In fr, this message translates to:
+  /// **'Reprendre l\'envoi'**
+  String get cmpAdmResume;
+
+  /// No description provided for @cmpAdmCancel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annuler la campagne'**
+  String get cmpAdmCancel;
+
+  /// No description provided for @cmpAdmCancelReasonLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif de l\'annulation'**
+  String get cmpAdmCancelReasonLabel;
+
+  /// No description provided for @cmpAdmCancelWarnSending.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les notifications déjà créées restent envoyées ; seules les suivantes sont arrêtées.'**
+  String get cmpAdmCancelWarnSending;
+
+  /// No description provided for @cmpAdmSendConfirmTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lancer l\'envoi ?'**
+  String get cmpAdmSendConfirmTitle;
+
+  /// No description provided for @cmpAdmSendConfirmBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'{notify} comptes seront notifiés. Un envoi ne se rappelle pas.'**
+  String cmpAdmSendConfirmBody(String notify);
+
+  /// No description provided for @cmpAdmSendProgress.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoi en cours : {done} traités, {left} restants…'**
+  String cmpAdmSendProgress(String done, String left);
+
+  /// No description provided for @cmpAdmSendDone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoi terminé : {created} notifications créées.'**
+  String cmpAdmSendDone(String created);
+
+  /// No description provided for @cmpAdmSendStopped.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoi interrompu ({detail}). Les comptes déjà traités ne seront pas renotifiés ; reprenez l\'envoi.'**
+  String cmpAdmSendStopped(String detail);
+
+  /// No description provided for @cmpAdmConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confirmer'**
+  String get cmpAdmConfirm;
+
+  /// No description provided for @cmpAdmCancelAction.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annuler'**
+  String get cmpAdmCancelAction;
+
+  /// No description provided for @cmpAdmEditorNew.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouvelle campagne'**
+  String get cmpAdmEditorNew;
+
+  /// No description provided for @cmpAdmEditorEdit.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier la campagne'**
+  String get cmpAdmEditorEdit;
+
+  /// No description provided for @cmpAdmFieldType.
+  ///
+  /// In fr, this message translates to:
+  /// **'Type de message'**
+  String get cmpAdmFieldType;
+
+  /// No description provided for @cmpAdmFieldTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Titre (80 caractères au plus)'**
+  String get cmpAdmFieldTitle;
+
+  /// No description provided for @cmpAdmFieldBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Texte (10 à 300 caractères)'**
+  String get cmpAdmFieldBody;
+
+  /// No description provided for @cmpAdmFieldAudience.
+  ///
+  /// In fr, this message translates to:
+  /// **'Audience'**
+  String get cmpAdmFieldAudience;
+
+  /// No description provided for @cmpAdmFieldCountry.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pays (en toutes lettres, tel qu\'enregistré)'**
+  String get cmpAdmFieldCountry;
+
+  /// No description provided for @cmpAdmFieldUsers.
+  ///
+  /// In fr, this message translates to:
+  /// **'Identifiants des comptes (un par ligne, 100 au plus)'**
+  String get cmpAdmFieldUsers;
+
+  /// No description provided for @cmpAdmSaveDraft.
+  ///
+  /// In fr, this message translates to:
+  /// **'Enregistrer le brouillon'**
+  String get cmpAdmSaveDraft;
+
+  /// No description provided for @cmpAdmSaved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Brouillon enregistré.'**
+  String get cmpAdmSaved;
+
+  /// No description provided for @cmpAdmSubmitted.
+  ///
+  /// In fr, this message translates to:
+  /// **'Soumise à approbation.'**
+  String get cmpAdmSubmitted;
+
+  /// No description provided for @cmpAdmApproved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Approuvée.'**
+  String get cmpAdmApproved;
+
+  /// No description provided for @cmpAdmRejected.
+  ///
+  /// In fr, this message translates to:
+  /// **'Refusée.'**
+  String get cmpAdmRejected;
+
+  /// No description provided for @cmpAdmCancelled.
+  ///
+  /// In fr, this message translates to:
+  /// **'Campagne annulée.'**
+  String get cmpAdmCancelled;
+
+  /// No description provided for @cmpAdmUnsaved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Des modifications ne sont pas enregistrées. Quitter ?'**
+  String get cmpAdmUnsaved;
+
+  /// No description provided for @secAdmTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sécurité et conformité'**
+  String get secAdmTitle;
+
+  /// No description provided for @secAdmSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Demandes relatives aux données personnelles et incidents de sécurité. Réservé au super-administrateur.'**
+  String get secAdmSubtitle;
+
+  /// No description provided for @secAdmTabRequests.
+  ///
+  /// In fr, this message translates to:
+  /// **'Demandes de données'**
+  String get secAdmTabRequests;
+
+  /// No description provided for @secAdmTabIncidents.
+  ///
+  /// In fr, this message translates to:
+  /// **'Incidents'**
+  String get secAdmTabIncidents;
+
+  /// No description provided for @secAdmNoAccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous n\'avez pas accès à cette rubrique.'**
+  String get secAdmNoAccess;
+
+  /// No description provided for @secAdmLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chargement impossible : {detail}'**
+  String secAdmLoadError(String detail);
+
+  /// No description provided for @secAdmRetry.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réessayer'**
+  String get secAdmRetry;
+
+  /// No description provided for @secAdmEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rien dans cette vue.'**
+  String get secAdmEmpty;
+
+  /// No description provided for @secAdmFilterOpen.
+  ///
+  /// In fr, this message translates to:
+  /// **'En cours'**
+  String get secAdmFilterOpen;
+
+  /// No description provided for @secAdmFilterClosed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Closes'**
+  String get secAdmFilterClosed;
+
+  /// No description provided for @secAdmFilterAll.
+  ///
+  /// In fr, this message translates to:
+  /// **'Toutes'**
+  String get secAdmFilterAll;
+
+  /// No description provided for @secAdmConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confirmer'**
+  String get secAdmConfirm;
+
+  /// No description provided for @secAdmCancelAction.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annuler'**
+  String get secAdmCancelAction;
+
+  /// No description provided for @secAdmSave.
+  ///
+  /// In fr, this message translates to:
+  /// **'Enregistrer'**
+  String get secAdmSave;
+
+  /// No description provided for @secAdmDone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fait.'**
+  String get secAdmDone;
+
+  /// No description provided for @secAdmReqNew.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouvelle demande'**
+  String get secAdmReqNew;
+
+  /// No description provided for @secAdmReqKindAccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Accès'**
+  String get secAdmReqKindAccess;
+
+  /// No description provided for @secAdmReqKindRectification.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rectification'**
+  String get secAdmReqKindRectification;
+
+  /// No description provided for @secAdmReqKindErasure.
+  ///
+  /// In fr, this message translates to:
+  /// **'Effacement'**
+  String get secAdmReqKindErasure;
+
+  /// No description provided for @secAdmReqKindPortability.
+  ///
+  /// In fr, this message translates to:
+  /// **'Portabilité'**
+  String get secAdmReqKindPortability;
+
+  /// No description provided for @secAdmReqKindObjection.
+  ///
+  /// In fr, this message translates to:
+  /// **'Opposition'**
+  String get secAdmReqKindObjection;
+
+  /// No description provided for @secAdmReqStatusReceived.
+  ///
+  /// In fr, this message translates to:
+  /// **'Reçue'**
+  String get secAdmReqStatusReceived;
+
+  /// No description provided for @secAdmReqStatusIdentity.
+  ///
+  /// In fr, this message translates to:
+  /// **'Identité vérifiée'**
+  String get secAdmReqStatusIdentity;
+
+  /// No description provided for @secAdmReqStatusInProgress.
+  ///
+  /// In fr, this message translates to:
+  /// **'En traitement'**
+  String get secAdmReqStatusInProgress;
+
+  /// No description provided for @secAdmReqStatusCompleted.
+  ///
+  /// In fr, this message translates to:
+  /// **'Terminée'**
+  String get secAdmReqStatusCompleted;
+
+  /// No description provided for @secAdmReqStatusRefused.
+  ///
+  /// In fr, this message translates to:
+  /// **'Refusée'**
+  String get secAdmReqStatusRefused;
+
+  /// No description provided for @secAdmReqStatusCancelled.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annulée'**
+  String get secAdmReqStatusCancelled;
+
+  /// No description provided for @secAdmReqDueInternal.
+  ///
+  /// In fr, this message translates to:
+  /// **'Échéance interne : {date}'**
+  String secAdmReqDueInternal(String date);
+
+  /// No description provided for @secAdmReqOverdue.
+  ///
+  /// In fr, this message translates to:
+  /// **'En retard'**
+  String get secAdmReqOverdue;
+
+  /// No description provided for @secAdmReqDueHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'échéance est un objectif interne choisi par vous. Le délai légal dépend du droit applicable : il n\'est pas calculé ici.'**
+  String get secAdmReqDueHelp;
+
+  /// No description provided for @secAdmReqFieldKind.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nature de la demande'**
+  String get secAdmReqFieldKind;
+
+  /// No description provided for @secAdmReqFieldAccount.
+  ///
+  /// In fr, this message translates to:
+  /// **'Identifiant du compte (si connu)'**
+  String get secAdmReqFieldAccount;
+
+  /// No description provided for @secAdmReqFieldContact.
+  ///
+  /// In fr, this message translates to:
+  /// **'Contact du demandeur (courriel…)'**
+  String get secAdmReqFieldContact;
+
+  /// No description provided for @secAdmReqFieldScope.
+  ///
+  /// In fr, this message translates to:
+  /// **'Périmètre (systèmes concernés)'**
+  String get secAdmReqFieldScope;
+
+  /// No description provided for @secAdmReqFieldDue.
+  ///
+  /// In fr, this message translates to:
+  /// **'Échéance interne'**
+  String get secAdmReqFieldDue;
+
+  /// No description provided for @secAdmReqDays.
+  ///
+  /// In fr, this message translates to:
+  /// **'{n} jours'**
+  String secAdmReqDays(String n);
+
+  /// No description provided for @secAdmReqRequester.
+  ///
+  /// In fr, this message translates to:
+  /// **'Demandeur : {who}'**
+  String secAdmReqRequester(String who);
+
+  /// No description provided for @secAdmReqScope.
+  ///
+  /// In fr, this message translates to:
+  /// **'Périmètre : {scope}'**
+  String secAdmReqScope(String scope);
+
+  /// No description provided for @secAdmReqIdentity.
+  ///
+  /// In fr, this message translates to:
+  /// **'Identité vérifiée : {method}'**
+  String secAdmReqIdentity(String method);
+
+  /// No description provided for @secAdmReqResult.
+  ///
+  /// In fr, this message translates to:
+  /// **'Résultat : {note}'**
+  String secAdmReqResult(String note);
+
+  /// No description provided for @secAdmReqNeedsIdentity.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le traitement ne commence qu\'une fois l\'identité vérifiée.'**
+  String get secAdmReqNeedsIdentity;
+
+  /// No description provided for @secAdmReqVerify.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vérifier l\'identité'**
+  String get secAdmReqVerify;
+
+  /// No description provided for @secAdmReqVerifyMethod.
+  ///
+  /// In fr, this message translates to:
+  /// **'Comment l\'identité a été vérifiée'**
+  String get secAdmReqVerifyMethod;
+
+  /// No description provided for @secAdmReqStart.
+  ///
+  /// In fr, this message translates to:
+  /// **'Commencer le traitement'**
+  String get secAdmReqStart;
+
+  /// No description provided for @secAdmReqComplete.
+  ///
+  /// In fr, this message translates to:
+  /// **'Terminer'**
+  String get secAdmReqComplete;
+
+  /// No description provided for @secAdmReqCompleteNote.
+  ///
+  /// In fr, this message translates to:
+  /// **'Compte rendu (systèmes traités, résultat)'**
+  String get secAdmReqCompleteNote;
+
+  /// No description provided for @secAdmReqCompleteWarn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce suivi n\'exécute rien : la suppression ou l\'export se fait par les parcours prévus, puis se consigne ici.'**
+  String get secAdmReqCompleteWarn;
+
+  /// No description provided for @secAdmReqRefuse.
+  ///
+  /// In fr, this message translates to:
+  /// **'Refuser'**
+  String get secAdmReqRefuse;
+
+  /// No description provided for @secAdmReqRefuseNote.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif du refus'**
+  String get secAdmReqRefuseNote;
+
+  /// No description provided for @secAdmReqCancel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annuler la demande'**
+  String get secAdmReqCancel;
+
+  /// No description provided for @secAdmReqCancelNote.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif de l\'annulation'**
+  String get secAdmReqCancelNote;
+
+  /// No description provided for @secAdmReqCreated.
+  ///
+  /// In fr, this message translates to:
+  /// **'Demande enregistrée.'**
+  String get secAdmReqCreated;
+
+  /// No description provided for @secAdmIncNew.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ouvrir un incident'**
+  String get secAdmIncNew;
+
+  /// No description provided for @secAdmIncSevLow.
+  ///
+  /// In fr, this message translates to:
+  /// **'Faible'**
+  String get secAdmIncSevLow;
+
+  /// No description provided for @secAdmIncSevMedium.
+  ///
+  /// In fr, this message translates to:
+  /// **'Moyenne'**
+  String get secAdmIncSevMedium;
+
+  /// No description provided for @secAdmIncSevHigh.
+  ///
+  /// In fr, this message translates to:
+  /// **'Élevée'**
+  String get secAdmIncSevHigh;
+
+  /// No description provided for @secAdmIncSevCritical.
+  ///
+  /// In fr, this message translates to:
+  /// **'Critique'**
+  String get secAdmIncSevCritical;
+
+  /// No description provided for @secAdmIncStatusOpen.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ouvert'**
+  String get secAdmIncStatusOpen;
+
+  /// No description provided for @secAdmIncStatusContained.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confiné'**
+  String get secAdmIncStatusContained;
+
+  /// No description provided for @secAdmIncStatusResolved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Résolu'**
+  String get secAdmIncStatusResolved;
+
+  /// No description provided for @secAdmIncStatusClosed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Clos'**
+  String get secAdmIncStatusClosed;
+
+  /// No description provided for @secAdmIncFieldTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Titre'**
+  String get secAdmIncFieldTitle;
+
+  /// No description provided for @secAdmIncFieldSeverity.
+  ///
+  /// In fr, this message translates to:
+  /// **'Gravité'**
+  String get secAdmIncFieldSeverity;
+
+  /// No description provided for @secAdmIncFieldSummary.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce qui s\'est passé (10 caractères au moins)'**
+  String get secAdmIncFieldSummary;
+
+  /// No description provided for @secAdmIncFieldImpact.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impact (comptes, données, services)'**
+  String get secAdmIncFieldImpact;
+
+  /// No description provided for @secAdmIncTimeline.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chronologie'**
+  String get secAdmIncTimeline;
+
+  /// No description provided for @secAdmIncTimelineHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les éléments de preuve vont dans les notes de la chronologie, jamais dans l\'audit.'**
+  String get secAdmIncTimelineHint;
+
+  /// No description provided for @secAdmIncNoteLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter une note'**
+  String get secAdmIncNoteLabel;
+
+  /// No description provided for @secAdmIncAddNote.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter'**
+  String get secAdmIncAddNote;
+
+  /// No description provided for @secAdmIncSetSeverity.
+  ///
+  /// In fr, this message translates to:
+  /// **'Changer la gravité'**
+  String get secAdmIncSetSeverity;
+
+  /// No description provided for @secAdmIncSeverityReason.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif du changement'**
+  String get secAdmIncSeverityReason;
+
+  /// No description provided for @secAdmIncContain.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confiner'**
+  String get secAdmIncContain;
+
+  /// No description provided for @secAdmIncResolve.
+  ///
+  /// In fr, this message translates to:
+  /// **'Marquer résolu'**
+  String get secAdmIncResolve;
+
+  /// No description provided for @secAdmIncClose.
+  ///
+  /// In fr, this message translates to:
+  /// **'Clôturer'**
+  String get secAdmIncClose;
+
+  /// No description provided for @secAdmIncTransitionNote.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce qui a été fait'**
+  String get secAdmIncTransitionNote;
+
+  /// No description provided for @secAdmIncCloseCause.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cause'**
+  String get secAdmIncCloseCause;
+
+  /// No description provided for @secAdmIncCloseActions.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mesures correctives'**
+  String get secAdmIncCloseActions;
+
+  /// No description provided for @secAdmIncCloseLessons.
+  ///
+  /// In fr, this message translates to:
+  /// **'Enseignements'**
+  String get secAdmIncCloseLessons;
+
+  /// No description provided for @secAdmIncCloseHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'La clôture exige l\'analyse : cause, mesures correctives, enseignements (10 caractères chacun au moins).'**
+  String get secAdmIncCloseHelp;
+
+  /// No description provided for @secAdmIncOpened.
+  ///
+  /// In fr, this message translates to:
+  /// **'Incident ouvert.'**
+  String get secAdmIncOpened;
+
+  /// No description provided for @secAdmIncImpact.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impact : {impact}'**
+  String secAdmIncImpact(String impact);
+
+  /// No description provided for @secAdmIncDetected.
+  ///
+  /// In fr, this message translates to:
+  /// **'Détecté le {date}'**
+  String secAdmIncDetected(String date);
+
+  /// No description provided for @secAdmReqFromApp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Depuis l\'application'**
+  String get secAdmReqFromApp;
+
+  /// No description provided for @secAdmReqUnassigned.
+  ///
+  /// In fr, this message translates to:
+  /// **'À prendre en charge'**
+  String get secAdmReqUnassigned;
+
+  /// No description provided for @secAdmReqTake.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prendre en charge'**
+  String get secAdmReqTake;
+
+  /// No description provided for @secAdmReqErasureState.
+  ///
+  /// In fr, this message translates to:
+  /// **'Compte : {account} · suppression : {deletion}'**
+  String secAdmReqErasureState(String account, String deletion);
+
+  /// No description provided for @secAdmReqAccountPresent.
+  ///
+  /// In fr, this message translates to:
+  /// **'présent'**
+  String get secAdmReqAccountPresent;
+
+  /// No description provided for @secAdmReqAccountGone.
+  ///
+  /// In fr, this message translates to:
+  /// **'effacé'**
+  String get secAdmReqAccountGone;
+
+  /// No description provided for @secAdmReqDeletionNone.
+  ///
+  /// In fr, this message translates to:
+  /// **'aucune demande'**
+  String get secAdmReqDeletionNone;
+
+  /// No description provided for @secAdmReqErasureHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Une demande d\'effacement ne se termine qu\'une fois le compte réellement effacé : la suppression se lance depuis le compte de la personne, avec son délai de grâce.'**
+  String get secAdmReqErasureHelp;
+
+  /// No description provided for @mesDonneesTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mes demandes sur mes données'**
+  String get mesDonneesTitle;
+
+  /// No description provided for @mesDonneesTileSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Accès, rectification, opposition : suivre ou faire une demande'**
+  String get mesDonneesTileSubtitle;
+
+  /// No description provided for @mesDonneesIntro.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous pouvez demander l\'accès aux données que nous détenons sur vous, leur rectification, ou vous opposer à un usage. Une personne de l\'équipe lit votre demande et vous répond.'**
+  String get mesDonneesIntro;
+
+  /// No description provided for @mesDonneesOtherFlows.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pour supprimer votre compte ou exporter vos données, utilisez « Supprimer mon compte » et « Exporter mes données » dans les réglages : ils font tout de suite ce qu\'une demande réclamerait.'**
+  String get mesDonneesOtherFlows;
+
+  /// No description provided for @mesDonneesNoTimeline.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nous ne promettons pas de délai ici ; l\'équipe traite les demandes dans l\'ordre.'**
+  String get mesDonneesNoTimeline;
+
+  /// No description provided for @mesDonneesKindAccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Demander l\'accès à mes données'**
+  String get mesDonneesKindAccess;
+
+  /// No description provided for @mesDonneesKindRectification.
+  ///
+  /// In fr, this message translates to:
+  /// **'Demander une rectification'**
+  String get mesDonneesKindRectification;
+
+  /// No description provided for @mesDonneesKindObjection.
+  ///
+  /// In fr, this message translates to:
+  /// **'M\'opposer à un usage'**
+  String get mesDonneesKindObjection;
+
+  /// No description provided for @mesDonneesDetailsLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Précisez votre demande (10 caractères au moins)'**
+  String get mesDonneesDetailsLabel;
+
+  /// No description provided for @mesDonneesSend.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoyer la demande'**
+  String get mesDonneesSend;
+
+  /// No description provided for @mesDonneesCancel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annuler'**
+  String get mesDonneesCancel;
+
+  /// No description provided for @mesDonneesSent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Demande envoyée.'**
+  String get mesDonneesSent;
+
+  /// No description provided for @mesDonneesWithdraw.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retirer'**
+  String get mesDonneesWithdraw;
+
+  /// No description provided for @mesDonneesWithdrawn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Demande retirée.'**
+  String get mesDonneesWithdrawn;
+
+  /// No description provided for @mesDonneesListTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mes demandes'**
+  String get mesDonneesListTitle;
+
+  /// No description provided for @mesDonneesEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous n\'avez fait aucune demande.'**
+  String get mesDonneesEmpty;
+
+  /// No description provided for @mesDonneesStatusReceived.
+  ///
+  /// In fr, this message translates to:
+  /// **'Reçue'**
+  String get mesDonneesStatusReceived;
+
+  /// No description provided for @mesDonneesStatusIdentity.
+  ///
+  /// In fr, this message translates to:
+  /// **'Identité vérifiée'**
+  String get mesDonneesStatusIdentity;
+
+  /// No description provided for @mesDonneesStatusInProgress.
+  ///
+  /// In fr, this message translates to:
+  /// **'En cours de traitement'**
+  String get mesDonneesStatusInProgress;
+
+  /// No description provided for @mesDonneesStatusCompleted.
+  ///
+  /// In fr, this message translates to:
+  /// **'Traitée'**
+  String get mesDonneesStatusCompleted;
+
+  /// No description provided for @mesDonneesStatusRefused.
+  ///
+  /// In fr, this message translates to:
+  /// **'Refusée'**
+  String get mesDonneesStatusRefused;
+
+  /// No description provided for @mesDonneesStatusCancelled.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retirée ou annulée'**
+  String get mesDonneesStatusCancelled;
+
+  /// No description provided for @mesDonneesDate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Faite le {date}'**
+  String mesDonneesDate(String date);
+
+  /// No description provided for @mesDonneesLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de charger vos demandes.'**
+  String get mesDonneesLoadError;
+
+  /// No description provided for @mesDonneesRetry.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réessayer'**
+  String get mesDonneesRetry;
+
+  /// No description provided for @mesDonneesAlreadyOpen.
+  ///
+  /// In fr, this message translates to:
+  /// **'Une demande de cette nature est déjà en cours, ou vous avez atteint la limite de trois demandes par jour.'**
+  String get mesDonneesAlreadyOpen;
+
+  /// No description provided for @mesDonneesFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'La demande n\'a pas pu être envoyée. Réessayez plus tard.'**
+  String get mesDonneesFailed;
+
+  /// No description provided for @secAdmReqAnswerLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réponse au demandeur (il la lit dans l\'application)'**
+  String get secAdmReqAnswerLabel;
+
+  /// No description provided for @secAdmReqAnswerHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'La note interne ne sort jamais ; seule cette réponse est lue par le demandeur. L\'aperçu de la notification ne la contient pas.'**
+  String get secAdmReqAnswerHelp;
+
+  /// No description provided for @secAdmReqInternalCompleteNote.
+  ///
+  /// In fr, this message translates to:
+  /// **'Compte rendu interne (systèmes traités, résultat)'**
+  String get secAdmReqInternalCompleteNote;
+
+  /// No description provided for @secAdmReqInternalRefuseNote.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif interne du refus'**
+  String get secAdmReqInternalRefuseNote;
+
+  /// No description provided for @secAdmReqSummary.
+  ///
+  /// In fr, this message translates to:
+  /// **'État des lieux'**
+  String get secAdmReqSummary;
+
+  /// No description provided for @secAdmReqSummaryHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Des nombres, jamais de contenu. Disponible une fois l\'identité vérifiée.'**
+  String get secAdmReqSummaryHelp;
+
+  /// No description provided for @secAdmSumMessages.
+  ///
+  /// In fr, this message translates to:
+  /// **'Messages envoyés (chiffrés)'**
+  String get secAdmSumMessages;
+
+  /// No description provided for @secAdmSumPosts.
+  ///
+  /// In fr, this message translates to:
+  /// **'Publications'**
+  String get secAdmSumPosts;
+
+  /// No description provided for @secAdmSumComments.
+  ///
+  /// In fr, this message translates to:
+  /// **'Commentaires'**
+  String get secAdmSumComments;
+
+  /// No description provided for @secAdmSumStories.
+  ///
+  /// In fr, this message translates to:
+  /// **'Stories'**
+  String get secAdmSumStories;
+
+  /// No description provided for @secAdmSumFriends.
+  ///
+  /// In fr, this message translates to:
+  /// **'Amis'**
+  String get secAdmSumFriends;
+
+  /// No description provided for @secAdmSumGroups.
+  ///
+  /// In fr, this message translates to:
+  /// **'Groupes'**
+  String get secAdmSumGroups;
+
+  /// No description provided for @secAdmSumNotifications.
+  ///
+  /// In fr, this message translates to:
+  /// **'Notifications'**
+  String get secAdmSumNotifications;
+
+  /// No description provided for @secAdmSumEvents.
+  ///
+  /// In fr, this message translates to:
+  /// **'Événements organisés'**
+  String get secAdmSumEvents;
+
+  /// No description provided for @secAdmSumBusinesses.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fiches d\'entreprise'**
+  String get secAdmSumBusinesses;
+
+  /// No description provided for @secAdmSumTickets.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tickets de support'**
+  String get secAdmSumTickets;
+
+  /// No description provided for @secAdmSumReports.
+  ///
+  /// In fr, this message translates to:
+  /// **'Signalements faits'**
+  String get secAdmSumReports;
+
+  /// No description provided for @secAdmSumBlocked.
+  ///
+  /// In fr, this message translates to:
+  /// **'Comptes bloqués'**
+  String get secAdmSumBlocked;
+
+  /// No description provided for @secAdmSumDevices.
+  ///
+  /// In fr, this message translates to:
+  /// **'Appareils'**
+  String get secAdmSumDevices;
+
+  /// No description provided for @mesDonneesAnswerLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réponse de l\'équipe'**
+  String get mesDonneesAnswerLabel;
+
+  /// No description provided for @ambAdmVerifyTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vérifier l\'ambassade'**
+  String get ambAdmVerifyTitle;
+
+  /// No description provided for @ambAdmVerifyWarn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le badge dit au public que la fiche a été contrôlée : indiquez la source officielle consultée. Elle est conservée avec la date et votre nom.'**
+  String get ambAdmVerifyWarn;
+
+  /// No description provided for @ambAdmSourceUrl.
+  ///
+  /// In fr, this message translates to:
+  /// **'Adresse de la source (https://…)'**
+  String get ambAdmSourceUrl;
+
+  /// No description provided for @ambAdmSourcePublisher.
+  ///
+  /// In fr, this message translates to:
+  /// **'Éditeur de la source (ministère, site officiel…)'**
+  String get ambAdmSourcePublisher;
+
+  /// No description provided for @ambAdmReasonLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif (conservé dans l\'historique)'**
+  String get ambAdmReasonLabel;
+
+  /// No description provided for @ambAdmRejectTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Refuser la fiche'**
+  String get ambAdmRejectTitle;
+
+  /// No description provided for @ambAdmSuspendTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suspendre l\'ambassade'**
+  String get ambAdmSuspendTitle;
+
+  /// No description provided for @ambAdmSuspendWarn.
+  ///
+  /// In fr, this message translates to:
+  /// **'La fiche reste en base mais n\'est plus présentée comme active. Réversible.'**
+  String get ambAdmSuspendWarn;
+
+  /// No description provided for @ambAdmReactivateTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réactiver l\'ambassade'**
+  String get ambAdmReactivateTitle;
+
+  /// No description provided for @ambAdmConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confirmer'**
+  String get ambAdmConfirm;
+
+  /// No description provided for @ambAdmCancel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annuler'**
+  String get ambAdmCancel;
+
+  /// No description provided for @ambAdmSuspendedReason.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suspendue : {reason}'**
+  String ambAdmSuspendedReason(String reason);
+
+  /// No description provided for @ambAdmRejectedReason.
+  ///
+  /// In fr, this message translates to:
+  /// **'Refusée : {reason}'**
+  String ambAdmRejectedReason(String reason);
+
+  /// No description provided for @ambAdmSourceLine.
+  ///
+  /// In fr, this message translates to:
+  /// **'Source : {source}'**
+  String ambAdmSourceLine(String source);
+
+  /// No description provided for @cmpAdmScheduledFor.
+  ///
+  /// In fr, this message translates to:
+  /// **'Programmée le {date}'**
+  String cmpAdmScheduledFor(String date);
+
+  /// No description provided for @cmpAdmSchedule.
+  ///
+  /// In fr, this message translates to:
+  /// **'Programmer'**
+  String get cmpAdmSchedule;
+
+  /// No description provided for @cmpAdmReschedule.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier l\'heure'**
+  String get cmpAdmReschedule;
+
+  /// No description provided for @cmpAdmUnschedule.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retirer la programmation'**
+  String get cmpAdmUnschedule;
+
+  /// No description provided for @cmpAdmScheduleHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Une campagne approuvée et programmée part toute seule à son heure (vérification toutes les 5 minutes). L\'approbation porte aussi sur l\'heure.'**
+  String get cmpAdmScheduleHelp;
+
+  /// No description provided for @cmpAdmScheduledNoManual.
+  ///
+  /// In fr, this message translates to:
+  /// **'Programmée : elle part à son heure, ou s\'annule.'**
+  String get cmpAdmScheduledNoManual;
+
+  /// No description provided for @cmpAdmScheduleSaved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Heure enregistrée.'**
+  String get cmpAdmScheduleSaved;
+
+  /// No description provided for @cmpAdmFieldSchedule.
+  ///
+  /// In fr, this message translates to:
+  /// **'Heure d\'envoi (facultatif)'**
+  String get cmpAdmFieldSchedule;
+
+  /// No description provided for @cmpAdmPickWhen.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisir la date et l\'heure'**
+  String get cmpAdmPickWhen;
+
+  /// No description provided for @cmpAdmNoSchedule2.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoi manuel'**
+  String get cmpAdmNoSchedule2;
+
+  /// No description provided for @cmpAdmTemplates.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modèles'**
+  String get cmpAdmTemplates;
+
+  /// No description provided for @cmpAdmTemplateUse.
+  ///
+  /// In fr, this message translates to:
+  /// **'Partir d\'un modèle'**
+  String get cmpAdmTemplateUse;
+
+  /// No description provided for @cmpAdmTemplateNone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun modèle'**
+  String get cmpAdmTemplateNone;
+
+  /// No description provided for @cmpAdmTemplateNew.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouveau modèle'**
+  String get cmpAdmTemplateNew;
+
+  /// No description provided for @cmpAdmTemplateName.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nom du modèle (3 à 60 caractères)'**
+  String get cmpAdmTemplateName;
+
+  /// No description provided for @cmpAdmTemplateSaved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modèle enregistré.'**
+  String get cmpAdmTemplateSaved;
+
+  /// No description provided for @cmpAdmTemplateArchived.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modèle archivé.'**
+  String get cmpAdmTemplateArchived;
+
+  /// No description provided for @cmpAdmTemplateArchive.
+  ///
+  /// In fr, this message translates to:
+  /// **'Archiver'**
+  String get cmpAdmTemplateArchive;
+
+  /// No description provided for @cmpAdmTemplatesEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun modèle.'**
+  String get cmpAdmTemplatesEmpty;
+
+  /// No description provided for @cmpAdmTemplateHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Un modèle ne contient ni audience ni heure, et n\'approuve rien : la campagne qui en part suit l\'approbation habituelle.'**
+  String get cmpAdmTemplateHelp;
+
+  /// No description provided for @cmpAdmReportTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rapport d\'envoi'**
+  String get cmpAdmReportTitle;
+
+  /// No description provided for @cmpAdmReportCounts.
+  ///
+  /// In fr, this message translates to:
+  /// **'{created} notifications créées · {skipped} ignorées (préférences) · {remaining} restantes'**
+  String cmpAdmReportCounts(String created, String skipped, String remaining);
+
+  /// No description provided for @cmpAdmReportPush.
+  ///
+  /// In fr, this message translates to:
+  /// **'{n} destinataires joignables par push (porteurs d\'un jeton).'**
+  String cmpAdmReportPush(String n);
+
+  /// No description provided for @cmpAdmReportDelay.
+  ///
+  /// In fr, this message translates to:
+  /// **'Départ {s} s après l\'heure programmée.'**
+  String cmpAdmReportDelay(String s);
+
+  /// No description provided for @cmpAdmReportDuration.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoi en {s} s.'**
+  String cmpAdmReportDuration(String s);
+
+  /// No description provided for @cmpAdmReportCaveat.
+  ///
+  /// In fr, this message translates to:
+  /// **'Créée n\'est pas livrée, et livrée n\'est pas lue : ni la livraison ni la lecture ne sont mesurées ici.'**
+  String get cmpAdmReportCaveat;
+
+  /// No description provided for @trfAdmProofLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Preuve du règlement (n° de reçu, référence bancaire…)'**
+  String get trfAdmProofLabel;
+
+  /// No description provided for @trfAdmRequestRefund.
+  ///
+  /// In fr, this message translates to:
+  /// **'Demander le remboursement'**
+  String get trfAdmRequestRefund;
+
+  /// No description provided for @trfAdmRequestRefundTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Demander le remboursement (registre)'**
+  String get trfAdmRequestRefundTitle;
+
+  /// No description provided for @trfAdmRefundWarn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun remboursement n\'est déclenché ici : seul le registre change, après la décision d\'un AUTRE administrateur. Le remboursement réel se fait chez le prestataire de paiement, à part.'**
+  String get trfAdmRefundWarn;
+
+  /// No description provided for @trfAdmRefundPending.
+  ///
+  /// In fr, this message translates to:
+  /// **'Remboursement demandé : {reason}'**
+  String trfAdmRefundPending(String reason);
+
+  /// No description provided for @trfAdmRefundWaiting.
+  ///
+  /// In fr, this message translates to:
+  /// **'En attente de la décision d\'un autre administrateur : vous ne pouvez pas décider votre propre demande.'**
+  String get trfAdmRefundWaiting;
+
+  /// No description provided for @trfAdmApproveRefund.
+  ///
+  /// In fr, this message translates to:
+  /// **'Approuver'**
+  String get trfAdmApproveRefund;
+
+  /// No description provided for @trfAdmRejectRefund.
+  ///
+  /// In fr, this message translates to:
+  /// **'Refuser'**
+  String get trfAdmRejectRefund;
+
+  /// No description provided for @trfAdmRejectRefundTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Refuser le remboursement'**
+  String get trfAdmRejectRefundTitle;
+
+  /// No description provided for @trfAdmRejectRefundNote.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif du refus'**
+  String get trfAdmRejectRefundNote;
+
+  /// No description provided for @trfAdmRefundRequested.
+  ///
+  /// In fr, this message translates to:
+  /// **'Remboursement demandé.'**
+  String get trfAdmRefundRequested;
+
+  /// No description provided for @trfAdmRefundDecided.
+  ///
+  /// In fr, this message translates to:
+  /// **'Décision enregistrée.'**
+  String get trfAdmRefundDecided;
+
+  /// No description provided for @marAdmReasonLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif (conservé avec votre nom)'**
+  String get marAdmReasonLabel;
+
+  /// No description provided for @marAdmHideTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Masquer le produit'**
+  String get marAdmHideTitle;
+
+  /// No description provided for @marAdmRestoreTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rétablir le produit'**
+  String get marAdmRestoreTitle;
+
+  /// No description provided for @marAdmDeleteTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer le produit'**
+  String get marAdmDeleteTitle;
+
+  /// No description provided for @marAdmDeleteWarn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suppression définitive, réservée au super-administrateur. Un produit qui a des commandes se masque, il ne s\'efface pas.'**
+  String get marAdmDeleteWarn;
+
+  /// No description provided for @marAdmDisputeWarn.
+  ///
+  /// In fr, this message translates to:
+  /// **'La décision est consignée. Le séquestre n\'est ni libéré ni remboursé ici : cela se fait chez le prestataire de paiement.'**
+  String get marAdmDisputeWarn;
+
+  /// No description provided for @tbAdmTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'À traiter'**
+  String get tbAdmTitle;
+
+  /// No description provided for @tbAdmSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce qui attend en ce moment, selon vos droits. Un état courant, pas une période : voir l\'heure du calcul.'**
+  String get tbAdmSubtitle;
+
+  /// No description provided for @tbAdmComputedAt.
+  ///
+  /// In fr, this message translates to:
+  /// **'Calculé à {time}'**
+  String tbAdmComputedAt(String time);
+
+  /// No description provided for @tbAdmRefresh.
+  ///
+  /// In fr, this message translates to:
+  /// **'Recalculer'**
+  String get tbAdmRefresh;
+
+  /// No description provided for @tbAdmLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de calculer cette liste : {detail}'**
+  String tbAdmLoadError(String detail);
+
+  /// No description provided for @tbAdmRetry.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réessayer'**
+  String get tbAdmRetry;
+
+  /// No description provided for @tbAdmNothingForRole.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune file à traiter n\'est rattachée à votre rôle.'**
+  String get tbAdmNothingForRole;
+
+  /// No description provided for @tbAdmCalm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rien en attente'**
+  String get tbAdmCalm;
+
+  /// No description provided for @tbAdmOldest.
+  ///
+  /// In fr, this message translates to:
+  /// **'plus ancien : {date}'**
+  String tbAdmOldest(String date);
+
+  /// No description provided for @tbAdmUrgentPrefix.
+  ///
+  /// In fr, this message translates to:
+  /// **'dont {n} {label}'**
+  String tbAdmUrgentPrefix(String n, String label);
+
+  /// No description provided for @tbAdmOpen.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ouvrir'**
+  String get tbAdmOpen;
+
+  /// No description provided for @tbAdmReports.
+  ///
+  /// In fr, this message translates to:
+  /// **'Signalements'**
+  String get tbAdmReports;
+
+  /// No description provided for @tbAdmReportsDef.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouveaux, en examen ou escaladés.'**
+  String get tbAdmReportsDef;
+
+  /// No description provided for @tbAdmReportsUrgent.
+  ///
+  /// In fr, this message translates to:
+  /// **'non pris en charge'**
+  String get tbAdmReportsUrgent;
+
+  /// No description provided for @tbAdmSupport.
+  ///
+  /// In fr, this message translates to:
+  /// **'Support'**
+  String get tbAdmSupport;
+
+  /// No description provided for @tbAdmSupportDef.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tickets ouverts ou en cours.'**
+  String get tbAdmSupportDef;
+
+  /// No description provided for @tbAdmSupportUrgent.
+  ///
+  /// In fr, this message translates to:
+  /// **'non pris en charge'**
+  String get tbAdmSupportUrgent;
+
+  /// No description provided for @tbAdmDemarches.
+  ///
+  /// In fr, this message translates to:
+  /// **'Démarches consulaires'**
+  String get tbAdmDemarches;
+
+  /// No description provided for @tbAdmDemarchesDef.
+  ///
+  /// In fr, this message translates to:
+  /// **'Textes à relire ou à publier, et démarches publiées dont la révision datée est dépassée.'**
+  String get tbAdmDemarchesDef;
+
+  /// No description provided for @tbAdmDemarchesUrgent.
+  ///
+  /// In fr, this message translates to:
+  /// **'en retard de révision'**
+  String get tbAdmDemarchesUrgent;
+
+  /// No description provided for @tbAdmCampaigns.
+  ///
+  /// In fr, this message translates to:
+  /// **'Campagnes'**
+  String get tbAdmCampaigns;
+
+  /// No description provided for @tbAdmCampaignsDef.
+  ///
+  /// In fr, this message translates to:
+  /// **'Messages soumis qui attendent l\'approbation d\'un autre administrateur.'**
+  String get tbAdmCampaignsDef;
+
+  /// No description provided for @tbAdmPrivacy.
+  ///
+  /// In fr, this message translates to:
+  /// **'Demandes de données'**
+  String get tbAdmPrivacy;
+
+  /// No description provided for @tbAdmPrivacyDef.
+  ///
+  /// In fr, this message translates to:
+  /// **'Demandes ouvertes (reçues, identité vérifiée, en traitement).'**
+  String get tbAdmPrivacyDef;
+
+  /// No description provided for @tbAdmPrivacyUrgent.
+  ///
+  /// In fr, this message translates to:
+  /// **'au-delà de l\'échéance interne'**
+  String get tbAdmPrivacyUrgent;
+
+  /// No description provided for @tbAdmIncidents.
+  ///
+  /// In fr, this message translates to:
+  /// **'Incidents de sécurité'**
+  String get tbAdmIncidents;
+
+  /// No description provided for @tbAdmIncidentsDef.
+  ///
+  /// In fr, this message translates to:
+  /// **'Incidents non clos.'**
+  String get tbAdmIncidentsDef;
+
+  /// No description provided for @tbAdmIncidentsUrgent.
+  ///
+  /// In fr, this message translates to:
+  /// **'de gravité élevée ou critique'**
+  String get tbAdmIncidentsUrgent;
+
+  /// No description provided for @tbAdmListings.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fiches à vérifier'**
+  String get tbAdmListings;
+
+  /// No description provided for @tbAdmListingsDef.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fiches actives sans badge « vérifié ».'**
+  String get tbAdmListingsDef;
+
+  /// No description provided for @tbAdmCounterUnavailable.
+  ///
+  /// In fr, this message translates to:
+  /// **'indisponible'**
+  String get tbAdmCounterUnavailable;
+
+  /// No description provided for @tbAdmCountersUnavailable.
+  ///
+  /// In fr, this message translates to:
+  /// **'Certains compteurs n\'ont pas pu être lus et sont marqués « — » plutôt que 0 : {names}.'**
+  String tbAdmCountersUnavailable(String names);
+
+  /// No description provided for @mbrAdmVerify.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vérifier le profil'**
+  String get mbrAdmVerify;
+
+  /// No description provided for @mbrAdmUnverify.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retirer le badge'**
+  String get mbrAdmUnverify;
+
+  /// No description provided for @mbrAdmWarn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Avertir'**
+  String get mbrAdmWarn;
+
+  /// No description provided for @mbrAdmSuspend.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suspendre'**
+  String get mbrAdmSuspend;
+
+  /// No description provided for @mbrAdmUnsuspend.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réactiver (fin de suspension)'**
+  String get mbrAdmUnsuspend;
+
+  /// No description provided for @mbrAdmHistory.
+  ///
+  /// In fr, this message translates to:
+  /// **'Historique de modération'**
+  String get mbrAdmHistory;
+
+  /// No description provided for @mbrAdmVerifyTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vérifier le profil'**
+  String get mbrAdmVerifyTitle;
+
+  /// No description provided for @mbrAdmVerifyWarn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le badge dit au public que ce membre a été contrôlé : indiquez sur quoi, c\'est conservé avec votre nom.'**
+  String get mbrAdmVerifyWarn;
+
+  /// No description provided for @mbrAdmVerifySource.
+  ///
+  /// In fr, this message translates to:
+  /// **'Base de la vérification'**
+  String get mbrAdmVerifySource;
+
+  /// No description provided for @mbrAdmUnverifyTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retirer le badge'**
+  String get mbrAdmUnverifyTitle;
+
+  /// No description provided for @mbrAdmReason.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif (conservé dans l\'historique)'**
+  String get mbrAdmReason;
+
+  /// No description provided for @mbrAdmWarnTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Avertir le membre'**
+  String get mbrAdmWarnTitle;
+
+  /// No description provided for @mbrAdmWarnWarn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le membre reçoit une notification « Avertissement de la modération » avec le texte ci-dessous. Ne révélez ni le signalant ni des données d\'un tiers.'**
+  String get mbrAdmWarnWarn;
+
+  /// No description provided for @mbrAdmWarnReason.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif interne (non envoyé au membre)'**
+  String get mbrAdmWarnReason;
+
+  /// No description provided for @mbrAdmWarnMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Message au membre (10 à 300 caractères)'**
+  String get mbrAdmWarnMessage;
+
+  /// No description provided for @mbrAdmSuspendTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suspendre le compte'**
+  String get mbrAdmSuspendTitle;
+
+  /// No description provided for @mbrAdmSuspendWarn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le membre est déconnecté et ne peut pas revenir avant la fin de la durée. La suspension se lève toute seule à l\'échéance. Pour un bannissement définitif, utilisez « Bannir ».'**
+  String get mbrAdmSuspendWarn;
+
+  /// No description provided for @mbrAdmSuspendDays.
+  ///
+  /// In fr, this message translates to:
+  /// **'Durée'**
+  String get mbrAdmSuspendDays;
+
+  /// No description provided for @mbrAdmDays.
+  ///
+  /// In fr, this message translates to:
+  /// **'{n} jours'**
+  String mbrAdmDays(String n);
+
+  /// No description provided for @mbrAdmUnsuspendTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réactiver le compte'**
+  String get mbrAdmUnsuspendTitle;
+
+  /// No description provided for @mbrAdmForceLogoutReason.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif de la déconnexion'**
+  String get mbrAdmForceLogoutReason;
+
+  /// No description provided for @mbrAdmHistoryTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Historique de modération'**
+  String get mbrAdmHistoryTitle;
+
+  /// No description provided for @mbrAdmHistoryEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun événement de modération pour ce membre.'**
+  String get mbrAdmHistoryEmpty;
+
+  /// No description provided for @mbrAdmKindVerified.
+  ///
+  /// In fr, this message translates to:
+  /// **'Profil vérifié'**
+  String get mbrAdmKindVerified;
+
+  /// No description provided for @mbrAdmKindUnverified.
+  ///
+  /// In fr, this message translates to:
+  /// **'Badge retiré'**
+  String get mbrAdmKindUnverified;
+
+  /// No description provided for @mbrAdmKindWarned.
+  ///
+  /// In fr, this message translates to:
+  /// **'Avertissement'**
+  String get mbrAdmKindWarned;
+
+  /// No description provided for @mbrAdmKindSuspended.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suspension'**
+  String get mbrAdmKindSuspended;
+
+  /// No description provided for @mbrAdmKindUnsuspended.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suspension levée'**
+  String get mbrAdmKindUnsuspended;
+
+  /// No description provided for @mbrAdmKindRevoked.
+  ///
+  /// In fr, this message translates to:
+  /// **'Déconnexion forcée'**
+  String get mbrAdmKindRevoked;
+
+  /// No description provided for @mbrAdmBySystem.
+  ///
+  /// In fr, this message translates to:
+  /// **'le système'**
+  String get mbrAdmBySystem;
+
+  /// No description provided for @mbrAdmWarned.
+  ///
+  /// In fr, this message translates to:
+  /// **'Avertissement envoyé ({n} au total).'**
+  String mbrAdmWarned(String n);
+
+  /// No description provided for @mbrAdmSuspended.
+  ///
+  /// In fr, this message translates to:
+  /// **'Compte suspendu.'**
+  String get mbrAdmSuspended;
+
+  /// No description provided for @mbrAdmUnsuspended.
+  ///
+  /// In fr, this message translates to:
+  /// **'Compte réactivé.'**
+  String get mbrAdmUnsuspended;
+
+  /// No description provided for @mbrAdmUnverified.
+  ///
+  /// In fr, this message translates to:
+  /// **'Badge retiré.'**
+  String get mbrAdmUnverified;
+
+  /// No description provided for @mbrAdmCancel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annuler'**
+  String get mbrAdmCancel;
+
+  /// No description provided for @mbrAdmConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confirmer'**
+  String get mbrAdmConfirm;
+
+  /// No description provided for @mbrAdmClose.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fermer'**
+  String get mbrAdmClose;
+
+  /// No description provided for @mbrAdmLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chargement impossible : {detail}'**
+  String mbrAdmLoadError(String detail);
+
+  /// No description provided for @refAdmTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Référentiel géographique'**
+  String get refAdmTitle;
+
+  /// No description provided for @refAdmSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Villes, doublons, pays. Réservé au super-administrateur : une ville fausse peut ouvrir des groupes officiels.'**
+  String get refAdmSubtitle;
+
+  /// No description provided for @refAdmNoAccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous n\'avez pas accès à cette rubrique.'**
+  String get refAdmNoAccess;
+
+  /// No description provided for @refAdmTabCities.
+  ///
+  /// In fr, this message translates to:
+  /// **'Villes'**
+  String get refAdmTabCities;
+
+  /// No description provided for @refAdmTabDuplicates.
+  ///
+  /// In fr, this message translates to:
+  /// **'Doublons'**
+  String get refAdmTabDuplicates;
+
+  /// No description provided for @refAdmTabCountries.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pays'**
+  String get refAdmTabCountries;
+
+  /// No description provided for @refAdmLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chargement impossible : {detail}'**
+  String refAdmLoadError(String detail);
+
+  /// No description provided for @refAdmRetry.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réessayer'**
+  String get refAdmRetry;
+
+  /// No description provided for @refAdmReason.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif (conservé dans l\'historique)'**
+  String get refAdmReason;
+
+  /// No description provided for @refAdmCancel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annuler'**
+  String get refAdmCancel;
+
+  /// No description provided for @refAdmConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confirmer'**
+  String get refAdmConfirm;
+
+  /// No description provided for @refAdmSave.
+  ///
+  /// In fr, this message translates to:
+  /// **'Enregistrer'**
+  String get refAdmSave;
+
+  /// No description provided for @refAdmSaved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Enregistré.'**
+  String get refAdmSaved;
+
+  /// No description provided for @refAdmSearchCity.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rechercher une ville (2 lettres au moins)'**
+  String get refAdmSearchCity;
+
+  /// No description provided for @refAdmSearchHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cherchez une ville ou choisissez un pays : le référentiel compte plus de 33 000 villes.'**
+  String get refAdmSearchHint;
+
+  /// No description provided for @refAdmCountry.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pays'**
+  String get refAdmCountry;
+
+  /// No description provided for @refAdmAllCountries.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tous les pays'**
+  String get refAdmAllCountries;
+
+  /// No description provided for @refAdmNewCity.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouvelle ville'**
+  String get refAdmNewCity;
+
+  /// No description provided for @refAdmEdit.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier'**
+  String get refAdmEdit;
+
+  /// No description provided for @refAdmDelete.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer'**
+  String get refAdmDelete;
+
+  /// No description provided for @refAdmPopulation.
+  ///
+  /// In fr, this message translates to:
+  /// **'{n} hab.'**
+  String refAdmPopulation(String n);
+
+  /// No description provided for @refAdmDeleteTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer {name} ?'**
+  String refAdmDeleteTitle(String name);
+
+  /// No description provided for @refAdmDeleteWarn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Refusé tant qu\'un profil ou un groupe s\'appuie sur cette ville : fusionnez-la plutôt. Seul l\'historique est conservé.'**
+  String get refAdmDeleteWarn;
+
+  /// No description provided for @refAdmDeleted.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ville supprimée.'**
+  String get refAdmDeleted;
+
+  /// No description provided for @refAdmFieldName.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nom'**
+  String get refAdmFieldName;
+
+  /// No description provided for @refAdmFieldRegion.
+  ///
+  /// In fr, this message translates to:
+  /// **'Région (facultatif)'**
+  String get refAdmFieldRegion;
+
+  /// No description provided for @refAdmFieldLat.
+  ///
+  /// In fr, this message translates to:
+  /// **'Latitude'**
+  String get refAdmFieldLat;
+
+  /// No description provided for @refAdmFieldLon.
+  ///
+  /// In fr, this message translates to:
+  /// **'Longitude'**
+  String get refAdmFieldLon;
+
+  /// No description provided for @refAdmFieldPopulation.
+  ///
+  /// In fr, this message translates to:
+  /// **'Population'**
+  String get refAdmFieldPopulation;
+
+  /// No description provided for @refAdmFieldAliases.
+  ///
+  /// In fr, this message translates to:
+  /// **'Autres noms, séparés par des virgules (facultatif)'**
+  String get refAdmFieldAliases;
+
+  /// No description provided for @refAdmDuplicatesHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Même nom dans le même pays, à moins de 20 km. Fusionner reporte les profils sur la ville conservée ; refusé si la ville retirée porte un groupe.'**
+  String get refAdmDuplicatesHelp;
+
+  /// No description provided for @refAdmNoDuplicates.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun doublon probable.'**
+  String get refAdmNoDuplicates;
+
+  /// No description provided for @refAdmDistance.
+  ///
+  /// In fr, this message translates to:
+  /// **'{km} km'**
+  String refAdmDistance(String km);
+
+  /// No description provided for @refAdmKeepA.
+  ///
+  /// In fr, this message translates to:
+  /// **'Garder {id} ({profils} profil(s), {groupes} groupe(s)) — retirer {other}'**
+  String refAdmKeepA(String id, String profils, String groupes, String other);
+
+  /// No description provided for @refAdmMergeTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fusionner ces deux villes'**
+  String get refAdmMergeTitle;
+
+  /// No description provided for @refAdmMergeWarn.
+  ///
+  /// In fr, this message translates to:
+  /// **'La ville retirée disparaît : ses profils passent à la ville conservée, ses autres noms sont réunis, son identifiant GeoNames est tracé dans l\'historique.'**
+  String get refAdmMergeWarn;
+
+  /// No description provided for @refAdmMerged.
+  ///
+  /// In fr, this message translates to:
+  /// **'Villes fusionnées.'**
+  String get refAdmMerged;
+
+  /// No description provided for @refAdmCountriesHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'ajout est possible ; le renommage et la suppression ne le sont pas : des profils, fiches et événements portent le nom du pays en toutes lettres.'**
+  String get refAdmCountriesHelp;
+
+  /// No description provided for @refAdmSearchCountry.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rechercher un pays'**
+  String get refAdmSearchCountry;
+
+  /// No description provided for @refAdmNewCountry.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouveau pays'**
+  String get refAdmNewCountry;
+
+  /// No description provided for @refAdmFieldIso.
+  ///
+  /// In fr, this message translates to:
+  /// **'Code ISO (deux lettres majuscules)'**
+  String get refAdmFieldIso;
+
+  /// No description provided for @rgHistTooltip.
+  ///
+  /// In fr, this message translates to:
+  /// **'Historique des réglages'**
+  String get rgHistTooltip;
+
+  /// No description provided for @rgHistTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Historique des réglages'**
+  String get rgHistTitle;
+
+  /// No description provided for @rgHistSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chaque changement garde l\'ancienne et la nouvelle valeur, qui l\'a fait et quand. Rien ne s\'y réécrit ni ne s\'y supprime.'**
+  String get rgHistSubtitle;
+
+  /// No description provided for @rgHistEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun changement enregistré depuis la mise en place de l\'historique.'**
+  String get rgHistEmpty;
+
+  /// No description provided for @rgHistLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Impossible de lire l\'historique : {detail}'**
+  String rgHistLoadError(String detail);
+
+  /// No description provided for @rgHistRetry.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réessayer'**
+  String get rgHistRetry;
+
+  /// No description provided for @rgHistClose.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fermer'**
+  String get rgHistClose;
+
+  /// No description provided for @rgHistKindUpdate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modification'**
+  String get rgHistKindUpdate;
+
+  /// No description provided for @rgHistKindRestore.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retour arrière'**
+  String get rgHistKindRestore;
+
+  /// No description provided for @rgHistBy.
+  ///
+  /// In fr, this message translates to:
+  /// **'Par {who}'**
+  String rgHistBy(String who);
+
+  /// No description provided for @rgHistReason.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif : {reason}'**
+  String rgHistReason(String reason);
+
+  /// No description provided for @rgHistChange.
+  ///
+  /// In fr, this message translates to:
+  /// **'{key} : {from} → {to}'**
+  String rgHistChange(String key, String from, String to);
+
+  /// No description provided for @rgHistAbsent.
+  ///
+  /// In fr, this message translates to:
+  /// **'(absent)'**
+  String get rgHistAbsent;
+
+  /// No description provided for @rgHistNoDiff.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune valeur n\'a changé.'**
+  String get rgHistNoDiff;
+
+  /// No description provided for @rgHistRestore.
+  ///
+  /// In fr, this message translates to:
+  /// **'Restaurer l\'ancienne valeur'**
+  String get rgHistRestore;
+
+  /// No description provided for @rgHistNoBefore.
+  ///
+  /// In fr, this message translates to:
+  /// **'Première valeur enregistrée de cette section : pas d\'ancienne valeur à restaurer.'**
+  String get rgHistNoBefore;
+
+  /// No description provided for @rgHistRestoreTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Restaurer « {section} » ?'**
+  String rgHistRestoreTitle(String section);
+
+  /// No description provided for @rgHistRestoreBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'La section reprend les valeurs d\'avant cette modification. Le retour arrière est lui-même enregistré.'**
+  String get rgHistRestoreBody;
+
+  /// No description provided for @rgHistRestoreReason.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif du retour arrière'**
+  String get rgHistRestoreReason;
+
+  /// No description provided for @rgHistRestoreCancel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annuler'**
+  String get rgHistRestoreCancel;
+
+  /// No description provided for @rgHistRestoreConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Restaurer'**
+  String get rgHistRestoreConfirm;
+
+  /// No description provided for @rgHistRestored.
+  ///
+  /// In fr, this message translates to:
+  /// **'Section restaurée.'**
+  String get rgHistRestored;
+
+  /// No description provided for @rgHistRestoreFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retour arrière impossible : {detail}'**
+  String rgHistRestoreFailed(String detail);
+
+  /// No description provided for @evtCalTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Événements'**
+  String get evtCalTitle;
+
+  /// No description provided for @evtCalSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Calendrier, inscrits et chiffres. Annuler ou supprimer se fait depuis « Contenu ».'**
+  String get evtCalSubtitle;
+
+  /// No description provided for @evtCalTabCalendar.
+  ///
+  /// In fr, this message translates to:
+  /// **'Calendrier'**
+  String get evtCalTabCalendar;
+
+  /// No description provided for @evtCalTabStats.
+  ///
+  /// In fr, this message translates to:
+  /// **'Statistiques'**
+  String get evtCalTabStats;
+
+  /// No description provided for @evtCalNoAccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous n\'avez pas accès aux événements.'**
+  String get evtCalNoAccess;
+
+  /// No description provided for @evtCalLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chargement impossible : {detail}'**
+  String evtCalLoadError(String detail);
+
+  /// No description provided for @evtCalRetry.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réessayer'**
+  String get evtCalRetry;
+
+  /// No description provided for @evtCalPrevMonth.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mois précédent'**
+  String get evtCalPrevMonth;
+
+  /// No description provided for @evtCalNextMonth.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mois suivant'**
+  String get evtCalNextMonth;
+
+  /// No description provided for @evtCalTimezone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Heures affichées dans le fuseau de cet appareil ({zone}).'**
+  String evtCalTimezone(String zone);
+
+  /// No description provided for @evtCalPrivateHidden.
+  ///
+  /// In fr, this message translates to:
+  /// **'{n} événement(s) non public(s) ou brouillon(s) sur la période : comptés, pas listés.'**
+  String evtCalPrivateHidden(String n);
+
+  /// No description provided for @evtCalNoEventsDay.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun événement public ce jour-là.'**
+  String get evtCalNoEventsDay;
+
+  /// No description provided for @evtCalNoEventsMonth.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun événement public ce mois-ci.'**
+  String get evtCalNoEventsMonth;
+
+  /// No description provided for @evtCalAllMonth.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tout le mois'**
+  String get evtCalAllMonth;
+
+  /// No description provided for @evtCalAttendees.
+  ///
+  /// In fr, this message translates to:
+  /// **'{n} inscrit(s)'**
+  String evtCalAttendees(String n);
+
+  /// No description provided for @evtCalAttendeesOf.
+  ///
+  /// In fr, this message translates to:
+  /// **'{n} / {max} inscrits'**
+  String evtCalAttendeesOf(String n, String max);
+
+  /// No description provided for @evtCalOnline.
+  ///
+  /// In fr, this message translates to:
+  /// **'En ligne'**
+  String get evtCalOnline;
+
+  /// No description provided for @evtCalSeeAttendees.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir les inscrits'**
+  String get evtCalSeeAttendees;
+
+  /// No description provided for @evtCalAttendeesTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Inscrits : {title}'**
+  String evtCalAttendeesTitle(String title);
+
+  /// No description provided for @evtCalAttendeesWarn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cette consultation est journalisée (qui, quel événement, combien de lignes — jamais les noms).'**
+  String get evtCalAttendeesWarn;
+
+  /// No description provided for @evtCalAttendeesEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun inscrit.'**
+  String get evtCalAttendeesEmpty;
+
+  /// No description provided for @evtCalStatusDraft.
+  ///
+  /// In fr, this message translates to:
+  /// **'Brouillon'**
+  String get evtCalStatusDraft;
+
+  /// No description provided for @evtCalStatusUpcoming.
+  ///
+  /// In fr, this message translates to:
+  /// **'À venir'**
+  String get evtCalStatusUpcoming;
+
+  /// No description provided for @evtCalStatusOngoing.
+  ///
+  /// In fr, this message translates to:
+  /// **'En cours'**
+  String get evtCalStatusOngoing;
+
+  /// No description provided for @evtCalStatusEnded.
+  ///
+  /// In fr, this message translates to:
+  /// **'Terminé'**
+  String get evtCalStatusEnded;
+
+  /// No description provided for @evtCalStatusCancelled.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annulé'**
+  String get evtCalStatusCancelled;
+
+  /// No description provided for @evtCalWindow.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fenêtre'**
+  String get evtCalWindow;
+
+  /// No description provided for @evtCalDays.
+  ///
+  /// In fr, this message translates to:
+  /// **'{n} jours'**
+  String evtCalDays(String n);
+
+  /// No description provided for @evtCalStatCreated.
+  ///
+  /// In fr, this message translates to:
+  /// **'Événements créés'**
+  String get evtCalStatCreated;
+
+  /// No description provided for @evtCalStatUpcoming.
+  ///
+  /// In fr, this message translates to:
+  /// **'Événements à venir'**
+  String get evtCalStatUpcoming;
+
+  /// No description provided for @evtCalStatRegistrations.
+  ///
+  /// In fr, this message translates to:
+  /// **'Inscriptions'**
+  String get evtCalStatRegistrations;
+
+  /// No description provided for @evtCalStatCancelled.
+  ///
+  /// In fr, this message translates to:
+  /// **'Événements annulés'**
+  String get evtCalStatCancelled;
+
+  /// No description provided for @evtCalStatFill.
+  ///
+  /// In fr, this message translates to:
+  /// **'Remplissage moyen (à venir, capacité fixée)'**
+  String get evtCalStatFill;
+
+  /// No description provided for @evtCalStatNone.
+  ///
+  /// In fr, this message translates to:
+  /// **'—'**
+  String get evtCalStatNone;
+
+  /// No description provided for @evtCalStatNotMeasured.
+  ///
+  /// In fr, this message translates to:
+  /// **'Non mesuré : {list}.'**
+  String evtCalStatNotMeasured(String list);
+
+  /// No description provided for @evtCalStatDefinitions.
+  ///
+  /// In fr, this message translates to:
+  /// **'Définitions'**
+  String get evtCalStatDefinitions;
+
+  /// No description provided for @evtCalDone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fait.'**
+  String get evtCalDone;
+
+  /// No description provided for @jrnAudSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Toute action d\'un administrateur, en lecture seule : le journal ne se modifie ni ne s\'efface.'**
+  String get jrnAudSubtitle;
+
+  /// No description provided for @jrnAudExport.
+  ///
+  /// In fr, this message translates to:
+  /// **'Exporter'**
+  String get jrnAudExport;
+
+  /// No description provided for @jrnAudExportTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Exporter le journal'**
+  String get jrnAudExportTitle;
+
+  /// No description provided for @jrnAudExportBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les lignes qui correspondent aux filtres actuels (5 000 au plus) sont copiées en CSV dans le presse-papiers. Cet export est lui-même inscrit au journal, avec vos filtres.'**
+  String get jrnAudExportBody;
+
+  /// No description provided for @jrnAudExported.
+  ///
+  /// In fr, this message translates to:
+  /// **'{n} lignes copiées en CSV. L\'export est inscrit au journal.'**
+  String jrnAudExported(String n);
+
+  /// No description provided for @jrnAudExportTruncated.
+  ///
+  /// In fr, this message translates to:
+  /// **'{n} lignes copiées, plafond atteint : affinez les filtres pour le reste. L\'export est inscrit au journal.'**
+  String jrnAudExportTruncated(String n);
+
+  /// No description provided for @jrnAudActor.
+  ///
+  /// In fr, this message translates to:
+  /// **'Acteur (nom ou identifiant)'**
+  String get jrnAudActor;
+
+  /// No description provided for @jrnAudAction.
+  ///
+  /// In fr, this message translates to:
+  /// **'Action'**
+  String get jrnAudAction;
+
+  /// No description provided for @jrnAudResource.
+  ///
+  /// In fr, this message translates to:
+  /// **'Type de ressource'**
+  String get jrnAudResource;
+
+  /// No description provided for @jrnAudResourceId.
+  ///
+  /// In fr, this message translates to:
+  /// **'Identifiant de la ressource'**
+  String get jrnAudResourceId;
+
+  /// No description provided for @jrnAudResult.
+  ///
+  /// In fr, this message translates to:
+  /// **'Résultat'**
+  String get jrnAudResult;
+
+  /// No description provided for @jrnAudAll.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tous'**
+  String get jrnAudAll;
+
+  /// No description provided for @jrnAudFrom.
+  ///
+  /// In fr, this message translates to:
+  /// **'Du'**
+  String get jrnAudFrom;
+
+  /// No description provided for @jrnAudTo.
+  ///
+  /// In fr, this message translates to:
+  /// **'Au'**
+  String get jrnAudTo;
+
+  /// No description provided for @jrnAudReset.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réinitialiser'**
+  String get jrnAudReset;
+
+  /// No description provided for @jrnAudPeriodInverted.
+  ///
+  /// In fr, this message translates to:
+  /// **'La date de début est après la date de fin : aucune ligne ne peut correspondre.'**
+  String get jrnAudPeriodInverted;
+
+  /// No description provided for @jrnAudResultSuccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réussi'**
+  String get jrnAudResultSuccess;
+
+  /// No description provided for @jrnAudResultDenied.
+  ///
+  /// In fr, this message translates to:
+  /// **'Refusé'**
+  String get jrnAudResultDenied;
+
+  /// No description provided for @jrnAudResultFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Échoué'**
+  String get jrnAudResultFailed;
+
+  /// No description provided for @jrnAudResultPartial.
+  ///
+  /// In fr, this message translates to:
+  /// **'Partiel'**
+  String get jrnAudResultPartial;
+
+  /// No description provided for @jrnAudLoadMore.
+  ///
+  /// In fr, this message translates to:
+  /// **'Charger la suite'**
+  String get jrnAudLoadMore;
+
+  /// No description provided for @jrnAudEnd.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fin du journal pour ces filtres.'**
+  String get jrnAudEnd;
+
+  /// No description provided for @jrnAudDetailTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Détail de l\'entrée'**
+  String get jrnAudDetailTitle;
+
+  /// No description provided for @jrnAudWhen.
+  ///
+  /// In fr, this message translates to:
+  /// **'Date'**
+  String get jrnAudWhen;
+
+  /// No description provided for @jrnAudActorId.
+  ///
+  /// In fr, this message translates to:
+  /// **'Identifiant de l\'acteur'**
+  String get jrnAudActorId;
+
+  /// No description provided for @jrnAudReason.
+  ///
+  /// In fr, this message translates to:
+  /// **'Code de motif'**
+  String get jrnAudReason;
+
+  /// No description provided for @jrnAudCorrelation.
+  ///
+  /// In fr, this message translates to:
+  /// **'Corrélation'**
+  String get jrnAudCorrelation;
+
+  /// No description provided for @jrnAudEntryId.
+  ///
+  /// In fr, this message translates to:
+  /// **'Identifiant de l\'entrée'**
+  String get jrnAudEntryId;
+
+  /// No description provided for @supAdmFilterEscalated.
+  ///
+  /// In fr, this message translates to:
+  /// **'Escaladés'**
+  String get supAdmFilterEscalated;
+
+  /// No description provided for @supSlaEscalatedBadge.
+  ///
+  /// In fr, this message translates to:
+  /// **'Escaladé'**
+  String get supSlaEscalatedBadge;
+
+  /// No description provided for @supSlaLateBadge.
+  ///
+  /// In fr, this message translates to:
+  /// **'En retard'**
+  String get supSlaLateBadge;
+
+  /// No description provided for @supSlaEscalationReason.
+  ///
+  /// In fr, this message translates to:
+  /// **'Escalade : {reason}'**
+  String supSlaEscalationReason(String reason);
+
+  /// No description provided for @supSlaDueFirst.
+  ///
+  /// In fr, this message translates to:
+  /// **'Première réponse avant le {date}'**
+  String supSlaDueFirst(String date);
+
+  /// No description provided for @supSlaDueResolution.
+  ///
+  /// In fr, this message translates to:
+  /// **'Résolution avant le {date}'**
+  String supSlaDueResolution(String date);
+
+  /// No description provided for @supSlaEscalate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Escalader'**
+  String get supSlaEscalate;
+
+  /// No description provided for @supSlaEscalateReason.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pourquoi ce ticket dépasse-t-il votre périmètre ?'**
+  String get supSlaEscalateReason;
+
+  /// No description provided for @supSlaEscalationLift.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lever l\'escalade'**
+  String get supSlaEscalationLift;
+
+  /// No description provided for @supSlaInsertTemplate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Insérer un modèle'**
+  String get supSlaInsertTemplate;
+
+  /// No description provided for @supSlaSettings.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modèles et délais'**
+  String get supSlaSettings;
+
+  /// No description provided for @supSlaSettingsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réglages du support'**
+  String get supSlaSettingsTitle;
+
+  /// No description provided for @supSlaClose.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fermer'**
+  String get supSlaClose;
+
+  /// No description provided for @supSlaTemplatesTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modèles de réponse'**
+  String get supSlaTemplatesTitle;
+
+  /// No description provided for @supSlaTemplatesEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun modèle.'**
+  String get supSlaTemplatesEmpty;
+
+  /// No description provided for @supSlaTemplateNew.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouveau modèle'**
+  String get supSlaTemplateNew;
+
+  /// No description provided for @supSlaTemplateEdit.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier'**
+  String get supSlaTemplateEdit;
+
+  /// No description provided for @supSlaTemplateDelete.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer'**
+  String get supSlaTemplateDelete;
+
+  /// No description provided for @supSlaTemplateTitleLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Titre'**
+  String get supSlaTemplateTitleLabel;
+
+  /// No description provided for @supSlaTemplateBodyLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Texte'**
+  String get supSlaTemplateBodyLabel;
+
+  /// No description provided for @supSlaTemplateCategoryLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Catégorie'**
+  String get supSlaTemplateCategoryLabel;
+
+  /// No description provided for @supSlaTemplateAnyCategory.
+  ///
+  /// In fr, this message translates to:
+  /// **'Toutes catégories'**
+  String get supSlaTemplateAnyCategory;
+
+  /// No description provided for @supSlaTemplateSave.
+  ///
+  /// In fr, this message translates to:
+  /// **'Enregistrer'**
+  String get supSlaTemplateSave;
+
+  /// No description provided for @supSlaTemplateDeleteConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer le modèle « {title} » ?'**
+  String supSlaTemplateDeleteConfirm(String title);
+
+  /// No description provided for @supSlaTargetsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Délais de service'**
+  String get supSlaTargetsTitle;
+
+  /// No description provided for @supSlaTargetsNote.
+  ///
+  /// In fr, this message translates to:
+  /// **'Heures d\'horloge, pas ouvrées. Sans délai arrêté, un ticket n\'a pas d\'échéance et n\'est jamais en retard. Une cible existante est remplacée par la même catégorie et priorité.'**
+  String get supSlaTargetsNote;
+
+  /// No description provided for @supSlaTargetsEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun délai arrêté.'**
+  String get supSlaTargetsEmpty;
+
+  /// No description provided for @supSlaFirstHours.
+  ///
+  /// In fr, this message translates to:
+  /// **'1re réponse (h)'**
+  String get supSlaFirstHours;
+
+  /// No description provided for @supSlaResolutionHours.
+  ///
+  /// In fr, this message translates to:
+  /// **'Résolution (h)'**
+  String get supSlaResolutionHours;
+
+  /// No description provided for @supSlaTargetSave.
+  ///
+  /// In fr, this message translates to:
+  /// **'Arrêter'**
+  String get supSlaTargetSave;
+
+  /// No description provided for @supSlaTargetRemove.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retirer ce délai'**
+  String get supSlaTargetRemove;
+
+  /// No description provided for @supSlaTargetLine.
+  ///
+  /// In fr, this message translates to:
+  /// **'Première réponse : {first} h · Résolution : {res} h'**
+  String supSlaTargetLine(String first, String res);
+
+  /// No description provided for @supSlaNoValue.
+  ///
+  /// In fr, this message translates to:
+  /// **'—'**
+  String get supSlaNoValue;
+
+  /// No description provided for @supSlaHoursInvalid.
+  ///
+  /// In fr, this message translates to:
+  /// **'Saisissez des heures entières, de 1 à 8760, dans au moins un des deux champs.'**
+  String get supSlaHoursInvalid;
+
+  /// No description provided for @statTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Statistiques'**
+  String get statTitle;
+
+  /// No description provided for @statSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chiffres lus en direct dans la base, avec leur définition.'**
+  String get statSubtitle;
+
+  /// No description provided for @statToday.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aujourd\'hui'**
+  String get statToday;
+
+  /// No description provided for @statDefTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce que mesurent ces chiffres'**
+  String get statDefTitle;
+
+  /// No description provided for @statDefToday.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aujourd\'hui : comptes créés depuis minuit, heure de cet appareil.'**
+  String get statDefToday;
+
+  /// No description provided for @statDefWeek.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cette semaine : comptes créés depuis lundi minuit, heure de cet appareil.'**
+  String get statDefWeek;
+
+  /// No description provided for @statDefMonth.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce mois : comptes créés depuis le 1er du mois, heure de cet appareil.'**
+  String get statDefMonth;
+
+  /// No description provided for @statDefGrowth.
+  ///
+  /// In fr, this message translates to:
+  /// **'Croissance : comptes créés par mois civil, sur les six derniers mois. Inscriptions, pas membres actifs ; les comptes supprimés depuis n\'y figurent plus.'**
+  String get statDefGrowth;
+
+  /// No description provided for @statDefCategories.
+  ///
+  /// In fr, this message translates to:
+  /// **'Événements et commerces par catégorie : ceux que vos droits vous permettent de lire, tous statuts confondus (un commerce inactif ou un événement annulé compte).'**
+  String get statDefCategories;
+
+  /// No description provided for @statDefNoExport.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun export n\'est proposé ici : le seul export du panneau est celui du journal d\'audit.'**
+  String get statDefNoExport;
+
+  /// No description provided for @statReadAt.
+  ///
+  /// In fr, this message translates to:
+  /// **'Données lues le {date}'**
+  String statReadAt(String date);
+
+  /// No description provided for @grpAdmPrivateTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rendre le groupe privé'**
+  String get grpAdmPrivateTitle;
+
+  /// No description provided for @grpAdmPrivateWarn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le groupe disparaît de la recherche et des listes publiques ; seuls ses membres le voient. Le motif est conservé dans l\'historique du groupe.'**
+  String get grpAdmPrivateWarn;
+
+  /// No description provided for @grpAdmPublicTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rendre le groupe public'**
+  String get grpAdmPublicTitle;
+
+  /// No description provided for @grpAdmPublicWarn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le groupe devient visible et joignable par tous les membres de l\'application. Le motif est conservé dans l\'historique du groupe.'**
+  String get grpAdmPublicWarn;
+
+  /// No description provided for @grpAdmDeleteWarn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Irréversible. Les événements et sondages du groupe sont supprimés avec lui, et le groupe n\'est pas prévenu. Un groupe officiel ne se supprime que par un superAdmin. Le motif est conservé dans l\'historique.'**
+  String get grpAdmDeleteWarn;
+
+  /// No description provided for @grpAdmDeleted.
+  ///
+  /// In fr, this message translates to:
+  /// **'Groupe supprimé ({n} événement(s) supprimé(s) avec lui).'**
+  String grpAdmDeleted(String n);
+
+  /// No description provided for @rchAdmTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'À traiter et recherche'**
+  String get rchAdmTitle;
+
+  /// No description provided for @rchAdmSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce qui attend votre décision, et une recherche sur ce que votre rôle peut lire.'**
+  String get rchAdmSubtitle;
+
+  /// No description provided for @rchAdmTabQueue.
+  ///
+  /// In fr, this message translates to:
+  /// **'À traiter'**
+  String get rchAdmTabQueue;
+
+  /// No description provided for @rchAdmTabSearch.
+  ///
+  /// In fr, this message translates to:
+  /// **'Recherche'**
+  String get rchAdmTabSearch;
+
+  /// No description provided for @rchAdmRefresh.
+  ///
+  /// In fr, this message translates to:
+  /// **'Actualiser'**
+  String get rchAdmRefresh;
+
+  /// No description provided for @rchAdmQueueEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rien n\'attend votre décision pour le moment.'**
+  String get rchAdmQueueEmpty;
+
+  /// No description provided for @rchAdmOldest.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le plus ancien : {date}'**
+  String rchAdmOldest(String date);
+
+  /// No description provided for @rchAdmLate.
+  ///
+  /// In fr, this message translates to:
+  /// **'{n} en retard'**
+  String rchAdmLate(String n);
+
+  /// No description provided for @rchAdmQReports.
+  ///
+  /// In fr, this message translates to:
+  /// **'Signalements en attente'**
+  String get rchAdmQReports;
+
+  /// No description provided for @rchAdmQAppeals.
+  ///
+  /// In fr, this message translates to:
+  /// **'Recours à examiner'**
+  String get rchAdmQAppeals;
+
+  /// No description provided for @rchAdmQTickets.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tickets ouverts ou en cours'**
+  String get rchAdmQTickets;
+
+  /// No description provided for @rchAdmQTicketsEscalated.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tickets escaladés'**
+  String get rchAdmQTicketsEscalated;
+
+  /// No description provided for @rchAdmQTicketsOverdue.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tickets hors délai de service'**
+  String get rchAdmQTicketsOverdue;
+
+  /// No description provided for @rchAdmQPrivacy.
+  ///
+  /// In fr, this message translates to:
+  /// **'Demandes sur les données personnelles'**
+  String get rchAdmQPrivacy;
+
+  /// No description provided for @rchAdmQProcedures.
+  ///
+  /// In fr, this message translates to:
+  /// **'Démarches à approuver'**
+  String get rchAdmQProcedures;
+
+  /// No description provided for @rchAdmQCampaigns.
+  ///
+  /// In fr, this message translates to:
+  /// **'Campagnes à approuver'**
+  String get rchAdmQCampaigns;
+
+  /// No description provided for @rchAdmQBusinessesReview.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fiches d\'entreprise à revérifier'**
+  String get rchAdmQBusinessesReview;
+
+  /// No description provided for @rchAdmSearchLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chercher un nom ou un titre'**
+  String get rchAdmSearchLabel;
+
+  /// No description provided for @rchAdmSearchHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Validez pour chercher. La recherche est journalisée, sans le mot cherché.'**
+  String get rchAdmSearchHelp;
+
+  /// No description provided for @rchAdmSearchGo.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chercher'**
+  String get rchAdmSearchGo;
+
+  /// No description provided for @rchAdmSkipped.
+  ///
+  /// In fr, this message translates to:
+  /// **'Non cherché (droit manquant) : {list}.'**
+  String rchAdmSkipped(String list);
+
+  /// No description provided for @rchAdmNoResult.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun résultat.'**
+  String get rchAdmNoResult;
+
+  /// No description provided for @rchAdmKindMembers.
+  ///
+  /// In fr, this message translates to:
+  /// **'Membres'**
+  String get rchAdmKindMembers;
+
+  /// No description provided for @rchAdmKindTickets.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tickets'**
+  String get rchAdmKindTickets;
+
+  /// No description provided for @rchAdmKindReports.
+  ///
+  /// In fr, this message translates to:
+  /// **'Signalements'**
+  String get rchAdmKindReports;
+
+  /// No description provided for @rchAdmKindBusinesses.
+  ///
+  /// In fr, this message translates to:
+  /// **'Entreprises'**
+  String get rchAdmKindBusinesses;
+
+  /// No description provided for @rchAdmKindEvents.
+  ///
+  /// In fr, this message translates to:
+  /// **'Événements'**
+  String get rchAdmKindEvents;
+
+  /// No description provided for @rchAdmKindProcedures.
+  ///
+  /// In fr, this message translates to:
+  /// **'Démarches'**
+  String get rchAdmKindProcedures;
+
+  /// No description provided for @rchAdmKindEmbassies.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ambassades'**
+  String get rchAdmKindEmbassies;
+
+  /// No description provided for @rchAdmKindCampaigns.
+  ///
+  /// In fr, this message translates to:
+  /// **'Campagnes'**
+  String get rchAdmKindCampaigns;
+
+  /// No description provided for @rchAdmLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chargement impossible : {detail}'**
+  String rchAdmLoadError(String detail);
+
+  /// No description provided for @rchAdmRetry.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réessayer'**
+  String get rchAdmRetry;
+
+  /// No description provided for @srcAdmTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sources consulaires'**
+  String get srcAdmTitle;
+
+  /// No description provided for @srcAdmSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce qui manque ou a vieilli dans les démarches et les ambassades. Lecture seule : on corrige depuis l\'écran concerné.'**
+  String get srcAdmSubtitle;
+
+  /// No description provided for @srcAdmRetry.
+  ///
+  /// In fr, this message translates to:
+  /// **'Réessayer'**
+  String get srcAdmRetry;
+
+  /// No description provided for @srcAdmAll.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tout'**
+  String get srcAdmAll;
+
+  /// No description provided for @srcAdmNoSource.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sans source'**
+  String get srcAdmNoSource;
+
+  /// No description provided for @srcAdmNeverChecked.
+  ///
+  /// In fr, this message translates to:
+  /// **'Jamais vérifiée'**
+  String get srcAdmNeverChecked;
+
+  /// No description provided for @srcAdmReviewOverdue.
+  ///
+  /// In fr, this message translates to:
+  /// **'Révision dépassée'**
+  String get srcAdmReviewOverdue;
+
+  /// No description provided for @srcAdmNoReviewPlanned.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune révision prévue'**
+  String get srcAdmNoReviewPlanned;
+
+  /// No description provided for @srcAdmProcedures.
+  ///
+  /// In fr, this message translates to:
+  /// **'Démarches à revoir : {n} sur {total}'**
+  String srcAdmProcedures(String n, String total);
+
+  /// No description provided for @srcAdmEmbassies.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ambassades à revoir : {n} sur {total}'**
+  String srcAdmEmbassies(String n, String total);
+
+  /// No description provided for @srcAdmNothing.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rien à revoir.'**
+  String get srcAdmNothing;
+
+  /// No description provided for @srcAdmReviewOn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Révision prévue le {date}'**
+  String srcAdmReviewOn(String date);
+
+  /// No description provided for @srcAdmUnpublished.
+  ///
+  /// In fr, this message translates to:
+  /// **'Non publiée'**
+  String get srcAdmUnpublished;
+
+  /// No description provided for @srcAdmLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chargement impossible : {detail}'**
+  String srcAdmLoadError(String detail);
+
+  /// No description provided for @evtValTab.
+  ///
+  /// In fr, this message translates to:
+  /// **'À valider'**
+  String get evtValTab;
+
+  /// No description provided for @evtValSetting.
+  ///
+  /// In fr, this message translates to:
+  /// **'Validation avant publication'**
+  String get evtValSetting;
+
+  /// No description provided for @evtValSettingOn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Activée : un événement public est visible de son organisateur seul tant qu\'il n\'est pas approuvé.'**
+  String get evtValSettingOn;
+
+  /// No description provided for @evtValSettingOff.
+  ///
+  /// In fr, this message translates to:
+  /// **'Désactivée : les événements sont publiés tout de suite.'**
+  String get evtValSettingOff;
+
+  /// No description provided for @evtValEnableTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Activer la validation ?'**
+  String get evtValEnableTitle;
+
+  /// No description provided for @evtValEnableBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les nouveaux événements publics resteront invisibles des autres membres jusqu\'à leur approbation. L\'organisateur voit « en attente » ou « refusé » (avec le motif) sur la fiche de son événement.'**
+  String get evtValEnableBody;
+
+  /// No description provided for @evtValDisableTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Désactiver la validation ?'**
+  String get evtValDisableTitle;
+
+  /// No description provided for @evtValDisableBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les nouveaux événements seront publiés tout de suite. Ceux déjà en attente le restent.'**
+  String get evtValDisableBody;
+
+  /// No description provided for @evtValConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confirmer'**
+  String get evtValConfirm;
+
+  /// No description provided for @evtValNoAccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous ne pouvez pas valider les événements.'**
+  String get evtValNoAccess;
+
+  /// No description provided for @evtValEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun événement à valider.'**
+  String get evtValEmpty;
+
+  /// No description provided for @evtValLoadError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chargement impossible : {detail}'**
+  String evtValLoadError(String detail);
+
+  /// No description provided for @evtValApprove.
+  ///
+  /// In fr, this message translates to:
+  /// **'Approuver'**
+  String get evtValApprove;
+
+  /// No description provided for @evtValReject.
+  ///
+  /// In fr, this message translates to:
+  /// **'Refuser'**
+  String get evtValReject;
+
+  /// No description provided for @evtValRejectReason.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif du refus (visible de l\'organisateur)'**
+  String get evtValRejectReason;
+
+  /// No description provided for @rchAdmQEventsPending.
+  ///
+  /// In fr, this message translates to:
+  /// **'Événements à valider'**
+  String get rchAdmQEventsPending;
+
+  /// No description provided for @evtOrgPendingTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'En attente de validation'**
+  String get evtOrgPendingTitle;
+
+  /// No description provided for @evtOrgPendingBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les autres membres ne voient pas encore cet événement : l\'équipe doit l\'approuver avant sa publication.'**
+  String get evtOrgPendingBody;
+
+  /// No description provided for @evtOrgRejectedTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Événement refusé'**
+  String get evtOrgRejectedTitle;
+
+  /// No description provided for @evtOrgRejectedBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif : {reason}. Corrigez l\'événement puis soumettez-le de nouveau.'**
+  String evtOrgRejectedBody(String reason);
+
+  /// No description provided for @evtOrgResubmit.
+  ///
+  /// In fr, this message translates to:
+  /// **'Soumettre de nouveau'**
+  String get evtOrgResubmit;
+
+  /// No description provided for @evtOrgResubmitted.
+  ///
+  /// In fr, this message translates to:
+  /// **'Événement soumis de nouveau.'**
+  String get evtOrgResubmitted;
 }
 
 class _AppLocalizationsDelegate

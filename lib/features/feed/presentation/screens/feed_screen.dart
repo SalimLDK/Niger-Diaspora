@@ -30,7 +30,11 @@ import 'package:diaspo_niger/core/theme/design_kit.dart';
 class FeedScreen extends ConsumerStatefulWidget {
   final String? hashtagFilter;
 
-  const FeedScreen({super.key, this.hashtagFilter});
+  /// Vrai quand le fil est l'onglet « Feeds » de la barre du bas : il n'a
+  /// alors rien au-dessous de lui, donc pas de flèche de retour.
+  final bool isTab;
+
+  const FeedScreen({super.key, this.hashtagFilter, this.isTab = false});
 
   @override
   ConsumerState<FeedScreen> createState() => _FeedScreenState();
@@ -344,7 +348,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen>
       body: OfflineBanner(
         child: Column(
           children: [
-            if (filter == null) const _FeedHeader(),
+            if (filter == null) _FeedHeader(isTab: widget.isTab),
             if (filter == null) _ModeSelector(mode: feedState.mode),
             // Filtres villes (téléphone) : rangée de chips scrollable.
             if (filter == null && !wide && cities.length >= 2)
@@ -584,13 +588,15 @@ class _FeedScreenState extends ConsumerState<FeedScreen>
 /// En-tête du fil (remplace l'AppBar centrée) : sur-titre daté, titre
 /// « Le fil. », recherche et avatar « Mon espace ».
 class _FeedHeader extends StatelessWidget {
-  const _FeedHeader();
+  const _FeedHeader({required this.isTab});
+
+  /// Onglet de la barre du bas : pas de flèche de retour.
+  final bool isTab;
 
   @override
   Widget build(BuildContext context) {
     final tokens = FeedTokens.of(context);
     final l10n = AppLocalizations.of(context)!;
-    final lang = Localizations.localeOf(context).languageCode;
 
     // Date du jour, localisée et en majuscules (sur-titre monospace).
     final dateLabel = MaterialLocalizations.of(
@@ -600,7 +606,7 @@ class _FeedHeader extends StatelessWidget {
         tokens.isDark ? const Color(0xFF8E86C4) : const Color(0xFF9A6A3A);
 
     // Titre « Le fil. » : le point prend la couleur d'accent.
-    final baseTitle = lang == 'en' ? 'The feed' : l10n.homeServiceFeed;
+    final baseTitle = l10n.homeServiceFeed;
     final titleStyle = FeedText.heading(tokens, size: 26);
 
     return SafeArea(
@@ -617,23 +623,29 @@ class _FeedHeader extends StatelessWidget {
             // Elle était posée sous `if (context.canPop())`, donc absente
             // précisément quand elle sert le plus : par lien profond, la route
             // est seule dans la pile. On la montre toujours, avec le repli.
-            GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap:
-                  () => context.canPop() ? context.pop() : context.go('/home'),
-              child: SizedBox(
-                width: 34,
-                height: 44,
-                child: Center(
-                  child: AppIcon(
-                    AppIcon.arrowBack,
-                    size: 24,
-                    color: tokens.text,
+            //
+            // Seule exception : l'onglet « Feeds » (`isTab`), qui est enfin
+            // l'onglet que la maquette supposait. La barre du bas est là.
+            if (!isTab) ...[
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap:
+                    () =>
+                        context.canPop() ? context.pop() : context.go('/home'),
+                child: SizedBox(
+                  width: 34,
+                  height: 44,
+                  child: Center(
+                    child: AppIcon(
+                      AppIcon.arrowBack,
+                      size: 24,
+                      color: tokens.text,
+                    ),
                   ),
                 ),
               ),
-            ),
-            const SizedBox(width: 4),
+              const SizedBox(width: 4),
+            ],
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

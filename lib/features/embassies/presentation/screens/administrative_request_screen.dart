@@ -692,6 +692,20 @@ class _AdministrativeRequestScreenState
       ]);
     }
 
+    // Date de dernière vérification de CETTE démarche (workflow de
+    // publication) : la source du catalogue ne vaut que pour la copie
+    // d'origine, plus pour un texte révisé depuis.
+    if (demarche.verifieLe != null) {
+      blocs.addAll([
+        const SizedBox(height: 10),
+        Text(
+          'Informations vérifiées le ${_jourMois(demarche.verifieLe!.toLocal())}'
+          '${demarche.sourceUrl != null ? ' · source : ${demarche.sourceUrl}' : ''}.',
+          style: TextStyle(fontSize: 11, color: Colors.grey[700], height: 1.35),
+        ),
+      ]);
+    }
+
     blocs.addAll([
       const SizedBox(height: 24),
       _buildSectionTitle('Pièces à joindre'),
@@ -859,7 +873,10 @@ class _AdministrativeRequestScreenState
     final source = charge.catalogue.source;
     final origine = switch (charge.origine) {
       OrigineCatalogue.serveur => '',
-      OrigineCatalogue.cache => ' · liste enregistrée hors ligne',
+      OrigineCatalogue.cache => charge.synchroniseLe == null
+          ? ' · liste enregistrée hors ligne'
+          : ' · liste enregistrée hors ligne le '
+              '${_jourMois(charge.synchroniseLe!)}',
       OrigineCatalogue.embarque => " · liste fournie avec l'application",
     };
     return Container(
@@ -876,6 +893,9 @@ class _AdministrativeRequestScreenState
       ),
     );
   }
+
+  String _jourMois(DateTime d) =>
+      '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
 
   Widget _buildSectionTitle(String title) {
     return Text(

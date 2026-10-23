@@ -147,8 +147,8 @@ class _AdminCreateEmbassyScreenState
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Ambassade créée avec succès!'),
+          SnackBar(
+            content: Text(l10n.adminEmbassyCreated),
             backgroundColor: AdminColors.statusGreen,
           ),
         );
@@ -458,6 +458,7 @@ class _AdminCreateEmbassyScreenState
                   ),
                   const SizedBox(width: 8),
                   IconButton(
+                    tooltip: l10n.add,
                     onPressed: _addJurisdiction,
                     icon: const Icon(Icons.add_circle),
                     color: theme.primaryColor,

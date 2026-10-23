@@ -302,7 +302,7 @@ class EventSupabaseDataSource implements EventRemoteDataSource {
         complet: rows.length < 20,
         perimetre: (e) => e.status != 'draft' && _estAVenir(e, now),
       );
-      return _cacher(events);
+      return await _cacher(events);
     } catch (e) {
       final cached = repli();
       if (cached.isNotEmpty) return cached;
@@ -343,7 +343,7 @@ class EventSupabaseDataSource implements EventRemoteDataSource {
         complet: rows.length < 50,
         perimetre: (e) => e.status != 'draft' && _estPasse(e, now),
       );
-      return _cacher(events);
+      return await _cacher(events);
     } catch (e) {
       final cached = repli();
       if (cached.isNotEmpty) return cached;
@@ -368,7 +368,7 @@ class EventSupabaseDataSource implements EventRemoteDataSource {
                   .eq('status', 'upcoming')
                   .order('starts_at')
               as List;
-      return _cacher(await _modelesDepuis(rows));
+      return await _cacher(await _modelesDepuis(rows));
     } catch (e) {
       final cached = repli();
       if (cached.isNotEmpty) return cached;
@@ -387,7 +387,7 @@ class EventSupabaseDataSource implements EventRemoteDataSource {
       final rows =
           await _supabase.from('events').select(_select).eq('group_id', groupId)
               as List;
-      return _cacher(await _modelesDepuis(rows));
+      return await _cacher(await _modelesDepuis(rows));
     } catch (e) {
       final cached = repli();
       if (cached.isNotEmpty) return cached;
@@ -446,7 +446,7 @@ class EventSupabaseDataSource implements EventRemoteDataSource {
       };
       final events = tous.values.toList()
         ..sort((a, b) => a.startDate.compareTo(b.startDate));
-      return _cacher(events);
+      return await _cacher(events);
     } catch (e) {
       final cached = repli();
       if (cached.isNotEmpty) return cached;
@@ -481,7 +481,7 @@ class EventSupabaseDataSource implements EventRemoteDataSource {
                   .inFilter('id', ids)
                   .order('starts_at')
               as List;
-      return _cacher(await _modelesDepuis(rows));
+      return await _cacher(await _modelesDepuis(rows));
     } catch (e) {
       final cached = repli();
       if (cached.isNotEmpty) return cached;
@@ -521,7 +521,7 @@ class EventSupabaseDataSource implements EventRemoteDataSource {
         'user_id': event.organizerId,
       });
 
-      return getEventById(id);
+      return await getEventById(id);
     } on PostgrestException catch (e) {
       throw ServerException(e.message);
     }
@@ -630,7 +630,7 @@ class EventSupabaseDataSource implements EventRemoteDataSource {
         'id',
         event.id,
       );
-      return getEventById(event.id);
+      return await getEventById(event.id);
     } on PostgrestException catch (e) {
       throw ServerException(e.message);
     }

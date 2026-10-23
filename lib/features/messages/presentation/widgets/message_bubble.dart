@@ -2160,7 +2160,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
                 Flexible(
                   child: Text(
                     reply.type == MessageType.text
-                        ? reply.content
+                        ? contenuCitationAffichable(reply.content)
                         : _getMediaTypeLabel(reply.type),
                     style: TextStyle(
                       fontSize: 13,

@@ -6760,7 +6760,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get adminSeller => 'Seller';
 
   @override
-  String get adminRefund => 'Refund';
+  String get adminRefund => 'Mark as refunded';
 
   @override
   String adminGroupsTab(int count) {
@@ -6938,7 +6938,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get adminPriceHint => 'Ex: 1, 2, 5, 10, 20';
 
   @override
-  String get adminComplete => 'Complete';
+  String get adminComplete => 'Mark as completed';
 
   @override
   String get adminSearchUserPlaceholder => 'Search for a user...';
@@ -8779,6 +8779,53 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get adminLoginButton => 'Login';
+
+  @override
+  String get adminMfaEnrolTitle => 'Second factor required';
+
+  @override
+  String get adminMfaEnrolIntro =>
+      'Scan this QR code with an authenticator app (Google Authenticator, Aegis, 1Password…), then enter the 6-digit code it shows. Without this second factor, the dashboard stays closed.';
+
+  @override
+  String get adminMfaManualKey => 'Or type this key by hand:';
+
+  @override
+  String adminMfaConfirmBefore(String heure) {
+    return 'Confirm before $heure';
+  }
+
+  @override
+  String get adminMfaCodeField => '6-digit code';
+
+  @override
+  String get adminMfaCodeMissing => 'Enter the 6-digit code shown by your app.';
+
+  @override
+  String get adminMfaActivateButton => 'Enable second factor';
+
+  @override
+  String get adminMfaRetry => 'Retry';
+
+  @override
+  String get adminMfaSignOut => 'Sign out';
+
+  @override
+  String get adminMfaChallengeTitle => 'Verification code';
+
+  @override
+  String get adminMfaChallengeIntro =>
+      'Enter the 6-digit code shown by your authenticator app.';
+
+  @override
+  String get adminMfaVerifyButton => 'Verify';
+
+  @override
+  String get adminMfaBackToLogin => 'Back to sign-in';
+
+  @override
+  String get adminMfaNoTotp =>
+      'This account only has an SMS second factor, which the panel does not support.';
 
   @override
   String adminProductsCount(int count) {
@@ -14502,16 +14549,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get adminMarkCompleteConfirm =>
-      'Are you sure you want to mark this transaction as completed?';
+      'Mark this transaction as completed? Nothing is checked with the payment provider: it will show as successful to the user, even if no money ever moved.';
 
   @override
-  String get adminTransactionCompleted => 'Transaction completed';
+  String get adminTransactionCompleted => 'Transaction marked as completed';
 
   @override
   String get adminRefundReasonLabel => 'Refund reason:';
 
   @override
-  String get adminTransactionRefunded => 'Transaction refunded';
+  String get adminTransactionRefunded => 'Transaction marked as refunded';
 
   @override
   String get adminUnknownAdmin => 'Unknown admin';
@@ -15918,7 +15965,13 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get homeServiceFeed => 'The feed';
+  String get homeServiceFeed => 'Feeds';
+
+  @override
+  String get navFeeds => 'Feeds';
+
+  @override
+  String get navDiscussions => 'Chats';
 
   @override
   String homeNobodyWithin(int km) {
@@ -16668,4 +16721,2912 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get updateAvailableAction => 'Update';
+
+  @override
+  String get adminLoadMore => 'Load more';
+
+  @override
+  String adminTabWithCount(String label, String count) {
+    return '$label ($count)';
+  }
+
+  @override
+  String get adminOrdersName => 'Orders';
+
+  @override
+  String get adminDisputesName => 'Disputes';
+
+  @override
+  String get adminCompletedName => 'Completed';
+
+  @override
+  String get adminBannedName => 'Banned';
+
+  @override
+  String get adminProcessedName => 'Processed';
+
+  @override
+  String get adminStatResolved => 'Resolved';
+
+  @override
+  String get adminStatDismissed => 'Dismissed';
+
+  @override
+  String get adminAuditEmptyTitle => 'No audit logs';
+
+  @override
+  String get adminNoTransactionsTitle => 'No transactions found';
+
+  @override
+  String get adminEmptyTabBody => 'Nothing in this tab yet.';
+
+  @override
+  String get adminEmptyListBody => 'Nothing in this list yet.';
+
+  @override
+  String get adminUsersEmptyBody => 'No account in this list.';
+
+  @override
+  String get adminUsersNoMatchBody => 'No account matches this search.';
+
+  @override
+  String get adminReportsEmptyBody => 'Nothing to review here yet.';
+
+  @override
+  String get adminReportsNoMatchBody =>
+      'Try another word, or remove the filters.';
+
+  @override
+  String adminReportViewContent(String type) {
+    return 'View $type';
+  }
+
+  @override
+  String adminChangeRoleTo(String role) {
+    return 'Change to $role';
+  }
+
+  @override
+  String get adminRevokeAccessShort => 'Revoke access';
+
+  @override
+  String adminMessageWithText(String text) {
+    return 'Message: $text';
+  }
+
+  @override
+  String get adminScreenNotAllowed =>
+      'This screen is not available with your role.';
+
+  @override
+  String get adminWelcomePanel => 'Welcome to the DiaspoNiger admin panel';
+
+  @override
+  String get adminMenuVerifyProfile => 'Verify profile';
+
+  @override
+  String get adminMenuViewActivity => 'View activity';
+
+  @override
+  String get adminMenuForceLogout => 'Force sign-out';
+
+  @override
+  String get adminMenuRolesScreen => 'Admin role: Roles screen';
+
+  @override
+  String get adminProfileVerifiedSuccess => 'Profile verified';
+
+  @override
+  String get adminForceLogoutTitle => 'Force sign-out';
+
+  @override
+  String get adminForceLogoutBody =>
+      'This will sign the user out of all their devices.';
+
+  @override
+  String get adminDetailSender => 'Sender';
+
+  @override
+  String get adminDetailRecipient => 'Recipient';
+
+  @override
+  String get adminDetailRecipientPhone => 'Recipient phone';
+
+  @override
+  String get adminDetailProvider => 'Provider';
+
+  @override
+  String get adminDetailMynitaRef => 'MyNita ref.';
+
+  @override
+  String get adminDetailCreatedOn => 'Created on';
+
+  @override
+  String get adminDetailCompletedOn => 'Completed on';
+
+  @override
+  String get adminFailureReasonPrompt => 'Failure reason:';
+
+  @override
+  String adminReportTypeLine(String type) {
+    return 'Type: $type';
+  }
+
+  @override
+  String get adminDisputeBadge => 'DISPUTE';
+
+  @override
+  String adminDisputeNumber(String id) {
+    return 'Dispute #$id';
+  }
+
+  @override
+  String get adminAuditHistoryTitle => 'Audit history';
+
+  @override
+  String get adminBoostChanged => 'Boost changed';
+
+  @override
+  String adminExportLabel(String label) {
+    return 'Export $label';
+  }
+
+  @override
+  String get adminDecisionReasonLabel => 'Reason';
+
+  @override
+  String get adminDecisionNoteLabel => 'Factual justification';
+
+  @override
+  String get adminDecisionNoteHint =>
+      'The observed facts, without personal judgement.';
+
+  @override
+  String get adminDecisionPickReason => 'Pick a reason';
+
+  @override
+  String get adminDecisionNoteRequired => 'A justification is required.';
+
+  @override
+  String get adminMotifDismissRuleNotViolated => 'Rule not violated';
+
+  @override
+  String get adminMotifDismissInsufficientEvidence => 'Insufficient evidence';
+
+  @override
+  String get adminMotifDismissContentUnavailable => 'Content unavailable';
+
+  @override
+  String get adminMotifDismissDuplicate => 'Duplicate';
+
+  @override
+  String get adminMotifDismissOutOfScope => 'Out of scope';
+
+  @override
+  String get adminMotifResolveContentRemoved => 'Content removed';
+
+  @override
+  String get adminMotifResolveUserWarned => 'Member warned';
+
+  @override
+  String get adminMotifResolveUserSuspended => 'Account suspended';
+
+  @override
+  String get adminMotifResolveUserBanned => 'Account banned';
+
+  @override
+  String get adminMotifResolveCorrectionRequested => 'Correction requested';
+
+  @override
+  String get adminReviewingLabel => 'Under review';
+
+  @override
+  String get adminEscalatedLabel => 'Escalated';
+
+  @override
+  String get modoInfoTitle => 'Information requests';
+
+  @override
+  String get modoInfoEmpty => 'No request for this case.';
+
+  @override
+  String get modoInfoNew => 'New request';
+
+  @override
+  String get modoInfoRecipientLabel => 'Recipient';
+
+  @override
+  String get modoInfoRecipientReporter => 'The reporter';
+
+  @override
+  String get modoInfoRecipientReported => 'The reported member';
+
+  @override
+  String get modoInfoQuestionsLabel => 'Specific questions';
+
+  @override
+  String get modoInfoQuestionsHint =>
+      'Without revealing the reporter\'s identity or third-party data.';
+
+  @override
+  String get modoInfoDueLabel => 'Time to answer';
+
+  @override
+  String modoInfoDueDays(int days) {
+    return '$days days';
+  }
+
+  @override
+  String get modoInfoCreate => 'Save draft';
+
+  @override
+  String get modoInfoSend => 'Send';
+
+  @override
+  String get modoInfoSendTitle => 'Send this request?';
+
+  @override
+  String get modoInfoSendBody =>
+      'The text can no longer be edited. Check that it reveals neither the reporter nor third-party data.';
+
+  @override
+  String get modoInfoRecordResponse => 'Record the answer';
+
+  @override
+  String get modoInfoResponseLabel => 'Answer received';
+
+  @override
+  String get modoInfoStatusDraft => 'Draft';
+
+  @override
+  String get modoInfoStatusSent => 'Sent';
+
+  @override
+  String get modoInfoStatusAnswered => 'Answered';
+
+  @override
+  String get modoInfoStatusOverdue => 'Overdue';
+
+  @override
+  String get modoInfoStatusCancelled => 'Cancelled';
+
+  @override
+  String modoInfoDue(String date) {
+    return 'Due: $date';
+  }
+
+  @override
+  String get modoInfoNoChannel =>
+      'Recipients are not yet notified in the app: pass the request on by another channel, then record the answer here.';
+
+  @override
+  String get modoInfoDraftSaved => 'Draft saved.';
+
+  @override
+  String get modoInfoSentOk => 'Request marked as sent.';
+
+  @override
+  String get modoInfoResponseSaved => 'Answer recorded.';
+
+  @override
+  String get modoAppealTitle => 'Appeals';
+
+  @override
+  String get modoAppealRegister => 'Register an appeal';
+
+  @override
+  String get modoAppealArgumentLabel => 'Member\'s arguments';
+
+  @override
+  String modoAppealContested(String action, String reason) {
+    return 'Contested decision: $action ($reason)';
+  }
+
+  @override
+  String get modoAppealTake => 'Start review';
+
+  @override
+  String get modoAppealDecide => 'Decide';
+
+  @override
+  String get modoAppealOutcomeLabel => 'Outcome';
+
+  @override
+  String get modoAppealOutcomeUpheld => 'Uphold the decision';
+
+  @override
+  String get modoAppealOutcomeReduced => 'Reduce the measure';
+
+  @override
+  String get modoAppealOutcomeAnnulled => 'Annul the decision';
+
+  @override
+  String get modoAppealOutcomeSentBack => 'Send back for re-examination';
+
+  @override
+  String get modoAppealNoteLabel => 'Final reason';
+
+  @override
+  String get modoAppealStatusReceived => 'Received';
+
+  @override
+  String get modoAppealStatusUnderReview => 'Under review';
+
+  @override
+  String get modoAppealSelfConflict =>
+      'You made the contested decision: another administrator must review this appeal.';
+
+  @override
+  String get modoAppealOutcomeNote =>
+      'The outcome is recorded; it does not yet lift the measure.';
+
+  @override
+  String get modoAppealRegistered => 'Appeal registered.';
+
+  @override
+  String get modoAppealTaken => 'Appeal under review.';
+
+  @override
+  String get modoAppealDecided => 'Appeal decided.';
+
+  @override
+  String get modoErrDenied =>
+      'You do not have permission to perform this action.';
+
+  @override
+  String get modoErrConflict =>
+      'The case changed in the meantime. Reload and try again.';
+
+  @override
+  String modoErrInput(String detail) {
+    return 'Input refused: $detail';
+  }
+
+  @override
+  String modoErrGeneric(String detail) {
+    return 'Action failed: $detail';
+  }
+
+  @override
+  String modoLoadError(String detail) {
+    return 'Could not load: $detail';
+  }
+
+  @override
+  String get modoReportTake => 'Take the case';
+
+  @override
+  String get modoReportTaken => 'Case taken.';
+
+  @override
+  String get supAdmTitle => 'Support';
+
+  @override
+  String get supAdmSubtitle =>
+      'Member tickets: assignment, replies, internal notes.';
+
+  @override
+  String get supAdmFilterOpen => 'Open';
+
+  @override
+  String get supAdmFilterInProgress => 'In progress';
+
+  @override
+  String get supAdmFilterResolved => 'Resolved';
+
+  @override
+  String get supAdmFilterClosed => 'Closed';
+
+  @override
+  String get supAdmFilterAll => 'All';
+
+  @override
+  String get supAdmSearchHint => 'Search a subject or a member';
+
+  @override
+  String get supAdmEmpty => 'No ticket in this view.';
+
+  @override
+  String supAdmLoadError(String detail) {
+    return 'Could not load: $detail';
+  }
+
+  @override
+  String get supAdmRetry => 'Retry';
+
+  @override
+  String get supAdmNoAccess => 'You do not have access to support tickets.';
+
+  @override
+  String get supAdmPriorityLabel => 'Priority';
+
+  @override
+  String get supAdmPrioLow => 'Low';
+
+  @override
+  String get supAdmPrioNormal => 'Normal';
+
+  @override
+  String get supAdmPrioHigh => 'High';
+
+  @override
+  String get supAdmPrioUrgent => 'Urgent';
+
+  @override
+  String get supAdmCatTransaction => 'Transfer';
+
+  @override
+  String get supAdmCatAccount => 'Account';
+
+  @override
+  String get supAdmCatTechnical => 'Technical';
+
+  @override
+  String get supAdmCatOther => 'Other';
+
+  @override
+  String get supAdmCatDirectory => 'Directory or event';
+
+  @override
+  String get supAdmCatPrivacy => 'Personal data';
+
+  @override
+  String get supAdmCatComplaint => 'Complaint';
+
+  @override
+  String get supAdmCatAppeal => 'Appeal';
+
+  @override
+  String get supAdmCatSecurity => 'Security';
+
+  @override
+  String get supAdmStatusOpen => 'Open';
+
+  @override
+  String get supAdmStatusInProgress => 'In progress';
+
+  @override
+  String get supAdmStatusResolved => 'Resolved';
+
+  @override
+  String get supAdmStatusClosed => 'Closed';
+
+  @override
+  String supAdmMember(String name) {
+    return 'Member: $name';
+  }
+
+  @override
+  String get supAdmMemberUnnamed => 'Unnamed member';
+
+  @override
+  String supAdmUpdated(String date) {
+    return 'Updated $date';
+  }
+
+  @override
+  String get supAdmUnread => 'New message from the member';
+
+  @override
+  String get supAdmUnassigned => 'Unassigned';
+
+  @override
+  String get supAdmAssignedToYou => 'Assigned to you';
+
+  @override
+  String get supAdmAssignedToOther => 'Assigned to another agent';
+
+  @override
+  String get supAdmConversation => 'Conversation with the member';
+
+  @override
+  String get supAdmFromSupport => 'Support';
+
+  @override
+  String get supAdmFromMember => 'Member';
+
+  @override
+  String get supAdmReplyLabel => 'Your reply to the member';
+
+  @override
+  String get supAdmReplyHint => 'Visible to the member.';
+
+  @override
+  String get supAdmSendReply => 'Send reply';
+
+  @override
+  String get supAdmMustTake => 'Take the ticket to reply.';
+
+  @override
+  String get supAdmNotesTitle => 'Internal notes';
+
+  @override
+  String get supAdmNotesHint => 'Not visible to the member.';
+
+  @override
+  String get supAdmNotesEmpty => 'No note.';
+
+  @override
+  String get supAdmNoteLabel => 'New note';
+
+  @override
+  String get supAdmAddNote => 'Add note';
+
+  @override
+  String get supAdmTake => 'Take the ticket';
+
+  @override
+  String get supAdmTakeOver => 'Take over';
+
+  @override
+  String get supAdmResolve => 'Mark resolved';
+
+  @override
+  String get supAdmClose => 'Close';
+
+  @override
+  String get supAdmReopen => 'Reopen';
+
+  @override
+  String get supAdmReasonTakeOver => 'Why are you taking over this ticket?';
+
+  @override
+  String get supAdmReasonResolve => 'Resolution provided';
+
+  @override
+  String get supAdmReasonClose => 'Reason for closing';
+
+  @override
+  String get supAdmReasonReopen => 'Why reopen this ticket?';
+
+  @override
+  String supAdmResolution(String note) {
+    return 'Resolution: $note';
+  }
+
+  @override
+  String get supAdmDone => 'Done.';
+
+  @override
+  String get supAdmReplySent => 'Reply sent.';
+
+  @override
+  String get supAdmNoteAdded => 'Note added.';
+
+  @override
+  String get demAdmTitle => 'Consular procedures';
+
+  @override
+  String get demAdmSubtitle =>
+      'Drafting, review, publication. No procedure is published without a source and a verification date.';
+
+  @override
+  String get demAdmNew => 'New procedure';
+
+  @override
+  String get demAdmFilterAll => 'All';
+
+  @override
+  String get demAdmFilterWork => 'To handle';
+
+  @override
+  String get demAdmFilterPublished => 'Published';
+
+  @override
+  String get demAdmFilterUnpublished => 'Unpublished';
+
+  @override
+  String get demAdmFilterOverdue => 'Review overdue';
+
+  @override
+  String get demAdmSearchHint => 'Search a procedure';
+
+  @override
+  String get demAdmEmpty => 'No procedure in this view.';
+
+  @override
+  String demAdmLoadError(String detail) {
+    return 'Could not load: $detail';
+  }
+
+  @override
+  String get demAdmRetry => 'Retry';
+
+  @override
+  String get demAdmNoAccess => 'You do not have access to consular procedures.';
+
+  @override
+  String get demAdmStatusPublished => 'Published';
+
+  @override
+  String get demAdmStatusUnpublished => 'Unpublished';
+
+  @override
+  String get demAdmDraftDraft => 'Draft';
+
+  @override
+  String get demAdmDraftPending => 'To review';
+
+  @override
+  String get demAdmDraftApproved => 'Approved, to publish';
+
+  @override
+  String demAdmVersion(String n) {
+    return 'Version $n';
+  }
+
+  @override
+  String demAdmVerified(String date) {
+    return 'Verified on $date';
+  }
+
+  @override
+  String demAdmNextReview(String date) {
+    return 'Next review: $date';
+  }
+
+  @override
+  String get demAdmReviewUnplanned => 'Review to be scheduled';
+
+  @override
+  String get demAdmReviewOverdue => 'Review overdue';
+
+  @override
+  String demAdmSource(String publisher) {
+    return 'Source: $publisher';
+  }
+
+  @override
+  String get demAdmSummary => 'Summary';
+
+  @override
+  String get demAdmCost => 'Cost';
+
+  @override
+  String get demAdmCostUnknown => 'Not published by the source';
+
+  @override
+  String get demAdmPieces => 'Documents to provide';
+
+  @override
+  String get demAdmWarnings => 'Warnings';
+
+  @override
+  String get demAdmHistory => 'History';
+
+  @override
+  String get demAdmHistoryEmpty => 'No recorded version.';
+
+  @override
+  String get demAdmHistoryPublished => 'Published';
+
+  @override
+  String get demAdmHistoryUnpublished => 'Unpublished';
+
+  @override
+  String demAdmDraftBy(String author) {
+    return 'Draft by $author';
+  }
+
+  @override
+  String get demAdmDraftByYou => 'you';
+
+  @override
+  String get demAdmDraftByOther => 'another administrator';
+
+  @override
+  String demAdmChangeReason(String reason) {
+    return 'Reason: $reason';
+  }
+
+  @override
+  String demAdmReviewNote(String note) {
+    return 'Reviewer\'s remark: $note';
+  }
+
+  @override
+  String get demAdmWaitingReview =>
+      'Waiting for another administrator to review: you cannot approve your own text.';
+
+  @override
+  String get demAdmEdit => 'Edit';
+
+  @override
+  String get demAdmSubmit => 'Submit for review';
+
+  @override
+  String get demAdmWithdraw => 'Withdraw draft';
+
+  @override
+  String get demAdmApprove => 'Approve';
+
+  @override
+  String get demAdmReject => 'Reject';
+
+  @override
+  String get demAdmPublish => 'Publish';
+
+  @override
+  String get demAdmUnpublish => 'Unpublish';
+
+  @override
+  String get demAdmRejectReason => 'Reason for rejection';
+
+  @override
+  String get demAdmUnpublishReason => 'Reason for unpublishing';
+
+  @override
+  String get demAdmUnpublishWarn =>
+      'Phones that already loaded the catalogue, or are offline, keep showing this procedure until their next sync.';
+
+  @override
+  String get demAdmConfirm => 'Confirm';
+
+  @override
+  String get demAdmCancel => 'Cancel';
+
+  @override
+  String get demAdmEditorNewTitle => 'New procedure';
+
+  @override
+  String get demAdmEditorEditTitle => 'Edit the procedure';
+
+  @override
+  String get demAdmFieldId => 'Identifier (lowercase, digits, _)';
+
+  @override
+  String get demAdmFieldTitle => 'Title';
+
+  @override
+  String get demAdmFieldRubrique => 'Category';
+
+  @override
+  String get demAdmFieldRequestType => 'Request type in the app';
+
+  @override
+  String get demAdmFieldLieu => 'Where it is done';
+
+  @override
+  String get demAdmLieuConsulat => 'At the consulate';
+
+  @override
+  String get demAdmLieuTribunal => 'Court in Niger';
+
+  @override
+  String get demAdmFieldSummary => 'Summary';
+
+  @override
+  String get demAdmFieldDelai =>
+      'Announced delay (leave empty if the source gives none)';
+
+  @override
+  String get demAdmFieldCostLabel => 'Cost label';
+
+  @override
+  String get demAdmFieldCostAmount => 'Amount in XOF (empty if unknown)';
+
+  @override
+  String get demAdmFieldCostStatus => 'State of the cost information';
+
+  @override
+  String get demAdmCostStatusKnown => 'Known';
+
+  @override
+  String get demAdmCostStatusUnknown => 'Unknown';
+
+  @override
+  String get demAdmCostStatusNotMentioned => 'Not mentioned by the source';
+
+  @override
+  String get demAdmCostStatusVariable => 'Varies by country';
+
+  @override
+  String get demAdmPiecesTitle => 'Documents to provide';
+
+  @override
+  String get demAdmPieceLabel => 'Document';
+
+  @override
+  String get demAdmPieceRequired => 'Required';
+
+  @override
+  String get demAdmPieceQuantity => 'Qty';
+
+  @override
+  String get demAdmAddPiece => 'Add a document';
+
+  @override
+  String get demAdmWarningsTitle => 'Warnings shown to the user (one per line)';
+
+  @override
+  String get demAdmSourceTitle => 'Official source (required to publish)';
+
+  @override
+  String get demAdmFieldSourceUrl => 'Source address (https://…)';
+
+  @override
+  String get demAdmFieldSourcePublisher => 'Source publisher';
+
+  @override
+  String get demAdmFieldVerifiedAt => 'Verification date';
+
+  @override
+  String get demAdmFieldNextReview => 'Next review (optional)';
+
+  @override
+  String get demAdmPickDate => 'Pick';
+
+  @override
+  String get demAdmFieldChangeReason => 'Reason for the change';
+
+  @override
+  String get demAdmFieldChangeReasonNew =>
+      'Reason (optional for a new procedure)';
+
+  @override
+  String get demAdmSaveDraft => 'Save draft';
+
+  @override
+  String get demAdmDraftSaved => 'Draft saved.';
+
+  @override
+  String get demAdmSubmitted => 'Submitted for review.';
+
+  @override
+  String get demAdmWithdrawn => 'Draft withdrawn.';
+
+  @override
+  String get demAdmApproved => 'Approved.';
+
+  @override
+  String get demAdmRejected => 'Rejected.';
+
+  @override
+  String demAdmPublished(String n) {
+    return 'Published, version $n.';
+  }
+
+  @override
+  String get demAdmUnpublished => 'Unpublished.';
+
+  @override
+  String get demAdmUnsaved => 'Some changes are not saved. Leave?';
+
+  @override
+  String get demAdmRemovePiece => 'Remove the document';
+
+  @override
+  String get evtAdmCancelTitle => 'Cancel the event';
+
+  @override
+  String get evtAdmDeleteTitle => 'Delete the event';
+
+  @override
+  String get evtAdmReasonLabel => 'Reason (kept in the history)';
+
+  @override
+  String get evtAdmCancelWarn =>
+      'Attendees are not notified yet: they will see \"cancelled\" when opening the event.';
+
+  @override
+  String get evtAdmDeleteWarn =>
+      'Registrations are deleted with the event; only the history is kept. Super-admin only.';
+
+  @override
+  String get annAdmArchive => 'Archive';
+
+  @override
+  String get annAdmRestore => 'Restore';
+
+  @override
+  String get annAdmArchived => 'Archived';
+
+  @override
+  String get annAdmReasonLabel => 'Reason (kept in the history)';
+
+  @override
+  String get annAdmSourceLabel =>
+      'Basis of the verification (register, document, contact…)';
+
+  @override
+  String get annAdmVerifyTitle => 'Verify the listing';
+
+  @override
+  String get annAdmVerifyWarn =>
+      'The badge tells the public the listing was checked: say on what basis, it is kept with your name.';
+
+  @override
+  String get annAdmUnverifyTitle => 'Remove the badge';
+
+  @override
+  String get annAdmBoostTitle => 'Promote for 30 days';
+
+  @override
+  String get annAdmUnboostTitle => 'Remove the promotion';
+
+  @override
+  String get annAdmArchiveTitle => 'Archive the listing';
+
+  @override
+  String get annAdmArchiveWarn =>
+      'The listing disappears from the public and loses its promotion. The owner sees it and reads the reason. Reversible.';
+
+  @override
+  String get annAdmRestoreTitle => 'Restore the listing';
+
+  @override
+  String get annAdmDeleteTitle => 'Delete the listing';
+
+  @override
+  String get annAdmDeleteWarn =>
+      'Permanent deletion (reviews, followers, views). Prefer archiving; only the history is kept.';
+
+  @override
+  String get annAdmArchivedDone => 'Listing archived';
+
+  @override
+  String get annAdmRestoredDone => 'Listing restored';
+
+  @override
+  String get cmpAdmTitle => 'Notifications';
+
+  @override
+  String get cmpAdmSubtitle =>
+      'Campaigns: drafting, approval by another administrator, sending. Created is not delivered, and delivered is not read.';
+
+  @override
+  String get cmpAdmNoSchedule =>
+      'No scheduling: a campaign goes out when sending is started.';
+
+  @override
+  String get cmpAdmNew => 'New campaign';
+
+  @override
+  String get cmpAdmFilterWork => 'To handle';
+
+  @override
+  String get cmpAdmFilterSent => 'Sent';
+
+  @override
+  String get cmpAdmFilterClosed => 'Rejected or cancelled';
+
+  @override
+  String get cmpAdmFilterAll => 'All';
+
+  @override
+  String get cmpAdmEmpty => 'No campaign in this view.';
+
+  @override
+  String cmpAdmLoadError(String detail) {
+    return 'Could not load: $detail';
+  }
+
+  @override
+  String get cmpAdmRetry => 'Retry';
+
+  @override
+  String get cmpAdmNoAccess => 'You do not have access to campaigns.';
+
+  @override
+  String get cmpAdmTypeTransactional => 'Transactional';
+
+  @override
+  String get cmpAdmTypeSecurity => 'Security';
+
+  @override
+  String get cmpAdmTypeOfficial => 'Official information';
+
+  @override
+  String get cmpAdmTypePromotional => 'Promotional';
+
+  @override
+  String get cmpAdmTypeHelp =>
+      'Security and transactional go through even if the account turned system messages off; official and promotional respect that choice.';
+
+  @override
+  String get cmpAdmStatusDraft => 'Draft';
+
+  @override
+  String get cmpAdmStatusPending => 'To approve';
+
+  @override
+  String get cmpAdmStatusApproved => 'Approved, to send';
+
+  @override
+  String get cmpAdmStatusSending => 'Sending';
+
+  @override
+  String get cmpAdmStatusSent => 'Sent';
+
+  @override
+  String get cmpAdmStatusRejected => 'Rejected';
+
+  @override
+  String get cmpAdmStatusCancelled => 'Cancelled';
+
+  @override
+  String get cmpAdmAudienceAll => 'All accounts';
+
+  @override
+  String cmpAdmAudienceCountry(String country) {
+    return 'Country: $country';
+  }
+
+  @override
+  String cmpAdmAudienceUsers(String n) {
+    return '$n specific accounts';
+  }
+
+  @override
+  String cmpAdmAudienceCount(String total, String skipped, String notify) {
+    return '$total accounts targeted, $skipped turned these messages off, $notify will be notified.';
+  }
+
+  @override
+  String cmpAdmRecipients(String created, String skipped) {
+    return '$created notifications created, $skipped accounts skipped (preferences).';
+  }
+
+  @override
+  String cmpAdmReviewNote(String note) {
+    return 'Reviewer\'s remark: $note';
+  }
+
+  @override
+  String cmpAdmCancelReason(String reason) {
+    return 'Cancellation reason: $reason';
+  }
+
+  @override
+  String get cmpAdmWaiting =>
+      'Waiting for another administrator to approve: you cannot approve your own message.';
+
+  @override
+  String get cmpAdmEdit => 'Edit';
+
+  @override
+  String get cmpAdmSubmit => 'Submit for approval';
+
+  @override
+  String get cmpAdmApprove => 'Approve';
+
+  @override
+  String get cmpAdmReject => 'Reject';
+
+  @override
+  String get cmpAdmRejectReason => 'Reason for rejection';
+
+  @override
+  String get cmpAdmSend => 'Start sending';
+
+  @override
+  String get cmpAdmResume => 'Resume sending';
+
+  @override
+  String get cmpAdmCancel => 'Cancel the campaign';
+
+  @override
+  String get cmpAdmCancelReasonLabel => 'Reason for cancelling';
+
+  @override
+  String get cmpAdmCancelWarnSending =>
+      'Notifications already created stay sent; only the following ones are stopped.';
+
+  @override
+  String get cmpAdmSendConfirmTitle => 'Start sending?';
+
+  @override
+  String cmpAdmSendConfirmBody(String notify) {
+    return '$notify accounts will be notified. A send cannot be recalled.';
+  }
+
+  @override
+  String cmpAdmSendProgress(String done, String left) {
+    return 'Sending: $done processed, $left left…';
+  }
+
+  @override
+  String cmpAdmSendDone(String created) {
+    return 'Sending finished: $created notifications created.';
+  }
+
+  @override
+  String cmpAdmSendStopped(String detail) {
+    return 'Sending interrupted ($detail). Accounts already processed will not be notified again; resume sending.';
+  }
+
+  @override
+  String get cmpAdmConfirm => 'Confirm';
+
+  @override
+  String get cmpAdmCancelAction => 'Cancel';
+
+  @override
+  String get cmpAdmEditorNew => 'New campaign';
+
+  @override
+  String get cmpAdmEditorEdit => 'Edit the campaign';
+
+  @override
+  String get cmpAdmFieldType => 'Message type';
+
+  @override
+  String get cmpAdmFieldTitle => 'Title (80 characters max)';
+
+  @override
+  String get cmpAdmFieldBody => 'Text (10 to 300 characters)';
+
+  @override
+  String get cmpAdmFieldAudience => 'Audience';
+
+  @override
+  String get cmpAdmFieldCountry => 'Country (full name, as stored)';
+
+  @override
+  String get cmpAdmFieldUsers => 'Account identifiers (one per line, 100 max)';
+
+  @override
+  String get cmpAdmSaveDraft => 'Save draft';
+
+  @override
+  String get cmpAdmSaved => 'Draft saved.';
+
+  @override
+  String get cmpAdmSubmitted => 'Submitted for approval.';
+
+  @override
+  String get cmpAdmApproved => 'Approved.';
+
+  @override
+  String get cmpAdmRejected => 'Rejected.';
+
+  @override
+  String get cmpAdmCancelled => 'Campaign cancelled.';
+
+  @override
+  String get cmpAdmUnsaved => 'Some changes are not saved. Leave?';
+
+  @override
+  String get secAdmTitle => 'Security and compliance';
+
+  @override
+  String get secAdmSubtitle =>
+      'Personal data requests and security incidents. Super-admin only.';
+
+  @override
+  String get secAdmTabRequests => 'Data requests';
+
+  @override
+  String get secAdmTabIncidents => 'Incidents';
+
+  @override
+  String get secAdmNoAccess => 'You do not have access to this section.';
+
+  @override
+  String secAdmLoadError(String detail) {
+    return 'Could not load: $detail';
+  }
+
+  @override
+  String get secAdmRetry => 'Retry';
+
+  @override
+  String get secAdmEmpty => 'Nothing in this view.';
+
+  @override
+  String get secAdmFilterOpen => 'In progress';
+
+  @override
+  String get secAdmFilterClosed => 'Closed';
+
+  @override
+  String get secAdmFilterAll => 'All';
+
+  @override
+  String get secAdmConfirm => 'Confirm';
+
+  @override
+  String get secAdmCancelAction => 'Cancel';
+
+  @override
+  String get secAdmSave => 'Save';
+
+  @override
+  String get secAdmDone => 'Done.';
+
+  @override
+  String get secAdmReqNew => 'New request';
+
+  @override
+  String get secAdmReqKindAccess => 'Access';
+
+  @override
+  String get secAdmReqKindRectification => 'Rectification';
+
+  @override
+  String get secAdmReqKindErasure => 'Erasure';
+
+  @override
+  String get secAdmReqKindPortability => 'Portability';
+
+  @override
+  String get secAdmReqKindObjection => 'Objection';
+
+  @override
+  String get secAdmReqStatusReceived => 'Received';
+
+  @override
+  String get secAdmReqStatusIdentity => 'Identity verified';
+
+  @override
+  String get secAdmReqStatusInProgress => 'In progress';
+
+  @override
+  String get secAdmReqStatusCompleted => 'Completed';
+
+  @override
+  String get secAdmReqStatusRefused => 'Refused';
+
+  @override
+  String get secAdmReqStatusCancelled => 'Cancelled';
+
+  @override
+  String secAdmReqDueInternal(String date) {
+    return 'Internal due date: $date';
+  }
+
+  @override
+  String get secAdmReqOverdue => 'Overdue';
+
+  @override
+  String get secAdmReqDueHelp =>
+      'The due date is an internal target you choose. The legal deadline depends on the applicable law: it is not computed here.';
+
+  @override
+  String get secAdmReqFieldKind => 'Kind of request';
+
+  @override
+  String get secAdmReqFieldAccount => 'Account identifier (if known)';
+
+  @override
+  String get secAdmReqFieldContact => 'Requester\'s contact (email…)';
+
+  @override
+  String get secAdmReqFieldScope => 'Scope (systems concerned)';
+
+  @override
+  String get secAdmReqFieldDue => 'Internal due date';
+
+  @override
+  String secAdmReqDays(String n) {
+    return '$n days';
+  }
+
+  @override
+  String secAdmReqRequester(String who) {
+    return 'Requester: $who';
+  }
+
+  @override
+  String secAdmReqScope(String scope) {
+    return 'Scope: $scope';
+  }
+
+  @override
+  String secAdmReqIdentity(String method) {
+    return 'Identity verified: $method';
+  }
+
+  @override
+  String secAdmReqResult(String note) {
+    return 'Result: $note';
+  }
+
+  @override
+  String get secAdmReqNeedsIdentity =>
+      'Processing only starts once the identity is verified.';
+
+  @override
+  String get secAdmReqVerify => 'Verify identity';
+
+  @override
+  String get secAdmReqVerifyMethod => 'How the identity was verified';
+
+  @override
+  String get secAdmReqStart => 'Start processing';
+
+  @override
+  String get secAdmReqComplete => 'Complete';
+
+  @override
+  String get secAdmReqCompleteNote => 'Report (systems processed, result)';
+
+  @override
+  String get secAdmReqCompleteWarn =>
+      'This tracking executes nothing: deletion or export go through their own flows, then are recorded here.';
+
+  @override
+  String get secAdmReqRefuse => 'Refuse';
+
+  @override
+  String get secAdmReqRefuseNote => 'Reason for refusal';
+
+  @override
+  String get secAdmReqCancel => 'Cancel the request';
+
+  @override
+  String get secAdmReqCancelNote => 'Reason for cancelling';
+
+  @override
+  String get secAdmReqCreated => 'Request recorded.';
+
+  @override
+  String get secAdmIncNew => 'Open an incident';
+
+  @override
+  String get secAdmIncSevLow => 'Low';
+
+  @override
+  String get secAdmIncSevMedium => 'Medium';
+
+  @override
+  String get secAdmIncSevHigh => 'High';
+
+  @override
+  String get secAdmIncSevCritical => 'Critical';
+
+  @override
+  String get secAdmIncStatusOpen => 'Open';
+
+  @override
+  String get secAdmIncStatusContained => 'Contained';
+
+  @override
+  String get secAdmIncStatusResolved => 'Resolved';
+
+  @override
+  String get secAdmIncStatusClosed => 'Closed';
+
+  @override
+  String get secAdmIncFieldTitle => 'Title';
+
+  @override
+  String get secAdmIncFieldSeverity => 'Severity';
+
+  @override
+  String get secAdmIncFieldSummary => 'What happened (10 characters at least)';
+
+  @override
+  String get secAdmIncFieldImpact => 'Impact (accounts, data, services)';
+
+  @override
+  String get secAdmIncTimeline => 'Timeline';
+
+  @override
+  String get secAdmIncTimelineHint =>
+      'Evidence goes in the timeline notes, never in the audit.';
+
+  @override
+  String get secAdmIncNoteLabel => 'Add a note';
+
+  @override
+  String get secAdmIncAddNote => 'Add';
+
+  @override
+  String get secAdmIncSetSeverity => 'Change severity';
+
+  @override
+  String get secAdmIncSeverityReason => 'Reason for the change';
+
+  @override
+  String get secAdmIncContain => 'Contain';
+
+  @override
+  String get secAdmIncResolve => 'Mark resolved';
+
+  @override
+  String get secAdmIncClose => 'Close';
+
+  @override
+  String get secAdmIncTransitionNote => 'What was done';
+
+  @override
+  String get secAdmIncCloseCause => 'Cause';
+
+  @override
+  String get secAdmIncCloseActions => 'Corrective actions';
+
+  @override
+  String get secAdmIncCloseLessons => 'Lessons learned';
+
+  @override
+  String get secAdmIncCloseHelp =>
+      'Closing requires the analysis: cause, corrective actions, lessons (10 characters each at least).';
+
+  @override
+  String get secAdmIncOpened => 'Incident opened.';
+
+  @override
+  String secAdmIncImpact(String impact) {
+    return 'Impact: $impact';
+  }
+
+  @override
+  String secAdmIncDetected(String date) {
+    return 'Detected on $date';
+  }
+
+  @override
+  String get secAdmReqFromApp => 'From the app';
+
+  @override
+  String get secAdmReqUnassigned => 'To take';
+
+  @override
+  String get secAdmReqTake => 'Take the request';
+
+  @override
+  String secAdmReqErasureState(String account, String deletion) {
+    return 'Account: $account · deletion: $deletion';
+  }
+
+  @override
+  String get secAdmReqAccountPresent => 'present';
+
+  @override
+  String get secAdmReqAccountGone => 'erased';
+
+  @override
+  String get secAdmReqDeletionNone => 'no request';
+
+  @override
+  String get secAdmReqErasureHelp =>
+      'An erasure request only completes once the account is actually erased: deletion starts from the person\'s own account, with its grace period.';
+
+  @override
+  String get mesDonneesTitle => 'My data requests';
+
+  @override
+  String get mesDonneesTileSubtitle =>
+      'Access, rectification, objection: follow or make a request';
+
+  @override
+  String get mesDonneesIntro =>
+      'You can ask for access to the data we hold about you, ask for it to be corrected, or object to a use. Someone on the team reads your request and replies.';
+
+  @override
+  String get mesDonneesOtherFlows =>
+      'To delete your account or export your data, use \"Delete my account\" and \"Export my data\" in settings: they do right away what a request would ask for.';
+
+  @override
+  String get mesDonneesNoTimeline =>
+      'We do not promise a deadline here; the team handles requests in order.';
+
+  @override
+  String get mesDonneesKindAccess => 'Ask for access to my data';
+
+  @override
+  String get mesDonneesKindRectification => 'Ask for a correction';
+
+  @override
+  String get mesDonneesKindObjection => 'Object to a use';
+
+  @override
+  String get mesDonneesDetailsLabel =>
+      'Describe your request (10 characters at least)';
+
+  @override
+  String get mesDonneesSend => 'Send the request';
+
+  @override
+  String get mesDonneesCancel => 'Cancel';
+
+  @override
+  String get mesDonneesSent => 'Request sent.';
+
+  @override
+  String get mesDonneesWithdraw => 'Withdraw';
+
+  @override
+  String get mesDonneesWithdrawn => 'Request withdrawn.';
+
+  @override
+  String get mesDonneesListTitle => 'My requests';
+
+  @override
+  String get mesDonneesEmpty => 'You have not made any request.';
+
+  @override
+  String get mesDonneesStatusReceived => 'Received';
+
+  @override
+  String get mesDonneesStatusIdentity => 'Identity verified';
+
+  @override
+  String get mesDonneesStatusInProgress => 'Being processed';
+
+  @override
+  String get mesDonneesStatusCompleted => 'Handled';
+
+  @override
+  String get mesDonneesStatusRefused => 'Refused';
+
+  @override
+  String get mesDonneesStatusCancelled => 'Withdrawn or cancelled';
+
+  @override
+  String mesDonneesDate(String date) {
+    return 'Made on $date';
+  }
+
+  @override
+  String get mesDonneesLoadError => 'Could not load your requests.';
+
+  @override
+  String get mesDonneesRetry => 'Retry';
+
+  @override
+  String get mesDonneesAlreadyOpen =>
+      'A request of this kind is already open, or you reached the limit of three requests per day.';
+
+  @override
+  String get mesDonneesFailed =>
+      'The request could not be sent. Try again later.';
+
+  @override
+  String get secAdmReqAnswerLabel =>
+      'Reply to the requester (they read it in the app)';
+
+  @override
+  String get secAdmReqAnswerHelp =>
+      'The internal note never leaves; only this reply is read by the requester. The notification preview does not contain it.';
+
+  @override
+  String get secAdmReqInternalCompleteNote =>
+      'Internal report (systems processed, result)';
+
+  @override
+  String get secAdmReqInternalRefuseNote => 'Internal reason for refusal';
+
+  @override
+  String get secAdmReqSummary => 'Data overview';
+
+  @override
+  String get secAdmReqSummaryHelp =>
+      'Counts, never content. Available once the identity is verified.';
+
+  @override
+  String get secAdmSumMessages => 'Messages sent (encrypted)';
+
+  @override
+  String get secAdmSumPosts => 'Posts';
+
+  @override
+  String get secAdmSumComments => 'Comments';
+
+  @override
+  String get secAdmSumStories => 'Stories';
+
+  @override
+  String get secAdmSumFriends => 'Friends';
+
+  @override
+  String get secAdmSumGroups => 'Groups';
+
+  @override
+  String get secAdmSumNotifications => 'Notifications';
+
+  @override
+  String get secAdmSumEvents => 'Events organized';
+
+  @override
+  String get secAdmSumBusinesses => 'Business listings';
+
+  @override
+  String get secAdmSumTickets => 'Support tickets';
+
+  @override
+  String get secAdmSumReports => 'Reports filed';
+
+  @override
+  String get secAdmSumBlocked => 'Blocked accounts';
+
+  @override
+  String get secAdmSumDevices => 'Devices';
+
+  @override
+  String get mesDonneesAnswerLabel => 'Team\'s reply';
+
+  @override
+  String get ambAdmVerifyTitle => 'Verify the embassy';
+
+  @override
+  String get ambAdmVerifyWarn =>
+      'The badge tells the public the listing was checked: give the official source consulted. It is kept with the date and your name.';
+
+  @override
+  String get ambAdmSourceUrl => 'Source address (https://…)';
+
+  @override
+  String get ambAdmSourcePublisher =>
+      'Source publisher (ministry, official site…)';
+
+  @override
+  String get ambAdmReasonLabel => 'Reason (kept in the history)';
+
+  @override
+  String get ambAdmRejectTitle => 'Reject the listing';
+
+  @override
+  String get ambAdmSuspendTitle => 'Suspend the embassy';
+
+  @override
+  String get ambAdmSuspendWarn =>
+      'The listing stays in the database but is no longer shown as active. Reversible.';
+
+  @override
+  String get ambAdmReactivateTitle => 'Reactivate the embassy';
+
+  @override
+  String get ambAdmConfirm => 'Confirm';
+
+  @override
+  String get ambAdmCancel => 'Cancel';
+
+  @override
+  String ambAdmSuspendedReason(String reason) {
+    return 'Suspended: $reason';
+  }
+
+  @override
+  String ambAdmRejectedReason(String reason) {
+    return 'Rejected: $reason';
+  }
+
+  @override
+  String ambAdmSourceLine(String source) {
+    return 'Source: $source';
+  }
+
+  @override
+  String cmpAdmScheduledFor(String date) {
+    return 'Scheduled for $date';
+  }
+
+  @override
+  String get cmpAdmSchedule => 'Schedule';
+
+  @override
+  String get cmpAdmReschedule => 'Change time';
+
+  @override
+  String get cmpAdmUnschedule => 'Remove schedule';
+
+  @override
+  String get cmpAdmScheduleHelp =>
+      'An approved, scheduled campaign goes out by itself at its time (checked every 5 minutes). The approval covers the time too.';
+
+  @override
+  String get cmpAdmScheduledNoManual =>
+      'Scheduled: it goes out at its time, or is cancelled.';
+
+  @override
+  String get cmpAdmScheduleSaved => 'Time saved.';
+
+  @override
+  String get cmpAdmFieldSchedule => 'Sending time (optional)';
+
+  @override
+  String get cmpAdmPickWhen => 'Pick date and time';
+
+  @override
+  String get cmpAdmNoSchedule2 => 'Manual send';
+
+  @override
+  String get cmpAdmTemplates => 'Templates';
+
+  @override
+  String get cmpAdmTemplateUse => 'Start from a template';
+
+  @override
+  String get cmpAdmTemplateNone => 'No template';
+
+  @override
+  String get cmpAdmTemplateNew => 'New template';
+
+  @override
+  String get cmpAdmTemplateName => 'Template name (3 to 60 characters)';
+
+  @override
+  String get cmpAdmTemplateSaved => 'Template saved.';
+
+  @override
+  String get cmpAdmTemplateArchived => 'Template archived.';
+
+  @override
+  String get cmpAdmTemplateArchive => 'Archive';
+
+  @override
+  String get cmpAdmTemplatesEmpty => 'No template.';
+
+  @override
+  String get cmpAdmTemplateHelp =>
+      'A template has no audience or time and approves nothing: the campaign built from it follows the usual approval.';
+
+  @override
+  String get cmpAdmReportTitle => 'Sending report';
+
+  @override
+  String cmpAdmReportCounts(String created, String skipped, String remaining) {
+    return '$created notifications created · $skipped skipped (preferences) · $remaining remaining';
+  }
+
+  @override
+  String cmpAdmReportPush(String n) {
+    return '$n recipients reachable by push (token holders).';
+  }
+
+  @override
+  String cmpAdmReportDelay(String s) {
+    return 'Started $s s after the scheduled time.';
+  }
+
+  @override
+  String cmpAdmReportDuration(String s) {
+    return 'Sent in $s s.';
+  }
+
+  @override
+  String get cmpAdmReportCaveat =>
+      'Created is not delivered, and delivered is not read: neither delivery nor reading is measured here.';
+
+  @override
+  String get trfAdmProofLabel =>
+      'Proof of settlement (receipt no., bank reference…)';
+
+  @override
+  String get trfAdmRequestRefund => 'Request a refund';
+
+  @override
+  String get trfAdmRequestRefundTitle => 'Request a refund (ledger)';
+
+  @override
+  String get trfAdmRefundWarn =>
+      'No refund is triggered here: only the ledger changes, after ANOTHER administrator decides. The actual refund is made with the payment provider, separately.';
+
+  @override
+  String trfAdmRefundPending(String reason) {
+    return 'Refund requested: $reason';
+  }
+
+  @override
+  String get trfAdmRefundWaiting =>
+      'Waiting for another administrator to decide: you cannot decide your own request.';
+
+  @override
+  String get trfAdmApproveRefund => 'Approve';
+
+  @override
+  String get trfAdmRejectRefund => 'Reject';
+
+  @override
+  String get trfAdmRejectRefundTitle => 'Reject the refund';
+
+  @override
+  String get trfAdmRejectRefundNote => 'Reason for rejection';
+
+  @override
+  String get trfAdmRefundRequested => 'Refund requested.';
+
+  @override
+  String get trfAdmRefundDecided => 'Decision recorded.';
+
+  @override
+  String get marAdmReasonLabel => 'Reason (kept with your name)';
+
+  @override
+  String get marAdmHideTitle => 'Hide the product';
+
+  @override
+  String get marAdmRestoreTitle => 'Restore the product';
+
+  @override
+  String get marAdmDeleteTitle => 'Delete the product';
+
+  @override
+  String get marAdmDeleteWarn =>
+      'Permanent deletion, super-admin only. A product with orders is hidden, not erased.';
+
+  @override
+  String get marAdmDisputeWarn =>
+      'The decision is recorded. The escrow is neither released nor refunded here: that is done with the payment provider.';
+
+  @override
+  String get tbAdmTitle => 'To handle';
+
+  @override
+  String get tbAdmSubtitle =>
+      'What is waiting right now, according to your permissions. A current state, not a period: see the time of calculation.';
+
+  @override
+  String tbAdmComputedAt(String time) {
+    return 'Calculated at $time';
+  }
+
+  @override
+  String get tbAdmRefresh => 'Recalculate';
+
+  @override
+  String tbAdmLoadError(String detail) {
+    return 'Could not calculate this list: $detail';
+  }
+
+  @override
+  String get tbAdmRetry => 'Retry';
+
+  @override
+  String get tbAdmNothingForRole => 'No queue is attached to your role.';
+
+  @override
+  String get tbAdmCalm => 'Nothing waiting';
+
+  @override
+  String tbAdmOldest(String date) {
+    return 'oldest: $date';
+  }
+
+  @override
+  String tbAdmUrgentPrefix(String n, String label) {
+    return 'including $n $label';
+  }
+
+  @override
+  String get tbAdmOpen => 'Open';
+
+  @override
+  String get tbAdmReports => 'Reports';
+
+  @override
+  String get tbAdmReportsDef => 'New, under review or escalated.';
+
+  @override
+  String get tbAdmReportsUrgent => 'not taken yet';
+
+  @override
+  String get tbAdmSupport => 'Support';
+
+  @override
+  String get tbAdmSupportDef => 'Open or in-progress tickets.';
+
+  @override
+  String get tbAdmSupportUrgent => 'not taken yet';
+
+  @override
+  String get tbAdmDemarches => 'Consular procedures';
+
+  @override
+  String get tbAdmDemarchesDef =>
+      'Texts to review or publish, and published procedures whose dated review is overdue.';
+
+  @override
+  String get tbAdmDemarchesUrgent => 'overdue for review';
+
+  @override
+  String get tbAdmCampaigns => 'Campaigns';
+
+  @override
+  String get tbAdmCampaignsDef =>
+      'Submitted messages waiting for another administrator\'s approval.';
+
+  @override
+  String get tbAdmPrivacy => 'Data requests';
+
+  @override
+  String get tbAdmPrivacyDef =>
+      'Open requests (received, identity verified, in progress).';
+
+  @override
+  String get tbAdmPrivacyUrgent => 'past the internal due date';
+
+  @override
+  String get tbAdmIncidents => 'Security incidents';
+
+  @override
+  String get tbAdmIncidentsDef => 'Incidents not closed.';
+
+  @override
+  String get tbAdmIncidentsUrgent => 'high or critical severity';
+
+  @override
+  String get tbAdmListings => 'Listings to verify';
+
+  @override
+  String get tbAdmListingsDef =>
+      'Active listings without the \"verified\" badge.';
+
+  @override
+  String get tbAdmCounterUnavailable => 'unavailable';
+
+  @override
+  String tbAdmCountersUnavailable(String names) {
+    return 'Some counters could not be read and show \"—\" rather than 0: $names.';
+  }
+
+  @override
+  String get mbrAdmVerify => 'Verify the profile';
+
+  @override
+  String get mbrAdmUnverify => 'Remove the badge';
+
+  @override
+  String get mbrAdmWarn => 'Warn';
+
+  @override
+  String get mbrAdmSuspend => 'Suspend';
+
+  @override
+  String get mbrAdmUnsuspend => 'Reactivate (end suspension)';
+
+  @override
+  String get mbrAdmHistory => 'Moderation history';
+
+  @override
+  String get mbrAdmVerifyTitle => 'Verify the profile';
+
+  @override
+  String get mbrAdmVerifyWarn =>
+      'The badge tells the public this member was checked: say on what basis, it is kept with your name.';
+
+  @override
+  String get mbrAdmVerifySource => 'Basis of the verification';
+
+  @override
+  String get mbrAdmUnverifyTitle => 'Remove the badge';
+
+  @override
+  String get mbrAdmReason => 'Reason (kept in the history)';
+
+  @override
+  String get mbrAdmWarnTitle => 'Warn the member';
+
+  @override
+  String get mbrAdmWarnWarn =>
+      'The member receives a \"Moderation warning\" notification with the text below. Do not reveal the reporter or third-party data.';
+
+  @override
+  String get mbrAdmWarnReason => 'Internal reason (not sent to the member)';
+
+  @override
+  String get mbrAdmWarnMessage =>
+      'Message to the member (10 to 300 characters)';
+
+  @override
+  String get mbrAdmSuspendTitle => 'Suspend the account';
+
+  @override
+  String get mbrAdmSuspendWarn =>
+      'The member is signed out and cannot return before the end of the duration. The suspension lifts by itself at expiry. For a permanent ban, use \"Ban\".';
+
+  @override
+  String get mbrAdmSuspendDays => 'Duration';
+
+  @override
+  String mbrAdmDays(String n) {
+    return '$n days';
+  }
+
+  @override
+  String get mbrAdmUnsuspendTitle => 'Reactivate the account';
+
+  @override
+  String get mbrAdmForceLogoutReason => 'Reason for signing out';
+
+  @override
+  String get mbrAdmHistoryTitle => 'Moderation history';
+
+  @override
+  String get mbrAdmHistoryEmpty => 'No moderation event for this member.';
+
+  @override
+  String get mbrAdmKindVerified => 'Profile verified';
+
+  @override
+  String get mbrAdmKindUnverified => 'Badge removed';
+
+  @override
+  String get mbrAdmKindWarned => 'Warning';
+
+  @override
+  String get mbrAdmKindSuspended => 'Suspension';
+
+  @override
+  String get mbrAdmKindUnsuspended => 'Suspension lifted';
+
+  @override
+  String get mbrAdmKindRevoked => 'Forced sign-out';
+
+  @override
+  String get mbrAdmBySystem => 'the system';
+
+  @override
+  String mbrAdmWarned(String n) {
+    return 'Warning sent ($n in total).';
+  }
+
+  @override
+  String get mbrAdmSuspended => 'Account suspended.';
+
+  @override
+  String get mbrAdmUnsuspended => 'Account reactivated.';
+
+  @override
+  String get mbrAdmUnverified => 'Badge removed.';
+
+  @override
+  String get mbrAdmCancel => 'Cancel';
+
+  @override
+  String get mbrAdmConfirm => 'Confirm';
+
+  @override
+  String get mbrAdmClose => 'Close';
+
+  @override
+  String mbrAdmLoadError(String detail) {
+    return 'Could not load: $detail';
+  }
+
+  @override
+  String get refAdmTitle => 'Geographic reference';
+
+  @override
+  String get refAdmSubtitle =>
+      'Cities, duplicates, countries. Super-admin only: a wrong city can open official groups.';
+
+  @override
+  String get refAdmNoAccess => 'You do not have access to this section.';
+
+  @override
+  String get refAdmTabCities => 'Cities';
+
+  @override
+  String get refAdmTabDuplicates => 'Duplicates';
+
+  @override
+  String get refAdmTabCountries => 'Countries';
+
+  @override
+  String refAdmLoadError(String detail) {
+    return 'Could not load: $detail';
+  }
+
+  @override
+  String get refAdmRetry => 'Retry';
+
+  @override
+  String get refAdmReason => 'Reason (kept in the history)';
+
+  @override
+  String get refAdmCancel => 'Cancel';
+
+  @override
+  String get refAdmConfirm => 'Confirm';
+
+  @override
+  String get refAdmSave => 'Save';
+
+  @override
+  String get refAdmSaved => 'Saved.';
+
+  @override
+  String get refAdmSearchCity => 'Search a city (2 letters at least)';
+
+  @override
+  String get refAdmSearchHint =>
+      'Search a city or pick a country: the reference holds over 33,000 cities.';
+
+  @override
+  String get refAdmCountry => 'Country';
+
+  @override
+  String get refAdmAllCountries => 'All countries';
+
+  @override
+  String get refAdmNewCity => 'New city';
+
+  @override
+  String get refAdmEdit => 'Edit';
+
+  @override
+  String get refAdmDelete => 'Delete';
+
+  @override
+  String refAdmPopulation(String n) {
+    return '$n inh.';
+  }
+
+  @override
+  String refAdmDeleteTitle(String name) {
+    return 'Delete $name?';
+  }
+
+  @override
+  String get refAdmDeleteWarn =>
+      'Refused while a profile or group relies on this city: merge it instead. Only the history is kept.';
+
+  @override
+  String get refAdmDeleted => 'City deleted.';
+
+  @override
+  String get refAdmFieldName => 'Name';
+
+  @override
+  String get refAdmFieldRegion => 'Region (optional)';
+
+  @override
+  String get refAdmFieldLat => 'Latitude';
+
+  @override
+  String get refAdmFieldLon => 'Longitude';
+
+  @override
+  String get refAdmFieldPopulation => 'Population';
+
+  @override
+  String get refAdmFieldAliases => 'Other names, comma-separated (optional)';
+
+  @override
+  String get refAdmDuplicatesHelp =>
+      'Same name in the same country, within 20 km. Merging moves profiles to the kept city; refused if the removed city carries a group.';
+
+  @override
+  String get refAdmNoDuplicates => 'No probable duplicate.';
+
+  @override
+  String refAdmDistance(String km) {
+    return '$km km';
+  }
+
+  @override
+  String refAdmKeepA(String id, String profils, String groupes, String other) {
+    return 'Keep $id ($profils profile(s), $groupes group(s)) — remove $other';
+  }
+
+  @override
+  String get refAdmMergeTitle => 'Merge these two cities';
+
+  @override
+  String get refAdmMergeWarn =>
+      'The removed city disappears: its profiles move to the kept city, its other names are merged, its GeoNames id is recorded in the history.';
+
+  @override
+  String get refAdmMerged => 'Cities merged.';
+
+  @override
+  String get refAdmCountriesHelp =>
+      'Adding is possible; renaming and deleting are not: profiles, listings and events carry the country name spelled out.';
+
+  @override
+  String get refAdmSearchCountry => 'Search a country';
+
+  @override
+  String get refAdmNewCountry => 'New country';
+
+  @override
+  String get refAdmFieldIso => 'ISO code (two capital letters)';
+
+  @override
+  String get rgHistTooltip => 'Settings history';
+
+  @override
+  String get rgHistTitle => 'Settings history';
+
+  @override
+  String get rgHistSubtitle =>
+      'Each change keeps the old and new value, who made it and when. Nothing in it can be rewritten or deleted.';
+
+  @override
+  String get rgHistEmpty => 'No change recorded since the history was set up.';
+
+  @override
+  String rgHistLoadError(String detail) {
+    return 'Could not read the history: $detail';
+  }
+
+  @override
+  String get rgHistRetry => 'Retry';
+
+  @override
+  String get rgHistClose => 'Close';
+
+  @override
+  String get rgHistKindUpdate => 'Change';
+
+  @override
+  String get rgHistKindRestore => 'Rollback';
+
+  @override
+  String rgHistBy(String who) {
+    return 'By $who';
+  }
+
+  @override
+  String rgHistReason(String reason) {
+    return 'Reason: $reason';
+  }
+
+  @override
+  String rgHistChange(String key, String from, String to) {
+    return '$key: $from → $to';
+  }
+
+  @override
+  String get rgHistAbsent => '(absent)';
+
+  @override
+  String get rgHistNoDiff => 'No value changed.';
+
+  @override
+  String get rgHistRestore => 'Restore the old value';
+
+  @override
+  String get rgHistNoBefore =>
+      'First recorded value of this section: no old value to restore.';
+
+  @override
+  String rgHistRestoreTitle(String section) {
+    return 'Restore \"$section\"?';
+  }
+
+  @override
+  String get rgHistRestoreBody =>
+      'The section takes back the values from before this change. The rollback is itself recorded.';
+
+  @override
+  String get rgHistRestoreReason => 'Reason for the rollback';
+
+  @override
+  String get rgHistRestoreCancel => 'Cancel';
+
+  @override
+  String get rgHistRestoreConfirm => 'Restore';
+
+  @override
+  String get rgHistRestored => 'Section restored.';
+
+  @override
+  String rgHistRestoreFailed(String detail) {
+    return 'Rollback failed: $detail';
+  }
+
+  @override
+  String get evtCalTitle => 'Events';
+
+  @override
+  String get evtCalSubtitle =>
+      'Calendar, attendees and figures. Cancelling or deleting is done from \"Content\".';
+
+  @override
+  String get evtCalTabCalendar => 'Calendar';
+
+  @override
+  String get evtCalTabStats => 'Statistics';
+
+  @override
+  String get evtCalNoAccess => 'You do not have access to events.';
+
+  @override
+  String evtCalLoadError(String detail) {
+    return 'Could not load: $detail';
+  }
+
+  @override
+  String get evtCalRetry => 'Retry';
+
+  @override
+  String get evtCalPrevMonth => 'Previous month';
+
+  @override
+  String get evtCalNextMonth => 'Next month';
+
+  @override
+  String evtCalTimezone(String zone) {
+    return 'Times shown in this device\'s time zone ($zone).';
+  }
+
+  @override
+  String evtCalPrivateHidden(String n) {
+    return '$n non-public or draft event(s) in the period: counted, not listed.';
+  }
+
+  @override
+  String get evtCalNoEventsDay => 'No public event that day.';
+
+  @override
+  String get evtCalNoEventsMonth => 'No public event this month.';
+
+  @override
+  String get evtCalAllMonth => 'Whole month';
+
+  @override
+  String evtCalAttendees(String n) {
+    return '$n attendee(s)';
+  }
+
+  @override
+  String evtCalAttendeesOf(String n, String max) {
+    return '$n / $max attendees';
+  }
+
+  @override
+  String get evtCalOnline => 'Online';
+
+  @override
+  String get evtCalSeeAttendees => 'See attendees';
+
+  @override
+  String evtCalAttendeesTitle(String title) {
+    return 'Attendees: $title';
+  }
+
+  @override
+  String get evtCalAttendeesWarn =>
+      'This lookup is logged (who, which event, how many rows — never the names).';
+
+  @override
+  String get evtCalAttendeesEmpty => 'No attendee.';
+
+  @override
+  String get evtCalStatusDraft => 'Draft';
+
+  @override
+  String get evtCalStatusUpcoming => 'Upcoming';
+
+  @override
+  String get evtCalStatusOngoing => 'Ongoing';
+
+  @override
+  String get evtCalStatusEnded => 'Ended';
+
+  @override
+  String get evtCalStatusCancelled => 'Cancelled';
+
+  @override
+  String get evtCalWindow => 'Window';
+
+  @override
+  String evtCalDays(String n) {
+    return '$n days';
+  }
+
+  @override
+  String get evtCalStatCreated => 'Events created';
+
+  @override
+  String get evtCalStatUpcoming => 'Upcoming events';
+
+  @override
+  String get evtCalStatRegistrations => 'Registrations';
+
+  @override
+  String get evtCalStatCancelled => 'Events cancelled';
+
+  @override
+  String get evtCalStatFill => 'Average fill (upcoming, capacity set)';
+
+  @override
+  String get evtCalStatNone => '—';
+
+  @override
+  String evtCalStatNotMeasured(String list) {
+    return 'Not measured: $list.';
+  }
+
+  @override
+  String get evtCalStatDefinitions => 'Definitions';
+
+  @override
+  String get evtCalDone => 'Done.';
+
+  @override
+  String get jrnAudSubtitle =>
+      'Every administrator action, read-only: the log can be neither edited nor erased.';
+
+  @override
+  String get jrnAudExport => 'Export';
+
+  @override
+  String get jrnAudExportTitle => 'Export the log';
+
+  @override
+  String get jrnAudExportBody =>
+      'The rows matching the current filters (5,000 at most) are copied as CSV to the clipboard. This export is itself written to the log, with your filters.';
+
+  @override
+  String jrnAudExported(String n) {
+    return '$n rows copied as CSV. The export is written to the log.';
+  }
+
+  @override
+  String jrnAudExportTruncated(String n) {
+    return '$n rows copied, limit reached: narrow the filters for the rest. The export is written to the log.';
+  }
+
+  @override
+  String get jrnAudActor => 'Actor (name or id)';
+
+  @override
+  String get jrnAudAction => 'Action';
+
+  @override
+  String get jrnAudResource => 'Resource type';
+
+  @override
+  String get jrnAudResourceId => 'Resource id';
+
+  @override
+  String get jrnAudResult => 'Result';
+
+  @override
+  String get jrnAudAll => 'All';
+
+  @override
+  String get jrnAudFrom => 'From';
+
+  @override
+  String get jrnAudTo => 'To';
+
+  @override
+  String get jrnAudReset => 'Reset';
+
+  @override
+  String get jrnAudPeriodInverted =>
+      'The start date is after the end date: no row can match.';
+
+  @override
+  String get jrnAudResultSuccess => 'Succeeded';
+
+  @override
+  String get jrnAudResultDenied => 'Denied';
+
+  @override
+  String get jrnAudResultFailed => 'Failed';
+
+  @override
+  String get jrnAudResultPartial => 'Partial';
+
+  @override
+  String get jrnAudLoadMore => 'Load more';
+
+  @override
+  String get jrnAudEnd => 'End of the log for these filters.';
+
+  @override
+  String get jrnAudDetailTitle => 'Entry detail';
+
+  @override
+  String get jrnAudWhen => 'Date';
+
+  @override
+  String get jrnAudActorId => 'Actor id';
+
+  @override
+  String get jrnAudReason => 'Reason code';
+
+  @override
+  String get jrnAudCorrelation => 'Correlation';
+
+  @override
+  String get jrnAudEntryId => 'Entry id';
+
+  @override
+  String get supAdmFilterEscalated => 'Escalated';
+
+  @override
+  String get supSlaEscalatedBadge => 'Escalated';
+
+  @override
+  String get supSlaLateBadge => 'Overdue';
+
+  @override
+  String supSlaEscalationReason(String reason) {
+    return 'Escalation: $reason';
+  }
+
+  @override
+  String supSlaDueFirst(String date) {
+    return 'First reply before $date';
+  }
+
+  @override
+  String supSlaDueResolution(String date) {
+    return 'Resolution before $date';
+  }
+
+  @override
+  String get supSlaEscalate => 'Escalate';
+
+  @override
+  String get supSlaEscalateReason => 'Why is this ticket beyond your remit?';
+
+  @override
+  String get supSlaEscalationLift => 'Lift escalation';
+
+  @override
+  String get supSlaInsertTemplate => 'Insert a template';
+
+  @override
+  String get supSlaSettings => 'Templates and deadlines';
+
+  @override
+  String get supSlaSettingsTitle => 'Support settings';
+
+  @override
+  String get supSlaClose => 'Close';
+
+  @override
+  String get supSlaTemplatesTitle => 'Reply templates';
+
+  @override
+  String get supSlaTemplatesEmpty => 'No template.';
+
+  @override
+  String get supSlaTemplateNew => 'New template';
+
+  @override
+  String get supSlaTemplateEdit => 'Edit';
+
+  @override
+  String get supSlaTemplateDelete => 'Delete';
+
+  @override
+  String get supSlaTemplateTitleLabel => 'Title';
+
+  @override
+  String get supSlaTemplateBodyLabel => 'Text';
+
+  @override
+  String get supSlaTemplateCategoryLabel => 'Category';
+
+  @override
+  String get supSlaTemplateAnyCategory => 'All categories';
+
+  @override
+  String get supSlaTemplateSave => 'Save';
+
+  @override
+  String supSlaTemplateDeleteConfirm(String title) {
+    return 'Delete the template \"$title\"?';
+  }
+
+  @override
+  String get supSlaTargetsTitle => 'Service deadlines';
+
+  @override
+  String get supSlaTargetsNote =>
+      'Clock hours, not business hours. With no deadline set, a ticket has no due date and is never overdue. An existing target is replaced for the same category and priority.';
+
+  @override
+  String get supSlaTargetsEmpty => 'No deadline set.';
+
+  @override
+  String get supSlaFirstHours => '1st reply (h)';
+
+  @override
+  String get supSlaResolutionHours => 'Resolution (h)';
+
+  @override
+  String get supSlaTargetSave => 'Set';
+
+  @override
+  String get supSlaTargetRemove => 'Remove this deadline';
+
+  @override
+  String supSlaTargetLine(String first, String res) {
+    return 'First reply: $first h · Resolution: $res h';
+  }
+
+  @override
+  String get supSlaNoValue => '—';
+
+  @override
+  String get supSlaHoursInvalid =>
+      'Enter whole hours, from 1 to 8760, in at least one of the two fields.';
+
+  @override
+  String get statTitle => 'Statistics';
+
+  @override
+  String get statSubtitle =>
+      'Figures read live from the database, with their definition.';
+
+  @override
+  String get statToday => 'Today';
+
+  @override
+  String get statDefTitle => 'What these figures measure';
+
+  @override
+  String get statDefToday =>
+      'Today: accounts created since midnight, this device\'s time.';
+
+  @override
+  String get statDefWeek =>
+      'This week: accounts created since Monday midnight, this device\'s time.';
+
+  @override
+  String get statDefMonth =>
+      'This month: accounts created since the 1st, this device\'s time.';
+
+  @override
+  String get statDefGrowth =>
+      'Growth: accounts created per calendar month over the last six months. Sign-ups, not active members; accounts deleted since no longer appear.';
+
+  @override
+  String get statDefCategories =>
+      'Events and businesses by category: those your permissions let you read, any status (an inactive business or a cancelled event counts).';
+
+  @override
+  String get statDefNoExport =>
+      'No export is offered here: the panel\'s only export is the audit log\'s.';
+
+  @override
+  String statReadAt(String date) {
+    return 'Data read on $date';
+  }
+
+  @override
+  String get grpAdmPrivateTitle => 'Make the group private';
+
+  @override
+  String get grpAdmPrivateWarn =>
+      'The group disappears from search and public lists; only its members see it. The reason is kept in the group\'s history.';
+
+  @override
+  String get grpAdmPublicTitle => 'Make the group public';
+
+  @override
+  String get grpAdmPublicWarn =>
+      'The group becomes visible and joinable by every member of the app. The reason is kept in the group\'s history.';
+
+  @override
+  String get grpAdmDeleteWarn =>
+      'Irreversible. The group\'s events and polls are deleted with it, and the group is not notified. An official group can only be deleted by a superAdmin. The reason is kept in the history.';
+
+  @override
+  String grpAdmDeleted(String n) {
+    return 'Group deleted ($n event(s) deleted with it).';
+  }
+
+  @override
+  String get rchAdmTitle => 'To handle and search';
+
+  @override
+  String get rchAdmSubtitle =>
+      'What awaits your decision, and a search across what your role may read.';
+
+  @override
+  String get rchAdmTabQueue => 'To handle';
+
+  @override
+  String get rchAdmTabSearch => 'Search';
+
+  @override
+  String get rchAdmRefresh => 'Refresh';
+
+  @override
+  String get rchAdmQueueEmpty => 'Nothing awaits your decision right now.';
+
+  @override
+  String rchAdmOldest(String date) {
+    return 'Oldest: $date';
+  }
+
+  @override
+  String rchAdmLate(String n) {
+    return '$n overdue';
+  }
+
+  @override
+  String get rchAdmQReports => 'Reports pending';
+
+  @override
+  String get rchAdmQAppeals => 'Appeals to review';
+
+  @override
+  String get rchAdmQTickets => 'Open or in-progress tickets';
+
+  @override
+  String get rchAdmQTicketsEscalated => 'Escalated tickets';
+
+  @override
+  String get rchAdmQTicketsOverdue => 'Tickets past their service deadline';
+
+  @override
+  String get rchAdmQPrivacy => 'Personal-data requests';
+
+  @override
+  String get rchAdmQProcedures => 'Procedures to approve';
+
+  @override
+  String get rchAdmQCampaigns => 'Campaigns to approve';
+
+  @override
+  String get rchAdmQBusinessesReview => 'Business listings to re-verify';
+
+  @override
+  String get rchAdmSearchLabel => 'Search a name or a title';
+
+  @override
+  String get rchAdmSearchHelp =>
+      'Press enter to search. The search is logged, without the searched word.';
+
+  @override
+  String get rchAdmSearchGo => 'Search';
+
+  @override
+  String rchAdmSkipped(String list) {
+    return 'Not searched (missing permission): $list.';
+  }
+
+  @override
+  String get rchAdmNoResult => 'No result.';
+
+  @override
+  String get rchAdmKindMembers => 'Members';
+
+  @override
+  String get rchAdmKindTickets => 'Tickets';
+
+  @override
+  String get rchAdmKindReports => 'Reports';
+
+  @override
+  String get rchAdmKindBusinesses => 'Businesses';
+
+  @override
+  String get rchAdmKindEvents => 'Events';
+
+  @override
+  String get rchAdmKindProcedures => 'Procedures';
+
+  @override
+  String get rchAdmKindEmbassies => 'Embassies';
+
+  @override
+  String get rchAdmKindCampaigns => 'Campaigns';
+
+  @override
+  String rchAdmLoadError(String detail) {
+    return 'Could not load: $detail';
+  }
+
+  @override
+  String get rchAdmRetry => 'Retry';
+
+  @override
+  String get srcAdmTitle => 'Consular sources';
+
+  @override
+  String get srcAdmSubtitle =>
+      'What is missing or has aged in procedures and embassies. Read-only: fix it from the relevant screen.';
+
+  @override
+  String get srcAdmRetry => 'Retry';
+
+  @override
+  String get srcAdmAll => 'All';
+
+  @override
+  String get srcAdmNoSource => 'No source';
+
+  @override
+  String get srcAdmNeverChecked => 'Never checked';
+
+  @override
+  String get srcAdmReviewOverdue => 'Review overdue';
+
+  @override
+  String get srcAdmNoReviewPlanned => 'No review planned';
+
+  @override
+  String srcAdmProcedures(String n, String total) {
+    return 'Procedures to review: $n of $total';
+  }
+
+  @override
+  String srcAdmEmbassies(String n, String total) {
+    return 'Embassies to review: $n of $total';
+  }
+
+  @override
+  String get srcAdmNothing => 'Nothing to review.';
+
+  @override
+  String srcAdmReviewOn(String date) {
+    return 'Review planned on $date';
+  }
+
+  @override
+  String get srcAdmUnpublished => 'Unpublished';
+
+  @override
+  String srcAdmLoadError(String detail) {
+    return 'Could not load: $detail';
+  }
+
+  @override
+  String get evtValTab => 'To validate';
+
+  @override
+  String get evtValSetting => 'Validation before publication';
+
+  @override
+  String get evtValSettingOn =>
+      'On: a public event is visible only to its organizer until it is approved.';
+
+  @override
+  String get evtValSettingOff => 'Off: events are published immediately.';
+
+  @override
+  String get evtValEnableTitle => 'Turn validation on?';
+
+  @override
+  String get evtValEnableBody =>
+      'New public events will stay invisible to other members until approved. The organizer sees \"pending\" or \"rejected\" (with the reason) on their event page.';
+
+  @override
+  String get evtValDisableTitle => 'Turn validation off?';
+
+  @override
+  String get evtValDisableBody =>
+      'New events will be published immediately. Those already pending stay pending.';
+
+  @override
+  String get evtValConfirm => 'Confirm';
+
+  @override
+  String get evtValNoAccess => 'You cannot validate events.';
+
+  @override
+  String get evtValEmpty => 'No event to validate.';
+
+  @override
+  String evtValLoadError(String detail) {
+    return 'Could not load: $detail';
+  }
+
+  @override
+  String get evtValApprove => 'Approve';
+
+  @override
+  String get evtValReject => 'Reject';
+
+  @override
+  String get evtValRejectReason =>
+      'Reason for rejection (visible to the organizer)';
+
+  @override
+  String get rchAdmQEventsPending => 'Events to validate';
+
+  @override
+  String get evtOrgPendingTitle => 'Awaiting validation';
+
+  @override
+  String get evtOrgPendingBody =>
+      'Other members cannot see this event yet: the team must approve it before it is published.';
+
+  @override
+  String get evtOrgRejectedTitle => 'Event rejected';
+
+  @override
+  String evtOrgRejectedBody(String reason) {
+    return 'Reason: $reason. Fix the event, then submit it again.';
+  }
+
+  @override
+  String get evtOrgResubmit => 'Submit again';
+
+  @override
+  String get evtOrgResubmitted => 'Event submitted again.';
 }

@@ -1,11 +1,18 @@
 import 'dart:async';
 
+import 'package:dartz/dartz.dart';
+import 'package:diaspo_niger/core/errors/failures.dart';
 import 'package:diaspo_niger/core/theme/admin_colors.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../auth/domain/entities/second_facteur.dart';
+import '../../../auth/domain/entities/user_entity.dart';
 import '../../../auth/domain/repositories/auth_repository.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../widgets/refus_non_admin.dart';
+import 'admin_defi_second_facteur_screen.dart';
+import 'admin_enrolement_totp_screen.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:diaspo_niger/core/theme/design_kit.dart';
 
@@ -25,30 +32,89 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
   String? _errorMessage;
 
   /// Compte authentifié mais sans droits d'administration : on referme sa
-  /// session, puis on l'écrit à l'écran.
-  ///
-  /// `signOut` rend un `Either`, et un `Left` veut dire que la session est
-  /// **toujours ouverte**. Il était lancé en `unawaited(...)` et son résultat
-  /// jeté : l'écran affichait « Accès refusé » que la déconnexion ait eu lieu
-  /// ou non, et un compte sans droits restait connecté sur le panneau sans que
-  /// personne le sache. Le message n'est plus posé qu'une fois le résultat
-  /// connu, et il dit quand la session n'a pas pu être fermée.
+  /// session, puis on l'écrit à l'écran — voir [refuserNonAdmin], partagé
+  /// avec l'écran de défi du second facteur, pour le pourquoi.
   Future<void> _refuseNonAdmin(AuthRepository authRepo) async {
-    var sessionClosed = false;
-    try {
-      sessionClosed = (await authRepo.signOut()).isRight();
-    } catch (_) {
-      // `signOut` ne lève pas en principe ; si cela arrive, la session est
-      // aussi peu fermée que sur un `Left`.
-    }
+    final message = await refuserNonAdmin(authRepo);
     if (!mounted) return;
     setState(() {
-      _errorMessage =
-          sessionClosed
-              ? "Accès refusé. Compte administrateur requis."
-              : "Accès refusé. Compte administrateur requis. "
-                  "La session n'a pas pu être fermée : réessayez.";
+      _errorMessage = message;
       _isLoading = false;
+    });
+  }
+
+  void _afficherEchec(String message) {
+    if (!mounted) return;
+    setState(() {
+      _errorMessage = message;
+      _isLoading = false;
+    });
+  }
+
+  /// Ce qui suit une connexion, e-mail ou Google (`docs/deploiement/MFA_ADMIN.md`).
+  ///
+  /// Trois sorties, dans l'ordre où Firebase les produit :
+  ///
+  /// - [SecondFacteurRequisFailure] : premier facteur accepté, le compte porte
+  ///   un facteur enrôlé, **aucune session n'est ouverte** — l'écran de défi
+  ///   la terminera, ou non ;
+  /// - un autre `Left` : le message ;
+  /// - un `Right` : la session est ouverte. Sans droits d'administration, on
+  ///   la referme ; sinon, enrôlement ou tableau de bord selon que le compte
+  ///   a déjà un facteur.
+  Future<void> _traiterConnexion(
+    Either<Failure, UserEntity> result,
+    AuthRepository authRepo,
+  ) async {
+    await result.fold<Future<void>>(
+      (failure) async {
+        if (failure is SecondFacteurRequisFailure) {
+          if (!mounted) return;
+          unawaited(
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute<void>(
+                builder: (_) =>
+                    AdminDefiSecondFacteurScreen(defi: failure.defi),
+              ),
+            ),
+          );
+          return;
+        }
+        _afficherEchec(failure.message);
+      },
+      (user) async {
+        if (!user.isAdmin) {
+          await _refuseNonAdmin(authRepo);
+          return;
+        }
+        await _entrerOuEnroler(authRepo);
+      },
+    );
+  }
+
+  /// Un admin n'entre au tableau de bord qu'avec un second facteur enrôlé.
+  ///
+  /// La connexion a abouti d'un coup, donc Firebase n'a levé aucun défi, donc
+  /// le compte n'a (presque sûrement) pas de facteur. On le relit quand même
+  /// plutôt que de le déduire : la lecture est locale, et le jour où le
+  /// multi-facteur serait désactivé côté projet, un compte enrôlé
+  /// arriverait ici avec un facteur et l'enrôlement lui répondrait « déjà
+  /// enrôlé ». La garde de `/dashboard` refait le même contrôle.
+  Future<void> _entrerOuEnroler(AuthRepository authRepo) async {
+    final facteurs = await authRepo.facteursEnroles();
+    if (!mounted) return;
+    facteurs.fold((failure) => _afficherEchec(failure.message), (liste) {
+      if (liste.isEmpty) {
+        unawaited(
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute<void>(
+              builder: (_) => const AdminEnrolementTotpScreen(),
+            ),
+          ),
+        );
+      } else {
+        unawaited(Navigator.of(context).pushReplacementNamed('/dashboard'));
+      }
     });
   }
 
@@ -61,30 +127,9 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
     try {
       final authRepo = ref.read(authRepositoryProvider);
       final result = await authRepo.signInWithGoogle();
-
-      result.fold(
-        (failure) {
-          setState(() {
-            _errorMessage = failure.message;
-            _isLoading = false;
-          });
-        },
-        (user) {
-          if (user.isAdmin) {
-            if (mounted) {
-              unawaited(Navigator.of(context).pushReplacementNamed('/dashboard'));
-            }
-          } else {
-            // Not an admin
-            unawaited(_refuseNonAdmin(authRepo));
-          }
-        },
-      );
+      await _traiterConnexion(result, authRepo);
     } catch (e) {
-      setState(() {
-        _errorMessage = e.toString();
-        _isLoading = false;
-      });
+      _afficherEchec(e.toString());
     }
   }
 
@@ -100,30 +145,9 @@ class _AdminLoginScreenState extends ConsumerState<AdminLoginScreen> {
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );
-
-      result.fold(
-        (failure) {
-          setState(() {
-            _errorMessage = failure.message;
-            _isLoading = false;
-          });
-        },
-        (user) {
-          if (user.isAdmin) {
-            if (mounted) {
-              unawaited(Navigator.of(context).pushReplacementNamed('/dashboard'));
-            }
-          } else {
-            // Not an admin
-            unawaited(_refuseNonAdmin(authRepo));
-          }
-        },
-      );
+      await _traiterConnexion(result, authRepo);
     } catch (e) {
-      setState(() {
-        _errorMessage = e.toString();
-        _isLoading = false;
-      });
+      _afficherEchec(e.toString());
     }
   }
 

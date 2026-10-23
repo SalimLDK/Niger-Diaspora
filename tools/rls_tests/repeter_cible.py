@@ -27,11 +27,36 @@ INTERDIT = re.compile(
     re.IGNORECASE,
 )
 
+# Dans un corps `$$ … $$` (fonction, DO), `BEGIN` et `END` sont du plpgsql, pas
+# un contrôle de transaction : une migration qui pose un déclencheur en est
+# pleine (20261014050000 en compte onze). COMMIT et ROLLBACK y restent
+# interdits — un DO peut les émettre, et la répétition y perdrait son filet.
+INTERDIT_CORPS = re.compile(
+    r"^\s*(COMMIT|ROLLBACK|START\s+TRANSACTION|SAVEPOINT|RELEASE)\b",
+    re.IGNORECASE,
+)
+
+DOLLAR = re.compile(r"\$[A-Za-z_][A-Za-z0-9_]*\$|\$\$")
+
 
 def sans_commentaires(sql: str) -> list[str]:
     """Lignes de code, commentaires `--` et blocs `/* */` retirés."""
     sql = re.sub(r"/\*.*?\*/", "", sql, flags=re.DOTALL)
     return [ligne.split("--", 1)[0] for ligne in sql.split("\n")]
+
+
+def dans_un_corps(lignes: list[str]) -> list[bool]:
+    """Pour chaque ligne : commence-t-elle à l'intérieur d'un `$$ … $$` ?
+
+    La ligne qui OUVRE le corps (`AS $$`) est dehors, celle qui le FERME
+    (`END $$;`) est dedans : c'est l'état au début de la ligne qui compte.
+    """
+    etat, resultat = False, []
+    for ligne in lignes:
+        resultat.append(etat)
+        for _ in DOLLAR.findall(ligne):
+            etat = not etat
+    return resultat
 
 
 def main() -> int:
@@ -42,10 +67,12 @@ def main() -> int:
     banc = io.open(banc_p, encoding="utf-8").read().replace("\r\n", "\n")
     cible = io.open(cible_p, encoding="utf-8").read().replace("\r\n", "\n")
 
+    lignes_cible = sans_commentaires(cible)
+    corps = dans_un_corps(lignes_cible)
     fautes = [
         (n, ligne.strip())
-        for n, ligne in enumerate(sans_commentaires(cible), 1)
-        if INTERDIT.match(ligne)
+        for n, (ligne, dedans) in enumerate(zip(lignes_cible, corps), 1)
+        if (INTERDIT_CORPS if dedans else INTERDIT).match(ligne)
     ]
     if fautes:
         print("REFUS : la cible contient un contrôle de transaction.")
