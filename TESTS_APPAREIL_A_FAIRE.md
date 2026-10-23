@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1552 cases à cocher, 55 cochées** — 332 entrées sur 346 ont encore des cases ouvertes.
+**1554 cases à cocher, 55 cochées** — 333 entrées sur 347 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -346,7 +346,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [✅ Bulle de chargement d'une vidéo pendant l'upload (2026-08-30)](#-bulle-de-chargement-dune-vidéo-pendant-lupload-2026-08-30) · *Messagerie*
 - 21 · [Refonte Fil & Discussion — Priorité basse — cosmétique, faible risque](#refonte-fil--discussion--priorité-basse--cosmétique-faible-risque) · *Fil, stories, salons audio et podcasts*
 
-**P3 — confort, cosmétique, fonction en pause** (41)
+**P3 — confort, cosmétique, fonction en pause** (42)
 
 - 3 · [⬜ Polices embarquées : plus de téléchargement au premier affichage (2026-09-11)](#-polices-embarquées--plus-de-téléchargement-au-premier-affichage-2026-09-11) · *Design, thème, langue et mise en page* · bloqué
 - 2 · [⬜ Icône du lanceur repeinte en vert (2026-09-07)](#-icône-du-lanceur-repeinte-en-vert-2026-09-07) · *Design, thème, langue et mise en page*
@@ -359,6 +359,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⬜ Écran de démarrage repeint en vert (2026-09-07)](#-écran-de-démarrage-repeint-en-vert-2026-09-07) · *Design, thème, langue et mise en page*
 - 5 · [Guide de style — alignement des jetons (2026-08-03)](#guide-de-style--alignement-des-jetons-2026-08-03) · *Design, thème, langue et mise en page*
 - 3 · [⬜ Les ~920 `debugPrint` restants neutralisés en release (2026-09-09)](#-les-920-debugprint-restants-neutralisés-en-release-2026-09-09) · *Backend, sécurité et observabilité* · bloqué
+- 2 · [⬜ Vert des coches de lecture et du point « en ligne » alignés sur les bulles (2026-10-23)](#-vert-des-coches-de-lecture-et-du-point--en-ligne--alignés-sur-les-bulles-2026-10-23) · *Messagerie*
 - 2 · [⬜ Fiches de partage : libellés sur une ligne, vrais logos, bouton (2026-09-20)](#-fiches-de-partage--libellés-sur-une-ligne-vrais-logos-bouton-2026-09-20) · *Messagerie*
 - 6 · [⬜ Squelette de chargement de la messagerie (2026-09-15)](#-squelette-de-chargement-de-la-messagerie-2026-09-15) · *Messagerie*
 - 7 · [⬜ Une couleur par pièce jointe dans le « + » (2026-09-14)](#-une-couleur-par-pièce-jointe-dans-le----2026-09-14) · *Messagerie*
@@ -393,7 +394,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 0 faites
-- [2. Messagerie](#2-messagerie) — 310 à faire, 31 faites
+- [2. Messagerie](#2-messagerie) — 312 à faire, 31 faites
 - [3. Groupes](#3-groupes) — 128 à faire, 0 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 121 à faire, 4 faites
 - [5. Appels](#5-appels) — 24 à faire, 1 faites
@@ -494,6 +495,17 @@ du SM A515F (compte « Sim A », non-admin, sans pays renseigné).
 # 2. Messagerie
 
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
+
+---
+
+## ⬜ Vert des coches de lecture et du point « en ligne » alignés sur les bulles (2026-10-23)
+
+**Priorité P3** · importance 2/5
+
+Fichiers : `conversation_item.dart`, `new_conversation_screen.dart`.
+
+- [ ] Liste des discussions : la double coche « lu » est du même vert (`#0E7C3A`) que les bulles envoyées, en thème clair et sombre.
+- [ ] Nouvelle conversation : le point « en ligne » sur l'avatar a ce même vert et reste visible sur le fond.
 
 ---
 

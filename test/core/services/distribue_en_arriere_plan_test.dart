@@ -38,8 +38,10 @@ void main() {
   });
 
   test('le gestionnaire ne touche plus Supabase sans session', () {
+    // Le gestionnaire délègue à _traiterMessageArrierePlan (enveloppe de
+    // diagnostic mémoire autour) : la logique vit là.
     final handler = entre(
-      'Future<void> firebaseMessagingBackgroundHandler(',
+      'Future<void> _traiterMessageArrierePlan(',
       '\n}\n',
     );
     expect(handler, isNot(contains("rpc('mark_messages_as_delivered'")),
@@ -50,8 +52,10 @@ void main() {
   test("l'accusé part APRÈS la bannière", () {
     // L'échange de jeton peut prendre des secondes : il ne doit pas retarder
     // l'affichage de la notification.
+    // Le gestionnaire délègue à _traiterMessageArrierePlan (enveloppe de
+    // diagnostic mémoire autour) : la logique vit là.
     final handler = entre(
-      'Future<void> firebaseMessagingBackgroundHandler(',
+      'Future<void> _traiterMessageArrierePlan(',
       '\n}\n',
     );
     expect(
