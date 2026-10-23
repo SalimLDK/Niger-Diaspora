@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1285 cases à cocher, 55 cochées** — 287 entrées sur 301 ont encore des cases ouvertes.
+**1289 cases à cocher, 55 cochées** — 288 entrées sur 302 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -211,7 +211,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (89)
+**P2 — fonction secondaire ou cas limite** (90)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -265,6 +265,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [⬜ Noter l'application : bouton des Réglages et invitation automatique (2026-09-14)](#-noter-lapplication--bouton-des-réglages-et-invitation-automatique-2026-09-14) · *Accueil, profil et réglages*
 - 3 · [⬜ Groupes en commun ouvrables depuis un profil (2026-09-13)](#-groupes-en-commun-ouvrables-depuis-un-profil-2026-09-13) · *Accueil, profil et réglages*
 - 6 · [Pseudo (@handle) — ligne d'appel sur son propre profil](#pseudo-handle--ligne-dappel-sur-son-propre-profil) · *Accueil, profil et réglages*
+- 4 · [⬜ Liste Messages et barre du bas : libellé tronqué, puces rognées, fondu — corrigé, à revoir (2026-10-22)](#-liste-messages-et-barre-du-bas--libellé-tronqué-puces-rognées-fondu--corrigé-à-revoir-2026-10-22) · *Design, thème, langue et mise en page*
 - 1 · [⬜ L'en-tête d'un sondage effaçait son auteur dans une bulle — corrigé, à revoir (2026-09-15)](#-len-tête-dun-sondage-effaçait-son-auteur-dans-une-bulle--corrigé-à-revoir-2026-09-15) · *Design, thème, langue et mise en page*
 - 1 · [⬜ Le pied d'un sondage déborde encore en mode vote — NON corrigé (2026-09-15)](#-le-pied-dun-sondage-déborde-encore-en-mode-vote--non-corrigé-2026-09-15) · *Design, thème, langue et mise en page*
 - 7 · [⬜ L'étape « Thème » dit enfin la vérité sur l'accent (2026-09-14)](#-létape--thème--dit-enfin-la-vérité-sur-laccent-2026-09-14) · *Design, thème, langue et mise en page*
@@ -355,7 +356,7 @@ Par domaine :
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 101 à faire, 0 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 67 à faire, 0 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 58 à faire, 5 faites
-- [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 108 à faire, 5 faites
+- [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 112 à faire, 5 faites
 - [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 74 à faire, 2 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 46 à faire, 1 faites
 - [15. Site web](#15-site-web) — 23 à faire, 0 faites
@@ -8396,6 +8397,25 @@ la fonctionnalité existait. Une ligne d'appel prend désormais la place du
 # 12. Design, thème, langue et mise en page
 
 Palette, thème sombre, icônes, polices, débordements, paysage, bascule design_v2, traduction anglaise.
+
+---
+
+## ⬜ Liste Messages et barre du bas : libellé tronqué, puces rognées, fondu — corrigé, à revoir (2026-10-22)
+
+**Priorité P2** · importance 3/5 — Sur un téléphone à grande police, l'onglet actif affichait « Discussi… », le bas du texte des puces de filtre était rogné, et la liste restait lisible sous la barre.
+
+Dans [bottom_navigation.dart](lib/shared/widgets/bottom_navigation.dart) le
+libellé est réduit (`FittedBox`) au lieu d'être ellipsé, et un fondu vers le
+fond d'écran se pose derrière la pilule. Dans
+[messages_screen.dart](lib/features/messages/presentation/screens/messages_screen.dart)
+les puces n'ont plus de hauteur fixe de 40 px et le placeholder de recherche
+est raccourci (« Rechercher une discussion »).
+
+À vérifier sur appareil, police du système au maximum, thèmes clair et sombre :
+- [ ] « Discussions » entier dans la pastille de l'onglet actif.
+- [ ] « Groupes » et « Archives » non rognés dans les puces ; « PLUS ANCIEN » respire sous elles.
+- [ ] Faire défiler la liste : rien de lisible ni « barré » sous la pilule ; le fondu ne ressemble pas à un bandeau sale.
+- [ ] Placeholder de recherche non tronqué.
 
 ---
 
