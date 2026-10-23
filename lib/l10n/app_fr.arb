@@ -346,7 +346,7 @@
   "retry": "Réessayer",
   "messageNotSent": "Non envoyé",
   "receiptSent": "Envoyé",
-  "receiptDelivered": "Reçu",
+  "receiptDelivered": "Délivré",
   "receiptRead": "Lu",
   "receiptSending": "Envoi…",
   "seenByCount": "Vu par {count}",

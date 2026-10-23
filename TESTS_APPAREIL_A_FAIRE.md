@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1285 cases à cocher, 55 cochées** — 287 entrées sur 301 ont encore des cases ouvertes.
+**1290 cases à cocher, 55 cochées** — 288 entrées sur 302 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -211,7 +211,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (89)
+**P2 — fonction secondaire ou cas limite** (90)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -222,6 +222,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [Reprise du design (2026-08-03, suite) — Éco, accueil, carte, discussion](#reprise-du-design-2026-08-03-suite--éco-accueil-carte-discussion) · *Design, thème, langue et mise en page* · bloqué
 - 5 · [Bascule design_v2 → production, famille 4 : messagerie, groupes, recherche, profil (2026-08-03)](#bascule-design_v2--production-famille-4--messagerie-groupes-recherche-profil-2026-08-03) · *Design, thème, langue et mise en page*
 - 7 · [⬜ Site web entièrement refait sur cahier des charges (2026-09-08)](#-site-web-entièrement-refait-sur-cahier-des-charges-2026-09-08) · *Site web*
+- 5 · [⬜ Discussion : « Délivré » dès l'arrivée du push (MLS), accents de la barre de saisie, « En ligne » (2026-10-22)](#-discussion---délivré--dès-larrivée-du-push-mls-accents-de-la-barre-de-saisie--en-ligne--2026-10-22) · *Messagerie*
 - 3 · [⬜ Le séparateur « N messages non lus » part quand tout est lu (2026-09-17)](#-le-séparateur--n-messages-non-lus--part-quand-tout-est-lu-2026-09-17) · *Messagerie*
 - 3 · [⬜ « Distribué » et « Lu » ne tombent plus à la même seconde (2026-09-16)](#--distribué--et--lu--ne-tombent-plus-à-la-même-seconde-2026-09-16) · *Messagerie*
 - 1 · [⬜ Forme de la bulle qui cite un message (2026-09-16)](#-forme-de-la-bulle-qui-cite-un-message-2026-09-16) · *Messagerie*
@@ -345,7 +346,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 0 faites
-- [2. Messagerie](#2-messagerie) — 299 à faire, 31 faites
+- [2. Messagerie](#2-messagerie) — 304 à faire, 31 faites
 - [3. Groupes](#3-groupes) — 128 à faire, 0 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 121 à faire, 4 faites
 - [5. Appels](#5-appels) — 24 à faire, 1 faites
@@ -446,6 +447,22 @@ du SM A515F (compte « Sim A », non-admin, sans pays renseigné).
 # 2. Messagerie
 
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
+
+---
+
+## ⬜ Discussion : « Délivré » dès l'arrivée du push (MLS), accents de la barre de saisie, « En ligne » (2026-10-22)
+
+**Priorité P2** · importance 3/5 — vu sur capture : dernier message « À l'instant · Envoyé » alors que le destinataire était « En ligne ».
+
+- **Délivré (MLS)** : le push ne posait « livré » que dans `messages` ; une conversation basculée lit `mls_message_receipts`, donc « Envoyé » restait jusqu'à l'ouverture de la discussion. `MlsMetadonnees.marquerLivresRecents`, appelée depuis `notification_service.dart` (premier plan et arrière-plan). Libellé « Reçu » → « Délivré ».
+  - [ ] A envoie à B (B sur la liste des discussions, puis B app en arrière-plan) : sous le message de A, « Envoyé » passe à « Délivré » en quelques secondes, sans que B ouvre la discussion ; puis « Lu » à l'ouverture.
+  - [ ] Vérifier aussi B sur l'écran d'accueil, app tuée (push seul) : le cas le moins sûr, l'isolate d'arrière-plan doit avoir sa session.
+- **« En ligne » en police de texte** (`conversation_screen.dart`, `_buildStatusWithLock`) : il héritait du serif du titre. Le nom reste en serif, voulu.
+  - [ ] En-tête : « Sim A » en serif, « En ligne » / « Vu il y a… » en sans-serif.
+- **Barre de saisie** (`message_input.dart`) : « + » et emoji au vert de la marque (comme le micro), marges latérales 6 → 12.
+  - [ ] Thème Orange et thème vert, clair et sombre : plus d'orange dans la barre ; « + » et micro ne touchent plus le bord.
+- **Heure et accusé en sombre** : gris secondaire au lieu du tertiaire (`message_bubble.dart`).
+  - [ ] Thème sombre : « 10:41 · Lu » lisible sur le fond.
 
 ---
 

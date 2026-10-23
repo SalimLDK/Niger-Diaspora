@@ -842,7 +842,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get receiptSent => 'Envoyé';
 
   @override
-  String get receiptDelivered => 'Reçu';
+  String get receiptDelivered => 'Délivré';
 
   @override
   String get receiptRead => 'Lu';

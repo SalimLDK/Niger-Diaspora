@@ -29,6 +29,7 @@ import 'notification_read_sync.dart';
 import '../../l10n/app_localizations.dart';
 import 'preferences_service.dart';
 import 'supabase_auth_bridge.dart';
+import '../crypto/mls/mls_metadonnees.dart';
 import '../crypto/mls/mls_notification_preview.dart';
 import '../crypto/mls/mls_partage_extension_ios.dart';
 
@@ -668,6 +669,14 @@ Future<void> _accuserReceptionEnArrierePlan(
     });
   } catch (e) {
     debugPrint('Distribué non posé : $e');
+  }
+  // Conversation basculée en MLS : son reçu vit dans `mls_message_receipts`,
+  // que la RPC ci-dessus ne touche pas. La session vient d'être préparée.
+  try {
+    await MlsMetadonnees(userId: userId, ensureAuth: () async => true)
+        .marquerLivresRecents(conversationId);
+  } catch (e) {
+    debugPrint('Distribué MLS non posé : $e');
   }
 }
 
@@ -3293,6 +3302,15 @@ class NotificationService {
       });
     } catch (e) {
       // Silently fail - delivery confirmation is best effort
+    }
+    // Conversation basculée en MLS : le reçu vit dans `mls_message_receipts`.
+    try {
+      final userId = (await SharedPreferences.getInstance())
+          .getString('currentUserId');
+      if (userId == null) return;
+      await MlsMetadonnees(userId: userId).marquerLivresRecents(conversationId);
+    } catch (e) {
+      debugPrint('Distribué MLS non posé : $e');
     }
   }
 

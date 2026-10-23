@@ -1649,7 +1649,7 @@ abstract class AppLocalizations {
   /// No description provided for @receiptDelivered.
   ///
   /// In fr, this message translates to:
-  /// **'Reçu'**
+  /// **'Délivré'**
   String get receiptDelivered;
 
   /// No description provided for @receiptRead.

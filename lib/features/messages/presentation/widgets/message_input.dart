@@ -1125,10 +1125,12 @@ class _MessageInputState extends State<MessageInput>
         // Zone principale : barre flottante (« + » + champ) et le bouton
         // vocal/envoi **hors de la barre** (cercle séparé à droite).
         Padding(
+          // 12 de chaque côté : à 6, le « + » et le bouton d'envoi touchaient
+          // presque le bord de l'écran, là où les bulles gardent ~30.
           padding: EdgeInsets.fromLTRB(
-            6,
+            12,
             isLandscape ? 2 : 6,
-            6,
+            12,
             MediaQuery.of(context).padding.bottom + (isLandscape ? 2 : 8),
           ),
           child: Row(
@@ -1282,11 +1284,14 @@ class _MessageInputState extends State<MessageInput>
   /// pastel deviendrait un pavé lumineux, on le remplace par l'accent teinté.
   Widget _buildEmojiButton(BuildContext context) {
     final isDark = context.isDarkMode;
-    final glyph = isDark ? const Color(0xFFFA7E3B) : const Color(0xFFFA7D00);
+    // Le vert de la marque, comme le bouton vocal et les bulles : la barre
+    // mêlait ce vert fixe à un orange (glyphe en dur ici, accent du thème sur
+    // le « + »), deux accents dans une même rangée.
+    const glyph = AppColors.secondary;
     final fill =
         isDark
             ? glyph.withValues(alpha: _showPicker ? 0.28 : 0.18)
-            : (_showPicker ? const Color(0xFFF0DAC8) : const Color(0xFFF7EAE3));
+            : (_showPicker ? const Color(0xFFCFE6CF) : const Color(0xFFE6F2E6));
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
@@ -1314,7 +1319,8 @@ class _MessageInputState extends State<MessageInput>
   /// Appui long = ancien sheet complet (repli avec audio/vidéo dédiés).
   Widget _buildPlusButton(BuildContext context) {
     final active = _showAttachPanel;
-    final accent = context.adaptivePrimaryColor;
+    // Vert de la marque, pas l'accent du thème : voir [_buildEmojiButton].
+    const accent = AppColors.secondary;
     final isDark = context.isDarkMode;
 
     // En clair, l'accent à 12 % posé sur le fond crème de la page donnait deux

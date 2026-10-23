@@ -155,18 +155,18 @@ void main() {
     await _pump(tester, _message(type: MessageType.text), isMe: true);
 
     expect(find.text(' · Envoyé'), findsOneWidget);
-    expect(find.text(' · Reçu'), findsNothing);
+    expect(find.text(' · Délivré'), findsNothing);
     expect(find.text(' · Lu'), findsNothing);
   });
 
-  testWidgets('« Reçu » dès qu\'un destinataire l\'a reçu', (tester) async {
+  testWidgets('« Délivré » dès qu\'un destinataire l\'a reçu', (tester) async {
     await _pump(
       tester,
       _message(type: MessageType.text, deliveredTo: const ['salim']),
       isMe: true,
     );
 
-    expect(find.text(' · Reçu'), findsOneWidget);
+    expect(find.text(' · Délivré'), findsOneWidget);
     expect(find.text(' · Envoyé'), findsNothing);
   });
 
@@ -200,7 +200,7 @@ void main() {
       lecteursAttendus: const {'salim', 'fatou'},
     );
     expect(find.text(' · Lu'), findsNothing);
-    expect(find.text(' · Reçu'), findsOneWidget);
+    expect(find.text(' · Délivré'), findsOneWidget);
     expect(find.textContaining('Vu par'), findsNothing);
   });
 
@@ -233,7 +233,7 @@ void main() {
       groupId: 'groupe-1',
     );
     expect(find.text(' · Lu'), findsNothing);
-    expect(find.text(' · Reçu'), findsOneWidget);
+    expect(find.text(' · Délivré'), findsOneWidget);
   });
 
   testWidgets('aucun accusé sur un message reçu', (tester) async {
