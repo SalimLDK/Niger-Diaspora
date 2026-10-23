@@ -12481,6 +12481,63 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mlsBackupRevokeHint => 'Then revoke the old device.';
 
   @override
+  String get historyBackupSection => 'Message history';
+
+  @override
+  String get historyBackupBody =>
+      'Back up the text of your encrypted conversations, protected by a passphrase. After a reinstall you can restore it here. Photos, videos, disappearing messages and deleted messages are not included.';
+
+  @override
+  String get historyBackupAction => 'Back up history';
+
+  @override
+  String get historyRestoreAction => 'Restore history';
+
+  @override
+  String get historyBackupNone => 'No backup yet';
+
+  @override
+  String historyBackupLast(String date, int count) {
+    return 'Last backup: $date · $count messages';
+  }
+
+  @override
+  String get historyBackupDialogHint =>
+      'Choose a passphrase for this backup. It is separate from the key passphrase, and without it the history cannot be recovered.';
+
+  @override
+  String historyBackupDone(int count) {
+    return '$count messages backed up';
+  }
+
+  @override
+  String get historyBackupTruncated =>
+      'The oldest messages could not be included: the file was too large.';
+
+  @override
+  String get historyBackupNothing =>
+      'There are no messages to back up on this device.';
+
+  @override
+  String get historyRestoreHint =>
+      'Enter the passphrase of the history backup.';
+
+  @override
+  String historyRestoreDone(int count) {
+    return '$count messages restored';
+  }
+
+  @override
+  String get historyRestoreNothingNew => 'Nothing new to restore.';
+
+  @override
+  String get historyDeleteConfirm =>
+      'Delete the history backup? This cannot be undone.';
+
+  @override
+  String get historyDeleteDone => 'History backup deleted';
+
+  @override
   String get mlsDeviceRevokeConfirm =>
       'This device will no longer be able to join encrypted conversations. Continue?';
 

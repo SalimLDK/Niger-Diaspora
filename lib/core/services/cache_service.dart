@@ -319,6 +319,38 @@ class CacheService {
     }
   }
 
+  /// Les conversations dont l'appareil garde des messages.
+  List<String> conversationsEnCache() {
+    const prefixe = 'messages_';
+    return [
+      for (final cle in Hive.box<String>(_messagesBox).keys)
+        if (cle is String && cle.startsWith(prefixe))
+          cle.substring(prefixe.length),
+    ];
+  }
+
+  /// Ajoute au cache les messages d'une sauvegarde, **sans rien remplacer**.
+  ///
+  /// `cacheMessages` écrase par identifiant : une restauration qui l'appellerait
+  /// remplacerait un message plus frais (modifié, réaction, suppression pour
+  /// tous) par sa copie d'il y a une semaine. Seuls les identifiants absents
+  /// entrent. Rend le nombre de messages ajoutés.
+  Future<int> restaurerMessages(
+    String conversationId,
+    List<Map<String, dynamic>> messages,
+  ) async {
+    final connus = {
+      for (final m in getCachedMessages(conversationId)) m['id'] as String?,
+    };
+    final manquants = [
+      for (final m in messages)
+        if (m['id'] is String && !connus.contains(m['id'])) m,
+    ];
+    if (manquants.isEmpty) return 0;
+    await cacheMessages(conversationId, manquants);
+    return manquants.length;
+  }
+
   int getCachedMessagesCount(String conversationId) {
     final box = Hive.box<String>(_messagesBox);
     final key = _messagesKey(conversationId);

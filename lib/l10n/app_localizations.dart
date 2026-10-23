@@ -23144,6 +23144,96 @@ abstract class AppLocalizations {
   /// **'Pensez ensuite à révoquer l\'ancien appareil.'**
   String get mlsBackupRevokeHint;
 
+  /// No description provided for @historyBackupSection.
+  ///
+  /// In fr, this message translates to:
+  /// **'Historique des messages'**
+  String get historyBackupSection;
+
+  /// No description provided for @historyBackupBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sauvegardez le texte de vos discussions chiffrées, protégé par une passphrase. Après une réinstallation, vous pourrez le restaurer ici. Les photos, vidéos, messages éphémères et messages supprimés ne sont pas inclus.'**
+  String get historyBackupBody;
+
+  /// No description provided for @historyBackupAction.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sauvegarder l\'historique'**
+  String get historyBackupAction;
+
+  /// No description provided for @historyRestoreAction.
+  ///
+  /// In fr, this message translates to:
+  /// **'Restaurer l\'historique'**
+  String get historyRestoreAction;
+
+  /// No description provided for @historyBackupNone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune sauvegarde pour l\'instant'**
+  String get historyBackupNone;
+
+  /// No description provided for @historyBackupLast.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dernière sauvegarde : {date} · {count} messages'**
+  String historyBackupLast(String date, int count);
+
+  /// No description provided for @historyBackupDialogHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisissez une passphrase pour cette sauvegarde. Elle est distincte de celle des clés, et sans elle l\'historique est irrécupérable.'**
+  String get historyBackupDialogHint;
+
+  /// No description provided for @historyBackupDone.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count} messages sauvegardés'**
+  String historyBackupDone(int count);
+
+  /// No description provided for @historyBackupTruncated.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les plus anciens messages n\'ont pas pu être inclus : le fichier était trop volumineux.'**
+  String get historyBackupTruncated;
+
+  /// No description provided for @historyBackupNothing.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun message à sauvegarder sur cet appareil.'**
+  String get historyBackupNothing;
+
+  /// No description provided for @historyRestoreHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Entrez la passphrase de la sauvegarde de l\'historique.'**
+  String get historyRestoreHint;
+
+  /// No description provided for @historyRestoreDone.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count} messages restaurés'**
+  String historyRestoreDone(int count);
+
+  /// No description provided for @historyRestoreNothingNew.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rien de nouveau à restaurer.'**
+  String get historyRestoreNothingNew;
+
+  /// No description provided for @historyDeleteConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer la sauvegarde de l\'historique ? Cette action est définitive.'**
+  String get historyDeleteConfirm;
+
+  /// No description provided for @historyDeleteDone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Sauvegarde de l\'historique supprimée'**
+  String get historyDeleteDone;
+
   /// No description provided for @mlsDeviceRevokeConfirm.
   ///
   /// In fr, this message translates to:

@@ -12613,6 +12613,63 @@ class AppLocalizationsFr extends AppLocalizations {
       'Pensez ensuite à révoquer l\'ancien appareil.';
 
   @override
+  String get historyBackupSection => 'Historique des messages';
+
+  @override
+  String get historyBackupBody =>
+      'Sauvegardez le texte de vos discussions chiffrées, protégé par une passphrase. Après une réinstallation, vous pourrez le restaurer ici. Les photos, vidéos, messages éphémères et messages supprimés ne sont pas inclus.';
+
+  @override
+  String get historyBackupAction => 'Sauvegarder l\'historique';
+
+  @override
+  String get historyRestoreAction => 'Restaurer l\'historique';
+
+  @override
+  String get historyBackupNone => 'Aucune sauvegarde pour l\'instant';
+
+  @override
+  String historyBackupLast(String date, int count) {
+    return 'Dernière sauvegarde : $date · $count messages';
+  }
+
+  @override
+  String get historyBackupDialogHint =>
+      'Choisissez une passphrase pour cette sauvegarde. Elle est distincte de celle des clés, et sans elle l\'historique est irrécupérable.';
+
+  @override
+  String historyBackupDone(int count) {
+    return '$count messages sauvegardés';
+  }
+
+  @override
+  String get historyBackupTruncated =>
+      'Les plus anciens messages n\'ont pas pu être inclus : le fichier était trop volumineux.';
+
+  @override
+  String get historyBackupNothing =>
+      'Aucun message à sauvegarder sur cet appareil.';
+
+  @override
+  String get historyRestoreHint =>
+      'Entrez la passphrase de la sauvegarde de l\'historique.';
+
+  @override
+  String historyRestoreDone(int count) {
+    return '$count messages restaurés';
+  }
+
+  @override
+  String get historyRestoreNothingNew => 'Rien de nouveau à restaurer.';
+
+  @override
+  String get historyDeleteConfirm =>
+      'Supprimer la sauvegarde de l\'historique ? Cette action est définitive.';
+
+  @override
+  String get historyDeleteDone => 'Sauvegarde de l\'historique supprimée';
+
+  @override
   String get mlsDeviceRevokeConfirm =>
       'Cet appareil ne pourra plus rejoindre de conversation chiffrée. Continuer ?';
 

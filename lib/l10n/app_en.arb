@@ -5877,6 +5877,45 @@
   "mlsBackupKeysStay": "Their keys stay on this phone: they are neither backed up online nor transferable to another device. There is nothing to back up here.",
   "mlsBackupNewPhone": "On a new phone, or after reinstalling the app, you will read messages sent after it was set up; earlier ones cannot be read there. They remain readable on the old device as long as the app stays installed.",
   "mlsBackupRevokeHint": "Then revoke the old device.",
+  "historyBackupSection": "Message history",
+  "historyBackupBody": "Back up the text of your encrypted conversations, protected by a passphrase. After a reinstall you can restore it here. Photos, videos, disappearing messages and deleted messages are not included.",
+  "historyBackupAction": "Back up history",
+  "historyRestoreAction": "Restore history",
+  "historyBackupNone": "No backup yet",
+  "historyBackupLast": "Last backup: {date} · {count} messages",
+  "@historyBackupLast": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "historyBackupDialogHint": "Choose a passphrase for this backup. It is separate from the key passphrase, and without it the history cannot be recovered.",
+  "historyBackupDone": "{count} messages backed up",
+  "@historyBackupDone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "historyBackupTruncated": "The oldest messages could not be included: the file was too large.",
+  "historyBackupNothing": "There are no messages to back up on this device.",
+  "historyRestoreHint": "Enter the passphrase of the history backup.",
+  "historyRestoreDone": "{count} messages restored",
+  "@historyRestoreDone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "historyRestoreNothingNew": "Nothing new to restore.",
+  "historyDeleteConfirm": "Delete the history backup? This cannot be undone.",
+  "historyDeleteDone": "History backup deleted",
   "mlsDeviceRevokeConfirm": "This device will no longer be able to join encrypted conversations. Continue?",
   "rename": "Rename",
   "revokeDeviceQuestion": "Delete these keys?",
