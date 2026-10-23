@@ -434,7 +434,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                         // La fiche 9a annonce ce que la recherche couvre. La
                         // clé l10n `searchPlaceholder` (« Rechercher... »)
                         // sert cinq autres écrans : on ne la détourne pas.
-                        hintText: 'Rechercher une personne, un message',
+                        hintText: 'Rechercher une discussion',
                         onChanged: _onSearchChanged,
                         onClear: () {
                           _searchController.clear();
@@ -811,22 +811,23 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(0, 14, 0, 2),
-      child: SizedBox(
-        height: 40,
-        child: ListView.separated(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          itemCount: entries.length,
-          separatorBuilder: (_, __) => const SizedBox(width: 9),
-          itemBuilder: (context, index) {
-            final (value, label, count) = entries[index];
-            return DesignFilterChip(
-              label: label,
-              count: count,
-              selected: _filter == value,
-              onTap: () => setState(() => _filter = value),
-            );
-          },
+      // Pas de hauteur fixe : à forte échelle de police la puce dépasse 40 px
+      // et un `SizedBox(height: 40)` en rognait le bas du texte (« Groupes »).
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Row(
+          children: [
+            for (var i = 0; i < entries.length; i++) ...[
+              if (i > 0) const SizedBox(width: 9),
+              DesignFilterChip(
+                label: entries[i].$2,
+                count: entries[i].$3,
+                selected: _filter == entries[i].$1,
+                onTap: () => setState(() => _filter = entries[i].$1),
+              ),
+            ],
+          ],
         ),
       ),
     );

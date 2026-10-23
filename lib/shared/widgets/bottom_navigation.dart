@@ -24,70 +24,86 @@ class CustomBottomNavigation extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return Padding(
-      padding: EdgeInsets.fromLTRB(
-        16,
-        0,
-        16,
-        MediaQuery.of(context).padding.bottom + 12,
+    // Fondu derrière la pilule : sans lui, la liste qui défile reste lisible
+    // dans l'interstice sous la barre, et le trait du geste système la
+    // « barre » comme un texte rayé.
+    final fond = context.backgroundColor;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [fond.withValues(alpha: 0), fond.withValues(alpha: 0.92)],
+        ),
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(28),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 56, sigmaY: 56),
-          child: Container(
-            height: 64,
-            padding: const EdgeInsets.symmetric(horizontal: 6),
-            decoration: BoxDecoration(
-              color: context.isDarkMode
-                  ? AppColors.surfaceDark.withValues(alpha: 0.55)
-                  : AppColors.surface.withValues(alpha: 0.7),
-              borderRadius: BorderRadius.circular(28),
-              border: Border.all(
-                color: context.isDarkMode
-                    ? Colors.white.withValues(alpha: 0.12)
-                    : Colors.white.withValues(alpha: 0.5),
-                width: 1,
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(
+          16,
+          16,
+          16,
+          MediaQuery.of(context).padding.bottom + 12,
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(28),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 56, sigmaY: 56),
+            child: Container(
+              height: 64,
+              padding: const EdgeInsets.symmetric(horizontal: 6),
+              decoration: BoxDecoration(
+                color:
+                    context.isDarkMode
+                        ? AppColors.surfaceDark.withValues(alpha: 0.55)
+                        : AppColors.surface.withValues(alpha: 0.7),
+                borderRadius: BorderRadius.circular(28),
+                border: Border.all(
+                  color:
+                      context.isDarkMode
+                          ? Colors.white.withValues(alpha: 0.12)
+                          : Colors.white.withValues(alpha: 0.5),
+                  width: 1,
+                ),
+                boxShadow:
+                    context.isDarkMode
+                        ? AppShadows.shadowBottomNavDark
+                        : AppShadows.shadowBottomNav,
               ),
-              boxShadow: context.isDarkMode
-                  ? AppShadows.shadowBottomNavDark
-                  : AppShadows.shadowBottomNav,
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _NavItem(
-                  icon: Icons.home_rounded,
-                  label: l10n.homeTitle,
-                  isActive: currentIndex == 0,
-                  onTap: () => onTap(0),
-                ),
-                _NavItem(
-                  icon: Icons.map_rounded,
-                  label: l10n.mapTitle,
-                  isActive: currentIndex == 1,
-                  onTap: () => onTap(1),
-                ),
-                _NavItem(
-                  icon: Icons.dynamic_feed_rounded,
-                  label: l10n.navFeeds,
-                  isActive: currentIndex == 2,
-                  onTap: () => onTap(2),
-                ),
-                _NavItem(
-                  icon: Icons.chat_bubble_rounded,
-                  label: l10n.navDiscussions,
-                  isActive: currentIndex == 3,
-                  onTap: () => onTap(3),
-                  badgeCount: unreadMessagesCount,
-                ),
-                _NavItem(
-                  icon: Icons.person_rounded,
-                  label: l10n.profileTitle,
-                  isActive: currentIndex == 4,
-                  onTap: () => onTap(4),
-                ),
-              ],
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _NavItem(
+                    icon: Icons.home_rounded,
+                    label: l10n.homeTitle,
+                    isActive: currentIndex == 0,
+                    onTap: () => onTap(0),
+                  ),
+                  _NavItem(
+                    icon: Icons.map_rounded,
+                    label: l10n.mapTitle,
+                    isActive: currentIndex == 1,
+                    onTap: () => onTap(1),
+                  ),
+                  _NavItem(
+                    icon: Icons.dynamic_feed_rounded,
+                    label: l10n.navFeeds,
+                    isActive: currentIndex == 2,
+                    onTap: () => onTap(2),
+                  ),
+                  _NavItem(
+                    icon: Icons.chat_bubble_rounded,
+                    label: l10n.navDiscussions,
+                    isActive: currentIndex == 3,
+                    onTap: () => onTap(3),
+                    badgeCount: unreadMessagesCount,
+                  ),
+                  _NavItem(
+                    icon: Icons.person_rounded,
+                    label: l10n.profileTitle,
+                    isActive: currentIndex == 4,
+                    onTap: () => onTap(4),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -125,9 +141,10 @@ class _NavItem extends StatelessWidget {
           curve: Curves.easeInOut,
           margin: const EdgeInsets.symmetric(horizontal: 2),
           decoration: BoxDecoration(
-            color: isActive
-                ? activeColor.withValues(alpha: 0.12)
-                : Colors.transparent,
+            color:
+                isActive
+                    ? activeColor.withValues(alpha: 0.12)
+                    : Colors.transparent,
             borderRadius: BorderRadius.circular(20),
           ),
           child: Column(
@@ -178,7 +195,12 @@ class _NavItem extends StatelessWidget {
                   fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
                   color: isActive ? activeColor : inactiveColor,
                 ),
-                child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis),
+                // Réduit au lieu d'ellipser : « Discussions » devenait
+                // « Discussi… » dans la pastille de l'onglet actif.
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(label, maxLines: 1, softWrap: false),
+                ),
               ),
             ],
           ),
