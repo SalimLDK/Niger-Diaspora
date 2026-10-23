@@ -39,11 +39,15 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1289 cases à cocher, 55 cochées** — 288 entrées sur 302 ont encore des cases ouvertes.
+**1548 cases à cocher, 55 cochées** — 331 entrées sur 345 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
-**P0 — avant toute nouvelle version** (47)
+**À classer : aucune ligne « Priorité » sous le titre** (1)
+
+- 4 · [Plantages Crashlytics 1.2.2 (31) — « objet utilisé après destruction » (2026-10-15)](#plantages-crashlytics-122-31---objet-utilisé-après-destruction--2026-10-15) · *Journaux de passes appareil*
+
+**P0 — avant toute nouvelle version** (48)
 
 - 2 · [⬜ Temps réel après l'arrière-plan, et texte supprimé dans la liste (2026-09-21)](#-temps-réel-après-larrière-plan-et-texte-supprimé-dans-la-liste-2026-09-21) · *Messagerie*
 - 5 · [⬜ Droits d'écriture sur `messages` resserrés : accusés et modification (2026-09-16)](#-droits-décriture-sur-messages-resserrés--accusés-et-modification-2026-09-16) · *Messagerie*
@@ -70,6 +74,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 6 · [⬜ Qui peut voir un événement : discussion, groupes, personnes, tout le monde (2026-09-12)](#-qui-peut-voir-un-événement--discussion-groupes-personnes-tout-le-monde-2026-09-12) · *Ambassades, démarches, carte, entreprises et événements*
 - 2 · [Réglages/Carte — deux interrupteurs de partage de position désynchronisés (2026-08-13)](#réglagescarte--deux-interrupteurs-de-partage-de-position-désynchronisés-2026-08-13) · *Ambassades, démarches, carte, entreprises et événements*
 - 4 · [⬜ 🔴 Bloquer un utilisateur ne bloque rien — corrigé (2026-09-14)](#--bloquer-un-utilisateur-ne-bloque-rien--corrigé-2026-09-14) · *Accueil, profil et réglages* · bloqué
+- 9 · [⬜ Panneau admin : campagnes de notification — l'ancien écran n'envoyait rien (2026-10-18)](#-panneau-admin--campagnes-de-notification--lancien-écran-nenvoyait-rien-2026-10-18) · *Backend, sécurité et observabilité*
 - 7 · [⬜ `users` : un compte connecté lit e-mail, position et jetons d'autrui (2026-09-21)](#-users--un-compte-connecté-lit-e-mail-position-et-jetons-dautrui-2026-09-21) · *Backend, sécurité et observabilité*
 - 3 · [⬜ `users` n'est plus lisible sans compte (2026-09-20)](#-users-nest-plus-lisible-sans-compte-2026-09-20) · *Backend, sécurité et observabilité*
 - 4 · [⬜ Bloqueurs de publication — Play & iOS (état 2026-09-21)](#-bloqueurs-de-publication--play--ios-état-2026-09-21) · *Publication et plateformes*
@@ -93,7 +98,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 6 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (115)
+**P1 — fonction importante, jamais vérifiée** (134)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -105,6 +110,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 8 · [⬜ Verrou de version minimale et multi-appareil (2026-09-15)](#-verrou-de-version-minimale-et-multi-appareil-2026-09-15) · *Comptes, session et onboarding*
 - 6 · [⬜ Onboarding rejoué : une lecture en échec n'est plus « jamais vu » (2026-09-10)](#-onboarding-rejoué--une-lecture-en-échec-nest-plus--jamais-vu--2026-09-10) · *Comptes, session et onboarding*
 - 3 · [⛔ Annuaire des ambassades : deux défauts vus sur appareil (2026-09-07)](#-annuaire-des-ambassades--deux-défauts-vus-sur-appareil-2026-09-07) · *Ambassades, démarches, carte, entreprises et événements*
+- 2 · [⬜ Discussion Signal : un message lu dans la bannière ne doit plus s'afficher « indisponible » (2026-10-16)](#-discussion-signal--un-message-lu-dans-la-bannière-ne-doit-plus-safficher--indisponible--2026-10-16) · *Messagerie*
 - 6 · [⬜ Liste, discussion, « Distribué » et « Lu » : le message arrive après sa notification, la liste ne s'actualise pas (2026-09-27)](#-liste-discussion--distribué--et--lu---le-message-arrive-après-sa-notification-la-liste-ne-sactualise-pas-2026-09-27) · *Messagerie*
 - 2 · [⬜ Présence et appels : la connexion RTDB ne revient pas après l'arrière-plan (SM A515F) (2026-09-22)](#-présence-et-appels--la-connexion-rtdb-ne-revient-pas-après-larrière-plan-sm-a515f-2026-09-22) · *Messagerie*
 - 2 · [⬜ Note vocale : l'enregistrement continue sans doigt après la demande de micro (2026-09-22)](#-note-vocale--lenregistrement-continue-sans-doigt-après-la-demande-de-micro-2026-09-22) · *Messagerie*
@@ -155,6 +161,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [⬜ Types, libellés et bascules : trois écarts entre ce qui est écrit et ce qui est lu (2026-09-16)](#-types-libellés-et-bascules--trois-écarts-entre-ce-qui-est-écrit-et-ce-qui-est-lu-2026-09-16) · *Notifications et push*
 - 9 · [⬜ Aperçu des notifications MLS sur iOS : une extension, pas un isolate (phase 4, moitié iOS)](#-aperçu-des-notifications-mls-sur-ios--une-extension-pas-un-isolate-phase-4-moitié-ios) · *Notifications et push* · bloqué
 - 6 · [Page Notifications à plat + heure sur le seul dernier message d'une rafale (2026-08-23)](#page-notifications-à-plat--heure-sur-le-seul-dernier-message-dune-rafale-2026-08-23) · *Notifications et push*
+- 10 · [⬜ Barre du bas : onglets « Feeds » (centre) et « Discussions » (2026-10-22)](#-barre-du-bas--onglets--feeds--centre-et--discussions--2026-10-22) · *Liens profonds, navigation et QR codes*
 - 2 · [✅ Lien `diasponiger://` au démarrage à froid — corrigé, vérifié SM A515F (2026-09-14)](#-lien-diasponiger-au-démarrage-à-froid--corrigé-vérifié-sm-a515f-2026-09-14) · *Liens profonds, navigation et QR codes*
 - 4 · [⬜ Le scanner de l'accueil lit tous les QR du projet (2026-09-09)](#-le-scanner-de-laccueil-lit-tous-les-qr-du-projet-2026-09-09) · *Liens profonds, navigation et QR codes*
 - 1 · [✅ Trois routes plantaient sur un cast non nullable — corrigées et vérifiées SM A515F (2026-09-08)](#-trois-routes-plantaient-sur-un-cast-non-nullable--corrigées-et-vérifiées-sm-a515f-2026-09-08) · *Liens profonds, navigation et QR codes*
@@ -169,6 +176,21 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [⬜ Photo de profil : on choisit son cadrage (2026-09-14)](#-photo-de-profil--on-choisit-son-cadrage-2026-09-14) · *Accueil, profil et réglages*
 - 6 · [⬜ Champ ville : recherche dans le référentiel (2026-09-13)](#-champ-ville--recherche-dans-le-référentiel-2026-09-13) · *Accueil, profil et réglages*
 - 7 · [Bascule en anglais — ~1 600 chaînes branchées, rien vu à l'écran (2026-08-06)](#bascule-en-anglais--1-600-chaînes-branchées-rien-vu-à-lécran-2026-08-06) · *Design, thème, langue et mise en page* · bloqué
+- 7 · [⬜ Événements : validation avant publication, en option (2026-10-20)](#-événements--validation-avant-publication-en-option-2026-10-20) · *Backend, sécurité et observabilité*
+- 8 · [⬜ Événements : calendrier, inscrits, statistiques — et un administrateur ne lit plus tous les événements (2026-10-19)](#-événements--calendrier-inscrits-statistiques--et-un-administrateur-ne-lit-plus-tous-les-événements-2026-10-19) · *Backend, sécurité et observabilité*
+- 6 · [⬜ Réglages versionnés : historique, comparaison, retour arrière (2026-10-19)](#-réglages-versionnés--historique-comparaison-retour-arrière-2026-10-19) · *Backend, sécurité et observabilité*
+- 7 · [⬜ Référentiel géographique : villes, doublons, pays (2026-10-19)](#-référentiel-géographique--villes-doublons-pays-2026-10-19) · *Backend, sécurité et observabilité*
+- 7 · [⬜ Panneau admin : ambassades — vérification sourcée, suspension motivée, historique (2026-10-19)](#-panneau-admin--ambassades--vérification-sourcée-suspension-motivée-historique-2026-10-19) · *Backend, sécurité et observabilité*
+- 7 · [⬜ Campagnes : programmation, modèles et rapport d'envoi (2026-10-18)](#-campagnes--programmation-modèles-et-rapport-denvoi-2026-10-18) · *Backend, sécurité et observabilité*
+- 8 · [⬜ Demandes de données : le demandeur est prévenu et lit une réponse (2026-10-18)](#-demandes-de-données--le-demandeur-est-prévenu-et-lit-une-réponse-2026-10-18) · *Backend, sécurité et observabilité*
+- 9 · [⬜ « Mes demandes sur mes données » : faire une demande depuis l'application (2026-10-18)](#--mes-demandes-sur-mes-données---faire-une-demande-depuis-lapplication-2026-10-18) · *Backend, sécurité et observabilité*
+- 6 · [⬜ Panneau admin : annuaire — badge motivé, archivage, historique (2026-10-18)](#-panneau-admin--annuaire--badge-motivé-archivage-historique-2026-10-18) · *Backend, sécurité et observabilité*
+- 10 · [⬜ Panneau admin : démarches consulaires, du brouillon à la publication (2026-10-18)](#-panneau-admin--démarches-consulaires-du-brouillon-à-la-publication-2026-10-18) · *Backend, sécurité et observabilité*
+- 9 · [⬜ Panneau admin : l'écran Support et la création d'un ticket côté application (2026-10-18)](#-panneau-admin--lécran-support-et-la-création-dun-ticket-côté-application-2026-10-18) · *Backend, sécurité et observabilité*
+- 6 · [⬜ Crashlytics : clés et journaux de diagnostic des OutOfMemoryError (2026-10-15)](#-crashlytics--clés-et-journaux-de-diagnostic-des-outofmemoryerror-2026-10-15) · *Backend, sécurité et observabilité*
+- 9 · [⬜ Second facteur TOTP obligatoire sur le panneau admin (2026-10-14)](#-second-facteur-totp-obligatoire-sur-le-panneau-admin-2026-10-14) · *Backend, sécurité et observabilité*
+- 4 · [⬜ Signalements : l'app écrit dans Supabase, le panneau admin les voit (2026-10-15)](#-signalements--lapp-écrit-dans-supabase-le-panneau-admin-les-voit-2026-10-15) · *Backend, sécurité et observabilité*
+- 8 · [⬜ Registre de rôle unique : claim, Postgres et callable — l'écran Rôles et le bannissement serveur (2026-10-14)](#-registre-de-rôle-unique--claim-postgres-et-callable--lécran-rôles-et-le-bannissement-serveur-2026-10-14) · *Backend, sécurité et observabilité*
 - 5 · [⬜ Aucune requête Supabase ne part sans session : le refus du pont est respecté (2026-10-13)](#-aucune-requête-supabase-ne-part-sans-session--le-refus-du-pont-est-respecté-2026-10-13) · *Backend, sécurité et observabilité*
 - 4 · [⬜ Une erreur Supabase ne fait plus planter l'app : message à l'écran, JWT expiré retenté (2026-10-13)](#-une-erreur-supabase-ne-fait-plus-planter-lapp--message-à-lécran-jwt-expiré-retenté-2026-10-13) · *Backend, sécurité et observabilité*
 - 3 · [⬜ Les echecs attrapes remontent enfin a Crashlytics (2026-09-14)](#-les-echecs-attrapes-remontent-enfin-a-crashlytics-2026-09-14) · *Backend, sécurité et observabilité*
@@ -177,6 +199,8 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [⬜ Storage : on dépose, on ne réécrit plus (2026-09-21)](#-storage--on-dépose-on-ne-réécrit-plus-2026-09-21) · *Publication et plateformes*
 - 2 · [⛔ « Diaspo Niger s'arrête systématiquement » sur Android 15+ (2026-09-09)](#--diaspo-niger-sarrête-systématiquement--sur-android-15-2026-09-09) · *Publication et plateformes*
 - 4 · [⚠️ Rapatriement iOS : deux dépendances **Android** changent de version majeure (2026-09-08)](#-rapatriement-ios--deux-dépendances-android-changent-de-version-majeure-2026-09-08) · *Publication et plateformes*
+- 6 · [⬜ Panneau admin, Signalements : décision par `signalement_transition` (2026-10-17)](#-panneau-admin-signalements--décision-par-signalement_transition-2026-10-17) · *Site web*
+- 6 · [⬜ Panneau admin, Signalements : lit Firestore (ce que l'app signale) en plus de Supabase (2026-10-15)](#-panneau-admin-signalements--lit-firestore-ce-que-lapp-signale-en-plus-de-supabase-2026-10-15) · *Site web*
 - 9 · [⬜ La page de suppression de compte demande la suppression au lieu de l'exécuter (2026-09-19)](#-la-page-de-suppression-de-compte-demande-la-suppression-au-lieu-de-lexécuter-2026-09-19) · *Site web*
 - 9 · [⬜ Accusés, réactions, modifications et suppressions reçus en direct, discussion en clair (2026-09-21)](#-accusés-réactions-modifications-et-suppressions-reçus-en-direct-discussion-en-clair-2026-09-21) · *Messagerie*
 - 9 · [⬜ Partager vers une discussion — groupe et 1:1 (2026-09-09)](#-partager-vers-une-discussion--groupe-et-11-2026-09-09) · *Messagerie*
@@ -211,7 +235,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 7 · [Bascule design_v2 → production : la carte (§7e, 2026-08-03)](#bascule-design_v2--production--la-carte-7e-2026-08-03) · *Design, thème, langue et mise en page* · bloqué
 - 4 · [« Se connecter avec Apple » ajouté (2026-09-01)](#-se-connecter-avec-apple--ajouté-2026-09-01) · *Publication et plateformes* · bloqué
 
-**P2 — fonction secondaire ou cas limite** (90)
+**P2 — fonction secondaire ou cas limite** (107)
 
 - 7 · [⬜ Site web : menu mobile, liens partagés, aperçus de partage (2026-09-08)](#-site-web--menu-mobile-liens-partagés-aperçus-de-partage-2026-09-08) · *Site web*
 - 3 · [✅ Vidéos envoyées en messagerie traitées comme des documents (2026-08-30)](#-vidéos-envoyées-en-messagerie-traitées-comme-des-documents-2026-08-30) · *Messagerie*
@@ -222,6 +246,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 5 · [Reprise du design (2026-08-03, suite) — Éco, accueil, carte, discussion](#reprise-du-design-2026-08-03-suite--éco-accueil-carte-discussion) · *Design, thème, langue et mise en page* · bloqué
 - 5 · [Bascule design_v2 → production, famille 4 : messagerie, groupes, recherche, profil (2026-08-03)](#bascule-design_v2--production-famille-4--messagerie-groupes-recherche-profil-2026-08-03) · *Design, thème, langue et mise en page*
 - 7 · [⬜ Site web entièrement refait sur cahier des charges (2026-09-08)](#-site-web-entièrement-refait-sur-cahier-des-charges-2026-09-08) · *Site web*
+- 5 · [⬜ Discussion : « Délivré » dès l'arrivée du push (MLS), accents de la barre de saisie, « En ligne » (2026-10-22)](#-discussion---délivré--dès-larrivée-du-push-mls-accents-de-la-barre-de-saisie--en-ligne--2026-10-22) · *Messagerie*
 - 3 · [⬜ Le séparateur « N messages non lus » part quand tout est lu (2026-09-17)](#-le-séparateur--n-messages-non-lus--part-quand-tout-est-lu-2026-09-17) · *Messagerie*
 - 3 · [⬜ « Distribué » et « Lu » ne tombent plus à la même seconde (2026-09-16)](#--distribué--et--lu--ne-tombent-plus-à-la-même-seconde-2026-09-16) · *Messagerie*
 - 1 · [⬜ Forme de la bulle qui cite un message (2026-09-16)](#-forme-de-la-bulle-qui-cite-un-message-2026-09-16) · *Messagerie*
@@ -272,11 +297,27 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⬜ Le sigle DN est le même partout (2026-09-13)](#-le-sigle-dn-est-le-même-partout-2026-09-13) · *Design, thème, langue et mise en page*
 - 1 · [Thème sombre — jetons clairs codés en dur](#thème-sombre--jetons-clairs-codés-en-dur) · *Design, thème, langue et mise en page*
 - 4 · [Bascule design_v2 → production, famille 2 : les services (2026-08-03)](#bascule-design_v2--production-famille-2--les-services-2026-08-03) · *Design, thème, langue et mise en page*
+- 5 · [⬜ Panneau admin : Groupes — confidentialité et suppression qui marchent, avec motif et historique (2026-10-19)](#-panneau-admin--groupes--confidentialité-et-suppression-qui-marchent-avec-motif-et-historique-2026-10-19) · *Backend, sécurité et observabilité*
+- 6 · [⬜ Panneau admin : « À traiter » et recherche globale (2026-10-19)](#-panneau-admin---à-traiter--et-recherche-globale-2026-10-19) · *Backend, sécurité et observabilité*
+- 6 · [⬜ Support : délais de service, escalade, modèles de réponse (2026-10-19)](#-support--délais-de-service-escalade-modèles-de-réponse-2026-10-19) · *Backend, sécurité et observabilité*
+- 7 · [⬜ Panneau admin : Journal d'audit — filtres côté serveur, détail, export audité (2026-10-19)](#-panneau-admin--journal-daudit--filtres-côté-serveur-détail-export-audité-2026-10-19) · *Backend, sécurité et observabilité*
+- 6 · [⬜ Panneau admin : Membres — avertir, suspendre, vérifier, déconnecter avec motif et historique (2026-10-19)](#-panneau-admin--membres--avertir-suspendre-vérifier-déconnecter-avec-motif-et-historique-2026-10-19) · *Backend, sécurité et observabilité*
+- 5 · [⬜ Panneau admin : Transferts et Marketplace — l'écran était vide et ses gestes échouaient (2026-10-19)](#-panneau-admin--transferts-et-marketplace--lécran-était-vide-et-ses-gestes-échouaient-2026-10-19) · *Backend, sécurité et observabilité*
+- 7 · [⬜ Tableau de bord : « À traiter » par droit, et des compteurs qui n'affichent plus 0 en cas d'erreur (2026-10-19)](#-tableau-de-bord---à-traiter--par-droit-et-des-compteurs-qui-naffichent-plus-0-en-cas-derreur-2026-10-19) · *Backend, sécurité et observabilité*
+- 7 · [⬜ Panneau admin : demandes relatives aux données et incidents de sécurité (2026-10-18)](#-panneau-admin--demandes-relatives-aux-données-et-incidents-de-sécurité-2026-10-18) · *Backend, sécurité et observabilité*
+- 6 · [⬜ Panneau admin : annuler / supprimer un événement avec motif, historique des changements (2026-10-18)](#-panneau-admin--annuler--supprimer-un-événement-avec-motif-historique-des-changements-2026-10-18) · *Backend, sécurité et observabilité*
+- 9 · [⬜ Panneau admin : demandes d'informations et recours dans le dossier de signalement (2026-10-18)](#-panneau-admin--demandes-dinformations-et-recours-dans-le-dossier-de-signalement-2026-10-18) · *Backend, sécurité et observabilité*
 - 5 · [⬜ Avis sur les entreprises : basculés de Firestore vers Supabase (2026-09-21)](#-avis-sur-les-entreprises--basculés-de-firestore-vers-supabase-2026-09-21) · *Backend, sécurité et observabilité*
 - 5 · [Fuseau horaire — heures affichées en UTC (2026-08-04)](#fuseau-horaire--heures-affichées-en-utc-2026-08-04) · *Backend, sécurité et observabilité*
 - 7 · [Admin (back-office)](#admin-back-office) · *Backend, sécurité et observabilité*
 - 2 · [⬜ Le `.env` embarqué ne livre plus de chemin de poste (2026-09-21)](#-le-env-embarqué-ne-livre-plus-de-chemin-de-poste-2026-09-21) · *Publication et plateformes*
 - 7 · [iOS : premier build réussi, sur simulateur (2026-09-01)](#ios--premier-build-réussi-sur-simulateur-2026-09-01) · *Publication et plateformes* · bloqué
+- 4 · [⬜ Panneau admin, Commerces et Marketplace : recherche côté serveur (2026-10-15)](#-panneau-admin-commerces-et-marketplace--recherche-côté-serveur-2026-10-15) · *Site web*
+- 3 · [⬜ Panneau admin : écrans Configuration et Signalements découpés (2026-10-15)](#-panneau-admin--écrans-configuration-et-signalements-découpés-2026-10-15) · *Site web*
+- 4 · [⬜ Panneau admin, Commerces et Marketplace : listes paginées (2026-10-15)](#-panneau-admin-commerces-et-marketplace--listes-paginées-2026-10-15) · *Site web*
+- 4 · [⬜ Panneau admin, Signalements : pagination, recherche et type côté serveur (2026-10-14)](#-panneau-admin-signalements--pagination-recherche-et-type-côté-serveur-2026-10-14) · *Site web*
+- 4 · [⬜ Panneau admin, Transferts : quatre onglets paginés par le serveur (2026-10-14)](#-panneau-admin-transferts--quatre-onglets-paginés-par-le-serveur-2026-10-14) · *Site web*
+- 4 · [⬜ Panneau admin, Utilisateurs : pagination et recherche côté serveur (2026-10-14)](#-panneau-admin-utilisateurs--pagination-et-recherche-côté-serveur-2026-10-14) · *Site web*
 - 13 · [Passe pilotée du 2026-08-04 (15:25 → 16:05) — SM A515F, APK debug `54083d6`](#passe-pilotée-du-2026-08-04-1525--1605--sm-a515f-apk-debug-54083d6) · *Journaux de passes appareil*
 - 3 · [Fonctionnalité épingle mise en pause (2026-08-14)](#fonctionnalité-épingle-mise-en-pause-2026-08-14) · *Messagerie*
 - 1 · [Réactions emoji : une par personne et par message (2026-08-13)](#réactions-emoji--une-par-personne-et-par-message-2026-08-13) · *Messagerie* · bloqué
@@ -304,7 +345,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [✅ Bulle de chargement d'une vidéo pendant l'upload (2026-08-30)](#-bulle-de-chargement-dune-vidéo-pendant-lupload-2026-08-30) · *Messagerie*
 - 21 · [Refonte Fil & Discussion — Priorité basse — cosmétique, faible risque](#refonte-fil--discussion--priorité-basse--cosmétique-faible-risque) · *Fil, stories, salons audio et podcasts*
 
-**P3 — confort, cosmétique, fonction en pause** (36)
+**P3 — confort, cosmétique, fonction en pause** (41)
 
 - 3 · [⬜ Polices embarquées : plus de téléchargement au premier affichage (2026-09-11)](#-polices-embarquées--plus-de-téléchargement-au-premier-affichage-2026-09-11) · *Design, thème, langue et mise en page* · bloqué
 - 2 · [⬜ Icône du lanceur repeinte en vert (2026-09-07)](#-icône-du-lanceur-repeinte-en-vert-2026-09-07) · *Design, thème, langue et mise en page*
@@ -331,7 +372,12 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 2 · [⬜ Deux textes du fil que `font_scale` 1.3 abime — corrigés, à revoir (2026-09-14)](#-deux-textes-du-fil-que-font_scale-13-abime--corrigés-à-revoir-2026-09-14) · *Design, thème, langue et mise en page*
 - 2 · [⬜ Une couleur par service dans les deux grilles (2026-09-14)](#-une-couleur-par-service-dans-les-deux-grilles-2026-09-14) · *Design, thème, langue et mise en page*
 - 3 · [Débordement du champ « Type * » — création d'ambassade (2026-08-04)](#débordement-du-champ--type----création-dambassade-2026-08-04) · *Design, thème, langue et mise en page* · bloqué
+- 4 · [⬜ Panneau admin : sources consulaires à revoir (2026-10-19)](#-panneau-admin--sources-consulaires-à-revoir-2026-10-19) · *Backend, sécurité et observabilité*
+- 4 · [⬜ Panneau admin : Statistiques — fini les zéros qui cachent une erreur et l'export factice (2026-10-19)](#-panneau-admin--statistiques--fini-les-zéros-qui-cachent-une-erreur-et-lexport-factice-2026-10-19) · *Backend, sécurité et observabilité*
 - 1 · [Cartographie des accès `anon` réellement nécessaires (2026-08-13)](#cartographie-des-accès-anon-réellement-nécessaires-2026-08-13) · *Backend, sécurité et observabilité*
+- 3 · [⬜ Panneau admin : textes passés en l10n et infobulles sur les boutons-icônes (2026-10-15)](#-panneau-admin--textes-passés-en-l10n-et-infobulles-sur-les-boutons-icônes-2026-10-15) · *Site web*
+- 5 · [⬜ Panneau admin : Transferts, Marketplace, Commerces, Modération et Audit passent aux briques du kit (2026-10-15)](#-panneau-admin--transferts-marketplace-commerces-modération-et-audit-passent-aux-briques-du-kit-2026-10-15) · *Site web*
+- 3 · [⬜ Panneau admin : Utilisateurs et Signalements passent aux briques du kit (2026-10-15)](#-panneau-admin--utilisateurs-et-signalements-passent-aux-briques-du-kit-2026-10-15) · *Site web*
 - 3 · [Passe nocturne + carte vérifiée sur appareil (2026-08-04, SM A515F)](#passe-nocturne--carte-vérifiée-sur-appareil-2026-08-04-sm-a515f) · *Journaux de passes appareil*
 - 2 · [Session appareil du 2026-08-03 — SM A515F, thème sombre, font_scale 1.1](#session-appareil-du-2026-08-03--sm-a515f-thème-sombre-font_scale-11) · *Journaux de passes appareil*
 - 12 · [Messages épinglés — le bandeau n'était pas temps réel (2026-08-05)](#messages-épinglés--le-bandeau-nétait-pas-temps-réel-2026-08-05) · *Messagerie* · bloqué
@@ -346,21 +392,21 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 Par domaine :
 
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 0 faites
-- [2. Messagerie](#2-messagerie) — 299 à faire, 31 faites
+- [2. Messagerie](#2-messagerie) — 306 à faire, 31 faites
 - [3. Groupes](#3-groupes) — 128 à faire, 0 faites
 - [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 121 à faire, 4 faites
 - [5. Appels](#5-appels) — 24 à faire, 1 faites
 - [6. Notifications et push](#6-notifications-et-push) — 115 à faire, 6 faites
-- [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 36 à faire, 0 faites
+- [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 46 à faire, 0 faites
 - [8. Comptes, session et onboarding](#8-comptes-session-et-onboarding) — 63 à faire, 0 faites
 - [9. Fil, stories, salons audio et podcasts](#9-fil-stories-salons-audio-et-podcasts) — 101 à faire, 0 faites
 - [10. Ambassades, démarches, carte, entreprises et événements](#10-ambassades-démarches-carte-entreprises-et-événements) — 67 à faire, 0 faites
 - [11. Accueil, profil et réglages](#11-accueil-profil-et-réglages) — 58 à faire, 5 faites
 - [12. Design, thème, langue et mise en page](#12-design-thème-langue-et-mise-en-page) — 112 à faire, 5 faites
-- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 74 à faire, 2 faites
+- [13. Backend, sécurité et observabilité](#13-backend-sécurité-et-observabilité) — 266 à faire, 2 faites
 - [14. Publication et plateformes](#14-publication-et-plateformes) — 46 à faire, 1 faites
-- [15. Site web](#15-site-web) — 23 à faire, 0 faites
-- [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 19 à faire, 0 faites
+- [15. Site web](#15-site-web) — 69 à faire, 0 faites
+- [16. Journaux de passes appareil](#16-journaux-de-passes-appareil) — 23 à faire, 0 faites
 
 <!-- sommaire:fin -->
 
@@ -447,6 +493,29 @@ du SM A515F (compte « Sim A », non-admin, sans pays renseigné).
 # 2. Messagerie
 
 Discussions : bulles, composeur, médias, épingles, réactions, accusés, recherche. Les groupes sont au § 3, le chiffrement au § 4.
+
+---
+
+## ⬜ Discussion : « Délivré » dès l'arrivée du push (MLS), accents de la barre de saisie, « En ligne » (2026-10-22)
+
+**Priorité P2** · importance 3/5 — vu sur capture : dernier message « À l'instant · Envoyé » alors que le destinataire était « En ligne ».
+
+- **Délivré (MLS)** : le push ne posait « livré » que dans `messages` ; une conversation basculée lit `mls_message_receipts`, donc « Envoyé » restait jusqu'à l'ouverture de la discussion. `MlsMetadonnees.marquerLivresRecents`, appelée depuis `notification_service.dart` (premier plan et arrière-plan). Libellé « Reçu » → « Délivré ».
+  - [ ] A envoie à B (B sur la liste des discussions, puis B app en arrière-plan) : sous le message de A, « Envoyé » passe à « Délivré » en quelques secondes, sans que B ouvre la discussion ; puis « Lu » à l'ouverture.
+  - [ ] Vérifier aussi B sur l'écran d'accueil, app tuée (push seul) : le cas le moins sûr, l'isolate d'arrière-plan doit avoir sa session.
+- **« En ligne » en police de texte** (`conversation_screen.dart`, `_buildStatusWithLock`) : il héritait du serif du titre. Le nom reste en serif, voulu.
+  - [ ] En-tête : « Sim A » en serif, « En ligne » / « Vu il y a… » en sans-serif.
+- **Barre de saisie** (`message_input.dart`) : « + » et emoji au vert de la marque (comme le micro), marges latérales 6 → 12.
+  - [ ] Thème Orange et thème vert, clair et sombre : plus d'orange dans la barre ; « + » et micro ne touchent plus le bord.
+- **Heure et accusé en sombre** : gris secondaire au lieu du tertiaire (`message_bubble.dart`).
+  - [ ] Thème sombre : « 10:41 · Lu » lisible sur le fond.
+
+## ⬜ Discussion Signal : un message lu dans la bannière ne doit plus s'afficher « indisponible » (2026-10-16)
+
+**Priorité P1** · importance 4/5 — vu sur appareil : le texte était lisible dans l'aperçu, mais la bulle de la discussion affichait « Message indisponible sur cet appareil ». Cause probable : la bannière de notification au premier plan déchiffrait, consommait la clé (ratchet à sens unique) et jetait le texte. Cause non prouvée par les journaux.
+
+- [ ] Deux téléphones en E2EE Signal, app A au premier plan hors de la discussion : B envoie un message ; lire la bannière, puis ouvrir la discussion. La bulle affiche le texte, pas « indisponible » (`notification_decryption_service.dart`, `message_repository_impl.dart`).
+- [ ] Répondre à un message réellement illisible : la citation et le bandeau « répondre à » affichent « Message indisponible sur cet appareil », jamais `[🔐 E2EE — session requise]` (`message_bubble.dart`, `message_input.dart`).
 
 ---
 
@@ -5984,6 +6053,25 @@ Liens d'app, routes et gardes du routeur, flèche retour, scanner et QR.
 
 ---
 
+## ⬜ Barre du bas : onglets « Feeds » (centre) et « Discussions » (2026-10-22)
+
+**Priorité P1** · importance 4/5 — La barre passe de Accueil/Carte/Groupes/Messages/Profil à Accueil/Carte/**Feeds**/**Discussions**/Profil ; un lien ou un geste qui tombe sur le mauvais onglet se verrait tout de suite.
+
+À vérifier sur appareil (`bottom_navigation.dart`, `tablet_navigation_rail.dart`, `app_router.dart`, `discussions_segment.dart`, `feed_screen.dart`) :
+
+- [ ] Phone : les cinq onglets tiennent sans libellé tronqué, y compris police agrandie ; « Feeds » est au centre et s'allume sur `/feeds`.
+- [ ] « Discussions » s'ouvre sur Messages ; le segment bascule vers Groupes sans transition ni clignotement, et l'onglet rouvre sur la dernière vue choisie.
+- [ ] Badge rouge de la barre = non lus ; sur le segment, Messages porte les non lus et Groupes les invitations en attente.
+- [ ] Recherche des messages : le segment disparaît avec l'en-tête, le clavier monte au premier tap (clé du champ inchangée).
+- [ ] Feeds en onglet : pas de flèche de retour ; le bouton retour système quitte l'app (comme les autres onglets). Un hashtag touché dans un post ouvre toujours un fil filtré AVEC flèche.
+- [ ] Tuile « Feeds » de l'accueil et « Tous les services » mènent à l'onglet, pas à un second fil empilé.
+- [ ] Lien profond `/groups` : tombe sur Discussions > Groupes. Notification de message : ouvre toujours la conversation.
+- [ ] Tablette / paysage : le rail gauche affiche les mêmes cinq entrées, sans débordement.
+- [ ] Thème sombre : segment lisible (pilule pleine = texte du fond).
+- [ ] Les écrans Messages et Groupes gardent leurs titres propres (« Messages », « Groupes ») : décider si l'en-tête doit dire « Discussions ».
+
+---
+
 ## ✅ Filtre hashtag : réparé et vérifié sur SM A515F (2026-09-14)
 
 **Priorité P2** · importance 3/5 — Ouvrir un hashtag alors que le fil est déjà à l'écran annonçait le filtre mais montrait le fil non filtré ; et le filtre ne se levait jamais, donc revenir au fil général le laissait filtré.
@@ -9296,6 +9384,466 @@ parce qu'il change un **comportement**, pas seulement un habillage :
 Supabase et Firebase côté serveur, accès anon, stockage, journaux, Crashlytics, back-office.
 
 ---
+## ⬜ Événements : validation avant publication, en option (2026-10-20)
+
+**Priorité P1** · importance 4/5 — Les politiques de lecture des événements et la visibilité côté membre ont changé (option désactivée, donc rien ne doit bouger) : à vérifier sur un téléphone avant toute activation.
+
+*Bloqué : migration 20261020090000 appliquée, un téléphone avec un compte organisateur et un compte invité, le panneau web avec contentMod et superAdmin.*
+
+Fichiers : `lib/features/admin/presentation/widgets/evenements_validation.dart`, `supabase/migrations/20261020090000_evenements_validation_option.sql`.
+
+- [ ] Option désactivée, téléphone : créer un événement public — il apparaît tout de suite chez un autre compte, comme avant.
+- [ ] Option désactivée : les événements existants, privés et publics, s'affichent et se rejoignent comme avant.
+- [ ] superAdmin active le réglage : la confirmation rappelle que l'organisateur ne voit pas l'état ; contentMod n'a pas l'interrupteur.
+- [ ] Option active : un événement public créé n'apparaît pas chez un autre compte, apparaît dans « À valider » ; l'approuver le rend visible, le refuser demande un motif.
+- [ ] Un contentMod organisateur ne peut pas approuver son propre événement (message de refus clair).
+- [ ] Option active : un événement privé (invités) reste visible de ses invités sans validation.
+- [ ] Téléphone, organisateur, option active : la fiche de son événement public affiche « En attente de validation » ; après refus, le motif et « Soumettre de nouveau » ; après approbation, la bannière disparaît.
+
+---
+
+## ⬜ Panneau admin : Groupes — confidentialité et suppression qui marchent, avec motif et historique (2026-10-19)
+
+**Priorité P2** · importance 3/5 — Les deux gestes étaient des écritures directes que les droits ne laissaient passer que pour l'administrateur du groupe : sur un groupe ordinaire, « Rendre privé » et « Supprimer » échouaient. Ils passent par des fonctions serveur ; les groupes privés deviennent lisibles par la modération.
+
+*Bloqué : migration 20261019173000 appliquée, un contentMod, un superAdmin, un groupe ordinaire de test (avec un événement rattaché), un groupe privé dont le compte n'est pas membre.*
+
+Fichiers : `admin_moderation_screen.dart`, `admin_provider.dart` (`setGroupPrivacy`, `deleteGroup`), `supabase/migrations/20261019173000_groupes_moderation_admin.sql`.
+
+- [ ] L'onglet Groupes de la modération liste aussi les groupes privés dont le compte n'est pas membre (avant : une fraction des groupes).
+- [ ] « Rendre privé » / « Rendre public » exige un motif (5 caractères) et réussit sur un groupe ordinaire dont le compte n'est pas administrateur.
+- [ ] « Supprimer » exige un motif ; le message dit combien d'événements sont partis avec le groupe ; le groupe disparaît de la liste.
+- [ ] Un groupe officiel : un contentMod est refusé (message de permission), un superAdmin réussit.
+- [ ] Le Journal d'audit montre `GROUP_PRIVACY_CHANGED` / `GROUP_DELETED` sans le motif ; le motif reste dans l'historique du groupe.
+## ⬜ Panneau admin : sources consulaires à revoir (2026-10-19)
+
+**Priorité P3** · importance 2/5 — Écran en lecture seule, sans migration : il ne lit que les tables que `consular.view` ouvre déjà.
+
+*Bloqué : le panneau web avec un compte contentMod ou superAdmin.*
+
+Fichiers : `lib/features/admin/presentation/screens/admin_sources_consulaires_screen.dart`, `lib/features/admin/presentation/providers/sources_consulaires_provider.dart`.
+
+- [ ] Les démarches sans source, jamais vérifiées, à révision dépassée ou publiées sans révision prévue sont listées avec la bonne étiquette.
+- [ ] Les ambassades sans source ou jamais vérifiées sont listées ; toucher une ligne ouvre l'écran Démarches ou Ambassades.
+- [ ] Couper le réseau puis actualiser : l'erreur s'affiche, pas « Rien à revoir ».
+- [ ] Un compte sans accès consulaire voit « pas d'accès », pas une liste vide.
+
+---
+## ⬜ Panneau admin : « À traiter » et recherche globale (2026-10-19)
+
+**Priorité P2** · importance 3/5 — Écran d'administration seulement ; la recherche touche des données personnelles de membres, donc ce qu'elle rend selon le rôle compte.
+
+*Bloqué : migration 20261019230000 appliquée, le panneau web avec contentMod, financeMod et superAdmin.*
+
+Fichiers : `lib/features/admin/presentation/screens/admin_recherche_screen.dart`, `lib/features/admin/presentation/providers/recherche_admin_provider.dart`, `supabase/migrations/20261019230000_recherche_globale_a_traiter.sql`.
+
+- [ ] superAdmin : « À traiter » liste les familles qui ont des éléments, avec le plus ancien et le nombre en retard ; toucher une ligne ouvre l'écran concerné.
+- [ ] financeMod : la recherche d'un nom de membre ne rend aucun membre et dit « Non cherché (droit manquant) : Membres… ».
+- [ ] Rechercher « % » ne rend rien (pas toute la base) ; rechercher par courriel ne trouve pas de membre.
+- [ ] La recherche ne part qu'à la validation (Entrée / bouton), pas à chaque frappe.
+- [ ] Couper le réseau puis actualiser « À traiter » : l'erreur s'affiche, pas « Rien n'attend ».
+- [ ] Journal d'audit : l'entrée ADMIN_SEARCH ne contient pas le mot cherché.
+
+---
+## ⬜ Support : délais de service, escalade, modèles de réponse (2026-10-19)
+
+**Priorité P2** · importance 3/5 — Écran d'administration seulement, mais la garde du déclencheur `support_tickets_guard` a été réécrite : un membre doit toujours pouvoir créer et suivre son ticket depuis l'application.
+
+*Bloqué : migration 20261019210000 appliquée, le panneau web avec contentMod et superAdmin, un téléphone avec un compte membre.*
+
+Fichiers : `lib/features/admin/presentation/screens/admin_support_tickets_screen.dart`, `lib/features/admin/presentation/widgets/reglages_support_dialog.dart`, `supabase/migrations/20261019210000_support_sla_escalade_modeles.sql`.
+
+- [ ] Téléphone, membre : créer un ticket, lire la réponse du support, répondre, le clore — tout fonctionne comme avant.
+- [ ] superAdmin : « Modèles et délais » arrête un délai ; un ticket plus ancien que ce délai affiche « En retard » en rouge, et ses deux échéances.
+- [ ] Retirer le délai : le badge « En retard » disparaît.
+- [ ] contentMod : voit la section modèles mais pas celle des délais ; crée un modèle, l'insère dans une réponse (le texte remplace le brouillon et reste modifiable).
+- [ ] contentMod escalade un ticket avec un motif : badge « Escaladé », filtre « Escaladés », motif visible ; le bouton Lever l'escalade n'apparaît que pour le superAdmin.
+- [ ] Largeur tablette : le dialogue des réglages reste utilisable (défilement, champs numériques).
+
+## ⬜ Panneau admin : Statistiques — fini les zéros qui cachent une erreur et l'export factice (2026-10-19)
+
+**Priorité P3** · importance 2/5 — Un échec de lecture s'affichait « 0 » (courbe de croissance vide), les répartitions s'arrêtaient à 1000 lignes, et trois boutons « Exporter » annonçaient « Export en cours » sans rien produire. Les chiffres portent maintenant leur définition et l'heure de lecture.
+
+*Bloqué : un compte administrateur sur le panneau ; pouvoir couper le réseau.*
+
+Fichiers : `admin_analytics_screen.dart`, `admin_provider.dart` (`AdminAnalyticsNotifier`).
+
+- [ ] Les trois compteurs (aujourd'hui, semaine, mois) et la courbe de six mois correspondent à un comptage fait à la main dans la base.
+- [ ] Réseau coupé puis « Actualiser » : un message d'erreur s'affiche, aucun chiffre périmé ni zéro.
+- [ ] La carte « Ce que mesurent ces chiffres » donne les définitions et « Données lues le … » change à chaque actualisation.
+- [ ] Il n'y a plus de bouton d'export sur cet écran.
+
+---
+## ⬜ Événements : calendrier, inscrits, statistiques — et un administrateur ne lit plus tous les événements (2026-10-19)
+
+**Priorité P1** · importance 4/5 — Un correctif de visibilité touche l'application elle-même : `can_see_event` et `is_event_readable` ont changé. Il faut vérifier sur un téléphone que les événements, brouillons et inscrits s'affichent comme avant pour les bonnes personnes.
+
+*Bloqué : migration 20261019190000 appliquée, un téléphone avec un compte organisateur et un compte invité, le panneau web avec contentMod et superAdmin.*
+
+Fichiers : `lib/features/admin/presentation/screens/admin_evenements_screen.dart`, `supabase/migrations/20261019190000_evenements_calendrier_inscrits_stats.sql`.
+
+- [ ] Téléphone, organisateur : ses événements (brouillon, privé, public) s'affichent tous ; créer et modifier fonctionne.
+- [ ] Téléphone, invité à un événement privé : il le voit et voit « qui y va ». Un autre membre non invité ne le voit pas.
+- [ ] Téléphone, événement public : la liste des participants s'affiche toujours.
+- [ ] Panneau, rubrique « Événements » : le calendrier du mois montre les événements publics avec leur nombre par jour ; le texte dit combien d'événements non publics sont comptés sans être listés.
+- [ ] contentMod ne voit pas « Voir les inscrits » ; le superAdmin le voit, la liste s'affiche avec un rappel de journalisation, et le journal d'audit montre une ligne EVENT_ATTENDEES_VIEWED sans noms.
+- [ ] Statistiques : fenêtre 7/30/90/365 jours ; les définitions s'affichent et l'écran dit « Non mesuré : désinscriptions, participations confirmées ».
+- [ ] financeMod / businessMod ne voient plus les événements privés dans l'écran Contenu.
+- [ ] Les heures du calendrier indiquent le fuseau de l'appareil.
+
+## ⬜ Panneau admin : Journal d'audit — filtres côté serveur, détail, export audité (2026-10-19)
+
+**Priorité P2** · importance 3/5 — L'écran ne filtrait que les 100 dernières lignes en mémoire : une action plus ancienne répondait « aucun résultat ». Les filtres lisent désormais toute la table ; l'export est plafonné et s'inscrit lui-même au journal.
+
+*Bloqué : migration 20261019171000 appliquée, un superAdmin, un contentMod, quelques dizaines de lignes de journal (dont des refus).*
+
+Fichiers : `admin_audit_screen.dart`, `audit_journal_provider.dart`, `supabase/migrations/20261019171000_journal_audit_export.sql`.
+
+- [ ] Chercher une action vieille de plus de 100 lignes (filtre « Action ») la trouve ; « Charger la suite » ajoute 50 lignes et finit sur « Fin du journal ».
+- [ ] Filtres acteur, type, identifiant, résultat et période se combinent ; une période inversée l'écrit au lieu d'afficher une liste vide.
+- [ ] Taper `%` ou `_` dans « Action » ne ramène pas tout le journal.
+- [ ] Toucher une ligne ouvre le détail complet en lecture seule (corrélation, motif, JSON), texte sélectionnable.
+- [ ] « Exporter » (superAdmin) copie le CSV ; coller dans un tableur : une cellule `=…` s'affiche en texte. Une ligne `AUDIT_EXPORTED` apparaît avec les filtres.
+- [ ] Un contentMod n'a pas accès au journal ; s'il appelle l'export, il est refusé et rien n'est inscrit.
+- [ ] Couper le réseau puis filtrer : l'erreur s'affiche, pas « aucune entrée ».
+
+---
+## ⬜ Panneau admin : Membres — avertir, suspendre, vérifier, déconnecter avec motif et historique (2026-10-19)
+
+**Priorité P2** · importance 3/5 — Les gestes de modération des membres passaient par des écritures directes sur `users` sans motif ni historique ; ils passent désormais par des fonctions serveur. À vérifier avec de vrais comptes, surtout la levée automatique de la suspension.
+
+*Bloqué : migration 20261019170000 appliquée, un contentMod, un superAdmin, deux comptes membres de test.*
+
+Fichiers : `admin_users_management_screen.dart`, `admin_provider.dart`, `supabase/migrations/20261019170000_membres_moderation.sql`.
+
+- [ ] « Avertir » : le membre reçoit la notification « Avertissement de la modération » avec le message saisi, pas le motif interne ; le toast annonce le total.
+- [ ] « Suspendre » 1 jour : le membre est déconnecté, ne peut pas rouvrir l'app ; le menu propose « Réactiver » (et plus « Suspendre »).
+- [ ] La suspension se lève seule à l'échéance (tâche toutes les 10 min) ; « Historique de modération » le montre comme émis par le système.
+- [ ] « Vérifier » exige une base ; « Retirer le badge » un motif ; refaire le même geste affiche le refus du serveur, pas un faux succès.
+- [ ] Un contentMod ne peut ni suspendre ni déconnecter un administrateur ; un superAdmin le peut.
+- [ ] « Déconnecter » exige un motif et déconnecte le membre en temps réel.
+## ⬜ Réglages versionnés : historique, comparaison, retour arrière (2026-10-19)
+
+**Priorité P1** · importance 4/5 — Les réglages portent les drapeaux de fonctionnalités, les frais et le mode maintenance. ⚠️ Les règles Firestore qui rendent l'historique obligatoire ne sont PAS déployées (cible : `firestore.rules.cible-reglages-historique`) : à déployer avec le panneau qui écrit `lastChangeId`, jamais avant — l'ancien panneau ne pourrait plus enregistrer un réglage.
+
+*Bloqué : panneau web redéployé avec ce commit, règles Firestore déployées après lecture du jeu en production, un compte superAdmin.*
+
+Fichiers : `lib/features/admin/data/datasources/app_settings_datasource.dart`, `reglages_historique_datasource.dart`, `widgets/historique_reglages.dart`, `firestore.rules.cible-reglages-historique`, banc `tools/rules_tests/reglages_historique.mjs`.
+
+- [ ] Avant tout déploiement : relire les règles déployées (méthode de `project_firestore_rules_drift`) et vérifier qu'elles n'ont pas bougé depuis le 2026-10-14 (ruleset a18ed4d9) ; rejouer le banc sur l'émulateur.
+- [ ] Panneau, Réglages → bouton horloge : l'historique s'ouvre ; après un enregistrement de frais, une entrée apparaît avec « clé : ancien → nouveau », l'auteur et l'heure.
+- [ ] « Restaurer l'ancienne valeur » exige un motif de 5 caractères ; la section reprend l'ancienne valeur, une entrée « Retour arrière » apparaît, et l'application mobile relit la valeur restaurée.
+- [ ] La toute première entrée d'une section n'offre pas de restauration (pas d'ancienne valeur).
+- [ ] Avec les règles cibles déployées, enregistrer un réglage depuis l'ANCIEN panneau est refusé : confirmer qu'il n'est plus en ligne avant de déployer.
+- [ ] Un contentMod n'a ni accès à l'écran Réglages ni à l'historique.
+
+---
+## ⬜ Référentiel géographique : villes, doublons, pays (2026-10-19)
+
+**Priorité P1** · importance 4/5 — Une ville fausse ou fusionnée de travers peut ouvrir ou casser des groupes officiels « Diaspora Niger — <ville> » et décaler des profils. Rubrique réservée au superAdmin.
+
+*Bloqué : migration 20261019180000 appliquée, un compte superAdmin sur le panneau web, un téléphone avec un compte de test.*
+
+Fichiers : `lib/features/admin/presentation/screens/admin_referentiel_screen.dart`, `supabase/migrations/20261019180000_referentiel_geographique.sql`.
+
+- [ ] Application : la recherche de ville (profil, filtre Découvrir, « Utiliser ma position ») marche comme avant — la lecture publique n'a pas été cassée par le retrait des droits d'écriture.
+- [ ] contentMod et businessMod ne voient pas « Référentiel géographique » ; tapé en adresse, l'écran affiche « pas accès ».
+- [ ] Ville : chercher « Niamey », la modifier avec un motif (population) : l'historique la trace ; sans motif, le bouton reste grisé.
+- [ ] Créer une ville à moins de 20 km d'une homonyme du même pays : refusée avec le numéro de l'existante.
+- [ ] Doublons : la liste montre les couples avec profils et groupes de chaque côté ; fusionner reporte les profils (vérifier sur un compte de test que sa ville affichée est la ville conservée).
+- [ ] Fusionner une ville qui porte un groupe, supprimer une ville utilisée, changer le pays d'une ville utilisée : tous refusés avec le décompte des profils et groupes.
+- [ ] Pays : ajouter un pays de test (code ISO 2 lettres) ; il n'existe aucun bouton de renommage ni de suppression.
+
+---
+## ⬜ Panneau admin : Transferts et Marketplace — l'écran était vide et ses gestes échouaient (2026-10-19)
+
+**Priorité P2** · importance 3/5 — Les tables sont vides et les paiements éteints, ce qui a masqué le défaut : un administrateur ne lisait aucun transfert. À vérifier avec de vraies lignes de test avant de rallumer la fonction.
+
+*Bloqué : migration 20261019160000 appliquée, deux comptes financeMod, un businessMod, un superAdmin, et des lignes de test (transferts, produits, une commande en litige) insérées par SQL.*
+
+Fichiers : `admin_transactions_screen.dart`, `admin_marketplace_screen.dart`, `supabase/migrations/20261019160000_transferts_marketplace_admin.sql`.
+
+- [ ] financeMod voit les transferts de test dans l'écran Transferts (avant : liste toujours vide) ; businessMod et contentMod n'en voient aucun.
+- [ ] « Terminer » exige une preuve du règlement ; « Échec » un motif ; un transfert terminé ne s'échoue plus.
+- [ ] « Demander le remboursement » : l'écran répète qu'aucun fonds ne bouge ; le transfert reste « terminé » ; le demandeur lit qu'il ne peut pas décider sa propre demande ; un autre financeMod voit « Approuver / Refuser ».
+- [ ] Marketplace : masquer / rétablir / supprimer un produit demandent un motif ; la suppression d'un produit qui a des commandes est refusée ; un vendeur ne rétablit pas un produit masqué par la modération.
+- [ ] Un litige se tranche avec un motif ; l'écran rappelle que le séquestre n'est ni libéré ni remboursé.
+## ⬜ Tableau de bord : « À traiter » par droit, et des compteurs qui n'affichent plus 0 en cas d'erreur (2026-10-19)
+
+**Priorité P2** · importance 3/5 — Un tableau de bord qui dit « 0 » quand il n'a pas pu lire est pire qu'un tableau de bord vide ; et un agent ne doit voir que les files de ses droits.
+
+*Bloqué : migration 20261019130000 appliquée, le panneau web avec un superAdmin, un contentMod, un businessMod et un financeMod.*
+
+Fichiers : `lib/features/admin/presentation/widgets/bloc_a_traiter.dart`, `admin_dashboard_screen.dart`, `supabase/migrations/20261019130000_tableau_de_bord_a_traiter.sql`.
+
+- [ ] superAdmin : le bloc « À traiter » montre sept files (signalements, support, démarches, campagnes, demandes de données, incidents, fiches à vérifier), triées urgentes d'abord ; chaque ligne dit sa définition, ce qui y est urgent et la date du plus ancien.
+- [ ] « Calculé à HH:mm » est affiché ; « Recalculer » le met à jour.
+- [ ] contentMod ne voit que signalements, support, démarches ; businessMod seulement « Fiches à vérifier » ; financeMod : « Aucune file à traiter n'est rattachée à votre rôle » (et non une liste de zéros).
+- [ ] Toucher une ligne ouvre la bonne rubrique (campagnes → Notifications, demandes et incidents → Sécurité et conformité).
+- [ ] Coupez le réseau puis rechargez : le bloc affiche l'erreur et un bouton, pas des zéros ; les compteurs illisibles du haut affichent « — » et une phrase les nomme.
+- [ ] Les chiffres du bloc correspondent à ce que montrent les écrans de chaque rubrique (même file, même nombre).
+- [ ] Thème sombre et largeur étroite : le bloc reste lisible.
+
+---
+## ⬜ Panneau admin : ambassades — vérification sourcée, suspension motivée, historique (2026-10-19)
+
+**Priorité P1** · importance 4/5 — Le badge « vérifié » d'une ambassade n'était posé que par une écriture directe, sans source ni trace ; et la carte de l'application doit continuer d'afficher les 32 fiches existantes.
+
+*Bloqué : migration 20261019090000 appliquée, panneau web avec un compte superAdmin et un compte contentMod, un téléphone.*
+
+Fichiers : `lib/features/admin/presentation/screens/admin_embassy_verification_screen.dart`, `providers/ambassades_admin_provider.dart`, `supabase/migrations/20261019090000_ambassades_moderation.sql`.
+
+- [ ] Téléphone : l'annuaire et la carte des ambassades affichent toujours les 32 fiches, vérifiées (la lecture publique n'a pas bougé).
+- [ ] Panneau, une ambassade non vérifiée : « Vérifier » demande l'adresse https ET l'éditeur de la source ; sans l'un des deux, le bouton reste grisé ; après confirmation la fiche passe vérifiée.
+- [ ] « Refuser » et « Suspendre » exigent un motif de 5 caractères au moins ; « Réactiver » aussi.
+- [ ] Une action refusée par le serveur (déjà vérifiée, déjà suspendue) s'affiche en clair et la liste se recharge.
+- [ ] contentMod (non super) : les boutons échouent avec « pas la permission » — comme avant, seul le superAdmin écrit cette table.
+- [ ] L'écran de création d'une ambassade fonctionne toujours (la fiche naît non vérifiée) ; modifier un numéro de téléphone fonctionne.
+- [ ] Journal d'audit : chaque geste laisse une ligne EMBASSY_*.
+## ⬜ Campagnes : programmation, modèles et rapport d'envoi (2026-10-18)
+
+**Priorité P1** · importance 4/5 — Une campagne approuvée part désormais TOUTE SEULE à son heure (tâche pg_cron toutes les 5 minutes) : c'est la première fois qu'un message de masse part sans que personne ne clique.
+
+*Bloqué : migration 20261019110000 appliquée, deux comptes superAdmin et un contentMod, un téléphone avec un compte de test dans un pays à part (ne PAS viser « tous »).*
+
+Fichiers : `lib/features/admin/presentation/screens/admin_campagnes_screen.dart`, `supabase/migrations/20261019110000_campagnes_programmees_modeles_rapports.sql`.
+
+- [ ] Programmer une campagne d'essai (1 compte de test) dans ~10 minutes, la soumettre, l'approuver avec l'autre superAdmin : « Lancer l'envoi » n'est PAS offert avant l'heure ; elle part seule dans les 5 minutes qui suivent l'heure ; le téléphone reçoit le push.
+- [ ] Le rapport affiche créées / ignorées / restantes, « joignables par push », le délai de départ et la durée, et rappelle que la livraison n'est pas mesurée.
+- [ ] Approuver une campagne dont l'heure est dans moins de 2 minutes est refusé avec un message lisible.
+- [ ] Annuler une campagne approuvée et programmée avant l'heure : rien ne part, même après l'heure.
+- [ ] Une campagne non approuvée dont l'heure passe ne part jamais.
+- [ ] Modèles : créer, utiliser dans l'éditeur (type, titre et texte repris), archiver ; la campagne qui en part suit toute l'approbation.
+- [ ] Vérifier `select * from cron.job where jobname = 'campaign_send_due'` : une ligne, active, toutes les 5 minutes.
+
+---
+## ⬜ Demandes de données : le demandeur est prévenu et lit une réponse (2026-10-18)
+
+**Priorité P1** · importance 4/5 — La notification doit arriver sur un vrai téléphone et son aperçu, affiché écran verrouillé, ne doit rien révéler de la demande.
+
+*Bloqué : migration 20261019100000 appliquée, un téléphone avec un compte de test (notifications autorisées), le panneau web avec un superAdmin.*
+
+Fichiers : `supabase/migrations/20261019100000_demandes_donnees_reponse_et_avancement.sql`, `mes_demandes_donnees_screen.dart`, `admin_securite_screen.dart`.
+
+- [ ] Téléphone verrouillé : à chaque étape décidée au panneau (identité vérifiée, traitement, traitée), un push « Votre demande sur vos données » arrive, SANS la nature de la demande ni le motif.
+- [ ] Relire `net._http_response` (recette du 2026-09-15) : un 200 portant `skipped` veut dire « créée mais pas poussée » ; le noter.
+- [ ] Appuyer sur la notification ouvre l'application ; la ligne est dans la liste de notifications, libellé « Général ».
+- [ ] Avec « Messages système » coupé dans les réglages, la notification arrive quand même (message de service, pas promotionnel).
+- [ ] Panneau : « État des lieux » n'est offert qu'après la vérification d'identité, montre des NOMBRES seulement, jamais de contenu.
+- [ ] Panneau : terminer ou refuser la demande d'un compte demande deux textes (note interne, réponse au demandeur) ; sans la réponse, le bouton reste grisé.
+- [ ] Téléphone, « Mes demandes » : la réponse de l'équipe s'affiche sous la demande traitée ou refusée, jamais la note interne ni le motif.
+- [ ] Retirer soi-même une demande ne déclenche aucune notification.
+
+---
+## ⬜ « Mes demandes sur mes données » : faire une demande depuis l'application (2026-10-18)
+
+**Priorité P1** · importance 4/5 — Premier point d'entrée utilisateur pour les droits d'accès, de rectification et d'opposition ; l'écran touche des données personnelles et doit se lire correctement sur un vrai téléphone.
+
+*Bloqué : migration 20261018250000 appliquée, un téléphone avec un compte de test, le panneau web avec un superAdmin.*
+
+Fichiers : `lib/features/settings/presentation/screens/mes_demandes_donnees_screen.dart`, tuile dans `settings_screen.dart`, route `/settings/mes-donnees`.
+
+- [ ] Réglages → tuile « Mes demandes sur mes données » → l'écran s'ouvre ; la flèche de retour est visible, y compris ouvert par lien profond.
+- [ ] Faire une demande d'accès avec un texte court (< 10 caractères) : le bouton d'envoi reste grisé ; avec 10 caractères ou plus : « Demande envoyée » et la ligne apparaît, « Reçue ».
+- [ ] Refaire une demande d'accès tant que la première est ouverte : message « déjà en cours ou limite atteinte », rien n'est créé.
+- [ ] « Retirer » une demande ouverte : elle passe « Retirée ou annulée ».
+- [ ] L'écran dit où faire la suppression et l'export, et ne propose pas ces deux natures.
+- [ ] Panneau : la demande arrive « Depuis l'application », « À prendre en charge » ; seul « Prendre en charge » est offert avant ; après, la vérification d'identité ; le téléphone lit « Identité vérifiée ».
+- [ ] Panneau, demande d'effacement liée à un compte existant : la carte montre « Compte : présent », « Terminer » est refusé avec un message lisible tant que le compte n'est pas effacé.
+- [ ] Coupez le réseau : l'écran affiche « Impossible de charger vos demandes » et un bouton, jamais « Vous n'avez fait aucune demande ».
+- [ ] Thème sombre, grande police, anglais : textes lisibles sans débordement.
+
+---
+## ⬜ Panneau admin : demandes relatives aux données et incidents de sécurité (2026-10-18)
+
+**Priorité P2** · importance 3/5 — Premier suivi tenu de ces deux sujets. Rubrique réservée au superAdmin : à confirmer qu'aucun autre rôle ne la voit.
+
+*Bloqué : migration 20261018230000 appliquée, un compte superAdmin et un compte contentMod sur le panneau web.*
+
+Fichiers : `lib/features/admin/presentation/screens/admin_securite_screen.dart`, `supabase/migrations/20261018230000_securite_conformite.sql`.
+
+- [ ] contentMod et businessMod ne voient pas « Sécurité et conformité » dans le menu ; tapé en adresse, l'écran affiche « pas accès » et aucune donnée.
+- [ ] superAdmin crée une demande d'accès avec un compte de test : « Passer en traitement » n'est offert qu'APRÈS « Vérifier l'identité » ; terminer exige un compte rendu.
+- [ ] L'écran répète que l'échéance est interne (aucun délai légal calculé) et que le suivi n'exécute rien.
+- [ ] Une demande d'effacement « terminée » ne supprime pas le compte (vérifier : le compte existe toujours).
+- [ ] Les données du demandeur (compte, contact) n'apparaissent que carte dépliée, jamais dans la liste.
+- [ ] Incident : ouvrir, noter, confiner, résoudre ; clore sans cause ou sans enseignements est refusé avec un message lisible ; la chronologie d'un incident clos n'accepte plus de note.
+- [ ] Dans le journal d'audit, ni le texte des notes, ni l'identité du demandeur n'apparaissent.
+
+---
+## ⬜ Panneau admin : campagnes de notification — l'ancien écran n'envoyait rien (2026-10-18)
+
+**Priorité P0** · importance 5/5 — L'ancien écran « Notifications » affichait « envoyée avec succès » alors que rien ne partait (aucun déclencheur ne lisait `admin_notifications`). Le nouveau crée de vraies notifications : il faut voir un push arriver sur un vrai téléphone, et mesurer.
+
+*Bloqué : migration 20261018210000 appliquée, deux comptes superAdmin et un contentMod, un téléphone avec un compte de test dans un pays à part (ne PAS viser « tous » pour l'essai).*
+
+Fichiers : `lib/features/admin/presentation/screens/admin_campagnes_screen.dart`, `supabase/migrations/20261018210000_communications_campagnes.sql`.
+
+- [ ] contentMod rédige une campagne « Information officielle » ciblant UN compte de test (audience « comptes précis ») et la soumet ; il ne voit pas « Approuver » et lit la phrase d'attente.
+- [ ] Un premier superAdmin approuve ; le décompte affiché dit « 1 compte visé, 0 ont coupé, 1 sera notifié ».
+- [ ] Lancer l'envoi : la boîte de confirmation donne le vrai nombre ; après envoi la carte dit « 1 notifications créées » ; le téléphone reçoit le push ET la ligne apparaît dans la liste de notifications, avec le libellé « Message système ».
+- [ ] Relire `net._http_response` (recette du 2026-09-15) : un 200 portant `skipped` veut dire « créée mais pas poussée » — le noter, l'écran ne le sait pas.
+- [ ] Sur le téléphone, couper « Messages système » : une campagne promotionnelle ne le notifie plus (« 1 compte ignoré ») ; une campagne « Sécurité » le notifie quand même.
+- [ ] Relancer l'envoi d'une campagne envoyée : refusé, aucun doublon sur le téléphone.
+- [ ] Interrompre un envoi (réseau coupé au milieu d'un lot) puis « Reprendre l'envoi » : pas de notification en double.
+- [ ] Annuler une campagne approuvée : « Lancer l'envoi » disparaît. Aucun champ de date de programmation n'existe (volontaire).
+- [ ] Thème sombre et largeur étroite : formulaire et dialogues lisibles.
+
+---
+## ⬜ Panneau admin : annuaire — badge motivé, archivage, historique (2026-10-18)
+
+**Priorité P1** · importance 4/5 — Le badge « vérifié » et la promotion payante ne se posent plus que par le serveur, avec une base ou un motif ; et l'application doit continuer d'enregistrer les fiches de leurs propriétaires.
+
+*Bloqué : migration 20261018190000 appliquée, panneau web avec un compte businessMod, un téléphone avec un compte propriétaire d'une fiche.*
+
+Fichiers : `lib/features/admin/presentation/screens/admin_businesses_screen.dart`, `supabase/migrations/20261018190000_annuaire_moderation.sql`.
+
+- [ ] Téléphone, propriétaire : créer une fiche, modifier son nom, ses horaires, ses photos → tout s'enregistre comme avant (le serveur compare des valeurs, il ne refuse pas la réécriture complète de la ligne).
+- [ ] Panneau, « Vérifier » : refuse de confirmer sans base de 5 caractères au moins ; la fiche passe « vérifiée » ; « Retirer le badge » exige un motif.
+- [ ] « Archiver » : la fiche disparaît de l'annuaire de l'application pour les autres membres, sa promotion s'arrête, une mention « Archivée » apparaît dans le panneau ; « Restaurer » la remet.
+- [ ] Téléphone, propriétaire d'une fiche archivée : il la voit encore ; il ne peut pas la réactiver lui-même.
+- [ ] Un compte financeMod ou contentMod ne peut ni vérifier, ni promouvoir, ni archiver, ni supprimer (message de permission lisible).
+- [ ] Les 7 fiches existantes (nom vide, « 200000 », ville « carte »…) : décider lesquelles archiver — c'est du contenu, pas du code.
+
+---
+## ⬜ Panneau admin : annuler / supprimer un événement avec motif, historique des changements (2026-10-18)
+
+**Priorité P2** · importance 3/5 — Un administrateur sans droit ne doit plus pouvoir annuler ou effacer l'événement de quelqu'un ; un déplacement ou une annulation doit laisser une trace lisible.
+
+*Bloqué : migration 20261018170000 appliquée, panneau web avec un compte contentMod et le superAdmin, un téléphone avec un compte organisateur.*
+
+Fichiers : `lib/features/admin/presentation/screens/admin_moderation_screen.dart` (onglet Événements), `supabase/migrations/20261018170000_evenements_moderation.sql`.
+
+- [ ] contentMod : le menu d'un événement propose « Annuler » mais pas « Supprimer » ; superAdmin propose les deux.
+- [ ] « Annuler » refuse de confirmer sans motif d'au moins 5 caractères ; après confirmation l'événement passe « annulé » et le motif est dans l'audit.
+- [ ] Téléphone : l'événement annulé s'affiche « annulé » à l'ouverture (les inscrits ne reçoivent PAS de notification : à confirmer, et à signaler comme manque).
+- [ ] Téléphone, organisateur : déplacer son événement (date ou adresse) fonctionne comme avant ; changer seulement l'image ne crée rien dans l'historique.
+- [ ] Un événement déjà annulé ne se ré-annule pas : message « a changé entre-temps », liste rechargée.
+- [ ] Thème sombre : boîte de dialogue du motif lisible.
+
+---
+## ⬜ Panneau admin : démarches consulaires, du brouillon à la publication (2026-10-18)
+
+**Priorité P1** · importance 4/5 — L'usager monte son dossier consulaire d'après ces pièces et ces montants : un texte publié sans relecture, ou une dépublication qui n'atteint pas les téléphones, a un coût réel.
+
+*Bloqué : migration 20261018150000 appliquée, panneau web avec deux comptes contentMod, un téléphone avec l'application.*
+
+Fichiers : `lib/features/admin/presentation/screens/admin_demarches_screen.dart`, `widgets/editeur_demarche.dart`, `supabase/migrations/20261018150000_demarches_workflow.sql`.
+
+- [ ] Le catalogue de l'application s'affiche toujours (20 démarches) : la lecture publique n'a pas été cassée.
+- [ ] Panneau, « Démarches consulaires » : 20 démarches « Publiée », version 1, vérifiées le 07/09/2026, « Révision à planifier ».
+- [ ] « Modifier » sans motif : le bouton d'enregistrement reste grisé. Avec motif : brouillon enregistré, la démarche publiée ne change pas.
+- [ ] Une pièce modifiée garde ses autres propriétés (forme, groupe alternatif, note) après publication.
+- [ ] « Soumettre » sans source ou sans date de vérification est refusé avec un message lisible.
+- [ ] L'auteur du brouillon ne voit pas « Approuver » et lit la phrase d'attente ; le second compte peut approuver ou refuser (motif obligatoire).
+- [ ] Publier : version 2, l'historique montre les versions 1 et 2 et le motif ; le téléphone voit le nouveau texte après relance de l'application.
+- [ ] Dépublier : la démarche disparaît de l'application, y compris après vidage du cache ; noter ce qui reste affiché hors ligne (copie embarquée dans l'APK).
+- [ ] Fermer l'éditeur modifié demande confirmation. Thème sombre et largeur étroite : formulaire lisible.
+- [ ] Application, écran de demande administrative : après une publication, la démarche affiche « Informations vérifiées le … · source : … » ; coupé du réseau, le bandeau dit « liste enregistrée hors ligne le JJ/MM/AAAA ».
+
+---
+## ⬜ Panneau admin : l'écran Support et la création d'un ticket côté application (2026-10-18)
+
+**Priorité P1** · importance 4/5 — Avant la migration 20261018130000, la table `support_tickets` n'avait pas les colonnes que l'application écrit : créer un ticket échouait (table vide en production). À vérifier sur un téléphone, puis dans le panneau.
+
+*Bloqué : migration appliquée, un téléphone avec un compte membre, le panneau web avec un compte contentMod.*
+
+Fichiers : `lib/features/admin/presentation/screens/admin_support_tickets_screen.dart`, `lib/features/support/` (création côté membre).
+
+- [ ] Téléphone : créer un ticket (catégorie Transfert, avec un message) → il part sans erreur, et il apparaît dans « Mes tickets ».
+- [ ] Panneau, entrée « Support » : le ticket est dans « Ouverts », avec le nom du membre ; la file n'affiche jamais « vide » sur une erreur de chargement.
+- [ ] « Prendre en charge » : statut « En cours », la zone de réponse apparaît ; avant cela, seule la phrase « Prenez le ticket en charge » s'affiche.
+- [ ] Répondre : sur le téléphone, la réponse arrive dans le fil, signée « Support Diaspo Niger » (pas le nom de l'agent), et le ticket est marqué non lu.
+- [ ] Note interne : visible dans la zone ambre du panneau, absente du fil côté téléphone.
+- [ ] Deuxième compte contentMod : « Reprendre » exige un motif ; répondre sur le ticket d'un autre est refusé avec un message lisible.
+- [ ] Résoudre puis Clôturer exigent chacun un texte ; « Rouvrir » sur un ticket résolu fonctionne.
+- [ ] Téléphone : le membre peut clore lui-même son ticket résolu, et ajouter un message à un ticket en cours.
+- [ ] Thème sombre et largeur étroite (< 768 px) : cartes et dialogues lisibles.
+
+---
+## ⬜ Panneau admin : demandes d'informations et recours dans le dossier de signalement (2026-10-18)
+
+**Priorité P2** · importance 3/5 — Un modérateur voit des boutons qui échouent, ou un recours que le décideur peut examiner lui-même, sans que le serveur ne s'en plaigne lisiblement.
+
+*Bloqué : panneau admin en web (diaspo-niger-admin), deux comptes contentMod distincts, un signalement `resolved` décidé par le premier. Migration 20261018090000 appliquée.*
+
+Fichiers : `lib/features/admin/presentation/widgets/dossier_moderation_sections.dart`, `admin_reports_screen.dart` (bouton « Prendre en charge »).
+
+- [ ] Signalement `pending` : « Prendre en charge » passe le dossier en examen à votre nom ; la section Demandes d'informations apparaît.
+- [ ] Rédiger une demande au signalant, puis au membre signalé (deux brouillons distincts) ; une seconde au même destinataire → message de conflit lisible.
+- [ ] Envoyer : l'aperçu montre le texte exact ; après envoi, plus de bouton Envoyer ; consigner la réponse la passe en « Répondue ».
+- [ ] Une demande dont l'échéance est passée s'affiche « En retard » (laisser une échéance de 3 jours, ou la reculer en base).
+- [ ] Compte contentMod B sur le dossier de A : aucun refus muet, le message dit que le dossier est attribué ailleurs.
+- [ ] Dossier `resolved` : « Enregistrer un recours » ; avec le compte qui a décidé, « Prendre en examen » est absent et la phrase de conflit s'affiche.
+- [ ] Avec un autre compte : prendre en examen, trancher « Renvoyer pour réexamen » → le dossier repasse « escaladé » et la décision contestée reste lisible sur le recours.
+- [ ] Un signalement hérité de Firestore ne montre ni ces sections ni « Prendre en charge ».
+- [ ] Thème sombre et largeur étroite (< 768 px) : dialogues lisibles, sans débordement.
+
+---
+## ⬜ Crashlytics : clés et journaux de diagnostic des OutOfMemoryError (2026-10-15)
+
+**Priorité P1** · importance 4/5 — 8 `OutOfMemoryError` en 30 jours sur 1.2.2 (Tecno/Infinix, app en arrière-plan), onglets Clés et Journaux vides : on ne savait pas qui remplissait le tas. `lib/core/services/diagnostic_memoire.dart` pose désormais des clés personnalisées et des journaux dans chaque isolat (principal, FCM, service de localisation, réponse rapide) ; la mémoire Java vient du plugin local `packages/diagnostic_memoire` (Android seulement). Ne corrige PAS l'OOM. `flutter test` ne couvre pas : la lecture native, ni ce que Crashlytics affiche vraiment.
+
+*Bloqué : build release Android sur un téléphone, console Crashlytics (les non-fatals mettent quelques minutes à remonter).*
+
+- [ ] Depuis l'app au premier plan, forcer un non-fatal (`FirebaseCrashlytics.instance.recordError(Exception('test diag'), null)` depuis un bouton de debug ou un test d'intégration), l'ouvrir dans la console → onglet **Clés** : `isolat`=`principal`, `appli_au_premier_plan`=`true`, `service_localisation_actif`, `tas_max_mio`, `tas_alloue_mio`, `tas_libre_mio`, `tas_restant_mio`, `classe_memoire_mio`, `grande_classe_memoire_mio`, `appareil_peu_de_ram`, `rss_mio`, avec des valeurs plausibles (tas max 128–512).
+- [ ] Mettre l'app en arrière-plan, recevoir un push de message, puis forcer un non-fatal depuis l'isolat FCM → clé `isolat`=`fcm_arriere_plan`, `appli_au_premier_plan`=`false`, valeurs du tas rafraîchies ; onglet **Journaux** : `isolat ouvert : fcm_arriere_plan`, `fcm début : message`, `fcm fin`.
+- [ ] Partage de position actif, app en arrière-plan : journaux `isolat ouvert : service_localisation`, `service localisation : démarrage` ; couper le partage → `service localisation : arrêt (…)` et `service_localisation_actif`=`false` sur le non-fatal suivant.
+- [ ] Revenir au premier plan puis repasser en arrière-plan → journaux `cycle de vie : premier plan` / `arrière-plan`, clé `appli_au_premier_plan` suit.
+- [ ] iOS : aucune erreur ni plantage (pas de plugin natif) ; clés `isolat` et `rss_mio` présentes, pas de `tas_*`.
+- [ ] Rappel de lecture : les clés sont **par processus** — `isolat` vaut le dernier isolat signalé, pas forcément celui qui plante ; se fier aux journaux, ordonnés, pour la séquence.
+
+---
+## ⬜ Second facteur TOTP obligatoire sur le panneau admin (2026-10-14)
+
+**Priorité P1** · importance 4/5 — ferme le § 8 et le § 10 point 7 de l'audit du 14/10 (`docs/deploiement/AUDIT_ADMIN_2026-10-14.md`) : un mot de passe admin hameçonné valait le panneau entier. Désormais un compte admin sans facteur enrôlé est envoyé sur l'enrôlement (QR + premier code) avant tout tableau de bord, un compte avec facteur passe par l'écran de défi, et la garde de `/dashboard` exige rôle **et** facteur (`admin_login_screen.dart`, `admin_enrolement_totp_screen.dart`, `admin_defi_second_facteur_screen.dart`, `garde_tableau_de_bord.dart`). Ce que `flutter test` ne couvre pas : le vrai SDK web (`TotpMultiFactorGenerator`, `MultiFactorResolver`), le QR lu par une vraie application d'authentification, l'horloge du téléphone, et la configuration du projet.
+
+**Préalable** (Salim, `docs/deploiement/MFA_ADMIN.md`) : TOTP activé sur le projet — relevé du 14/10 : Identity Platform oui, MFA activé, SMS seul. Sans lui, l'enrôlement répond « Opération non activée sur le projet Firebase ». Panneau servi en local (`flutter run -d chrome -t lib/features/admin/main.dart`) ou sur une cible d'hébergement quand elle existera. Compte : `test.diaspo@example.com` (superAdmin après amorçage), un téléphone avec Google Authenticator ou Aegis.
+
+- [ ] Connexion e-mail d'un admin sans facteur → écran « Second facteur requis » avec le QR, la clé par blocs de 4, « À confirmer avant HH:MM » ; `/dashboard` tapé dans la barre d'adresse à ce moment → le même écran d'enrôlement, jamais le tableau de bord.
+- [ ] Scanner le QR : l'application affiche « DiaspoNiger Admin » et l'e-mail du compte ; saisir la clé à la main dans une seconde application donne le même code.
+- [ ] Premier code juste → tableau de bord ; dans la console Firebase (Authentication → Users → le compte), un facteur TOTP « Application d'authentification » est listé.
+- [ ] Code faux → « Code incorrect… », bouton réactivé ; code de la fenêtre précédente (≤ 2 min 30, `adjacentIntervals: 5`) → accepté ; horloge du téléphone décalée de 5 min → refusé, message qui parle de l'heure.
+- [ ] Déconnexion, reconnexion du même compte → écran « Code de vérification » **sans** session ouverte (`/dashboard` tapé à ce moment → connexion, pas le tableau de bord) ; code juste → tableau de bord ; code faux → message, bouton réactivé ; « Retour à la connexion » → connexion.
+- [ ] Google : même parcours (enrôlement puis défi) ; un compte sans droits avec un facteur → « Accès refusé… » et session fermée (`/dashboard` → connexion).
+- [ ] Session ouverte depuis plus de 5 min sans facteur (onglet laissé ouvert, puis `/dashboard`) → l'enrôlement affiche « Connexion trop ancienne… » avec « Réessayer » et « Se déconnecter », jamais une page blanche.
+- [ ] App mobile, même compte admin enrôlé → « Ce compte exige un second facteur : connectez-vous depuis le panneau d'administration », pas de plantage, pas de session fantôme.
+- [ ] Perte du téléphone : la recette Admin SDK de `MFA_ADMIN.md` retire le facteur ; la reconnexion retombe sur l'enrôlement.
+
+---
+
+## ⬜ Signalements : l'app écrit dans Supabase, le panneau admin les voit (2026-10-15)
+
+**Priorité P1** · importance 4/5 — avant, l'app écrivait dans Firestore et le
+panneau lisait Supabase : aucun signalement n'arrivait à l'administrateur.
+Dépend de la migration `20261015100000` (à appliquer **avant** le client).
+
+- [ ] Signaler un message, une conversation, un groupe, un utilisateur depuis
+      l'app : il apparaît dans le panneau admin, onglet En attente.
+- [ ] Signaler deux fois le même contenu : message « déjà signalé », pas de doublon.
+- [ ] Traiter un signalement dans le panneau (résoudre, rejeter) : le statut
+      change vraiment (avant : zéro ligne touchée, faute de policy UPDATE).
+- [ ] « Mes signalements » affiche les siens avec le bon statut.
+
+## ⬜ Registre de rôle unique : claim, Postgres et callable — l'écran Rôles et le bannissement serveur (2026-10-14)
+
+**Priorité P1** · importance 4/5 — ferme le § 2 et le § 7 de l'audit du 14/10 (`docs/deploiement/AUDIT_ADMIN_2026-10-14.md`) : le rôle admin vivait dans trois registres sans maître, reliés par une écriture cliente ; le bannissement n'existait pas pour Firebase. Quatre livraisons, aucune déployée : callable `setAdminRole` (Postgres source → claim → RTDB → journal), callable `setUserBanned` (Postgres → `updateUser({disabled})` → `revokeRefreshTokens`), règles Firestore/RTDB sur `auth.token.adminRole`, panneau sur le claim et sur Postgres (`permission_provider.dart`, `role_management_provider.dart`, RPC `administrateurs()` / `profil_par_email()`). Le même jour, `banUser`/`unbanUser` du panneau (`admin_provider.dart`) appellent `setUserBanned` au lieu d'écrire Postgres et le journal eux-mêmes ; le refus du serveur est affiché (`refus_callable.dart`, partagé avec `setAdminRole`).
+
+Vérifié hors appareil : `cd functions && npm test` (42 cas), bancs d'émulateur `registre_role_claim.mjs` et `salons_audio_admin.mjs`, `flutter test`. Ordre de déploiement dans `docs/ops/AMORCAGE_ADMIN.md` — les règles AVANT l'amorçage du claim retireraient tout à l'admin en place.
+
+À vérifier, après déploiement des fonctions, amorçage (`node tools/amorcer_super_admin.mjs --email <admin> --confirmer`), règles, puis client :
+
+- [ ] Panneau, compte superAdmin : le rail affiche toutes les sections sans qu'aucun document Firestore `users/<uid>` n'existe ; `adb logcat -s flutter | grep PermissionProvider` montre `claim adminRole -> AdminRole.superAdmin`.
+- [ ] Écran Rôles : la liste vient de Postgres — un admin créé après la migration (absent de Firestore) y figure.
+- [ ] « Nouvel admin » : chercher par e-mail un compte absent de Firestore → trouvé ; assigner Modérateur Contenu → snackbar verte, la ligne apparaît dans sa section ; en base `is_admin = true` ET `admin_role = 'contentMod'` ; une ligne `assign_role` dans `admin_audit_logs`.
+- [ ] Depuis le compte promu, se reconnecter (ou attendre ≤ 1 h) : les sections contentMod s'ouvrent ; dans un salon audio, il retire un participant (règle RTDB par claim) ; avant la reconnexion, le même geste est refusé.
+- [ ] Refus visibles, pas de snackbar verte : révoquer le dernier superAdmin → « Impossible de retirer le dernier superAdmin » ; un contentMod qui ouvre l'écran Rôles → message de droits, pas une liste vide.
+- [ ] Bannir depuis Utilisateurs : snackbar verte ; en base `is_banned`, `banned_by` = uid de l'admin, `session_id` = `banned_…` ; une ligne `ban_user` dans `admin_audit_logs` sans rien d'écrit par le panneau ; l'appareil banni est déconnecté (sentinelle), et la reconnexion échoue (« compte désactivé ») ; débannir la rétablit.
+- [ ] Refus du bannissement visibles, pas de snackbar verte, liste inchangée : bannir un superAdmin → « Un superAdmin ne se bannit pas : lui retirer son rôle d'abord » ; depuis un compte contentMod, bannir un autre admin → « Seul un superAdmin peut bannir un administrateur » ; en mode avion → « Connexion indisponible… », jamais « UNAVAILABLE » ni le texte brut de l'exception.
+- [ ] Règles déployées : un document Firestore `users/<uid>` avec `isAdmin: true` posé à la main ne donne plus accès à `admin_audit_logs` (lecture refusée dans la console → simulateur de règles, ou par l'app).
+
+---
+
 ## ⬜ Aucune requête Supabase ne part sans session : le refus du pont est respecté (2026-10-13)
 
 **Priorité P1** · importance 4/5 — suite de « Une erreur Supabase ne fait plus planter l'app : message à l'écran, JWT expiré retenté ». Ce correctif-là rattrapait le symptôme (`PGRST303` re-minté puis rejoué) ; celui-ci ferme la cause : quarante-neuf datasources appelaient `ensureAuthenticated()` sans lire sa réponse, et pendant la fenêtre de calme de `PolitiqueDeReprise` la requête partait quand même, avec le jeton périmé.
@@ -10522,6 +11070,194 @@ diasponiger.web.app : pages, palette, menu, aperçus de partage.
 
 ---
 
+## ⬜ Panneau admin, Signalements : décision par `signalement_transition` (2026-10-17)
+
+**Priorité P1** · importance 4/5 — « Rejeter » et « Traiter » demandent un
+motif normalisé (liste déroulante) et une justification obligatoires ; pour un
+signalement Supabase la décision passe par la RPC (prise en charge puis
+décision, audit écrit par le serveur). Les signalements Firestore gardent leur
+chemin. Jamais vu dans le panneau ; l'UPDATE direct n'est PAS encore fermé
+(`supabase/moderation-signalements-update-ferme-cible.sql`, à appliquer après
+le déploiement de ce build).
+
+- [ ] Dialogue de décision : bouton « Confirmer » grisé tant que motif et
+      justification ne sont pas remplis ; lisible en sombre et à grande police.
+- [ ] Rejeter un signalement `pending` : il passe à Traités, le motif choisi
+      est dans `reports.reason_code`, `assigned_to` est le modérateur, une ligne
+      `MODERATION_DECIDED` est dans `admin_audit_logs`.
+- [ ] Deux modérateurs sur le même dossier : le second voit « a changé de
+      statut entre-temps » et la liste se recharge.
+- [ ] Dossier attribué à un autre modérateur : refus lisible (compte
+      `contentMod`) ; le `superAdmin` passe.
+- [ ] Compte `financeMod` : refus de permission lisible, pas de succès à vide.
+- [ ] Un dossier `reviewing` ou `escalated` reste dans « En attente », avec
+      ses boutons et son badge.
+
+## ⬜ Panneau admin, Signalements : lit Firestore (ce que l'app signale) en plus de Supabase (2026-10-15)
+
+**Priorité P1** · importance 4/5 — jusqu'ici le panneau ne lisait que
+`public.reports` (Supabase), vide : les signalements de messages, de
+conversations et de contenus que l'app écrit dans Firestore n'y arrivaient
+jamais. `AdminReportsNotifier` fond maintenant les deux sources
+(`fusion_paginee.dart`), et écrit sa décision dans la source du signalement.
+Jamais vu avec de vrais signalements.
+
+- [ ] Signaler un message depuis l'app, puis ouvrir le panneau (compte
+      `contentMod` ou `superAdmin`) : il apparaît dans « En attente », avec la
+      conversation d'origine ; la carte et le badge du tableau de bord comptent.
+- [ ] Signaler une conversation et un utilisateur : les trois formes de
+      document s'affichent (nom du signalant parfois absent).
+- [ ] Résoudre puis rejeter : le document Firestore passe à `resolved` /
+      `dismissed` (console Firebase), l'entrée apparaît dans le journal d'audit,
+      le signalé reçoit sa notification et `reportedUserNotified` passe à vrai.
+- [ ] Compte `businessMod` ou `financeMod` : bandeau « Signalements de l'app
+      illisibles », sans écran vide ni crash.
+- [ ] Si la console réclame un index composite `reports` : le déployer
+      (`firestore.indexes.json` en porte déjà `status + createdAt`).
+- [ ] Marketplace et Transferts : toujours lus dans Supabase (vides, drapeaux
+      fermés) ; à reprendre à la réouverture.
+## ⬜ Panneau admin, Commerces et Marketplace : recherche côté serveur (2026-10-15)
+
+**Priorité P2** · importance 3/5 — un champ de recherche en tête de chaque
+écran, appliqué par le serveur (`ilike` en `or(...)`, délai de frappe 0,4 s) :
+commerces par nom, ville, catégorie, e-mail ; marketplace par titre,
+description et catégorie des produits, noms d'acheteur et de vendeur des
+commandes et des litiges. Jamais vu avec de vraies données.
+
+- [ ] Commerces : un nom cherché hors des 50 premiers résultats apparaît ;
+      la recherche se combine avec Tous / En attente / Boostés, et chaque
+      puce affiche « n+ » tant qu'il reste une page.
+- [ ] Marketplace : une même saisie filtre les trois onglets (produits,
+      commandes, litiges) ; un nom d'acheteur trouve ses commandes.
+- [ ] Une virgule, une parenthèse ou `%` saisis ne cassent rien ni ne
+      renvoient tout.
+- [ ] Vider le champ (croix) recharge la liste complète.
+
+## ⬜ Panneau admin : textes passés en l10n et infobulles sur les boutons-icônes (2026-10-15)
+
+**Priorité P3** · importance 2/5 — une trentaine de textes en dur de
+`lib/features/admin/` lisent maintenant `AppLocalizations` (32 clés ajoutées à
+`app_fr.arb` et `app_en.arb`, 9 clés déjà présentes mais inutilisées
+réutilisées) ; chaque `IconButton` et `PopupMenuButton` du panneau porte un
+`tooltip` (un test balaie le dossier). Reste en dur : noms des feature flags,
+champs des onglets de Configuration, libellés de quelques dialogues.
+
+- [ ] Panneau en français : les onglets (« Tous (50+) », « Échouées (3) »…), les
+      états vides et les messages d'ambassade se lisent comme avant.
+- [ ] Panneau en anglais (langue du navigateur) : mêmes textes traduits, rien
+      de coupé ni de français résiduel dans ces écrans.
+- [ ] Survol à la souris : « Actualiser », « Autres actions », « Retour »,
+      « Fermer » apparaissent sur les boutons-icônes.
+
+## ⬜ Panneau admin : écrans Configuration et Signalements découpés (2026-10-15)
+
+**Priorité P2** · importance 3/5 — `admin_settings_screen.dart` (2093 lignes)
+devient 256 lignes + cinq onglets sous `screens/reglages/` (Frais, Boosts,
+Taxes, Médias, Système) et deux briques partagées (`ReglagesCarteSection`,
+`ReglagesBoutonEnregistrer`) ; `admin_reports_screen.dart` perd son aperçu
+de contenu, ses cartes de compteur et ses libellés. Déplacement mécanique,
+`flutter analyze` propre ; `reglages_onglets_test.dart` monte les cinq
+onglets et vérifie qu'ils réécrivent leurs réglages à l'identique (il a
+trouvé que l'onglet Système effaçait `supportPhone`). Reste à voir le rendu.
+
+- [ ] Configuration : les cinq onglets s'ouvrent, chaque champ affiche sa
+      valeur enregistrée, « Enregistrer » écrit et le message de succès sort.
+- [ ] Onglet Système : les deux boutons (URL, intervalles) enregistrent chacun
+      leur groupe de champs.
+- [ ] Signalements : ouvrir un signalement avec contenu capturé (texte, image,
+      fichier) ; « Voir le contenu » mène à la bonne fiche.
+
+## ⬜ Panneau admin : Transferts, Marketplace, Commerces, Modération et Audit passent aux briques du kit (2026-10-15)
+
+**Priorité P3** · importance 2/5 — même changement que pour Utilisateurs et
+Signalements (voir leur entrée) : états vides `DesignEmptyState`, pastilles
+`DesignBadge`/`DesignTag`, puces `DesignFilterChip` (Commerces), recherche
+`DesignSearchField` (Audit), `AdminChargerPlus`. Les pastilles de type de cible
+de l'Audit (couleur et icône par type) restent faites main : le kit n'a que
+quatre tons de statut.
+
+- [ ] Transferts : pastille de statut lisible pour les six statuts
+      (remboursée et annulée prennent le gris « archivé »).
+- [ ] Modération : « à venir » en étiquette d'accent, « en cours » vert,
+      « terminé » gris, « annulé » rouge ; catégorie en étiquette neutre.
+- [ ] Marketplace : disponible / indisponible ; états vides des trois onglets.
+- [ ] Commerces : puces noires pleines (même question que pour Signalements).
+- [ ] Audit : recherche et état vide.
+
+## ⬜ Panneau admin : Utilisateurs et Signalements passent aux briques du kit (2026-10-15)
+
+**Priorité P3** · importance 2/5 — recherche (`DesignSearchField`), puces de
+type (`DesignFilterChip`, **noires pleines** et non plus bleu d'action),
+pastilles (`DesignBadge` / `DesignTag`), états vides (`DesignEmptyState`) et
+« Charger plus » (`AdminChargerPlus`) ne sont plus faits main. Le rendu sous
+le thème nu de l'admin est testé ; l'œil, non.
+
+- [ ] Utilisateurs : champ de recherche, pastille « Admin » (étiquette
+      d'accent) et « Banni » (rouge) lisibles sur la carte, sans débordement.
+- [ ] Signalements : puces de type, pastilles En attente / Résolu / Rejeté,
+      état vide avec et sans filtre (bouton « Effacer les filtres »).
+- [ ] Décider si les puces noires conviennent au panneau, ou si l'admin garde
+      son bleu d'action (guide de style, palette ⑤).
+
+## ⬜ Panneau admin, Commerces et Marketplace : listes paginées (2026-10-15)
+
+**Priorité P2** · importance 3/5 — `admin_businesses_screen.dart` (Tous / En
+attente / Boostés : trois requêtes filtrées par `is_verified` et `is_boosted`)
+et `admin_marketplace_screen.dart` (produits, commandes, litiges) chargent 50
+lignes par page avec « Charger plus ». Jamais vu avec de vraies données.
+
+- [ ] Commerces : « En attente » liste tous les non-vérifiés, y compris les
+      plus anciens que les 50 derniers ; « Charger plus » ajoute la suite.
+- [ ] Vérifier / supprimer un commerce : les trois listes se rechargent.
+- [ ] Marketplace : produits, commandes et litiges ont chacun leur « Charger
+      plus » ; l'onglet Litiges ne montre que `is_in_dispute`.
+- [ ] Les libellés d'onglet affichent « n+ » tant qu'il reste une page.
+
+## ⬜ Panneau admin, Signalements : pagination, recherche et type côté serveur (2026-10-14)
+
+**Priorité P2** · importance 3/5 — `admin_reports_screen.dart` : trois onglets,
+chacun une requête paginée (50) sur `reports` ; la recherche (`ilike` sur
+nom de cible, nom du signalant, motif, id de cible, description) et la puce
+de type partent au serveur ; les quatre cartes lisent des `count` réels.
+Jamais vu avec de vraies données.
+
+- [ ] Plus de 100 signalements : « Charger plus » les atteint tous ; les
+      cartes En attente / Traités / Rejetés / Total sont les totaux réels.
+- [ ] Recherche d'un mot présent dans un signalement ancien : il apparaît ;
+      une virgule, une parenthèse ou `%` saisis ne cassent rien.
+- [ ] Puce de type + recherche ensemble ; « Effacer les filtres » remet tout.
+- [ ] Résoudre / rejeter un signalement : onglets et cartes se rechargent,
+      filtres conservés.
+
+## ⬜ Panneau admin, Transferts : quatre onglets paginés par le serveur (2026-10-14)
+
+**Priorité P2** · importance 3/5 — `admin_transactions_screen.dart` : chaque
+onglet interroge `transactions` par statut avec `range` (50 par page) ; les
+cartes « En attente » et « Échouées » lisent un `count` réel. Jamais vu avec
+de vraies données.
+
+- [ ] « Échouées » et « En attente » : les nombres des onglets et des cartes
+      sont les totaux réels, pas plafonnés à 50 ni à 100.
+- [ ] « Charger plus » ajoute la page suivante et disparaît à la dernière.
+- [ ] Rembourser / compléter / échouer un transfert : les quatre onglets et
+      les compteurs se rechargent.
+- [ ] Les cartes de volume et de frais portent sur les transferts chargés de
+      « Toutes » : elles grossissent après « Charger plus ».
+
+## ⬜ Panneau admin, Utilisateurs : pagination et recherche côté serveur (2026-10-14)
+
+**Priorité P2** · importance 3/5 — `admin_users_management_screen.dart` lit
+désormais `profils_admin_page` (migration `20261014140000`, **à appliquer
+avant le client**) ; jamais vu avec de vraies données.
+
+- [ ] Onglet « Tous » : 50 lignes, bouton « Charger plus » ajoute les 50
+      suivantes ; il disparaît à la dernière page.
+- [ ] Recherche d'un nom ou d'un e-mail ancien (hors des 50 derniers
+      inscrits) : il apparaît ; `%` et `_` saisis ne servent pas de jokers.
+- [ ] Onglets « Admins » et « Bannis » : tous les comptes concernés, pas
+      seulement parmi les 50 derniers ; libellé « n+ » s'il y en a d'autres.
+- [ ] Bannir puis débannir : la liste se recharge, la recherche reste.
+
 ## ⬜ La page de suppression de compte demande la suppression au lieu de l'exécuter (2026-09-19)
 
 **Priorité P1** · importance 4/5 — la page `/delete-account` (probablement
@@ -10866,3 +11602,21 @@ long **rétrécisse** au lieu d'être coupé. **Non vérifié sur appareil** —
 à confirmer au prochain passage.
 
 - ✔ 2 cases déjà vérifiées : archivées dans [TESTS_APPAREIL_FAITS.md](TESTS_APPAREIL_FAITS.md) (« Session appareil du 2026-08-03 — SM A515F, thème sombre, font_scale 1.1 »).
+
+## Plantages Crashlytics 1.2.2 (31) — « objet utilisé après destruction » (2026-10-15)
+
+Non testables en widget test (GoogleMap, caméra et envoi d'image passent par
+des canaux de plateforme et des services construits en dur) : à vérifier sur
+appareil.
+
+- [ ] (couvert en test ; geste réel à confirmer) Création de groupe avec photo : appuyer sur « Créer » puis quitter
+      l'écran (retour) pendant l'envoi → pas de plantage ; le groupe apparaît
+      quand même dans « Mes groupes » (`create_group_screen.dart`).
+- [ ] Carte : lancer une recherche de lieu puis quitter l'écran avant le
+      résultat → pas de plantage ; zoom sur un cluster et « zoom arrière » de
+      la carte vide toujours fonctionnels (`map_screen.dart`, `_animerCamera`).
+- [ ] Scanner QR, permission caméra **refusée** : toucher la torche et le
+      changement de caméra → rien ne plante (`qr_scanner_screen.dart`). Avec
+      caméra active : la torche s'allume et le voyant suit.
+- [ ] Réception de clés (`key_transfer_receive_screen.dart`) : permission
+      caméra refusée puis « Réessayer » → pas de plantage.

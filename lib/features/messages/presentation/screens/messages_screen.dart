@@ -18,6 +18,7 @@ import '../widgets/messages_skeleton.dart';
 import '../../../../core/theme/design_kit.dart';
 import '../../../../core/theme/adaptive_colors.dart';
 import '../../../../shared/widgets/sheet_handle.dart';
+import '../../../../shared/widgets/discussions_segment.dart';
 
 /// Filtres rapides de la liste, en puces sous l'en-tête (§9a : Tous / Non lus
 /// / Groupes / Archives, un seul rang de puces mutuellement exclusives).
@@ -376,6 +377,12 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                   ),
                 ],
               ),
+            // Bascule vers les groupes : masquée pendant la recherche, qui
+            // replie l'en-tête. Le rang reste occupé (`SizedBox.shrink`) pour
+            // ne pas décaler les frères qui suivent.
+            _searchOpen
+                ? const SizedBox.shrink()
+                : const DiscussionsSegment(current: DiscussionsView.messages),
             if (isEmptyInbox && !_searchOpen)
               const SizedBox.shrink()
             else

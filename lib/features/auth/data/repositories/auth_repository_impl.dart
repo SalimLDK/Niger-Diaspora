@@ -7,6 +7,7 @@ import '../../../../core/errors/garde_appel.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../core/services/supabase_auth_bridge.dart';
 import '../../domain/entities/account_deletion_status.dart';
+import '../../domain/entities/second_facteur.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_remote_datasource.dart';
@@ -15,6 +16,17 @@ class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteDataSource remoteDataSource;
 
   AuthRepositoryImpl({required this.remoteDataSource});
+
+  /// Le filet des connexions. Un défi de second facteur n'est pas une
+  /// erreur inattendue : il sort tel quel, avec son résolveur, pour que
+  /// l'écran qui sait le clore le fasse (`docs/deploiement/MFA_ADMIN.md`).
+  Failure _sinonConnexion(Object e) {
+    if (e is SecondFacteurRequisException) {
+      return SecondFacteurRequisFailure(e.defi);
+    }
+    dev.log('Erreur inattendue', name: 'auth_repository_impl', error: e);
+    return ServerFailure(AppErrorMessages.unexpectedError);
+  }
 
   @override
   Future<Either<Failure, UserEntity>> signInWithEmail({
@@ -35,10 +47,7 @@ class AuthRepositoryImpl implements AuthRepository {
       );
 
       return Right(userModel.toEntity());
-    }, sinon: (e) {
-      dev.log('Erreur inattendue', name: 'auth_repository_impl', error: e);
-      return ServerFailure(AppErrorMessages.unexpectedError);
-    });
+    }, sinon: _sinonConnexion);
   }
 
   @override
@@ -54,10 +63,7 @@ class AuthRepositoryImpl implements AuthRepository {
       );
 
       return Right(userModel.toEntity());
-    }, sinon: (e) {
-      dev.log('Erreur inattendue', name: 'auth_repository_impl', error: e);
-      return ServerFailure(AppErrorMessages.unexpectedError);
-    });
+    }, sinon: _sinonConnexion);
   }
 
   @override
@@ -72,10 +78,7 @@ class AuthRepositoryImpl implements AuthRepository {
       );
 
       return Right(userModel.toEntity());
-    }, sinon: (e) {
-      dev.log('Erreur inattendue', name: 'auth_repository_impl', error: e);
-      return ServerFailure(AppErrorMessages.unexpectedError);
-    });
+    }, sinon: _sinonConnexion);
   }
 
   @override
@@ -267,6 +270,62 @@ class AuthRepositoryImpl implements AuthRepository {
     return garderAppel(() async {
       await remoteDataSource.sendPasswordResetEmail(email);
       return const Right(null);
+    }, sinon: (e) {
+      dev.log('Erreur inattendue', name: 'auth_repository_impl', error: e);
+      return ServerFailure(AppErrorMessages.unexpectedError);
+    });
+  }
+
+  // --- Second facteur (TOTP) ----------------------------------------------
+
+  @override
+  Future<Either<Failure, List<FacteurEnrole>>> facteursEnroles() {
+    return garderAppel(() async {
+      return Right(await remoteDataSource.facteursEnroles());
+    });
+  }
+
+  @override
+  Future<Either<Failure, SecretTotp>> commencerEnrolementTotp() {
+    return garderAppel(() async {
+      return Right(await remoteDataSource.commencerEnrolementTotp());
+    });
+  }
+
+  @override
+  Future<Either<Failure, void>> terminerEnrolementTotp({
+    required SecretTotp secret,
+    required String code,
+    required String libelle,
+  }) {
+    return garderAppel(() async {
+      await remoteDataSource.terminerEnrolementTotp(
+        secret: secret,
+        code: code,
+        libelle: libelle,
+      );
+      return const Right(null);
+    });
+  }
+
+  /// Même queue que [signInWithEmail] : la session n'existe qu'à partir
+  /// d'ici, le jeton FCM aussi.
+  @override
+  Future<Either<Failure, UserEntity>> resoudreSecondFacteur({
+    required DefiSecondFacteur defi,
+    required String code,
+  }) {
+    return garderAppel(() async {
+      final userModel = await remoteDataSource.resoudreSecondFacteur(
+        defi: defi,
+        code: code,
+      );
+      await NotificationService().saveTokenForUser(
+        userModel.id,
+        displayName: userModel.displayName,
+        photoUrl: userModel.photoUrl,
+      );
+      return Right(userModel.toEntity());
     }, sinon: (e) {
       dev.log('Erreur inattendue', name: 'auth_repository_impl', error: e);
       return ServerFailure(AppErrorMessages.unexpectedError);

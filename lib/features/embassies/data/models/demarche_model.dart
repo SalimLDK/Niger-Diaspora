@@ -123,6 +123,12 @@ class Demarche with _$Demarche {
     /// Défauts de la source touchant cette démarche (intitulé faux, pièce
     /// ambiguë, parenthèse tronquée…). Non vide sur 13 démarches sur 20.
     @Default(<String>[]) List<String> avertissements,
+
+    /// Source propre à cette démarche et date de sa dernière vérification
+    /// (workflow de publication du panneau). Absentes de la copie embarquée
+    /// d'origine : on retombe alors sur la source du catalogue.
+    String? sourceUrl,
+    DateTime? verifieLe,
   }) = _Demarche;
 
   factory Demarche.fromJson(Map<String, dynamic> json) =>

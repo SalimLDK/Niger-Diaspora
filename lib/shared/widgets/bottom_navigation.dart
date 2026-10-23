@@ -84,14 +84,14 @@ class CustomBottomNavigation extends StatelessWidget {
                     onTap: () => onTap(1),
                   ),
                   _NavItem(
-                    icon: Icons.groups_rounded,
-                    label: l10n.homeGroups,
+                    icon: Icons.dynamic_feed_rounded,
+                    label: l10n.navFeeds,
                     isActive: currentIndex == 2,
                     onTap: () => onTap(2),
                   ),
                   _NavItem(
                     icon: Icons.chat_bubble_rounded,
-                    label: l10n.messages,
+                    label: l10n.navDiscussions,
                     isActive: currentIndex == 3,
                     onTap: () => onTap(3),
                     badgeCount: unreadMessagesCount,

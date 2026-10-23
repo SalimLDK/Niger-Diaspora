@@ -473,6 +473,9 @@ class GroupSupabaseDataSource implements GroupRemoteDataSource {
 
   @override
   Future<GroupModel> createGroup(GroupModel group) async {
+    if (group.name.trim().isEmpty) {
+      throw ValidationException('Le nom du groupe est obligatoire.');
+    }
     await SupabaseAuthBridge.instance.exigerSession();
 
     final row = await _supabase.rpc('insert_group', params: {
@@ -510,6 +513,9 @@ class GroupSupabaseDataSource implements GroupRemoteDataSource {
 
   @override
   Future<GroupModel> updateGroup(GroupModel group) async {
+    if (group.name.trim().isEmpty) {
+      throw ValidationException('Le nom du groupe est obligatoire.');
+    }
     final data = await _supabase
         .from('groups')
         .update({

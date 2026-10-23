@@ -68,6 +68,7 @@ import '../../features/settings/presentation/screens/security_backup_screen.dart
 import '../../features/settings/presentation/screens/key_transfer_receive_screen.dart';
 import '../../features/settings/presentation/screens/key_transfer_send_screen.dart';
 import '../../features/settings/presentation/screens/devices_screen.dart';
+import '../../features/settings/presentation/screens/mes_demandes_donnees_screen.dart';
 import '../../features/reports/presentation/screens/my_reports_screen.dart';
 import '../../features/friends/presentation/screens/friends_screen.dart';
 import '../shell/main_shell.dart';
@@ -775,6 +776,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const DevicesScreen(),
       ),
       GoRoute(
+        path: '/settings/mes-donnees',
+        builder: (context, state) => const MesDemandesDonneesScreen(),
+      ),
+      GoRoute(
         path: '/settings/security/transfer/receive',
         builder: (context, state) => const KeyTransferReceiveScreen(),
       ),
@@ -1216,20 +1221,25 @@ final routerProvider = Provider<GoRouter>((ref) {
               ),
             ],
           ),
-          // Groups Branch
+          // Feeds Branch (onglet central). `/feed` reste une route à part,
+          // poussée au-dessus du shell : filtre par hashtag, retour système.
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: '/groups',
+                path: '/feeds',
                 pageBuilder:
                     (context, state) => NoTransitionPage(
                       key: state.pageKey,
-                      child: const GroupsScreen(),
+                      child: const FeedScreen(isTab: true),
                     ),
               ),
             ],
           ),
-          // Messages Branch
+          // Discussions Branch : Messages et Groupes dans un seul onglet.
+          // Deux routes sœurs, reliées par le segment `DiscussionsSegment` ;
+          // la branche retient la dernière vue ouverte, et `/groups` comme
+          // `/messages` (liens profonds) tombent sur le même onglet. Le
+          // premier chemin est celui où la branche s'ouvre par défaut.
           StatefulShellBranch(
             routes: [
               GoRoute(
@@ -1238,6 +1248,14 @@ final routerProvider = Provider<GoRouter>((ref) {
                     (context, state) => NoTransitionPage(
                       key: state.pageKey,
                       child: const MessagesScreen(),
+                    ),
+              ),
+              GoRoute(
+                path: '/groups',
+                pageBuilder:
+                    (context, state) => NoTransitionPage(
+                      key: state.pageKey,
+                      child: const GroupsScreen(),
                     ),
               ),
             ],

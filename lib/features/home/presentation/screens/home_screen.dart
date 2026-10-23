@@ -941,7 +941,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       hasActivatedMap: _locationError == null,
                       groupsCount: homeStats.valueOrNull?.groupsCount ?? 0,
                       onFindFriends: () => context.push('/qr-scanner'),
-                      onJoinGroup: () => context.push('/groups'),
+                      onJoinGroup: () => context.go('/groups'),
                       onActivateMap: _locationError != null
                           ? _enableLocation
                           : () => context.go('/map'),

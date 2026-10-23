@@ -3,13 +3,25 @@ import 'dart:async';
 import 'package:diaspo_niger/core/theme/admin_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
+import '../widgets/admin_bandeau_erreur.dart';
 import '../providers/admin_provider.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:diaspo_niger/core/theme/design_kit.dart';
+import 'package:diaspo_niger/features/admin/presentation/widgets/admin_charger_plus.dart';
+import 'package:diaspo_niger/features/admin/presentation/widgets/apercu_contenu_signale.dart';
+import 'package:diaspo_niger/features/admin/presentation/widgets/carte_stat_signalement.dart';
+import 'package:diaspo_niger/features/admin/domain/constants/moderation_signalements.dart';
+import 'package:diaspo_niger/features/admin/presentation/signalement_presentation.dart';
+import 'package:diaspo_niger/features/admin/presentation/signalement_firestore.dart';
+import 'package:diaspo_niger/features/admin/presentation/widgets/dossier_moderation_sections.dart';
 
 class AdminReportsScreen extends ConsumerStatefulWidget {
-  const AdminReportsScreen({super.key});
+  const AdminReportsScreen({super.key, this.onOuvrirDestination});
+
+  /// Mène à un écran du panneau (`users`, `businesses`…), avec une recherche
+  /// éventuelle : « Voir le contenu » ne peut pas ouvrir une route de l'app.
+  final void Function(String destination, {String? recherche})?
+      onOuvrirDestination;
 
   @override
   ConsumerState<AdminReportsScreen> createState() => _AdminReportsScreenState();
@@ -22,7 +34,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
   late TabController _tabController;
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
-  String? _selectedTypeFilter;
+  Timer? _debounceRecherche;
 
   // Modern color palette (matching dashboard)
   static const Color _primaryColor = AdminColors.actionBlue;
@@ -51,67 +63,35 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
 
   @override
   void dispose() {
+    _debounceRecherche?.cancel();
     _tabController.dispose();
     _searchController.dispose();
     super.dispose();
   }
 
-  List<ReportEntity> _filterReports(List<ReportEntity> reports) {
-    return reports.where((report) {
-      // Apply search filter
-      if (_searchQuery.isNotEmpty) {
-        final query = _searchQuery.toLowerCase();
-        final matchesSearch = (report.targetName?.toLowerCase().contains(query) ?? false) ||
-            (report.reporterName?.toLowerCase().contains(query) ?? false) ||
-            report.reason.toLowerCase().contains(query) ||
-            report.targetId.toLowerCase().contains(query) ||
-            (report.description?.toLowerCase().contains(query) ?? false);
-        if (!matchesSearch) return false;
-      }
-
-      // Apply type filter
-      if (_selectedTypeFilter != null && report.targetType != _selectedTypeFilter) {
-        return false;
-      }
-
-      return true;
-    }).toList();
+  /// La recherche part au serveur, un court instant après la dernière frappe.
+  void _surRecherche(String value) {
+    setState(() => _searchQuery = value);
+    _debounceRecherche?.cancel();
+    _debounceRecherche = Timer(const Duration(milliseconds: 400), () {
+      unawaited(ref.read(adminReportsNotifierProvider.notifier).rechercher(value));
+    });
   }
 
-  Map<String, int> _calculateStatistics(List<ReportEntity> reports) {
-    final stats = <String, int>{
-      'total': reports.length,
-      'pending': 0,
-      'resolved': 0,
-      'dismissed': 0,
-    };
+  Map<String, int> _statistiques(CompteursSignalements c) => {
+        'total': c.total,
+        'pending': c.enAttente,
+        'resolved': c.traites,
+        'dismissed': c.rejetes,
+      };
 
-    // Count by target type
-    for (final type in _targetTypes) {
-      stats[type] = 0;
-    }
-
-    for (final report in reports) {
-      // Count by status
-      if (report.status == 'pending') {
-        stats['pending'] = (stats['pending'] ?? 0) + 1;
-      } else if (report.status == 'resolved') {
-        stats['resolved'] = (stats['resolved'] ?? 0) + 1;
-      } else if (report.status == 'dismissed') {
-        stats['dismissed'] = (stats['dismissed'] ?? 0) + 1;
-      }
-
-      // Count by type
-      stats[report.targetType] = (stats[report.targetType] ?? 0) + 1;
-    }
-
-    return stats;
-  }
+  String _libelleOnglet(String nom, AdminReportsState state, FiltreSignalements f) =>
+      '$nom (${state.liste(f).length}${state.encorePlus.contains(f) ? '+' : ''})';
 
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(adminReportsNotifierProvider);
-    final stats = _calculateStatistics(state.reports);
+    final stats = _statistiques(state.compteurs);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -145,11 +125,11 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
             indicatorWeight: 3,
             labelStyle: const TextStyle(fontWeight: FontWeight.w600),
             tabs: [
-              Tab(text: 'En attente (${_filterReports(state.pendingReports).length})'),
+              Tab(text: _libelleOnglet(l10n.statusPending, state, FiltreSignalements.enAttente)),
               Tab(
-                text: 'Traités (${_filterReports(state.reports.where((r) => r.status != 'pending').toList()).length})',
+                text: _libelleOnglet(l10n.adminProcessedName, state, FiltreSignalements.traites),
               ),
-              Tab(text: 'Tous (${_filterReports(state.reports).length})'),
+              Tab(text: _libelleOnglet(l10n.all, state, FiltreSignalements.tous)),
             ],
           ),
         ),
@@ -157,16 +137,29 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
         Expanded(
           child: state.isLoading
               ? _buildLoadingState()
-              : state.error != null
+              : state.error != null && state.reports.isEmpty
                   ? _buildErrorState(state.error!)
-                  : TabBarView(
-                      controller: _tabController,
+                  : Column(
                       children: [
-                        _buildReportsList(_filterReports(state.pendingReports)),
-                        _buildReportsList(
-                          _filterReports(state.reports.where((r) => r.status != 'pending').toList()),
+                        // Une erreur posée après une action (zéro ligne,
+                        // journal refusé) ne doit pas effacer la liste.
+                        if (state.error != null)
+                          AdminBandeauErreur(
+                            message: state.error!,
+                            onFermer: ref
+                                .read(adminReportsNotifierProvider.notifier)
+                                .effacerErreur,
+                          ),
+                        Expanded(
+                          child: TabBarView(
+                            controller: _tabController,
+                            children: [
+                              _buildReportsList(state, FiltreSignalements.enAttente),
+                              _buildReportsList(state, FiltreSignalements.traites),
+                              _buildReportsList(state, FiltreSignalements.tous),
+                            ],
+                          ),
                         ),
-                        _buildReportsList(_filterReports(state.reports)),
                       ],
                     ),
         ),
@@ -179,84 +172,32 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
       scrollDirection: Axis.horizontal,
       child: Row(
         children: [
-          _buildStatCard(
+          CarteStatSignalement(
             l10n.adminPending,
             stats['pending'] ?? 0,
             Icons.hourglass_empty_rounded,
             AdminColors.statusAmber,
           ),
           const SizedBox(width: 12),
-          _buildStatCard(
-            'Résolus',
+          CarteStatSignalement(
+            l10n.adminStatResolved,
             stats['resolved'] ?? 0,
             Icons.check_circle_outline_rounded,
             AdminColors.statusGreen,
           ),
           const SizedBox(width: 12),
-          _buildStatCard(
-            'Rejetés',
+          CarteStatSignalement(
+            l10n.adminStatDismissed,
             stats['dismissed'] ?? 0,
             Icons.cancel_outlined,
             AdminColors.statusGray,
           ),
           const SizedBox(width: 12),
-          _buildStatCard(
+          CarteStatSignalement(
             l10n.adminTotalLabel,
             stats['total'] ?? 0,
             Icons.flag_outlined,
             _primaryColor,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatCard(String label, int count, IconData icon, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: _cardColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withAlpha(50)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(5),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: color.withAlpha(20),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(icon, color: color, size: 18),
-          ),
-          const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                count.toString(),
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: color,
-                ),
-              ),
-              Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: _textSecondary,
-                ),
-              ),
-            ],
           ),
         ],
       ),
@@ -281,32 +222,15 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Search bar
-          TextField(
+          DesignSearchField(
             controller: _searchController,
-            decoration: InputDecoration(
-              hintText: l10n.adminSearchReports,
-              hintStyle: const TextStyle(color: _textSecondary),
-              prefixIcon: const Icon(Icons.search, color: _textSecondary),
-              suffixIcon: _searchQuery.isNotEmpty
-                  ? IconButton(
-                      icon: const Icon(Icons.clear, color: _textSecondary),
-                      onPressed: () {
-                        _searchController.clear();
-                        setState(() => _searchQuery = '');
-                      },
-                    )
-                  : null,
-              filled: true,
-              fillColor: AdminColors.bg,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide.none,
-              ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            ),
-            onChanged: (value) {
-              setState(() => _searchQuery = value);
+            hintText: l10n.adminSearchReports,
+            onChanged: _surRecherche,
+            onClear: () {
+              _searchController.clear();
+              _surRecherche('');
             },
+            active: _searchQuery.isNotEmpty,
           ),
           const SizedBox(height: 12),
           // Type filters
@@ -330,7 +254,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
                       const SizedBox(width: 8),
                       ..._targetTypes.map((type) => Padding(
                             padding: const EdgeInsets.only(right: 8),
-                            child: _buildFilterChip(type, _getTypeLabel(type)),
+                            child: _buildFilterChip(type, libelleTypeSignalement(l10n, type)),
                           )),
                     ],
                   ),
@@ -344,31 +268,13 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
   }
 
   Widget _buildFilterChip(String? type, String label) {
-    final isSelected = _selectedTypeFilter == type;
-
-    return FilterChip(
-      label: Text(
-        label,
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-          color: isSelected ? Colors.white : _textSecondary,
-        ),
+    return DesignFilterChip(
+      label: label,
+      selected: ref.watch(adminReportsNotifierProvider).typeFiltre == type,
+      compact: true,
+      onTap: () => unawaited(
+        ref.read(adminReportsNotifierProvider.notifier).filtrerType(type),
       ),
-      selected: isSelected,
-      onSelected: (_) {
-        setState(() => _selectedTypeFilter = type);
-      },
-      selectedColor: _primaryColor,
-      backgroundColor: AdminColors.statusGrayBg,
-      checkmarkColor: Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-        side: BorderSide(
-          color: isSelected ? _primaryColor : Colors.transparent,
-        ),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 4),
     );
   }
 
@@ -401,7 +307,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
         ),
         Row(
           children: [
-            if (state.pendingReports.isNotEmpty) _buildPendingBadge(state.pendingReports.length),
+            if (state.compteurs.enAttente > 0) _buildPendingBadge(state.compteurs.enAttente),
             const SizedBox(width: 12),
             _buildRefreshButton(),
           ],
@@ -435,7 +341,12 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
     );
   }
 
-  Widget _buildRefreshButton() {
+  Widget _buildRefreshButton() => Tooltip(
+    message: l10n.adminRefresh,
+    child: _boutonActualiser(),
+  );
+
+  Widget _boutonActualiser() {
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -459,22 +370,33 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
     );
   }
 
-  Widget _buildReportsList(List<ReportEntity> reports) {
+  Widget _buildReportsList(AdminReportsState state, FiltreSignalements filtre) {
+    final reports = state.liste(filtre);
     if (reports.isEmpty) {
       return _buildEmptyState();
     }
+    final encorePlus = state.encorePlus.contains(filtre);
 
     return ListView.builder(
-      itemCount: reports.length,
+      itemCount: reports.length + (encorePlus ? 1 : 0),
       itemBuilder: (context, index) {
-        final report = reports[index];
-        return _buildReportCard(report);
+        if (index == reports.length) {
+          return AdminChargerPlus(
+            enCours: state.chargementPlus == filtre,
+            onPressed: () => unawaited(
+              ref
+                  .read(adminReportsNotifierProvider.notifier)
+                  .chargerPlus(filtre),
+            ),
+          );
+        }
+        return _buildReportCard(reports[index]);
       },
     );
   }
 
   Widget _buildReportCard(ReportEntity report) {
-    final statusColor = _getStatusColor(report.status);
+    final statusColor = couleurStatutSignalement(report.status);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -500,7 +422,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
             borderRadius: BorderRadius.circular(10),
           ),
           child: Icon(
-            _getTypeIcon(report.targetType),
+            iconeTypeSignalement(report.targetType),
             color: statusColor,
             size: 20,
           ),
@@ -527,7 +449,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
           children: [
             const SizedBox(height: 4),
             Text(
-              'Type: ${_getTypeLabel(report.targetType)}${report.targetName != null ? ' • ${report.targetName}' : ''}',
+              '${l10n.adminReportTypeLine(libelleTypeSignalement(l10n, report.targetType))}${report.targetName != null ? ' • ${report.targetName}' : ''}',
               style: const TextStyle(
                 fontSize: 13,
                 color: _textSecondary,
@@ -559,7 +481,11 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
 
         // Snapshot du contenu signalé
         if (report.contentSnapshot != null && report.contentSnapshot!.hasContent) ...[
-          _buildContentSnapshotPreview(report.contentSnapshot!),
+          ApercuContenuSignale(
+                snapshot: report.contentSnapshot!,
+                libelle: l10n.adminCapturedContentLabel,
+                date: report.contentSnapshot!.capturedAt == null ? null : _formatDate(report.contentSnapshot!.capturedAt!),
+              ),
           const SizedBox(height: 16),
         ],
 
@@ -613,7 +539,18 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
             ),
           ),
         ],
-        if (report.status == 'pending') ...[
+        // Les demandes d'informations et les recours n'existent qu'en base
+        // Supabase : un signalement hérité de Firestore n'y a pas de ligne.
+        if (report.source != sourceFirestore) ...[
+          const SizedBox(height: 20),
+          DemandesInformationsSection(
+            reportId: report.id,
+            reportStatus: report.status,
+            hasReportedUser: report.reportedUserId != null,
+          ),
+          RecoursSection(reportId: report.id, reportStatus: report.status),
+        ],
+        if (statutsSignalementEnAttente.contains(report.status)) ...[
           const SizedBox(height: 20),
           _buildActionButtons(report),
         ],
@@ -621,151 +558,26 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
     );
   }
 
-  Widget _buildContentSnapshotPreview(ContentSnapshotData snapshot) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AdminColors.statusAmberBg,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AdminColors.statusAmber.withAlpha(50)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                _getSnapshotIcon(snapshot.contentType),
-                size: 16,
-                color: AdminColors.statusAmber,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                l10n.adminCapturedContentLabel,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: AdminColors.statusAmber,
-                ),
-              ),
-              const Spacer(),
-              if (snapshot.capturedAt != null)
-                Text(
-                  _formatDate(snapshot.capturedAt!),
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: AdminColors.statusAmber.withAlpha(180),
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 8),
-
-          // Image preview
-          if (snapshot.imageUrl != null)
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image.network(
-                snapshot.imageUrl!,
-                height: 120,
-                width: double.infinity,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
-                  height: 80,
-                  color: AdminColors.statusGrayBg,
-                  child: const Center(child: Icon(Icons.broken_image)),
-                ),
-              ),
-            ),
-
-          // Video placeholder
-          if (snapshot.videoUrl != null && snapshot.imageUrl == null)
-            Container(
-              height: 80,
-              decoration: BoxDecoration(
-                color: Colors.black.withAlpha(20),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Center(
-                child: Icon(Icons.play_circle_outline, size: 40, color: _textSecondary),
-              ),
-            ),
-
-          // Text content
-          if (snapshot.text != null && snapshot.text!.isNotEmpty) ...[
-            if (snapshot.imageUrl != null || snapshot.videoUrl != null)
-              const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Text(
-                snapshot.text!,
-                style: const TextStyle(fontSize: 13, color: _textPrimary),
-                maxLines: 5,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-
-          // File name
-          if (snapshot.fileName != null) ...[
-            const SizedBox(height: 4),
-            Row(
-              children: [
-                const Icon(Icons.attach_file, size: 14, color: _textSecondary),
-                const SizedBox(width: 4),
-                Expanded(
-                  child: Text(
-                    snapshot.fileName!,
-                    style: const TextStyle(fontSize: 12, color: _textSecondary),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  IconData _getSnapshotIcon(String? contentType) {
-    switch (contentType) {
-      case 'text':
-        return Icons.chat_bubble_outline;
-      case 'image':
-        return Icons.image_outlined;
-      case 'video':
-        return Icons.videocam_outlined;
-      case 'file':
-        return Icons.attach_file;
-      case 'product':
-        return Icons.shopping_bag_outlined;
-      case 'user':
-        return Icons.person_outline;
-      case 'group':
-        return Icons.group_outlined;
-      default:
-        return Icons.description_outlined;
-    }
-  }
-
   Widget _buildViewContentButton(ReportEntity report) {
-    final route = _getContentRoute(report);
+    final destination = destinationContenuSignale(report.targetType);
+    final ouvrir = widget.onOuvrirDestination;
 
-    if (route == null) {
+    if (destination == null || ouvrir == null) {
       return const SizedBox.shrink();
     }
 
     return OutlinedButton.icon(
-      onPressed: () => context.push(route),
+      onPressed: () => ouvrir(
+        destination,
+        // Un utilisateur se retrouve par son nom, sinon par son identifiant.
+        recherche: report.targetType == 'user'
+            ? (report.targetName?.trim().isNotEmpty == true
+                ? report.targetName!.trim()
+                : report.targetId)
+            : null,
+      ),
       icon: const Icon(Icons.visibility_outlined, size: 16),
-      label: Text('Voir le ${_getTypeLabel(report.targetType).toLowerCase()}'),
+      label: Text(l10n.adminReportViewContent(libelleTypeSignalement(l10n, report.targetType).toLowerCase())),
       style: OutlinedButton.styleFrom(
         foregroundColor: _primaryColor,
         side: const BorderSide(color: _primaryColor),
@@ -775,34 +587,6 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
         ),
       ),
     );
-  }
-
-  String? _getContentRoute(ReportEntity report) {
-    switch (report.targetType) {
-      case 'user':
-        return '/profile/${report.targetId}';
-      case 'group':
-        return '/groups/${report.targetId}';
-      case 'event':
-        return '/events/${report.targetId}';
-      case 'business':
-        return '/businesses/${report.targetId}';
-      // La cible est l'avis ; la fiche qui le porte est dans l'instantané
-      // posé par `avis_signaler`.
-      case 'business_review':
-        final fiche = report.contentSnapshot?.metadata?['business_id'];
-        return fiche is String ? '/businesses/$fiche' : null;
-      case 'product':
-        return '/marketplace/${report.targetId}';
-      case 'message':
-      case 'conversation':
-        if (report.conversationId != null) {
-          return '/messages/${report.conversationId}';
-        }
-        return null;
-      default:
-        return null;
-    }
   }
 
   Widget _buildSectionLabel(String label) {
@@ -853,6 +637,15 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
       runSpacing: 8,
       alignment: WrapAlignment.end,
       children: [
+        if (report.source != sourceFirestore &&
+            (report.status == 'pending' || report.status == 'escalated'))
+          _buildActionButton(
+            label: l10n.modoReportTake,
+            icon: Icons.person_add_alt_1_rounded,
+            color: _primaryColor,
+            isOutlined: true,
+            onPressed: () => _takeReport(report),
+          ),
         _buildActionButton(
           label: l10n.adminReject,
           icon: Icons.close_rounded,
@@ -914,97 +707,14 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
   }
 
   Widget _buildStatusBadge(String status) {
-    final color = _getStatusColor(status);
-    final label = _getStatusLabel(status);
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withAlpha(20),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withAlpha(50)),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.w600,
-          color: color,
-        ),
-      ),
+    return DesignBadge(
+      libelleStatutSignalement(l10n, status),
+      tone: switch (status) {
+        'pending' || 'reviewing' || 'escalated' => DesignBadgeTone.review,
+        'resolved' => DesignBadgeTone.verified,
+        _ => DesignBadgeTone.archived,
+      },
     );
-  }
-
-  Color _getStatusColor(String status) {
-    switch (status) {
-      case 'pending':
-        return AdminColors.statusAmber;
-      case 'resolved':
-        return AdminColors.statusGreen;
-      case 'dismissed':
-        return AdminColors.statusGray;
-      default:
-        return AdminColors.actionBlueLight;
-    }
-  }
-
-  String _getStatusLabel(String status) {
-    switch (status) {
-      case 'pending':
-        return l10n.adminPending;
-      case 'resolved':
-        return l10n.adminResolvedLabel;
-      case 'dismissed':
-        return l10n.adminDismissedLabel;
-      default:
-        return status;
-    }
-  }
-
-  IconData _getTypeIcon(String type) {
-    switch (type) {
-      case 'user':
-        return Icons.person_rounded;
-      case 'message':
-        return Icons.message_rounded;
-      case 'conversation':
-        return Icons.chat_bubble_rounded;
-      case 'event':
-        return Icons.event_rounded;
-      case 'group':
-        return Icons.group_rounded;
-      case 'business':
-        return Icons.store_rounded;
-      case 'business_review':
-        return Icons.rate_review_rounded;
-      case 'product':
-        return Icons.shopping_bag_rounded;
-      default:
-        return Icons.report_rounded;
-    }
-  }
-
-  String _getTypeLabel(String type) {
-    switch (type) {
-      case 'user':
-        return l10n.user;
-      case 'message':
-        return l10n.adminMessage;
-      case 'conversation':
-        return l10n.conversation;
-      case 'event':
-        return l10n.eventLabel;
-      case 'group':
-        return l10n.group;
-      case 'business':
-        return l10n.reportTypeBusiness;
-      case 'business_review':
-        return l10n.reviews;
-      case 'product':
-        return l10n.reportTypeProduct;
-      default:
-        return type;
-    }
   }
 
   Widget _buildLoadingState() {
@@ -1109,46 +819,51 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
   }
 
   Widget _buildEmptyState() {
-    final hasFilters = _searchQuery.isNotEmpty || _selectedTypeFilter != null;
+    final hasFilters = _searchQuery.isNotEmpty ||
+        ref.watch(adminReportsNotifierProvider).typeFiltre != null;
 
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            hasFilters ? Icons.search_off_rounded : Icons.report_off_rounded,
-            size: 64,
-            color: _textSecondary.withAlpha(100),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            hasFilters ? l10n.adminNoResultsSearch : l10n.adminNoReportsAvailable,
-            style: const TextStyle(
-              color: _textSecondary,
-              fontSize: 16,
-            ),
-          ),
-          if (hasFilters) ...[
-            const SizedBox(height: 12),
-            TextButton.icon(
-              onPressed: () {
-                _searchController.clear();
-                setState(() {
-                  _searchQuery = '';
-                  _selectedTypeFilter = null;
-                });
-              },
-              icon: const Icon(Icons.clear),
-              label: Text(l10n.adminClearFilters),
-            ),
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: DesignEmptyState(
+          icon: hasFilters ? Icons.search_off_rounded : Icons.report_off_rounded,
+          title: hasFilters
+              ? l10n.adminNoResultsSearch
+              : l10n.adminNoReportsAvailable,
+          body: hasFilters
+              ? l10n.adminReportsNoMatchBody
+              : l10n.adminReportsEmptyBody,
+          children: [
+            if (hasFilters)
+              Center(
+                child: DesignSecondaryButton(
+                  label: l10n.adminClearFilters,
+                  onPressed: () {
+                    _debounceRecherche?.cancel();
+                    _searchController.clear();
+                    setState(() => _searchQuery = '');
+                    unawaited(
+                      ref
+                          .read(adminReportsNotifierProvider.notifier)
+                          .viderFiltres(),
+                    );
+                  },
+                ),
+              ),
           ],
-        ],
+        ),
       ),
     );
   }
 
   String _formatDate(DateTime date) {
     return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+  }
+
+  Future<void> _takeReport(ReportEntity report) async {
+    final ok =
+        await ref.read(adminReportsNotifierProvider.notifier).prendreEnCharge(report.id);
+    _montrerBilan(ok, l10n.modoReportTaken);
   }
 
   Future<void> _dismissReport(ReportEntity report) async {
@@ -1158,19 +873,19 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
       return;
     }
 
-    final reason = await _showTextDialog(
+    final decision = await _showDecisionDialog(
       l10n.adminRejectReport,
-      l10n.adminDismissReportPrompt,
-      hintText: l10n.adminRejectHint,
+      motifsClassementSansSuite,
     );
-    if (reason != null && reason.isNotEmpty) {
-      await ref.read(adminReportsNotifierProvider.notifier).dismissReport(
+    if (decision != null) {
+      final ok = await ref.read(adminReportsNotifierProvider.notifier).dismissReport(
         report.id,
-        reason,
+        decision.note,
         adminId: currentAdmin.id,
         adminName: currentAdmin.name,
+        reasonCode: decision.motif,
       );
-      _showSnackBar(l10n.adminReportDismissed);
+      _montrerBilan(ok, l10n.adminReportDismissed);
     }
   }
 
@@ -1181,21 +896,21 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
       return;
     }
 
-    final note = await _showTextDialog(
+    final decision = await _showDecisionDialog(
       l10n.adminProcessReport,
-      l10n.adminProcessReportPrompt,
-      hintText: l10n.adminProcessHint,
+      motifsDecisionAvecAction,
     );
-    if (note != null) {
-      await ref.read(adminReportsNotifierProvider.notifier).resolveReport(
+    if (decision != null) {
+      final ok = await ref.read(adminReportsNotifierProvider.notifier).resolveReport(
         report.id,
-        note,
-        'resolved',
+        decision.note,
+        decision.motif,
         adminId: currentAdmin.id,
         adminName: currentAdmin.name,
         reportedUserId: report.reportedUserId,
+        reasonCode: decision.motif,
       );
-      _showSnackBar('Signalement traité${report.reportedUserId != null ? ' (utilisateur notifié)' : ''}');
+      _montrerBilan(ok, 'Signalement traité${report.reportedUserId != null ? ' (utilisateur notifié)' : ''}');
     }
   }
 
@@ -1237,7 +952,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
             ),
             const SizedBox(height: 8),
             Text(
-              'Cette action est irréversible et supprimera définitivement le ${_getTypeLabel(report.targetType).toLowerCase()}.',
+              'Cette action est irréversible et supprimera définitivement le ${libelleTypeSignalement(l10n, report.targetType).toLowerCase()}.',
               style: const TextStyle(
                 fontSize: 13,
                 color: _textSecondary,
@@ -1254,7 +969,7 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
                 child: Row(
                   children: [
                     Icon(
-                      _getTypeIcon(report.targetType),
+                      iconeTypeSignalement(report.targetType),
                       size: 18,
                       color: _textSecondary,
                     ),
@@ -1293,7 +1008,8 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
     );
 
     if (confirm == true) {
-      await ref.read(adminReportsNotifierProvider.notifier).deleteReportedContent(
+      final notifier = ref.read(adminReportsNotifierProvider.notifier);
+      final supprime = await notifier.deleteReportedContent(
         report.targetType,
         report.targetId,
         adminId: currentAdmin.id,
@@ -1301,7 +1017,16 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
         reportId: report.id,
         reportedUserId: report.reportedUserId,
       );
-      await ref.read(adminReportsNotifierProvider.notifier).resolveReport(
+      if (!supprime) {
+        // Rien n'a disparu (type sans table, refus RLS, cible introuvable) :
+        // ne pas clore le signalement en « contenu supprimé », ni l'annoncer.
+        _showSnackBar(
+          ref.read(adminReportsNotifierProvider).error ?? l10n.deleteError,
+          isError: true,
+        );
+        return;
+      }
+      final clos = await notifier.resolveReport(
         report.id,
         l10n.adminContentDeleted,
         'content_deleted',
@@ -1309,51 +1034,126 @@ class _AdminReportsScreenState extends ConsumerState<AdminReportsScreen>
         adminName: currentAdmin.name,
         reportedUserId: null, // Déjà notifié par deleteReportedContent
         notifyUser: false,
+        reasonCode: 'content_removed',
       );
-      _showSnackBar('Contenu supprimé${report.reportedUserId != null ? ' (utilisateur notifié)' : ''}');
+      _montrerBilan(clos, 'Contenu supprimé${report.reportedUserId != null ? ' (utilisateur notifié)' : ''}');
     }
   }
 
-  Future<String?> _showTextDialog(String title, String label, {String? hintText}) {
+  String _libelleMotif(String code) => switch (code) {
+        'rule_not_violated' => l10n.adminMotifDismissRuleNotViolated,
+        'insufficient_evidence' => l10n.adminMotifDismissInsufficientEvidence,
+        'content_unavailable' => l10n.adminMotifDismissContentUnavailable,
+        'duplicate' => l10n.adminMotifDismissDuplicate,
+        'out_of_scope' => l10n.adminMotifDismissOutOfScope,
+        'content_removed' => l10n.adminMotifResolveContentRemoved,
+        'user_warned' => l10n.adminMotifResolveUserWarned,
+        'user_suspended' => l10n.adminMotifResolveUserSuspended,
+        'user_banned' => l10n.adminMotifResolveUserBanned,
+        'correction_requested' => l10n.adminMotifResolveCorrectionRequested,
+        _ => code,
+      };
+
+  /// Une décision : motif normalisé + justification factuelle, tous deux
+  /// obligatoires (le serveur les exige aussi — 22023 sinon). Rend null si
+  /// l'administrateur annule.
+  Future<({String motif, String note})?> _showDecisionDialog(
+    String title,
+    List<String> motifs,
+  ) {
     final controller = TextEditingController();
-    return showDialog<String>(
+    String? motif;
+    return showDialog<({String motif, String note})>(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(title),
-        content: TextField(
-          controller: controller,
-          decoration: InputDecoration(
-            labelText: label,
-            hintText: hintText,
-            hintStyle: const TextStyle(fontSize: 13, color: _textSecondary),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: _primaryColor, width: 2),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setLocal) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Text(title),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                DropdownButtonFormField<String>(
+                  initialValue: motif,
+                  isExpanded: true,
+                  decoration: InputDecoration(
+                    labelText: l10n.adminDecisionReasonLabel,
+                    hintText: l10n.adminDecisionPickReason,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  items: [
+                    for (final m in motifs)
+                      DropdownMenuItem(value: m, child: Text(_libelleMotif(m))),
+                  ],
+                  onChanged: (v) => setLocal(() => motif = v),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: controller,
+                  onChanged: (_) => setLocal(() {}),
+                  decoration: InputDecoration(
+                    labelText: l10n.adminDecisionNoteLabel,
+                    hintText: l10n.adminDecisionNoteHint,
+                    hintStyle:
+                        const TextStyle(fontSize: 13, color: _textSecondary),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide:
+                          const BorderSide(color: _primaryColor, width: 2),
+                    ),
+                  ),
+                  maxLines: 3,
+                  maxLength: 2000,
+                ),
+              ],
             ),
           ),
-          maxLines: 3,
-          autofocus: true,
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(l10n.adminCancelAction),
+            ),
+            ElevatedButton(
+              onPressed: motif == null || controller.text.trim().isEmpty
+                  ? null
+                  : () => Navigator.pop(
+                        context,
+                        (motif: motif!, note: controller.text.trim()),
+                      ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _primaryColor,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: Text(l10n.adminConfirmAction),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l10n.adminCancelAction),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, controller.text),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _primaryColor,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            ),
-            child: Text(l10n.adminConfirmAction),
-          ),
-        ],
       ),
+    );
+  }
+
+  /// Le libellé de succès ne s'affiche que si le notifier a rendu vrai ;
+  /// sinon son `state.error` (zéro ligne sous RLS, journal d'audit refusé…).
+  /// Avant, le succès s'affichait quoi qu'il arrive (audit du 2026-10-14,
+  /// § 5).
+  void _montrerBilan(bool ok, String succes) {
+    if (!mounted) return;
+    if (ok) {
+      _showSnackBar(succes);
+      return;
+    }
+    _showSnackBar(
+      ref.read(adminReportsNotifierProvider).error ?? l10n.loadingError,
+      isError: true,
     );
   }
 

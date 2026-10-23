@@ -800,7 +800,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen>
             child: GestureDetector(
               onTap: () {
                 unawaited(HapticFeedback.lightImpact());
-                unawaited(context.push('/groups'));
+                context.go('/groups');
               },
               child: _AnimatedProfileStat(
                 value: groupsCount.toString(),

@@ -22,7 +22,7 @@ class ServicesScreen extends ConsumerWidget {
         icon: Icons.dynamic_feed_rounded,
         label: l10n.homeServiceFeed,
         color: ServiceAccents.feed.of(context),
-        route: '/feed',
+        route: '/feeds',
       ),
       // Transfert et Boutique masqués de la grille « Tous les services »
       // (2026-08-23) : code conservé pour réactivation. Les deux routes
@@ -127,7 +127,10 @@ class ServicesScreen extends ConsumerWidget {
               icon: service.icon,
               label: service.label,
               color: service.color,
-              onTap: () => context.push(service.route),
+              // `/feeds` est un onglet du shell : on y va, on ne l'empile pas.
+              onTap: () => service.route == '/feeds'
+                  ? context.go(service.route)
+                  : context.push(service.route),
             );
           },
         ),

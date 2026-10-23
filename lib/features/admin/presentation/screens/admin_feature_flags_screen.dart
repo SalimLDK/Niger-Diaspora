@@ -123,6 +123,7 @@ class _AdminFeatureFlagsScreenState
         backgroundColor: _cardColor,
         elevation: 0,
         leading: IconButton(
+          tooltip: MaterialLocalizations.of(context).backButtonTooltip,
           icon: Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(

@@ -4328,13 +4328,21 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen>
   /// le compte de membres servis : c'est par là qu'il faut passer pour savoir
   /// où en est un groupe.
   Widget _buildStatusWithLock(Widget status) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Flexible(child: status),
-        const SizedBox(width: 4),
-        AppIcon(AppIcon.lock, size: 11, color: context.textTertiaryColor),
-      ],
+    // Le sous-titre vit dans le titre de l'AppBar, dont le style par défaut est
+    // le serif des titres : « En ligne » en héritait, faute de famille propre.
+    // Seul le nom est en serif (§3b) ; l'état se lit en police de texte.
+    return DefaultTextStyle.merge(
+      style: TextStyle(
+        fontFamily: Theme.of(context).textTheme.bodyMedium?.fontFamily,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Flexible(child: status),
+          const SizedBox(width: 4),
+          AppIcon(AppIcon.lock, size: 11, color: context.textTertiaryColor),
+        ],
+      ),
     );
   }
 

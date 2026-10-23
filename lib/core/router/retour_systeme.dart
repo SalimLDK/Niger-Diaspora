@@ -48,6 +48,7 @@ class RetourSystemeVersAccueil extends RootBackButtonDispatcher {
   static const _sansRepli = <String>{
     '/home',
     '/map',
+    '/feeds',
     '/groups',
     '/messages',
     '/profile',

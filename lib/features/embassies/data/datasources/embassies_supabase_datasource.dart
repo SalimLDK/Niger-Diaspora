@@ -173,6 +173,12 @@ class EmbassiesSupabaseDataSource implements EmbassiesDataSource {
     }
   }
 
+  /// Fermée : le statut d'une ambassade (vérifiée, suspendue, refusée) ne se
+  /// pose plus par écriture directe — le déclencheur `embassies_garde_statut`
+  /// la refuse, super-administrateur compris. Le panneau passe par
+  /// `AmbassadesAdminActions` (RPC `embassy_admin_*`), qui exige source ou
+  /// motif et écrit l'audit. Cette méthode reste pour l'interface commune
+  /// (la source Firestore héritée) et lève plutôt que d'échouer en silence.
   @override
   Future<void> updateEmbassyStatus(
     String id, {
@@ -180,38 +186,9 @@ class EmbassiesSupabaseDataSource implements EmbassiesDataSource {
     bool? isSuspended,
     String? rejectionReason,
   }) async {
-    // Sans session valide, le RLS refuse en anon et l'UPDATE ne touche aucune
-    // ligne — sans lever d'erreur côté client.
-    if (!await SupabaseAuthBridge.instance.ensureAuthenticated()) {
-      throw ServerException('Session indisponible.');
-    }
-
-    final patch = <String, dynamic>{
-      if (isVerified != null) 'is_verified': isVerified,
-      if (isVerified == true) 'verified_at': DateTime.now().toUtc().toIso8601String(),
-      if (isSuspended != null) 'is_suspended': isSuspended,
-      if (rejectionReason != null) 'rejection_reason': rejectionReason,
-    };
-    if (patch.isEmpty) return;
-
-    try {
-      // `select()` derrière l'UPDATE : le RLS renvoie une liste vide plutôt
-      // qu'une erreur quand la ligne est refusée. Sans cette vérification,
-      // l'écran affiche « vérifiée » alors que rien n'a bougé en base.
-      final updated = await _client
-          .from('embassies')
-          .update(patch)
-          .eq('id', id)
-          .select('id');
-
-      if (updated.isEmpty) {
-        throw ServerException(
-          'Mise à jour refusée : réservée au super-administrateur.',
-        );
-      }
-    } on PostgrestException catch (e) {
-      throw ServerException('Mise à jour impossible : ${e.message}');
-    }
+    throw ServerException(
+      "Le statut d'une ambassade se modifie par les fonctions d'administration.",
+    );
   }
 
   @override

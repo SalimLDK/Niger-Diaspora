@@ -1,6 +1,23 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/services/e2ee/undecryptable_placeholders.dart';
 import '../../../../core/theme/adaptive_colors.dart';
+
+/// Le seul texte qu'on montre pour un message dont le contenu n'a pas pu être
+/// lu : la bulle, l'aperçu de réponse et la citation le partagent.
+const String kLibelleMessageIndisponible =
+    'Message indisponible sur cet appareil';
+
+/// Ce qu'une **citation** (ou le bandeau « répondre à ») doit afficher pour un
+/// message texte : le contenu, sauf s'il est vide ou n'est que le marqueur
+/// technique de la couche crypto.
+///
+/// Vu sur appareil le 2026-10-16 : répondre à un message illisible recopiait
+/// `[🔐 E2EE — session requise]` dans la citation, tel quel, dans la bulle de
+/// la réponse — alors que le message cité s'affichait proprement en bulle
+/// « indisponible » au-dessus.
+String contenuCitationAffichable(String content) =>
+    isUndecryptableContent(content) ? kLibelleMessageIndisponible : content;
 
 /// Ce qu'une bulle affiche quand son texte n'a JAMAIS pu être lu sur cet
 /// appareil, et qu'aucune copie claire ne dort dans le cache local.
@@ -35,7 +52,7 @@ class UndecryptableMessageBubble extends StatelessWidget {
           const SizedBox(width: 6),
           Flexible(
             child: Text(
-              'Message indisponible sur cet appareil',
+              kLibelleMessageIndisponible,
               style: TextStyle(
                 fontSize: 13,
                 color: couleur,

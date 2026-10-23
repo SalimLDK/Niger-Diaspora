@@ -2160,7 +2160,7 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
                 Flexible(
                   child: Text(
                     reply.type == MessageType.text
-                        ? reply.content
+                        ? contenuCitationAffichable(reply.content)
                         : _getMediaTypeLabel(reply.type),
                     style: TextStyle(
                       fontSize: 13,
@@ -2583,7 +2583,12 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
         widget.currentUserId != null &&
         widget.message.isStarredBy(widget.currentUserId!);
     final l10n = AppLocalizations.of(context)!;
-    final metaColor = context.textTertiaryColor;
+    // Heure et accusé sur fond sombre : le gris tertiaire (#8A8177) s'y
+    // perdait, on prend le secondaire.
+    final metaColor =
+        context.isDarkMode
+            ? AppColors.textSecondaryDark
+            : context.textTertiaryColor;
 
     // Nombre de lecteurs autres que l'expéditeur. En tête-à-tête, un seul
     // suffit à « Lu » ; en groupe, voir `_buildReceiptLabel`.
@@ -2693,7 +2698,10 @@ class _MessageBubbleState extends ConsumerState<MessageBubble>
   /// lu, ce que « Lu » laissait deviner.
   Widget _buildReceiptLabel(BuildContext context, int groupReadCount) {
     final l10n = AppLocalizations.of(context)!;
-    final metaColor = context.textTertiaryColor;
+    final metaColor =
+        context.isDarkMode
+            ? AppColors.textSecondaryDark
+            : context.textTertiaryColor;
 
     switch (widget.message.status) {
       case MessageStatus.sending:

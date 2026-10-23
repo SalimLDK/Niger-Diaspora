@@ -21,6 +21,7 @@ import '../../../messages/presentation/providers/media_gallery_provider.dart';
 import '../providers/group_request_provider.dart';
 import '../../../messages/presentation/providers/message_provider.dart';
 import '../../../../core/theme/adaptive_colors.dart';
+import '../../../../shared/widgets/discussions_segment.dart';
 import '../../../../shared/widgets/sheet_handle.dart';
 import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import '../../../../core/theme/design_kit.dart';
@@ -395,7 +396,8 @@ class _GroupsScreenState extends ConsumerState<GroupsScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 18),
+                  const DiscussionsSegment(current: DiscussionsView.groups),
+                  const SizedBox(height: 14),
                   Padding(
                     padding: EdgeInsets.symmetric(
                       horizontal: context.horizontalPadding,

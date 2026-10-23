@@ -6,7 +6,10 @@ class AnalyticsService {
   static final AnalyticsService _instance = AnalyticsService._internal();
   static AnalyticsService get instance => _instance;
 
-  final FirebaseAnalytics _analytics = FirebaseAnalytics.instance;
+  // Lu à l'usage, pas à la construction : `logEvent` attrape déjà l'erreur
+  // d'une Firebase non initialisée (tests), alors que l'initialiseur de champ
+  // la levait au premier accès à `instance`, hors de tout `try`.
+  FirebaseAnalytics get _analytics => FirebaseAnalytics.instance;
 
   AnalyticsService._internal();
 

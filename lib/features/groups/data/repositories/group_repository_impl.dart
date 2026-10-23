@@ -126,6 +126,14 @@ class GroupRepositoryImpl implements GroupRepository {
 
   @override
   Future<Either<Failure, GroupEntity>> createGroup(GroupEntity group) async {
+    // Un groupe sans nom s'affiche en carte vide et ne se retrouve pas en
+    // recherche : deux l'ont fait en production (2026-09-17, 2026-10-01). Les
+    // écrans valident déjà le champ, mais la règle vit ici, au point de
+    // passage unique, pour qu'aucun appelant ne puisse la contourner.
+    if (group.name.trim().length < 3) {
+      return const Left(ValidationFailure(
+          'Le nom du groupe doit contenir au moins 3 caractères.'));
+    }
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }
@@ -160,6 +168,14 @@ class GroupRepositoryImpl implements GroupRepository {
 
   @override
   Future<Either<Failure, GroupEntity>> updateGroup(GroupEntity group) async {
+    // Un groupe sans nom s'affiche en carte vide et ne se retrouve pas en
+    // recherche : deux l'ont fait en production (2026-09-17, 2026-10-01). Les
+    // écrans valident déjà le champ, mais la règle vit ici, au point de
+    // passage unique, pour qu'aucun appelant ne puisse la contourner.
+    if (group.name.trim().length < 3) {
+      return const Left(ValidationFailure(
+          'Le nom du groupe doit contenir au moins 3 caractères.'));
+    }
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure(AppErrorMessages.networkError));
     }

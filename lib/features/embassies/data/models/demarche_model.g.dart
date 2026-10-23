@@ -102,6 +102,11 @@ _$DemarcheImpl _$$DemarcheImplFromJson(Map<String, dynamic> json) =>
               ?.map((e) => e as String)
               .toList() ??
           const <String>[],
+      sourceUrl: json['sourceUrl'] as String?,
+      verifieLe:
+          json['verifieLe'] == null
+              ? null
+              : DateTime.parse(json['verifieLe'] as String),
     );
 
 Map<String, dynamic> _$$DemarcheImplToJson(_$DemarcheImpl instance) =>
@@ -121,6 +126,8 @@ Map<String, dynamic> _$$DemarcheImplToJson(_$DemarcheImpl instance) =>
       'delai': instance.delai,
       'juridictionCompetente': instance.juridictionCompetente,
       'avertissements': instance.avertissements,
+      'sourceUrl': instance.sourceUrl,
+      'verifieLe': instance.verifieLe?.toIso8601String(),
     };
 
 _$DemarchePieceImpl _$$DemarchePieceImplFromJson(Map<String, dynamic> json) =>

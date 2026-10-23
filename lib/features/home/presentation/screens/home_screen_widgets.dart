@@ -338,7 +338,7 @@ class _ServicesGrid extends ConsumerWidget {
         icon: Icons.dynamic_feed_rounded,
         label: l10n.homeServiceFeed,
         color: ServiceAccents.feed.of(context),
-        onTap: () => context.push('/feed'),
+        onTap: () => context.go('/feeds'),
       ),
       // Transfert et Boutique masqués de la grille d'accueil (même règle que
       // « Tous les services », 2026-08-23) : code conservé pour réactivation.

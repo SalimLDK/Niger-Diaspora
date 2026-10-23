@@ -2,11 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../widgets/admin_bandeau_erreur.dart';
 import 'package:diaspo_niger/core/theme/admin_colors.dart';
 import '../../../transfers/domain/entities/transaction_entity.dart';
 import '../providers/admin_provider.dart';
 import 'package:diaspo_niger/l10n/app_localizations.dart';
 import 'package:diaspo_niger/core/theme/design_kit.dart';
+import 'package:diaspo_niger/features/admin/presentation/widgets/admin_charger_plus.dart';
 
 class AdminTransactionsScreen extends ConsumerStatefulWidget {
   const AdminTransactionsScreen({super.key});
@@ -96,11 +98,11 @@ class _AdminTransactionsScreenState
                   labelStyle: const TextStyle(fontWeight: FontWeight.w600),
                   isScrollable: true,
                   tabs: [
-                    Tab(text: 'Toutes (${state.transactions.length})'),
-                    Tab(text: 'En attente (${state.pendingTransactions.length})'),
-                    Tab(text: 'Échouées (${state.failedTransactions.length})'),
+                    Tab(text: l10n.adminTabWithCount(l10n.allTransactions, '${state.transactions.length}${state.encorePlus.contains(FiltreTransferts.toutes) ? '+' : ''}')),
+                    Tab(text: l10n.adminTabWithCount(l10n.statusPending, '${state.nbEnAttente}')),
+                    Tab(text: l10n.adminTabWithCount(l10n.adminFailedPlural, '${state.nbEchouees}')),
                     Tab(
-                      text: 'Complétées (${state.transactions.where((t) => t.status == TransactionStatus.completed).length})',
+                      text: l10n.adminTabWithCount(l10n.adminCompletedName, '${state.completedTransactions.length}${state.encorePlus.contains(FiltreTransferts.completees) ? '+' : ''}'),
                     ),
                   ],
                 ),
@@ -114,18 +116,29 @@ class _AdminTransactionsScreenState
       },
       body: state.isLoading
           ? _buildLoadingState()
-          : state.error != null
+          : state.error != null && state.transactions.isEmpty
               ? _buildErrorState(state.error!)
-              : TabBarView(
+              : Column(
+                  children: [
+                    // Une erreur posée après une action (zéro ligne, journal
+                    // refusé) ne doit pas effacer la liste.
+                    if (state.error != null)
+                      AdminBandeauErreur(
+                        message: state.error!,
+                        onFermer: ref
+                            .read(adminTransactionsNotifierProvider.notifier)
+                            .effacerErreur,
+                      ),
+                    Expanded(
+                      child: TabBarView(
                   controller: _tabController,
                   children: [
-                    _buildTransactionsList(state.transactions),
-                    _buildTransactionsList(state.pendingTransactions),
-                    _buildTransactionsList(state.failedTransactions),
-                    _buildTransactionsList(
-                      state.transactions
-                          .where((t) => t.status == TransactionStatus.completed)
-                          .toList(),
+                    _buildTransactionsList(state, FiltreTransferts.toutes),
+                    _buildTransactionsList(state, FiltreTransferts.enAttente),
+                    _buildTransactionsList(state, FiltreTransferts.echouees),
+                    _buildTransactionsList(state, FiltreTransferts.completees),
+                  ],
+                      ),
                     ),
                   ],
                 ),
@@ -164,7 +177,12 @@ class _AdminTransactionsScreenState
     );
   }
 
-  Widget _buildRefreshButton() {
+  Widget _buildRefreshButton() => Tooltip(
+    message: l10n.adminRefresh,
+    child: _boutonActualiser(),
+  );
+
+  Widget _boutonActualiser() {
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -218,15 +236,15 @@ class _AdminTransactionsScreenState
         ),
         _buildStatCard(
           title: l10n.adminPending,
-          value: state.pendingTransactions.length.toString(),
+          value: state.nbEnAttente.toString(),
           icon: Icons.pending_rounded,
           gradient: const [AdminColors.statusAmber, AdminColors.statusAmberStrong],
         ),
         _buildStatCard(
           title: l10n.adminFailedPlural,
-          value: state.failedTransactions.length.toString(),
+          value: state.nbEchouees.toString(),
           icon: Icons.error_rounded,
-          gradient: state.failedTransactions.isNotEmpty
+          gradient: state.nbEchouees > 0
               ? const [AdminColors.statusRed, AdminColors.statusRedStrong]
               : const [AdminColors.statusGray, AdminColors.statusGray],
         ),
@@ -385,35 +403,39 @@ class _AdminTransactionsScreenState
     );
   }
 
-  Widget _buildTransactionsList(List<TransactionEntity> transactions) {
+  Widget _buildTransactionsList(
+    AdminTransactionsState state,
+    FiltreTransferts filtre,
+  ) {
+    final transactions = state.liste(filtre);
     if (transactions.isEmpty) {
       return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.receipt_long_rounded,
-              size: 64,
-              color: _textSecondary.withAlpha(100),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Aucune transaction trouvée',
-              style: TextStyle(
-                color: _textSecondary,
-                fontSize: 16,
-              ),
-            ),
-          ],
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: DesignEmptyState(
+            icon: Icons.receipt_long_rounded,
+            title: l10n.adminNoTransactionsTitle,
+            body: l10n.adminEmptyTabBody,
+          ),
         ),
       );
     }
 
+    final encorePlus = state.encorePlus.contains(filtre);
     return ListView.builder(
-      itemCount: transactions.length,
+      itemCount: transactions.length + (encorePlus ? 1 : 0),
       itemBuilder: (context, index) {
-        final transaction = transactions[index];
-        return _buildTransactionCard(transaction);
+        if (index == transactions.length) {
+          return AdminChargerPlus(
+            enCours: state.chargementPlus == filtre,
+            onPressed: () => unawaited(
+              ref
+                  .read(adminTransactionsNotifierProvider.notifier)
+                  .chargerPlus(filtre),
+            ),
+          );
+        }
+        return _buildTransactionCard(transactions[index]);
       },
     );
   }
@@ -489,13 +511,13 @@ class _AdminTransactionsScreenState
       children: [
         const Divider(),
         const SizedBox(height: 8),
-        _buildDetailRow('Expéditeur', transaction.senderId),
+        _buildDetailRow(l10n.adminDetailSender, transaction.senderId),
         _buildDetailRow(
-          'Destinataire',
+          l10n.adminDetailRecipient,
           transaction.recipientName ?? transaction.recipientId,
         ),
         _buildDetailRow(
-          'Téléphone destinataire',
+          l10n.adminDetailRecipientPhone,
           transaction.recipientPhone ?? 'N/A',
         ),
         const Divider(height: 24),
@@ -521,7 +543,7 @@ class _AdminTransactionsScreenState
         ),
         const Divider(height: 24),
         _buildDetailRow(
-          'Fournisseur',
+          l10n.adminDetailProvider,
           transaction.provider.name.toUpperCase(),
         ),
         if (transaction.paymentIntentId != null)
@@ -531,7 +553,7 @@ class _AdminTransactionsScreenState
           ),
         if (transaction.mynitaReference != null)
           _buildDetailRow(
-            'Réf. MyNita',
+            l10n.adminDetailMynitaRef,
             transaction.mynitaReference!,
           ),
         if (transaction.failureReason != null)
@@ -542,12 +564,12 @@ class _AdminTransactionsScreenState
           ),
         if (transaction.createdAt != null)
           _buildDetailRow(
-            'Créée le',
+            l10n.adminDetailCreatedOn,
             _formatDate(transaction.createdAt!),
           ),
         if (transaction.completedAt != null)
           _buildDetailRow(
-            'Complétée le',
+            l10n.adminDetailCompletedOn,
             _formatDate(transaction.completedAt!),
           ),
         const SizedBox(height: 16),
@@ -590,72 +612,122 @@ class _AdminTransactionsScreenState
   Widget _buildActionButtons(TransactionEntity transaction) {
     final notifier = ref.read(adminTransactionsNotifierProvider.notifier);
     final currentAdmin = ref.read(currentAdminProvider);
+    final demande = ref.watch(demandesRemboursementProvider).valueOrNull?[transaction.id];
+    final estDemandeur = demande != null && currentAdmin != null && demande.par == currentAdmin.id;
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        if (transaction.status == TransactionStatus.pending) ...[
-          _buildActionButton(
-            label: l10n.adminMarkFailedAction,
-            icon: Icons.error_rounded,
-            color: AdminColors.statusRed,
-            isOutlined: true,
-            onPressed: () async {
-              if (currentAdmin == null) {
-                _showSnackBar(l10n.adminNotConnected);
-                return;
-              }
-              final reason = await _showTextDialog(
-                l10n.adminMarkAsFailedTitle,
-                'Raison de l\'échec:',
-              );
-              if (reason != null && reason.isNotEmpty) {
-                await notifier.markAsFailed(transaction.id, reason, adminId: currentAdmin.id, adminName: currentAdmin.name);
-                _showSnackBar(l10n.adminTransactionFailed);
-              }
-            },
+        if (demande != null) ...[
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              l10n.trfAdmRefundPending(demande.motif),
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+            ),
           ),
-          const SizedBox(width: 8),
-          _buildActionButton(
-            label: l10n.adminComplete,
-            icon: Icons.check_rounded,
-            color: AdminColors.statusGreen,
-            onPressed: () async {
-              if (currentAdmin == null) {
-                _showSnackBar(l10n.adminNotConnected);
-                return;
-              }
-              final confirm = await _showConfirmation(
-                l10n.adminMarkCompleteTitle,
-                l10n.adminMarkCompleteConfirm,
-              );
-              if (confirm == true) {
-                await notifier.markAsCompleted(transaction.id, adminId: currentAdmin.id, adminName: currentAdmin.name);
-                _showSnackBar(l10n.adminTransactionCompleted);
-              }
-            },
-          ),
+          if (estDemandeur)
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(l10n.trfAdmRefundWaiting,
+                  style: const TextStyle(fontSize: 12, color: AdminColors.text2)),
+            ),
+          const SizedBox(height: 8),
         ],
-        if (transaction.status == TransactionStatus.completed)
-          _buildActionButton(
-            label: l10n.adminRefund,
-            icon: Icons.undo_rounded,
-            color: AdminColors.statusAmber,
-            onPressed: () async {
-              if (currentAdmin == null) {
-                _showSnackBar(l10n.adminNotConnected);
-                return;
-              }
-              final reason = await _showTextDialog(
-                'Rembourser la transaction',
-                l10n.adminRefundReasonLabel,
-              );
-              if (reason != null && reason.isNotEmpty) {
-                await notifier.refundTransaction(transaction.id, reason, adminId: currentAdmin.id, adminName: currentAdmin.name);
-                _showSnackBar(l10n.adminTransactionRefunded);
-              }
-            },
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            if (transaction.status == TransactionStatus.pending) ...[
+              _buildActionButton(
+                label: l10n.adminMarkFailedAction,
+                icon: Icons.error_rounded,
+                color: AdminColors.statusRed,
+                isOutlined: true,
+                onPressed: () async {
+                  final reason = await _showTextDialog(
+                    l10n.adminMarkAsFailedTitle,
+                    l10n.adminFailureReasonPrompt,
+                  );
+                  if (reason != null && reason.isNotEmpty) {
+                    final ok = await notifier.markAsFailed(transaction.id, reason);
+                    _montrerBilan(ok, l10n.adminTransactionFailed);
+                  }
+                },
+              ),
+              const SizedBox(width: 8),
+              _buildActionButton(
+                label: l10n.adminComplete,
+                icon: Icons.check_rounded,
+                color: AdminColors.statusGreen,
+                onPressed: () async {
+                  final preuve = await _showTextDialog(
+                    l10n.adminMarkCompleteTitle,
+                    l10n.trfAdmProofLabel,
+                    aide: l10n.adminMarkCompleteConfirm,
+                  );
+                  if (preuve != null && preuve.isNotEmpty) {
+                    final ok = await notifier.markAsCompleted(transaction.id, preuve: preuve);
+                    _montrerBilan(ok, l10n.adminTransactionCompleted);
+                  }
+                },
+              ),
+            ],
+            if (transaction.status == TransactionStatus.completed && demande == null)
+              _buildActionButton(
+                label: l10n.trfAdmRequestRefund,
+                icon: Icons.undo_rounded,
+                color: AdminColors.statusAmber,
+                onPressed: () async {
+                  final reason = await _showTextDialog(
+                    l10n.trfAdmRequestRefundTitle,
+                    l10n.adminRefundReasonLabel,
+                    aide: l10n.trfAdmRefundWarn,
+                  );
+                  if (reason != null && reason.isNotEmpty) {
+                    final ok = await notifier.requestRefund(transaction.id, reason);
+                    _montrerBilan(ok, l10n.trfAdmRefundRequested);
+                  }
+                },
+              ),
+            if (transaction.status == TransactionStatus.completed &&
+                demande != null &&
+                !estDemandeur) ...[
+              _buildActionButton(
+                label: l10n.trfAdmRejectRefund,
+                icon: Icons.close_rounded,
+                color: AdminColors.statusRed,
+                isOutlined: true,
+                onPressed: () async {
+                  final note = await _showTextDialog(
+                    l10n.trfAdmRejectRefundTitle,
+                    l10n.trfAdmRejectRefundNote,
+                  );
+                  if (note != null && note.isNotEmpty) {
+                    final ok = await notifier.decideRefund(transaction.id,
+                        approve: false, note: note);
+                    _montrerBilan(ok, l10n.trfAdmRefundDecided);
+                  }
+                },
+              ),
+              const SizedBox(width: 8),
+              _buildActionButton(
+                label: l10n.trfAdmApproveRefund,
+                icon: Icons.check_rounded,
+                color: AdminColors.statusAmber,
+                onPressed: () async {
+                  final confirm = await _showConfirmation(
+                    l10n.trfAdmApproveRefund,
+                    l10n.trfAdmRefundWarn,
+                  );
+                  if (confirm == true) {
+                    final ok = await notifier.decideRefund(transaction.id, approve: true);
+                    _montrerBilan(ok, l10n.trfAdmRefundDecided);
+                  }
+                },
+              ),
+            ],
+          ],
+        ),
       ],
     );
   }
@@ -744,31 +816,25 @@ class _AdminTransactionsScreenState
         label = l10n.adminTransactionCompletedLabel;
         break;
       case TransactionStatus.failed:
-        label = 'Échouée';
+        label = l10n.transactionStatusFailed;
         break;
       case TransactionStatus.refunded:
-        label = 'Remboursée';
+        label = l10n.transactionStatusRefunded;
         break;
       case TransactionStatus.cancelled:
-        label = 'Annulée';
+        label = l10n.transactionStatusCancelled;
         break;
     }
-    final color = _getStatusColor(status);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withAlpha(20),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withAlpha(50)),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-          color: color,
-        ),
-      ),
+    return DesignBadge(
+      label,
+      tone: switch (status) {
+        TransactionStatus.pending ||
+        TransactionStatus.processing => DesignBadgeTone.review,
+        TransactionStatus.completed => DesignBadgeTone.verified,
+        TransactionStatus.failed => DesignBadgeTone.failed,
+        TransactionStatus.refunded ||
+        TransactionStatus.cancelled => DesignBadgeTone.archived,
+      },
     );
   }
 
@@ -899,23 +965,39 @@ class _AdminTransactionsScreenState
     );
   }
 
-  Future<String?> _showTextDialog(String title, String label) {
+  /// [aide] : une ligne au-dessus du champ, pour dire ce que l'action fait
+  /// — et surtout ce qu'elle ne fait pas.
+  Future<String?> _showTextDialog(String title, String label, {String? aide}) {
     final controller = TextEditingController();
+    final champ = TextField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: label,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+      maxLines: 3,
+    );
     return showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(title),
-        content: TextField(
-          controller: controller,
-          decoration: InputDecoration(
-            labelText: label,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
-          maxLines: 3,
-        ),
+        content: aide == null
+            ? champ
+            : Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    aide,
+                    style: const TextStyle(color: AdminColors.text2),
+                  ),
+                  const SizedBox(height: 16),
+                  champ,
+                ],
+              ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -934,10 +1016,28 @@ class _AdminTransactionsScreenState
     );
   }
 
-  void _showSnackBar(String message) {
+  /// Le libellé de succès ne s'affiche que si le notifier a rendu vrai ;
+  /// sinon son `state.error` (zéro ligne sous RLS, journal d'audit refusé…).
+  /// Avant, le succès s'affichait quoi qu'il arrive — et côté Postgres,
+  /// rembourser, compléter ou échouer une transaction n'a aucune policy
+  /// admin : zéro ligne à chaque fois (audit du 2026-10-14, § 5).
+  void _montrerBilan(bool ok, String succes) {
+    if (!mounted) return;
+    if (ok) {
+      _showSnackBar(succes);
+      return;
+    }
+    _showSnackBar(
+      ref.read(adminTransactionsNotifierProvider).error ?? l10n.loadingError,
+      isError: true,
+    );
+  }
+
+  void _showSnackBar(String message, {bool isError = false}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
+        backgroundColor: isError ? AdminColors.statusRed : null,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),

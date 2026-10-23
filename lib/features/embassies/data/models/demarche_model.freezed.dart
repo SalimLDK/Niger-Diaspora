@@ -731,6 +731,12 @@ mixin _$Demarche {
   /// ambiguë, parenthèse tronquée…). Non vide sur 13 démarches sur 20.
   List<String> get avertissements => throw _privateConstructorUsedError;
 
+  /// Source propre à cette démarche et date de sa dernière vérification
+  /// (workflow de publication du panneau). Absentes de la copie embarquée
+  /// d'origine : on retombe alors sur la source du catalogue.
+  String? get sourceUrl => throw _privateConstructorUsedError;
+  DateTime? get verifieLe => throw _privateConstructorUsedError;
+
   /// Serializes this Demarche to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
 
@@ -762,6 +768,8 @@ abstract class $DemarcheCopyWith<$Res> {
     String? delai,
     DemarcheJuridiction? juridictionCompetente,
     List<String> avertissements,
+    String? sourceUrl,
+    DateTime? verifieLe,
   });
 
   $DemarcheCoutCopyWith<$Res> get cout;
@@ -798,6 +806,8 @@ class _$DemarcheCopyWithImpl<$Res, $Val extends Demarche>
     Object? delai = freezed,
     Object? juridictionCompetente = freezed,
     Object? avertissements = null,
+    Object? sourceUrl = freezed,
+    Object? verifieLe = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -876,6 +886,16 @@ class _$DemarcheCopyWithImpl<$Res, $Val extends Demarche>
                     ? _value.avertissements
                     : avertissements // ignore: cast_nullable_to_non_nullable
                         as List<String>,
+            sourceUrl:
+                freezed == sourceUrl
+                    ? _value.sourceUrl
+                    : sourceUrl // ignore: cast_nullable_to_non_nullable
+                        as String?,
+            verifieLe:
+                freezed == verifieLe
+                    ? _value.verifieLe
+                    : verifieLe // ignore: cast_nullable_to_non_nullable
+                        as DateTime?,
           )
           as $Val,
     );
@@ -933,6 +953,8 @@ abstract class _$$DemarcheImplCopyWith<$Res>
     String? delai,
     DemarcheJuridiction? juridictionCompetente,
     List<String> avertissements,
+    String? sourceUrl,
+    DateTime? verifieLe,
   });
 
   @override
@@ -970,6 +992,8 @@ class __$$DemarcheImplCopyWithImpl<$Res>
     Object? delai = freezed,
     Object? juridictionCompetente = freezed,
     Object? avertissements = null,
+    Object? sourceUrl = freezed,
+    Object? verifieLe = freezed,
   }) {
     return _then(
       _$DemarcheImpl(
@@ -1048,6 +1072,16 @@ class __$$DemarcheImplCopyWithImpl<$Res>
                 ? _value._avertissements
                 : avertissements // ignore: cast_nullable_to_non_nullable
                     as List<String>,
+        sourceUrl:
+            freezed == sourceUrl
+                ? _value.sourceUrl
+                : sourceUrl // ignore: cast_nullable_to_non_nullable
+                    as String?,
+        verifieLe:
+            freezed == verifieLe
+                ? _value.verifieLe
+                : verifieLe // ignore: cast_nullable_to_non_nullable
+                    as DateTime?,
       ),
     );
   }
@@ -1073,6 +1107,8 @@ class _$DemarcheImpl extends _Demarche {
     this.delai,
     this.juridictionCompetente,
     final List<String> avertissements = const <String>[],
+    this.sourceUrl,
+    this.verifieLe,
   }) : _pieces = pieces,
        _piecesConditionnelles = piecesConditionnelles,
        _avertissements = avertissements,
@@ -1152,9 +1188,17 @@ class _$DemarcheImpl extends _Demarche {
     return EqualUnmodifiableListView(_avertissements);
   }
 
+  /// Source propre à cette démarche et date de sa dernière vérification
+  /// (workflow de publication du panneau). Absentes de la copie embarquée
+  /// d'origine : on retombe alors sur la source du catalogue.
+  @override
+  final String? sourceUrl;
+  @override
+  final DateTime? verifieLe;
+
   @override
   String toString() {
-    return 'Demarche(id: $id, titre: $titre, titreSource: $titreSource, rubrique: $rubrique, requestType: $requestType, lieu: $lieu, exigeCarteConsulaire: $exigeCarteConsulaire, estPrerequisDeToutLeReste: $estPrerequisDeToutLeReste, resume: $resume, pieces: $pieces, piecesConditionnelles: $piecesConditionnelles, cout: $cout, delai: $delai, juridictionCompetente: $juridictionCompetente, avertissements: $avertissements)';
+    return 'Demarche(id: $id, titre: $titre, titreSource: $titreSource, rubrique: $rubrique, requestType: $requestType, lieu: $lieu, exigeCarteConsulaire: $exigeCarteConsulaire, estPrerequisDeToutLeReste: $estPrerequisDeToutLeReste, resume: $resume, pieces: $pieces, piecesConditionnelles: $piecesConditionnelles, cout: $cout, delai: $delai, juridictionCompetente: $juridictionCompetente, avertissements: $avertissements, sourceUrl: $sourceUrl, verifieLe: $verifieLe)';
   }
 
   @override
@@ -1191,7 +1235,11 @@ class _$DemarcheImpl extends _Demarche {
             const DeepCollectionEquality().equals(
               other._avertissements,
               _avertissements,
-            ));
+            ) &&
+            (identical(other.sourceUrl, sourceUrl) ||
+                other.sourceUrl == sourceUrl) &&
+            (identical(other.verifieLe, verifieLe) ||
+                other.verifieLe == verifieLe));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1213,6 +1261,8 @@ class _$DemarcheImpl extends _Demarche {
     delai,
     juridictionCompetente,
     const DeepCollectionEquality().hash(_avertissements),
+    sourceUrl,
+    verifieLe,
   );
 
   /// Create a copy of Demarche
@@ -1246,6 +1296,8 @@ abstract class _Demarche extends Demarche {
     final String? delai,
     final DemarcheJuridiction? juridictionCompetente,
     final List<String> avertissements,
+    final String? sourceUrl,
+    final DateTime? verifieLe,
   }) = _$DemarcheImpl;
   const _Demarche._() : super._();
 
@@ -1295,6 +1347,14 @@ abstract class _Demarche extends Demarche {
   /// ambiguë, parenthèse tronquée…). Non vide sur 13 démarches sur 20.
   @override
   List<String> get avertissements;
+
+  /// Source propre à cette démarche et date de sa dernière vérification
+  /// (workflow de publication du panneau). Absentes de la copie embarquée
+  /// d'origine : on retombe alors sur la source du catalogue.
+  @override
+  String? get sourceUrl;
+  @override
+  DateTime? get verifieLe;
 
   /// Create a copy of Demarche
   /// with the given fields replaced by the non-null parameter values.

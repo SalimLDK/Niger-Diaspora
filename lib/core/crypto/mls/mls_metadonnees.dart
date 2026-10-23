@@ -546,6 +546,31 @@ class MlsMetadonnees {
     return [for (final r in (rows as List).cast<Map<String, dynamic>>()) r['id'] as String];
   }
 
+  /// « Livré » à l'arrivée du push, **sans ouvrir la discussion**.
+  ///
+  /// Le push ne portait « livré » que pour les conversations d'avant MLS :
+  /// la RPC qu'il appelle écrit dans `messages`, qu'une conversation basculée
+  /// n'alimente plus. Pour elle, « Envoyé » restait affiché jusqu'à
+  /// l'ouverture de la discussion, même téléphone en main et « En ligne ».
+  /// Les 50 plus récents suffisent : `marquer` ne réécrit jamais un reçu déjà
+  /// posé, et un message plus ancien a eu son tour à une arrivée précédente.
+  Future<void> marquerLivresRecents(String conversationId) async {
+    await _auth();
+    final rows = await _client
+        .from('mls_messages')
+        .select('id')
+        .eq('conversation_id', conversationId)
+        .eq('kind', 'content')
+        .neq('sender_id', userId)
+        .order('created_at', ascending: false)
+        .limit(50);
+    final ids = [
+      for (final r in (rows as List).cast<Map<String, dynamic>>())
+        r['id'] as String,
+    ];
+    await marquer(ids, lu: false);
+  }
+
   // ── Mentions ─────────────────────────────────────────────────────────────
 
   /// Écrites par l'expéditeur au moment de l'envoi — le RLS n'autorise que

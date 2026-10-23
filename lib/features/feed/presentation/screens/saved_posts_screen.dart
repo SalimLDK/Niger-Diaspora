@@ -132,7 +132,7 @@ class _SavedPostsScreenState extends ConsumerState<SavedPostsScreen> {
               body: l10n.savedPostsEmptyBody,
               ctaLabel: l10n.exploreFeed,
               ctaIcon: Icons.explore_outlined,
-              onCta: () => context.push('/feed'),
+              onCta: () => context.go('/feeds'),
               note: l10n.savedPostsNote,
             );
           }
