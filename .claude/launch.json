@@ -13,6 +13,12 @@
       "port": 8765
     },
     {
+      "name": "backoffice",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "backoffice", "run", "dev"],
+      "port": 5180
+    },
+    {
       "name": "site-web",
       "runtimeExecutable": "python",
       "runtimeArgs": [
