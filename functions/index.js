@@ -10,7 +10,7 @@ const { cheminStorageSur } = require("./chemins_storage");
 const { peutSupprimerConversationPourTous } = require("./autorisations");
 const { preparerAppelEntrant, nomAppele, uidValide } = require("./appels");
 const partners = require("./partners");
-const { creerCallableSetAdminRole, ROLES_ADMIN } = require("./roles_admin");
+const { creerCallableSetAdminRole, ROLES_ADMIN, claimsPour } = require("./roles_admin");
 const { creerCallableSetUserBanned } = require("./bannissement");
 // Tokens/profils/conversations : lus dans Supabase, PAS dans Firestore.
 const {
@@ -7895,7 +7895,7 @@ exports.setAdminRole = creerCallableSetAdminRole(functions, {
     // `null` retire TOUS les custom claims du compte : il n'y en a pas
     // d'autre dans ce projet (aucun autre setCustomUserClaims).
     poserClaim: (uid, role) =>
-        admin.auth().setCustomUserClaims(uid, role ? { adminRole: role } : null),
+        admin.auth().setCustomUserClaims(uid, claimsPour(role)),
     ecrireAdminsRtdb: (uid, present) => {
         const ref = admin.database().ref(`admins/${uid}`);
         return present ? ref.set(true) : ref.remove();

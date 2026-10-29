@@ -18,6 +18,10 @@ const assert = require("node:assert/strict");
 
 const {
   ROLES_ADMIN,
+  ROLES_LIMITES,
+  ROLES_ATTRIBUABLES,
+  claimsPour,
+  estRoleHistorique,
   normaliserRole,
   actionJournal,
   executerSetAdminRole,
@@ -431,5 +435,34 @@ describe("câblage firebase-functions (v1) — via firebase-functions-test", () 
     } finally {
       fft.cleanup();
     }
+  });
+});
+
+
+describe("rôles à périmètre limité", () => {
+  test("ne figurent pas dans ROLES_ADMIN (porte d'autorisation d'index.js)", () => {
+    for (const r of ROLES_LIMITES) {
+      assert.equal(ROLES_ADMIN.includes(r), false, `${r} ne doit pas ouvrir les portes admin`);
+    }
+  });
+  test("sont attribuables, comme les quatre historiques", () => {
+    for (const r of ROLES_ATTRIBUABLES) {
+      assert.deepEqual(normaliserRole(r), { ok: true, role: r });
+    }
+    assert.equal(ROLES_ATTRIBUABLES.length, 8);
+  });
+  test("le claim d'un rôle limité n'est JAMAIS adminRole", () => {
+    for (const r of ROLES_LIMITES) {
+      assert.deepEqual(claimsPour(r), { adminRoleLimite: r });
+    }
+    for (const r of ROLES_ADMIN) {
+      assert.deepEqual(claimsPour(r), { adminRole: r });
+    }
+    assert.equal(claimsPour(null), null);
+  });
+  test("seuls les rôles historiques entrent dans RTDB /admins", () => {
+    assert.equal(estRoleHistorique("contentMod"), true);
+    assert.equal(estRoleHistorique("auditor"), false);
+    assert.equal(estRoleHistorique(null), false);
   });
 });

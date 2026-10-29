@@ -8,6 +8,10 @@ const ROLES = [
   { id: 'contentMod', label: 'Modérateur contenu' },
   { id: 'businessMod', label: 'Gestionnaire commercial' },
   { id: 'financeMod', label: 'Gestionnaire financier' },
+  { id: 'supportAgent', label: 'Agent de support' },
+  { id: 'validator', label: 'Validateur' },
+  { id: 'auditor', label: 'Auditeur' },
+  { id: 'analyst', label: 'Analyste' },
 ]
 
 /** Matrice rôles × permissions, en lecture seule, avec vos propres droits. Le super-administrateur a tout le catalogue. */

@@ -61,6 +61,31 @@ const ROLES_ADMIN = Object.freeze([
   "financeMod",
 ]);
 
+/**
+ * Rôles à périmètre limité (migration 20261029090000). Ils ne s'ajoutent PAS à
+ * `ROLES_ADMIN` : `index.js` s'en sert comme PORTE d'autorisation
+ * (`ROLES_ADMIN.includes(token.adminRole)`), et les règles Firestore comme la
+ * règle RTDB `adminRole != null` ouvrent des droits à tout claim `adminRole`.
+ * Un nouveau rôle posé dans ce claim les recevrait tous. Il vit donc dans un
+ * claim à part, `adminRoleLimite`, que ni les portes ni les règles ne lisent :
+ * son seul pouvoir est celui que lui donne `admin_has_permission` en base.
+ */
+const ROLES_LIMITES = Object.freeze(["supportAgent", "validator", "auditor", "analyst"]);
+
+/** Tout ce que setAdminRole sait attribuer. */
+const ROLES_ATTRIBUABLES = Object.freeze([...ROLES_ADMIN, ...ROLES_LIMITES]);
+
+/** Les custom claims à poser pour un rôle (`null` : tout retirer). */
+function claimsPour(role) {
+  if (!role) return null;
+  return ROLES_LIMITES.includes(role) ? { adminRoleLimite: role } : { adminRole: role };
+}
+
+/** Vrai pour les quatre rôles historiques : seuls à figurer dans RTDB `/admins`. */
+function estRoleHistorique(role) {
+  return ROLES_ADMIN.includes(role);
+}
+
 /** Même forme que `appels.js` et `supabase.js` : uid Firebase ou id hérité. */
 const FORME_UID = /^[A-Za-z0-9_-]{1,128}$/;
 
@@ -79,7 +104,7 @@ function normaliserRole(valeur) {
   if (valeur === undefined || valeur === null || valeur === "" || valeur === "none") {
     return { ok: true, role: null };
   }
-  if (typeof valeur === "string" && ROLES_ADMIN.includes(valeur)) {
+  if (typeof valeur === "string" && ROLES_ATTRIBUABLES.includes(valeur)) {
     return { ok: true, role: valeur };
   }
   return { ok: false, role: null };
@@ -158,7 +183,7 @@ async function executerSetAdminRole(data, context, deps) {
   if (!roleValide) {
     throw new HttpsError(
       "invalid-argument",
-      `adminRole doit être l'un de ${ROLES_ADMIN.join(", ")}, ou none`,
+      `adminRole doit être l'un de ${ROLES_ATTRIBUABLES.join(", ")}, ou none`,
     );
   }
 
@@ -248,7 +273,7 @@ async function executerSetAdminRole(data, context, deps) {
 
   // 3. RTDB — dérivé secondaire. Postgres et claim sont cohérents ici.
   try {
-    await deps.ecrireAdminsRtdb(uid, role !== null);
+    await deps.ecrireAdminsRtdb(uid, role !== null && estRoleHistorique(role));
   } catch (e) {
     console.error(`[setAdminRole] RTDB : ${e && e.message}`);
     throw new HttpsError(
@@ -302,6 +327,10 @@ function creerCallableSetAdminRole(functions, deps) {
 
 module.exports = {
   ROLES_ADMIN,
+  ROLES_LIMITES,
+  ROLES_ATTRIBUABLES,
+  claimsPour,
+  estRoleHistorique,
   normaliserRole,
   estSuperAdmin,
   actionJournal,
