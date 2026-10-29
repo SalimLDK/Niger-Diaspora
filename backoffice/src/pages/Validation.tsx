@@ -2,6 +2,7 @@ import { useState } from 'react'
 import ListeServeur from '../components/ListeServeur'
 import { PanneauCampagne, PanneauDemarche } from '../components/PanneauxValidation'
 import NouvelleCampagne from '../components/NouvelleCampagne'
+import NouvelleDemarche from '../components/NouvelleDemarche'
 import { Badge, fmtDate } from '../components/States'
 
 interface Camp { id: string; type: string; title: string; body: string; status: string; review_note: string | null; created_at: string; sent_at: string | null }
@@ -42,8 +43,11 @@ interface Dem { id: string; demarche_id: string; status: string; change_reason: 
 
 export function Demarches() {
   const [sel, setSel] = useState<Dem | null>(null)
+  const [nouvelle, setNouvelle] = useState(false)
   return (
     <div className="grid gap-4 lg:grid-cols-[1fr_24rem]">
+      <div>
+      <button className="btn btn-primary mb-3" onClick={() => { setSel(null); setNouvelle(true) }}>Nouveau brouillon</button>
       <ListeServeur<Dem>
         titre="Démarches consulaires"
         aide="Versions en brouillon, relecture et publication. Chaque publication exige une relecture."
@@ -59,10 +63,12 @@ export function Demarches() {
           { titre: 'Soumise le', cell: (r) => fmtDate(r.submitted_at) },
           { titre: 'Mise à jour', cell: (r) => fmtDate(r.updated_at) },
         ]}
-        onSelect={setSel}
+        onSelect={(d) => { setNouvelle(false); setSel(d) }}
         selectedKey={sel?.id}
       />
-      {sel && <PanneauDemarche key={sel.id} d={sel} onClose={() => setSel(null)} />}
+      </div>
+      {nouvelle && <NouvelleDemarche onDone={() => setNouvelle(false)} />}
+      {sel && !nouvelle && <PanneauDemarche key={sel.id} d={sel} onClose={() => setSel(null)} />}
     </div>
   )
 }

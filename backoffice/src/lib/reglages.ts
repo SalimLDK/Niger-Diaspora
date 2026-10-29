@@ -83,3 +83,11 @@ export function analyserSection(texte: string): { ok: true; valeur: Section } | 
     return { ok: false, erreur: 'JSON invalide.' }
   }
 }
+
+/** Copie de `racine` où la valeur au `chemin` est remplacée ; l'original n'est jamais modifié. */
+export function majChemin(racine: Section, chemin: string[], valeur: unknown): Section {
+  if (chemin.length === 0) return racine
+  const [k, ...reste] = chemin
+  const suite = reste.length === 0 ? valeur : majChemin((racine[k] as Section) ?? {}, reste, valeur)
+  return { ...racine, [k]: suite }
+}

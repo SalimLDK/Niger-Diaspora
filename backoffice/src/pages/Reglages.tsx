@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { analyserSection, ecrireSection, lireHistorique, lireReglages, type Entree } from '../lib/reglages'
+import ChampsTypes from '../components/ChampsTypes'
 import { Badge, Empty, ErrorBox, Loading, fmtDate } from '../components/States'
 
 const json = (v: unknown) => JSON.stringify(v, null, 2)
@@ -20,6 +21,7 @@ export default function Reglages() {
   const [texte, setTexte] = useState('')
   const [raison, setRaison] = useState('')
   const [erreurLocale, setErreurLocale] = useState<string | null>(null)
+  const [avance, setAvance] = useState(false)
 
   const ecrire = useMutation({
     mutationFn: async (a: { section: string; valeur: Record<string, unknown>; raison: string; kind?: 'update' | 'restore'; from?: string }) =>
@@ -73,7 +75,15 @@ export default function Reglages() {
           </label>
           {section && (
             <>
-              <textarea className="input font-mono text-xs" rows={14} value={texte} onChange={(e) => setTexte(e.target.value)} aria-label="Contenu de la section (JSON)" spellCheck={false} />
+              <label className="flex items-center gap-2 text-xs text-slate-500">
+                <input type="checkbox" checked={avance} onChange={(e) => setAvance(e.target.checked)} /> Mode avancé (JSON brut)
+              </label>
+              {avance || !analyserSection(texte).ok ? (
+                <textarea className="input font-mono text-xs" rows={14} value={texte} onChange={(e) => setTexte(e.target.value)} aria-label="Contenu de la section (JSON)" spellCheck={false} />
+              ) : (
+                <ChampsTypes key={section} valeur={(analyserSection(texte) as { valeur: Record<string, unknown> }).valeur}
+                  onChange={(v) => setTexte(json(v))} />
+              )}
               <input className="input" placeholder="Motif du changement (obligatoire)" value={raison} onChange={(e) => setRaison(e.target.value)} />
               <button className="btn btn-primary" disabled={!raison.trim() || ecrire.isPending} onClick={enregistrer}>Enregistrer</button>
             </>
