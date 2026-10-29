@@ -51,14 +51,50 @@ SELECT schemaname||'.'||tablename AS objet, cmd, policyname
 À faire de la même façon pour les fonctions `SECURITY DEFINER` qui testent `is_admin()` seul. Je n'ai pas
 pu lancer cette requête : la session m'a refusé l'accès à la base liée.
 
+## Résultat de la mesure (production, 2026-10-29) et réponse préparée
+
+La requête a rendu 16 policies et 6 fonctions qui ne demandent que `is_admin()`. Classées :
+
+| Objet | Type | Gravité pour les rôles limités |
+|---|---|---|
+| `demarches_rubriques`, `demarches_catalogue_meta` (ALL) | écriture | **Élevée** : contourne relecture et publication des démarches |
+| `groups_update_admin` (UPDATE) | écriture | **Élevée** : modification des groupes officiels |
+| `profils_admin`, `profils_admin_page` | fonction | **Élevée** : lignes complètes de `users` (e-mail, téléphone, position) |
+| `users_select`, `reports_select_own` | lecture | **Élevée** : profils privés, identité des déclarants |
+| `business_reviews_retrait` (DELETE) | écriture | Moyenne |
+| `conversations_guard_admin_fields`, `guard_group_official` | fonction | Moyenne |
+| `reports_update_admin` | écriture | Faible (réduite à `reported_user_notified` si 20261023090000 est appliquée) |
+| `activity_logs`, `error_logs`, `admin_notifications` (SELECT) | lecture | Faible à moyenne |
+| `write_admin_audit` | fonction | Moyenne, **non traitée** : le panneau Flutter l'appelle directement |
+| `users_update_own`, tables de configuration | — | Sans objet (auto-garde, lecture de configuration) |
+
+**Réponse : `supabase/migrations/20261029100000_roles_limites_heritage_is_admin.sql`**, non appliquée.
+Les 10 policies et 4 fonctions visées passent de `is_admin()` à `is_admin() AND NOT is_limited_admin()` :
+les rôles limités en sortent, les quatre rôles historiques gardent exactement leurs droits. Les définitions sont
+relues dans la base puis réécrites (pas retapées), et la migration échoue si un remplacement n'a rien changé.
+Banc : `tools/rls_tests/roles_limites_heritage.sql` (non lancé).
+
+### Décisions qui restent à vous
+
+1. **Resserrer aussi les rôles historiques ?** La migration ne le fait pas. Remplacer `is_admin()` par une permission
+   nommée retirerait, par exemple, la lecture des signalements au gestionnaire commercial et au gestionnaire financier.
+2. **`write_admin_audit`** : tout administrateur peut y écrire une ligne, y compris l'auditeur. La fermer demande que
+   le panneau Flutter cesse de l'appeler directement.
+3. **Les compteurs de la page Statistiques pour l'analyste** : avec ces fermetures, ses lectures directes de `users`
+   et `reports` ne voient que les lignes publiques, et un compteur affiche une valeur faible sans erreur. Il faut une
+   fonction serveur `admin_stats()` réservée à `dashboard.analytics.view` avant de lui donner cette page.
+4. **Écritures sur les tables de démarches** : le panneau Flutter ne fait que les lire ; les policies d'écriture
+   pourraient être supprimées pour tout le monde. Plus sûr, mais c'est une décision séparée.
+
 ## Ordre de mise en service
 
-1. Lancer la requête de mesure ci-dessus ; fermer ou assumer chaque ligne d'écriture restante.
-2. Répéter : `python tools/rls_tests/repeter_cible.py tools/rls_tests/roles_admin_supplementaires.sql supabase/migrations/20261029090000_roles_admin_supplementaires.sql /tmp/repetition.sql`,
-   puis `supabase db query --linked -f /tmp/repetition.sql` — attendu : **0 ÉCHEC**.
+1. ~~Lancer la requête de mesure~~ : faite le 2026-10-29, voir ci-dessus. Relire les quatre décisions.
+2. Répéter chaque banc avec ses migrations, dans l'ordre : `roles_admin_supplementaires.sql` avec `20261029090000`, puis
+   `roles_limites_heritage.sql` avec `20261029090000` **et** `20261029100000` (concaténées en un fichier, car
+   `repeter_cible.py` n'en prend qu'une). Lancer par `supabase db query --linked -f <fichier>` — attendu : **0 ÉCHEC** chacun.
 3. Vérifier les doublons de préfixe : `ls supabase/migrations | awk -F_ '{print $1}' | sort | uniq -d` (sortie vide).
-4. Appliquer la migration seule : `supabase db query --linked -f <fichier>` puis
-   `supabase migration repair --status applied 20261029090000 --linked` (jamais `db push` s'il y en a d'autres en attente).
+4. Appliquer les migrations UNE PAR UNE, dans l'ordre : `supabase db query --linked -f <fichier>` puis
+   `supabase migration repair --status applied <version> --linked` (jamais `db push` s'il y en a d'autres en attente).
 5. Relancer le banc tel quel (état vivant) : 0 ÉCHEC.
 6. Déployer `setAdminRole` (`firebase deploy --only functions:setAdminRole`, après `cd functions && npm install && npm test`).
 7. Attribuer un rôle à **un** compte de test, vérifier ses refus dans la console, avant tout autre.
