@@ -3099,7 +3099,8 @@ class AdminAuditNotifier extends Notifier<AdminAuditState> {
   }
 }
 
-/// Écrit une ligne du journal par la RPC `write_admin_audit`.
+/// Écrit une ligne du journal par l'enveloppe `admin_audit_client` (migration 20261029120000), qui refuse les
+/// rôles limités puis délègue à `write_admin_audit` — fermée aux rôles de connexion par 20261029130000.
 ///
 /// L'acteur et son nom viennent de la session côté serveur : `adminId` et
 /// `adminName`, que les appelants passent encore, ne sont plus envoyés — un
@@ -3112,7 +3113,7 @@ Future<void> _ecrireAudit({
   String? targetId,
   Map<String, dynamic>? details,
 }) async {
-  await _supabase.rpc('write_admin_audit', params: {
+  await _supabase.rpc('admin_audit_client', params: {
     'p_action': action,
     'p_resource_type': targetType,
     'p_resource_id': targetId,

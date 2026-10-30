@@ -102,7 +102,9 @@ BEGIN
       ('banc-rol-valid',   'communications.send',        false),
       ('banc-rol-valid',   'moderation.reports.review',  false),
       ('banc-rol-content', 'moderation.reports.review',  true),
-      ('banc-rol-content', 'support.tickets.reply',      false),
+      -- contentMod a reçu les droits de support avec la migration 20261018130000 : ce n'est pas un défaut.
+      ('banc-rol-content', 'support.tickets.reply',      true),
+      ('banc-rol-content', 'security.audit.export',      false),
       ('banc-rol-super',   'security.audit.export',      true),
       ('banc-rol-super',   'consular.procedures.publish', true)
     ) AS t(uid, perm, attendu)
@@ -120,13 +122,13 @@ END $$;
 
 -- ═══ 4. L'ancien périmètre n'a pas bougé ═══
 INSERT INTO resultat
-SELECT 100, 'mapping inchangé : contentMod >= 10, businessMod 9, financeMod 9', '>=10/9/9',
+SELECT 100, 'rôles historiques : au moins leur mapping d''origine (10 / 9 / 9) ; les migrations d''octobre en ont ajouté', '>=10/9/9',
        (SELECT count(*) FROM public.admin_role_permissions WHERE role = 'contentMod') || '/' ||
        (SELECT count(*) FROM public.admin_role_permissions WHERE role = 'businessMod') || '/' ||
        (SELECT count(*) FROM public.admin_role_permissions WHERE role = 'financeMod'),
        CASE WHEN (SELECT count(*) FROM public.admin_role_permissions WHERE role = 'contentMod') >= 10
-             AND (SELECT count(*) FROM public.admin_role_permissions WHERE role = 'businessMod') = 9
-             AND (SELECT count(*) FROM public.admin_role_permissions WHERE role = 'financeMod') = 9
+             AND (SELECT count(*) FROM public.admin_role_permissions WHERE role = 'businessMod') >= 9
+             AND (SELECT count(*) FROM public.admin_role_permissions WHERE role = 'financeMod') >= 9
             THEN 'OK' ELSE 'ÉCHEC' END;
 
 -- ═══ 5. Aucune ligne de droit ne vise une clé inconnue ═══

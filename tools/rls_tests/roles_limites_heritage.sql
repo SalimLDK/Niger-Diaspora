@@ -28,8 +28,14 @@ INSERT INTO public.users (id, display_name, email, is_admin, admin_role, is_priv
   ('banc-her-support', 'Support', 'her-support@banc.test', true,  'supportAgent', false),
   ('banc-her-membre',  'Membre',  'her-membre@banc.test',  false, NULL,         true);
 
-INSERT INTO public.groups (id, name, category, creator_id, is_official)
-VALUES ('00000000-0000-0000-0000-00000000b001', 'banc-groupe-officiel', 'banc', 'banc-her-membre', true);
+-- Les gardes de `groups` (enforce_group_creator, guard_group_official) lisent la session : le groupe est
+-- créé au nom d'un administrateur historique, comme le ferait le panneau.
+SELECT set_config('request.jwt.claims', jsonb_build_object('role','authenticated',
+  'app_metadata', jsonb_build_object('firebase_uid','banc-her-content'))::text, true);
+
+-- Un seul groupe officiel par pays (uniq_groupe_officiel_par_pays) : un pays qui n'existe pas en base.
+INSERT INTO public.groups (id, name, category, creator_id, is_official, country_code)
+VALUES ('00000000-0000-0000-0000-00000000b001', 'banc-groupe-officiel', 'banc', 'banc-her-content', true, 'Banc-Pays-Inexistant');
 
 INSERT INTO public.reports (id, reporter_id, target_type, target_id, reason)
 VALUES ('00000000-0000-0000-0000-00000000b002', 'banc-her-membre', 'user', 'banc-her-membre', 'banc');

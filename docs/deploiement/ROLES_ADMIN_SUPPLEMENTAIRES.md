@@ -86,6 +86,32 @@ Banc : `tools/rls_tests/roles_limites_heritage.sql` (non lancé).
 4. **Écritures sur les tables de démarches** : le panneau Flutter ne fait que les lire ; les policies d'écriture
    pourraient être supprimées pour tout le monde. Plus sûr, mais c'est une décision séparée.
 
+## Durcissement complet — préparé le 2026-10-29, NON appliqué
+
+Suite des trois décisions (resserrer les rôles historiques, fermer `write_admin_audit`, statistiques de l'analyste).
+Quatre migrations, **à appliquer une par une, dans cet ordre, chacune après sa répétition** :
+
+| # | Migration | Effet | Condition |
+|---|---|---|---|
+| 1 | `20261029110000_admin_stats.sql` | `admin_stats()` : agrégats pour `dashboard.analytics.view` (pays de 3 membres au moins) | aucune ; la console l'appelle déjà |
+| 2 | `20261029120000_audit_enveloppe_panneau.sql` | `admin_audit_client()` : enveloppe qui refuse les rôles limités | aucune |
+| — | **Déployer le panneau Flutter** (`admin_provider.dart` appelle maintenant `admin_audit_client`) | | avant la 3 |
+| 3 | `20261029130000_audit_ecriture_serveur_seulement.sql` | `REVOKE` d'`write_admin_audit` aux rôles de connexion | **panneau déployé** ; sinon l'audit du panneau s'arrête |
+| 4 | `20261029140000_resserrer_roles_historiques.sql` | un droit nommé remplace `is_admin()` dans 10 policies et 4 fonctions | après `20261029100000` |
+
+**Changement net pour les rôles en place (migration 4)** : `businessMod` et `financeMod` ne lisent plus les signalements,
+les profils privés ni `profils_admin` ; seul `contentMod` les lit. `superAdmin` garde tout le catalogue. Une policy qui
+s'applique à `anon` ou `public` est laissée en l'état (`admin_has_permission` n'est pas exécutable par anon) : le
+NOTICE de la migration la nomme.
+
+Banc : `tools/rls_tests/roles_durcissement_complet.sql` (non lancé). Les bancs existants
+`admin_catalogue_permissions_et_audit.sql`, `admin_audit_ecriture_par_rpc_cible.sql` et `journal_audit_export.sql`
+appellent `write_admin_audit` en direct : leurs cas d'écriture échoueront une fois la migration 3 appliquée,
+c'est le changement voulu, à actualiser alors.
+
+Tests de panneau Flutter : `flutter analyze` n'a pas été relancé sur le changement de `admin_provider.dart` (une
+chaîne remplacée) ; à faire dans ce worktree après `flutter pub get`.
+
 ## Ordre de mise en service
 
 1. ~~Lancer la requête de mesure~~ : faite le 2026-10-29, voir ci-dessus. Relire les quatre décisions.
