@@ -13,6 +13,7 @@ export const PERM = {
   embassies: 'consular.embassies.verify',
   settings: 'settings.general.view',
   templates: 'support.templates.manage',
+  admins: 'security.admins.promote',
   support: 'support.tickets.view',
   events: 'events.attendance.view',
   directory: 'directory.listings.view',

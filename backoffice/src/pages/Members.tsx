@@ -17,7 +17,7 @@ interface Membre {
   last_active_at: string | null
   is_banned: boolean | null
   is_verified: boolean
-  admin_role: string | null
+  is_admin: boolean | null
 }
 
 export default function Members() {
@@ -34,7 +34,7 @@ export default function Members() {
     queryFn: async () => {
       let req = supabase
         .from('users')
-        .select('id,display_name,country_code,city,created_at,last_active_at,is_banned,is_verified,admin_role', {
+        .select('id,display_name,country_code,city,created_at,last_active_at,is_banned,is_verified,is_admin', {
           count: 'exact',
         })
         .order('created_at', { ascending: false })
@@ -112,7 +112,7 @@ export default function Members() {
                   <td className="td space-x-1">
                     {m.is_banned ? <Badge tone="red">Suspendu</Badge> : <Badge tone="green">Actif</Badge>}
                     {m.is_verified && <Badge tone="blue">Vérifié</Badge>}
-                    {m.admin_role && <Badge tone="amber">Admin</Badge>}
+                    {m.is_admin && <Badge tone="amber">Admin</Badge>}
                   </td>
                 </tr>
               ))}

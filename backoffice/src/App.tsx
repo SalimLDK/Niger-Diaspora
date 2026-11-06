@@ -1,5 +1,5 @@
 import { NavLink, Navigate, Outlet, Route, Routes } from 'react-router-dom'
-import { Building2, CalendarDays, UsersRound, Settings, Globe2, BarChart3, KeyRound, Megaphone, Landmark, Gauge, History, Flag, LifeBuoy, LogOut, ShieldAlert, UserCheck, Users } from 'lucide-react'
+import { Building2, CalendarDays, UsersRound, Settings, Globe2, BarChart3, KeyRound, UserPlus, Megaphone, Landmark, Gauge, History, Flag, LifeBuoy, LogOut, ShieldAlert, UserCheck, Users } from 'lucide-react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { useInactivite } from './auth/useInactivite'
 import { appliquerTheme, themeSombreActif } from './lib/theme'
@@ -19,6 +19,7 @@ const Audit = lazy(() => import('./pages/Audit'))
 const Stats = lazy(() => import('./pages/Stats'))
 const Reglages = lazy(() => import('./pages/Reglages'))
 const Roles = lazy(() => import('./pages/Roles'))
+const Administrateurs = lazy(() => import('./pages/Administrateurs'))
 const Modeles = lazy(() => import('./pages/Modeles'))
 const nomme = (m: Promise<Record<string, unknown>>, n: string) =>
   m.then((x) => ({ default: x[n] as ComponentType }))
@@ -47,6 +48,7 @@ const NAV: { to: string; label: string; perm: PermKey; icon: ReactNode }[] = [
   { to: '/annuaire', label: 'Annuaire', perm: PERM.directory, icon: <Building2 size={18} /> },
   { to: '/confidentialite', label: 'Confidentialité', perm: PERM.privacy, icon: <UserCheck size={18} /> },
   { to: '/incidents', label: 'Incidents', perm: PERM.incidents, icon: <ShieldAlert size={18} /> },
+  { to: '/administrateurs', label: 'Administrateurs', perm: PERM.admins, icon: <UserPlus size={18} /> },
   { to: '/roles', label: 'Rôles et permissions', perm: PERM.roles, icon: <KeyRound size={18} /> },
   { to: '/reglages', label: 'Réglages', perm: PERM.settings, icon: <Settings size={18} /> },
   { to: '/audit', label: "Journal d'audit", perm: PERM.audit, icon: <History size={18} /> },
@@ -136,6 +138,7 @@ export default function App() {
         <Route path="/" element={<Garde perm={PERM.dashboard}><Dashboard /></Garde>} />
         <Route path="/statistiques" element={<Garde perm={PERM.stats}><Stats /></Garde>} />
         <Route path="/reglages" element={<Garde perm={PERM.settings}><Reglages /></Garde>} />
+        <Route path="/administrateurs" element={<Garde perm={PERM.admins}><Administrateurs /></Garde>} />
         <Route path="/roles" element={<Garde perm={PERM.roles}><Roles /></Garde>} />
         <Route path="/membres" element={<Garde perm={PERM.members}><Members /></Garde>} />
         <Route path="/signalements" element={<Garde perm={PERM.reports}><Reports /></Garde>} />
