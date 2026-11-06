@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 
 import '../../../features/messages/domain/entities/message_entity.dart';
+import 'mls_base_neuve.dart';
 import 'mls_conversation_service.dart';
 import 'mls_delivery.dart';
 import 'mls_message_mapper.dart';
@@ -99,6 +100,30 @@ class MlsGateway {
     final date = brut == null ? null : DateTime.tryParse(brut);
     _bascule[conversationId] = date;
     return date;
+  }
+
+  /// L'ancien historique (gelé, lisible par le serveur) de cette discussion
+  /// doit-il rester caché sur cette installation ?
+  ///
+  /// Vrai quand la base MLS de l'installation est née après la bascule : après
+  /// une réinstallation, la discussion repart de zéro, comme pour les messages
+  /// MLS d'avant l'arrivée (`mls_base_neuve.dart`). Ne lève jamais : au moindre
+  /// doute, l'historique reste visible.
+  Future<bool> historiqueLegacyMasque(String conversationId) async {
+    try {
+      final depuis = await mlsSince(conversationId);
+      if (depuis == null) return false;
+      // Le repère est posé à l'ouverture du moteur : l'ouvrir d'abord, sinon
+      // la première lecture d'une installation neuve le manquerait.
+      await _service.ouvrirMoteur();
+      return legacyDoitEtreMasque(
+        baseNeuve: await baseNeuveDepuis(userId),
+        mlsSince: depuis,
+      );
+    } catch (e) {
+      debugPrint('MlsGateway: historique legacy non tranché ($e)');
+      return false;
+    }
   }
 
   /// Les conversations dont le **dernier** message n'a jamais été déchiffré

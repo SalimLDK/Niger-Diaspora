@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../src/rust/api/mls.dart';
 import '../../services/e2ee/stable_device_id.dart';
+import 'mls_base_neuve.dart';
 import 'mls_chemin_base.dart';
 import 'mls_rust_init.dart';
 
@@ -68,6 +69,15 @@ final mlsEngineProvider = FutureProvider.family<Moteur, String>((ref, userId) as
   final dossier = await dossierBaseMls();
   await _exclureDeLaSauvegardeIos(dossier);
   final chemin = '${dossier.path}/${nomFichierBaseMls(userId)}';
+  // Base absente = installation neuve (le fichier est exclu des sauvegardes).
+  // Vide aussi : l'aperçu de notification rouvre le chemin avec
+  // `Connection::open`, qui CRÉE un fichier de 0 octet s'il manque — une
+  // notification reçue avant le premier lancement le ferait passer pour
+  // existant. Une vraie base fait au moins une page SQLite.
+  final fichier = File(chemin);
+  if (!await fichier.exists() || await fichier.length() == 0) {
+    await marquerBaseNeuve(userId);
+  }
   final appareil = await stableDeviceId(userId);
   return Moteur.ouvrir(dbPath: chemin, userId: userId, deviceId: appareil);
 });

@@ -1234,6 +1234,20 @@ class MessageRepositoryImpl implements MessageRepository {
     }
   }
 
+  /// Vrai quand l'ancien historique de cette discussion ne doit pas s'afficher
+  /// sur cette installation. Un échec de lecture laisse l'historique visible.
+  Future<bool> _historiqueLegacyMasque(String conversationId) async {
+    final passerelle = mlsGateway;
+    if (passerelle == null) return false;
+    try {
+      if (!await passerelle.enMls(conversationId)) return false;
+      return await passerelle.historiqueLegacyMasque(conversationId);
+    } catch (e) {
+      dev.log('Historique legacy non tranché', name: 'message_repository_impl', error: e);
+      return false;
+    }
+  }
+
   /// Fusionne l'historique legacy déjà chargé avec le fil MLS.
   ///
   /// Rend la liste inchangée dès que MLS n'est pas concerné : pas de
@@ -1665,24 +1679,34 @@ class MessageRepositoryImpl implements MessageRepository {
           healed.map((m) => m.toEntity()).toList(),
         );
 
+        // Installation neuve d'une discussion déjà passée à MLS : l'ancien
+        // historique n'est pas montré (`mls_base_neuve.dart`). Il n'entre pas
+        // non plus dans le cache : hors ligne, il reviendrait par là.
+        final masque = await _historiqueLegacyMasque(conversationId);
+
         // Cache the messages
-        final messageMaps = healed.map((m) => m.toJson()).toList();
-        await cacheService.cacheMessages(conversationId, messageMaps);
+        if (!masque) {
+          final messageMaps = healed.map((m) => m.toJson()).toList();
+          await cacheService.cacheMessages(conversationId, messageMaps);
+        }
 
         // debugPrint('💾 Repository: Cached ${messageMaps.length} messages');
 
         // Coexistence (plan MLS § 2.3) : l'historique legacy est gelé, le
         // fil MLS est vivant. On les fusionne ici, une fois, plutôt que de
         // faire connaître deux sources aux 81 fichiers de la couche messages.
-        final fusionnes = await _fusionnerAvecMls(conversationId, entities);
+        //
+        // Masqué : il n'y a plus de page plus ancienne à proposer.
+        final visibles = masque ? const <MessageEntity>[] : entities;
+        final fusionnes = await _fusionnerAvecMls(conversationId, visibles);
 
         return Right(
           PaginatedMessages(
             messages: fusionnes,
-            hasMore: hasMore,
-            lastMessageId: entities.isNotEmpty ? entities.first.id : null,
+            hasMore: masque ? false : hasMore,
+            lastMessageId: visibles.isNotEmpty ? visibles.first.id : null,
             oldestMessageTimestamp:
-                entities.isNotEmpty ? entities.first.createdAt : null,
+                visibles.isNotEmpty ? visibles.first.createdAt : null,
           ),
         );
       }, sinon: (e) {

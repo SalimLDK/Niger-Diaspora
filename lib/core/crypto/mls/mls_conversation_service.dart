@@ -136,6 +136,13 @@ class MlsConversationService {
   final Map<String, DateTime> _curseur = {};
   final Set<String> _vus = {};
 
+  /// Force l'ouverture du moteur, donc la création de la base d'une
+  /// installation neuve (et son repère, `mls_base_neuve.dart`). Sert à
+  /// trancher « réinstallé ? » AVANT d'afficher un fil, pas après.
+  Future<void> ouvrirMoteur() async {
+    await _moteur();
+  }
+
   Future<InstantaneDto?> _instantane(String conversationId) async {
     final moteur = await _moteur();
     try {

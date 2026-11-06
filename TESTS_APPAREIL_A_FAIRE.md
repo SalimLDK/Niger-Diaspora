@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1566 cases à cocher, 55 cochées** — 334 entrées sur 349 ont encore des cases ouvertes.
+**1574 cases à cocher, 55 cochées** — 335 entrées sur 350 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -98,7 +98,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 6 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (135)
+**P1 — fonction importante, jamais vérifiée** (136)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -210,6 +210,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [⬜ Groupe privé par lien : demander à rejoindre (2026-09-10)](#-groupe-privé-par-lien--demander-à-rejoindre-2026-09-10) · *Groupes* · bloqué
 - 8 · [⬜ Acceptation et départ d'un groupe : rien ne bougeait chez les autres (2026-09-09)](#-acceptation-et-départ-dun-groupe--rien-ne-bougeait-chez-les-autres-2026-09-09) · *Groupes* · bloqué
 - 7 · [Groupes — défauts trouvés en vérifiant les épingles (2026-08-05)](#groupes--défauts-trouvés-en-vérifiant-les-épingles-2026-08-05) · *Groupes*
+- 8 · [⬜ Réinstallation : l'ancien historique hors MLS ne revient plus (2026-11-06)](#-réinstallation--lancien-historique-hors-mls-ne-revient-plus-2026-11-06) · *Chiffrement de bout en bout et clés*
 - 1 · [⬜ Groupe chiffré : un administrateur ne peut rien retirer (2026-09-22)](#-groupe-chiffré--un-administrateur-ne-peut-rien-retirer-2026-09-22) · *Chiffrement de bout en bout et clés*
 - 1 · [✅ Le bandeau « 1 message non lu » d'une conversation basculée (2026-09-15)](#-le-bandeau--1-message-non-lu--dune-conversation-basculée-2026-09-15) · *Chiffrement de bout en bout et clés*
 - 8 · [⬜ Transfert des clés par QR, sans passphrase (2026-09-08)](#-transfert-des-clés-par-qr-sans-passphrase-2026-09-08) · *Chiffrement de bout en bout et clés* · bloqué
@@ -397,7 +398,7 @@ Par domaine :
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 0 faites
 - [2. Messagerie](#2-messagerie) — 312 à faire, 31 faites
 - [3. Groupes](#3-groupes) — 128 à faire, 0 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 133 à faire, 4 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 141 à faire, 4 faites
 - [5. Appels](#5-appels) — 24 à faire, 1 faites
 - [6. Notifications et push](#6-notifications-et-push) — 115 à faire, 6 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 46 à faire, 0 faites
@@ -3814,6 +3815,22 @@ conservée plutôt que de conclure « non » à tort (sinon le titre clignote).
 # 4. Chiffrement de bout en bout et clés
 
 Signal 1:1 et groupes, repli AES, clés dérivées, sauvegarde et transfert des clés, et tout ce qui pouvait partir en clair.
+
+---
+
+## ⬜ Réinstallation : l'ancien historique hors MLS ne revient plus (2026-11-06)
+
+**Priorité P1** · importance 3/5 — Après une réinstallation, une discussion déjà passée à MLS réaffichait son ancien historique (gelé, lisible par le serveur) en haut du fil, alors que les anciens messages MLS sont masqués : un fil à moitié rempli, un séparateur « messages d'avant », puis un trou. Une installation neuve repart maintenant de zéro dans ces discussions (`mls_base_neuve.dart`, `MlsGateway.historiqueLegacyMasque`). Jamais vu sur téléphone.
+
+À vérifier sur un compte qui a des discussions passées à MLS **avant** la réinstallation :
+- [ ] **Désinstaller, réinstaller, se reconnecter** : dans une discussion MLS ancienne, seuls les messages reçus depuis la réinstallation (et ceux restaurés par la sauvegarde de l'historique) s'affichent ; plus de séparateur « messages d'avant » ni d'ancien historique en clair au-dessus.
+- [ ] Dérouler vers le haut ne charge aucune page plus ancienne (pas de spinner sans fin).
+- [ ] Coupé du réseau après ce premier affichage, la discussion rouverte depuis le cache ne montre pas non plus l'ancien historique.
+- [ ] Une discussion **pas encore passée à MLS** garde tout son historique après la réinstallation.
+- [ ] Une discussion qui bascule **après** la réinstallation garde l'historique d'avant la bascule (la base existait déjà).
+- [ ] Une installation qui a simplement reçu la mise à jour (sans réinstaller) ne perd rien : aucun repère `mls_base_neuve_<uid>` n'est posé.
+- [ ] Une notification reçue AVANT le premier lancement d'une installation neuve ne fausse pas le repère (elle crée un fichier de base vide).
+- [ ] ⚠️ L'aperçu de la liste des discussions montre peut-être encore le dernier message hors MLS d'une discussion dont le fil est vide : non traité.
 
 ---
 
