@@ -29,3 +29,13 @@ body { @apply bg-surface text-slate-800 antialiased; font-family: Inter, system-
 .dark .text-blue-800 { color: #93c5fd; }
 .dark .bg-red-50 { background-color: #3b1620; }
 .dark .text-red-800, .dark .text-red-600 { color: #fca5a5; }
+
+/* Pastilles en thème sombre : fond teinté sombre et texte clair (le texte clair sur fond clair était illisible). */
+.dark .bg-slate-100  { background-color: #26334f; }
+.dark .bg-green-100  { background-color: #123524; }
+.dark .bg-red-100    { background-color: #3b1620; }
+.dark .bg-blue-100   { background-color: #172a55; }
+.dark .bg-yellow-100 { background-color: #3a2f10; }
+.dark .text-green-800  { color: #86efac; }
+.dark .text-yellow-800 { color: #fde047; }
+.dark .text-slate-700.rounded-full { color: #cbd5e1; }
