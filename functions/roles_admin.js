@@ -325,6 +325,143 @@ function creerCallableSetAdminRole(functions, deps) {
   );
 }
 
+/** Fraîcheur exigée de la connexion pour accepter : un jeton volé ou une session oubliée ne suffit pas. */
+const AUTHENTIFICATION_RECENTE_SECONDES = 10 * 60;
+
+const FORME_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * @typedef {object} DependancesAccepterInvitation
+ * @property {new (code: string, message: string) => Error} HttpsError
+ * @property {(uid: string) => Promise<CompteAdmin|null>} lireCompte
+ * @property {(id: string, uid: string) => Promise<string>} reclamerInvitation
+ *   Postgres : marque l'invitation acceptée si elle est en attente de CETTE personne, rend le rôle. Lève sinon.
+ * @property {(id: string) => Promise<void>} rouvrirInvitation  Annule la réclamation si l'écriture du rôle échoue.
+ * @property {(uid: string, role: string|null) => Promise<boolean>} ecrireRoleAdmin
+ * @property {(uid: string, role: string|null) => Promise<void>} poserClaim
+ * @property {(uid: string, present: boolean) => Promise<void>} ecrireAdminsRtdb
+ * @property {(entree: object) => Promise<boolean>} journaliser
+ * @property {() => number} [maintenant] Secondes depuis l'époque ; injectable pour le banc.
+ */
+
+/**
+ * Accepter une invitation d'administration. La personne n'a encore AUCUN droit : l'appelant est donc l'invité lui-même
+ * (jamais un administrateur), et le rôle ne vient pas du client mais de l'invitation relue en base.
+ *
+ * @param {{invitationId?: unknown}} data
+ * @param {{auth?: {uid: string, token?: object}}} context
+ * @param {DependancesAccepterInvitation} deps
+ * @returns {Promise<{role: string, invitationId: string}>}
+ */
+async function executerAccepterInvitation(data, context, deps) {
+  const { HttpsError } = deps;
+  if (!context || !context.auth || !context.auth.uid) {
+    throw new HttpsError("unauthenticated", "Authentification requise");
+  }
+  const uid = context.auth.uid;
+  const token = context.auth.token || {};
+
+  const id = data && data.invitationId;
+  if (typeof id !== "string" || !FORME_UUID.test(id)) {
+    throw new HttpsError("invalid-argument", "invitationId requis");
+  }
+
+  // Second facteur obligatoire, comme pour tout accès à la console.
+  const firebaseClaim = token.firebase || {};
+  if (!firebaseClaim.sign_in_second_factor) {
+    throw new HttpsError("permission-denied", "Second facteur requis : reconnectez-vous avec votre code");
+  }
+  // Connexion récente.
+  const maintenant = deps.maintenant ? deps.maintenant() : Math.floor(Date.now() / 1000);
+  const authTime = Number(token.auth_time);
+  if (!Number.isFinite(authTime) || maintenant - authTime > AUTHENTIFICATION_RECENTE_SECONDES) {
+    throw new HttpsError("failed-precondition", "Reconnectez-vous pour confirmer : votre connexion date de plus de 10 minutes");
+  }
+
+  let compte;
+  try {
+    compte = await deps.lireCompte(uid);
+  } catch (e) {
+    console.error(`[accepterInvitationAdmin] lecture : ${e && e.message}`);
+    throw new HttpsError("unavailable", "Base de données injoignable");
+  }
+  if (!compte) throw new HttpsError("not-found", "Compte introuvable");
+  if (compte.isBanned) throw new HttpsError("permission-denied", "Compte suspendu");
+
+  // 1. L'invitation : en attente, pour cette personne, non expirée. La base tranche et la marque acceptée.
+  let role;
+  try {
+    role = await deps.reclamerInvitation(id, uid);
+  } catch (e) {
+    console.error(`[accepterInvitationAdmin] réclamation : ${e && e.message}`);
+    throw new HttpsError("failed-precondition", "Invitation introuvable, expirée ou déjà traitée");
+  }
+  if (typeof role !== "string" || !ROLES_ATTRIBUABLES.includes(role)) {
+    // Le rôle vient de la base ; s'il est inconnu du code déployé, on n'écrit rien et on rouvre.
+    await deps.rouvrirInvitation(id).catch(() => {});
+    throw new HttpsError("internal", "Rôle de l'invitation non reconnu : rien n'a été modifié");
+  }
+
+  const roleAvant = compte.adminRole || null;
+  const rouvrir = async () => {
+    try {
+      await deps.rouvrirInvitation(id);
+    } catch (e) {
+      console.error(`[accepterInvitationAdmin] réouverture impossible : ${e && e.message}`);
+    }
+  };
+
+  // 2. Les trois registres, dans l'ordre de setAdminRole.
+  let ecrit;
+  try {
+    ecrit = await deps.ecrireRoleAdmin(uid, role);
+  } catch (e) {
+    console.error(`[accepterInvitationAdmin] Postgres : ${e && e.message}`);
+    await rouvrir();
+    throw new HttpsError("internal", "Écriture du rôle refusée par la base ; l'invitation reste en attente");
+  }
+  if (!ecrit) {
+    await rouvrir();
+    throw new HttpsError("not-found", "Compte introuvable");
+  }
+  try {
+    await deps.poserClaim(uid, role);
+  } catch (e) {
+    console.error(`[accepterInvitationAdmin] claim : ${e && e.message}`);
+    try {
+      await deps.ecrireRoleAdmin(uid, roleAvant);
+    } catch (e2) {
+      console.error(`[accepterInvitationAdmin] remise de Postgres impossible : ${e2 && e2.message}`);
+    }
+    await rouvrir();
+    throw new HttpsError("internal", "Jeton non mis à jour ; l'invitation reste en attente");
+  }
+  try {
+    await deps.ecrireAdminsRtdb(uid, estRoleHistorique(role));
+  } catch (e) {
+    console.error(`[accepterInvitationAdmin] RTDB : ${e && e.message}`);
+    throw new HttpsError("internal", "Rôle posé (base et jeton) mais non propagé à la Realtime Database : relancer l'appel");
+  }
+
+  const journalise = await deps.journaliser({
+    adminId: uid,
+    adminName: compte.displayName || null,
+    action: "ADMIN_ROLE_ACTIVATED",
+    targetType: "user",
+    targetId: uid,
+    details: { invitation: id, previousRole: roleAvant || "none", newRole: role },
+  });
+  if (!journalise) console.error(`[accepterInvitationAdmin] activation ${uid} (${role}) NON journalisée`);
+
+  return { role, invitationId: id };
+}
+
+/** @param {typeof import("firebase-functions")} functions @param {Omit<DependancesAccepterInvitation, "HttpsError">} deps */
+function creerCallableAccepterInvitation(functions, deps) {
+  const complet = Object.assign({ HttpsError: functions.https.HttpsError }, deps);
+  return functions.https.onCall((data, context) => executerAccepterInvitation(data, context, complet));
+}
+
 module.exports = {
   ROLES_ADMIN,
   ROLES_LIMITES,
@@ -336,4 +473,7 @@ module.exports = {
   actionJournal,
   executerSetAdminRole,
   creerCallableSetAdminRole,
+  executerAccepterInvitation,
+  creerCallableAccepterInvitation,
+  AUTHENTIFICATION_RECENTE_SECONDES,
 };

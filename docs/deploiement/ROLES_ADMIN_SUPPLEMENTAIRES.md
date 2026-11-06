@@ -112,6 +112,17 @@ c'est le changement voulu, à actualiser alors.
 Tests de panneau Flutter : `flutter analyze` n'a pas été relancé sur le changement de `admin_provider.dart` (une
 chaîne remplacée) ; à faire dans ce worktree après `flutter pub get`.
 
+## Invitations avec acceptation — préparé le 2026-11-06, NON appliqué
+
+Remplace l'attribution immédiate de la page Administrateurs. **Ordre impératif** :
+1. répéter puis appliquer la migration `20261106100000_invitations_administrateurs.sql` (banc `invitations_administrateurs.sql`) ;
+2. `cd functions && npm install && npm test` (63 cas attendus), puis déployer la nouvelle fonction :
+   `firebase deploy --only functions:accepterInvitationAdmin` ;
+3. seulement ensuite, la console (sans elle la page Administrateurs affiche des erreurs lisibles, rien ne casse).
+Un rôle ne s'active jamais sans acceptation ; `setAdminRole` reste pour le retrait immédiat et le dépannage.
+Prérequis déjà exigés plus haut : `is_limited_admin()` (migration 20261029100000) et la callable `setAdminRole` déployée avec
+les rôles limités (claim `adminRoleLimite`).
+
 ## Ordre de mise en service
 
 1. ~~Lancer la requête de mesure~~ : faite le 2026-10-29, voir ci-dessus. Relire les quatre décisions.

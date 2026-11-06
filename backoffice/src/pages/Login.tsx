@@ -4,9 +4,11 @@ import { ShieldCheck } from 'lucide-react'
 import { sendPasswordResetEmail } from 'firebase/auth'
 import { fbAuth } from '../lib/firebase'
 import { useAuth } from '../auth/AuthProvider'
+import { libelleRole } from '../lib/roles'
+import { fmtDate } from '../components/States'
 
 export default function Login() {
-  const { etat, connexion, validerCode, confirmerEnrolement } = useAuth()
+  const { etat, connexion, validerCode, confirmerEnrolement, accepter, refuser, deconnexion } = useAuth()
   const [email, setEmail] = useState('')
   const [mdp, setMdp] = useState('')
   const [code, setCode] = useState('')
@@ -67,7 +69,22 @@ export default function Login() {
             {etat.message}
           </p>
         )}
-        {etat.k === 'enrolement' ? (
+        {etat.k === 'invitations' ? (
+          <div className="space-y-3">
+            <p className="text-sm">Vous êtes invité à rejoindre l'équipe d'administration de Diaspo Niger. Vos droits ne seront activés qu'après votre acceptation ; l'opération est inscrite au journal d'audit.</p>
+            {etat.items.map((i) => (
+              <div key={i.id} className="rounded border border-slate-200 p-3 text-sm">
+                <p><strong>{libelleRole(i.role)}</strong></p>
+                <p className="text-slate-500">Invitation de {i.invited_by_name ?? 'l\'équipe'} · valable jusqu'au {fmtDate(i.expires_at)}</p>
+                <div className="mt-2 flex gap-2">
+                  <button className="btn btn-primary" disabled={busy} onClick={(e) => void run(() => accepter(i.id), e as unknown as FormEvent)}>Accepter</button>
+                  <button className="btn btn-ghost" disabled={busy} onClick={(e) => void run(() => refuser(i.id), e as unknown as FormEvent)}>Refuser</button>
+                </div>
+              </div>
+            ))}
+            <button className="w-full text-center text-sm text-brand underline" onClick={() => void deconnexion()}>Répondre plus tard</button>
+          </div>
+        ) : etat.k === 'enrolement' ? (
           <form onSubmit={(e) => run(() => confirmerEnrolement(code), e)} className="space-y-3">
             <p className="text-sm">
               Le second facteur est obligatoire. Scannez ce code dans votre application

@@ -46,6 +46,21 @@ jamais le texte. Permission `community.members.contact` (contentMod ; superAdmin
 `tools/rls_tests/contacter_un_membre.sql`. Pas de pièce jointe, pas de contact en masse (campagnes), pas de lecture des
 conversations privées. Politique de conservation des échanges : à décider.
 
+## Inviter un administrateur (préparé, non appliqué)
+
+Page Administrateurs : un rôle ne s'active qu'**après acceptation** de la personne. Un super-administrateur cherche un
+membre (`admin_member_search` : e-mail masqué, 3 à 60 caractères, 30 recherches par 10 minutes, terme jamais journalisé),
+l'invite à un rôle (`admin_invitation_create`, expire au bout de 7 jours) ; le rôle `superAdmin` exige l'approbation d'un
+**second** super-administrateur. L'invité voit l'invitation à sa prochaine connexion à la console, **après son second
+facteur**, et accepte ou refuse. L'acceptation passe par la Cloud Function `accepterInvitationAdmin` (connexion de moins de
+10 minutes, rôle relu en base et jamais envoyé par le client, trois registres écrits comme `setAdminRole`, reprise en cas
+d'échec). Qui a invité, approuvé, révoqué, accepté ou refusé est au journal d'audit. Le **retrait** reste immédiat
+(`setAdminRole` « none ») : il n'attend jamais l'accord de la personne. Migration `20261106100000`, banc
+`tools/rls_tests/invitations_administrateurs.sql`, tests Node `functions/test/invitation_admin.test.js`.
+
+Limite connue : « authentification récente » est exigée à l'ACCEPTATION (la fonction lit `auth_time`), pas à la création
+d'une invitation, que Postgres ne peut pas vérifier.
+
 ## Ce qui n'est pas dans cette version
 
 - Envoi effectif d'une campagne par lots (la console crée, soumet, valide et annule ; l'envoi reste côté panneau actuel).

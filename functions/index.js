@@ -10,7 +10,12 @@ const { cheminStorageSur } = require("./chemins_storage");
 const { peutSupprimerConversationPourTous } = require("./autorisations");
 const { preparerAppelEntrant, nomAppele, uidValide } = require("./appels");
 const partners = require("./partners");
-const { creerCallableSetAdminRole, ROLES_ADMIN, claimsPour } = require("./roles_admin");
+const {
+    creerCallableSetAdminRole,
+    creerCallableAccepterInvitation,
+    ROLES_ADMIN,
+    claimsPour,
+} = require("./roles_admin");
 const { creerCallableSetUserBanned } = require("./bannissement");
 // Tokens/profils/conversations : lus dans Supabase, PAS dans Firestore.
 const {
@@ -28,6 +33,8 @@ const {
   getAdminAccount,
   countSuperAdmins,
   setAdminFlags,
+  reclamerInvitationAdmin,
+  rouvrirInvitationAdmin,
   setBanFlags,
   insertAdminAuditLog,
   isConfigured: isSupabaseConfigured,
@@ -7894,6 +7901,29 @@ exports.setAdminRole = creerCallableSetAdminRole(functions, {
     ecrireRoleAdmin: setAdminFlags,
     // `null` retire TOUS les custom claims du compte : il n'y en a pas
     // d'autre dans ce projet (aucun autre setCustomUserClaims).
+    poserClaim: (uid, role) =>
+        admin.auth().setCustomUserClaims(uid, claimsPour(role)),
+    ecrireAdminsRtdb: (uid, present) => {
+        const ref = admin.database().ref(`admins/${uid}`);
+        return present ? ref.set(true) : ref.remove();
+    },
+    journaliser: insertAdminAuditLog,
+});
+
+// ============================================================================
+// INVITATIONS D'ADMINISTRATION — accepterInvitationAdmin
+// ============================================================================
+//
+// La personne invitée n'a encore aucun droit : elle accepte depuis la console
+// (second facteur obligatoire, connexion de moins de 10 minutes). Le rôle ne
+// vient pas du client mais de l'invitation relue en base. Logique et refus dans
+// roles_admin.js (`npm test`). Appel client : `httpsCallable('accepterInvitationAdmin')`
+// avec `{ invitationId }`.
+exports.accepterInvitationAdmin = creerCallableAccepterInvitation(functions, {
+    lireCompte: getAdminAccount,
+    reclamerInvitation: reclamerInvitationAdmin,
+    rouvrirInvitation: rouvrirInvitationAdmin,
+    ecrireRoleAdmin: setAdminFlags,
     poserClaim: (uid, role) =>
         admin.auth().setCustomUserClaims(uid, claimsPour(role)),
     ecrireAdminsRtdb: (uid, present) => {

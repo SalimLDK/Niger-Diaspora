@@ -663,7 +663,32 @@ async function insertAdminAuditLog(entree) {
   }
 }
 
+/** Fonction Postgres réservée à la clé de service (REST /rpc). */
+async function appelerRpcService(nom, corps) {
+  if (!isConfigured()) throw new Error("Supabase non configuré");
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${nom}`, {
+    method: "POST",
+    headers: authHeaders({ "Content-Type": "application/json" }),
+    body: JSON.stringify(corps),
+  });
+  if (!res.ok) throw new Error(`Supabase ${nom} ${res.status}: ${await res.text()}`);
+  const texte = await res.text();
+  return texte ? JSON.parse(texte) : null;
+}
+
+/** Marque l'invitation acceptée (en attente, pour cette personne, non expirée) et rend le rôle. Lève sinon. */
+async function reclamerInvitationAdmin(id, uid) {
+  return appelerRpcService("admin_invitation_claim", { p_id: id, p_invitee: uid });
+}
+
+/** Rouvre une invitation dont l'activation a échoué. */
+async function rouvrirInvitationAdmin(id) {
+  await appelerRpcService("admin_invitation_unclaim", { p_id: id });
+}
+
 module.exports = {
+  reclamerInvitationAdmin,
+  rouvrirInvitationAdmin,
   getAdminAccount,
   countSuperAdmins,
   setAdminFlags,

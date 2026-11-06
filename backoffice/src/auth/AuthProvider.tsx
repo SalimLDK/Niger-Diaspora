@@ -13,12 +13,17 @@ import {
 import { fbAuth } from '../lib/firebase'
 import { echangerJeton, supabase } from '../lib/supabase'
 import { ALL_PERMS, type PermKey } from '../lib/permissions'
+import { accepterInvitation, messageCallable } from '../lib/roles'
+import { messageErreur } from '../lib/erreurs'
+
+export interface InvitationRecue { id: string; role: string; invited_by_name: string | null; expires_at: string }
 
 type Etat =
   | { k: 'chargement' }
   | { k: 'deconnecte'; message?: string }
   | { k: 'second_facteur'; resolver: MultiFactorResolver }
   | { k: 'enrolement'; user: User; secret: TotpSecret }
+  | { k: 'invitations'; email: string; items: InvitationRecue[] }
   | { k: 'pret'; email: string; perms: Set<PermKey> }
 
 interface Ctx {
@@ -26,6 +31,8 @@ interface Ctx {
   connexion: (email: string, mdp: string) => Promise<void>
   validerCode: (code: string) => Promise<void>
   confirmerEnrolement: (code: string) => Promise<void>
+  accepter: (id: string) => Promise<void>
+  refuser: (id: string) => Promise<void>
   deconnexion: () => Promise<void>
   peut: (p: PermKey) => boolean
 }
@@ -63,6 +70,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await echangerJeton(tok.token)
     const perms = await chargerPermissions()
     if (perms.size === 0) {
+      // Aucun droit : une invitation d'administration en attente se répond ICI, après le second facteur.
+      const { data: invs, error: errInv } = await supabase.rpc('admin_invitation_mine')
+      if (!errInv && Array.isArray(invs) && invs.length > 0) {
+        setEtat({ k: 'invitations', email: user.email ?? '', items: invs as InvitationRecue[] })
+        return
+      }
       await signOut(fbAuth)
       await supabase.auth.signOut()
       setEtat({ k: 'deconnecte', message: "Ce compte n'a aucun droit sur la console." })
@@ -79,7 +92,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         )
         return
       }
-      setEtat((e) => (e.k === 'pret' || e.k === 'enrolement' ? e : { k: 'chargement' }))
+      setEtat((e) => (e.k === 'pret' || e.k === 'enrolement' || e.k === 'invitations' ? e : { k: 'chargement' }))
       ouvrir(u).catch((err: Error) => {
         setEtat({ k: 'deconnecte', message: err.message })
       })
@@ -129,6 +142,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [etat],
   )
 
+  const accepter = useCallback(async (id: string) => {
+    try {
+      await accepterInvitation(id)
+    } catch (e) {
+      throw new Error(messageCallable(e))
+    }
+    await supabase.auth.signOut()
+    await signOut(fbAuth)
+    setEtat({ k: 'deconnecte', message: 'Invitation acceptée : votre rôle est activé. Reconnectez-vous pour commencer.' })
+  }, [])
+
+  const refuser = useCallback(async (id: string) => {
+    const { error } = await supabase.rpc('admin_invitation_decline', { p_id: id })
+    if (error) throw new Error(messageErreur(error))
+    await supabase.auth.signOut()
+    await signOut(fbAuth)
+    setEtat({ k: 'deconnecte', message: 'Invitation refusée. Aucun droit n\'a été activé.' })
+  }, [])
+
   const deconnexion = useCallback(async () => {
     await supabase.auth.signOut()
     await signOut(fbAuth)
@@ -138,8 +170,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const peut = useCallback((p: PermKey) => etat.k === 'pret' && etat.perms.has(p), [etat])
 
   const value = useMemo(
-    () => ({ etat, connexion, validerCode, confirmerEnrolement, deconnexion, peut }),
-    [etat, connexion, validerCode, confirmerEnrolement, deconnexion, peut],
+    () => ({ etat, connexion, validerCode, confirmerEnrolement, accepter, refuser, deconnexion, peut }),
+    [etat, connexion, validerCode, confirmerEnrolement, accepter, refuser, deconnexion, peut],
   )
   return <AuthCtx.Provider value={value}>{children}</AuthCtx.Provider>
 }

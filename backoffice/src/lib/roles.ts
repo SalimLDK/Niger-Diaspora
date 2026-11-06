@@ -46,3 +46,14 @@ export async function definirRole(uid: string, adminRole: string): Promise<void>
   const appeler = httpsCallable<{ uid: string; adminRole: string }, unknown>(getFunctions(fbApp), 'setAdminRole')
   await appeler({ uid, adminRole })
 }
+
+/**
+ * Accepte une invitation d'administration par la Cloud Function `accepterInvitationAdmin`. La personne n'a encore aucun
+ * droit : le serveur relit l'invitation, exige le second facteur et une connexion récente, puis écrit le rôle. Le rôle
+ * ne vient jamais du client.
+ */
+export async function accepterInvitation(invitationId: string): Promise<{ role: string }> {
+  const appeler = httpsCallable<{ invitationId: string }, { role: string }>(getFunctions(fbApp), 'accepterInvitationAdmin')
+  const r = await appeler({ invitationId })
+  return r.data
+}
