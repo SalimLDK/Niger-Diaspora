@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1554 cases à cocher, 55 cochées** — 333 entrées sur 347 ont encore des cases ouvertes.
+**1554 cases à cocher, 55 cochées** — 333 entrées sur 348 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -7006,6 +7006,13 @@ Ne pas chercher un composeur qui disparaît : il ne disparaîtra pas.
 Refonte Fil & Discussion (28 tours), stories, salons audio, podcasts.
 
 ---
+
+## ⬜ Texte long tronqué à 8 lignes dans le fil, « Voir plus » (2026-11-06)
+
+**Priorité P2** · importance 3/5 — Une publication très longue occupait tout l'écran du fil.
+
+`post_card.dart` (`_PostText`) coupe le texte à 8 lignes avec « Voir plus » dans le fil ; le détail reste entier.
+À vérifier sur appareil : texte court sans « Voir plus », texte long avec, police agrandie, thème sombre, tap → détail.
 
 ## ⬜ Une image seule prend la forme de la photo, plus une bande de 205 px (2026-09-14)
 
