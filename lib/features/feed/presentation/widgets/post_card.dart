@@ -55,6 +55,76 @@ String _formatTimeAgo(DateTime dt, BuildContext context) {
   return timeago.format(dt);
 }
 
+/// Nombre de lignes au-delà duquel un texte est coupé dans le fil : contrairement
+/// à X, une publication ici peut être très longue.
+const int _kLignesMaxFil = 8;
+
+/// Texte d'une publication. Dans le fil il est tronqué à [_kLignesMaxFil]
+/// lignes avec « Voir plus » (le tap ouvre le détail, comme sur la carte).
+class _PostText extends StatelessWidget {
+  final String text;
+  final bool tronquer;
+  final TextStyle? style;
+  final Color? mentionColor;
+  final Color? hashtagColor;
+  final OnMentionTap? onMentionTap;
+  final OnHashtagTap? onHashtagTap;
+
+  const _PostText({
+    required this.text,
+    required this.tronquer,
+    this.style,
+    this.mentionColor,
+    this.hashtagColor,
+    this.onMentionTap,
+    this.onHashtagTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final base = style ?? DefaultTextStyle.of(context).style;
+    final riche = RichTextWidget(
+      text: text,
+      style: base,
+      mentionColor: mentionColor,
+      hashtagColor: hashtagColor,
+      onMentionTap: onMentionTap,
+      onHashtagTap: onHashtagTap,
+      maxLines: tronquer ? _kLignesMaxFil : null,
+      overflow: tronquer ? TextOverflow.ellipsis : TextOverflow.clip,
+    );
+    if (!tronquer) return riche;
+
+    return LayoutBuilder(
+      builder: (context, c) {
+        final mesure = TextPainter(
+          text: RichTextParser.buildTextSpan(text: text, baseStyle: base),
+          maxLines: _kLignesMaxFil,
+          textDirection: Directionality.of(context),
+          textScaler: MediaQuery.textScalerOf(context),
+        )..layout(maxWidth: c.maxWidth);
+        final coupe = mesure.didExceedMaxLines;
+        mesure.dispose();
+        if (!coupe) return riche;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            riche,
+            const SizedBox(height: 4),
+            Text(
+              AppLocalizations.of(context)!.seeMore,
+              style: base.copyWith(
+                color: FeedTokens.of(context).hashtagColor,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
 class PostCard extends ConsumerWidget {
   final PostEntity post;
   final bool isDetail;
@@ -93,8 +163,9 @@ class PostCard extends ConsumerWidget {
               _PostHeader(post: post, l10n: l10n, isDetail: isDetail),
               if (post.content.isNotEmpty) ...[
                 const SizedBox(height: 10),
-                RichTextWidget(
+                _PostText(
                   text: post.content,
+                  tronquer: !isDetail,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     fontSize: 15.5,
                     height: 1.6,

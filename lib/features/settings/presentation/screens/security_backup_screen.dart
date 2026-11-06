@@ -19,6 +19,8 @@ import 'package:diaspo_niger/shared/widgets/app_icon.dart';
 import 'package:diaspo_niger/core/errors/error_handler.dart';
 
 import 'package:go_router/go_router.dart';
+
+import '../widgets/historique_backup_section.dart';
 /// Écran de sauvegarde et restauration des clés E2EE
 ///
 /// **Tout ce qu'il sauvegarde, transfère et restaure est Signal** : le QR
@@ -424,6 +426,8 @@ class _SecurityBackupScreenState extends ConsumerState<SecurityBackupScreen> {
               _buildCarteChiffrement(theme, l10n),
               const SizedBox(height: 24),
               const _DiscussionsChiffreesMls(),
+              const SizedBox(height: 24),
+              const HistoriqueBackupSection(),
             ],
           ),
         ),

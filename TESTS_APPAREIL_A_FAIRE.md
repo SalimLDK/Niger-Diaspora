@@ -39,7 +39,7 @@ un domaine, de la plus récente à la plus ancienne.
 <!-- sommaire:debut -->
 <!-- Généré par tools/index_tests_appareil.py : ne pas éditer à la main. -->
 
-**1554 cases à cocher, 55 cochées** — 333 entrées sur 347 ont encore des cases ouvertes.
+**1566 cases à cocher, 55 cochées** — 334 entrées sur 349 ont encore des cases ouvertes.
 
 Par priorité, puis par importance (le nombre en tête de ligne est celui des cases ouvertes) :
 
@@ -98,7 +98,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 3 · [Sécurité / Comptes connectés](#sécurité--comptes-connectés) · *Comptes, session et onboarding* · bloqué
 - 6 · [Bruit dans logcat — deux traces à ne pas re-diagnostiquer (2026-08-05)](#bruit-dans-logcat--deux-traces-à-ne-pas-re-diagnostiquer-2026-08-05) · *Backend, sécurité et observabilité* · bloqué
 
-**P1 — fonction importante, jamais vérifiée** (134)
+**P1 — fonction importante, jamais vérifiée** (135)
 
 - 6 · [⬜ Actualisation automatique après coupure ou retour d'arrière-plan (2026-09-13)](#-actualisation-automatique-après-coupure-ou-retour-darrière-plan-2026-09-13) · *Messagerie*
 - 5 · [⬜ Groupes officiels de ville (2026-09-14)](#-groupes-officiels-de-ville-2026-09-14) · *Groupes*
@@ -143,6 +143,7 @@ Par priorité, puis par importance (le nombre en tête de ligne est celui des ca
 - 4 · [⬜ Exclure un membre d'un groupe échouait toujours (2026-09-17)](#-exclure-un-membre-dun-groupe-échouait-toujours-2026-09-17) · *Groupes*
 - 4 · [⬜ Noms des candidats à l'invitation et à l'ajout en appel (2026-09-14)](#-noms-des-candidats-à-linvitation-et-à-lajout-en-appel-2026-09-14) · *Groupes*
 - 3 · [⛔ Un membre non-admin ne peut pas ouvrir la discussion de son groupe (2026-09-09)](#-un-membre-non-admin-ne-peut-pas-ouvrir-la-discussion-de-son-groupe-2026-09-09) · *Groupes* · bloqué
+- 12 · [⬜ Sauvegarde automatique de l'historique MLS : survit-elle à une réinstallation ? (2026-10-23)](#-sauvegarde-automatique-de-lhistorique-mls--survit-elle-à-une-réinstallation--2026-10-23) · *Chiffrement de bout en bout et clés*
 - 5 · [⬜ Pixel réinstallé : la discussion MLS avec Sim A se rouvre malgré des Welcome périmés (2026-09-21)](#-pixel-réinstallé--la-discussion-mls-avec-sim-a-se-rouvre-malgré-des-welcome-périmés-2026-09-21) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ L'app lancée sans son écran n'inscrit plus d'appareil fantôme (2026-09-16)](#-lapp-lancée-sans-son-écran-ninscrit-plus-dappareil-fantôme-2026-09-16) · *Chiffrement de bout en bout et clés*
 - 3 · [⬜ « Chiffré de bout en bout » corrigé sur 8 surfaces, dont la politique de confidentialité (2026-09-16)](#--chiffré-de-bout-en-bout--corrigé-sur-8-surfaces-dont-la-politique-de-confidentialité-2026-09-16) · *Chiffrement de bout en bout et clés*
@@ -396,7 +397,7 @@ Par domaine :
 - [1. Appareils, comptes de test et méthode](#1-appareils-comptes-de-test-et-méthode) — 3 à faire, 0 faites
 - [2. Messagerie](#2-messagerie) — 312 à faire, 31 faites
 - [3. Groupes](#3-groupes) — 128 à faire, 0 faites
-- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 121 à faire, 4 faites
+- [4. Chiffrement de bout en bout et clés](#4-chiffrement-de-bout-en-bout-et-clés) — 133 à faire, 4 faites
 - [5. Appels](#5-appels) — 24 à faire, 1 faites
 - [6. Notifications et push](#6-notifications-et-push) — 115 à faire, 6 faites
 - [7. Liens profonds, navigation et QR codes](#7-liens-profonds-navigation-et-qr-codes) — 46 à faire, 0 faites
@@ -3816,6 +3817,26 @@ Signal 1:1 et groupes, repli AES, clés dérivées, sauvegarde et transfert des 
 
 ---
 
+## ⬜ Sauvegarde automatique de l'historique MLS : survit-elle à une réinstallation ? (2026-10-23)
+
+**Priorité P1** · importance 4/5 — Un compte MLS qui désinstalle puis réinstalle perd tout son historique : le moteur ne relit pas ce qu'il a déjà déchiffré (la clé de chaque message est effacée après usage) et ni sa base ni le cache du clair ne partent dans une sauvegarde. Nouveau : Sécurité → « Historique des messages ». Une clé de récupération (six mots) est affichée UNE fois, le texte déjà déchiffré est envoyé chiffré avec elle (`historique_backup_service.dart`, `historique_backup_section.dart`, déclencheur `historique_auto_provider.dart`). Jamais vu sur téléphone.
+
+À vérifier à l'écran, sur un compte MLS qui a de vrais messages :
+- [ ] « Activer la sauvegarde automatique » : la clé s'affiche, « Activer » reste grisé tant que « J'ai noté cette clé » n'est pas coché ; un envoi part tout de suite, la ligne affiche ensuite date et nombre de messages.
+- [ ] **Désinstaller, réinstaller, se reconnecter, « Restaurer l'historique »** avec la clé notée : les messages texte reviennent dans la discussion **après l'avoir rouverte** (le cache est relu à l'ouverture), dans le bon ordre, avec ceux reçus depuis la réinstallation. La sauvegarde automatique est de nouveau activée (la ligne le dit).
+- [ ] Les messages d'**avant la réinstallation** ne sont pas masqués par le filtre « avant l'arrivée » (`ea212c9`) une fois restaurés — le point le plus douteux.
+- [ ] Mauvaise clé → « passphrase invalide », rien n'est écrit.
+- [ ] **Après réinstallation, AVANT de restaurer** : activer avec une clé neuve affiche l'avertissement « une sauvegarde existe déjà… sera remplacée ». Annuler la laisse intacte.
+- [ ] Une seconde restauration ne duplique rien et n'écrase pas un message modifié depuis.
+- [ ] La sauvegarde ne rétrécit pas : après une restauration, « Sauvegarder maintenant » garde le même nombre de messages (ou plus).
+- [ ] Un message « supprimé pour tous » après la première sauvegarde ne revient pas à la restauration suivante.
+- [ ] Envoi automatique : app laissée 3 minutes au premier plan, puis mise en arrière-plan ; la date de la ligne avance (au plus une fois par 24 h).
+- [ ] Photos, vidéos, éphémères et « supprimé pour tous » ne reviennent pas (voulu).
+- [ ] « Désactiver » oublie la clé (la ligne repasse à « Activer ») mais la sauvegarde reste restaurable ; « Supprimer » retire le fichier.
+- [ ] Thème sombre : tuiles, dialogue de la clé et messages d'erreur lisibles ; clé lisible en police 130 %.
+
+---
+
 ## ⬜ Groupe chiffré : un administrateur ne peut rien retirer (2026-09-22)
 
 **Priorité P1** · importance 3/5 — Un administrateur de groupe chiffré se voit proposer « Supprimer pour tous » sur le message d'un membre, et rien ne se passe : aucune modération n'est possible.
@@ -7006,6 +7027,13 @@ Ne pas chercher un composeur qui disparaît : il ne disparaîtra pas.
 Refonte Fil & Discussion (28 tours), stories, salons audio, podcasts.
 
 ---
+
+## ⬜ Texte long tronqué à 8 lignes dans le fil, « Voir plus » (2026-11-06)
+
+**Priorité P2** · importance 3/5 — Une publication très longue occupait tout l'écran du fil.
+
+`post_card.dart` (`_PostText`) coupe le texte à 8 lignes avec « Voir plus » dans le fil ; le détail reste entier.
+À vérifier sur appareil : texte court sans « Voir plus », texte long avec, police agrandie, thème sombre, tap → détail.
 
 ## ⬜ Une image seule prend la forme de la photo, plus une bande de 205 px (2026-09-14)
 
