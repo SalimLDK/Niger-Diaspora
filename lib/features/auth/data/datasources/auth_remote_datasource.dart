@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:developer' as dev;
 import 'dart:math';
+import '../../../../core/utils/avatar_google.dart';
 import 'package:crypto/crypto.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
@@ -846,7 +847,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       final ecrite = await ecrireSaLigneUsers(_supabase, user.uid, {
         'email': email ?? user.email,
         'display_name': displayName ?? user.displayName,
-        'avatar_url': photoUrl ?? user.photoURL,
+        'avatar_url': agrandirPhotoGoogle(photoUrl ?? user.photoURL),
         'phone_number': user.phoneNumber,
         'updated_at': DateTime.now().toUtc().toIso8601String(),
       });

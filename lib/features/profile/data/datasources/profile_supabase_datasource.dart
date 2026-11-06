@@ -8,6 +8,7 @@ import '../../../../core/constants/colonnes_users.dart';
 import '../../../../core/constants/profile_options.dart';
 import '../../../../core/utils/position_partagee.dart';
 import '../../../../core/services/cache_service.dart';
+import '../../../../core/utils/avatar_google.dart';
 import '../../../../core/services/ecriture_ligne_users.dart';
 import '../../../../core/services/image_upload_service.dart';
 import '../../../../core/services/supabase_auth_bridge.dart';
@@ -19,7 +20,8 @@ Map<String, dynamic> _mapProfile(Map<String, dynamic> row) => {
   'email': row['email'],
   'displayName': row['display_name'],
   'handle': row['handle'],
-  'photoUrl': row['avatar_url'],
+  // Les avatars Google déjà en base sont restés en 96 px.
+  'photoUrl': agrandirPhotoGoogle(row['avatar_url'] as String?),
   'phoneNumber': row['phone_number'],
   'bio': row['bio'],
   'profession': row['profession'],
