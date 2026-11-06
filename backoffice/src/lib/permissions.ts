@@ -14,6 +14,7 @@ export const PERM = {
   settings: 'settings.general.view',
   templates: 'support.templates.manage',
   admins: 'security.admins.promote',
+  contactMembre: 'community.members.contact',
   support: 'support.tickets.view',
   events: 'events.attendance.view',
   directory: 'directory.listings.view',

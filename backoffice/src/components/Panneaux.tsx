@@ -2,6 +2,9 @@ import { useState, type FormEvent, type ReactNode } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { supabase } from '../lib/supabase'
 import { messageErreur } from '../lib/erreurs'
+import { useAuth } from '../auth/AuthProvider'
+import { PERM } from '../lib/permissions'
+import ContacterMembre from './ContacterMembre'
 import { Badge, ErrorBox, Loading, fmtDate } from './States'
 
 /** Appelle une fonction serveur, rafraîchit les listes, affiche l'erreur telle quelle. */
@@ -246,8 +249,15 @@ export function PanneauMembre({ id, nom, onClose }: { id: string; nom: string; o
   const [motif, setMotif] = useState('')
   const avertir = useAction('member_admin_warn', onClose)
   const deconnecter = useAction('member_admin_force_logout', onClose)
+  const { peut } = useAuth()
   return (
     <Panneau titre={nom} onClose={onClose}>
+      {peut(PERM.contactMembre) && (
+        <>
+          <ContacterMembre membreId={id} nom={nom} />
+          <hr />
+        </>
+      )}
       <h3 className="text-sm font-semibold">Signalements visant ce membre</h3>
       {histo.isLoading && <Loading />}
       {histo.isError && <ErrorBox error={histo.error} />}

@@ -36,6 +36,16 @@ Transverse : modèles de réponse du support, escalade, historique des signaleme
 export du journal par fonction serveur (inscrit lui-même au journal), menu réductible, déconnexion après
 15 minutes d'inactivité.
 
+## Contacter un membre (préparé, non appliqué)
+
+Page Membres, panneau d'un membre : un message administratif individuel, motivé et tracé. Le serveur
+(`member_admin_contact`, migration `20261106090000`) ouvre un **ticket de support au nom du membre** : il le lit dans
+l'aide de l'application et peut y répondre, sans changement de l'application. La notification qu'il reçoit ne reprend
+jamais le texte. Permission `community.members.contact` (contentMod ; superAdmin a tout le catalogue), motif normalisé,
+3 messages par membre et 30 par administrateur et par 24 h, audit sans le texte. Banc :
+`tools/rls_tests/contacter_un_membre.sql`. Pas de pièce jointe, pas de contact en masse (campagnes), pas de lecture des
+conversations privées. Politique de conservation des échanges : à décider.
+
 ## Ce qui n'est pas dans cette version
 
 - Envoi effectif d'une campagne par lots (la console crée, soumet, valide et annule ; l'envoi reste côté panneau actuel).
