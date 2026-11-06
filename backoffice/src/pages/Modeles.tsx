@@ -6,7 +6,7 @@ import { Panneau, useAction } from '../components/Panneaux'
 import { messageErreur } from '../lib/erreurs'
 
 interface Modele { id: string; title: string; body: string; category: string }
-const CATEGORIES = ['directory', 'privacy', 'complaint', 'appeal', 'security']
+const CATEGORIES = ['transaction', 'account', 'technical', 'other', 'directory', 'privacy', 'complaint', 'appeal', 'security']
 
 /** Modèles de réponse du support : le serveur borne les champs et journalise chaque changement. */
 export default function Modeles() {
@@ -48,7 +48,7 @@ export default function Modeles() {
 function Editeur({ m, onClose }: { m: Modele | null; onClose: () => void }) {
   const [titre, setTitre] = useState(m?.title ?? '')
   const [corps, setCorps] = useState(m?.body ?? '')
-  const [cat, setCat] = useState(m?.category ?? 'complaint')
+  const [cat, setCat] = useState(m?.category ?? 'other')
   const sauver = useAction('support_template_save', onClose)
   const supprimer = useAction('support_template_delete', onClose)
 
