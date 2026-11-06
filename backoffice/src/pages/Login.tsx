@@ -8,7 +8,7 @@ import { libelleRole } from '../lib/roles'
 import { fmtDate } from '../components/States'
 
 export default function Login() {
-  const { etat, connexion, validerCode, confirmerEnrolement, accepter, refuser, deconnexion } = useAuth()
+  const { etat, connexion, validerCode, confirmerEnrolement, accepter, refuser, deconnexion, entrerEnDemo } = useAuth()
   const [email, setEmail] = useState('')
   const [mdp, setMdp] = useState('')
   const [code, setCode] = useState('')
@@ -121,6 +121,10 @@ export default function Login() {
             <button type="button" className="w-full text-center text-sm text-brand underline" onClick={() => void oublie()}>
               Mot de passe oublié
             </button>
+            <div className="border-t border-slate-200 pt-3 text-center">
+              <button type="button" className="btn btn-ghost w-full justify-center" onClick={entrerEnDemo}>Découvrir la démo</button>
+              <p className="mt-1 text-xs text-slate-500">Données fictives, hors ligne : rien n'est envoyé ni enregistré, et aucun accès réel n'est donné.</p>
+            </div>
           </form>
         )}
         {info && (

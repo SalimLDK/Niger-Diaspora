@@ -1,5 +1,7 @@
 import { getFunctions, httpsCallable } from 'firebase/functions'
 import { fbApp } from './firebase'
+import { demoActif } from '../demo/etat'
+import { donneesDemo } from '../demo/client'
 
 export interface RoleInfo { id: string; label: string; limite: boolean }
 
@@ -43,6 +45,11 @@ export function messageCallable(e: unknown): string {
  * écrit la base, pose le claim, et journalise. La console ne touche jamais la table des comptes directement.
  */
 export async function definirRole(uid: string, adminRole: string): Promise<void> {
+  if (demoActif()) {
+    const u = donneesDemo().tables.users.find((x) => x.id === uid)
+    if (u) { u.admin_role = adminRole === 'none' ? null : adminRole; u.is_admin = adminRole !== 'none' }
+    return
+  }
   const appeler = httpsCallable<{ uid: string; adminRole: string }, unknown>(getFunctions(fbApp), 'setAdminRole')
   await appeler({ uid, adminRole })
 }
@@ -53,6 +60,7 @@ export async function definirRole(uid: string, adminRole: string): Promise<void>
  * ne vient jamais du client.
  */
 export async function accepterInvitation(invitationId: string): Promise<{ role: string }> {
+  if (demoActif()) return { role: 'auditor' }
   const appeler = httpsCallable<{ invitationId: string }, { role: string }>(getFunctions(fbApp), 'accepterInvitationAdmin')
   const r = await appeler({ invitationId })
   return r.data

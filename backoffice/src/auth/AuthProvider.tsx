@@ -15,6 +15,8 @@ import { echangerJeton, supabase } from '../lib/supabase'
 import { ALL_PERMS, type PermKey } from '../lib/permissions'
 import { accepterInvitation, messageCallable } from '../lib/roles'
 import { messageErreur } from '../lib/erreurs'
+import { activerDemo, demoActif, desactiverDemo, IDENTITE_DEMO } from '../demo/etat'
+import { reinitialiserDemo } from '../demo/client'
 
 export interface InvitationRecue { id: string; role: string; invited_by_name: string | null; expires_at: string }
 
@@ -31,6 +33,7 @@ interface Ctx {
   connexion: (email: string, mdp: string) => Promise<void>
   validerCode: (code: string) => Promise<void>
   confirmerEnrolement: (code: string) => Promise<void>
+  entrerEnDemo: () => void
   accepter: (id: string) => Promise<void>
   refuser: (id: string) => Promise<void>
   deconnexion: () => Promise<void>
@@ -161,7 +164,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setEtat({ k: 'deconnecte', message: 'Invitation refusée. Aucun droit n\'a été activé.' })
   }, [])
 
+  /** Mode démo : données inventées, aucun appel réseau, rien de conservé. N'ouvre aucun accès réel. */
+  const entrerEnDemo = useCallback(() => {
+    reinitialiserDemo()
+    activerDemo()
+    setEtat({ k: 'pret', email: IDENTITE_DEMO.email, perms: new Set(ALL_PERMS) })
+  }, [])
+
   const deconnexion = useCallback(async () => {
+    if (demoActif()) {
+      desactiverDemo()
+      setEtat({ k: 'deconnecte' })
+      return
+    }
     await supabase.auth.signOut()
     await signOut(fbAuth)
     setEtat({ k: 'deconnecte' })
@@ -170,8 +185,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const peut = useCallback((p: PermKey) => etat.k === 'pret' && etat.perms.has(p), [etat])
 
   const value = useMemo(
-    () => ({ etat, connexion, validerCode, confirmerEnrolement, accepter, refuser, deconnexion, peut }),
-    [etat, connexion, validerCode, confirmerEnrolement, accepter, refuser, deconnexion, peut],
+    () => ({ etat, connexion, validerCode, confirmerEnrolement, entrerEnDemo, accepter, refuser, deconnexion, peut }),
+    [etat, connexion, validerCode, confirmerEnrolement, entrerEnDemo, accepter, refuser, deconnexion, peut],
   )
   return <AuthCtx.Provider value={value}>{children}</AuthCtx.Provider>
 }

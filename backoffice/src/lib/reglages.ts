@@ -4,6 +4,8 @@ import {
 } from 'firebase/firestore'
 import { getApp } from 'firebase/app'
 import { fbAuth } from './firebase'
+import { demoActif } from '../demo/etat'
+import { donneesDemo } from '../demo/client'
 
 const db = () => getFirestore(getApp())
 const SETTINGS = ['app_config', 'settings'] as const
@@ -21,6 +23,7 @@ export interface Entree {
 }
 
 export async function lireReglages(): Promise<Record<string, Section>> {
+  if (demoActif()) return structuredClone(donneesDemo().reglages)
   const snap = await getDoc(doc(db(), ...SETTINGS))
   const data = (snap.data() ?? {}) as Record<string, unknown>
   const out: Record<string, Section> = {}
@@ -31,6 +34,9 @@ export async function lireReglages(): Promise<Record<string, Section>> {
 }
 
 export async function lireHistorique(): Promise<Entree[]> {
+  if (demoActif()) {
+    return donneesDemo().historique.map((h) => ({ ...h, at: new Date(h.at) }))
+  }
   const snap = await getDocs(query(collection(db(), 'app_config_history'), orderBy('at', 'desc'), limit(50)))
   return snap.docs.map((d) => {
     const x = d.data() as Record<string, unknown>
@@ -55,6 +61,13 @@ export async function lireHistorique(): Promise<Entree[]> {
 export async function ecrireSection(
   section: string, data: Section, raison: string, kind: 'update' | 'restore' = 'update', restoredFrom?: string,
 ): Promise<void> {
+  if (demoActif()) {
+    if (!raison.trim()) throw new Error('Un motif est obligatoire.')
+    const d = donneesDemo()
+    d.historique.unshift({ id: `demo-h${Date.now()}`, section, before: d.reglages[section] ?? null, after: data, by: 'demo-admin', at: new Date().toISOString(), kind, reason: raison.trim() })
+    d.reglages[section] = data
+    return
+  }
   const uid = fbAuth.currentUser?.uid
   if (!uid) throw new Error('Aucune session : écriture refusée.')
   if (!raison.trim()) throw new Error('Un motif est obligatoire.')

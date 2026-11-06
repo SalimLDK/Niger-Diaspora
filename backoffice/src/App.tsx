@@ -4,6 +4,7 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { useInactivite } from './auth/useInactivite'
 import { appliquerTheme, themeSombreActif } from './lib/theme'
 import RechercheGlobale from './components/RechercheGlobale'
+import { demoActif } from './demo/etat'
 import { useAuth } from './auth/AuthProvider'
 import { PERM, type PermKey } from './lib/permissions'
 import Login from './pages/Login'
@@ -76,6 +77,11 @@ function Shell() {
   return (
     <>
     <a href="#contenu" className="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-20 focus:rounded focus:bg-white focus:p-2">Aller au contenu</a>
+    {demoActif() && (
+      <div role="status" className="bg-yellow-100 px-4 py-2 text-center text-sm font-medium text-yellow-900">
+        MODE DÉMO — données fictives, rien n'est envoyé ni enregistré. Un rechargement revient à la connexion.
+      </div>
+    )}
     <div className={`grid min-h-screen grid-cols-1 ${reduit ? 'md:grid-cols-[4rem_1fr]' : 'md:grid-cols-[15rem_1fr]'}`}>
       <aside className="bg-ink p-4 text-slate-200">
         <div className="mb-6 flex items-center justify-between">
