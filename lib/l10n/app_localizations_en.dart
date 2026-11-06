@@ -12481,6 +12481,105 @@ class AppLocalizationsEn extends AppLocalizations {
   String get mlsBackupRevokeHint => 'Then revoke the old device.';
 
   @override
+  String get historyBackupSection => 'Message history';
+
+  @override
+  String get historyBackupBody =>
+      'Without a backup, the history of your encrypted conversations does not survive a reinstall. Turn on automatic backup: the text is sent encrypted with a recovery key that only you hold. Photos, videos, disappearing and deleted messages are not included.';
+
+  @override
+  String get historyBackupAction => 'Turn on automatic backup';
+
+  @override
+  String get historyRestoreAction => 'Restore history';
+
+  @override
+  String get historyBackupNone => 'No backup yet';
+
+  @override
+  String historyBackupLast(String date, int count) {
+    return 'Last backup: $date · $count messages';
+  }
+
+  @override
+  String historyBackupDone(int count) {
+    return '$count messages backed up';
+  }
+
+  @override
+  String get historyBackupTruncated =>
+      'The oldest messages could not be included: the file was too large.';
+
+  @override
+  String get historyBackupNothing =>
+      'There are no messages to back up on this device.';
+
+  @override
+  String get historyRestoreHint => 'Enter the history recovery key.';
+
+  @override
+  String historyRestoreDone(int count) {
+    return '$count messages restored';
+  }
+
+  @override
+  String get historyRestoreNothingNew => 'Nothing new to restore.';
+
+  @override
+  String get historyAutoTitle => 'Automatic backup';
+
+  @override
+  String get historyAutoOn => 'On';
+
+  @override
+  String historyAutoOnLast(String date, int count) {
+    return 'On · last: $date · $count messages';
+  }
+
+  @override
+  String get historyBackupNowAction => 'Back up now';
+
+  @override
+  String get historyKeyTitle => 'Your recovery key';
+
+  @override
+  String get historyKeyBody =>
+      'Write these words down and keep them somewhere safe. They will never be shown again. Without this key the history cannot be recovered after a reinstall: nobody, not even us, can retrieve it.';
+
+  @override
+  String get historyKeySaved => 'I have written this key down';
+
+  @override
+  String get historyKeyActivate => 'Turn on';
+
+  @override
+  String get historyOverwriteWarning =>
+      'A backup already exists for this account. Turning on with a new key will replace it and its content will be lost. To keep it, cancel and restore it first with its old key.';
+
+  @override
+  String get historyDisableAction => 'Turn off automatic backup';
+
+  @override
+  String get historyDisableConfirm =>
+      'Turn off automatic backup? The key stored on this phone will be forgotten. The backup already sent stays recoverable with the key you wrote down.';
+
+  @override
+  String get historyUnreadable =>
+      'The existing backup cannot be opened with this phone\'s key. Nothing was changed.';
+
+  @override
+  String historyRestoreAutoOn(int count) {
+    return '$count messages restored. Automatic backup stays on with this key.';
+  }
+
+  @override
+  String get historyDeleteConfirm =>
+      'Delete the history backup? This cannot be undone.';
+
+  @override
+  String get historyDeleteDone => 'History backup deleted';
+
+  @override
   String get mlsDeviceRevokeConfirm =>
       'This device will no longer be able to join encrypted conversations. Continue?';
 

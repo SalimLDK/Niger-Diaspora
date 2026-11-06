@@ -12613,6 +12613,106 @@ class AppLocalizationsFr extends AppLocalizations {
       'Pensez ensuite à révoquer l\'ancien appareil.';
 
   @override
+  String get historyBackupSection => 'Historique des messages';
+
+  @override
+  String get historyBackupBody =>
+      'Sans sauvegarde, l\'historique de vos discussions chiffrées ne survit pas à une réinstallation. Activez la sauvegarde automatique : le texte est envoyé chiffré avec une clé de récupération que vous seul détenez. Photos, vidéos, messages éphémères et supprimés ne sont pas inclus.';
+
+  @override
+  String get historyBackupAction => 'Activer la sauvegarde automatique';
+
+  @override
+  String get historyRestoreAction => 'Restaurer l\'historique';
+
+  @override
+  String get historyBackupNone => 'Aucune sauvegarde pour l\'instant';
+
+  @override
+  String historyBackupLast(String date, int count) {
+    return 'Dernière sauvegarde : $date · $count messages';
+  }
+
+  @override
+  String historyBackupDone(int count) {
+    return '$count messages sauvegardés';
+  }
+
+  @override
+  String get historyBackupTruncated =>
+      'Les plus anciens messages n\'ont pas pu être inclus : le fichier était trop volumineux.';
+
+  @override
+  String get historyBackupNothing =>
+      'Aucun message à sauvegarder sur cet appareil.';
+
+  @override
+  String get historyRestoreHint =>
+      'Entrez la clé de récupération de l\'historique.';
+
+  @override
+  String historyRestoreDone(int count) {
+    return '$count messages restaurés';
+  }
+
+  @override
+  String get historyRestoreNothingNew => 'Rien de nouveau à restaurer.';
+
+  @override
+  String get historyAutoTitle => 'Sauvegarde automatique';
+
+  @override
+  String get historyAutoOn => 'Activée';
+
+  @override
+  String historyAutoOnLast(String date, int count) {
+    return 'Activée · dernière : $date · $count messages';
+  }
+
+  @override
+  String get historyBackupNowAction => 'Sauvegarder maintenant';
+
+  @override
+  String get historyKeyTitle => 'Votre clé de récupération';
+
+  @override
+  String get historyKeyBody =>
+      'Notez ces mots et gardez-les en lieu sûr. Ils ne seront plus jamais affichés. Sans cette clé, l\'historique est irrécupérable après une réinstallation : personne, pas même nous, ne peut la retrouver.';
+
+  @override
+  String get historyKeySaved => 'J\'ai noté cette clé';
+
+  @override
+  String get historyKeyActivate => 'Activer';
+
+  @override
+  String get historyOverwriteWarning =>
+      'Une sauvegarde existe déjà pour ce compte. Activer avec une nouvelle clé la remplacera et son contenu sera perdu. Pour le garder, annulez et restaurez-la d\'abord avec son ancienne clé.';
+
+  @override
+  String get historyDisableAction => 'Désactiver la sauvegarde automatique';
+
+  @override
+  String get historyDisableConfirm =>
+      'Désactiver la sauvegarde automatique ? La clé enregistrée sur ce téléphone sera oubliée. La sauvegarde déjà envoyée reste récupérable avec la clé que vous avez notée.';
+
+  @override
+  String get historyUnreadable =>
+      'La sauvegarde existante ne s\'ouvre pas avec la clé de ce téléphone. Rien n\'a été modifié.';
+
+  @override
+  String historyRestoreAutoOn(int count) {
+    return '$count messages restaurés. La sauvegarde automatique reste activée avec cette clé.';
+  }
+
+  @override
+  String get historyDeleteConfirm =>
+      'Supprimer la sauvegarde de l\'historique ? Cette action est définitive.';
+
+  @override
+  String get historyDeleteDone => 'Sauvegarde de l\'historique supprimée';
+
+  @override
   String get mlsDeviceRevokeConfirm =>
       'Cet appareil ne pourra plus rejoindre de conversation chiffrée. Continuer ?';
 
